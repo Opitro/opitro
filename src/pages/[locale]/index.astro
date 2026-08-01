@@ -1,0 +1,65 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+
+export function getStaticPaths() {
+  const locales = ['ru', 'en'];
+  return locales.map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+
+const allCategories = await getCollection('categories');
+const categories = allCategories.filter((c) => c.data.locale === locale);
+
+const allTools = await getCollection('tools');
+const toolsByCategory = Object.fromEntries(
+  categories.map((c) => [
+    c.data.catSlug,
+    allTools.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
+  ])
+);
+
+const title = locale === 'ru' ? 'CalcCatalog — калькуляторы и онлайн-инструменты' : 'CalcCatalog — calculators and online tools';
+const description =
+  locale === 'ru'
+    ? 'Бесплатные калькуляторы, конвертеры и онлайн-инструменты. Всё считается прямо в браузере.'
+    : 'Free calculators, converters, and online tools. Everything runs right in your browser.';
+---
+
+<Layout locale={locale} title={title} description={description} path="">
+  <div class="main">
+    <h1>{title}</h1>
+    <p class="subtitle">{description}</p>
+    <div class="accordion">
+      {categories.map((c) => (
+        <details class="acc-item">
+          <summary>
+            <span>{c.data.title}</span>
+            <span class="acc-count">{toolsByCategory[c.data.catSlug].length}</span>
+          </summary>
+          <div class="acc-body">
+            {toolsByCategory[c.data.catSlug].map((t) => (
+              <a class="acc-link" href={`/${t.data.locale}/${t.data.toolSlug}`}>{t.data.h1}</a>
+            ))}
+            <a class="acc-link acc-all" href={`/${locale}/tools/${c.data.catSlug}`}>
+              {locale === 'ru' ? 'Все инструменты →' : 'All tools →'}
+            </a>
+          </div>
+        </details>
+      ))}
+    </div>
+  </div>
+</Layout>
+
+<style>
+  .accordion{display:flex;flex-direction:column;gap:10px;margin-top:8px}
+  .acc-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
+  .acc-item summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px}
+  .acc-item summary::-webkit-details-marker{display:none}
+  .acc-count{font-size:12px;color:var(--muted);font-weight:400;background:var(--surface-2);padding:2px 9px;border-radius:20px}
+  .acc-body{display:flex;flex-direction:column;padding:0 18px 14px;gap:2px}
+  .acc-link{color:var(--muted);text-decoration:none;font-size:13.5px;padding:8px 0;border-top:1px solid var(--line)}
+  .acc-link:hover{color:var(--accent)}
+  .acc-all{color:var(--accent);font-weight:600}
+</style>

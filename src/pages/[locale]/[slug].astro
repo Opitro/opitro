@@ -1,0 +1,84 @@
+---
+import { getCollection, render } from 'astro:content';
+import Layout from '../../layouts/Layout.astro';
+import LinearConverter from '../../components/LinearConverter.astro';
+
+export async function getStaticPaths() {
+  const locales = ['ru', 'en'];
+  const allTools = await getCollection('tools');
+  return allTools
+    .filter((entry) => locales.includes(entry.data.locale))
+    .map((entry) => ({
+      params: { locale: entry.data.locale, slug: entry.data.toolSlug },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+const { Content } = await render(entry);
+
+const allTools = await getCollection('tools');
+
+const translations = allTools
+  .filter((t) => t.data.toolSlug === entry.data.toolSlug)
+  .map((t) => ({ locale: t.data.locale, slug: t.data.toolSlug }));
+
+const related = allTools.filter(
+  (t) =>
+    t.data.category === entry.data.category &&
+    t.data.locale === entry.data.locale &&
+    t.data.toolSlug !== entry.data.toolSlug
+);
+
+const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
+const relatedLabel = entry.data.locale === 'ru' ? 'Похожие калькуляторы' : 'Related calculators';
+
+const faqJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: entry.data.faq.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+  })),
+};
+---
+
+<Layout
+  locale={entry.data.locale}
+  title={entry.data.title}
+  description={entry.data.description}
+  translations={translations}
+  path={entry.data.toolSlug}
+>
+  <div class="main">
+    <h1>{entry.data.h1}</h1>
+    {entry.data.engine === 'linear-converter' && <LinearConverter {...entry.data.engineParams} />}
+  </div>
+
+  <section class="seo">
+    <Content />
+    <h2>{faqLabel}</h2>
+    {entry.data.faq.map((item) => (
+      <div style="margin-bottom:18px">
+        <h3>{item.question}</h3>
+        <p>{item.answer}</p>
+      </div>
+    ))}
+  </section>
+
+  {related.length > 0 && (
+    <section class="all-tools">
+      <h2 class="all-tools-title">{relatedLabel}</h2>
+      <div class="all-tools-grid">
+        {related.map((r) => (
+          <a class="tool-card" href={`/${r.data.locale}/${r.data.toolSlug}`}>
+            <span class="tc-name">{r.data.h1}</span>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+</Layout>
+
+<script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />

@@ -1,0 +1,118 @@
+---
+interface Translation {
+  locale: string;
+  slug: string;
+}
+
+interface Props {
+  locale: string;
+  title: string;
+  description: string;
+  /** Other language versions of this exact page, for hreflang + the language switcher. Omit on pages that don't vary by tool (e.g. homepage). */
+  translations?: Translation[];
+  /** Path after the locale segment, e.g. "km-v-mili" or "" for the homepage. */
+  path?: string;
+}
+
+const { locale, title, description, translations = [], path = '' } = Astro.props;
+
+const LOCALE_NAMES: Record<string, string> = { ru: 'Русский', en: 'English' };
+const DEFAULT_LOCALE = 'ru';
+
+const canonicalUrl = new URL(`/${locale}/${path}`, Astro.site).toString();
+---
+
+<!DOCTYPE html>
+<html lang={locale}>
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover">
+<link rel="icon" type="image/svg+xml" href="/favicon.svg">
+<link rel="icon" type="image/x-icon" href="/favicon.ico">
+<title>{title}</title>
+<meta name="description" content={description}>
+<meta name="robots" content="index, follow">
+<meta property="og:type" content="website">
+<meta property="og:title" content={title}>
+<meta property="og:description" content={description}>
+<meta property="og:url" content={canonicalUrl}>
+<meta name="theme-color" content="#0e0f11">
+<link rel="canonical" href={canonicalUrl}>
+{translations.map((t) => (
+  <link rel="alternate" hreflang={t.locale} href={new URL(`/${t.locale}/${path}`, Astro.site).toString()} />
+))}
+{translations.some((t) => t.locale === DEFAULT_LOCALE) && (
+  <link rel="alternate" hreflang="x-default" href={new URL(`/${DEFAULT_LOCALE}/${path}`, Astro.site).toString()} />
+)}
+<style is:global>
+  :root{
+    --bg:#0e0f11;--surface:#181a20;--surface-2:#1c1e24;--line:rgba(255,255,255,0.09);
+    --accent:#4ade9e;--accent2:#60efb8;--text:#f0f0f2;--muted:rgba(214,219,230,0.82);
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{background:var(--bg);overflow-x:hidden;width:100%}
+  body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;width:100%}
+  nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
+  .logo{font-size:20px;font-weight:700;color:#fff;text-decoration:none}
+  .logo em{font-style:normal;color:var(--accent)}
+  .burger{display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;padding:8px;color:#f0f0f2}
+  .burger svg{display:block;width:26px;height:26px}
+  .nav-links{display:none;position:absolute;top:56px;right:12px;min-width:200px;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
+  .nav-links.open{display:flex}
+  .nav-link{font-size:14px;color:rgba(210,215,228,0.82);text-decoration:none;padding:12px 16px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
+  .nav-link:hover{color:#f0f0f2;background:rgba(255,255,255,0.05)}
+  .nav-link.active{color:var(--accent);background:rgba(74,222,158,0.1)}
+  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}.nav-links{right:6px;left:6px;min-width:0}}
+  .main{max-width:680px;margin:0 auto;width:100%;padding:2.5rem 2rem 3rem;flex:1;overflow-x:hidden}
+  h1{font-size:24px;font-weight:600;text-align:center;margin-bottom:8px;letter-spacing:-0.3px}
+  .subtitle{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
+  .field{margin-bottom:16px}
+  .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .field select,.field input{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px}
+  .result-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;margin-top:8px}
+  .result-value{font-size:28px;font-weight:700;color:var(--accent)}
+  .result-label{font-size:12px;color:var(--muted);margin-top:4px}
+  section.seo{max-width:680px;margin:40px auto 0;padding:0 2rem;color:var(--muted);font-size:13px;line-height:1.7}
+  section.seo h2{font-size:18px;color:rgba(210,215,228,0.85);font-weight:600;margin-bottom:14px}
+  section.seo h3{font-size:15px;color:rgba(210,215,228,0.82);font-weight:500;margin-bottom:5px}
+  section.seo p{margin-bottom:14px}
+  .all-tools{max-width:900px;margin:50px auto 0;padding:0 2rem}
+  .all-tools-title{font-size:18px;font-weight:600;color:rgba(210,215,228,0.85);margin-bottom:18px;text-align:center}
+  .all-tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
+  .tool-card{display:flex;flex-direction:column;gap:5px;padding:16px 14px;background:var(--surface);border:1px solid var(--line);border-radius:13px;text-decoration:none;transition:transform .12s,border-color .2s,background .2s}
+  .tool-card:hover{transform:translateY(-3px);border-color:var(--accent);background:rgba(74,222,158,0.05)}
+  .tc-name{font-size:14px;font-weight:600;color:var(--text)}
+  .tc-desc{font-size:11.5px;color:rgba(210,215,228,0.7);line-height:1.35}
+  @media(max-width:760px){.all-tools-grid{grid-template-columns:repeat(2,1fr)}.all-tools{padding:0 1rem}}
+  @media(max-width:640px){.main{padding:1.5rem 1rem 2rem}section.seo{padding:0 1rem}}
+  footer{padding:1.25rem;text-align:center;font-size:12px;color:rgba(200,205,220,0.78);border-top:1px solid rgba(255,255,255,0.05);margin-top:auto}
+  footer a{color:rgba(200,205,220,0.75);text-decoration:none;margin:0 8px}
+</style>
+</head>
+<body>
+<nav>
+  <a class="logo" href={`/${locale}/`}>Calc<em>Catalog</em></a>
+  <button class="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
+  <div class="nav-links">
+    <a href={`/${locale}/`} class="nav-link">{locale === 'ru' ? 'Главная' : 'Home'}</a>
+    {translations.map((t) => (
+      <a href={`/${t.locale}/${path}`} class={`nav-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+    ))}
+  </div>
+</nav>
+<slot />
+<footer>
+  © 2026 CalcCatalog
+</footer>
+<script>
+  const b = document.querySelector('.burger');
+  const nl = document.querySelector('.nav-links');
+  if (b && nl) {
+    b.addEventListener('click', (e) => { e.stopPropagation(); nl.classList.toggle('open'); });
+    document.addEventListener('click', (e) => {
+      if (!nl.contains(e.target as Node) && !b.contains(e.target as Node)) nl.classList.remove('open');
+    });
+  }
+</script>
+</body>
+</html>

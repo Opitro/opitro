@@ -1,0 +1,49 @@
+---
+import { getCollection } from 'astro:content';
+import Layout from '../../../layouts/Layout.astro';
+
+export async function getStaticPaths() {
+  const locales = ['ru', 'en'];
+  const allCategories = await getCollection('categories');
+  return allCategories
+    .filter((entry) => locales.includes(entry.data.locale))
+    .map((entry) => ({
+      params: { locale: entry.data.locale, category: entry.data.catSlug },
+      props: { entry },
+    }));
+}
+
+const { entry } = Astro.props;
+
+const allCategories = await getCollection('categories');
+const translations = allCategories
+  .filter((c) => c.data.catSlug === entry.data.catSlug)
+  .map((c) => ({ locale: c.data.locale, slug: `tools/${c.data.catSlug}` }));
+
+const allTools = await getCollection('tools');
+const tools = allTools.filter(
+  (t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale
+);
+---
+
+<Layout
+  locale={entry.data.locale}
+  title={entry.data.title}
+  description={entry.data.description}
+  translations={translations}
+  path={`tools/${entry.data.catSlug}`}
+>
+  <div class="main">
+    <h1>{entry.data.title}</h1>
+    <p class="subtitle">{entry.data.description}</p>
+  </div>
+  <section class="all-tools">
+    <div class="all-tools-grid">
+      {tools.map((t) => (
+        <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
+          <span class="tc-name">{t.data.h1}</span>
+        </a>
+      ))}
+    </div>
+  </section>
+</Layout>
