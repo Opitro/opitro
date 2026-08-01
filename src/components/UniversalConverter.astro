@@ -10,16 +10,20 @@ interface Props {
   defaultFrom: string;
   defaultTo: string;
   swapLabel: string;
+  valueLabel: string;
+  resultLabel: string;
+  fromLabel: string;
+  toLabel: string;
 }
 
-const { units, defaultFrom, defaultTo, swapLabel } = Astro.props;
+const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromLabel, toLabel } = Astro.props;
 ---
 
 <div class="uc-widget" data-units={JSON.stringify(units)}>
   <div class="uc-row">
     <div class="field">
-      <input type="number" id="uc-input" value="1" step="any" inputmode="decimal">
-      <select id="uc-from">
+      <input type="number" id="uc-input" value="1" step="any" inputmode="decimal" aria-label={valueLabel}>
+      <select id="uc-from" aria-label={fromLabel}>
         {units.map((u) => <option value={u.code} selected={u.code === defaultFrom}>{u.label}</option>)}
       </select>
     </div>
@@ -27,8 +31,8 @@ const { units, defaultFrom, defaultTo, swapLabel } = Astro.props;
       <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5-5 5 5M7 14l5 5 5-5"/></svg>
     </button>
     <div class="field">
-      <input type="text" id="uc-output" readonly>
-      <select id="uc-to">
+      <input type="text" id="uc-output" readonly aria-label={resultLabel}>
+      <select id="uc-to" aria-label={toLabel}>
         {units.map((u) => <option value={u.code} selected={u.code === defaultTo}>{u.label}</option>)}
       </select>
     </div>
