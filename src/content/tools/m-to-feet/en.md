@@ -9,12 +9,14 @@ engineParams:
   toUnit: Feet
   fromUnitShort: m
   toUnitShort: ft
-title: Meters to Feet Converter — Convert m to ft Online
+title: Meters to Feet Converter — Free, No Sign-Up Required
 h1: Meters to Feet
-description: Convert meters to feet instantly and for free. An accurate height and length converter — enter a value in meters and get the result in feet.
+description: Convert meters to feet online, free and with no sign-up. An accurate height and length converter — enter a value in meters and get the result in feet.
 faq:
   - question: How many feet are in a meter?
     answer: One meter equals 3.28084 feet. For example, a height of 1.80 m is roughly 5.91 feet.
+  - question: How many feet is 2 meters?
+    answer: 2 meters = 6.56168 feet (2 × 3.28084). That's a bit taller than an average doorway.
   - question: When do people usually need meters converted to feet?
     answer: Common cases are ceiling height, a person's height, swimming pool depth, or aircraft altitude in metric-based sources.
   - question: What's the difference between a foot and a yard?

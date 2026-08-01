@@ -9,12 +9,14 @@ engineParams:
   toUnit: Miles
   fromUnitShort: km
   toUnitShort: mi
-title: Km to Miles Converter — Convert Kilometers to Miles Online
+title: Km to Miles Converter — Free, No Sign-Up Required
 h1: Kilometers to Miles
-description: Convert kilometers to miles instantly and for free. An accurate distance converter — enter a number and get the exact result in miles.
+description: Convert kilometers to miles online, free and with no sign-up. An accurate distance converter — enter a number and get the exact result in miles.
 faq:
   - question: How many miles are in a kilometer?
     answer: One kilometer equals 0.621371 miles. For example, 5 km is roughly 3.11 miles.
+  - question: How many miles is 10 km?
+    answer: 10 km = 6.21371 miles (10 × 0.621371). That's roughly the distance of a standard "10K" running race.
   - question: Is there a quick mental-math trick for km to miles?
     answer: Multiply kilometers by roughly 0.6 for a fast estimate. For an exact value, use the calculator above.
   - question: Why do some countries still use miles instead of kilometers?
