@@ -13,10 +13,8 @@ export default defineConfig({
     },
   },
   integrations: [sitemap()],
-  redirects: {
-    // The universal length converter moved onto the category page itself instead of
-    // living at its own URL -- keep this in case anything already linked the old one.
-    '/ru/length-converter': '/ru/tools/length',
-    '/en/length-converter': '/en/tools/length',
-  },
+  // Root ("/") and the retired /length-converter URLs redirect via public/_redirects instead
+  // of Astro's own `redirects` option -- that compiles to a slow client-side meta-refresh
+  // page on static output, which the user saw as a flash of "Redirecting from..." text
+  // before the real page loaded. _redirects is a real edge-level redirect on Cloudflare.
 });
