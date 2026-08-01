@@ -1,6 +1,8 @@
 ---
-import { getCollection } from 'astro:content';
+import { getCollection, render } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
+import UniversalConverter from '../../../components/UniversalConverter.astro';
+import AdSlot from '../../../components/AdSlot.astro';
 
 export async function getStaticPaths() {
   const locales = ['ru', 'en'];
@@ -14,6 +16,7 @@ export async function getStaticPaths() {
 }
 
 const { entry } = Astro.props;
+const { Content } = await render(entry);
 
 const allCategories = await getCollection('categories');
 const translations = allCategories
@@ -25,12 +28,41 @@ const tools = allTools.filter(
   (t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale
 );
 
-// Categories with many units get one flexible any-to-any converter alongside the
-// dedicated pair pages -- add more entries here as other categories get one too.
-const UNIVERSAL_CONVERTERS = { length: 'length-converter' };
-const universalSlug = UNIVERSAL_CONVERTERS[entry.data.catSlug];
-const universalLabel =
-  entry.data.locale === 'ru' ? 'Универсальный конвертер — любые единицы' : 'Universal converter — any unit';
+// Categories with lots of units get a working any-to-any converter right on the category
+// page itself, not just a list of links -- add more entries as other categories get one.
+const UNITS_BY_CATEGORY = {
+  length: {
+    ru: [
+      { code: 'mm', label: 'Миллиметры (мм)', factor: 0.001 },
+      { code: 'cm', label: 'Сантиметры (см)', factor: 0.01 },
+      { code: 'm', label: 'Метры (м)', factor: 1 },
+      { code: 'km', label: 'Километры (км)', factor: 1000 },
+      { code: 'in', label: 'Дюймы', factor: 0.0254 },
+      { code: 'ft', label: 'Футы', factor: 0.3048 },
+      { code: 'yd', label: 'Ярды', factor: 0.9144 },
+      { code: 'mi', label: 'Мили', factor: 1609.344 },
+      { code: 'nmi', label: 'Морские мили', factor: 1852 },
+      { code: 'step', label: 'Шаги', factor: 0.762 },
+    ],
+    en: [
+      { code: 'mm', label: 'Millimeters (mm)', factor: 0.001 },
+      { code: 'cm', label: 'Centimeters (cm)', factor: 0.01 },
+      { code: 'm', label: 'Meters (m)', factor: 1 },
+      { code: 'km', label: 'Kilometers (km)', factor: 1000 },
+      { code: 'in', label: 'Inches', factor: 0.0254 },
+      { code: 'ft', label: 'Feet', factor: 0.3048 },
+      { code: 'yd', label: 'Yards', factor: 0.9144 },
+      { code: 'mi', label: 'Miles', factor: 1609.344 },
+      { code: 'nmi', label: 'Nautical miles', factor: 1852 },
+      { code: 'step', label: 'Steps', factor: 0.762 },
+    ],
+  },
+};
+
+const units = UNITS_BY_CATEGORY[entry.data.catSlug]?.[entry.data.locale];
+const swapLabel = entry.data.locale === 'ru' ? 'Поменять местами' : 'Swap units';
+const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
+const pairsLabel = entry.data.locale === 'ru' ? 'Калькуляторы по конкретным парам' : 'Calculators for specific pairs';
 ---
 
 <Layout
@@ -41,13 +73,30 @@ const universalLabel =
   path={`tools/${entry.data.catSlug}`}
 >
   <div class="main">
-    <h1>{entry.data.title}</h1>
+    <h1>{entry.data.h1}</h1>
     <p class="subtitle">{entry.data.description}</p>
-    {universalSlug && (
-      <a class="universal-cta" href={`/${entry.data.locale}/${universalSlug}`}>{universalLabel} →</a>
-    )}
+    {units && <UniversalConverter units={units} defaultFrom="m" defaultTo="cm" swapLabel={swapLabel} />}
   </div>
+
+  {units && <AdSlot />}
+
+  <section class="seo">
+    <Content />
+    {entry.data.faq && entry.data.faq.length > 0 && (
+      <>
+        <h2>{faqLabel}</h2>
+        {entry.data.faq.map((item) => (
+          <div style="margin-bottom:18px">
+            <h3>{item.question}</h3>
+            <p>{item.answer}</p>
+          </div>
+        ))}
+      </>
+    )}
+  </section>
+
   <section class="all-tools">
+    <h2 class="all-tools-title">{pairsLabel}</h2>
     <div class="all-tools-grid">
       {tools.map((t) => (
         <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
@@ -60,6 +109,4 @@ const universalLabel =
 
 <style>
   .main{text-align:center}
-  .universal-cta{display:inline-flex;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13.5px;font-weight:600;text-decoration:none}
-  .universal-cta:hover{background:rgba(74,222,158,0.16)}
 </style>

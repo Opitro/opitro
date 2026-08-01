@@ -7,6 +7,8 @@ const CM_TO_INCHES = 0.393701;
 const MILES_TO_KM = 1.609344;
 const FEET_TO_M = 0.3048;
 const INCHES_TO_CM = 2.54;
+const STEPS_TO_KM = 0.000762;
+const KM_TO_STEPS = 1312.335958;
 
 function approxEqual(a, b, epsilon = 1e-4) {
   assert.ok(Math.abs(a - b) < epsilon, `expected ${a} to be close to ${b}`);
@@ -30,6 +32,11 @@ approxEqual(convertLinear(32, INCHES_TO_CM), 81.28, 1e-6);
 approxEqual(KM_TO_MILES * MILES_TO_KM, 1, 1e-3);
 approxEqual(M_TO_FEET * FEET_TO_M, 1, 1e-3);
 approxEqual(CM_TO_INCHES * INCHES_TO_CM, 1, 1e-3);
+approxEqual(STEPS_TO_KM * KM_TO_STEPS, 1, 1e-3);
+
+// steps<->km: values quoted in each tool's FAQ (76 cm average stride)
+approxEqual(convertLinear(10000, STEPS_TO_KM), 7.62, 1e-6);
+approxEqual(convertLinear(5, KM_TO_STEPS), 6561.68, 1e-2);
 
 // 0 always converts to 0 regardless of factor
 assert.equal(convertLinear(0, KM_TO_MILES), 0);

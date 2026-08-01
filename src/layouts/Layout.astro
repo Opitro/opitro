@@ -123,9 +123,8 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
   <div class="nav-right">
     {navCategories.length > 0 && (
       <div class="dropdown" data-dropdown>
-        <button class="dd-btn" aria-haspopup="listbox" aria-expanded="false">
-          {locale === 'ru' ? 'Категории' : 'Categories'}
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        <button class="dd-btn dd-btn-icon" aria-haspopup="listbox" aria-expanded="false" aria-label={locale === 'ru' ? 'Категории' : 'Categories'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div class="dd-menu" role="listbox">
           {navCategories.map((c) => (

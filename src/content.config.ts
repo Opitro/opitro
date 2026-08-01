@@ -42,7 +42,16 @@ const categories = defineCollection({
     catSlug: z.string(),
     locale: z.string(),
     title: z.string(),
+    h1: z.string(),
     description: z.string(),
+    faq: z
+      .array(
+        z.object({
+          question: z.string(),
+          answer: z.string(),
+        })
+      )
+      .optional(),
   }),
 });
 
