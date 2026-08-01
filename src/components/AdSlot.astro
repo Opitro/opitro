@@ -1,0 +1,41 @@
+---
+interface Props {
+  /** Used only for the placeholder label while there's no real ad network wired in yet. */
+  label?: string;
+}
+const { label = 'Реклама' } = Astro.props;
+---
+
+<div class="ad-slot" data-ad-slot>
+  <span class="ad-slot-label">{label}</span>
+</div>
+
+<style is:global>
+  .ad-slot{
+    display:none;
+    max-width:680px;margin:24px auto;padding:0 2rem;
+  }
+  .ad-slot.visible{
+    display:block;
+    animation:ad-fade-in .35s ease both;
+  }
+  .ad-slot-label{
+    display:flex;align-items:center;justify-content:center;
+    min-height:90px;border:1px dashed var(--line);border-radius:12px;
+    color:var(--muted);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+  }
+  @keyframes ad-fade-in{from{opacity:0;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+  @media(max-width:640px){.ad-slot{padding:0 1rem}}
+</style>
+
+<script>
+  // Ad slots stay hidden until the visitor has actually used a calculator on this page —
+  // never shown to someone who just landed and bounced. See project_ads memory for why.
+  window.addEventListener(
+    'opitro:tool-interaction',
+    () => {
+      document.querySelectorAll('[data-ad-slot]').forEach((el) => el.classList.add('visible'));
+    },
+    { once: true }
+  );
+</script>

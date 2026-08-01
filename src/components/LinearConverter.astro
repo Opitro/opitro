@@ -35,6 +35,9 @@ const { factor, fromUnit, toUnit, fromUnitShort, toUnitShort, defaultValue = 10 
     result.textContent = formatNumber(convertLinear(value, factor));
   }
 
-  input.addEventListener('input', update);
+  input.addEventListener('input', () => {
+    update();
+    window.dispatchEvent(new Event('opitro:tool-interaction'));
+  });
   update();
 </script>

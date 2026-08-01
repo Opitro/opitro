@@ -20,18 +20,45 @@ const toolsByCategory = Object.fromEntries(
   ])
 );
 
-const title = locale === 'ru' ? 'CalcCatalog — калькуляторы и онлайн-инструменты' : 'CalcCatalog — calculators and online tools';
+const searchIndex = categories.flatMap((c) =>
+  toolsByCategory[c.data.catSlug].map((t) => ({
+    title: t.data.h1,
+    category: c.data.title,
+    href: `/${locale}/${t.data.toolSlug}`,
+  }))
+);
+
+const totalTools = searchIndex.length;
+
+const title = locale === 'ru' ? 'Opitro — калькуляторы и онлайн-инструменты' : 'Opitro — calculators and online tools';
 const description =
   locale === 'ru'
     ? 'Бесплатные калькуляторы, конвертеры и онлайн-инструменты. Всё считается прямо в браузере.'
     : 'Free calculators, converters, and online tools. Everything runs right in your browser.';
+
+const t = {
+  tagline: locale === 'ru' ? `${totalTools} инструментов и растёт каждый день` : `${totalTools} tools and growing every day`,
+  searchPlaceholder: locale === 'ru' ? 'Найти инструмент…' : 'Find a tool…',
+  noResults: locale === 'ru' ? 'Ничего не найдено' : 'No results',
+  allTools: locale === 'ru' ? 'Все инструменты →' : 'All tools →',
+};
 ---
 
 <Layout locale={locale} title={title} description={description} path="">
   <div class="main">
-    <h1>{title}</h1>
-    <p class="subtitle">{description}</p>
-    <div class="accordion">
+    <div class="hero">
+      <img class="hero-icon" src="/favicon.svg" alt="" width="48" height="48">
+      <h1>{title}</h1>
+      <p class="subtitle">{description}</p>
+      <p class="tagline">{t.tagline}</p>
+      <div class="search-wrap">
+        <svg class="search-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="11" cy="11" r="7"/><path d="m21 21-4.3-4.3"/></svg>
+        <input type="search" id="tool-search" placeholder={t.searchPlaceholder} autocomplete="off">
+      </div>
+      <div class="search-results" id="search-results" hidden></div>
+    </div>
+
+    <div class="accordion" id="accordion">
       {categories.map((c) => (
         <details class="acc-item">
           <summary>
@@ -39,12 +66,10 @@ const description =
             <span class="acc-count">{toolsByCategory[c.data.catSlug].length}</span>
           </summary>
           <div class="acc-body">
-            {toolsByCategory[c.data.catSlug].map((t) => (
-              <a class="acc-link" href={`/${t.data.locale}/${t.data.toolSlug}`}>{t.data.h1}</a>
+            {toolsByCategory[c.data.catSlug].map((tool) => (
+              <a class="acc-link" href={`/${tool.data.locale}/${tool.data.toolSlug}`}>{tool.data.h1}</a>
             ))}
-            <a class="acc-link acc-all" href={`/${locale}/tools/${c.data.catSlug}`}>
-              {locale === 'ru' ? 'Все инструменты →' : 'All tools →'}
-            </a>
+            <a class="acc-link acc-all" href={`/${locale}/tools/${c.data.catSlug}`}>{t.allTools}</a>
           </div>
         </details>
       ))}
@@ -52,7 +77,51 @@ const description =
   </div>
 </Layout>
 
+<script type="application/json" id="search-index" set:html={JSON.stringify(searchIndex)} />
+<script define:vars={{ noResultsText: t.noResults }}>
+  const index = JSON.parse(document.getElementById('search-index').textContent);
+  const input = document.getElementById('tool-search');
+  const results = document.getElementById('search-results');
+  const accordion = document.getElementById('accordion');
+
+  function render(query) {
+    const q = query.trim().toLowerCase();
+    if (!q) {
+      results.hidden = true;
+      accordion.hidden = false;
+      return;
+    }
+    accordion.hidden = true;
+    results.hidden = false;
+    const matches = index.filter((item) => item.title.toLowerCase().includes(q)).slice(0, 20);
+    results.innerHTML = matches.length
+      ? matches
+          .map(
+            (item) =>
+              `<a class="sr-link" href="${item.href}"><span class="sr-title">${item.title}</span><span class="sr-cat">${item.category}</span></a>`
+          )
+          .join('')
+      : `<div class="sr-empty">${noResultsText}</div>`;
+  }
+
+  input.addEventListener('input', () => render(input.value));
+</script>
+
 <style>
+  .hero{text-align:center;margin-bottom:32px}
+  .hero-icon{border-radius:11px;margin-bottom:14px;box-shadow:0 8px 24px -8px rgba(0,0,0,.5)}
+  .tagline{font-size:12px;color:var(--muted);margin-top:-14px;margin-bottom:22px;opacity:.75}
+  .search-wrap{position:relative;max-width:420px;margin:0 auto}
+  .search-ico{position:absolute;left:14px;top:50%;transform:translateY(-50%);width:17px;height:17px;color:var(--muted);pointer-events:none}
+  #tool-search{width:100%;height:48px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;color:var(--text);font-family:inherit;font-size:15px;padding:0 14px 0 42px}
+  #tool-search:focus{outline:none;border-color:rgba(74,222,158,.5)}
+  #tool-search::-webkit-search-cancel-button{filter:invert(.6)}
+  .search-results{display:flex;flex-direction:column;gap:6px;margin-top:10px;text-align:left}
+  .sr-link{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;text-decoration:none;transition:border-color .15s,background .15s}
+  .sr-link:hover{border-color:var(--accent);background:rgba(74,222,158,.05)}
+  .sr-title{font-size:13.5px;color:var(--text);font-weight:600}
+  .sr-cat{font-size:11px;color:var(--muted)}
+  .sr-empty{color:var(--muted);font-size:13px;text-align:center;padding:14px 0}
   .accordion{display:flex;flex-direction:column;gap:10px;margin-top:8px}
   .acc-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .acc-item summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px}

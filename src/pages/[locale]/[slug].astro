@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import LinearConverter from '../../components/LinearConverter.astro';
+import AdSlot from '../../components/AdSlot.astro';
 
 export async function getStaticPaths() {
   const locales = ['ru', 'en'];
@@ -56,6 +57,8 @@ const faqJsonLd = {
     {entry.data.engine === 'linear-converter' && <LinearConverter {...entry.data.engineParams} />}
   </div>
 
+  <AdSlot />
+
   <section class="seo">
     <Content />
     <h2>{faqLabel}</h2>
@@ -66,6 +69,8 @@ const faqJsonLd = {
       </div>
     ))}
   </section>
+
+  <AdSlot />
 
   {related.length > 0 && (
     <section class="all-tools">
