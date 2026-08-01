@@ -24,6 +24,7 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
     <div class="field">
       <input type="number" id="uc-input" value="1" step="any" inputmode="decimal" aria-label={valueLabel}>
       <select id="uc-from" aria-label={fromLabel}>
+        <button type="button"><selectedcontent></selectedcontent></button>
         {units.map((u) => <option value={u.code} selected={u.code === defaultFrom}>{u.label}</option>)}
       </select>
     </div>
@@ -33,6 +34,7 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
     <div class="field">
       <input type="text" id="uc-output" readonly aria-label={resultLabel}>
       <select id="uc-to" aria-label={toLabel}>
+        <button type="button"><selectedcontent></selectedcontent></button>
         {units.map((u) => <option value={u.code} selected={u.code === defaultTo}>{u.label}</option>)}
       </select>
     </div>
@@ -48,6 +50,16 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
   .uc-swap:hover{border-color:var(--accent)}
   .uc-swap svg{width:17px;height:17px}
   @media(max-width:480px){.uc-row{flex-direction:column;align-items:stretch}.uc-swap{align-self:center;margin-top:0;transform:rotate(90deg)}}
+
+  @supports (appearance: base-select) {
+    .uc-row select{appearance:base-select;cursor:pointer;display:flex;align-items:center}
+    .uc-row select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;position-try-fallbacks:none}
+    .uc-row select::picker-icon{color:var(--muted)}
+    .uc-row option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
+    .uc-row option:hover,.uc-row option:focus,.uc-row option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
+    .uc-row option:checked{color:var(--accent)}
+    .uc-row select::checkmark{display:none}
+  }
 </style>
 
 <script>
