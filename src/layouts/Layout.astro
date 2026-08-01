@@ -19,7 +19,14 @@ const { locale, title, description, translations = [], path = '' } = Astro.props
 const LOCALE_NAMES: Record<string, string> = { ru: 'Русский', en: 'English' };
 const DEFAULT_LOCALE = 'ru';
 
-const canonicalUrl = new URL(`/${locale}/${path}`, Astro.site).toString();
+// No trailing slash, ever — must match wrangler.jsonc's html_handling: "drop-trailing-slash",
+// or canonical/hreflang URLs disagree with what the server actually serves (caught live on
+// the homepage after the tool-page version of this same bug was already fixed once).
+function localePath(loc: string, p: string) {
+  return p ? `/${loc}/${p}` : `/${loc}`;
+}
+
+const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
 ---
 
 <!DOCTYPE html>
@@ -42,10 +49,10 @@ const canonicalUrl = new URL(`/${locale}/${path}`, Astro.site).toString();
 <meta name="theme-color" content="#0e0f11">
 <link rel="canonical" href={canonicalUrl}>
 {translations.map((t) => (
-  <link rel="alternate" hreflang={t.locale} href={new URL(`/${t.locale}/${path}`, Astro.site).toString()} />
+  <link rel="alternate" hreflang={t.locale} href={new URL(localePath(t.locale, path), Astro.site).toString()} />
 ))}
 {translations.some((t) => t.locale === DEFAULT_LOCALE) && (
-  <link rel="alternate" hreflang="x-default" href={new URL(`/${DEFAULT_LOCALE}/${path}`, Astro.site).toString()} />
+  <link rel="alternate" hreflang="x-default" href={new URL(localePath(DEFAULT_LOCALE, path), Astro.site).toString()} />
 )}
 <style is:global>
   :root{
@@ -94,15 +101,15 @@ const canonicalUrl = new URL(`/${locale}/${path}`, Astro.site).toString();
 </head>
 <body>
 <nav>
-  <a class="logo" href={`/${locale}/`}>
+  <a class="logo" href={localePath(locale, '')}>
     <img src="/favicon.svg" alt="" width="22" height="22">
     Opitro
   </a>
   <button class="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
   <div class="nav-links">
-    <a href={`/${locale}/`} class="nav-link">{locale === 'ru' ? 'Главная' : 'Home'}</a>
+    <a href={localePath(locale, '')} class="nav-link">{locale === 'ru' ? 'Главная' : 'Home'}</a>
     {translations.map((t) => (
-      <a href={`/${t.locale}/${path}`} class={`nav-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+      <a href={localePath(t.locale, path)} class={`nav-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
     ))}
   </div>
 </nav>

@@ -30,6 +30,9 @@ const searchIndex = categories.flatMap((c) =>
 
 const totalTools = searchIndex.length;
 
+const LOCALES = ['ru', 'en'];
+const translations = LOCALES.map((l) => ({ locale: l, slug: '' }));
+
 const title = locale === 'ru' ? 'Opitro — калькуляторы и онлайн-инструменты' : 'Opitro — calculators and online tools';
 const description =
   locale === 'ru'
@@ -44,7 +47,7 @@ const t = {
 };
 ---
 
-<Layout locale={locale} title={title} description={description} path="">
+<Layout locale={locale} title={title} description={description} translations={translations} path="">
   <div class="main">
     <div class="hero">
       <img class="hero-icon" src="/favicon.svg" alt="" width="48" height="48">
