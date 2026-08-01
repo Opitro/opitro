@@ -42,6 +42,13 @@ const breadcrumb = category
 const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
 const relatedLabel = entry.data.locale === 'ru' ? 'Похожие калькуляторы' : 'Related calculators';
 
+// Categories with many units get one flexible any-to-any converter alongside the
+// dedicated pair pages -- keep in sync with the same lookup in tools/[category].astro.
+const UNIVERSAL_CONVERTERS = { length: 'length-converter' };
+const universalSlug = UNIVERSAL_CONVERTERS[entry.data.category];
+const universalLabel =
+  entry.data.locale === 'ru' ? 'Нужна другая единица? Универсальный конвертер →' : 'Need a different unit? Universal converter →';
+
 const faqJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
@@ -64,6 +71,9 @@ const faqJsonLd = {
   <div class="main">
     <h1>{entry.data.h1}</h1>
     {entry.data.engine === 'linear-converter' && <LinearConverter {...entry.data.engineParams} />}
+    {universalSlug && (
+      <a class="universal-link" href={`/${entry.data.locale}/${universalSlug}`}>{universalLabel}</a>
+    )}
   </div>
 
   <AdSlot />
@@ -96,3 +106,8 @@ const faqJsonLd = {
 </Layout>
 
 <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
+
+<style>
+  .universal-link{display:block;text-align:center;margin-top:16px;font-size:12.5px;color:var(--muted);text-decoration:none}
+  .universal-link:hover{color:var(--accent)}
+</style>

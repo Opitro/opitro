@@ -1,0 +1,89 @@
+---
+interface Unit {
+  code: string;
+  label: string;
+  factor: number;
+}
+
+interface Props {
+  units: Unit[];
+  defaultFrom: string;
+  defaultTo: string;
+  swapLabel: string;
+}
+
+const { units, defaultFrom, defaultTo, swapLabel } = Astro.props;
+---
+
+<div class="uc-widget" data-units={JSON.stringify(units)}>
+  <div class="uc-row">
+    <div class="field">
+      <input type="number" id="uc-input" value="1" step="any" inputmode="decimal">
+      <select id="uc-from">
+        {units.map((u) => <option value={u.code} selected={u.code === defaultFrom}>{u.label}</option>)}
+      </select>
+    </div>
+    <button class="uc-swap" id="uc-swap" type="button" aria-label={swapLabel} title={swapLabel}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M7 10l5-5 5 5M7 14l5 5 5-5"/></svg>
+    </button>
+    <div class="field">
+      <input type="text" id="uc-output" readonly>
+      <select id="uc-to">
+        {units.map((u) => <option value={u.code} selected={u.code === defaultTo}>{u.label}</option>)}
+      </select>
+    </div>
+  </div>
+</div>
+
+<style is:global>
+  .uc-row{display:flex;align-items:center;gap:10px}
+  .uc-row .field{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:0}
+  .uc-row input,.uc-row select{height:46px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;width:100%}
+  .uc-row input#uc-output{color:var(--accent);font-weight:700}
+  .uc-swap{flex:none;width:38px;height:38px;margin-top:26px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .uc-swap:hover{border-color:var(--accent)}
+  .uc-swap svg{width:17px;height:17px}
+  @media(max-width:480px){.uc-row{flex-direction:column;align-items:stretch}.uc-swap{align-self:center;margin-top:0;transform:rotate(90deg)}}
+</style>
+
+<script>
+  import { convertMultiUnit, formatNumber } from '../lib/multi-unit-converter.js';
+
+  const widget = document.querySelector('.uc-widget');
+  const units = JSON.parse(widget.dataset.units);
+  const factorByCode = Object.fromEntries(units.map((u) => [u.code, u.factor]));
+
+  const input = document.getElementById('uc-input');
+  const output = document.getElementById('uc-output');
+  const fromSel = document.getElementById('uc-from');
+  const toSel = document.getElementById('uc-to');
+  const swapBtn = document.getElementById('uc-swap');
+
+  function update() {
+    const value = parseFloat(input.value) || 0;
+    const result = convertMultiUnit(value, factorByCode[fromSel.value], factorByCode[toSel.value]);
+    output.value = formatNumber(result);
+  }
+
+  input.addEventListener('input', () => {
+    update();
+    window.dispatchEvent(new Event('opitro:tool-interaction'));
+  });
+  fromSel.addEventListener('change', () => {
+    update();
+    window.dispatchEvent(new Event('opitro:tool-interaction'));
+  });
+  toSel.addEventListener('change', () => {
+    update();
+    window.dispatchEvent(new Event('opitro:tool-interaction'));
+  });
+  swapBtn.addEventListener('click', () => {
+    const a = fromSel.value;
+    fromSel.value = toSel.value;
+    toSel.value = a;
+    update();
+    window.dispatchEvent(new Event('opitro:tool-interaction'));
+  });
+
+  update();
+</script>

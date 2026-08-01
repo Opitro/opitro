@@ -24,6 +24,13 @@ const allTools = await getCollection('tools');
 const tools = allTools.filter(
   (t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale
 );
+
+// Categories with many units get one flexible any-to-any converter alongside the
+// dedicated pair pages -- add more entries here as other categories get one too.
+const UNIVERSAL_CONVERTERS = { length: 'length-converter' };
+const universalSlug = UNIVERSAL_CONVERTERS[entry.data.catSlug];
+const universalLabel =
+  entry.data.locale === 'ru' ? 'Универсальный конвертер — любые единицы' : 'Universal converter — any unit';
 ---
 
 <Layout
@@ -36,6 +43,9 @@ const tools = allTools.filter(
   <div class="main">
     <h1>{entry.data.title}</h1>
     <p class="subtitle">{entry.data.description}</p>
+    {universalSlug && (
+      <a class="universal-cta" href={`/${entry.data.locale}/${universalSlug}`}>{universalLabel} →</a>
+    )}
   </div>
   <section class="all-tools">
     <div class="all-tools-grid">
@@ -47,3 +57,9 @@ const tools = allTools.filter(
     </div>
   </section>
 </Layout>
+
+<style>
+  .main{text-align:center}
+  .universal-cta{display:inline-flex;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13.5px;font-weight:600;text-decoration:none}
+  .universal-cta:hover{background:rgba(74,222,158,0.16)}
+</style>

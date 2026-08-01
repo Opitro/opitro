@@ -20,13 +20,24 @@ const toolsByCategory = Object.fromEntries(
   ])
 );
 
-const searchIndex = categories.flatMap((c) =>
-  toolsByCategory[c.data.catSlug].map((t) => ({
+// Universal any-to-any converters aren't part of the tools content collection (one per
+// category, not one of many) -- keep in sync with the same lookup in [slug].astro / [category].astro.
+const UNIVERSAL_CONVERTERS = {
+  length: { slug: 'length-converter', title: { ru: 'Универсальный конвертер длины', en: 'Universal length converter' } },
+};
+
+const searchIndex = categories.flatMap((c) => {
+  const items = toolsByCategory[c.data.catSlug].map((t) => ({
     title: t.data.h1,
     category: c.data.title,
     href: `/${locale}/${t.data.toolSlug}`,
-  }))
-);
+  }));
+  const universal = UNIVERSAL_CONVERTERS[c.data.catSlug];
+  if (universal) {
+    items.push({ title: universal.title[locale], category: c.data.title, href: `/${locale}/${universal.slug}` });
+  }
+  return items;
+});
 
 const totalTools = searchIndex.length;
 
