@@ -6,9 +6,21 @@ interface Props {
   fromUnitShort: string;
   toUnitShort: string;
   defaultValue?: number;
+  /** Link to the reverse-direction page for this exact pair, e.g. km-to-miles -> miles-to-km. Omit if no reverse page exists. */
+  reverseHref?: string;
+  reverseAriaLabel?: string;
 }
 
-const { factor, fromUnit, toUnit, fromUnitShort, toUnitShort, defaultValue = 10 } = Astro.props;
+const {
+  factor,
+  fromUnit,
+  toUnit,
+  fromUnitShort,
+  toUnitShort,
+  defaultValue = 10,
+  reverseHref,
+  reverseAriaLabel,
+} = Astro.props;
 ---
 
 <div class="lc-widget" data-factor={factor}>
@@ -16,11 +28,22 @@ const { factor, fromUnit, toUnit, fromUnitShort, toUnitShort, defaultValue = 10 
     <label for="lc-input">{fromUnit} ({fromUnitShort})</label>
     <input type="number" id="lc-input" value={defaultValue} step="any" inputmode="decimal">
   </div>
+  {reverseHref && (
+    <a class="lc-swap" href={reverseHref} aria-label={reverseAriaLabel}>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 3v12M17 15l-4-4M17 15l4-4M7 21V9M7 9l4 4M7 9L3 13"/></svg>
+    </a>
+  )}
   <div class="result-box">
     <div class="result-value"><span id="lc-result"></span> {toUnitShort}</div>
     <div class="result-label">{toUnit}</div>
   </div>
 </div>
+
+<style is:global>
+  .lc-swap{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:2px auto;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
+  .lc-swap:hover{border-color:var(--accent);color:var(--accent)}
+  .lc-swap svg{width:16px;height:16px}
+</style>
 
 <script>
   import { convertLinear, formatNumber } from '../lib/linear-converter.js';

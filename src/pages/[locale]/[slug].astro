@@ -36,7 +36,7 @@ const category = allCategories.find(
   (c) => c.data.catSlug === entry.data.category && c.data.locale === entry.data.locale
 );
 const breadcrumb = category
-  ? { label: category.data.title, href: `/${entry.data.locale}/tools/${category.data.catSlug}` }
+  ? { label: category.data.name, href: `/${entry.data.locale}/tools/${category.data.catSlug}` }
   : undefined;
 
 const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
@@ -44,6 +44,16 @@ const relatedLabel = entry.data.locale === 'ru' ? 'Похожие калькул
 
 const categoryLabel =
   entry.data.locale === 'ru' ? 'Нужна другая единица? Все конвертеры →' : 'Need a different unit? See all converters →';
+
+// Pair slugs follow "{a}-to-{b}" -- derive the reverse pair's slug from the convention,
+// then confirm it actually exists before offering the swap link (so a pair without a
+// reverse page yet just doesn't show the button, instead of linking to a 404).
+const slugParts = entry.data.toolSlug.split('-to-');
+const reverseSlug = slugParts.length === 2 ? `${slugParts[1]}-to-${slugParts[0]}` : null;
+const reverseTool = reverseSlug
+  ? allTools.find((t) => t.data.toolSlug === reverseSlug && t.data.locale === entry.data.locale)
+  : undefined;
+const reverseAriaLabel = entry.data.locale === 'ru' ? 'Поменять направление' : 'Swap direction';
 
 const faqJsonLd = {
   '@context': 'https://schema.org',
@@ -66,7 +76,13 @@ const faqJsonLd = {
 >
   <div class="main">
     <h1>{entry.data.h1}</h1>
-    {entry.data.engine === 'linear-converter' && <LinearConverter {...entry.data.engineParams} />}
+    {entry.data.engine === 'linear-converter' && (
+      <LinearConverter
+        {...entry.data.engineParams}
+        reverseHref={reverseTool ? `/${entry.data.locale}/${reverseTool.data.toolSlug}` : undefined}
+        reverseAriaLabel={reverseAriaLabel}
+      />
+    )}
     <a class="universal-link" href={`/${entry.data.locale}/tools/${entry.data.category}`}>{categoryLabel}</a>
   </div>
 

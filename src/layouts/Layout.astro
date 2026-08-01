@@ -128,7 +128,7 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
         </button>
         <div class="dd-menu" role="listbox">
           {navCategories.map((c) => (
-            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.title}</a>
+            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.name}</a>
           ))}
         </div>
       </div>

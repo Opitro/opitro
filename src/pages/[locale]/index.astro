@@ -23,7 +23,7 @@ const toolsByCategory = Object.fromEntries(
 const searchIndex = categories.flatMap((c) => {
   const items = toolsByCategory[c.data.catSlug].map((t) => ({
     title: t.data.h1,
-    category: c.data.title,
+    category: c.data.name,
     href: `/${locale}/${t.data.toolSlug}`,
   }));
   // The category page itself may double as a working calculator (see tools/[category].astro) --
@@ -69,7 +69,7 @@ const t = {
       {categories.map((c) => (
         <details class="acc-item">
           <summary>
-            <span>{c.data.title}</span>
+            <span>{c.data.name}</span>
             <span class="acc-count">{toolsByCategory[c.data.catSlug].length}</span>
           </summary>
           <div class="acc-body">

@@ -1,6 +1,7 @@
 ---
 catSlug: length
 locale: en
+name: Length
 title: Length Calculator — Free, No Sign-Up — mm, cm, m, km, inches, feet & more
 h1: Length Calculator Online
 description: Converts between any length units at once — millimeters, centimeters, meters, kilometers, inches, feet, yards, miles, steps. Enter a number, pick the units, done.
