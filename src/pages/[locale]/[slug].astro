@@ -31,6 +31,14 @@ const related = allTools.filter(
     t.data.toolSlug !== entry.data.toolSlug
 );
 
+const allCategories = await getCollection('categories');
+const category = allCategories.find(
+  (c) => c.data.catSlug === entry.data.category && c.data.locale === entry.data.locale
+);
+const breadcrumb = category
+  ? { label: category.data.title, href: `/${entry.data.locale}/tools/${category.data.catSlug}` }
+  : undefined;
+
 const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
 const relatedLabel = entry.data.locale === 'ru' ? 'Похожие калькуляторы' : 'Related calculators';
 
@@ -51,6 +59,7 @@ const faqJsonLd = {
   description={entry.data.description}
   translations={translations}
   path={entry.data.toolSlug}
+  breadcrumb={breadcrumb}
 >
   <div class="main">
     <h1>{entry.data.h1}</h1>

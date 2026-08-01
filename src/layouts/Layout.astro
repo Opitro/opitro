@@ -1,4 +1,6 @@
 ---
+import { getCollection } from 'astro:content';
+
 interface Translation {
   locale: string;
   slug: string;
@@ -12,12 +14,19 @@ interface Props {
   translations?: Translation[];
   /** Path after the locale segment, e.g. "km-v-mili" or "" for the homepage. */
   path?: string;
+  /** Category link shown above the page content, e.g. { label: "Длина", href: "/ru/tools/length" }. Omit on pages with no parent category (homepage, category pages themselves). */
+  breadcrumb?: { label: string; href: string };
 }
 
-const { locale, title, description, translations = [], path = '' } = Astro.props;
+const { locale, title, description, translations = [], path = '', breadcrumb } = Astro.props;
 
 const LOCALE_NAMES: Record<string, string> = { ru: 'Русский', en: 'English' };
 const DEFAULT_LOCALE = 'ru';
+
+// Every page needs a way to browse to other categories — fetched here once, in the shared
+// Layout, instead of every page having to remember to pass it down.
+const allCategories = await getCollection('categories');
+const navCategories = allCategories.filter((c) => c.data.locale === locale);
 
 // No trailing slash, ever — must match wrangler.jsonc's html_handling: "drop-trailing-slash",
 // or canonical/hreflang URLs disagree with what the server actually serves (caught live on
@@ -65,16 +74,20 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
   nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
   .logo{font-size:20px;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
   .logo img{border-radius:6px;display:block}
-  .lang-switch{position:relative}
-  .lang-btn{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:7px 10px;border-radius:9px;cursor:pointer}
-  .lang-btn:hover{border-color:rgba(255,255,255,0.2)}
-  .lang-btn svg{width:12px;height:12px;color:var(--muted)}
-  .lang-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:140px;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
-  .lang-menu.open{display:flex}
-  .lang-link{font-size:13.5px;color:rgba(210,215,228,0.82);text-decoration:none;padding:10px 12px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
-  .lang-link:hover{color:#f0f0f2;background:rgba(255,255,255,0.05)}
-  .lang-link.active{color:var(--accent);background:rgba(74,222,158,0.1)}
-  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}}
+  .nav-right{display:flex;align-items:center;gap:8px}
+  .dropdown{position:relative}
+  .dd-btn{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:7px 10px;border-radius:9px;cursor:pointer}
+  .dd-btn:hover{border-color:rgba(255,255,255,0.2)}
+  .dd-btn svg{width:12px;height:12px;color:var(--muted)}
+  .dd-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:170px;max-height:70vh;overflow-y:auto;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
+  .dd-menu.open{display:flex}
+  .dd-link{font-size:13.5px;color:rgba(210,215,228,0.82);text-decoration:none;padding:10px 12px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
+  .dd-link:hover{color:#f0f0f2;background:rgba(255,255,255,0.05)}
+  .dd-link.active{color:var(--accent);background:rgba(74,222,158,0.1)}
+  .breadcrumb{max-width:680px;margin:0 auto;padding:14px 2rem 0;text-align:center}
+  .breadcrumb a{font-size:12px;color:var(--muted);text-decoration:none}
+  .breadcrumb a:hover{color:var(--accent)}
+  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}.breadcrumb{padding:12px 1rem 0}}
   .main{max-width:680px;margin:0 auto;width:100%;padding:2.5rem 2rem 3rem;flex:1;overflow-x:hidden}
   h1{font-size:24px;font-weight:600;text-align:center;margin-bottom:8px;letter-spacing:-0.3px}
   .subtitle{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
@@ -107,40 +120,69 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
     <img src="/favicon.svg" alt="" width="22" height="22">
     Opitro
   </a>
-  {translations.length > 1 && (
-    <div class="lang-switch">
-      <button class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
-        {locale.toUpperCase()}
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
-      <div class="lang-menu" id="langMenu" role="listbox">
-        {translations.map((t) => (
-          <a href={localePath(t.locale, path)} class={`lang-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
-        ))}
+  <div class="nav-right">
+    {navCategories.length > 0 && (
+      <div class="dropdown" data-dropdown>
+        <button class="dd-btn" aria-haspopup="listbox" aria-expanded="false">
+          {locale === 'ru' ? 'Категории' : 'Categories'}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dd-menu" role="listbox">
+          {navCategories.map((c) => (
+            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.title}</a>
+          ))}
+        </div>
       </div>
-    </div>
-  )}
+    )}
+    {translations.length > 1 && (
+      <div class="dropdown" data-dropdown>
+        <button class="dd-btn" aria-haspopup="listbox" aria-expanded="false">
+          {locale.toUpperCase()}
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+        </button>
+        <div class="dd-menu" role="listbox">
+          {translations.map((t) => (
+            <a href={localePath(t.locale, path)} class={`dd-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+          ))}
+        </div>
+      </div>
+    )}
+  </div>
 </nav>
+{breadcrumb && (
+  <div class="breadcrumb"><a href={breadcrumb.href}>← {breadcrumb.label}</a></div>
+)}
 <slot />
 <footer>
   © 2026 Opitro
 </footer>
 <script>
-  const b = document.getElementById('langBtn');
-  const nl = document.getElementById('langMenu');
-  if (b && nl) {
-    b.addEventListener('click', (e) => {
+  const dropdowns = document.querySelectorAll<HTMLElement>('[data-dropdown]');
+  dropdowns.forEach((dd) => {
+    const btn = dd.querySelector<HTMLButtonElement>('.dd-btn');
+    const menu = dd.querySelector<HTMLElement>('.dd-menu');
+    if (!btn || !menu) return;
+    btn.addEventListener('click', (e) => {
       e.stopPropagation();
-      const open = nl.classList.toggle('open');
-      b.setAttribute('aria-expanded', String(open));
-    });
-    document.addEventListener('click', (e) => {
-      if (!nl.contains(e.target as Node) && !b.contains(e.target as Node)) {
-        nl.classList.remove('open');
-        b.setAttribute('aria-expanded', 'false');
+      const willOpen = !menu.classList.contains('open');
+      dropdowns.forEach((other) => {
+        other.querySelector('.dd-menu')?.classList.remove('open');
+        other.querySelector('.dd-btn')?.setAttribute('aria-expanded', 'false');
+      });
+      if (willOpen) {
+        menu.classList.add('open');
+        btn.setAttribute('aria-expanded', 'true');
       }
     });
-  }
+  });
+  document.addEventListener('click', (e) => {
+    dropdowns.forEach((dd) => {
+      if (!dd.contains(e.target as Node)) {
+        dd.querySelector('.dd-menu')?.classList.remove('open');
+        dd.querySelector('.dd-btn')?.setAttribute('aria-expanded', 'false');
+      }
+    });
+  });
 </script>
 </body>
 </html>
