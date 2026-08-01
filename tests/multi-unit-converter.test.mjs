@@ -6,6 +6,7 @@ const M = 1;
 const KM = 1000;
 const CM = 0.01;
 const MM = 0.001;
+const DM = 0.1;
 const INCH = 0.0254;
 const FOOT = 0.3048;
 const YARD = 0.9144;
@@ -36,6 +37,10 @@ approxEqual(convertMultiUnit(1, YARD, FOOT), 3, 1e-3);
 
 // 1 nautical mile = 1852 m exactly
 approxEqual(convertMultiUnit(1, NAUTICAL_MILE, M), 1852);
+
+// 1 dm = 10 cm = 0.1 m
+approxEqual(convertMultiUnit(1, DM, CM), 10, 1e-3);
+approxEqual(convertMultiUnit(1, DM, M), 0.1, 1e-6);
 
 // same unit on both sides is a no-op
 assert.equal(convertMultiUnit(42, KM, KM), 42);
