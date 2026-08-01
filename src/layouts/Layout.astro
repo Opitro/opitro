@@ -65,14 +65,16 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
   nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
   .logo{font-size:20px;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
   .logo img{border-radius:6px;display:block}
-  .burger{display:flex;align-items:center;justify-content:center;background:none;border:none;cursor:pointer;padding:8px;color:#f0f0f2}
-  .burger svg{display:block;width:26px;height:26px}
-  .nav-links{display:none;position:absolute;top:56px;right:12px;min-width:200px;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
-  .nav-links.open{display:flex}
-  .nav-link{font-size:14px;color:rgba(210,215,228,0.82);text-decoration:none;padding:12px 16px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
-  .nav-link:hover{color:#f0f0f2;background:rgba(255,255,255,0.05)}
-  .nav-link.active{color:var(--accent);background:rgba(74,222,158,0.1)}
-  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}.nav-links{right:6px;left:6px;min-width:0}}
+  .lang-switch{position:relative}
+  .lang-btn{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:7px 10px;border-radius:9px;cursor:pointer}
+  .lang-btn:hover{border-color:rgba(255,255,255,0.2)}
+  .lang-btn svg{width:12px;height:12px;color:var(--muted)}
+  .lang-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:140px;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
+  .lang-menu.open{display:flex}
+  .lang-link{font-size:13.5px;color:rgba(210,215,228,0.82);text-decoration:none;padding:10px 12px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
+  .lang-link:hover{color:#f0f0f2;background:rgba(255,255,255,0.05)}
+  .lang-link.active{color:var(--accent);background:rgba(74,222,158,0.1)}
+  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}}
   .main{max-width:680px;margin:0 auto;width:100%;padding:2.5rem 2rem 3rem;flex:1;overflow-x:hidden}
   h1{font-size:24px;font-weight:600;text-align:center;margin-bottom:8px;letter-spacing:-0.3px}
   .subtitle{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
@@ -105,25 +107,38 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
     <img src="/favicon.svg" alt="" width="22" height="22">
     Opitro
   </a>
-  <button class="burger" aria-label="Menu"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg></button>
-  <div class="nav-links">
-    <a href={localePath(locale, '')} class="nav-link">{locale === 'ru' ? 'Главная' : 'Home'}</a>
-    {translations.map((t) => (
-      <a href={localePath(t.locale, path)} class={`nav-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
-    ))}
-  </div>
+  {translations.length > 1 && (
+    <div class="lang-switch">
+      <button class="lang-btn" id="langBtn" aria-haspopup="listbox" aria-expanded="false">
+        {locale.toUpperCase()}
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+      <div class="lang-menu" id="langMenu" role="listbox">
+        {translations.map((t) => (
+          <a href={localePath(t.locale, path)} class={`lang-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+        ))}
+      </div>
+    </div>
+  )}
 </nav>
 <slot />
 <footer>
   © 2026 Opitro
 </footer>
 <script>
-  const b = document.querySelector('.burger');
-  const nl = document.querySelector('.nav-links');
+  const b = document.getElementById('langBtn');
+  const nl = document.getElementById('langMenu');
   if (b && nl) {
-    b.addEventListener('click', (e) => { e.stopPropagation(); nl.classList.toggle('open'); });
+    b.addEventListener('click', (e) => {
+      e.stopPropagation();
+      const open = nl.classList.toggle('open');
+      b.setAttribute('aria-expanded', String(open));
+    });
     document.addEventListener('click', (e) => {
-      if (!nl.contains(e.target as Node) && !b.contains(e.target as Node)) nl.classList.remove('open');
+      if (!nl.contains(e.target as Node) && !b.contains(e.target as Node)) {
+        nl.classList.remove('open');
+        b.setAttribute('aria-expanded', 'false');
+      }
     });
   }
 </script>
