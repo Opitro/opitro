@@ -13,6 +13,14 @@ export default defineConfig({
     },
   },
   integrations: [sitemap()],
+  build: {
+    // Our CSS is small (a couple KB) and Astro's default "auto" threshold was flip-flopping
+    // between inlining it and extracting it to a separate file as the stylesheet grew across
+    // this session -- the external version is a render-blocking request PageSpeed flagged
+    // directly (110ms of avoidable delay). Forcing "always" removes that request entirely
+    // and makes the output deterministic.
+    inlineStylesheets: 'always',
+  },
   // Root ("/") and the retired /length-converter URLs redirect via public/_redirects instead
   // of Astro's own `redirects` option -- that compiles to a slow client-side meta-refresh
   // page on static output, which the user saw as a flash of "Redirecting from..." text
