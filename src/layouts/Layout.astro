@@ -76,9 +76,11 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
   .logo img{border-radius:6px;display:block}
   .nav-right{display:flex;align-items:center;gap:8px}
   .dropdown{position:relative}
-  .dd-btn{display:flex;align-items:center;gap:6px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:12.5px;font-weight:700;letter-spacing:.03em;padding:7px 10px;border-radius:9px;cursor:pointer}
+  .dd-btn{display:flex;align-items:center;gap:5px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:11px;font-weight:700;letter-spacing:.03em;padding:6px 9px;border-radius:9px;cursor:pointer}
   .dd-btn:hover{border-color:rgba(255,255,255,0.2)}
-  .dd-btn svg{width:12px;height:12px;color:var(--muted)}
+  .dd-btn svg{width:11px;height:11px;color:var(--muted)}
+  .dd-btn-icon{padding:8px;background:none;border:none}
+  .dd-btn-icon svg{width:24px;height:24px;color:#f0f0f2}
   .dd-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:170px;max-height:70vh;overflow-y:auto;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
   .dd-menu.open{display:flex}
   .dd-link{font-size:13.5px;color:rgba(210,215,228,0.82);text-decoration:none;padding:10px 12px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
@@ -121,18 +123,6 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
     Opitro
   </a>
   <div class="nav-right">
-    {navCategories.length > 0 && (
-      <div class="dropdown" data-dropdown>
-        <button class="dd-btn dd-btn-icon" aria-haspopup="listbox" aria-expanded="false" aria-label={locale === 'ru' ? 'Категории' : 'Categories'}>
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
-        </button>
-        <div class="dd-menu" role="listbox">
-          {navCategories.map((c) => (
-            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.name}</a>
-          ))}
-        </div>
-      </div>
-    )}
     {translations.length > 1 && (
       <div class="dropdown" data-dropdown>
         <button class="dd-btn" aria-haspopup="listbox" aria-expanded="false">
@@ -142,6 +132,18 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
         <div class="dd-menu" role="listbox">
           {translations.map((t) => (
             <a href={localePath(t.locale, path)} class={`dd-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+          ))}
+        </div>
+      </div>
+    )}
+    {navCategories.length > 0 && (
+      <div class="dropdown" data-dropdown>
+        <button class="dd-btn dd-btn-icon" aria-haspopup="listbox" aria-expanded="false" aria-label={locale === 'ru' ? 'Категории' : 'Categories'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
+        </button>
+        <div class="dd-menu" role="listbox">
+          {navCategories.map((c) => (
+            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.name}</a>
           ))}
         </div>
       </div>
