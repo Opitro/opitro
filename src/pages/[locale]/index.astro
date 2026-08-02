@@ -1,9 +1,10 @@
 ---
 import { getCollection } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
+import { t as translate } from '../../lib/ui-strings.js';
 
 export function getStaticPaths() {
-  const locales = ['ru', 'en'];
+  const locales = ['en', 'ru', 'es'];
   return locales.map((locale) => ({ params: { locale } }));
 }
 
@@ -34,20 +35,16 @@ const searchIndex = categories.flatMap((c) => {
 
 const totalTools = searchIndex.length;
 
-const LOCALES = ['ru', 'en'];
-const translations = LOCALES.map((l) => ({ locale: l, slug: '' }));
+const translations = ['en', 'ru', 'es'].map((l) => ({ locale: l, slug: '' }));
 
-const title = locale === 'ru' ? 'Opitro — калькуляторы и онлайн-инструменты' : 'Opitro — calculators and online tools';
-const description =
-  locale === 'ru'
-    ? 'Бесплатные калькуляторы, конвертеры и онлайн-инструменты. Всё считается прямо в браузере.'
-    : 'Free calculators, converters, and online tools. Everything runs right in your browser.';
+const title = translate(locale, 'homeTitle');
+const description = translate(locale, 'homeDescription');
 
 const t = {
-  tagline: locale === 'ru' ? `${totalTools} инструментов и растёт каждый день` : `${totalTools} tools and growing every day`,
-  searchPlaceholder: locale === 'ru' ? 'Найти инструмент…' : 'Find a tool…',
-  noResults: locale === 'ru' ? 'Ничего не найдено' : 'No results',
-  allTools: locale === 'ru' ? 'Все инструменты →' : 'All tools →',
+  tagline: translate(locale, 'tagline')(totalTools),
+  searchPlaceholder: translate(locale, 'searchPlaceholder'),
+  noResults: translate(locale, 'noResults'),
+  allTools: translate(locale, 'allToolsLink'),
 };
 ---
 

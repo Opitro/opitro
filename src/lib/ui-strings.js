@@ -1,0 +1,66 @@
+// Central UI-copy dictionary. Binary `locale === 'ru' ? x : y` ternaries don't scale past two
+// languages -- every string lives here once, keyed by locale, so adding a language means
+// filling in one more column instead of hunting down every ternary across the codebase.
+export const UI = {
+  en: {
+    categoriesAriaLabel: 'Categories',
+    faqLabel: 'FAQ',
+    relatedLabel: 'Related calculators',
+    seeAllConvertersLink: 'Need a different unit? See all converters →',
+    swapDirectionAriaLabel: 'Swap direction',
+    swapUnitsLabel: 'Swap units',
+    valueLabel: 'Value to convert',
+    resultLabel: 'Result',
+    fromLabel: 'Convert from',
+    toLabel: 'Convert to',
+    pairsLabel: 'Calculators for specific pairs',
+    homeTitle: 'Opitro — calculators and online tools',
+    homeDescription: 'Free calculators, converters, and online tools. Everything runs right in your browser.',
+    tagline: (count) => `${count} tools and growing every day`,
+    searchPlaceholder: 'Find a tool…',
+    noResults: 'No results',
+    allToolsLink: 'All tools →',
+  },
+  ru: {
+    categoriesAriaLabel: 'Категории',
+    faqLabel: 'Частые вопросы',
+    relatedLabel: 'Похожие калькуляторы',
+    seeAllConvertersLink: 'Нужна другая единица? Все конвертеры →',
+    swapDirectionAriaLabel: 'Поменять направление',
+    swapUnitsLabel: 'Поменять местами',
+    valueLabel: 'Значение для перевода',
+    resultLabel: 'Результат',
+    fromLabel: 'Из какой единицы',
+    toLabel: 'В какую единицу',
+    pairsLabel: 'Калькуляторы по конкретным парам',
+    homeTitle: 'Opitro — калькуляторы и онлайн-инструменты',
+    homeDescription: 'Бесплатные калькуляторы, конвертеры и онлайн-инструменты. Всё считается прямо в браузере.',
+    tagline: (count) => `${count} инструментов и растёт каждый день`,
+    searchPlaceholder: 'Найти инструмент…',
+    noResults: 'Ничего не найдено',
+    allToolsLink: 'Все инструменты →',
+  },
+  es: {
+    categoriesAriaLabel: 'Categorías',
+    faqLabel: 'Preguntas frecuentes',
+    relatedLabel: 'Calculadoras relacionadas',
+    seeAllConvertersLink: '¿Necesitas otra unidad? Ver todos los conversores →',
+    swapDirectionAriaLabel: 'Invertir dirección',
+    swapUnitsLabel: 'Intercambiar unidades',
+    valueLabel: 'Valor a convertir',
+    resultLabel: 'Resultado',
+    fromLabel: 'Convertir desde',
+    toLabel: 'Convertir a',
+    pairsLabel: 'Calculadoras para pares específicos',
+    homeTitle: 'Opitro — calculadoras y herramientas online',
+    homeDescription: 'Calculadoras, conversores y herramientas online gratis. Todo funciona directamente en tu navegador.',
+    tagline: (count) => `${count} herramientas, y crece cada día`,
+    searchPlaceholder: 'Buscar una herramienta…',
+    noResults: 'Sin resultados',
+    allToolsLink: 'Todas las herramientas →',
+  },
+};
+
+export function t(locale, key) {
+  return (UI[locale] ?? UI.en)[key];
+}

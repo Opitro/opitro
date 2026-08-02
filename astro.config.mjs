@@ -6,8 +6,8 @@ import sitemap from '@astrojs/sitemap';
 export default defineConfig({
   site: 'https://opitro.com',
   i18n: {
-    locales: ['ru', 'en'],
-    defaultLocale: 'ru',
+    locales: ['en', 'ru', 'es'],
+    defaultLocale: 'en',
     routing: {
       prefixDefaultLocale: true,
     },

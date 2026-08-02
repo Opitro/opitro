@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { t as translate } from '../lib/ui-strings.js';
 
 interface Translation {
   locale: string;
@@ -20,8 +21,8 @@ interface Props {
 
 const { locale, title, description, translations = [], path = '', breadcrumb } = Astro.props;
 
-const LOCALE_NAMES: Record<string, string> = { ru: 'Русский', en: 'English' };
-const DEFAULT_LOCALE = 'ru';
+const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español' };
+const DEFAULT_LOCALE = 'en';
 
 // Every page needs a way to browse to other categories — fetched here once, in the shared
 // Layout, instead of every page having to remember to pass it down.
@@ -159,7 +160,7 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
     )}
     {navCategories.length > 0 && (
       <div class="dropdown" data-dropdown>
-        <button class="dd-btn dd-btn-icon" aria-haspopup="listbox" aria-expanded="false" aria-label={locale === 'ru' ? 'Категории' : 'Categories'}>
+        <button class="dd-btn dd-btn-icon" aria-haspopup="listbox" aria-expanded="false" aria-label={translate(locale, 'categoriesAriaLabel')}>
           <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="3" y1="6" x2="21" y2="6"/><line x1="3" y1="12" x2="21" y2="12"/><line x1="3" y1="18" x2="21" y2="18"/></svg>
         </button>
         <div class="dd-menu" role="listbox">

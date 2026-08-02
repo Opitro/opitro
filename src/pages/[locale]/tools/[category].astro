@@ -4,9 +4,10 @@ import Layout from '../../../layouts/Layout.astro';
 import UniversalConverter from '../../../components/UniversalConverter.astro';
 import TemperatureUniversalConverter from '../../../components/TemperatureUniversalConverter.astro';
 import AdSlot from '../../../components/AdSlot.astro';
+import { t as translate } from '../../../lib/ui-strings.js';
 
 export async function getStaticPaths() {
-  const locales = ['ru', 'en'];
+  const locales = ['en', 'ru', 'es'];
   const allCategories = await getCollection('categories');
   return allCategories
     .filter((entry) => locales.includes(entry.data.locale))
@@ -59,6 +60,19 @@ const UNITS_BY_CATEGORY = {
       { code: 'nmi', label: 'Nautical miles', factor: 1852 },
       { code: 'step', label: 'Steps', factor: 0.762 },
     ],
+    es: [
+      { code: 'mm', label: 'Milímetros (mm)', factor: 0.001 },
+      { code: 'cm', label: 'Centímetros (cm)', factor: 0.01 },
+      { code: 'dm', label: 'Decímetros (dm)', factor: 0.1 },
+      { code: 'm', label: 'Metros (m)', factor: 1 },
+      { code: 'km', label: 'Kilómetros (km)', factor: 1000 },
+      { code: 'in', label: 'Pulgadas', factor: 0.0254 },
+      { code: 'ft', label: 'Pies', factor: 0.3048 },
+      { code: 'yd', label: 'Yardas', factor: 0.9144 },
+      { code: 'mi', label: 'Millas', factor: 1609.344 },
+      { code: 'nmi', label: 'Millas náuticas', factor: 1852 },
+      { code: 'step', label: 'Pasos', factor: 0.762 },
+    ],
   },
   weight: {
     ru: [
@@ -77,6 +91,15 @@ const UNITS_BY_CATEGORY = {
       { code: 'tonne', label: 'Tonnes (t)', factor: 1000 },
       { code: 'oz', label: 'Ounces', factor: 0.028349523 },
       { code: 'lb', label: 'Pounds', factor: 0.453592 },
+      { code: 'stone', label: 'Stone', factor: 6.350293 },
+    ],
+    es: [
+      { code: 'mg', label: 'Miligramos (mg)', factor: 0.000001 },
+      { code: 'g', label: 'Gramos (g)', factor: 0.001 },
+      { code: 'kg', label: 'Kilogramos (kg)', factor: 1 },
+      { code: 'tonne', label: 'Toneladas (t)', factor: 1000 },
+      { code: 'oz', label: 'Onzas', factor: 0.028349523 },
+      { code: 'lb', label: 'Libras', factor: 0.453592 },
       { code: 'stone', label: 'Stone', factor: 6.350293 },
     ],
   },
@@ -99,6 +122,15 @@ const UNITS_BY_CATEGORY = {
       { code: 'floz', label: 'Fluid ounces', factor: 0.0295735296 },
       { code: 'tbsp', label: 'Tablespoons', factor: 0.0147867648 },
     ],
+    es: [
+      { code: 'ml', label: 'Mililitros (ml)', factor: 0.001 },
+      { code: 'l', label: 'Litros (L)', factor: 1 },
+      { code: 'm3', label: 'Metros cúbicos (m³)', factor: 1000 },
+      { code: 'gal', label: 'Galones (EE. UU.)', factor: 3.785411784 },
+      { code: 'cup', label: 'Tazas', factor: 0.236588236 },
+      { code: 'floz', label: 'Onzas líquidas', factor: 0.0295735296 },
+      { code: 'tbsp', label: 'Cucharadas', factor: 0.0147867648 },
+    ],
   },
 };
 
@@ -111,6 +143,11 @@ const TEMPERATURE_UNITS = {
     { code: 'k', label: 'Кельвин (K)', scale: 1, offset: -273.15 },
   ],
   en: [
+    { code: 'c', label: 'Celsius (°C)', scale: 1, offset: 0 },
+    { code: 'f', label: 'Fahrenheit (°F)', scale: 5 / 9, offset: -160 / 9 },
+    { code: 'k', label: 'Kelvin (K)', scale: 1, offset: -273.15 },
+  ],
+  es: [
     { code: 'c', label: 'Celsius (°C)', scale: 1, offset: 0 },
     { code: 'f', label: 'Fahrenheit (°F)', scale: 5 / 9, offset: -160 / 9 },
     { code: 'k', label: 'Kelvin (K)', scale: 1, offset: -273.15 },
@@ -128,13 +165,13 @@ const DEFAULTS_BY_CATEGORY = {
 const units = UNITS_BY_CATEGORY[entry.data.catSlug]?.[entry.data.locale];
 const temperatureUnits = entry.data.catSlug === 'temperature' ? TEMPERATURE_UNITS[entry.data.locale] : undefined;
 const defaults = DEFAULTS_BY_CATEGORY[entry.data.catSlug] ?? { from: units?.[0]?.code, to: units?.[1]?.code };
-const swapLabel = entry.data.locale === 'ru' ? 'Поменять местами' : 'Swap units';
-const valueLabel = entry.data.locale === 'ru' ? 'Значение для перевода' : 'Value to convert';
-const resultLabel = entry.data.locale === 'ru' ? 'Результат' : 'Result';
-const fromLabel = entry.data.locale === 'ru' ? 'Из какой единицы' : 'Convert from';
-const toLabel = entry.data.locale === 'ru' ? 'В какую единицу' : 'Convert to';
-const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
-const pairsLabel = entry.data.locale === 'ru' ? 'Калькуляторы по конкретным парам' : 'Calculators for specific pairs';
+const swapLabel = translate(entry.data.locale, 'swapUnitsLabel');
+const valueLabel = translate(entry.data.locale, 'valueLabel');
+const resultLabel = translate(entry.data.locale, 'resultLabel');
+const fromLabel = translate(entry.data.locale, 'fromLabel');
+const toLabel = translate(entry.data.locale, 'toLabel');
+const faqLabel = translate(entry.data.locale, 'faqLabel');
+const pairsLabel = translate(entry.data.locale, 'pairsLabel');
 ---
 
 <Layout

@@ -4,9 +4,10 @@ import Layout from '../../layouts/Layout.astro';
 import LinearConverter from '../../components/LinearConverter.astro';
 import TemperatureConverter from '../../components/TemperatureConverter.astro';
 import AdSlot from '../../components/AdSlot.astro';
+import { t as translate } from '../../lib/ui-strings.js';
 
 export async function getStaticPaths() {
-  const locales = ['ru', 'en'];
+  const locales = ['en', 'ru', 'es'];
   const allTools = await getCollection('tools');
   return allTools
     .filter((entry) => locales.includes(entry.data.locale))
@@ -40,11 +41,10 @@ const breadcrumb = category
   ? { label: category.data.name, href: `/${entry.data.locale}/tools/${category.data.catSlug}` }
   : undefined;
 
-const faqLabel = entry.data.locale === 'ru' ? 'Частые вопросы' : 'FAQ';
-const relatedLabel = entry.data.locale === 'ru' ? 'Похожие калькуляторы' : 'Related calculators';
+const faqLabel = translate(entry.data.locale, 'faqLabel');
+const relatedLabel = translate(entry.data.locale, 'relatedLabel');
 
-const categoryLabel =
-  entry.data.locale === 'ru' ? 'Нужна другая единица? Все конвертеры →' : 'Need a different unit? See all converters →';
+const categoryLabel = translate(entry.data.locale, 'seeAllConvertersLink');
 
 // Pair slugs follow "{a}-to-{b}" -- derive the reverse pair's slug from the convention,
 // then confirm it actually exists before offering the swap link (so a pair without a
@@ -54,7 +54,7 @@ const reverseSlug = slugParts.length === 2 ? `${slugParts[1]}-to-${slugParts[0]}
 const reverseTool = reverseSlug
   ? allTools.find((t) => t.data.toolSlug === reverseSlug && t.data.locale === entry.data.locale)
   : undefined;
-const reverseAriaLabel = entry.data.locale === 'ru' ? 'Поменять направление' : 'Swap direction';
+const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
 
 const faqJsonLd = {
   '@context': 'https://schema.org',
