@@ -59,9 +59,36 @@ const UNITS_BY_CATEGORY = {
       { code: 'step', label: 'Steps', factor: 0.762 },
     ],
   },
+  weight: {
+    ru: [
+      { code: 'mg', label: 'Миллиграммы (мг)', factor: 0.000001 },
+      { code: 'g', label: 'Граммы (г)', factor: 0.001 },
+      { code: 'kg', label: 'Килограммы (кг)', factor: 1 },
+      { code: 'tonne', label: 'Тонны (т)', factor: 1000 },
+      { code: 'oz', label: 'Унции', factor: 0.028349523 },
+      { code: 'lb', label: 'Фунты', factor: 0.453592 },
+      { code: 'stone', label: 'Стоуны', factor: 6.350293 },
+    ],
+    en: [
+      { code: 'mg', label: 'Milligrams (mg)', factor: 0.000001 },
+      { code: 'g', label: 'Grams (g)', factor: 0.001 },
+      { code: 'kg', label: 'Kilograms (kg)', factor: 1 },
+      { code: 'tonne', label: 'Tonnes (t)', factor: 1000 },
+      { code: 'oz', label: 'Ounces', factor: 0.028349523 },
+      { code: 'lb', label: 'Pounds', factor: 0.453592 },
+      { code: 'stone', label: 'Stone', factor: 6.350293 },
+    ],
+  },
+};
+
+// Default from/to shown on first load, per category -- pick the most common real pair.
+const DEFAULTS_BY_CATEGORY = {
+  length: { from: 'm', to: 'cm' },
+  weight: { from: 'kg', to: 'lb' },
 };
 
 const units = UNITS_BY_CATEGORY[entry.data.catSlug]?.[entry.data.locale];
+const defaults = DEFAULTS_BY_CATEGORY[entry.data.catSlug] ?? { from: units?.[0]?.code, to: units?.[1]?.code };
 const swapLabel = entry.data.locale === 'ru' ? 'Поменять местами' : 'Swap units';
 const valueLabel = entry.data.locale === 'ru' ? 'Значение для перевода' : 'Value to convert';
 const resultLabel = entry.data.locale === 'ru' ? 'Результат' : 'Result';
@@ -84,8 +111,8 @@ const pairsLabel = entry.data.locale === 'ru' ? 'Калькуляторы по �
     {units && (
       <UniversalConverter
         units={units}
-        defaultFrom="m"
-        defaultTo="cm"
+        defaultFrom={defaults.from}
+        defaultTo={defaults.to}
         swapLabel={swapLabel}
         valueLabel={valueLabel}
         resultLabel={resultLabel}

@@ -9,6 +9,12 @@ const FEET_TO_M = 0.3048;
 const INCHES_TO_CM = 2.54;
 const STEPS_TO_KM = 0.000762;
 const KM_TO_STEPS = 1312.335958;
+const KG_TO_LBS = 2.20462;
+const LBS_TO_KG = 0.453592;
+const G_TO_OZ = 0.035274;
+const OZ_TO_G = 28.349523;
+const KG_TO_STONE = 0.157473;
+const STONE_TO_KG = 6.350293;
 
 function approxEqual(a, b, epsilon = 1e-4) {
   assert.ok(Math.abs(a - b) < epsilon, `expected ${a} to be close to ${b}`);
@@ -37,6 +43,17 @@ approxEqual(STEPS_TO_KM * KM_TO_STEPS, 1, 1e-3);
 // steps<->km: values quoted in each tool's FAQ (76 cm average stride)
 approxEqual(convertLinear(10000, STEPS_TO_KM), 7.62, 1e-6);
 approxEqual(convertLinear(5, KM_TO_STEPS), 6561.68, 1e-2);
+
+// weight pairs: round-trip sanity + FAQ values, exactly as quoted on each page
+approxEqual(KG_TO_LBS * LBS_TO_KG, 1, 1e-3);
+approxEqual(G_TO_OZ * OZ_TO_G, 1, 1e-3);
+approxEqual(KG_TO_STONE * STONE_TO_KG, 1, 1e-3);
+approxEqual(convertLinear(70, KG_TO_LBS), 154.3234, 1e-4);
+approxEqual(convertLinear(50, LBS_TO_KG), 22.6796, 1e-4);
+approxEqual(convertLinear(200, G_TO_OZ), 7.0548, 1e-4);
+approxEqual(convertLinear(8, OZ_TO_G), 226.796184, 1e-6);
+approxEqual(convertLinear(80, KG_TO_STONE), 12.59784, 1e-5);
+approxEqual(convertLinear(12, STONE_TO_KG), 76.203516, 1e-6);
 
 // 0 always converts to 0 regardless of factor
 assert.equal(convertLinear(0, KM_TO_MILES), 0);

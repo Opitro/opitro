@@ -51,4 +51,19 @@ approxEqual(convertMultiUnit(convertMultiUnit(7, M, MM), MM, M), 7);
 assert.equal(formatNumber(999.9999995), '1000');
 assert.equal(formatNumber(NaN), '0');
 
+// weight units (factors: kg per unit) -- same generic function, different base unit
+const KG = 1;
+const G = 0.001;
+const MG = 0.000001;
+const TONNE = 1000;
+const OZ_KG = 0.028349523;
+const LB_KG = 0.453592;
+const STONE_KG = 6.350293;
+
+approxEqual(convertMultiUnit(1000, G, KG), 1);
+approxEqual(convertMultiUnit(1, TONNE, KG), 1000);
+approxEqual(convertMultiUnit(1, KG, MG), 1000000, 1e-2);
+approxEqual(convertMultiUnit(1, LB_KG, OZ_KG), 16, 1e-2);
+approxEqual(convertMultiUnit(1, STONE_KG, LB_KG), 14, 1e-2);
+
 console.log('multi-unit-converter: all assertions passed');
