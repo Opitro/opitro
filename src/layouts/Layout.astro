@@ -103,6 +103,23 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
   .lc-swap{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:2px auto;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
   .lc-swap:hover{border-color:var(--accent);color:var(--accent)}
   .lc-swap svg{width:16px;height:16px}
+  .uc-row{display:flex;align-items:center;gap:10px}
+  .uc-row .field{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:0}
+  .uc-row input,.uc-row select{height:46px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;width:100%}
+  .uc-row input#uc-output{color:var(--accent);font-weight:700}
+  .uc-swap{flex:none;width:38px;height:38px;margin-top:26px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center}
+  .uc-swap:hover{border-color:var(--accent)}
+  .uc-swap svg{width:17px;height:17px}
+  @media(max-width:480px){.uc-row{flex-direction:column;align-items:stretch}.uc-swap{align-self:center;margin-top:0;transform:rotate(90deg)}}
+  @supports (appearance: base-select) {
+    .uc-row select{appearance:base-select;cursor:pointer;display:flex;align-items:center}
+    .uc-row select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;position-try-fallbacks:none}
+    .uc-row select::picker-icon{color:var(--muted)}
+    .uc-row option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
+    .uc-row option:hover,.uc-row option:focus,.uc-row option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
+    .uc-row option:checked{color:var(--accent)}
+    .uc-row select::checkmark{display:none}
+  }
   section.seo{max-width:680px;margin:40px auto 0;padding:0 2rem;color:var(--muted);font-size:13px;line-height:1.7}
   section.seo h2{font-size:18px;color:rgba(210,215,228,0.85);font-weight:600;margin-bottom:14px}
   section.seo h3{font-size:15px;color:rgba(210,215,228,0.82);font-weight:500;margin-bottom:5px}

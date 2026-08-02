@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../../layouts/Layout.astro';
 import UniversalConverter from '../../../components/UniversalConverter.astro';
+import TemperatureUniversalConverter from '../../../components/TemperatureUniversalConverter.astro';
 import AdSlot from '../../../components/AdSlot.astro';
 
 export async function getStaticPaths() {
@@ -101,14 +102,31 @@ const UNITS_BY_CATEGORY = {
   },
 };
 
+// Temperature doesn't fit the multiplicative UNITS_BY_CATEGORY shape (affine, not factor-based)
+// -- separate small lookup for its own converter component. See project-architecture memory.
+const TEMPERATURE_UNITS = {
+  ru: [
+    { code: 'c', label: 'Цельсий (°C)', scale: 1, offset: 0 },
+    { code: 'f', label: 'Фаренгейт (°F)', scale: 5 / 9, offset: -160 / 9 },
+    { code: 'k', label: 'Кельвин (K)', scale: 1, offset: -273.15 },
+  ],
+  en: [
+    { code: 'c', label: 'Celsius (°C)', scale: 1, offset: 0 },
+    { code: 'f', label: 'Fahrenheit (°F)', scale: 5 / 9, offset: -160 / 9 },
+    { code: 'k', label: 'Kelvin (K)', scale: 1, offset: -273.15 },
+  ],
+};
+
 // Default from/to shown on first load, per category -- pick the most common real pair.
 const DEFAULTS_BY_CATEGORY = {
   length: { from: 'm', to: 'cm' },
   volume: { from: 'l', to: 'ml' },
   weight: { from: 'kg', to: 'lb' },
+  temperature: { from: 'c', to: 'f' },
 };
 
 const units = UNITS_BY_CATEGORY[entry.data.catSlug]?.[entry.data.locale];
+const temperatureUnits = entry.data.catSlug === 'temperature' ? TEMPERATURE_UNITS[entry.data.locale] : undefined;
 const defaults = DEFAULTS_BY_CATEGORY[entry.data.catSlug] ?? { from: units?.[0]?.code, to: units?.[1]?.code };
 const swapLabel = entry.data.locale === 'ru' ? 'Поменять местами' : 'Swap units';
 const valueLabel = entry.data.locale === 'ru' ? 'Значение для перевода' : 'Value to convert';
@@ -141,9 +159,21 @@ const pairsLabel = entry.data.locale === 'ru' ? 'Калькуляторы по �
         toLabel={toLabel}
       />
     )}
+    {temperatureUnits && (
+      <TemperatureUniversalConverter
+        units={temperatureUnits}
+        defaultFrom={defaults.from}
+        defaultTo={defaults.to}
+        swapLabel={swapLabel}
+        valueLabel={valueLabel}
+        resultLabel={resultLabel}
+        fromLabel={fromLabel}
+        toLabel={toLabel}
+      />
+    )}
   </div>
 
-  {units && <AdSlot />}
+  {(units || temperatureUnits) && <AdSlot />}
 
   <section class="seo">
     <Content />

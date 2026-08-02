@@ -2,7 +2,8 @@
 interface Unit {
   code: string;
   label: string;
-  factor: number;
+  scale: number;
+  offset: number;
 }
 
 interface Props {
@@ -22,7 +23,7 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
 <div class="uc-widget" data-units={JSON.stringify(units)}>
   <div class="uc-row">
     <div class="field">
-      <input type="number" id="uc-input" value="1" step="any" inputmode="decimal" aria-label={valueLabel}>
+      <input type="number" id="uc-input" value="20" step="any" inputmode="decimal" aria-label={valueLabel}>
       <select id="uc-from" aria-label={fromLabel}>
         <button type="button"><selectedcontent></selectedcontent></button>
         {units.map((u) => <option value={u.code} selected={u.code === defaultFrom}>{u.label}</option>)}
@@ -42,11 +43,11 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
 </div>
 
 <script>
-  import { convertMultiUnit, formatNumber } from '../lib/multi-unit-converter.js';
+  import { convertTemperature, formatNumber } from '../lib/temperature-multi.js';
 
   const widget = document.querySelector('.uc-widget');
   const units = JSON.parse(widget.dataset.units);
-  const factorByCode = Object.fromEntries(units.map((u) => [u.code, u.factor]));
+  const unitByCode = Object.fromEntries(units.map((u) => [u.code, u]));
 
   const input = document.getElementById('uc-input');
   const output = document.getElementById('uc-output');
@@ -56,7 +57,9 @@ const { units, defaultFrom, defaultTo, swapLabel, valueLabel, resultLabel, fromL
 
   function update() {
     const value = parseFloat(input.value) || 0;
-    const result = convertMultiUnit(value, factorByCode[fromSel.value], factorByCode[toSel.value]);
+    const from = unitByCode[fromSel.value];
+    const to = unitByCode[toSel.value];
+    const result = convertTemperature(value, from.scale, from.offset, to.scale, to.offset);
     output.value = formatNumber(result);
   }
 
