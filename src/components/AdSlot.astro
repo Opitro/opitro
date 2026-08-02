@@ -7,10 +7,10 @@
     max-width:680px;margin:16px auto;padding:0 2rem;
   }
   .ad-slot-box{
-    min-height:50px;border:1px dashed var(--line);border-radius:10px;
+    min-height:50px;border:1px solid transparent;border-radius:10px;
     opacity:0;transition:opacity .35s ease;pointer-events:none;
   }
-  .ad-slot.visible .ad-slot-box{opacity:1;pointer-events:auto}
+  .ad-slot.visible .ad-slot-box{opacity:1;pointer-events:auto;border-color:var(--line)}
   @media(max-width:640px){.ad-slot{padding:0 1rem}}
 </style>
 
