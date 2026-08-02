@@ -15,6 +15,12 @@ const G_TO_OZ = 0.035274;
 const OZ_TO_G = 28.349523;
 const KG_TO_STONE = 0.157473;
 const STONE_TO_KG = 6.350293;
+const LITERS_TO_GAL = 0.26417205;
+const GAL_TO_LITERS = 3.785411784;
+const ML_TO_CUPS = 0.00422675;
+const CUPS_TO_ML = 236.588236;
+const FLOZ_TO_ML = 29.5735296;
+const ML_TO_FLOZ = 0.03381402;
 
 function approxEqual(a, b, epsilon = 1e-4) {
   assert.ok(Math.abs(a - b) < epsilon, `expected ${a} to be close to ${b}`);
@@ -54,6 +60,17 @@ approxEqual(convertLinear(200, G_TO_OZ), 7.0548, 1e-4);
 approxEqual(convertLinear(8, OZ_TO_G), 226.796184, 1e-6);
 approxEqual(convertLinear(80, KG_TO_STONE), 12.59784, 1e-5);
 approxEqual(convertLinear(12, STONE_TO_KG), 76.203516, 1e-6);
+
+// volume pairs: round-trip sanity + FAQ values, exactly as quoted on each page
+approxEqual(LITERS_TO_GAL * GAL_TO_LITERS, 1, 1e-3);
+approxEqual(ML_TO_CUPS * CUPS_TO_ML, 1, 1e-3);
+approxEqual(FLOZ_TO_ML * ML_TO_FLOZ, 1, 1e-3);
+approxEqual(convertLinear(60, LITERS_TO_GAL), 15.850323, 1e-6);
+approxEqual(convertLinear(5, GAL_TO_LITERS), 18.927059, 1e-6);
+approxEqual(convertLinear(500, ML_TO_CUPS), 2.113375, 1e-6);
+approxEqual(convertLinear(2.5, CUPS_TO_ML), 591.47059, 1e-5);
+approxEqual(convertLinear(12, FLOZ_TO_ML), 354.882355, 1e-6);
+approxEqual(convertLinear(750, ML_TO_FLOZ), 25.360515, 1e-6);
 
 // 0 always converts to 0 regardless of factor
 assert.equal(convertLinear(0, KM_TO_MILES), 0);

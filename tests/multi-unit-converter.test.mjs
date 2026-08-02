@@ -66,4 +66,19 @@ approxEqual(convertMultiUnit(1, KG, MG), 1000000, 1e-2);
 approxEqual(convertMultiUnit(1, LB_KG, OZ_KG), 16, 1e-2);
 approxEqual(convertMultiUnit(1, STONE_KG, LB_KG), 14, 1e-2);
 
+// volume units (factors: liters per unit) -- same generic function, different base unit
+const L = 1;
+const ML = 0.001;
+const M3 = 1000;
+const GAL_L = 3.785411784;
+const CUP_L = 0.236588236;
+const FLOZ_L = 0.0295735296;
+const TBSP_L = 0.0147867648;
+
+approxEqual(convertMultiUnit(1000, ML, L), 1);
+approxEqual(convertMultiUnit(1, M3, L), 1000);
+approxEqual(convertMultiUnit(1, GAL_L, CUP_L), 16, 1e-2); // 1 US gallon = 16 cups
+approxEqual(convertMultiUnit(1, CUP_L, FLOZ_L), 8, 1e-2); // 1 cup = 8 fl oz
+approxEqual(convertMultiUnit(1, FLOZ_L, TBSP_L), 2, 1e-2); // 1 fl oz = 2 tbsp
+
 console.log('multi-unit-converter: all assertions passed');

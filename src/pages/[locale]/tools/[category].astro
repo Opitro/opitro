@@ -79,11 +79,32 @@ const UNITS_BY_CATEGORY = {
       { code: 'stone', label: 'Stone', factor: 6.350293 },
     ],
   },
+  volume: {
+    ru: [
+      { code: 'ml', label: 'Миллилитры (мл)', factor: 0.001 },
+      { code: 'l', label: 'Литры (л)', factor: 1 },
+      { code: 'm3', label: 'Кубометры (м³)', factor: 1000 },
+      { code: 'gal', label: 'Галлоны (США)', factor: 3.785411784 },
+      { code: 'cup', label: 'Чашки', factor: 0.236588236 },
+      { code: 'floz', label: 'Жидкие унции', factor: 0.0295735296 },
+      { code: 'tbsp', label: 'Столовые ложки', factor: 0.0147867648 },
+    ],
+    en: [
+      { code: 'ml', label: 'Milliliters (ml)', factor: 0.001 },
+      { code: 'l', label: 'Liters (L)', factor: 1 },
+      { code: 'm3', label: 'Cubic meters (m³)', factor: 1000 },
+      { code: 'gal', label: 'Gallons (US)', factor: 3.785411784 },
+      { code: 'cup', label: 'Cups', factor: 0.236588236 },
+      { code: 'floz', label: 'Fluid ounces', factor: 0.0295735296 },
+      { code: 'tbsp', label: 'Tablespoons', factor: 0.0147867648 },
+    ],
+  },
 };
 
 // Default from/to shown on first load, per category -- pick the most common real pair.
 const DEFAULTS_BY_CATEGORY = {
   length: { from: 'm', to: 'cm' },
+  volume: { from: 'l', to: 'ml' },
   weight: { from: 'kg', to: 'lb' },
 };
 
