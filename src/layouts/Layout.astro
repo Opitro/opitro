@@ -1,5 +1,6 @@
 ---
 import { getCollection } from 'astro:content';
+import { getRelativeLocaleUrl } from 'astro:i18n';
 import { t as translate } from '../lib/ui-strings.js';
 
 interface Translation {
@@ -29,14 +30,11 @@ const DEFAULT_LOCALE = 'en';
 const allCategories = await getCollection('categories');
 const navCategories = allCategories.filter((c) => c.data.locale === locale);
 
-// No trailing slash, ever — must match wrangler.jsonc's html_handling: "drop-trailing-slash",
-// or canonical/hreflang URLs disagree with what the server actually serves (caught live on
-// the homepage after the tool-page version of this same bug was already fixed once).
-function localePath(loc: string, p: string) {
-  return p ? `/${loc}/${p}` : `/${loc}`;
-}
-
-const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
+// Astro's own astro:i18n helper, not a hand-rolled string template -- verified via a real
+// build that it still produces no trailing slash (must match wrangler.jsonc's
+// html_handling: "drop-trailing-slash", or canonical/hreflang disagree with what the server
+// actually serves, a bug caught live twice already before this URL-building was centralized).
+const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toString();
 ---
 
 <!DOCTYPE html>
@@ -59,10 +57,10 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
 <meta name="theme-color" content="#0e0f11">
 <link rel="canonical" href={canonicalUrl}>
 {translations.map((t) => (
-  <link rel="alternate" hreflang={t.locale} href={new URL(localePath(t.locale, path), Astro.site).toString()} />
+  <link rel="alternate" hreflang={t.locale} href={new URL(getRelativeLocaleUrl(t.locale, path), Astro.site).toString()} />
 ))}
 {translations.some((t) => t.locale === DEFAULT_LOCALE) && (
-  <link rel="alternate" hreflang="x-default" href={new URL(localePath(DEFAULT_LOCALE, path), Astro.site).toString()} />
+  <link rel="alternate" hreflang="x-default" href={new URL(getRelativeLocaleUrl(DEFAULT_LOCALE, path), Astro.site).toString()} />
 )}
 <style is:global>
   :root{
@@ -140,7 +138,7 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
 </head>
 <body>
 <nav>
-  <a class="logo" href={localePath(locale, '')}>
+  <a class="logo" href={getRelativeLocaleUrl(locale, '')}>
     <img src="/favicon.svg" alt="" width="22" height="22">
     Opitro
   </a>
@@ -153,7 +151,7 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
         </button>
         <div class="dd-menu" role="listbox">
           {translations.map((t) => (
-            <a href={localePath(t.locale, path)} class={`dd-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
+            <a href={getRelativeLocaleUrl(t.locale, path)} class={`dd-link${t.locale === locale ? ' active' : ''}`}>{LOCALE_NAMES[t.locale] ?? t.locale}</a>
           ))}
         </div>
       </div>
@@ -165,7 +163,7 @@ const canonicalUrl = new URL(localePath(locale, path), Astro.site).toString();
         </button>
         <div class="dd-menu" role="listbox">
           {navCategories.map((c) => (
-            <a href={localePath(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.name}</a>
+            <a href={getRelativeLocaleUrl(locale, `tools/${c.data.catSlug}`)} class="dd-link">{c.data.name}</a>
           ))}
         </div>
       </div>

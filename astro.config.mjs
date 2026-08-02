@@ -5,6 +5,11 @@ import sitemap from '@astrojs/sitemap';
 // https://astro.build/config
 export default defineConfig({
   site: 'https://opitro.com',
+  // Must match wrangler.jsonc's assets.html_handling: "drop-trailing-slash" -- without this,
+  // astro:i18n's getRelativeLocaleUrl() (used in Layout.astro) appends a trailing slash to
+  // every generated URL, which the Cloudflare asset server then redirects away from,
+  // reintroducing the exact canonical/served-URL mismatch bug fixed twice before this.
+  trailingSlash: 'never',
   i18n: {
     locales: ['en', 'ru', 'es'],
     defaultLocale: 'en',
