@@ -7,7 +7,7 @@ import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 
 export async function getStaticPaths() {
-  const locales = ['en', 'ru', 'es'];
+  const locales = ['en', 'ru', 'es', 'uk'];
   const allTools = await getCollection('tools');
   return allTools
     .filter((entry) => locales.includes(entry.data.locale))

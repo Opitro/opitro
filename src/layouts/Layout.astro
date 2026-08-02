@@ -22,7 +22,7 @@ interface Props {
 
 const { locale, title, description, translations = [], path = '', breadcrumb } = Astro.props;
 
-const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español' };
+const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español', uk: 'Українська' };
 const DEFAULT_LOCALE = 'en';
 
 // Every page needs a way to browse to other categories — fetched here once, in the shared

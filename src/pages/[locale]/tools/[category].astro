@@ -7,7 +7,7 @@ import AdSlot from '../../../components/AdSlot.astro';
 import { t as translate } from '../../../lib/ui-strings.js';
 
 export async function getStaticPaths() {
-  const locales = ['en', 'ru', 'es'];
+  const locales = ['en', 'ru', 'es', 'uk'];
   const allCategories = await getCollection('categories');
   return allCategories
     .filter((entry) => locales.includes(entry.data.locale))
@@ -73,6 +73,19 @@ const UNITS_BY_CATEGORY = {
       { code: 'nmi', label: 'Millas náuticas', factor: 1852 },
       { code: 'step', label: 'Pasos', factor: 0.762 },
     ],
+    uk: [
+      { code: 'mm', label: 'Міліметри (мм)', factor: 0.001 },
+      { code: 'cm', label: 'Сантиметри (см)', factor: 0.01 },
+      { code: 'dm', label: 'Дециметри (дм)', factor: 0.1 },
+      { code: 'm', label: 'Метри (м)', factor: 1 },
+      { code: 'km', label: 'Кілометри (км)', factor: 1000 },
+      { code: 'in', label: 'Дюйми', factor: 0.0254 },
+      { code: 'ft', label: 'Фути', factor: 0.3048 },
+      { code: 'yd', label: 'Ярди', factor: 0.9144 },
+      { code: 'mi', label: 'Милі', factor: 1609.344 },
+      { code: 'nmi', label: 'Морські милі', factor: 1852 },
+      { code: 'step', label: 'Кроки', factor: 0.762 },
+    ],
   },
   weight: {
     ru: [
@@ -101,6 +114,15 @@ const UNITS_BY_CATEGORY = {
       { code: 'oz', label: 'Onzas', factor: 0.028349523 },
       { code: 'lb', label: 'Libras', factor: 0.453592 },
       { code: 'stone', label: 'Stone', factor: 6.350293 },
+    ],
+    uk: [
+      { code: 'mg', label: 'Міліграми (мг)', factor: 0.000001 },
+      { code: 'g', label: 'Грами (г)', factor: 0.001 },
+      { code: 'kg', label: 'Кілограми (кг)', factor: 1 },
+      { code: 'tonne', label: 'Тонни (т)', factor: 1000 },
+      { code: 'oz', label: 'Унції', factor: 0.028349523 },
+      { code: 'lb', label: 'Фунти', factor: 0.453592 },
+      { code: 'stone', label: 'Стоуни', factor: 6.350293 },
     ],
   },
   volume: {
@@ -131,6 +153,15 @@ const UNITS_BY_CATEGORY = {
       { code: 'floz', label: 'Onzas líquidas', factor: 0.0295735296 },
       { code: 'tbsp', label: 'Cucharadas', factor: 0.0147867648 },
     ],
+    uk: [
+      { code: 'ml', label: 'Мілілітри (мл)', factor: 0.001 },
+      { code: 'l', label: 'Літри (л)', factor: 1 },
+      { code: 'm3', label: 'Кубометри (м³)', factor: 1000 },
+      { code: 'gal', label: 'Галони (США)', factor: 3.785411784 },
+      { code: 'cup', label: 'Склянки', factor: 0.236588236 },
+      { code: 'floz', label: 'Рідкі унції', factor: 0.0295735296 },
+      { code: 'tbsp', label: 'Столові ложки', factor: 0.0147867648 },
+    ],
   },
 };
 
@@ -151,6 +182,11 @@ const TEMPERATURE_UNITS = {
     { code: 'c', label: 'Celsius (°C)', scale: 1, offset: 0 },
     { code: 'f', label: 'Fahrenheit (°F)', scale: 5 / 9, offset: -160 / 9 },
     { code: 'k', label: 'Kelvin (K)', scale: 1, offset: -273.15 },
+  ],
+  uk: [
+    { code: 'c', label: 'Цельсій (°C)', scale: 1, offset: 0 },
+    { code: 'f', label: 'Фаренгейт (°F)', scale: 5 / 9, offset: -160 / 9 },
+    { code: 'k', label: 'Кельвін (K)', scale: 1, offset: -273.15 },
   ],
 };
 

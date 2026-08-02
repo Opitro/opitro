@@ -59,6 +59,25 @@ export const UI = {
     noResults: 'Sin resultados',
     allToolsLink: 'Todas las herramientas →',
   },
+  uk: {
+    categoriesAriaLabel: 'Категорії',
+    faqLabel: 'Часті запитання',
+    relatedLabel: 'Схожі калькулятори',
+    seeAllConvertersLink: 'Потрібна інша одиниця? Усі конвертери →',
+    swapDirectionAriaLabel: 'Змінити напрямок',
+    swapUnitsLabel: 'Поміняти місцями',
+    valueLabel: 'Значення для переведення',
+    resultLabel: 'Результат',
+    fromLabel: 'З якої одиниці',
+    toLabel: 'У яку одиницю',
+    pairsLabel: 'Калькулятори для конкретних пар',
+    homeTitle: 'Opitro — калькулятори та онлайн-інструменти',
+    homeDescription: 'Безкоштовні калькулятори, конвертери та онлайн-інструменти. Усе рахується прямо в браузері.',
+    tagline: (count) => `${count} інструментів, і щодня більше`,
+    searchPlaceholder: 'Знайти інструмент…',
+    noResults: 'Нічого не знайдено',
+    allToolsLink: 'Усі інструменти →',
+  },
 };
 
 export function t(locale, key) {

@@ -4,7 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 
 export function getStaticPaths() {
-  const locales = ['en', 'ru', 'es'];
+  const locales = ['en', 'ru', 'es', 'uk'];
   return locales.map((locale) => ({ params: { locale } }));
 }
 
@@ -35,7 +35,7 @@ const searchIndex = categories.flatMap((c) => {
 
 const totalTools = searchIndex.length;
 
-const translations = ['en', 'ru', 'es'].map((l) => ({ locale: l, slug: '' }));
+const translations = ['en', 'ru', 'es', 'uk'].map((l) => ({ locale: l, slug: '' }));
 
 const title = translate(locale, 'homeTitle');
 const description = translate(locale, 'homeDescription');

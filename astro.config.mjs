@@ -11,7 +11,7 @@ export default defineConfig({
   // reintroducing the exact canonical/served-URL mismatch bug fixed twice before this.
   trailingSlash: 'never',
   i18n: {
-    locales: ['en', 'ru', 'es'],
+    locales: ['en', 'ru', 'es', 'uk'],
     defaultLocale: 'en',
     routing: {
       prefixDefaultLocale: true,
