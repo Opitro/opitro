@@ -21,6 +21,8 @@ const ML_TO_CUPS = 0.00422675;
 const CUPS_TO_ML = 236.588236;
 const FLOZ_TO_ML = 29.5735296;
 const ML_TO_FLOZ = 0.03381402;
+const M3_TO_LITERS = 1000;
+const LITERS_TO_M3 = 0.001;
 
 function approxEqual(a, b, epsilon = 1e-4) {
   assert.ok(Math.abs(a - b) < epsilon, `expected ${a} to be close to ${b}`);
@@ -71,6 +73,9 @@ approxEqual(convertLinear(500, ML_TO_CUPS), 2.113375, 1e-6);
 approxEqual(convertLinear(2.5, CUPS_TO_ML), 591.47059, 1e-5);
 approxEqual(convertLinear(12, FLOZ_TO_ML), 354.882355, 1e-6);
 approxEqual(convertLinear(750, ML_TO_FLOZ), 25.360515, 1e-6);
+approxEqual(M3_TO_LITERS * LITERS_TO_M3, 1, 1e-9);
+approxEqual(convertLinear(2.5, M3_TO_LITERS), 2500);
+approxEqual(convertLinear(1500, LITERS_TO_M3), 1.5);
 
 // 0 always converts to 0 regardless of factor
 assert.equal(convertLinear(0, KM_TO_MILES), 0);
