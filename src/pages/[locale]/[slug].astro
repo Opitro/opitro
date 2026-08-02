@@ -2,6 +2,7 @@
 import { getCollection, render } from 'astro:content';
 import Layout from '../../layouts/Layout.astro';
 import LinearConverter from '../../components/LinearConverter.astro';
+import TemperatureConverter from '../../components/TemperatureConverter.astro';
 import AdSlot from '../../components/AdSlot.astro';
 
 export async function getStaticPaths() {
@@ -78,6 +79,13 @@ const faqJsonLd = {
     <h1>{entry.data.h1}</h1>
     {entry.data.engine === 'linear-converter' && (
       <LinearConverter
+        {...entry.data.engineParams}
+        reverseHref={reverseTool ? `/${entry.data.locale}/${reverseTool.data.toolSlug}` : undefined}
+        reverseAriaLabel={reverseAriaLabel}
+      />
+    )}
+    {entry.data.engine === 'temperature-converter' && (
+      <TemperatureConverter
         {...entry.data.engineParams}
         reverseHref={reverseTool ? `/${entry.data.locale}/${reverseTool.data.toolSlug}` : undefined}
         reverseAriaLabel={reverseAriaLabel}

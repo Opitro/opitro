@@ -1,32 +1,33 @@
 ---
 interface Props {
-  factor: number;
+  scale: number;
+  offset: number;
   fromUnit: string;
   toUnit: string;
   fromUnitShort: string;
   toUnitShort: string;
   defaultValue?: number;
-  /** Link to the reverse-direction page for this exact pair, e.g. km-to-miles -> miles-to-km. Omit if no reverse page exists. */
   reverseHref?: string;
   reverseAriaLabel?: string;
 }
 
 const {
-  factor,
+  scale,
+  offset,
   fromUnit,
   toUnit,
   fromUnitShort,
   toUnitShort,
-  defaultValue = 10,
+  defaultValue = 20,
   reverseHref,
   reverseAriaLabel,
 } = Astro.props;
 ---
 
-<div class="lc-widget" data-factor={factor}>
+<div class="lc-widget" data-scale={scale} data-offset={offset}>
   <div class="field">
-    <label for="lc-input">{fromUnit} ({fromUnitShort})</label>
-    <input type="number" id="lc-input" value={defaultValue} step="any" inputmode="decimal">
+    <label for="tc-input">{fromUnit} ({fromUnitShort})</label>
+    <input type="number" id="tc-input" value={defaultValue} step="any" inputmode="decimal">
   </div>
   {reverseHref && (
     <a class="lc-swap" href={reverseHref} aria-label={reverseAriaLabel}>
@@ -34,23 +35,23 @@ const {
     </a>
   )}
   <div class="result-box">
-    <div class="result-value"><span id="lc-result"></span> {toUnitShort}</div>
+    <div class="result-value"><span id="tc-result"></span> {toUnitShort}</div>
     <div class="result-label">{toUnit}</div>
   </div>
 </div>
 
-
 <script>
-  import { convertLinear, formatNumber } from '../lib/linear-converter.js';
+  import { convertAffine, formatNumber } from '../lib/affine-converter.js';
 
   const widget = document.querySelector('.lc-widget');
-  const factor = parseFloat(widget.dataset.factor);
-  const input = document.getElementById('lc-input');
-  const result = document.getElementById('lc-result');
+  const scale = parseFloat(widget.dataset.scale);
+  const offset = parseFloat(widget.dataset.offset);
+  const input = document.getElementById('tc-input');
+  const result = document.getElementById('tc-result');
 
   function update() {
     const value = parseFloat(input.value) || 0;
-    result.textContent = formatNumber(convertLinear(value, factor));
+    result.textContent = formatNumber(convertAffine(value, scale, offset));
   }
 
   input.addEventListener('input', () => {

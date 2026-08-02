@@ -14,9 +14,14 @@ const tools = defineCollection({
     toolSlug: z.string(),
     locale: z.string(),
     category: z.string(),
-    engine: z.enum(['linear-converter']),
+    engine: z.enum(['linear-converter', 'temperature-converter']),
+    // linear-converter uses {factor}; temperature-converter uses {scale, offset} for the
+    // y = x*scale + offset formula (temperature scales don't share a zero point, so a plain
+    // multiply-by-factor is wrong for them).
     engineParams: z.object({
-      factor: z.number(),
+      factor: z.number().optional(),
+      scale: z.number().optional(),
+      offset: z.number().optional(),
       fromUnit: z.string(),
       toUnit: z.string(),
       fromUnitShort: z.string(),
