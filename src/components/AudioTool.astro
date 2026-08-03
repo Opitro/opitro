@@ -1,8 +1,11 @@
 ---
-// One component drives every audio tool -- which controls render is decided at build time by
-// `AUDIO_TOOLS[tool].controls`; the actual ffmpeg command comes from that same registry at run
-// time in the client script. See src/lib/audio-tools-config.js for the per-tool config and
-// project-architecture memory for why this replaced a one-component-per-tool approach.
+// One component drives every audio tool. `AUDIO_TOOLS[tool].engine` picks the processing path:
+// 'webaudio' (native Web Audio API, waveform + live preview, no ffmpeg download at all),
+// 'webaudio-merge' / 'webaudio-generator' (variants without a single decoded source buffer),
+// or 'ffmpeg' for the few things that genuinely need it (real format transcoding, video
+// demux/mux, spectral denoise). See src/lib/audio-tools-config.js and project-architecture
+// memory for why this split exists -- most tools moved off ffmpeg specifically so they could
+// show a waveform and let the user listen to the result before downloading.
 import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
 
 interface Props {
@@ -15,6 +18,9 @@ const { tool, locale, labels } = Astro.props;
 const config = AUDIO_TOOLS[tool];
 const controls = config.controls;
 const isGenerator = controls === 'generator';
+const showWaveform = !isGenerator && controls !== 'multi-file';
+const showTrimHandles = controls === 'trim';
+const isFfmpeg = config.engine === 'ffmpeg';
 const accept = config.accept || 'audio/*';
 ---
 
@@ -30,9 +36,26 @@ const accept = config.accept || 'audio/*';
     </>
   )}
 
-  <div class="panel" id="audio-panel" class:list={{ on: isGenerator }}>
+  <div class="panel" id="audio-panel">
     {controls === 'multi-file' && <div class="filelist" id="audio-filelist"></div>}
     {controls !== 'multi-file' && controls !== 'generator' && <div class="fileinfo" id="audio-fileinfo"></div>}
+
+    {showWaveform && (
+      <div class="wave-shell" id="wave-shell">
+        <canvas id="wave-canvas"></canvas>
+        {showTrimHandles && <div class="sel-overlay" id="sel-overlay"></div>}
+        {showTrimHandles && <div class="handle" id="h-start"></div>}
+        {showTrimHandles && <div class="handle" id="h-end"></div>}
+        <div class="playhead" id="playhead"></div>
+      </div>
+    )}
+    {showTrimHandles && (
+      <div class="times" id="times">
+        <span>{labels.startLabel}: <b id="t-start">0:00.0</b></span>
+        <span id="t-len-wrap">{labels.durationLabel}: <b id="t-len">0:00.0</b></span>
+        <span>{labels.endLabel}: <b id="t-end">0:00.0</b></span>
+      </div>
+    )}
 
     {controls === 'convert' && (
       <div class="row">
@@ -53,19 +76,6 @@ const accept = config.accept || 'audio/*';
             <option value="128">128 kbps</option>
             <option value="96">96 kbps</option>
           </select>
-        </div>
-      </div>
-    )}
-
-    {controls === 'trim' && (
-      <div class="row">
-        <div class="field">
-          <label for="ctrl-start">{labels.startLabel}</label>
-          <input type="text" id="ctrl-start" value="0:00" placeholder="0:00">
-        </div>
-        <div class="field">
-          <label for="ctrl-end">{labels.endLabel}</label>
-          <input type="text" id="ctrl-end" value="0:30" placeholder="0:30">
         </div>
       </div>
     )}
@@ -124,10 +134,29 @@ const accept = config.accept || 'audio/*';
     )}
 
     <div class="controls">
-      <button class="act primary" id="audio-run-btn">{isGenerator ? labels.generateLabel : labels.processLabel}</button>
+      {!isFfmpeg && (
+        <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
+          <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
+        </button>
+      )}
+      {isFfmpeg && <button class="act primary" id="audio-run-btn">{labels.processLabel}</button>}
       {!isGenerator && controls !== 'multi-file' && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
       {controls === 'multi-file' && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
+
+    {!isFfmpeg && (
+      <div class="controls" id="download-row" style="display:none">
+        <button class="act primary" id="dl-mp3-btn">{labels.downloadMp3Label}</button>
+        <button class="act" id="dl-wav-btn">{labels.downloadWavLabel}</button>
+      </div>
+    )}
+
+    {isFfmpeg && (
+      <div id="ffmpeg-result" style="display:none">
+        <audio id="ffmpeg-player" controls style="width:100%;margin-top:14px"></audio>
+      </div>
+    )}
 
     <div class="progress" id="audio-progress">
       <div class="progress-bar"><div class="progress-fill" id="audio-progress-fill"></div></div>
@@ -139,8 +168,11 @@ const accept = config.accept || 'audio/*';
 </div>
 
 <script>
-  import { execFFmpeg, downloadBlob, loadFFmpeg } from '../lib/audio-engine.js';
   import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
+  import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg } from '../lib/audio-engine.js';
+  import {
+    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer,
+  } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 200;
   const root = document.querySelector('.audio-tool');
@@ -154,9 +186,26 @@ const accept = config.accept || 'audio/*';
     const panel = root.querySelector('#audio-panel');
     const fileInfo = root.querySelector('#audio-fileinfo');
     const fileList = root.querySelector('#audio-filelist');
+    const waveShell = root.querySelector('#wave-shell');
+    const waveCanvas = root.querySelector('#wave-canvas');
+    const selOverlay = root.querySelector('#sel-overlay');
+    const hStart = root.querySelector('#h-start');
+    const hEnd = root.querySelector('#h-end');
+    const playhead = root.querySelector('#playhead');
+    const tStart = root.querySelector('#t-start');
+    const tEnd = root.querySelector('#t-end');
+    const tLen = root.querySelector('#t-len');
+    const listenBtn = root.querySelector('#audio-listen-btn');
+    const listenIco = root.querySelector('#listen-ico');
+    const listenLabel = root.querySelector('#listen-label');
     const runBtn = root.querySelector('#audio-run-btn');
     const newBtn = root.querySelector('#audio-new-btn');
     const addBtn = root.querySelector('#audio-add-btn');
+    const downloadRow = root.querySelector('#download-row');
+    const dlMp3Btn = root.querySelector('#dl-mp3-btn');
+    const dlWavBtn = root.querySelector('#dl-wav-btn');
+    const ffmpegResult = root.querySelector('#ffmpeg-result');
+    const ffmpegPlayer = root.querySelector('#ffmpeg-player');
     const progress = root.querySelector('#audio-progress');
     const progressFill = root.querySelector('#audio-progress-fill');
     const progressText = root.querySelector('#audio-progress-text');
@@ -164,6 +213,14 @@ const accept = config.accept || 'audio/*';
 
     let file = null;
     let files = [];
+    let sourceBuffer = null;
+    let renderedBuffer = null;
+    let dur = 0;
+    let selStart = 0;
+    let selEnd = 0;
+    const player = createPlayer();
+    const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
+    const ICO_PAUSE = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
 
     function showError(message) {
       errBox.textContent = message;
@@ -172,12 +229,43 @@ const accept = config.accept || 'audio/*';
     function clearError() {
       errBox.classList.remove('show');
     }
+    function fmtTime(s) {
+      const m = Math.floor(s / 60);
+      const sec = Math.floor(s % 60);
+      const d = Math.floor((s * 10) % 10);
+      return `${m}:${String(sec).padStart(2, '0')}.${d}`;
+    }
+
+    function invalidateRender() {
+      renderedBuffer = null;
+      downloadRow.style.display = 'none';
+      player.reset();
+      listenIco.innerHTML = ICO_PLAY;
+      listenLabel.textContent = isGeneratorLabel();
+      playhead.style.display = 'none';
+    }
+    function isGeneratorLabel() {
+      return config.controls === 'generator' ? labels.generateLabel : labels.processLabel;
+    }
 
     function renderFileList() {
       fileList.innerHTML = files.map((f, i) => `<div class="filelist-item">${i + 1}. <b>${f.name}</b> · ${(f.size / 1048576).toFixed(1)} MB</div>`).join('');
     }
 
-    function pickFile(f) {
+    function updateSel() {
+      if (!waveShell) return;
+      const W = waveShell.clientWidth;
+      const x1 = (selStart / dur) * W;
+      const x2 = (selEnd / dur) * W;
+      if (selOverlay) { selOverlay.style.left = x1 + 'px'; selOverlay.style.width = (x2 - x1) + 'px'; }
+      if (hStart) hStart.style.left = (x1 - 7) + 'px';
+      if (hEnd) hEnd.style.left = (x2 - 7) + 'px';
+      if (tStart) tStart.textContent = fmtTime(selStart);
+      if (tEnd) tEnd.textContent = fmtTime(selEnd);
+      if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
+    }
+
+    async function pickFile(f) {
       clearError();
       if (f.size > MAX_MB * 1024 * 1024) {
         showError(`File is larger than ${MAX_MB} MB.`);
@@ -186,13 +274,43 @@ const accept = config.accept || 'audio/*';
       if (config.controls === 'multi-file') {
         files.push(f);
         renderFileList();
-      } else {
-        file = f;
-        fileInfo.innerHTML = `<b>${f.name}</b> · ${(f.size / 1048576).toFixed(1)} MB`;
+        panel.classList.add('on');
+        if (drop) drop.style.display = 'none';
+        if (files.length >= 1 && listenBtn) listenBtn.disabled = false;
+        return;
       }
+      file = f;
+      fileInfo.innerHTML = `<b>${f.name}</b> · ${(f.size / 1048576).toFixed(1)} MB`;
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
-      loadFFmpeg().catch(() => {});
+
+      if (config.engine === 'ffmpeg') {
+        loadFFmpeg().catch(() => {});
+        if (waveCanvas) {
+          try {
+            sourceBuffer = await decodeFile(f);
+            dur = sourceBuffer.duration;
+            selStart = 0;
+            selEnd = dur;
+            drawWaveform(waveCanvas, sourceBuffer);
+            updateSel();
+          } catch (e) {}
+        }
+        return;
+      }
+
+      try {
+        sourceBuffer = await decodeFile(f);
+        dur = sourceBuffer.duration;
+        selStart = 0;
+        selEnd = dur;
+        drawWaveform(waveCanvas, sourceBuffer);
+        updateSel();
+        if (listenBtn) listenBtn.disabled = false;
+        invalidateRender();
+      } catch (e) {
+        showError('Could not read this file. Try MP3, WAV, M4A, or OGG.');
+      }
     }
 
     if (drop) {
@@ -214,6 +332,46 @@ const accept = config.accept || 'audio/*';
     if (newBtn) newBtn.addEventListener('click', () => fileInput.click());
     if (addBtn) addBtn.addEventListener('click', () => fileInput.click());
 
+    window.addEventListener('resize', () => { if (sourceBuffer && waveCanvas) { drawWaveform(waveCanvas, sourceBuffer); updateSel(); } });
+
+    // Drag handles for trim-style tools.
+    let dragging = null;
+    function px2t(clientX) {
+      const r = waveShell.getBoundingClientRect();
+      const x = Math.max(0, Math.min(r.width, clientX - r.left));
+      return (x / r.width) * dur;
+    }
+    function onDrag(e) {
+      if (!dragging) return;
+      const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      const t = px2t(cx);
+      if (dragging === 'start') selStart = Math.min(t, selEnd - 0.1);
+      else selEnd = Math.max(t, selStart + 0.1);
+      selStart = Math.max(0, selStart);
+      selEnd = Math.min(dur, selEnd);
+      updateSel();
+      invalidateRender();
+    }
+    function endDrag() {
+      dragging = null;
+      document.removeEventListener('mousemove', onDrag);
+      document.removeEventListener('touchmove', onDrag);
+      document.removeEventListener('mouseup', endDrag);
+      document.removeEventListener('touchend', endDrag);
+    }
+    function startDrag(which) {
+      return (e) => {
+        e.preventDefault();
+        dragging = which;
+        document.addEventListener('mousemove', onDrag);
+        document.addEventListener('touchmove', onDrag, { passive: false });
+        document.addEventListener('mouseup', endDrag);
+        document.addEventListener('touchend', endDrag);
+      };
+    }
+    if (hStart) { hStart.addEventListener('mousedown', startDrag('start')); hStart.addEventListener('touchstart', startDrag('start'), { passive: false }); }
+    if (hEnd) { hEnd.addEventListener('mousedown', startDrag('end')); hEnd.addEventListener('touchstart', startDrag('end'), { passive: false }); }
+
     // format/bitrate: hide bitrate field for lossless formats
     const fmtSel = root.querySelector('#ctrl-format');
     const bitrateField = root.querySelector('#bitrate-field');
@@ -223,18 +381,22 @@ const accept = config.accept || 'audio/*';
       });
     }
 
-    // generic slider value display
     const slider = root.querySelector('#ctrl-slider');
     const sliderVal = root.querySelector('#ctrl-slider-val');
     if (slider && sliderVal) {
       slider.addEventListener('input', () => {
         sliderVal.textContent = slider.value + (config.sliderUnit || '');
+        invalidateRender();
       });
     }
     ['bass', 'mid', 'treble'].forEach((band) => {
       const el = root.querySelector(`#eq-${band}`);
       const valEl = root.querySelector(`#eq-${band}-val`);
-      if (el && valEl) el.addEventListener('input', () => { valEl.textContent = el.value + 'dB'; });
+      if (el && valEl) el.addEventListener('input', () => { valEl.textContent = el.value + 'dB'; invalidateRender(); });
+    });
+    ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration'].forEach((sel) => {
+      const el = root.querySelector(sel);
+      if (el) el.addEventListener('input', invalidateRender);
     });
 
     function readParams() {
@@ -242,8 +404,6 @@ const accept = config.accept || 'audio/*';
       const get = (id) => root.querySelector(id);
       if (get('#ctrl-format')) params.format = get('#ctrl-format').value;
       if (get('#ctrl-bitrate')) params.bitrate = get('#ctrl-bitrate').value;
-      if (get('#ctrl-start')) params.start = get('#ctrl-start').value;
-      if (get('#ctrl-end')) params.end = get('#ctrl-end').value;
       if (get('#ctrl-slider')) params.value = Number(get('#ctrl-slider').value);
       if (get('#ctrl-select')) params.value = get('#ctrl-select').value;
       if (get('#eq-bass')) params.bass = Number(get('#eq-bass').value);
@@ -251,52 +411,178 @@ const accept = config.accept || 'audio/*';
       if (get('#eq-treble')) params.treble = Number(get('#eq-treble').value);
       if (get('#ctrl-fadein')) params.fadeIn = get('#ctrl-fadein').value;
       if (get('#ctrl-fadeout')) params.fadeOut = get('#ctrl-fadeout').value;
-      if (get('#ctrl-duration')) params.duration = get('#ctrl-duration').value;
+      if (get('#ctrl-duration')) params.duration = Number(get('#ctrl-duration').value);
+      if (config.controls === 'trim') { params.start = selStart; params.end = selEnd; }
       return params;
     }
 
-    runBtn.addEventListener('click', async () => {
-      if (config.controls !== 'generator' && config.controls !== 'multi-file' && !file) return;
-      if (config.controls === 'multi-file' && files.length < 2) {
-        showError('Add at least two files.');
-        return;
-      }
-      clearError();
-      runBtn.disabled = true;
-      progress.classList.add('on');
-      progressFill.style.width = '0%';
-      progressText.textContent = labels.preparingLabel;
+    function animatePlayhead() {
+      if (!player.isPlaying()) { playhead.style.display = 'none'; return; }
+      requestAnimationFrame(animatePlayhead);
+    }
 
+    async function doRender() {
       const params = readParams();
-      const { outputName, mimeType, ext } = config.output(params);
-      const inputs =
-        config.controls === 'multi-file'
-          ? files.map((f, i) => ({ name: `in${i}`, file: f }))
-          : config.controls === 'generator'
-            ? []
-            : [{ name: 'in0', file }];
-
-      try {
-        const blob = await execFFmpeg({
-          inputs,
-          buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
-          outputName,
-          mimeType,
-          onProgress: (pct) => {
-            progressFill.style.width = pct + '%';
-            progressText.textContent = `${labels.workingLabel} ${pct}%`;
-          },
-        });
-        const base = config.controls === 'generator' ? tool : config.controls === 'multi-file' ? 'merged' : (file.name.replace(/\.[^.]+$/, '') || 'audio');
-        downloadBlob(blob, `${base}.${ext}`);
-        progressFill.style.width = '100%';
-        progressText.textContent = labels.doneLabel;
-      } catch (e) {
-        showError(e && e.message ? e.message : String(e));
-        progress.classList.remove('on');
+      if (config.engine === 'webaudio-generator') {
+        const sr = 44100;
+        const length = Math.max(1, Math.round((params.duration || config.durationDefault) * sr));
+        const out = new AudioBuffer({ numberOfChannels: 1, length, sampleRate: sr });
+        const data = out.getChannelData(0);
+        if (config.color === 'white') {
+          for (let i = 0; i < length; i++) data[i] = Math.random() * 2 - 1;
+        } else {
+          let b0 = 0, b1 = 0, b2 = 0;
+          for (let i = 0; i < length; i++) {
+            const white = Math.random() * 2 - 1;
+            b0 = 0.99886 * b0 + white * 0.0555179;
+            b1 = 0.99332 * b1 + white * 0.0750759;
+            b2 = 0.96900 * b2 + white * 0.1538520;
+            data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.2;
+          }
+        }
+        return out;
       }
-      runBtn.disabled = false;
-    });
+      if (config.engine === 'webaudio-merge') {
+        const buffers = await Promise.all(files.map((f) => decodeFile(f)));
+        const sr = buffers[0].sampleRate;
+        const ch = Math.max(...buffers.map((b) => b.numberOfChannels));
+        const totalLen = buffers.reduce((sum, b) => sum + b.length, 0);
+        const out = new AudioBuffer({ numberOfChannels: ch, length: totalLen, sampleRate: sr });
+        for (let c = 0; c < ch; c++) {
+          const dst = out.getChannelData(c);
+          let offset = 0;
+          for (const b of buffers) {
+            const src = b.getChannelData(Math.min(c, b.numberOfChannels - 1));
+            dst.set(src, offset);
+            offset += b.length;
+          }
+        }
+        return out;
+      }
+      return renderEffect(sourceBuffer, {
+        render: config.render,
+        directRender: config.directRender,
+        params,
+        outputSampleRate: config.outputSampleRate ? config.outputSampleRate(params) : undefined,
+        outputChannels: config.outputChannels,
+      });
+    }
+
+    if (listenBtn) {
+      listenBtn.addEventListener('click', async () => {
+        if (player.isPlaying()) {
+          player.pause();
+          listenIco.innerHTML = ICO_PLAY;
+          return;
+        }
+        clearError();
+        try {
+          if (!renderedBuffer) {
+            listenBtn.disabled = true;
+            progress.classList.add('on');
+            progressText.textContent = labels.workingLabel;
+            renderedBuffer = await doRender();
+            progress.classList.remove('on');
+            listenBtn.disabled = false;
+            downloadRow.style.display = 'flex';
+          }
+          listenIco.innerHTML = ICO_PAUSE;
+          player.play(
+            renderedBuffer,
+            (frac) => {
+              if (!waveShell) return;
+              const base = config.controls === 'trim' ? selStart : 0;
+              const range = config.controls === 'trim' ? (selEnd - selStart) : renderedBuffer.duration;
+              const t = base + range * frac;
+              const W = waveShell.clientWidth;
+              playhead.style.left = ((t / dur) * W) + 'px';
+              playhead.style.display = 'block';
+            },
+            () => { listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
+          );
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+          progress.classList.remove('on');
+          listenBtn.disabled = false;
+        }
+      });
+    }
+
+    async function ensureRendered() {
+      if (!renderedBuffer) renderedBuffer = await doRender();
+      return renderedBuffer;
+    }
+
+    if (dlMp3Btn) {
+      dlMp3Btn.addEventListener('click', async () => {
+        clearError();
+        try {
+          const buf = await ensureRendered();
+          const bitrate = config.mp3Bitrate ? config.mp3Bitrate(readParams()) : 192;
+          const blob = await encodeMP3(buf, bitrate);
+          const base = config.controls === 'generator' ? tool : config.controls === 'multi-file' ? 'merged' : (file.name.replace(/\.[^.]+$/, '') || 'audio');
+          downloadBlob(blob, `${base}.mp3`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+        }
+      });
+    }
+    if (dlWavBtn) {
+      dlWavBtn.addEventListener('click', async () => {
+        clearError();
+        try {
+          const buf = await ensureRendered();
+          const blob = encodeWAV(buf);
+          const base = config.controls === 'generator' ? tool : config.controls === 'multi-file' ? 'merged' : (file.name.replace(/\.[^.]+$/, '') || 'audio');
+          downloadBlob(blob, `${base}.wav`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+        }
+      });
+    }
+
+    // ffmpeg-engine tools (convert, ringtone, video-to-audio, visualizer, denoise, enhance)
+    if (runBtn) {
+      runBtn.addEventListener('click', async () => {
+        if (!file) return;
+        clearError();
+        runBtn.disabled = true;
+        progress.classList.add('on');
+        progressFill.style.width = '0%';
+        progressText.textContent = labels.preparingLabel;
+
+        const params = readParams();
+        const { outputName, mimeType, ext } = config.output(params);
+
+        try {
+          const blob = await execFFmpeg({
+            inputs: [{ name: 'in0', file }],
+            buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
+            outputName,
+            mimeType,
+            onProgress: (pct) => {
+              progressFill.style.width = pct + '%';
+              progressText.textContent = `${labels.workingLabel} ${pct}%`;
+            },
+          });
+          const base = file.name.replace(/\.[^.]+$/, '') || 'audio';
+          const url = URL.createObjectURL(blob);
+          if (ffmpegPlayer && !mimeType.startsWith('video')) {
+            ffmpegPlayer.src = url;
+            ffmpegResult.style.display = 'block';
+          }
+          progressFill.style.width = '100%';
+          progressText.textContent = labels.doneLabel;
+          runBtn.textContent = labels.processLabel;
+          runBtn.onclick = null;
+          downloadFfmpegBlob(blob, `${base}.${ext}`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+          progress.classList.remove('on');
+        }
+        runBtn.disabled = false;
+      });
+    }
   }
 </script>
 
@@ -314,6 +600,15 @@ const accept = config.accept || 'audio/*';
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .filelist-item{padding:4px 0}
 
+  .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none}
+  .audio-tool canvas{display:block;width:100%;height:130px}
+  .audio-tool .sel-overlay{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.14);border-left:2px solid var(--accent);border-right:2px solid var(--accent);pointer-events:none}
+  .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
+  .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
+  .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.85;pointer-events:none;z-index:2;display:none}
+  .audio-tool .times{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px}
+  .audio-tool .times b{color:var(--accent)}
+
   .audio-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .eq-row .field{min-width:110px}
   .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
@@ -325,10 +620,11 @@ const accept = config.accept || 'audio/*';
   .audio-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
 
   .audio-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
-  .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s}
+  .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .audio-tool button.act:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
   .audio-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
   .audio-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  .audio-tool .ico{width:16px;height:16px;flex:none}
 
   .audio-tool .progress{display:none;margin-top:16px}
   .audio-tool .progress.on{display:block}

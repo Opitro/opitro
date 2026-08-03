@@ -1,18 +1,16 @@
-// One entry per audio tool: what controls it needs (read by AudioTool.astro to pick which
-// markup block to render) and how to turn those controls into an ffmpeg command (read by the
-// tool's client script at run time). Keeping this in one place is the whole point of the
-// generalized AudioTool component -- adding a tool is a config entry, not a new page's worth
-// of duplicated HTML/CSS/JS (see project-architecture memory for why, vs. LeebTTS's approach).
-//
-// Every "effect" tool normalizes its output to MP3 192kbps -- keeps the args matrix small and
-// matches what most people actually want (a working file back), not a format decision on every
-// single tool. Convert/ringtone/video-to-audio are the deliberate exceptions since format IS
-// the point of those specific tools.
+// One entry per audio tool. `engine: 'webaudio'` tools run entirely on the native Web Audio
+// API (src/lib/web-audio-engine.js) -- no ffmpeg, no ~32 MB download, and the decoded buffer
+// lets the UI draw a waveform and let the user listen to the result before downloading.
+// `engine: 'ffmpeg'` is reserved for the few things Web Audio genuinely can't do: real
+// format/codec transcoding (convert, ringtone's final export), reading a video container
+// (video-to-audio), muxing a video output (visualizer), and spectral noise reduction
+// (denoise/enhance -- no native noise-reduction node exists in Web Audio).
 
 const MP3_OUT = { outputName: 'out.mp3', mimeType: 'audio/mpeg', ext: 'mp3' };
 
 export const AUDIO_TOOLS = {
   convert: {
+    engine: 'ffmpeg',
     controls: 'convert',
     accept: 'audio/*',
     output: (params) => {
@@ -32,27 +30,20 @@ export const AUDIO_TOOLS = {
   },
 
   trim: {
+    engine: 'webaudio',
     controls: 'trim',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { start, end }) => ['-i', inp, '-ss', start, '-to', end, '-b:a', '192k', out],
+    render: (oc, src) => src,
   },
 
   merge: {
+    engine: 'webaudio-merge',
     controls: 'multi-file',
     accept: 'audio/*',
-    multiFile: true,
-    output: () => MP3_OUT,
-    buildArgs: (inputNames, out) => {
-      const filterInputs = inputNames.map((n) => `[${inputNames.indexOf(n)}:a]`).join('');
-      const args = [];
-      inputNames.forEach((n) => args.push('-i', n));
-      args.push('-filter_complex', `${filterInputs}concat=n=${inputNames.length}:v=0:a=1[a]`, '-map', '[a]', '-b:a', '192k', out);
-      return args;
-    },
   },
 
   volume: {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'volumeLabel',
@@ -60,54 +51,83 @@ export const AUDIO_TOOLS = {
     sliderMax: 300,
     sliderDefault: 100,
     sliderUnit: '%',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => ['-i', inp, '-filter:a', `volume=${value / 100}`, '-b:a', '192k', out],
+    render: (oc, src, { value }) => {
+      const g = oc.createGain();
+      g.gain.value = value / 100;
+      src.connect(g);
+      return g;
+    },
   },
 
   normalize: {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => ['-i', inp, '-filter:a', 'loudnorm', '-b:a', '192k', out],
+    directRender: (buffer) => {
+      let peak = 0;
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const d = buffer.getChannelData(c);
+        for (let i = 0; i < d.length; i++) peak = Math.max(peak, Math.abs(d[i]));
+      }
+      if (peak < 0.001) return buffer;
+      const gain = 0.97 / peak;
+      const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: buffer.sampleRate });
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const src = buffer.getChannelData(c);
+        const dst = out.getChannelData(c);
+        for (let i = 0; i < src.length; i++) dst[i] = Math.max(-1, Math.min(1, src[i] * gain));
+      }
+      return out;
+    },
   },
 
   speed: {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'speedLabel',
     sliderMin: 50,
     sliderMax: 200,
     sliderDefault: 100,
-    sliderUnit: 'x',
-    sliderDivisor: 100,
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => ['-i', inp, '-filter:a', `atempo=${value / 100}`, '-b:a', '192k', out],
+    sliderUnit: '%',
+    render: Object.assign(
+      (oc, src, { value }) => { src.playbackRate.value = value / 100; return src; },
+      { rate: ({ value }) => value / 100 }
+    ),
   },
 
   pitch: {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'pitchLabel',
     sliderMin: -12,
     sliderMax: 12,
     sliderDefault: 0,
-    sliderUnit: ' semitones',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => {
-      const ratio = Math.pow(2, value / 12);
-      const rate = Math.round(44100 * ratio);
-      return ['-i', inp, '-filter:a', `asetrate=${rate},aresample=44100,atempo=${1 / ratio}`, '-b:a', '192k', out];
-    },
+    sliderUnit: ' st',
+    render: Object.assign(
+      (oc, src, { value }) => { src.playbackRate.value = Math.pow(2, value / 12); return src; },
+      { rate: ({ value }) => Math.pow(2, value / 12) }
+    ),
   },
 
   reverse: {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => ['-i', inp, '-af', 'areverse', '-b:a', '192k', out],
+    directRender: (buffer) => {
+      const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: buffer.sampleRate });
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const src = buffer.getChannelData(c);
+        const dst = out.getChannelData(c);
+        for (let i = 0; i < src.length; i++) dst[i] = src[src.length - 1 - i];
+      }
+      return out;
+    },
   },
 
   loop: {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'loopLabel',
@@ -116,33 +136,72 @@ export const AUDIO_TOOLS = {
     sliderDefault: 2,
     sliderUnit: 'x',
     sliderStep: 1,
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => ['-stream_loop', String(value - 1), '-i', inp, '-b:a', '192k', out],
+    directRender: (buffer, { value }) => {
+      const times = Math.max(1, Math.round(value));
+      const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length * times, sampleRate: buffer.sampleRate });
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const src = buffer.getChannelData(c);
+        const dst = out.getChannelData(c);
+        for (let t = 0; t < times; t++) dst.set(src, t * src.length);
+      }
+      return out;
+    },
   },
 
   'remove-silence': {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => [
-      '-i', inp,
-      '-af', 'silenceremove=start_periods=1:start_threshold=-50dB:start_silence=0.15:stop_periods=-1:stop_threshold=-50dB:stop_silence=0.15',
-      '-b:a', '192k', out,
-    ],
+    directRender: (buffer) => {
+      const threshold = 0.02;
+      const ch0 = buffer.getChannelData(0);
+      const keep = new Uint8Array(buffer.length);
+      const windowSize = Math.round(buffer.sampleRate * 0.02);
+      let keptLength = 0;
+      for (let i = 0; i < buffer.length; i += windowSize) {
+        let loud = false;
+        for (let j = i; j < Math.min(buffer.length, i + windowSize); j++) {
+          if (Math.abs(ch0[j]) > threshold) { loud = true; break; }
+        }
+        if (loud) {
+          for (let j = i; j < Math.min(buffer.length, i + windowSize); j++) keep[j] = 1;
+          keptLength += Math.min(buffer.length, i + windowSize) - i;
+        }
+      }
+      const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: Math.max(1, keptLength), sampleRate: buffer.sampleRate });
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const src = buffer.getChannelData(c);
+        const dst = out.getChannelData(c);
+        let w = 0;
+        for (let i = 0; i < buffer.length; i++) if (keep[i]) dst[w++] = src[i];
+      }
+      return out;
+    },
   },
 
   fade: {
+    engine: 'webaudio',
     controls: 'fade',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { fadeIn, fadeOut }) => [
-      '-i', inp,
-      '-af', `afade=t=in:d=${fadeIn},areverse,afade=t=in:d=${fadeOut},areverse`,
-      '-b:a', '192k', out,
-    ],
+    render: (oc, src, { fadeIn, fadeOut }) => {
+      const g = oc.createGain();
+      const dur = src.buffer.duration;
+      const fi = Math.min(Number(fadeIn) || 0, dur / 2);
+      const fo = Math.min(Number(fadeOut) || 0, dur / 2);
+      g.gain.setValueAtTime(0.0001, 0);
+      if (fi > 0) g.gain.exponentialRampToValueAtTime(1, fi);
+      else g.gain.setValueAtTime(1, 0);
+      if (fo > 0) {
+        g.gain.setValueAtTime(1, Math.max(fi, dur - fo));
+        g.gain.exponentialRampToValueAtTime(0.0001, dur);
+      }
+      src.connect(g);
+      return g;
+    },
   },
 
   compress: {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'compressLabel',
@@ -151,36 +210,41 @@ export const AUDIO_TOOLS = {
     sliderDefault: 96,
     sliderUnit: ' kbps',
     sliderStep: 16,
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => ['-i', inp, '-b:a', `${value}k`, out],
+    render: (oc, src) => src,
+    mp3Bitrate: ({ value }) => value,
   },
 
   'stereo-to-mono': {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => ['-i', inp, '-ac', '1', '-b:a', '192k', out],
+    outputChannels: 1,
+    render: (oc, src) => src,
   },
 
   'mono-to-stereo': {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => ['-i', inp, '-ac', '2', '-b:a', '192k', out],
+    outputChannels: 2,
+    render: (oc, src) => src,
   },
 
   equalizer: {
+    engine: 'webaudio',
     controls: 'eq3',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { bass, mid, treble }) => [
-      '-i', inp,
-      '-af', `equalizer=f=100:width_type=o:width=2:g=${bass},equalizer=f=1000:width_type=o:width=2:g=${mid},equalizer=f=8000:width_type=o:width=2:g=${treble}`,
-      '-b:a', '192k', out,
-    ],
+    render: (oc, src, { bass, mid, treble }) => {
+      const b = oc.createBiquadFilter(); b.type = 'peaking'; b.frequency.value = 100; b.Q.value = 1; b.gain.value = bass;
+      const m = oc.createBiquadFilter(); m.type = 'peaking'; m.frequency.value = 1000; m.Q.value = 1; m.gain.value = mid;
+      const t = oc.createBiquadFilter(); t.type = 'peaking'; t.frequency.value = 8000; t.Q.value = 1; t.gain.value = treble;
+      src.connect(b); b.connect(m); m.connect(t);
+      return t;
+    },
   },
 
   'reverb-echo': {
+    engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
     sliderLabel: 'echoLabel',
@@ -188,22 +252,34 @@ export const AUDIO_TOOLS = {
     sliderMax: 100,
     sliderDefault: 40,
     sliderUnit: '%',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => {
-      const decay = Math.max(0.05, value / 120);
-      return ['-i', inp, '-af', `aecho=0.8:0.9:600:${decay.toFixed(2)}`, '-b:a', '192k', out];
+    render: (oc, src, { value }) => {
+      const delay = oc.createDelay(2);
+      delay.delayTime.value = 0.28;
+      const feedback = oc.createGain();
+      feedback.gain.value = Math.min(0.85, value / 120);
+      const wet = oc.createGain();
+      wet.gain.value = 0.6;
+      const mix = oc.createGain();
+      src.connect(mix);
+      src.connect(delay);
+      delay.connect(feedback);
+      feedback.connect(delay);
+      delay.connect(wet);
+      wet.connect(mix);
+      return mix;
     },
   },
 
   ringtone: {
+    engine: 'ffmpeg',
     controls: 'trim',
     accept: 'audio/*',
     output: () => ({ outputName: 'out.m4r', mimeType: 'audio/x-m4r', ext: 'm4r' }),
-    buildArgs: ([inp], out, { start, end }) => ['-i', inp, '-ss', start, '-to', end, '-c:a', 'aac', '-b:a', '192k', '-f', 'ipod', out],
-    maxDurationSec: 40,
+    buildArgs: ([inp], out, { start, end }) => ['-i', inp, '-ss', String(start), '-to', String(end), '-c:a', 'aac', '-b:a', '192k', '-f', 'ipod', out],
   },
 
   'video-to-audio': {
+    engine: 'ffmpeg',
     controls: 'convert',
     accept: 'video/*',
     formats: ['mp3', 'm4a', 'wav'],
@@ -219,6 +295,7 @@ export const AUDIO_TOOLS = {
   },
 
   'sample-rate': {
+    engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
     selectLabel: 'sampleRateLabel',
@@ -230,18 +307,20 @@ export const AUDIO_TOOLS = {
       { value: '48000', label: '48,000 Hz' },
       { value: '96000', label: '96,000 Hz' },
     ],
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out, { value }) => ['-i', inp, '-ar', value, '-b:a', '192k', out],
+    render: (oc, src) => src,
+    outputSampleRate: ({ value }) => Number(value),
   },
 
   chiptune: {
+    engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
-    output: () => MP3_OUT,
-    buildArgs: ([inp], out) => ['-i', inp, '-af', 'aresample=11025', '-ar', '11025', '-b:a', '96k', out],
+    render: (oc, src) => src,
+    outputSampleRate: () => 11025,
   },
 
   visualizer: {
+    engine: 'ffmpeg',
     controls: 'none',
     accept: 'audio/*',
     output: () => ({ outputName: 'out.mp4', mimeType: 'video/mp4', ext: 'mp4' }),
@@ -254,6 +333,7 @@ export const AUDIO_TOOLS = {
   },
 
   denoise: {
+    engine: 'ffmpeg',
     controls: 'none',
     accept: 'audio/*',
     output: () => MP3_OUT,
@@ -261,6 +341,7 @@ export const AUDIO_TOOLS = {
   },
 
   enhance: {
+    engine: 'ffmpeg',
     controls: 'none',
     accept: 'audio/*',
     output: () => MP3_OUT,
@@ -268,20 +349,18 @@ export const AUDIO_TOOLS = {
   },
 
   'white-noise': {
+    engine: 'webaudio-generator',
     controls: 'generator',
-    accept: null,
-    output: () => MP3_OUT,
+    color: 'white',
     durationDefault: 60,
     durationMax: 3600,
-    buildArgs: (_inputs, out, { duration }) => ['-f', 'lavfi', '-i', `anoisesrc=color=white:duration=${duration}`, '-b:a', '192k', out],
   },
 
   'pink-noise': {
+    engine: 'webaudio-generator',
     controls: 'generator',
-    accept: null,
-    output: () => MP3_OUT,
+    color: 'pink',
     durationDefault: 60,
     durationMax: 3600,
-    buildArgs: (_inputs, out, { duration }) => ['-f', 'lavfi', '-i', `anoisesrc=color=pink:duration=${duration}`, '-b:a', '192k', out],
   },
 };

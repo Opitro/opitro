@@ -48,6 +48,8 @@ export const UI = {
       fadeOutLabel: 'Fade out (seconds)',
       durationLabel: 'Duration (seconds)',
       generateLabel: 'Generate',
+      downloadMp3Label: 'Download MP3',
+      downloadWavLabel: 'Download WAV',
     },
   },
   ru: {
@@ -96,6 +98,8 @@ export const UI = {
       fadeOutLabel: 'Затухание (секунд)',
       durationLabel: 'Длительность (секунд)',
       generateLabel: 'Сгенерировать',
+      downloadMp3Label: 'Скачать MP3',
+      downloadWavLabel: 'Скачать WAV',
     },
   },
   es: {
