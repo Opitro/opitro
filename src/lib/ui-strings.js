@@ -22,8 +22,9 @@ export const UI = {
     allToolsLink: 'All tools →',
     audio: {
       dropLabel: 'Upload an audio file',
-      dropHint: 'Drag it here or click to choose — up to 500 MB',
-      dropHintVideo: 'Drag it here or click to choose — up to 500 MB',
+      dropHint: 'Drag it here or click to choose — up to 1 GB',
+      dropHintVideo: 'Drag it here or click to choose — up to 1 GB',
+      largeFileWarningLabel: '⚠ Large file — processing may be slow, and could stall on lower-power phones.',
       addFileLabel: 'Add another file',
       processLabel: 'Process',
       newFileLabel: 'Different file',
@@ -93,8 +94,9 @@ export const UI = {
     allToolsLink: 'Все инструменты →',
     audio: {
       dropLabel: 'Загрузите аудиофайл',
-      dropHint: 'Перетащите сюда или нажмите, чтобы выбрать — до 500 МБ',
-      dropHintVideo: 'Перетащите сюда или нажмите, чтобы выбрать — до 500 МБ',
+      dropHint: 'Перетащите сюда или нажмите, чтобы выбрать — до 1 ГБ',
+      dropHintVideo: 'Перетащите сюда или нажмите, чтобы выбрать — до 1 ГБ',
+      largeFileWarningLabel: '⚠ Большой файл — обработка может занять время, а на слабых телефонах и подвиснуть.',
       addFileLabel: 'Добавить ещё файл',
       processLabel: 'Обработать',
       newFileLabel: 'Другой файл',

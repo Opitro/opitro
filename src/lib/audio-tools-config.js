@@ -271,15 +271,18 @@ export const AUDIO_TOOLS = {
   },
 
   ringtone: {
-    engine: 'ffmpeg',
+    // Mixed engine: mp3/wav targets are pure Web Audio (encodeMP3/encodeWAV, same pipeline
+    // every other tool uses) -- no ffmpeg at all. Only the ogg targets (Telegram/WhatsApp,
+    // libopus has no browser-native encoder) touch ffmpeg, and even then only on a small
+    // already-trimmed WAV the Web Audio side produces, never the original uploaded file.
+    // This split exists because pushing a large/exotic source file (some iPhone .MOV exports
+    // especially) through ffmpeg.wasm on mobile Safari's tight WASM heap caused a real
+    // "Out of bounds memory access" crash -- confirmed live, not theoretical. Handled in
+    // AudioTool.astro's target-click handler, not here; this config only supplies per-target
+    // format/limits now, no ffmpeg arg-building for the mp3/wav path.
+    engine: 'ringtone-hybrid',
     controls: 'ringtone-targets',
     accept: 'audio/*',
-    // One tile per destination -- format, an optional max duration (trims the selection down
-    // further if it's longer), and the ffmpeg audio filters that recipe wants (fade-out is the
-    // default for a call ringtone; the alarm target wants louder + fade-in instead).
-    // Fade in/out is now a manual checkbox in the UI (fadeIn/fadeOut in params), not an
-    // automatic per-target default -- only `louder` stays target-specific (an alarm should
-    // be attention-grabbing regardless of what the user picked for fades).
     targets: [
       // iOS 26+ can set a ringtone straight from an MP3/M4A under 30s via Files -> Share ->
       // Use as Ringtone -- no GarageBand/M4R conversion needed anymore (verified 2026-08-03).
@@ -292,24 +295,9 @@ export const AUDIO_TOOLS = {
       { key: 'tiktok', emoji: '🎬', name: 'TikTok / Reels', fmt: 'mp3', max: 60 },
       { key: 'pc', emoji: '🖥️', name: 'PC', fmt: 'wav', max: 0 },
     ],
-    output: (target) => {
-      const map = { m4r: 'audio/x-m4r', mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' };
-      return { outputName: `out.${target.fmt}`, mimeType: map[target.fmt] || 'audio/mpeg', ext: target.fmt };
-    },
-    buildArgs: ([inp], out, { start, duration, target, fadeIn, fadeOut, volume }) => {
-      const af = [];
-      const vol = (volume ?? 100) / 100 * (target.louder ? 1.4 : 1);
-      if (vol !== 1) af.push(`volume=${vol.toFixed(2)}`);
-      if (fadeIn) af.push('afade=t=in:st=0:d=1');
-      if (fadeOut && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
-      const args = ['-ss', String(start), '-t', String(duration), '-i', inp, '-vn'];
-      if (af.length) args.push('-af', af.join(','));
-      if (target.fmt === 'm4r') args.push('-c:a', 'aac', '-b:a', '192k', '-f', 'ipod', out);
-      else if (target.fmt === 'mp3') args.push('-b:a', '192k', '-f', 'mp3', out);
-      else if (target.fmt === 'ogg') args.push('-c:a', 'libopus', '-b:a', '96k', out);
-      else args.push(out);
-      return args;
-    },
+    // Only used for the ogg path -- ffmpeg just transcodes a WAV that's already the exact
+    // trimmed/processed clip, so there's no -ss/-t/-af to build here anymore.
+    buildOggArgs: ([inp], out) => ['-i', inp, '-c:a', 'libopus', '-b:a', '96k', out],
   },
 
   'video-to-audio': {

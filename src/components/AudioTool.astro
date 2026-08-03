@@ -243,7 +243,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume,
   } from '../lib/web-audio-engine.js';
 
-  const MAX_MB = 500;
+  const MAX_MB = 1024;
+  const WARN_MB = 150;
   const MAX_RINGTONE_SEC = 40;
   const root = document.querySelector('.audio-tool');
   if (root) {
@@ -386,7 +387,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         return;
       }
       file = f;
-      fileInfo.innerHTML = `<b>${f.name}</b> · ${(f.size / 1048576).toFixed(1)} MB`;
+      const sizeMB = f.size / 1048576;
+      fileInfo.innerHTML = `<b>${f.name}</b> · ${sizeMB.toFixed(1)} MB`;
+      if (sizeMB > WARN_MB) {
+        fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
+      }
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
 
@@ -805,7 +810,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (targetsEl) {
       targetsEl.querySelectorAll('.target').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          if (!file || !sourceBuffer) return;
+          if (!sourceBuffer) return;
+          player.unlock();
           window.dispatchEvent(new Event('opitro:tool-interaction'));
           const target = config.targets.find((t) => t.key === btn.dataset.key);
           clearError();
@@ -820,31 +826,47 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           const chkFadeIn = root.querySelector('#chk-fadein');
           const chkFadeOut = root.querySelector('#chk-fadeout');
           const rtVolume = root.querySelector('#rt-volume');
-          const params = {
-            start: selStart,
-            duration,
-            target,
-            fadeIn: chkFadeIn ? chkFadeIn.checked : false,
-            fadeOut: chkFadeOut ? chkFadeOut.checked : false,
-            volume: rtVolume ? Number(rtVolume.value) : 100,
-          };
-          const { outputName, mimeType, ext } = config.output(target);
+          const fadeInOn = chkFadeIn ? chkFadeIn.checked : false;
+          const fadeOutOn = chkFadeOut ? chkFadeOut.checked : false;
+          const volPct = rtVolume ? Number(rtVolume.value) : 100;
 
           try {
-            const blob = await execFFmpeg({
-              inputs: [{ name: 'in0', file }],
-              buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
-              outputName,
-              mimeType,
-              onProgress: (pct) => {
-                progressFill.style.width = pct + '%';
-                progressText.textContent = `${labels.workingLabel} ${pct}%`;
-              },
-            });
+            // Always process on the small in-memory buffer -- never the original file -- so
+            // ffmpeg (only reached for ogg targets below) never has to touch a large/exotic
+            // source. See the engine comment on the ringtone config entry for why.
+            let clip = sliceBuffer(sourceBuffer, selStart, selStart + duration);
+            const vol = (volPct / 100) * (target.louder ? 1.4 : 1);
+            clip = scaleVolume(clip, vol);
+            if (fadeInOn || fadeOutOn) clip = await applyFade(clip, fadeInOn ? 1 : 0, fadeOutOn ? 2 : 0);
+
+            let blob;
+            if (target.fmt === 'mp3') {
+              progressText.textContent = labels.workingLabel;
+              blob = await encodeMP3(clip, 192);
+            } else if (target.fmt === 'wav') {
+              blob = encodeWAV(clip);
+            } else {
+              // ogg: no browser-native encoder, so this is the only case that still touches
+              // ffmpeg -- and only on this small pre-processed WAV, not the original upload.
+              progressText.textContent = labels.workingLabel;
+              const wavBlob = encodeWAV(clip);
+              const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
+              blob = await execFFmpeg({
+                inputs: [{ name: 'in0', file: wavFile }],
+                buildArgs: (names, out) => config.buildOggArgs(names, out),
+                outputName: 'out.ogg',
+                mimeType: 'audio/ogg',
+                onProgress: (pct) => {
+                  progressFill.style.width = pct + '%';
+                  progressText.textContent = `${labels.workingLabel} ${pct}%`;
+                },
+              });
+            }
+
             const base = `${(file.name.replace(/\.[^.]+$/, '') || 'ringtone')}-${target.key}`;
             progressFill.style.width = '100%';
             progressText.textContent = labels.doneLabel;
-            downloadFfmpegBlob(blob, `${base}.${ext}`);
+            downloadBlob(blob, `${base}.${target.fmt}`);
             const guideText = labels.targetGuides && labels.targetGuides[target.key];
             if (ringtoneGuide && guideText) {
               ringtoneGuide.textContent = guideText;

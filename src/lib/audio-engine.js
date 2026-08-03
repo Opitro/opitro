@@ -45,17 +45,31 @@ export function loadFFmpeg(onProgress) {
 export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType, onProgress }) {
   const instance = await loadFFmpeg(onProgress);
   const writtenNames = [];
-  for (const input of inputs) {
-    await instance.writeFile(input.name, new Uint8Array(await input.file.arrayBuffer()));
-    writtenNames.push(input.name);
-  }
+  let crashed = false;
   try {
+    for (const input of inputs) {
+      await instance.writeFile(input.name, new Uint8Array(await input.file.arrayBuffer()));
+      writtenNames.push(input.name);
+    }
     await instance.exec(buildArgs(writtenNames, outputName));
     const data = await instance.readFile(outputName);
     return new Blob([data.buffer], { type: mimeType });
+  } catch (e) {
+    // A large/exotic file can genuinely exhaust ffmpeg-core's WASM heap (confirmed live on
+    // mobile Safari: "Out of bounds memory access"). Once that happens the WASM instance is
+    // left corrupted -- reusing the singleton after a crash made even unrelated later files
+    // fail too. Terminate and drop it so the next call gets a fully fresh instance instead of
+    // inheriting a broken one.
+    crashed = true;
+    try { instance.terminate(); } catch (e2) {}
+    ffmpeg = null;
+    loadPromise = null;
+    throw e;
   } finally {
-    for (const name of writtenNames) await instance.deleteFile(name).catch(() => {});
-    await instance.deleteFile(outputName).catch(() => {});
+    if (!crashed) {
+      for (const name of writtenNames) await instance.deleteFile(name).catch(() => {});
+      await instance.deleteFile(outputName).catch(() => {});
+    }
   }
 }
 

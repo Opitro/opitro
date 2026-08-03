@@ -18,7 +18,7 @@ faq:
   - question: Can I make a ringtone from a video?
     answer: Yes, of course — pick the video file you want, its audio gets picked up automatically, and everything from there works exactly like it does with regular audio.
   - question: What's the largest file I can upload?
-    answer: 500 MB — enough for a song or a phone video recording.
+    answer: 1024 MB (1 GB). Files under 150 MB usually process quickly on any device; larger ones depend on your phone's memory and processing power, and may run slower on lower-power devices.
   - question: Does the song get uploaded anywhere?
     answer: No — everything happens right in your browser on your device, nothing gets sent anywhere.
 ---
