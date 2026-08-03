@@ -12,7 +12,7 @@ faq:
   - question: How do I set a ringtone on Android?
     answer: Download the file with the "Android" tile, copy it into the Ringtones folder on your phone with any file manager, then pick it under Settings → Sound → Phone ringtone.
   - question: Does this work for Telegram or WhatsApp?
-    answer: Yes — those tiles export as MP3, ready to send straight into a chat as a regular audio file or set as a notification sound.
+    answer: Yes — those tiles export as OGG, ready to send straight into a chat as a voice-style clip or set as a notification sound.
   - question: How long can a ringtone be?
     answer: Depends on the destination — iPhone and notification sounds cap out lower (30 and 8 seconds), while the others allow more. Each tile trims your selection to its own limit automatically, no manual math needed.
   - question: Can I make a ringtone from a video?

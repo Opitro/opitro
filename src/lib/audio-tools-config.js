@@ -271,29 +271,35 @@ export const AUDIO_TOOLS = {
   },
 
   ringtone: {
-    // All targets are pure Web Audio now (encodeMP3/encodeWAV, same pipeline every other tool
-    // uses) -- no ffmpeg touches the export path at all. Telegram/WhatsApp used to export OGG
-    // via ffmpeg's `-c:a libopus`, but that crashes ffmpeg.wasm with "Out of bounds memory
-    // access" -- a confirmed upstream bug (ffmpegwasm/ffmpeg.wasm#591), reproducible even on
-    // desktop Chrome with a plain small file, unrelated to file size or mobile memory. MP3 sends
-    // fine as a regular audio attachment in both apps; it just won't auto-render as the round
-    // voice-note bubble OGG/Opus gets. ffmpeg is still used elsewhere in this tool (decoding
-    // exotic/video source files for the waveform preview), just never for export anymore.
+    // mp3/wav targets are pure Web Audio, no ffmpeg. Telegram/WhatsApp (ogg) touch ffmpeg only
+    // for the final encode, on a small already-trimmed clip -- never the original file. Opus
+    // doesn't support 44.1kHz, so ffmpeg's libopus wrapper resamples to 48kHz internally before
+    // encoding, and that specific internal path has a confirmed ffmpeg.wasm bug: "Out of bounds
+    // memory access" (ffmpegwasm/ffmpeg.wasm#591, #867) -- reproduced live on both iOS and
+    // Android, not desktop. Other Opus rates (24kHz) don't trigger it, so the clip is
+    // pre-resampled to 24kHz via Web Audio (resampleBuffer) before it ever reaches ffmpeg, so
+    // ffmpeg's own resampler is never invoked. If libopus still crashes on some device, the
+    // target-click handler falls back to libvorbis (buildOggVorbisArgs below) -- same .ogg
+    // container, already proven stable (the Convert tool uses it), just not the round
+    // voice-note bubble Opus gets in Telegram/WhatsApp.
     engine: 'ringtone-hybrid',
     controls: 'ringtone-targets',
     accept: 'audio/*',
+    oggSampleRate: 24000,
     targets: [
       // iOS 26+ can set a ringtone straight from an MP3/M4A under 30s via Files -> Share ->
       // Use as Ringtone -- no GarageBand/M4R conversion needed anymore (verified 2026-08-03).
       { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'mp3', max: 30 },
       { key: 'android', emoji: '🤖', name: 'Android', fmt: 'mp3', max: 0 },
-      { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'mp3', max: 0 },
-      { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'mp3', max: 0 },
+      { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'ogg', max: 0 },
+      { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'ogg', max: 0 },
       { key: 'alarm', emoji: '⏰', name: 'Alarm', fmt: 'mp3', max: 0, louder: true },
       { key: 'notify', emoji: '🔔', name: 'Notification', fmt: 'mp3', max: 8 },
       { key: 'tiktok', emoji: '🎬', name: 'TikTok / Reels', fmt: 'mp3', max: 60 },
       { key: 'pc', emoji: '🖥️', name: 'PC', fmt: 'wav', max: 0 },
     ],
+    buildOpusArgs: ([inp], out) => ['-i', inp, '-ar', '24000', '-c:a', 'libopus', '-b:a', '48k', out],
+    buildOggVorbisArgs: ([inp], out) => ['-i', inp, '-c:a', 'libvorbis', '-b:a', '96k', out],
   },
 
   'video-to-audio': {

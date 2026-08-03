@@ -67,6 +67,22 @@ export async function applyFade(buffer, fadeInSec, fadeOutSec) {
   return oc.startRendering();
 }
 
+// Opus doesn't support 44.1kHz (only 8/12/16/24/48kHz) -- ffmpeg's libopus encoder silently
+// resamples to 48kHz internally before encoding, and that specific internal path has a known
+// ffmpeg.wasm bug (crashes with "Out of bounds memory access", confirmed live on both iOS and
+// Android; other Opus rates like 24kHz don't trigger it). Resampling here first, via
+// OfflineAudioContext, means ffmpeg receives already-24kHz PCM and never has to do that
+// resample itself.
+export async function resampleBuffer(buffer, targetRate) {
+  if (buffer.sampleRate === targetRate) return buffer;
+  const oc = new OfflineAudioContext(buffer.numberOfChannels, Math.ceil(buffer.duration * targetRate), targetRate);
+  const src = oc.createBufferSource();
+  src.buffer = buffer;
+  src.connect(oc.destination);
+  src.start(0);
+  return oc.startRendering();
+}
+
 export function drawWaveform(canvas, buffer) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();

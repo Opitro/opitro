@@ -240,7 +240,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume,
+    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, resampleBuffer,
   } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 1024;
@@ -824,6 +824,31 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       });
     }
 
+    // OGG export for Telegram/WhatsApp: libopus at 24kHz first (avoids the specific internal
+    // 48kHz resample path where ffmpeg.wasm crashes -- see the config comment), falling back to
+    // libvorbis (already proven stable, used by the Convert tool) if libopus still crashes on
+    // some device. `clip` should already be the small, trimmed selection, not the raw upload.
+    async function encodeOgg(clip) {
+      const resampled = await resampleBuffer(clip, config.oggSampleRate || 24000);
+      const wavBlob = encodeWAV(resampled);
+      const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
+      const runExport = (buildArgs) => execFFmpeg({
+        inputs: [{ name: 'in0', file: wavFile }],
+        buildArgs,
+        outputName: 'out.ogg',
+        mimeType: 'audio/ogg',
+        onProgress: (pct) => {
+          progressFill.style.width = pct + '%';
+          progressText.textContent = `${labels.workingLabel} ${pct}%`;
+        },
+      });
+      try {
+        return await runExport(config.buildOpusArgs);
+      } catch (e) {
+        return await runExport(config.buildOggVorbisArgs);
+      }
+    }
+
     // Ringtone target tiles -- each one runs its own ffmpeg recipe (format, max duration,
     // fades) against the current waveform selection, then shows a destination-specific guide.
     if (targetsEl) {
@@ -862,6 +887,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               if (target.fmt === 'mp3') {
                 progressText.textContent = labels.workingLabel;
                 blob = await encodeMP3(clip, 192);
+              } else if (target.fmt === 'ogg') {
+                progressText.textContent = labels.workingLabel;
+                blob = await encodeOgg(clip);
               } else {
                 blob = encodeWAV(clip);
               }
@@ -874,21 +902,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               // possible without a decoded duration, so this takes the first `target.max`
               // seconds (or a 30s default for targets with no cap).
               const duration = target.max || 30;
-              const outMap = { mp3: ['out.mp3', 'audio/mpeg'], wav: ['out.wav', 'audio/wav'] };
-              const [outputName, mimeType] = outMap[target.fmt] || outMap.mp3;
               progressText.textContent = labels.workingLabel;
-              blob = await execFFmpeg({
+              const af = [];
+              if (vol !== 1) af.push(`volume=${vol.toFixed(2)}`);
+              if (fadeInOn) af.push('afade=t=in:st=0:d=1');
+              if (fadeOutOn && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
+              const runExport = (outputName, mimeType, tailArgs) => execFFmpeg({
                 inputs: [{ name: 'in0', file }],
                 buildArgs: (names, out) => {
-                  const af = [];
-                  if (vol !== 1) af.push(`volume=${vol.toFixed(2)}`);
-                  if (fadeInOn) af.push('afade=t=in:st=0:d=1');
-                  if (fadeOutOn && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
                   const args = ['-i', names[0], '-t', String(duration), '-vn'];
                   if (af.length) args.push('-af', af.join(','));
-                  if (target.fmt === 'mp3') args.push('-b:a', '192k', '-f', 'mp3', out);
-                  else args.push(out);
-                  return args;
+                  return [...args, ...tailArgs, out];
                 },
                 outputName,
                 mimeType,
@@ -897,6 +921,21 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
                   progressText.textContent = `${labels.workingLabel} ${pct}%`;
                 },
               });
+              if (target.fmt === 'mp3') {
+                blob = await runExport('out.mp3', 'audio/mpeg', ['-b:a', '192k', '-f', 'mp3']);
+              } else if (target.fmt === 'ogg') {
+                // Same libopus-24kHz-first, libvorbis-fallback pattern as encodeOgg() above --
+                // duplicated here (not routed through encodeOgg) because there's no decoded
+                // buffer to pre-resample with Web Audio in this no-preview branch, so the
+                // resample has to happen inside ffmpeg's own -ar flag instead.
+                try {
+                  blob = await runExport('out.ogg', 'audio/ogg', ['-ar', '24000', '-c:a', 'libopus', '-b:a', '48k']);
+                } catch (e) {
+                  blob = await runExport('out.ogg', 'audio/ogg', ['-c:a', 'libvorbis', '-b:a', '96k']);
+                }
+              } else {
+                blob = await runExport('out.wav', 'audio/wav', []);
+              }
               // Every click here reprocesses the original (possibly large) file from scratch --
               // drop the instance afterward so a second target click starts memory-fresh too.
               resetFFmpeg();

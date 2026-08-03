@@ -66,8 +66,8 @@ export const UI = {
       targetGuides: {
         iphone: 'Open the Files app, tap the downloaded MP3, then Share → More → Use as Ringtone (iOS 26+) — it\'ll show up under Settings → Sounds & Haptics → Ringtone. Older iOS: import it into GarageBand instead, hold the track → Share → Ringtone.',
         android: 'Copy the MP3 into the Ringtones folder on your phone, then choose it under Settings → Sound → Phone ringtone.',
-        telegram: 'Send the MP3 in a chat via the attachment icon, as a regular audio file.',
-        whatsapp: 'Send the MP3 as an audio attachment in a chat, or set it under notification sound settings.',
+        telegram: 'Send the OGG file in a chat via the attachment icon — it lands as a voice-style clip.',
+        whatsapp: 'Send the OGG file as audio in a chat, or set it under notification sound settings.',
         alarm: 'Add the MP3 to your phone\'s sound library and pick it for an alarm.',
         notify: 'Add the short MP3 to your phone\'s notification sounds.',
         tiktok: 'Upload the MP3 as a custom sound in the TikTok or Reels editor.',
@@ -139,8 +139,8 @@ export const UI = {
       targetGuides: {
         iphone: 'Откройте приложение Файлы, нажмите на скачанный MP3, затем «Поделиться» → «Ещё» → «Установить как рингтон» (iOS 26+) — он появится в Настройки → Звуки, тактильные сигналы → Рингтон. На старых iOS: импортируйте файл в GarageBand, удержите дорожку → «Поделиться» → «Рингтон».',
         android: 'Скопируйте MP3 в папку Ringtones на телефоне, затем выберите его в Настройки → Звук → Рингтон.',
-        telegram: 'Отправьте MP3 в чат через скрепку — как обычный аудиофайл.',
-        whatsapp: 'Отправьте MP3 как аудио в чат или установите в настройках звука уведомлений.',
+        telegram: 'Отправьте файл OGG в чат через скрепку — придёт как голосовое сообщение.',
+        whatsapp: 'Отправьте файл OGG как аудио в чат или установите в настройках звука уведомлений.',
         alarm: 'Добавьте MP3 в мелодии телефона и выберите его для будильника.',
         notify: 'Добавьте короткий MP3 в звуки уведомлений телефона.',
         tiktok: 'Загрузите MP3 как свой звук в редакторе TikTok или Reels.',
