@@ -363,7 +363,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       } catch (e) {
         const blob = await execFFmpeg({
           inputs: [{ name: 'probe_in', file: f }],
-          buildArgs: (names, out) => ['-i', names[0], '-vn', out],
+          // Explicit codec/sample-rate/channel-count, not ffmpeg's implicit default -- if the
+          // source's audio track happens to be something decodeAudioData can't handle (or
+          // ffmpeg's default WAV muxing choice varies), leaving the format implicit meant the
+          // SECOND decode (of ffmpeg's own output) could fail too. Forcing plain 16-bit PCM
+          // stereo at 44.1kHz is about as universally decodable as a WAV can be.
+          buildArgs: (names, out) => ['-i', names[0], '-vn', '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2', out],
           outputName: 'probe_out.wav',
           mimeType: 'audio/wav',
         });
@@ -410,7 +415,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
           } catch (e) {
-            showError(labels.decodeErrorLabel);
+            // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
+            // never needed a successful browser decode to run ffmpeg directly on the raw file,
+            // and it works fine even for files this same decode step can't handle. Ringtone
+            // shouldn't be any more fragile than that: no waveform, but still make the file.
+            sourceBuffer = null;
+            dur = 0;
+            if (waveShell) waveShell.style.display = 'none';
+            const timesEl = root.querySelector('#times');
+            if (timesEl) timesEl.style.display = 'none';
+            const inputsRow = inStart ? inStart.closest('.row') : null;
+            if (inputsRow) inputsRow.style.display = 'none';
+            showError(labels.noPreviewLabel || labels.decodeErrorLabel);
           }
         }
         return;
@@ -810,7 +826,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (targetsEl) {
       targetsEl.querySelectorAll('.target').forEach((btn) => {
         btn.addEventListener('click', async () => {
-          if (!sourceBuffer) return;
+          if (!file) return;
           player.unlock();
           window.dispatchEvent(new Event('opitro:tool-interaction'));
           const target = config.targets.find((t) => t.key === btn.dataset.key);
@@ -821,41 +837,73 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           progressFill.style.width = '0%';
           progressText.textContent = labels.preparingLabel;
 
-          let duration = selEnd - selStart;
-          if (target.max && duration > target.max) duration = target.max;
           const chkFadeIn = root.querySelector('#chk-fadein');
           const chkFadeOut = root.querySelector('#chk-fadeout');
           const rtVolume = root.querySelector('#rt-volume');
           const fadeInOn = chkFadeIn ? chkFadeIn.checked : false;
           const fadeOutOn = chkFadeOut ? chkFadeOut.checked : false;
           const volPct = rtVolume ? Number(rtVolume.value) : 100;
+          const vol = (volPct / 100) * (target.louder ? 1.4 : 1);
 
           try {
-            // Always process on the small in-memory buffer -- never the original file -- so
-            // ffmpeg (only reached for ogg targets below) never has to touch a large/exotic
-            // source. See the engine comment on the ringtone config entry for why.
-            let clip = sliceBuffer(sourceBuffer, selStart, selStart + duration);
-            const vol = (volPct / 100) * (target.louder ? 1.4 : 1);
-            clip = scaleVolume(clip, vol);
-            if (fadeInOn || fadeOutOn) clip = await applyFade(clip, fadeInOn ? 1 : 0, fadeOutOn ? 2 : 0);
-
             let blob;
-            if (target.fmt === 'mp3') {
-              progressText.textContent = labels.workingLabel;
-              blob = await encodeMP3(clip, 192);
-            } else if (target.fmt === 'wav') {
-              blob = encodeWAV(clip);
+            if (sourceBuffer) {
+              // Always process on the small in-memory buffer -- never the original file -- so
+              // ffmpeg (only reached for ogg targets below) never has to touch a large/exotic
+              // source. See the engine comment on the ringtone config entry for why.
+              let duration = selEnd - selStart;
+              if (target.max && duration > target.max) duration = target.max;
+              let clip = sliceBuffer(sourceBuffer, selStart, selStart + duration);
+              clip = scaleVolume(clip, vol);
+              if (fadeInOn || fadeOutOn) clip = await applyFade(clip, fadeInOn ? 1 : 0, fadeOutOn ? 2 : 0);
+              if (target.fmt === 'mp3') {
+                progressText.textContent = labels.workingLabel;
+                blob = await encodeMP3(clip, 192);
+              } else if (target.fmt === 'wav') {
+                blob = encodeWAV(clip);
+              } else {
+                progressText.textContent = labels.workingLabel;
+                const wavBlob = encodeWAV(clip);
+                const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
+                blob = await execFFmpeg({
+                  inputs: [{ name: 'in0', file: wavFile }],
+                  buildArgs: (names, out) => config.buildOggArgs(names, out),
+                  outputName: 'out.ogg',
+                  mimeType: 'audio/ogg',
+                  onProgress: (pct) => {
+                    progressFill.style.width = pct + '%';
+                    progressText.textContent = `${labels.workingLabel} ${pct}%`;
+                  },
+                });
+              }
             } else {
-              // ogg: no browser-native encoder, so this is the only case that still touches
-              // ffmpeg -- and only on this small pre-processed WAV, not the original upload.
+              // No decoded buffer -- the browser (and the ffmpeg decode fallback) both failed
+              // to read this file for a waveform preview. Rather than blocking the whole tool
+              // on that (a real gap found live: Convert never needed this step to succeed and
+              // works fine on files this same decode step chokes on), run ffmpeg directly on
+              // the original file instead, exactly like Convert does. No visual trim is
+              // possible without a decoded duration, so this takes the first `target.max`
+              // seconds (or a 30s default for targets with no cap).
+              const duration = target.max || 30;
+              const outMap = { mp3: ['out.mp3', 'audio/mpeg'], wav: ['out.wav', 'audio/wav'], ogg: ['out.ogg', 'audio/ogg'] };
+              const [outputName, mimeType] = outMap[target.fmt] || outMap.mp3;
               progressText.textContent = labels.workingLabel;
-              const wavBlob = encodeWAV(clip);
-              const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
               blob = await execFFmpeg({
-                inputs: [{ name: 'in0', file: wavFile }],
-                buildArgs: (names, out) => config.buildOggArgs(names, out),
-                outputName: 'out.ogg',
-                mimeType: 'audio/ogg',
+                inputs: [{ name: 'in0', file }],
+                buildArgs: (names, out) => {
+                  const af = [];
+                  if (vol !== 1) af.push(`volume=${vol.toFixed(2)}`);
+                  if (fadeInOn) af.push('afade=t=in:st=0:d=1');
+                  if (fadeOutOn && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
+                  const args = ['-i', names[0], '-t', String(duration), '-vn'];
+                  if (af.length) args.push('-af', af.join(','));
+                  if (target.fmt === 'mp3') args.push('-b:a', '192k', '-f', 'mp3', out);
+                  else if (target.fmt === 'ogg') args.push('-c:a', 'libopus', '-b:a', '96k', out);
+                  else args.push(out);
+                  return args;
+                },
+                outputName,
+                mimeType,
                 onProgress: (pct) => {
                   progressFill.style.width = pct + '%';
                   progressText.textContent = `${labels.workingLabel} ${pct}%`;
