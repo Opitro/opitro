@@ -453,6 +453,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
     }
 
+    // Generator tools (white noise, pink noise) have no file to drop -- pickFile(), the only
+    // place that reveals .panel, never runs for them. Confirmed live: the page was genuinely
+    // blank (no duration field, no Generate button) until this.
+    if (config.controls === 'generator') panel.classList.add('on');
+
     if (drop) {
       drop.addEventListener('click', () => fileInput.click());
       drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
