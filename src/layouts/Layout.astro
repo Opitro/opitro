@@ -126,6 +126,8 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   section.seo h2{font-size:18px;color:rgba(210,215,228,0.85);font-weight:600;margin-bottom:14px}
   section.seo h3{font-size:15px;color:rgba(210,215,228,0.82);font-weight:500;margin-bottom:5px}
   section.seo p{margin-bottom:14px}
+  section.seo a{color:var(--accent);text-decoration:underline;text-decoration-color:rgba(74,222,158,0.4)}
+  section.seo a:hover{text-decoration-color:var(--accent)}
   .all-tools{max-width:900px;margin:50px auto 0;padding:0 2rem}
   .all-tools-title{font-size:18px;font-weight:600;color:rgba(210,215,228,0.85);margin-bottom:18px;text-align:center}
   .all-tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}

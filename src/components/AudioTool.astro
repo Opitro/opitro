@@ -349,9 +349,16 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // even though the file itself was perfectly readable. Falling back to ffmpeg (which reads
     // raw bytes, not a browser codec) to transcode to WAV first makes decoding effectively
     // universal -- WAV always decodes cleanly afterwards.
+    //
+    // IMPORTANT: when the fallback runs, it REPLACES the module-level `file` with the small
+    // decoded WAV (via the caller reassigning `file = ...` -- see pickFile below), so any
+    // later ffmpeg export (e.g. clicking a ringtone target tile) processes that small WAV
+    // instead of re-running ffmpeg on the original raw video a second time. Running ffmpeg.wasm
+    // twice on a large video back-to-back is what caused a real "Out of bounds memory access"
+    // crash on mobile Safari -- its WASM heap is tighter than desktop and didn't survive it.
     async function decodeFileRobust(f) {
       try {
-        return await decodeFile(f);
+        return { buffer: await decodeFile(f), replacementFile: null };
       } catch (e) {
         const blob = await execFFmpeg({
           inputs: [{ name: 'probe_in', file: f }],
@@ -359,7 +366,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           outputName: 'probe_out.wav',
           mimeType: 'audio/wav',
         });
-        return decodeFile(new File([blob], 'decoded.wav', { type: 'audio/wav' }));
+        const wavFile = new File([blob], (f.name.replace(/\.[^.]+$/, '') || 'decoded') + '.wav', { type: 'audio/wav' });
+        return { buffer: await decodeFile(wavFile), replacementFile: wavFile };
       }
     }
 
@@ -386,7 +394,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         loadFFmpeg().catch(() => {});
         if (waveCanvas) {
           try {
-            sourceBuffer = await decodeFileRobust(f);
+            const decoded = await decodeFileRobust(f);
+            sourceBuffer = decoded.buffer;
+            if (decoded.replacementFile) file = decoded.replacementFile;
             dur = sourceBuffer.duration;
             selStart = 0;
             selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
@@ -402,7 +412,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
 
       try {
-        sourceBuffer = await decodeFileRobust(f);
+        const decoded = await decodeFileRobust(f);
+        sourceBuffer = decoded.buffer;
+        if (decoded.replacementFile) file = decoded.replacementFile;
         dur = sourceBuffer.duration;
         selStart = 0;
         selEnd = dur;
