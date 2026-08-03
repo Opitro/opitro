@@ -19,7 +19,10 @@ const { tool, locale, labels } = Astro.props;
 const config = AUDIO_TOOLS[tool];
 const controls = config.controls;
 const isGenerator = controls === 'generator';
-const showWaveform = !isGenerator && controls !== 'multi-file';
+// Generator/merge tools now also show a waveform, just of the RESULT (post-generate/post-merge)
+// rather than an uploaded source -- the markup renders for them too, hidden by default until
+// the first render (see the client script), instead of never existing at all.
+const showWaveform = true;
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
 const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
@@ -107,6 +110,33 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         </div>
       </div>
     )}
+    {controls === 'convert' && config.advancedConvert && (
+      <div class="row">
+        <div class="field">
+          <label for="ctrl-samplerate">{labels.sampleRateLabel}</label>
+          <select id="ctrl-samplerate">
+            <option value="auto" selected>{labels.autoLabel}</option>
+            <option value="22050">22,050 Hz</option>
+            <option value="44100">44,100 Hz</option>
+            <option value="48000">48,000 Hz</option>
+            <option value="96000">96,000 Hz</option>
+          </select>
+        </div>
+        <div class="field">
+          <label for="ctrl-channels">{labels.channelsLabel}</label>
+          <select id="ctrl-channels">
+            <option value="auto" selected>{labels.autoLabel}</option>
+            <option value="1">{labels.channelMonoLabel}</option>
+            <option value="2">{labels.channelStereoLabel}</option>
+          </select>
+        </div>
+      </div>
+    )}
+    {controls === 'convert' && config.showNormalize && (
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="ctrl-normalize"> {labels.normalizeCheckLabel}</label>
+      </div>
+    )}
 
     {controls === 'slider' && (
       <div class="field slider-field">
@@ -114,12 +144,23 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <input type="range" id="ctrl-slider" min={config.sliderMin} max={config.sliderMax} step={config.sliderStep || 1} value={config.sliderDefault}>
       </div>
     )}
+    {controls === 'slider' && config.showMeter && (
+      <>
+        <div class="meter" id="peak-meter"><div class="meter-fill" id="peak-meter-fill"></div></div>
+        <div class="times" id="peak-meter-label" style="display:none"><span id="peak-meter-text"></span></div>
+      </>
+    )}
+    {(controls === 'slider' || controls === 'eq3') && config.presets && (
+      <div class="presets" id="presets-row">
+        {config.presets.map((p) => <button type="button" class="preset-btn" data-preset={p.key}>{labels[p.label] || p.key}</button>)}
+      </div>
+    )}
 
     {controls === 'select' && (
       <div class="field">
         <label for="ctrl-select">{labels[config.selectLabel]}</label>
         <select id="ctrl-select">
-          {config.selectOptions.map((o) => <option value={o.value}>{o.label}</option>)}
+          {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
         </select>
       </div>
     )}
@@ -141,16 +182,21 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       </div>
     )}
 
-    {controls === 'fade' && (
+    {(controls === 'fade' || controls === 'trim') && (
       <div class="row">
         <div class="field">
           <label for="ctrl-fadein">{labels.fadeInLabel}</label>
-          <input type="number" id="ctrl-fadein" min="0" max="30" value="2">
+          <input type="number" id="ctrl-fadein" min="0" max="30" value={controls === 'trim' ? 0 : 2}>
         </div>
         <div class="field">
           <label for="ctrl-fadeout">{labels.fadeOutLabel}</label>
-          <input type="number" id="ctrl-fadeout" min="0" max="30" value="2">
+          <input type="number" id="ctrl-fadeout" min="0" max="30" value={controls === 'trim' ? 0 : 2}>
         </div>
+      </div>
+    )}
+    {controls === 'trim' && (
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="ctrl-cutout"> {labels.cutOutCheckLabel}</label>
       </div>
     )}
 
@@ -457,6 +503,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // place that reveals .panel, never runs for them. Confirmed live: the page was genuinely
     // blank (no duration field, no Generate button) until this.
     if (config.controls === 'generator') panel.classList.add('on');
+    // No result yet to show a waveform of -- revealResultWaveform() un-hides this once
+    // generate/merge actually produces a buffer.
+    if ((config.controls === 'generator' || config.controls === 'multi-file') && waveShell) {
+      waveShell.style.display = 'none';
+    }
 
     if (drop) {
       drop.addEventListener('click', () => fileInput.click());
@@ -634,10 +685,32 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       const valEl = root.querySelector(`#eq-${band}-val`);
       if (el && valEl) el.addEventListener('input', () => { valEl.textContent = el.value + 'dB'; invalidateRender(); });
     });
-    ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration'].forEach((sel) => {
+    ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize'].forEach((sel) => {
       const el = root.querySelector(sel);
       if (el) el.addEventListener('input', invalidateRender);
     });
+
+    // Preset quick-pick buttons (compress bitrate targets, EQ genre presets, etc.) -- each
+    // just writes into the same slider/eq inputs the user could set by hand, so no separate
+    // render path is needed.
+    const presetsRow = root.querySelector('#presets-row');
+    if (presetsRow && config.presets) {
+      presetsRow.querySelectorAll('.preset-btn').forEach((btn) => {
+        btn.addEventListener('click', () => {
+          const preset = config.presets.find((p) => p.key === btn.dataset.preset);
+          if (!preset) return;
+          Object.entries(preset.set).forEach(([key, val]) => {
+            const id = key === 'value' ? '#ctrl-slider' : `#eq-${key}`;
+            const el = root.querySelector(id);
+            const valEl = root.querySelector(id + '-val');
+            if (!el) return;
+            el.value = val;
+            if (valEl) valEl.textContent = val + (key === 'value' ? (config.sliderUnit || '') : 'dB');
+          });
+          invalidateRender();
+        });
+      });
+    }
 
     function readParams() {
       const params = {};
@@ -654,6 +727,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (get('#chk-fadein')) params.fadeIn = get('#chk-fadein').checked;
       if (get('#chk-fadeout')) params.fadeOut = get('#chk-fadeout').checked;
       if (get('#ctrl-duration')) params.duration = Number(get('#ctrl-duration').value);
+      if (get('#ctrl-samplerate')) params.sampleRate = get('#ctrl-samplerate').value;
+      if (get('#ctrl-channels')) params.channels = get('#ctrl-channels').value;
+      if (get('#ctrl-normalize')) params.normalize = get('#ctrl-normalize').checked;
+      if (get('#ctrl-cutout')) params.cutOut = get('#ctrl-cutout').checked;
       if (config.controls === 'trim' || config.controls === 'ringtone-targets') { params.start = selStart; params.end = selEnd; }
       return params;
     }
@@ -661,6 +738,33 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     function animatePlayhead() {
       if (!player.isPlaying()) { playhead.style.display = 'none'; return; }
       requestAnimationFrame(animatePlayhead);
+    }
+
+    // Peak/clip meter (volume tool only) -- there was no feedback before about how close (or
+    // past) the boosted signal gets to clipping.
+    const peakMeter = root.querySelector('#peak-meter');
+    const peakMeterFill = root.querySelector('#peak-meter-fill');
+    const peakMeterLabel = root.querySelector('#peak-meter-label');
+    const peakMeterText = root.querySelector('#peak-meter-text');
+    function updateMeter(buffer) {
+      if (!config.showMeter || !peakMeter || !buffer) return;
+      let peak = 0;
+      for (let c = 0; c < buffer.numberOfChannels; c++) {
+        const d = buffer.getChannelData(c);
+        for (let i = 0; i < d.length; i += 8) peak = Math.max(peak, Math.abs(d[i]));
+      }
+      peakMeter.classList.add('on');
+      if (peakMeterLabel) peakMeterLabel.style.display = '';
+      const pct = Math.min(100, peak * 100);
+      peakMeterFill.style.width = pct + '%';
+      const clipping = peak >= 0.999;
+      peakMeterFill.classList.toggle('clip', clipping);
+      if (peakMeterText) {
+        const db = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '-inf';
+        peakMeterText.textContent = clipping
+          ? (labels.peakClippingLabel || 'Clipping!')
+          : `${labels.peakLabel || 'Peak'}: ${db} dB`;
+      }
     }
 
     async function doRender() {
@@ -682,23 +786,37 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             data[i] = (b0 + b1 + b2 + white * 0.1848) * 0.2;
           }
         }
+        // A short fade-out so the noise doesn't just cut off abruptly at the end -- there was
+        // no shaping at all before, every generated clip ended in an audible hard stop.
+        const foSamples = Math.min(length, Math.round(sr * 1.5));
+        for (let i = 0; i < foSamples; i++) data[length - 1 - i] *= i / foSamples;
+        revealResultWaveform(out);
         return out;
       }
       if (config.engine === 'webaudio-merge') {
         const buffers = await Promise.all(files.map((f) => decodeFile(f)));
         const sr = buffers[0].sampleRate;
         const ch = Math.max(...buffers.map((b) => b.numberOfChannels));
-        const totalLen = buffers.reduce((sum, b) => sum + b.length, 0);
-        const out = new AudioBuffer({ numberOfChannels: ch, length: totalLen, sampleRate: sr });
+        // 80ms crossfade at each join -- plain back-to-back concatenation (the old behavior)
+        // has an audible click/edit at every seam.
+        const xfade = Math.min(Math.round(sr * 0.08), ...buffers.map((b) => Math.floor(b.length / 4)));
+        const totalLen = buffers.reduce((sum, b) => sum + b.length, 0) - xfade * Math.max(0, buffers.length - 1);
+        const out = new AudioBuffer({ numberOfChannels: ch, length: Math.max(1, totalLen), sampleRate: sr });
         for (let c = 0; c < ch; c++) {
           const dst = out.getChannelData(c);
           let offset = 0;
-          for (const b of buffers) {
+          buffers.forEach((b, idx) => {
             const src = b.getChannelData(Math.min(c, b.numberOfChannels - 1));
-            dst.set(src, offset);
-            offset += b.length;
-          }
+            for (let i = 0; i < src.length; i++) {
+              let w = 1;
+              if (idx > 0 && i < xfade) w = i / xfade;
+              if (idx < buffers.length - 1 && i >= src.length - xfade) w *= (src.length - i) / xfade;
+              dst[offset + i] += src[i] * w;
+            }
+            offset += src.length - (idx < buffers.length - 1 ? xfade : 0);
+          });
         }
+        revealResultWaveform(out);
         return out;
       }
       return renderEffect(sourceBuffer, {
@@ -708,6 +826,16 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         outputSampleRate: config.outputSampleRate ? config.outputSampleRate(params) : undefined,
         outputChannels: config.outputChannels,
       });
+    }
+
+    // Generator/merge tools have no uploaded source to show a waveform of upfront -- draw one
+    // of the RESULT the first time it's available (post-generate / post-merge), matching the
+    // "listen before download" pattern the rest of the tools already have.
+    function revealResultWaveform(buffer) {
+      if (!waveShell || !waveCanvas) return;
+      dur = buffer.duration;
+      waveShell.style.display = '';
+      drawWaveform(waveCanvas, buffer);
     }
 
     if (listenBtn) {
@@ -726,6 +854,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             progress.classList.add('on');
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
+            updateMeter(renderedBuffer);
             progress.classList.remove('on');
             listenBtn.disabled = false;
             downloadRow.style.display = 'flex';
@@ -753,7 +882,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     }
 
     async function ensureRendered() {
-      if (!renderedBuffer) renderedBuffer = await doRender();
+      if (!renderedBuffer) { renderedBuffer = await doRender(); updateMeter(renderedBuffer); }
       return renderedBuffer;
     }
 
@@ -820,6 +949,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             progress.classList.add('on');
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
+            updateMeter(renderedBuffer);
             progress.classList.remove('on');
             if (downloadRow) downloadRow.style.display = 'flex';
           }
@@ -1098,6 +1228,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .sel-overlay:active{cursor:grabbing}
   .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
   .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+  .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
+  .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
+  .audio-tool .preset-btn:hover{border-color:var(--accent)}
+  .audio-tool .meter{height:8px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;margin-bottom:14px;display:none}
+  .audio-tool .meter.on{display:block}
+  .audio-tool .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .1s}
+  .audio-tool .meter-fill.clip{background:#ff3a5e}
   .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}

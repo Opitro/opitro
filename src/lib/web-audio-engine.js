@@ -83,6 +83,98 @@ export async function resampleBuffer(buffer, targetRate) {
   return oc.startRendering();
 }
 
+// WSOLA (Waveform Similarity Overlap-Add) time-stretch -- changes a buffer's duration by
+// `stretchFactor` (output length = input length * stretchFactor) WITHOUT changing pitch.
+// This is what makes speed and pitch two genuinely independent controls instead of both being
+// the same playbackRate hack (the old behavior: speed always changed pitch too, and "pitch"
+// was really just speed under another name -- a real functional mismatch, not a cosmetic one).
+// Time-domain algorithm (no FFT needed): for each output frame, search a small window in the
+// input around the expected position for the best cross-correlation match against the tail of
+// what's already been synthesized, then overlap-add with a Hann window. Parameters are tuned
+// conservatively (small search radius, capped comparison length) since this runs synchronously
+// on the main thread and a multi-minute file needs to stay well under a few seconds.
+export function wsolaStretch(buffer, stretchFactor) {
+  if (!isFinite(stretchFactor) || stretchFactor <= 0 || Math.abs(stretchFactor - 1) < 0.001) return buffer;
+  const sr = buffer.sampleRate;
+  const frameSize = Math.max(64, Math.round(sr * 0.03));
+  // Too short for even one full frame -- the framePos clamp below would go negative and read
+  // out of bounds (silent NaN corruption). Not worth stretching a sub-frame-length clip anyway.
+  if (buffer.length < frameSize * 3) return buffer;
+  const synthHop = Math.max(32, Math.round(frameSize / 2));
+  const analysisHop = Math.max(1, Math.round(synthHop / stretchFactor));
+  const searchRadius = Math.max(1, Math.round(sr * 0.003));
+  const cmpLen = Math.min(256, synthHop);
+  const inLen = buffer.length;
+  const outLen = Math.max(1, Math.round(inLen * stretchFactor));
+  const ch = buffer.numberOfChannels;
+  const out = new AudioBuffer({ numberOfChannels: ch, length: outLen, sampleRate: sr });
+
+  const win = new Float32Array(frameSize);
+  for (let i = 0; i < frameSize; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (frameSize - 1));
+
+  for (let c = 0; c < ch; c++) {
+    const src = buffer.getChannelData(c);
+    const dst = out.getChannelData(c);
+    const weight = new Float32Array(outLen);
+    let inPos = 0;
+    let outPos = 0;
+    while (outPos < outLen && inPos < inLen) {
+      let bestOffset = 0;
+      if (outPos > 0) {
+        let bestScore = -Infinity;
+        const tailStart = Math.max(0, outPos - synthHop);
+        const len = Math.min(cmpLen, outLen - tailStart);
+        for (let off = -searchRadius; off <= searchRadius; off++) {
+          const candidate = inPos + off;
+          if (candidate < 0 || candidate + frameSize > inLen) continue;
+          let score = 0;
+          for (let i = 0; i < len; i++) score += dst[tailStart + i] * src[candidate + i];
+          if (score > bestScore) { bestScore = score; bestOffset = off; }
+        }
+      }
+      const framePos = Math.max(0, Math.min(inLen - frameSize, inPos + bestOffset));
+      const n = Math.min(frameSize, outLen - outPos);
+      for (let i = 0; i < n; i++) {
+        dst[outPos + i] += src[framePos + i] * win[i];
+        weight[outPos + i] += win[i];
+      }
+      inPos += analysisHop;
+      outPos += synthHop;
+    }
+    for (let i = 0; i < outLen; i++) if (weight[i] > 0.0001) dst[i] /= weight[i];
+  }
+  return out;
+}
+
+// Resample (linear interpolation) without preserving duration -- the "naive" transform that
+// changes both pitch and length together. Used as pitchShift()'s first step.
+function resampleLinear(buffer, rateFactor) {
+  const outLen = Math.max(1, Math.round(buffer.length / rateFactor));
+  const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: outLen, sampleRate: buffer.sampleRate });
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    const src = buffer.getChannelData(c);
+    const dst = out.getChannelData(c);
+    for (let i = 0; i < outLen; i++) {
+      const pos = i * rateFactor;
+      const i0 = Math.floor(pos);
+      const frac = pos - i0;
+      const s0 = src[i0] || 0;
+      const s1 = i0 + 1 < src.length ? src[i0 + 1] : s0;
+      dst[i] = s0 + (s1 - s0) * frac;
+    }
+  }
+  return out;
+}
+
+// Pitch-shift by `semitones` while keeping the original duration: resample to shift pitch
+// (which also changes length), then WSOLA-stretch back to the original length so only the
+// pitch actually changed, not the tempo.
+export function pitchShift(buffer, semitones) {
+  if (!semitones) return buffer;
+  const resampled = resampleLinear(buffer, Math.pow(2, semitones / 12));
+  return wsolaStretch(resampled, buffer.length / resampled.length);
+}
+
 export function drawWaveform(canvas, buffer) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
