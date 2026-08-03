@@ -26,9 +26,11 @@ const translations = allCategories
   .map((c) => ({ locale: c.data.locale, slug: `tools/${c.data.catSlug}` }));
 
 const allTools = await getCollection('tools');
-const tools = allTools.filter(
-  (t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale
-);
+const allMedia = await getCollection('mediaTools');
+const tools = [
+  ...allTools.filter((t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale),
+  ...allMedia.filter((t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale),
+];
 
 // Categories with lots of units get a working any-to-any converter right on the category
 // page itself, not just a list of links -- add more entries as other categories get one.

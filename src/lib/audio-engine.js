@@ -1,17 +1,16 @@
-// Browser-only. Lazy-loads ffmpeg.wasm's core+wasm (~30 MB) from a CDN via toBlobURL only
+// Browser-only. Lazy-loads ffmpeg.wasm's core+wasm (~32 MB) from a CDN via toBlobURL only
 // when an audio tool is actually opened -- never bundled into the static build. The FFmpeg
-// instance and its load promise are module-level singletons, so multiple conversions (or
-// multiple tool components on one page) share a single loaded encoder instead of each
-// re-downloading/re-initializing it.
+// instance and its load promise are module-level singletons, so every tool on a page (or a
+// sequence of tools used in one session) shares a single loaded encoder instead of each
+// re-downloading/re-initializing it. Single-threaded core deliberately (see project memory) --
+// no COOP/COEP headers required, so it won't fight with third-party ad iframes later.
 import { FFmpeg } from '@ffmpeg/ffmpeg';
 import { toBlobURL } from '@ffmpeg/util';
 
 const CORE_VERSION = '0.12.6';
-// @ffmpeg/ffmpeg's worker (as of 0.12.x) is itself an ES module, so `importScripts()` inside
-// it always fails and it falls back to a dynamic `import()` of the core script -- that only
-// works against the ESM build (`export default createFFmpegCore`), not the UMD one. Pointing
-// this at /dist/umd (like older ffmpeg.wasm setups did, back when the worker was classic-type)
-// throws "failed to import ffmpeg-core.js" because the UMD build has no default export.
+// @ffmpeg/ffmpeg's worker (0.12.x) is itself an ES module, so `importScripts()` inside it
+// always fails and it falls back to a dynamic `import()` of the core script -- that only works
+// against the ESM build (`export default createFFmpegCore`), not the UMD one.
 const CORE_BASE = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
 
 let ffmpeg = null;
@@ -39,18 +38,23 @@ export function loadFFmpeg(onProgress) {
   return loadPromise;
 }
 
-// `buildArgs(inputName, outputName) => string[]` lets one runner serve every ffmpeg-based
-// tool (convert, trim, volume, speed, reverse, ...) -- each tool just supplies its own args.
-export async function runFFmpeg({ file, buildArgs, outputName, mimeType, onProgress }) {
+// Generalized runner behind every audio tool: `inputs` is a list of {name, file} pairs (zero
+// for a generator like white noise, one for almost everything, more than one for merge/join).
+// `buildArgs(inputNames, outputName) => string[]` builds the actual ffmpeg command -- this one
+// function replaces a bespoke exec call per tool.
+export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType, onProgress }) {
   const instance = await loadFFmpeg(onProgress);
-  const inputName = 'input_' + Date.now();
-  await instance.writeFile(inputName, new Uint8Array(await file.arrayBuffer()));
+  const writtenNames = [];
+  for (const input of inputs) {
+    await instance.writeFile(input.name, new Uint8Array(await input.file.arrayBuffer()));
+    writtenNames.push(input.name);
+  }
   try {
-    await instance.exec(buildArgs(inputName, outputName));
+    await instance.exec(buildArgs(writtenNames, outputName));
     const data = await instance.readFile(outputName);
     return new Blob([data.buffer], { type: mimeType });
   } finally {
-    await instance.deleteFile(inputName).catch(() => {});
+    for (const name of writtenNames) await instance.deleteFile(name).catch(() => {});
     await instance.deleteFile(outputName).catch(() => {});
   }
 }

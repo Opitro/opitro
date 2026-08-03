@@ -14,10 +14,14 @@ const allCategories = await getCollection('categories');
 const categories = allCategories.filter((c) => c.data.locale === locale);
 
 const allTools = await getCollection('tools');
+const allMedia = await getCollection('mediaTools');
 const toolsByCategory = Object.fromEntries(
   categories.map((c) => [
     c.data.catSlug,
-    allTools.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
+    [
+      ...allTools.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
+      ...allMedia.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
+    ],
   ])
 );
 

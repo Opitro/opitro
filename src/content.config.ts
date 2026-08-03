@@ -64,4 +64,27 @@ const categories = defineCollection({
   }),
 });
 
-export const collections = { tools, categories };
+// One folder per audio-tool-slug, one file per locale: src/content/media-tools/{slug}/{locale}.md
+// Separate from `tools` because file-processing tools (ffmpeg-based) don't fit the
+// unit-conversion schema at all -- no factor/scale, no fromUnit/toUnit. `tool` picks the
+// AUDIO_TOOLS config entry (src/lib/audio-tools-config.js) that drives the actual component.
+const mediaTools = defineCollection({
+  loader: glob({ pattern: '**/*.md', base: './src/content/media-tools' }),
+  schema: z.object({
+    toolSlug: z.string(),
+    locale: z.string(),
+    category: z.string(),
+    tool: z.string(),
+    title: z.string(),
+    h1: z.string(),
+    description: z.string(),
+    faq: z.array(
+      z.object({
+        question: z.string(),
+        answer: z.string(),
+      })
+    ),
+  }),
+});
+
+export const collections = { tools, categories, mediaTools };
