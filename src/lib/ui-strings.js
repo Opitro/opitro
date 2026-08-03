@@ -22,8 +22,8 @@ export const UI = {
     allToolsLink: 'All tools →',
     audio: {
       dropLabel: 'Upload an audio file',
-      dropHint: 'Drag it here or click to choose — up to 200 MB',
-      dropHintVideo: 'Drag it here or click to choose — up to 200 MB',
+      dropHint: 'Drag it here or click to choose — up to 500 MB',
+      dropHintVideo: 'Drag it here or click to choose — up to 500 MB',
       addFileLabel: 'Add another file',
       processLabel: 'Process',
       newFileLabel: 'Different file',
@@ -92,8 +92,8 @@ export const UI = {
     allToolsLink: 'Все инструменты →',
     audio: {
       dropLabel: 'Загрузите аудиофайл',
-      dropHint: 'Перетащите сюда или нажмите, чтобы выбрать — до 200 МБ',
-      dropHintVideo: 'Перетащите сюда или нажмите, чтобы выбрать — до 200 МБ',
+      dropHint: 'Перетащите сюда или нажмите, чтобы выбрать — до 500 МБ',
+      dropHintVideo: 'Перетащите сюда или нажмите, чтобы выбрать — до 500 МБ',
       addFileLabel: 'Добавить ещё файл',
       processLabel: 'Обработать',
       newFileLabel: 'Другой файл',

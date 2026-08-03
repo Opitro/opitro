@@ -35,7 +35,16 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="big">{labels.dropLabel}</div>
         <div class="small">{accept.startsWith('video') ? labels.dropHintVideo : labels.dropHint}</div>
       </div>
-      <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file'}>
+      {accept.startsWith('video') ? (
+        <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file'}>
+      ) : (
+        // No `accept` for audio inputs -- with accept="audio/*", iOS Safari's file picker
+        // sheet often hides audio files the OS doesn't recognize by that MIME filter, so
+        // people genuinely can't select a file that's right there. Matches LeebTTS's own
+        // audio-tool inputs (checked live), which drop `accept` entirely for this reason and
+        // keep it only where it's not causing that problem (video-to-audio, above).
+        <input type="file" id="audio-file-input" multiple={controls === 'multi-file'}>
+      )}
     </>
   )}
 
@@ -228,7 +237,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade,
   } from '../lib/web-audio-engine.js';
 
-  const MAX_MB = 200;
+  const MAX_MB = 500;
   const MAX_RINGTONE_SEC = 40;
   const root = document.querySelector('.audio-tool');
   if (root) {
