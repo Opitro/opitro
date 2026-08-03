@@ -296,9 +296,10 @@ export const AUDIO_TOOLS = {
       const map = { m4r: 'audio/x-m4r', mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' };
       return { outputName: `out.${target.fmt}`, mimeType: map[target.fmt] || 'audio/mpeg', ext: target.fmt };
     },
-    buildArgs: ([inp], out, { start, duration, target, fadeIn, fadeOut }) => {
+    buildArgs: ([inp], out, { start, duration, target, fadeIn, fadeOut, volume }) => {
       const af = [];
-      if (target.louder) af.push('volume=1.4');
+      const vol = (volume ?? 100) / 100 * (target.louder ? 1.4 : 1);
+      if (vol !== 1) af.push(`volume=${vol.toFixed(2)}`);
       if (fadeIn) af.push('afade=t=in:st=0:d=1');
       if (fadeOut && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
       const args = ['-ss', String(start), '-t', String(duration), '-i', inp, '-vn'];

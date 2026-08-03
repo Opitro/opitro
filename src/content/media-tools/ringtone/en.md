@@ -16,7 +16,7 @@ faq:
   - question: How long can a ringtone be?
     answer: Depends on the destination — iPhone and notification sounds cap out lower (30 and 8 seconds), while the others allow more. Each tile trims your selection to its own limit automatically, no manual math needed.
   - question: Can I make a ringtone from a video?
-    answer: In most modern browsers, yes — upload the video file directly and its audio gets picked up automatically. If that doesn't work in your specific browser, the reliable route is running it through "Extract Audio from Video" first, then uploading the resulting audio file here.
+    answer: Yes, of course — pick the video file you want, its audio gets picked up automatically, and everything from there works exactly like it does with regular audio.
   - question: What's the largest file I can upload?
     answer: 500 MB — enough for a song or a phone video recording.
   - question: Does the song get uploaded anywhere?
@@ -25,4 +25,4 @@ faq:
 
 Drag the selection on the waveform to the part of the song you want (or type the start/end seconds directly), hit "Listen to selection" to check it sounds right, then tap the tile for wherever the ringtone is going. Each destination gets its own format, length limit, and adjustable fade so the clip doesn't cut off abruptly — plus a short guide for actually setting it after downloading.
 
-The ringtone comes from your own file, audio or video — nothing is composed or synthesized. Most browsers accept a video file directly and pick up its audio automatically; if yours doesn't, pull the audio out first with [Extract Audio from Video](/en/video-to-audio) and upload that instead.
+The ringtone comes from your own file, audio or video — nothing is composed or synthesized. Video files upload directly here too, with their audio picked up automatically — the same way the standalone [Extract Audio from Video](/en/video-to-audio) tool works.

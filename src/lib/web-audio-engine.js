@@ -28,6 +28,19 @@ export function sliceBuffer(buffer, start, end) {
   return out;
 }
 
+// Flat gain multiply, sample by sample -- no OfflineAudioContext needed for a constant scale.
+// Used to make the ringtone "listen to selection" preview match its volume slider before export.
+export function scaleVolume(buffer, factor) {
+  if (factor === 1) return buffer;
+  const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: buffer.sampleRate });
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    const src = buffer.getChannelData(c);
+    const dst = out.getChannelData(c);
+    for (let i = 0; i < src.length; i++) dst[i] = Math.max(-1, Math.min(1, src[i] * factor));
+  }
+  return out;
+}
+
 // Renders a fade-in/fade-out envelope onto a buffer via a GainNode -- used both by the
 // standalone fade tool and by the ringtone "listen to selection" preview, so what plays back
 // before download matches what the actual export applies (previously the preview played the

@@ -162,6 +162,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
 
     {isRingtoneTargets && (
+      <div class="field slider-field">
+        <label for="rt-volume">{labels.volumeLabel}: <span id="rt-volume-val">100%</span></label>
+        <input type="range" id="rt-volume" min="10" max="300" step="10" value="100">
+      </div>
+    )}
+    {isRingtoneTargets && (
       <div class="checks">
         <label class="check"><input type="checkbox" id="chk-fadein"> {labels.fadeInCheckLabel}</label>
         <label class="check"><input type="checkbox" id="chk-fadeout" checked> {labels.fadeOutCheckLabel}</label>
@@ -234,7 +240,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade,
+    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume,
   } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 500;
@@ -337,6 +343,26 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (inEnd) inEnd.value = selEnd.toFixed(1);
     }
 
+    // Some containers (certain iPhone .MOV exports, some odd MP4 variants) fail the browser's
+    // native decodeAudioData -- that used to fail silently on the ffmpeg-engine path and show
+    // a generic error on the webaudio path, in both cases leaving the waveform/preview dead
+    // even though the file itself was perfectly readable. Falling back to ffmpeg (which reads
+    // raw bytes, not a browser codec) to transcode to WAV first makes decoding effectively
+    // universal -- WAV always decodes cleanly afterwards.
+    async function decodeFileRobust(f) {
+      try {
+        return await decodeFile(f);
+      } catch (e) {
+        const blob = await execFFmpeg({
+          inputs: [{ name: 'probe_in', file: f }],
+          buildArgs: (names, out) => ['-i', names[0], '-vn', out],
+          outputName: 'probe_out.wav',
+          mimeType: 'audio/wav',
+        });
+        return decodeFile(new File([blob], 'decoded.wav', { type: 'audio/wav' }));
+      }
+    }
+
     async function pickFile(f) {
       clearError();
       if (f.size > MAX_MB * 1024 * 1024) {
@@ -360,7 +386,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         loadFFmpeg().catch(() => {});
         if (waveCanvas) {
           try {
-            sourceBuffer = await decodeFile(f);
+            sourceBuffer = await decodeFileRobust(f);
             dur = sourceBuffer.duration;
             selStart = 0;
             selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
@@ -368,13 +394,15 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             if (inEnd) inEnd.max = dur;
             drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
-          } catch (e) {}
+          } catch (e) {
+            showError(e && e.message ? e.message : 'Could not read this file.');
+          }
         }
         return;
       }
 
       try {
-        sourceBuffer = await decodeFile(f);
+        sourceBuffer = await decodeFileRobust(f);
         dur = sourceBuffer.duration;
         selStart = 0;
         selEnd = dur;
@@ -518,6 +546,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         if (!sourceBuffer || selEnd - selStart < 0.05) return;
         listenSelIco.innerHTML = ICO_PAUSE;
         let slice = sliceBuffer(sourceBuffer, selStart, selEnd);
+        const rtVolumeEl2 = root.querySelector('#rt-volume');
+        if (rtVolumeEl2) slice = scaleVolume(slice, Number(rtVolumeEl2.value) / 100);
         const chkFadeIn = root.querySelector('#chk-fadein');
         const chkFadeOut = root.querySelector('#chk-fadeout');
         if (chkFadeIn && chkFadeOut && (chkFadeIn.checked || chkFadeOut.checked)) {
@@ -551,6 +581,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         sliderVal.textContent = slider.value + (config.sliderUnit || '');
         invalidateRender();
       });
+    }
+    const rtVolumeEl = root.querySelector('#rt-volume');
+    const rtVolumeVal = root.querySelector('#rt-volume-val');
+    if (rtVolumeEl && rtVolumeVal) {
+      rtVolumeEl.addEventListener('input', () => { rtVolumeVal.textContent = rtVolumeEl.value + '%'; });
     }
     ['bass', 'mid', 'treble'].forEach((band) => {
       const el = root.querySelector(`#eq-${band}`);
@@ -770,12 +805,14 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           if (target.max && duration > target.max) duration = target.max;
           const chkFadeIn = root.querySelector('#chk-fadein');
           const chkFadeOut = root.querySelector('#chk-fadeout');
+          const rtVolume = root.querySelector('#rt-volume');
           const params = {
             start: selStart,
             duration,
             target,
             fadeIn: chkFadeIn ? chkFadeIn.checked : false,
             fadeOut: chkFadeOut ? chkFadeOut.checked : false,
+            volume: rtVolume ? Number(rtVolume.value) : 100,
           };
           const { outputName, mimeType, ext } = config.output(target);
 
