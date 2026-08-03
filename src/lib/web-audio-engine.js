@@ -236,8 +236,11 @@ export function createPlayer() {
     cancelAnimationFrame(rafId);
   }
 
-  function play(buf, onProgress, onEnded) {
+  // `seekTo` (seconds), when given, jumps to that position instead of resuming from wherever
+  // pause() last left off -- used by the click/tap-to-seek handler on the waveform.
+  function play(buf, onProgress, onEnded, seekTo) {
     buffer = buf;
+    if (seekTo != null) pausedAt = Math.max(0, Math.min(seekTo, buffer.duration));
     const c = getCtx();
     source = c.createBufferSource();
     source.buffer = buffer;

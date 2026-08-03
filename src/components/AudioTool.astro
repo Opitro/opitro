@@ -752,6 +752,96 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       return renderedBuffer;
     }
 
+    // Click/tap anywhere on the waveform to start playback from that point (LeebTTS has this,
+    // there was previously no way to do it here at all -- only the trim handles moved a
+    // selection). Ignores clicks on the drag handles/selection overlay, which have their own
+    // mousedown handlers above. Three playback sources depending on tool type: ringtone slices
+    // the live selection on demand, plain ffmpeg tools (Convert etc.) preview the raw decoded
+    // source since they have no Web-Audio "effect" to render, and every other tool reuses the
+    // same lazily-rendered/cached `renderedBuffer` the Listen button already relies on.
+    if (waveShell) {
+      waveShell.addEventListener('click', async (e) => {
+        if (e.target !== waveShell && e.target !== waveCanvas) return;
+        if (dur <= 0) return;
+        const t = px2t(e.clientX);
+        player.unlock();
+        player.stop();
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+
+        if (config.controls === 'ringtone-targets') {
+          if (!sourceBuffer || selEnd - selStart < 0.05) return;
+          const seekTo = Math.max(selStart, Math.min(selEnd, t)) - selStart;
+          let slice = sliceBuffer(sourceBuffer, selStart, selEnd);
+          const rtVolumeEl2 = root.querySelector('#rt-volume');
+          if (rtVolumeEl2) slice = scaleVolume(slice, Number(rtVolumeEl2.value) / 100);
+          const chkFadeIn = root.querySelector('#chk-fadein');
+          const chkFadeOut = root.querySelector('#chk-fadeout');
+          if (chkFadeIn && chkFadeOut && (chkFadeIn.checked || chkFadeOut.checked)) {
+            slice = await applyFade(slice, chkFadeIn.checked ? 1 : 0, chkFadeOut.checked ? 2 : 0);
+          }
+          if (listenSelIco) listenSelIco.innerHTML = ICO_PAUSE;
+          player.play(
+            slice,
+            (frac) => {
+              const tt = selStart + (selEnd - selStart) * frac;
+              const W = waveShell.clientWidth;
+              playhead.style.left = ((tt / dur) * W) + 'px';
+              playhead.style.display = 'block';
+            },
+            () => { if (listenSelIco) listenSelIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); },
+            seekTo
+          );
+          return;
+        }
+
+        if (config.engine === 'ffmpeg') {
+          if (!sourceBuffer) return;
+          player.play(
+            sourceBuffer,
+            (frac) => {
+              const tt = frac * dur;
+              const W = waveShell.clientWidth;
+              playhead.style.left = ((tt / dur) * W) + 'px';
+              playhead.style.display = 'block';
+            },
+            () => { playhead.style.display = 'none'; player.reset(); },
+            t
+          );
+          return;
+        }
+
+        try {
+          if (!renderedBuffer) {
+            progress.classList.add('on');
+            progressText.textContent = labels.workingLabel;
+            renderedBuffer = await doRender();
+            progress.classList.remove('on');
+            if (downloadRow) downloadRow.style.display = 'flex';
+          }
+        } catch (err) {
+          progress.classList.remove('on');
+          return;
+        }
+        const base = config.controls === 'trim' ? selStart : 0;
+        const range = config.controls === 'trim' ? (selEnd - selStart) : renderedBuffer.duration;
+        const clamped = config.controls === 'trim' ? Math.max(selStart, Math.min(selEnd, t)) : t;
+        const frac = range > 0 ? (clamped - base) / range : 0;
+        const seekTo = Math.max(0, Math.min(renderedBuffer.duration, frac * renderedBuffer.duration));
+        if (listenIco) listenIco.innerHTML = ICO_PAUSE;
+        player.play(
+          renderedBuffer,
+          (frac2) => {
+            const tt = base + range * frac2;
+            const W = waveShell.clientWidth;
+            playhead.style.left = ((tt / dur) * W) + 'px';
+            playhead.style.display = 'block';
+          },
+          () => { if (listenIco) listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); },
+          seekTo
+        );
+      });
+    }
+
     if (dlMp3Btn) {
       dlMp3Btn.addEventListener('click', async () => {
         clearError();
@@ -997,7 +1087,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .filelist-item{padding:4px 0}
 
-  .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none}
+  .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none;cursor:pointer}
   .audio-tool canvas{display:block;width:100%;height:130px}
   .audio-tool .sel-overlay{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.14);border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab;display:flex;align-items:center;justify-content:center}
   .audio-tool .sel-overlay:active{cursor:grabbing}
