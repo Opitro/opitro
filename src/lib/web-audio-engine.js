@@ -203,6 +203,16 @@ export function createPlayer() {
     return ctx;
   }
 
+  // iOS Safari only allows an AudioContext to be created/resumed synchronously inside a real
+  // user-gesture call stack -- if that happens after an `await` (rendering a fade, encoding,
+  // etc.), the context can end up silently stuck "suspended" and nothing plays, with no error
+  // thrown anywhere. Call this as the very first line of a click handler, before any await, so
+  // the context is captured while iOS still considers it gesture-triggered; everything else
+  // (rendering, fades) can safely happen after.
+  function unlock() {
+    getCtx();
+  }
+
   function stop() {
     if (source) { try { source.stop(); } catch (e) {} }
     source = null;
@@ -242,5 +252,5 @@ export function createPlayer() {
     pausedAt = 0;
   }
 
-  return { play, pause, stop, reset, isPlaying: () => !!source };
+  return { play, pause, stop, reset, unlock, isPlaying: () => !!source };
 }

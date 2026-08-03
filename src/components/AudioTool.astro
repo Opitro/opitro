@@ -405,7 +405,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
           } catch (e) {
-            showError(e && e.message ? e.message : 'Could not read this file.');
+            showError(labels.decodeErrorLabel);
           }
         }
         return;
@@ -425,7 +425,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         if (listenBtn) listenBtn.disabled = false;
         invalidateRender();
       } catch (e) {
-        showError('Could not read this file. Try MP3, WAV, M4A, or OGG.');
+        showError(labels.decodeErrorLabel);
       }
     }
 
@@ -555,6 +555,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           listenSelIco.innerHTML = ICO_PLAY;
           return;
         }
+        player.unlock();
         if (!sourceBuffer || selEnd - selStart < 0.05) return;
         listenSelIco.innerHTML = ICO_PAUSE;
         let slice = sliceBuffer(sourceBuffer, selStart, selEnd);
@@ -688,6 +689,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           listenIco.innerHTML = ICO_PLAY;
           return;
         }
+        player.unlock();
         clearError();
         try {
           if (!renderedBuffer) {
@@ -925,4 +927,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
   .audio-tool .guide{display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(74,222,158,0.25);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.6;color:var(--muted)}
   .audio-tool .guide.on{display:block}
+
+  /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
+     "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps
+     the waveform inset from the edge specifically on narrow viewports. */
+  @media(max-width:640px){.audio-tool .wave-shell{margin-left:20px;margin-right:20px}}
 </style>
