@@ -238,7 +238,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
 <script>
   import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
-  import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg } from '../lib/audio-engine.js';
+  import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume,
   } from '../lib/web-audio-engine.js';
@@ -372,6 +372,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           outputName: 'probe_out.wav',
           mimeType: 'audio/wav',
         });
+        // Done with ffmpeg for this large file -- drop the now memory-inflated instance so any
+        // later export (e.g. an OGG ringtone target) starts from a fresh, right-sized one.
+        resetFFmpeg();
         const wavFile = new File([blob], (f.name.replace(/\.[^.]+$/, '') || 'decoded') + '.wav', { type: 'audio/wav' });
         return { buffer: await decodeFile(wavFile), replacementFile: wavFile };
       }
@@ -909,6 +912,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
                   progressText.textContent = `${labels.workingLabel} ${pct}%`;
                 },
               });
+              // Every click here reprocesses the original (possibly large) file from scratch --
+              // drop the instance afterward so a second target click starts memory-fresh too.
+              resetFFmpeg();
             }
 
             const base = `${(file.name.replace(/\.[^.]+$/, '') || 'ringtone')}-${target.key}`;

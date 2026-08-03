@@ -16,6 +16,18 @@ const CORE_BASE = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dis
 let ffmpeg = null;
 let loadPromise = null;
 
+// WASM linear memory only grows, never shrinks -- once an exec call processes a large file,
+// the instance's memory footprint stays inflated for the rest of the page's life, even after
+// deleteFile(). Confirmed live on mobile Safari: decoding a large video for a waveform preview,
+// then later running a second (tiny) export on the same singleton, crashed with "Out of bounds
+// memory access". Call this right after any large-file exec so the next call gets a fresh,
+// right-sized instance instead of inheriting the inflated one.
+export function resetFFmpeg() {
+  if (ffmpeg) { try { ffmpeg.terminate(); } catch (e) {} }
+  ffmpeg = null;
+  loadPromise = null;
+}
+
 export function loadFFmpeg(onProgress) {
   if (ffmpeg) return Promise.resolve(ffmpeg);
   if (loadPromise) return loadPromise;
