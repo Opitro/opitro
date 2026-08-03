@@ -271,15 +271,14 @@ export const AUDIO_TOOLS = {
   },
 
   ringtone: {
-    // Mixed engine: mp3/wav targets are pure Web Audio (encodeMP3/encodeWAV, same pipeline
-    // every other tool uses) -- no ffmpeg at all. Only the ogg targets (Telegram/WhatsApp,
-    // libopus has no browser-native encoder) touch ffmpeg, and even then only on a small
-    // already-trimmed WAV the Web Audio side produces, never the original uploaded file.
-    // This split exists because pushing a large/exotic source file (some iPhone .MOV exports
-    // especially) through ffmpeg.wasm on mobile Safari's tight WASM heap caused a real
-    // "Out of bounds memory access" crash -- confirmed live, not theoretical. Handled in
-    // AudioTool.astro's target-click handler, not here; this config only supplies per-target
-    // format/limits now, no ffmpeg arg-building for the mp3/wav path.
+    // All targets are pure Web Audio now (encodeMP3/encodeWAV, same pipeline every other tool
+    // uses) -- no ffmpeg touches the export path at all. Telegram/WhatsApp used to export OGG
+    // via ffmpeg's `-c:a libopus`, but that crashes ffmpeg.wasm with "Out of bounds memory
+    // access" -- a confirmed upstream bug (ffmpegwasm/ffmpeg.wasm#591), reproducible even on
+    // desktop Chrome with a plain small file, unrelated to file size or mobile memory. MP3 sends
+    // fine as a regular audio attachment in both apps; it just won't auto-render as the round
+    // voice-note bubble OGG/Opus gets. ffmpeg is still used elsewhere in this tool (decoding
+    // exotic/video source files for the waveform preview), just never for export anymore.
     engine: 'ringtone-hybrid',
     controls: 'ringtone-targets',
     accept: 'audio/*',
@@ -288,16 +287,13 @@ export const AUDIO_TOOLS = {
       // Use as Ringtone -- no GarageBand/M4R conversion needed anymore (verified 2026-08-03).
       { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'mp3', max: 30 },
       { key: 'android', emoji: '🤖', name: 'Android', fmt: 'mp3', max: 0 },
-      { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'ogg', max: 0 },
-      { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'ogg', max: 0 },
+      { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'mp3', max: 0 },
+      { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'mp3', max: 0 },
       { key: 'alarm', emoji: '⏰', name: 'Alarm', fmt: 'mp3', max: 0, louder: true },
       { key: 'notify', emoji: '🔔', name: 'Notification', fmt: 'mp3', max: 8 },
       { key: 'tiktok', emoji: '🎬', name: 'TikTok / Reels', fmt: 'mp3', max: 60 },
       { key: 'pc', emoji: '🖥️', name: 'PC', fmt: 'wav', max: 0 },
     ],
-    // Only used for the ogg path -- ffmpeg just transcodes a WAV that's already the exact
-    // trimmed/processed clip, so there's no -ss/-t/-af to build here anymore.
-    buildOggArgs: ([inp], out) => ['-i', inp, '-c:a', 'libopus', '-b:a', '96k', out],
   },
 
   'video-to-audio': {

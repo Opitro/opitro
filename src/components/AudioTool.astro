@@ -851,9 +851,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           try {
             let blob;
             if (sourceBuffer) {
-              // Always process on the small in-memory buffer -- never the original file -- so
-              // ffmpeg (only reached for ogg targets below) never has to touch a large/exotic
-              // source. See the engine comment on the ringtone config entry for why.
+              // Always process on the small in-memory buffer, entirely in Web Audio -- no
+              // ffmpeg in this branch at all. See the engine comment on the ringtone config
+              // entry for why (ffmpeg's OGG/libopus export crashes -- upstream bug, not ours).
               let duration = selEnd - selStart;
               if (target.max && duration > target.max) duration = target.max;
               let clip = sliceBuffer(sourceBuffer, selStart, selStart + duration);
@@ -862,22 +862,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               if (target.fmt === 'mp3') {
                 progressText.textContent = labels.workingLabel;
                 blob = await encodeMP3(clip, 192);
-              } else if (target.fmt === 'wav') {
-                blob = encodeWAV(clip);
               } else {
-                progressText.textContent = labels.workingLabel;
-                const wavBlob = encodeWAV(clip);
-                const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
-                blob = await execFFmpeg({
-                  inputs: [{ name: 'in0', file: wavFile }],
-                  buildArgs: (names, out) => config.buildOggArgs(names, out),
-                  outputName: 'out.ogg',
-                  mimeType: 'audio/ogg',
-                  onProgress: (pct) => {
-                    progressFill.style.width = pct + '%';
-                    progressText.textContent = `${labels.workingLabel} ${pct}%`;
-                  },
-                });
+                blob = encodeWAV(clip);
               }
             } else {
               // No decoded buffer -- the browser (and the ffmpeg decode fallback) both failed
@@ -888,7 +874,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               // possible without a decoded duration, so this takes the first `target.max`
               // seconds (or a 30s default for targets with no cap).
               const duration = target.max || 30;
-              const outMap = { mp3: ['out.mp3', 'audio/mpeg'], wav: ['out.wav', 'audio/wav'], ogg: ['out.ogg', 'audio/ogg'] };
+              const outMap = { mp3: ['out.mp3', 'audio/mpeg'], wav: ['out.wav', 'audio/wav'] };
               const [outputName, mimeType] = outMap[target.fmt] || outMap.mp3;
               progressText.textContent = labels.workingLabel;
               blob = await execFFmpeg({
@@ -901,7 +887,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
                   const args = ['-i', names[0], '-t', String(duration), '-vn'];
                   if (af.length) args.push('-af', af.join(','));
                   if (target.fmt === 'mp3') args.push('-b:a', '192k', '-f', 'mp3', out);
-                  else if (target.fmt === 'ogg') args.push('-c:a', 'libopus', '-b:a', '96k', out);
                   else args.push(out);
                   return args;
                 },
