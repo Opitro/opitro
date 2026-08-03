@@ -64,7 +64,7 @@ export const UI = {
         alarm: 'Alarm', notify: 'Notification', tiktok: 'TikTok / Reels', pc: 'PC',
       },
       targetGuides: {
-        iphone: 'Open the Files app, tap the downloaded MP3, then Share → More → Use as Ringtone (iOS 26+) — it\'ll show up under Settings → Sounds & Haptics → Ringtone. Older iOS: import it into GarageBand instead, hold the track → Share → Ringtone.',
+        iphone: 'Open the Files app, tap the downloaded M4R, then Share → More → Use as Ringtone (iOS 26+) — it\'ll show up under Settings → Sounds & Haptics → Ringtone. Older iOS: import it into GarageBand instead, hold the track → Share → Ringtone.',
         android: 'Copy the MP3 into the Ringtones folder on your phone, then choose it under Settings → Sound → Phone ringtone.',
         telegram: 'Send the OGG file in a chat via the attachment icon — it lands as a voice-style clip.',
         whatsapp: 'Send the OGG file as audio in a chat, or set it under notification sound settings.',
@@ -137,7 +137,7 @@ export const UI = {
         alarm: 'Будильник', notify: 'Уведомление', tiktok: 'TikTok / Reels', pc: 'ПК',
       },
       targetGuides: {
-        iphone: 'Откройте приложение Файлы, нажмите на скачанный MP3, затем «Поделиться» → «Ещё» → «Установить как рингтон» (iOS 26+) — он появится в Настройки → Звуки, тактильные сигналы → Рингтон. На старых iOS: импортируйте файл в GarageBand, удержите дорожку → «Поделиться» → «Рингтон».',
+        iphone: 'Откройте приложение Файлы, нажмите на скачанный M4R, затем «Поделиться» → «Ещё» → «Установить как рингтон» (iOS 26+) — он появится в Настройки → Звуки, тактильные сигналы → Рингтон. На старых iOS: импортируйте файл в GarageBand, удержите дорожку → «Поделиться» → «Рингтон».',
         android: 'Скопируйте MP3 в папку Ringtones на телефоне, затем выберите его в Настройки → Звук → Рингтон.',
         telegram: 'Отправьте файл OGG в чат через скрепку — придёт как голосовое сообщение.',
         whatsapp: 'Отправьте файл OGG как аудио в чат или установите в настройках звука уведомлений.',

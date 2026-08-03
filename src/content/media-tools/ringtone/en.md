@@ -8,7 +8,7 @@ h1: Make a Ringtone
 description: Make a ringtone from a song or from a video for iPhone, Android, Telegram, WhatsApp, an alarm, or a notification sound — pick a section and download the file. Free, no sign-up, no generation — it's your own track, not an AI-composed tune.
 faq:
   - question: How do I set the file as my ringtone on iPhone?
-    answer: Download the file with the "iPhone" tile, then open the Files app, tap that MP3, and choose Share → More → Use as Ringtone — it shows up right after under Settings → Sounds & Haptics. This works from iOS 26 onward; older versions still need GarageBand.
+    answer: Download the file with the "iPhone" tile — it's a real M4R (Apple's native ringtone format), then open the Files app, tap it, and choose Share → More → Use as Ringtone — it shows up right after under Settings → Sounds & Haptics. This works from iOS 26 onward; older versions still need GarageBand.
   - question: How do I set a ringtone on Android?
     answer: Download the file with the "Android" tile, copy it into the Ringtones folder on your phone with any file manager, then pick it under Settings → Sound → Phone ringtone.
   - question: Does this work for Telegram or WhatsApp?

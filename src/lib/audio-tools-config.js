@@ -287,9 +287,10 @@ export const AUDIO_TOOLS = {
     accept: 'audio/*',
     oggSampleRate: 24000,
     targets: [
-      // iOS 26+ can set a ringtone straight from an MP3/M4A under 30s via Files -> Share ->
-      // Use as Ringtone -- no GarageBand/M4R conversion needed anymore (verified 2026-08-03).
-      { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'mp3', max: 30 },
+      // Real M4R (AAC audio in an MP4 container, just renamed .m4r) -- matches timbrica.com's
+      // own iPhone tile, not just an MP3 workaround. iOS 26+ can set it straight as a ringtone
+      // via Files -> Share -> Use as Ringtone, same flow as MP3/M4A (verified 2026-08-03).
+      { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'm4r', max: 30 },
       { key: 'android', emoji: '🤖', name: 'Android', fmt: 'mp3', max: 0 },
       { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'ogg', max: 0 },
       { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'ogg', max: 0 },
@@ -300,6 +301,10 @@ export const AUDIO_TOOLS = {
     ],
     buildOpusArgs: ([inp], out) => ['-i', inp, '-ar', '24000', '-c:a', 'libopus', '-b:a', '48k', out],
     buildOggVorbisArgs: ([inp], out) => ['-i', inp, '-c:a', 'libvorbis', '-b:a', '96k', out],
+    // Same AAC recipe the Convert tool already uses successfully -- no known ffmpeg.wasm crash
+    // risk here (unlike libopus). Output container is plain MP4/AAC; only the .m4r extension on
+    // download makes it a "ringtone" file, that's the whole difference from a .m4a.
+    buildAacArgs: ([inp], out) => ['-i', inp, '-c:a', 'aac', '-b:a', '192k', out],
   },
 
   'video-to-audio': {

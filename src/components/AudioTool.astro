@@ -849,6 +849,23 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
     }
 
+    // Real M4R for iPhone (AAC in an MP4 container, .m4r extension) -- same aac codec the
+    // Convert tool already relies on, so no libopus-style crash risk expected.
+    async function encodeM4r(clip) {
+      const wavBlob = encodeWAV(clip);
+      const wavFile = new File([wavBlob], 'clip.wav', { type: 'audio/wav' });
+      return execFFmpeg({
+        inputs: [{ name: 'in0', file: wavFile }],
+        buildArgs: (names, out) => config.buildAacArgs(names, out),
+        outputName: 'out.m4a',
+        mimeType: 'audio/mp4',
+        onProgress: (pct) => {
+          progressFill.style.width = pct + '%';
+          progressText.textContent = `${labels.workingLabel} ${pct}%`;
+        },
+      });
+    }
+
     // Ringtone target tiles -- each one runs its own ffmpeg recipe (format, max duration,
     // fades) against the current waveform selection, then shows a destination-specific guide.
     if (targetsEl) {
@@ -890,6 +907,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               } else if (target.fmt === 'ogg') {
                 progressText.textContent = labels.workingLabel;
                 blob = await encodeOgg(clip);
+              } else if (target.fmt === 'm4r') {
+                progressText.textContent = labels.workingLabel;
+                blob = await encodeM4r(clip);
               } else {
                 blob = encodeWAV(clip);
               }
@@ -933,6 +953,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
                 } catch (e) {
                   blob = await runExport('out.ogg', 'audio/ogg', ['-c:a', 'libvorbis', '-b:a', '96k']);
                 }
+              } else if (target.fmt === 'm4r') {
+                blob = await runExport('out.m4a', 'audio/mp4', ['-c:a', 'aac', '-b:a', '192k']);
               } else {
                 blob = await runExport('out.wav', 'audio/wav', []);
               }
