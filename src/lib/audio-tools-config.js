@@ -272,10 +272,43 @@ export const AUDIO_TOOLS = {
 
   ringtone: {
     engine: 'ffmpeg',
-    controls: 'trim',
+    controls: 'ringtone-targets',
     accept: 'audio/*',
-    output: () => ({ outputName: 'out.m4r', mimeType: 'audio/x-m4r', ext: 'm4r' }),
-    buildArgs: ([inp], out, { start, end }) => ['-i', inp, '-ss', String(start), '-to', String(end), '-c:a', 'aac', '-b:a', '192k', '-f', 'ipod', out],
+    // One tile per destination -- format, an optional max duration (trims the selection down
+    // further if it's longer), and the ffmpeg audio filters that recipe wants (fade-out is the
+    // default for a call ringtone; the alarm target wants louder + fade-in instead).
+    // Fade in/out is now a manual checkbox in the UI (fadeIn/fadeOut in params), not an
+    // automatic per-target default -- only `louder` stays target-specific (an alarm should
+    // be attention-grabbing regardless of what the user picked for fades).
+    targets: [
+      // iOS 26+ can set a ringtone straight from an MP3/M4A under 30s via Files -> Share ->
+      // Use as Ringtone -- no GarageBand/M4R conversion needed anymore (verified 2026-08-03).
+      { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'mp3', max: 30 },
+      { key: 'android', emoji: '🤖', name: 'Android', fmt: 'mp3', max: 0 },
+      { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'ogg', max: 0 },
+      { key: 'whatsapp', emoji: '💬', name: 'WhatsApp', fmt: 'ogg', max: 0 },
+      { key: 'alarm', emoji: '⏰', name: 'Alarm', fmt: 'mp3', max: 0, louder: true },
+      { key: 'notify', emoji: '🔔', name: 'Notification', fmt: 'mp3', max: 8 },
+      { key: 'tiktok', emoji: '🎬', name: 'TikTok / Reels', fmt: 'mp3', max: 60 },
+      { key: 'pc', emoji: '🖥️', name: 'PC', fmt: 'wav', max: 0 },
+    ],
+    output: (target) => {
+      const map = { m4r: 'audio/x-m4r', mp3: 'audio/mpeg', ogg: 'audio/ogg', wav: 'audio/wav' };
+      return { outputName: `out.${target.fmt}`, mimeType: map[target.fmt] || 'audio/mpeg', ext: target.fmt };
+    },
+    buildArgs: ([inp], out, { start, duration, target, fadeIn, fadeOut }) => {
+      const af = [];
+      if (target.louder) af.push('volume=1.4');
+      if (fadeIn) af.push('afade=t=in:st=0:d=1');
+      if (fadeOut && duration > 2) af.push(`afade=t=out:st=${Math.max(0, duration - 2).toFixed(2)}:d=2`);
+      const args = ['-ss', String(start), '-t', String(duration), '-i', inp, '-vn'];
+      if (af.length) args.push('-af', af.join(','));
+      if (target.fmt === 'm4r') args.push('-c:a', 'aac', '-b:a', '192k', '-f', 'ipod', out);
+      else if (target.fmt === 'mp3') args.push('-b:a', '192k', '-f', 'mp3', out);
+      else if (target.fmt === 'ogg') args.push('-c:a', 'libopus', '-b:a', '96k', out);
+      else args.push(out);
+      return args;
+    },
   },
 
   'video-to-audio': {

@@ -14,6 +14,46 @@ export async function decodeFile(file) {
   return audioBuffer;
 }
 
+// Cheap direct copy of a sample range -- no OfflineAudioContext render needed, used for
+// "listen to just the selected region" previews (e.g. before committing to a ringtone export).
+export function sliceBuffer(buffer, start, end) {
+  const sr = buffer.sampleRate;
+  const startSample = Math.max(0, Math.floor(start * sr));
+  const endSample = Math.min(buffer.length, Math.ceil(end * sr));
+  const length = Math.max(1, endSample - startSample);
+  const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length, sampleRate: sr });
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    out.getChannelData(c).set(buffer.getChannelData(c).subarray(startSample, startSample + length));
+  }
+  return out;
+}
+
+// Renders a fade-in/fade-out envelope onto a buffer via a GainNode -- used both by the
+// standalone fade tool and by the ringtone "listen to selection" preview, so what plays back
+// before download matches what the actual export applies (previously the preview played the
+// raw slice with no fade at all, which is why a checked "fade in" box was silent on preview).
+export async function applyFade(buffer, fadeInSec, fadeOutSec) {
+  if (!fadeInSec && !fadeOutSec) return buffer;
+  const oc = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+  const src = oc.createBufferSource();
+  src.buffer = buffer;
+  const gain = oc.createGain();
+  const dur = buffer.duration;
+  const fi = Math.min(fadeInSec || 0, dur / 2);
+  const fo = Math.min(fadeOutSec || 0, dur / 2);
+  gain.gain.setValueAtTime(0.0001, 0);
+  if (fi > 0) gain.gain.exponentialRampToValueAtTime(1, fi);
+  else gain.gain.setValueAtTime(1, 0);
+  if (fo > 0) {
+    gain.gain.setValueAtTime(1, Math.max(fi, dur - fo));
+    gain.gain.exponentialRampToValueAtTime(0.0001, dur);
+  }
+  src.connect(gain);
+  gain.connect(oc.destination);
+  src.start(0);
+  return oc.startRendering();
+}
+
 export function drawWaveform(canvas, buffer) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();

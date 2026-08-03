@@ -4,13 +4,21 @@
 
 <style is:global>
   .ad-slot{
-    max-width:680px;margin:16px auto;padding:0 2rem;
+    /* width:100% is required, not decorative -- Layout's <main> is a column flexbox, and a
+       flex item with horizontal auto margins (used here to center it) does NOT stretch to
+       fill the cross axis by default. Without this, the box shrinks to its (empty) content
+       size -- a near-zero-width sliver that still reserves its min-height, which read as a
+       thin vertical line before the ad is revealed. Caught live via a user screenshot. */
+    width:100%;max-width:680px;margin:16px auto;padding:0 2rem;
   }
   .ad-slot-box{
-    min-height:50px;border:1px solid transparent;border-radius:10px;
+    min-height:50px;border-radius:10px;
     opacity:0;transition:opacity .35s ease;pointer-events:none;
   }
-  .ad-slot.visible .ad-slot-box{opacity:1;pointer-events:auto;border-color:var(--line)}
+  /* No border reveal -- there's no real ad network wired up yet, so a bordered empty box
+     after interaction just reads as a broken/placeholder rectangle. Once real ad content
+     renders into this box, style it then; until that exists, only reserve the space. */
+  .ad-slot.visible .ad-slot-box{opacity:1;pointer-events:auto}
   @media(max-width:640px){.ad-slot{padding:0 1rem}}
 </style>
 

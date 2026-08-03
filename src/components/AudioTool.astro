@@ -7,6 +7,7 @@
 // memory for why this split exists -- most tools moved off ffmpeg specifically so they could
 // show a waveform and let the user listen to the result before downloading.
 import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
+import AdSlot from './AdSlot.astro';
 
 interface Props {
   tool: string;
@@ -19,9 +20,11 @@ const config = AUDIO_TOOLS[tool];
 const controls = config.controls;
 const isGenerator = controls === 'generator';
 const showWaveform = !isGenerator && controls !== 'multi-file';
-const showTrimHandles = controls === 'trim';
+const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
 const isFfmpeg = config.engine === 'ffmpeg';
+const isRingtoneTargets = controls === 'ringtone-targets';
 const accept = config.accept || 'audio/*';
+const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 ---
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
@@ -43,7 +46,11 @@ const accept = config.accept || 'audio/*';
     {showWaveform && (
       <div class="wave-shell" id="wave-shell">
         <canvas id="wave-canvas"></canvas>
-        {showTrimHandles && <div class="sel-overlay" id="sel-overlay"></div>}
+        {showTrimHandles && (
+          <div class="sel-overlay" id="sel-overlay">
+            <svg class="move-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8L22 12L18 16"/><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
+          </div>
+        )}
         {showTrimHandles && <div class="handle" id="h-start"></div>}
         {showTrimHandles && <div class="handle" id="h-end"></div>}
         <div class="playhead" id="playhead"></div>
@@ -54,6 +61,18 @@ const accept = config.accept || 'audio/*';
         <span>{labels.startLabel}: <b id="t-start">0:00.0</b></span>
         <span id="t-len-wrap">{labels.durationLabel}: <b id="t-len">0:00.0</b></span>
         <span>{labels.endLabel}: <b id="t-end">0:00.0</b></span>
+      </div>
+    )}
+    {showTrimHandles && (
+      <div class="row">
+        <div class="field">
+          <label for="in-start">{labels.startSecLabel}</label>
+          <input type="number" id="in-start" min="0" step="0.1" value="0">
+        </div>
+        <div class="field">
+          <label for="in-end">{labels.endSecLabel}</label>
+          <input type="number" id="in-end" min="0" step="0.1" value="0">
+        </div>
       </div>
     )}
 
@@ -133,17 +152,50 @@ const accept = config.accept || 'audio/*';
       </div>
     )}
 
+    {isRingtoneTargets && (
+      <div class="checks">
+        <label class="check"><input type="checkbox" id="chk-fadein"> {labels.fadeInCheckLabel}</label>
+        <label class="check"><input type="checkbox" id="chk-fadeout" checked> {labels.fadeOutCheckLabel}</label>
+      </div>
+    )}
+    {isRingtoneTargets && (
+      <div class="controls" style="margin-bottom:16px">
+        <button class="act" id="listen-sel-btn">
+          <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          <span id="listen-sel-label">{labels.listenSelectionLabel}</span>
+        </button>
+        <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>
+      </div>
+    )}
+    {isRingtoneTargets && <AdSlot />}
+    {isRingtoneTargets && (
+      <>
+        <div class="targets-title">{labels.targetsTitle}</div>
+        <div class="targets" id="targets">
+          {config.targets.map((t) => (
+            <button class="target" data-key={t.key}>
+              <span class="t-emoji">{t.emoji}</span>
+              <span class="t-name">{targetNames[t.key] || t.name}</span>
+              <span class="t-fmt">{t.fmt.toUpperCase()}</span>
+            </button>
+          ))}
+        </div>
+      </>
+    )}
+
     <div class="controls">
-      {!isFfmpeg && (
+      {!isFfmpeg && !isRingtoneTargets && (
         <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
           <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
         </button>
       )}
-      {isFfmpeg && <button class="act primary" id="audio-run-btn">{labels.processLabel}</button>}
-      {!isGenerator && controls !== 'multi-file' && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
+      {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn">{labels.processLabel}</button>}
+      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
       {controls === 'multi-file' && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
+
+    {!isRingtoneTargets && <AdSlot />}
 
     {!isFfmpeg && (
       <div class="controls" id="download-row" style="display:none">
@@ -152,11 +204,13 @@ const accept = config.accept || 'audio/*';
       </div>
     )}
 
-    {isFfmpeg && (
+    {isFfmpeg && !isRingtoneTargets && (
       <div id="ffmpeg-result" style="display:none">
         <audio id="ffmpeg-player" controls style="width:100%;margin-top:14px"></audio>
       </div>
     )}
+
+    {isRingtoneTargets && <div class="guide" id="ringtone-guide"></div>}
 
     <div class="progress" id="audio-progress">
       <div class="progress-bar"><div class="progress-fill" id="audio-progress-fill"></div></div>
@@ -171,10 +225,11 @@ const accept = config.accept || 'audio/*';
   import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer,
+    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade,
   } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 200;
+  const MAX_RINGTONE_SEC = 40;
   const root = document.querySelector('.audio-tool');
   if (root) {
     const tool = root.dataset.tool;
@@ -188,6 +243,8 @@ const accept = config.accept || 'audio/*';
     const fileList = root.querySelector('#audio-filelist');
     const waveShell = root.querySelector('#wave-shell');
     const waveCanvas = root.querySelector('#wave-canvas');
+    const inStart = root.querySelector('#in-start');
+    const inEnd = root.querySelector('#in-end');
     const selOverlay = root.querySelector('#sel-overlay');
     const hStart = root.querySelector('#h-start');
     const hEnd = root.querySelector('#h-end');
@@ -198,6 +255,10 @@ const accept = config.accept || 'audio/*';
     const listenBtn = root.querySelector('#audio-listen-btn');
     const listenIco = root.querySelector('#listen-ico');
     const listenLabel = root.querySelector('#listen-label');
+    const listenSelBtn = root.querySelector('#listen-sel-btn');
+    const listenSelIco = root.querySelector('#listen-sel-ico');
+    const targetsEl = root.querySelector('#targets');
+    const ringtoneGuide = root.querySelector('#ringtone-guide');
     const runBtn = root.querySelector('#audio-run-btn');
     const newBtn = root.querySelector('#audio-new-btn');
     const addBtn = root.querySelector('#audio-add-btn');
@@ -238,11 +299,11 @@ const accept = config.accept || 'audio/*';
 
     function invalidateRender() {
       renderedBuffer = null;
-      downloadRow.style.display = 'none';
+      if (downloadRow) downloadRow.style.display = 'none';
       player.reset();
-      listenIco.innerHTML = ICO_PLAY;
-      listenLabel.textContent = isGeneratorLabel();
-      playhead.style.display = 'none';
+      if (listenIco) listenIco.innerHTML = ICO_PLAY;
+      if (listenLabel) listenLabel.textContent = isGeneratorLabel();
+      if (playhead) playhead.style.display = 'none';
     }
     function isGeneratorLabel() {
       return config.controls === 'generator' ? labels.generateLabel : labels.processLabel;
@@ -263,6 +324,8 @@ const accept = config.accept || 'audio/*';
       if (tStart) tStart.textContent = fmtTime(selStart);
       if (tEnd) tEnd.textContent = fmtTime(selEnd);
       if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
+      if (inStart) inStart.value = selStart.toFixed(1);
+      if (inEnd) inEnd.value = selEnd.toFixed(1);
     }
 
     async function pickFile(f) {
@@ -291,7 +354,9 @@ const accept = config.accept || 'audio/*';
             sourceBuffer = await decodeFile(f);
             dur = sourceBuffer.duration;
             selStart = 0;
-            selEnd = dur;
+            selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
+            if (inStart) inStart.max = dur;
+            if (inEnd) inEnd.max = dur;
             drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
           } catch (e) {}
@@ -304,6 +369,8 @@ const accept = config.accept || 'audio/*';
         dur = sourceBuffer.duration;
         selStart = 0;
         selEnd = dur;
+        if (inStart) inStart.max = dur;
+        if (inEnd) inEnd.max = dur;
         drawWaveform(waveCanvas, sourceBuffer);
         updateSel();
         if (listenBtn) listenBtn.disabled = false;
@@ -336,19 +403,39 @@ const accept = config.accept || 'audio/*';
 
     // Drag handles for trim-style tools.
     let dragging = null;
+    let moveStartT = 0;
+    let moveSelStart = 0;
+    let moveSelEnd = 0;
     function px2t(clientX) {
       const r = waveShell.getBoundingClientRect();
       const x = Math.max(0, Math.min(r.width, clientX - r.left));
       return (x / r.width) * dur;
     }
+    function maxSelLen() {
+      return config.controls === 'ringtone-targets' ? MAX_RINGTONE_SEC : Infinity;
+    }
     function onDrag(e) {
       if (!dragging) return;
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
       const t = px2t(cx);
-      if (dragging === 'start') selStart = Math.min(t, selEnd - 0.1);
-      else selEnd = Math.max(t, selStart + 0.1);
-      selStart = Math.max(0, selStart);
-      selEnd = Math.min(dur, selEnd);
+      const maxLen = maxSelLen();
+      if (dragging === 'move') {
+        const delta = t - moveStartT;
+        const len = moveSelEnd - moveSelStart;
+        let newStart = moveSelStart + delta;
+        newStart = Math.max(0, Math.min(dur - len, newStart));
+        selStart = newStart;
+        selEnd = newStart + len;
+      } else {
+        if (dragging === 'start') selStart = Math.min(t, selEnd - 0.1);
+        else selEnd = Math.max(t, selStart + 0.1);
+        selStart = Math.max(0, selStart);
+        selEnd = Math.min(dur, selEnd);
+        if (selEnd - selStart > maxLen) {
+          if (dragging === 'start') selStart = selEnd - maxLen;
+          else selEnd = selStart + maxLen;
+        }
+      }
       updateSel();
       invalidateRender();
     }
@@ -363,6 +450,12 @@ const accept = config.accept || 'audio/*';
       return (e) => {
         e.preventDefault();
         dragging = which;
+        if (which === 'move') {
+          const cx = e.touches ? e.touches[0].clientX : e.clientX;
+          moveStartT = px2t(cx);
+          moveSelStart = selStart;
+          moveSelEnd = selEnd;
+        }
         document.addEventListener('mousemove', onDrag);
         document.addEventListener('touchmove', onDrag, { passive: false });
         document.addEventListener('mouseup', endDrag);
@@ -371,7 +464,68 @@ const accept = config.accept || 'audio/*';
     }
     if (hStart) { hStart.addEventListener('mousedown', startDrag('start')); hStart.addEventListener('touchstart', startDrag('start'), { passive: false }); }
     if (hEnd) { hEnd.addEventListener('mousedown', startDrag('end')); hEnd.addEventListener('touchstart', startDrag('end'), { passive: false }); }
+    if (selOverlay) {
+      selOverlay.style.cursor = 'grab';
+      selOverlay.style.pointerEvents = 'auto';
+      selOverlay.addEventListener('mousedown', startDrag('move'));
+      selOverlay.addEventListener('touchstart', startDrag('move'), { passive: false });
+    }
 
+    // Typed start/end (seconds) -- kept in sync both ways with the drag handles, matching
+    // LeebTTS's editor exactly instead of leaving the selection drag-only.
+    if (inStart) {
+      inStart.addEventListener('input', () => {
+        if (!dur) return;
+        let v = parseFloat(inStart.value) || 0;
+        v = Math.max(0, Math.min(v, selEnd - 0.1));
+        v = Math.max(v, selEnd - maxSelLen());
+        selStart = v;
+        updateSel();
+        invalidateRender();
+      });
+    }
+    if (inEnd) {
+      inEnd.addEventListener('input', () => {
+        if (!dur) return;
+        let v = parseFloat(inEnd.value) || 0;
+        v = Math.max(selStart + 0.1, Math.min(v, dur));
+        v = Math.min(v, selStart + maxSelLen());
+        selEnd = v;
+        updateSel();
+        invalidateRender();
+      });
+    }
+
+    // "Listen to selection" -- plays just the selected slice directly (no render step), with
+    // click-anywhere-in-the-selection seeking, matching the ringtone/trim editor pattern.
+    if (listenSelBtn) {
+      listenSelBtn.addEventListener('click', async () => {
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        if (player.isPlaying()) {
+          player.pause();
+          listenSelIco.innerHTML = ICO_PLAY;
+          return;
+        }
+        if (!sourceBuffer || selEnd - selStart < 0.05) return;
+        listenSelIco.innerHTML = ICO_PAUSE;
+        let slice = sliceBuffer(sourceBuffer, selStart, selEnd);
+        const chkFadeIn = root.querySelector('#chk-fadein');
+        const chkFadeOut = root.querySelector('#chk-fadeout');
+        if (chkFadeIn && chkFadeOut && (chkFadeIn.checked || chkFadeOut.checked)) {
+          slice = await applyFade(slice, chkFadeIn.checked ? 1 : 0, chkFadeOut.checked ? 2 : 0);
+        }
+        player.play(
+          slice,
+          (frac) => {
+            const t = selStart + (selEnd - selStart) * frac;
+            const W = waveShell.clientWidth;
+            playhead.style.left = ((t / dur) * W) + 'px';
+            playhead.style.display = 'block';
+          },
+          () => { listenSelIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
+        );
+      });
+    }
     // format/bitrate: hide bitrate field for lossless formats
     const fmtSel = root.querySelector('#ctrl-format');
     const bitrateField = root.querySelector('#bitrate-field');
@@ -411,8 +565,10 @@ const accept = config.accept || 'audio/*';
       if (get('#eq-treble')) params.treble = Number(get('#eq-treble').value);
       if (get('#ctrl-fadein')) params.fadeIn = get('#ctrl-fadein').value;
       if (get('#ctrl-fadeout')) params.fadeOut = get('#ctrl-fadeout').value;
+      if (get('#chk-fadein')) params.fadeIn = get('#chk-fadein').checked;
+      if (get('#chk-fadeout')) params.fadeOut = get('#chk-fadeout').checked;
       if (get('#ctrl-duration')) params.duration = Number(get('#ctrl-duration').value);
-      if (config.controls === 'trim') { params.start = selStart; params.end = selEnd; }
+      if (config.controls === 'trim' || config.controls === 'ringtone-targets') { params.start = selStart; params.end = selEnd; }
       return params;
     }
 
@@ -470,6 +626,7 @@ const accept = config.accept || 'audio/*';
 
     if (listenBtn) {
       listenBtn.addEventListener('click', async () => {
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
         if (player.isPlaying()) {
           player.pause();
           listenIco.innerHTML = ICO_PLAY;
@@ -545,6 +702,7 @@ const accept = config.accept || 'audio/*';
     if (runBtn) {
       runBtn.addEventListener('click', async () => {
         if (!file) return;
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
         clearError();
         runBtn.disabled = true;
         progress.classList.add('on');
@@ -583,6 +741,63 @@ const accept = config.accept || 'audio/*';
         runBtn.disabled = false;
       });
     }
+
+    // Ringtone target tiles -- each one runs its own ffmpeg recipe (format, max duration,
+    // fades) against the current waveform selection, then shows a destination-specific guide.
+    if (targetsEl) {
+      targetsEl.querySelectorAll('.target').forEach((btn) => {
+        btn.addEventListener('click', async () => {
+          if (!file || !sourceBuffer) return;
+          window.dispatchEvent(new Event('opitro:tool-interaction'));
+          const target = config.targets.find((t) => t.key === btn.dataset.key);
+          clearError();
+          if (ringtoneGuide) ringtoneGuide.classList.remove('on');
+          targetsEl.querySelectorAll('.target').forEach((b) => { b.disabled = true; });
+          progress.classList.add('on');
+          progressFill.style.width = '0%';
+          progressText.textContent = labels.preparingLabel;
+
+          let duration = selEnd - selStart;
+          if (target.max && duration > target.max) duration = target.max;
+          const chkFadeIn = root.querySelector('#chk-fadein');
+          const chkFadeOut = root.querySelector('#chk-fadeout');
+          const params = {
+            start: selStart,
+            duration,
+            target,
+            fadeIn: chkFadeIn ? chkFadeIn.checked : false,
+            fadeOut: chkFadeOut ? chkFadeOut.checked : false,
+          };
+          const { outputName, mimeType, ext } = config.output(target);
+
+          try {
+            const blob = await execFFmpeg({
+              inputs: [{ name: 'in0', file }],
+              buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
+              outputName,
+              mimeType,
+              onProgress: (pct) => {
+                progressFill.style.width = pct + '%';
+                progressText.textContent = `${labels.workingLabel} ${pct}%`;
+              },
+            });
+            const base = `${(file.name.replace(/\.[^.]+$/, '') || 'ringtone')}-${target.key}`;
+            progressFill.style.width = '100%';
+            progressText.textContent = labels.doneLabel;
+            downloadFfmpegBlob(blob, `${base}.${ext}`);
+            const guideText = labels.targetGuides && labels.targetGuides[target.key];
+            if (ringtoneGuide && guideText) {
+              ringtoneGuide.textContent = guideText;
+              ringtoneGuide.classList.add('on');
+            }
+          } catch (e) {
+            showError(e && e.message ? e.message : String(e));
+            progress.classList.remove('on');
+          }
+          targetsEl.querySelectorAll('.target').forEach((b) => { b.disabled = false; });
+        });
+      });
+    }
   }
 </script>
 
@@ -594,15 +809,20 @@ const accept = config.accept || 'audio/*';
   .audio-tool .drop .small{font-size:12px;color:var(--muted)}
   .audio-tool input[type=file]{display:none}
 
-  .audio-tool .panel{display:none;margin-top:8px;background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:18px}
+  .audio-tool .panel{display:none;margin-top:8px}
   .audio-tool .panel.on{display:block}
-  .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word}
+  .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:10px;padding:11px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .filelist-item{padding:4px 0}
 
   .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none}
   .audio-tool canvas{display:block;width:100%;height:130px}
-  .audio-tool .sel-overlay{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.14);border-left:2px solid var(--accent);border-right:2px solid var(--accent);pointer-events:none}
+  .audio-tool .sel-overlay{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.14);border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab;display:flex;align-items:center;justify-content:center}
+  .audio-tool .sel-overlay:active{cursor:grabbing}
+  .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
+  .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+  .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
+  .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
   .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
   .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.85;pointer-events:none;z-index:2;display:none}
@@ -634,4 +854,17 @@ const accept = config.accept || 'audio/*';
 
   .audio-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
   .audio-tool .err.show{display:block}
+
+  .audio-tool .targets-title{font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center}
+  .audio-tool .targets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  @media(max-width:600px){.audio-tool .targets{grid-template-columns:repeat(2,1fr)}}
+  .audio-tool .target{cursor:pointer;border:1px solid var(--line);background:var(--surface-2);border-radius:13px;padding:16px 8px;text-align:center;transition:transform .12s,border-color .2s,background .2s;display:flex;flex-direction:column;align-items:center;gap:7px;font-family:inherit}
+  .audio-tool .target:hover{transform:translateY(-3px);border-color:var(--accent);background:rgba(74,222,158,0.06)}
+  .audio-tool .target:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .audio-tool .t-emoji{font-size:26px}
+  .audio-tool .t-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.25}
+  .audio-tool .t-fmt{font-size:10px;color:var(--muted);letter-spacing:.05em}
+
+  .audio-tool .guide{display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(74,222,158,0.25);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.6;color:var(--muted)}
+  .audio-tool .guide.on{display:block}
 </style>

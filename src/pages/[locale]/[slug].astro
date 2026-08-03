@@ -103,7 +103,7 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
   path={entry.data.toolSlug}
   breadcrumb={breadcrumb}
 >
-  <div class="main">
+  <div class={`main${kind === 'media' ? ' main-media' : ''}`}>
     <h1>{entry.data.h1}</h1>
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
@@ -159,4 +159,7 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
 <style>
   .universal-link{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:18px auto 0;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s,border-color .15s}
   .universal-link:hover{background:rgba(74,222,158,0.18);border-color:rgba(74,222,158,0.5)}
+  /* Audio tools need more room for the waveform + controls than the narrower calculator
+     width -- matches LeebTTS's own 760px content width for the same kind of editor UI. */
+  .main-media{max-width:760px}
 </style>
