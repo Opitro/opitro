@@ -1013,6 +1013,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       );
     }
     function selectAbSide(which) {
+      // Re-tapping the side that's already selected is a no-op, not a transport command --
+      // without this it fell through to playAB(), which saw the same side already playing and
+      // treated it as a play/pause toggle, so tapping the lit-up half of the pill paused the
+      // audio. The pill selects; the round play button transports.
+      if (abSelected === which) return;
       abSelected = which;
       if (abOriginalBtn) abOriginalBtn.classList.toggle('active', which === 'original');
       if (abResultBtn) abResultBtn.classList.toggle('active', which === 'result');

@@ -346,7 +346,16 @@ export function createPlayer() {
     source = c.createBufferSource();
     source.buffer = buffer;
     source.connect(c.destination);
-    source.onended = () => { if (onEnded) onEnded(); };
+    // Clear internal state BEFORE handing control to onEnded -- reaching the end of a track is
+    // just as much "not playing anymore" as an explicit stop, but this used to leave `source`
+    // set, so isPlaying() kept returning true forever after a track finished on its own. Every
+    // caller was independently papering over that by calling reset() from its own onEnded;
+    // fixing it here means callers that don't (the A/B compare path) behave correctly too.
+    const startedSource = source;
+    source.onended = () => {
+      if (source === startedSource) { source = null; cancelAnimationFrame(rafId); }
+      if (onEnded) onEnded();
+    };
     source.start(0, pausedAt);
     startedAt = c.currentTime - pausedAt;
     const tick = () => {
