@@ -22,7 +22,9 @@ const isGenerator = controls === 'generator';
 // Generator/merge tools now also show a waveform, just of the RESULT (post-generate/post-merge)
 // rather than an uploaded source -- the markup renders for them too, hidden by default until
 // the first render (see the client script), instead of never existing at all.
-const showWaveform = true;
+// Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
+// doesn't map cleanly onto "several files queued for conversion".
+const showWaveform = !config.allowBatch;
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
 const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
@@ -37,23 +39,29 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
         <div class="big">{labels.dropLabel}</div>
         <div class="small">{accept.startsWith('video') ? labels.dropHintVideo : labels.dropHint}</div>
+        {config.allowBatch && (
+          <div class="small">
+            {(labels.batchLimitLabel || 'Up to {n} files, {mb} MB combined.')
+              .replace('{n}', config.maxBatchFiles).replace('{mb}', config.maxBatchMB)}
+          </div>
+        )}
       </div>
       {accept.startsWith('video') ? (
-        <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file'}>
+        <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file' || config.allowBatch}>
       ) : (
         // No `accept` for audio inputs -- with accept="audio/*", iOS Safari's file picker
         // sheet often hides audio files the OS doesn't recognize by that MIME filter, so
         // people genuinely can't select a file that's right there. Matches LeebTTS's own
         // audio-tool inputs (checked live), which drop `accept` entirely for this reason and
         // keep it only where it's not causing that problem (video-to-audio, above).
-        <input type="file" id="audio-file-input" multiple={controls === 'multi-file'}>
+        <input type="file" id="audio-file-input" multiple={controls === 'multi-file' || config.allowBatch}>
       )}
     </>
   )}
 
   <div class="panel" id="audio-panel">
-    {controls === 'multi-file' && <div class="filelist" id="audio-filelist"></div>}
-    {controls !== 'multi-file' && controls !== 'generator' && <div class="fileinfo" id="audio-fileinfo"></div>}
+    {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
+    {controls !== 'multi-file' && controls !== 'generator' && !config.allowBatch && <div class="fileinfo" id="audio-fileinfo"></div>}
 
     {showWaveform && config.simplePreview && (
       <div class="wave-shell simple-preview" id="wave-shell">
@@ -262,8 +270,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         </button>
       )}
       {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn">{labels[config.runLabel] || labels.processLabel}</button>}
-      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
-      {controls === 'multi-file' && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
+      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
+      {(controls === 'multi-file' || config.allowBatch) && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
 
     {!isRingtoneTargets && <AdSlot />}
@@ -434,7 +442,20 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         showError(`File is larger than ${MAX_MB} MB.`);
         return;
       }
-      if (config.controls === 'multi-file') {
+      if (config.controls === 'multi-file' || config.allowBatch) {
+        if (config.allowBatch) {
+          const maxFiles = config.maxBatchFiles || 20;
+          const maxBatchMB = config.maxBatchMB || 2048;
+          if (files.length >= maxFiles) {
+            showError((labels.batchTooManyLabel || 'Max {n} files per batch.').replace('{n}', maxFiles));
+            return;
+          }
+          const totalMB = (files.reduce((s, x) => s + x.size, 0) + f.size) / 1048576;
+          if (totalMB > maxBatchMB) {
+            showError((labels.batchTooLargeLabel || 'Batch total exceeds {n} MB.').replace('{n}', maxBatchMB));
+            return;
+          }
+        }
         files.push(f);
         renderFileList();
         panel.classList.add('on');
@@ -1023,7 +1044,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // ffmpeg-engine tools (convert, ringtone, video-to-audio, visualizer, denoise, enhance)
     if (runBtn) {
       runBtn.addEventListener('click', async () => {
-        if (!file) return;
+        if (config.allowBatch ? !files.length : !file) return;
         window.dispatchEvent(new Event('opitro:tool-interaction'));
         clearError();
         runBtn.disabled = true;
@@ -1032,8 +1053,54 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         progressText.textContent = labels.preparingLabel;
 
         const params = readParams();
-        const { outputName, mimeType, ext } = config.output(params);
 
+        if (config.allowBatch) {
+          const results = [];
+          for (let i = 0; i < files.length; i++) {
+            const f = files[i];
+            progressFill.style.width = '0%';
+            progressText.textContent = `${labels.batchProcessingLabel || 'Processing'} ${i + 1}/${files.length}: ${f.name}`;
+            try {
+              const { outputName, mimeType, ext } = config.output(params);
+              const blob = await execFFmpeg({
+                inputs: [{ name: 'in0', file: f }],
+                buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
+                outputName,
+                mimeType,
+                onProgress: (pct) => { progressFill.style.width = pct + '%'; },
+              });
+              const base = f.name.replace(/\.[^.]+$/, '') || `file-${i + 1}`;
+              results.push({ name: `${base}.${ext}`, blob });
+            } catch (e) {
+              showError(`${f.name}: ${e && e.message ? e.message : String(e)}`);
+            }
+            // Fresh ffmpeg instance between every file -- processing many files back-to-back on
+            // the same instance is exactly the "crashes after a lot of conversions" pattern
+            // documented in ffmpeg.wasm's own issue tracker (see the ringtone config comment).
+            resetFFmpeg();
+          }
+          if (results.length) {
+            if (results.length === 1) {
+              downloadFfmpegBlob(results[0].blob, results[0].name);
+            } else {
+              progressText.textContent = labels.batchZippingLabel || 'Packing ZIP...';
+              const { default: JSZip } = await import('jszip');
+              const zip = new JSZip();
+              results.forEach((r) => zip.file(r.name, r.blob));
+              const zipBlob = await zip.generateAsync({ type: 'blob' });
+              downloadFfmpegBlob(zipBlob, 'converted.zip');
+            }
+            progressFill.style.width = '100%';
+            progressText.textContent = labels.doneLabel;
+            runBtn.textContent = labels[config.runLabel] || labels.processLabel;
+          } else {
+            progress.classList.remove('on');
+          }
+          runBtn.disabled = false;
+          return;
+        }
+
+        const { outputName, mimeType, ext } = config.output(params);
         try {
           const blob = await execFFmpeg({
             inputs: [{ name: 'in0', file }],

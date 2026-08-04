@@ -24,6 +24,14 @@ export const AUDIO_TOOLS = {
     // Waveform replaced with a plain "file loaded, tap to listen" bar -- a converter doesn't
     // need the visual, and the canvas render was extra weight for no real benefit here.
     simplePreview: true,
+    // Batch: files process sequentially (never in parallel -- ffmpeg.wasm is a single shared
+    // instance) with a fresh instance between each (see the runBtn handler's comment on why).
+    // Limits are deliberately explicit and shown in the UI/FAQ rather than left as "however
+    // much your device can handle" -- 20 files / 2GB combined is generous for the free-tool
+    // tier without inviting someone to queue up their entire music library.
+    allowBatch: true,
+    maxBatchFiles: 20,
+    maxBatchMB: 2048,
     formats: ['mp3', 'm4a', 'm4r', 'wav', 'ogg', 'flac', 'opus', 'wma', 'aiff'],
     output: (params) => {
       const map = {

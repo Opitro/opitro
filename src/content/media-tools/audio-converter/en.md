@@ -13,11 +13,11 @@ faq:
   - question: Can I set the sample rate and channel count?
     answer: Yes — there are separate sample-rate (22,050 to 96,000 Hz) and channel (mono/stereo) controls, with an "Auto" option to keep the original's settings.
   - question: Can I convert multiple files at once?
-    answer: No, batch processing isn't supported — one file at a time. With many files to convert, that's a deliberate limit of a free browser-based tool, not an oversight.
+    answer: Yes — add several files, pick the format once, and the result downloads as a single ZIP (or just the file itself, if there's only one). Up to 20 files and 2048 MB combined per batch.
   - question: What's the largest file I can upload?
-    answer: 1024 MB (1 GB). Files under 150 MB process quickly on any device; larger ones take longer depending on your phone's or computer's memory and processing power.
+    answer: 1024 MB (1 GB) per file, and up to 2048 MB combined when converting several at once. Files under 150 MB process quickly on any device; larger ones take longer depending on your phone's or computer's memory and processing power.
   - question: Does the file get uploaded anywhere?
     answer: No — conversion runs entirely in your browser using a real audio engine (ffmpeg, compiled to WebAssembly), not a server. Nothing you upload ever leaves your device.
 ---
 
-Drop in a file, pick the format, bitrate, and — if you need it — a specific sample rate or channel count, and the converted file downloads straight away. Handy for turning a WAV into a smaller MP3, getting a FLAC file into something more universally supported, preparing a track for a device that only plays one specific format, or compressing a voice recording into Opus for streaming.
+Drop in a file — or several at once, up to 20 files and 2048 MB combined — pick the format, bitrate, and if you need it, a specific sample rate or channel count. The result downloads straight away: the file itself if there's just one, a ZIP if there are several. Handy for turning a WAV into a smaller MP3, getting a FLAC file into something more universally supported, preparing a track for a device that only plays one specific format, or compressing a voice recording into Opus for streaming.

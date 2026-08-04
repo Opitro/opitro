@@ -96,6 +96,11 @@ export const UI = {
       channelStereoLabel: 'Stereo',
       convertLabel: 'Convert',
       simplePreviewLabel: 'File loaded — tap to listen to the original',
+      batchLimitLabel: 'Up to {n} files, {mb} MB combined.',
+      batchProcessingLabel: 'Converting',
+      batchZippingLabel: 'Packing into a ZIP…',
+      batchTooManyLabel: 'Max {n} files per batch.',
+      batchTooLargeLabel: 'Batch total exceeds {n} MB — remove a file or convert it separately.',
       formatHints: {
         mp3: 'Universal, small size — music, podcasts, voice memos.',
         m4a: 'Better quality than MP3 at the same size — Apple devices, audiobooks.',
@@ -228,6 +233,11 @@ export const UI = {
       channelStereoLabel: 'Стерео',
       convertLabel: 'Конвертировать',
       simplePreviewLabel: 'Файл загружен — нажмите, чтобы прослушать оригинал',
+      batchLimitLabel: 'До {n} файлов, суммарно до {mb} МБ.',
+      batchProcessingLabel: 'Конвертация',
+      batchZippingLabel: 'Упаковка в ZIP…',
+      batchTooManyLabel: 'Максимум {n} файлов за раз.',
+      batchTooLargeLabel: 'Суммарный размер больше {n} МБ — уберите файл или сконвертируйте его отдельно.',
       formatHints: {
         mp3: 'Универсальный, небольшой размер — музыка, подкасты, голосовые заметки.',
         m4a: 'Лучше качество, чем у MP3 при том же размере — устройства Apple, аудиокниги.',
