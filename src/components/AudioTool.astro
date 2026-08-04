@@ -292,7 +292,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
     {controls === 'vizstyles' && (
       <>
-        <div class="viz-hint" id="viz-hint" style="display:none">{labels.vizHintLabel}</div>
+        {/* The player sits above the style cards and keeps a fixed 16:9 box from the moment a
+            file is loaded. Revealing it only after the first render made the whole page jump
+            under the user's finger the instant they tapped a style. */}
+        <div class="viz-player" id="viz-player" style="display:none">
+          <div class="viz-stage">
+            <video id="viz-video" controls playsinline preload="metadata"></video>
+            <div class="viz-placeholder" id="viz-placeholder">{labels.vizHintLabel}</div>
+          </div>
+          <div class="viz-note" id="viz-note" style="display:none">{labels.vizPreviewNoteLabel}</div>
+          <div class="viz-estimate" id="viz-estimate"></div>
+        </div>
         <div class="preset-cards" id="viz-styles">
           {/* Nothing is pre-selected: highlighting a card before anything has been rendered
               claims a choice the user never made. The active state is set once a preview for
@@ -314,14 +324,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             </select>
           </div>
         </div>
-        <button type="button" class="act primary viz-preview-btn" id="viz-preview-btn">
+        <button type="button" class="act viz-preview-btn" id="viz-preview-btn">
           ▶ {labels.vizPreviewLabel}
         </button>
-        <div class="viz-result" id="viz-result" style="display:none">
-          <video id="viz-video" controls playsinline preload="metadata"></video>
-          <div class="viz-note">{labels.vizPreviewNoteLabel}</div>
-          <div class="viz-estimate" id="viz-estimate"></div>
-        </div>
       </>
     )}
     {controls === 'speed1' && (
@@ -877,8 +882,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         if (config.noWaveform) {
           dur = await probeDuration(f);
           renderFileMeta(f);
-          const hintEl = root.querySelector('#viz-hint');
-          if (hintEl) hintEl.style.display = 'block';
+          const playerEl = root.querySelector('#viz-player');
+          if (playerEl) playerEl.style.display = 'block';
           return;
         }
         // Was gated on waveCanvas existing -- that broke the simple-preview tools entirely
@@ -1554,12 +1559,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (config.controls === 'vizstyles') {
       const vizStylesEl = root.querySelector('#viz-styles');
       const vizPreviewBtn = root.querySelector('#viz-preview-btn');
-      const vizResultEl = root.querySelector('#viz-result');
+      const vizPlayerEl = root.querySelector('#viz-player');
+      const vizPlaceholderEl = root.querySelector('#viz-placeholder');
+      const vizNoteEl = root.querySelector('#viz-note');
       const vizVideoEl = root.querySelector('#viz-video');
       let vizPreviewUrl = null;
 
       const vizEstimateEl = root.querySelector('#viz-estimate');
-      const vizHintEl = root.querySelector('#viz-hint');
 
       // Estimate the full render from how long the preview actually took ON THIS DEVICE with
       // THESE settings, rather than quoting a made-up number. Encoding time scales roughly with
@@ -1589,14 +1595,14 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         vizStylesEl.querySelectorAll('.preset-card').forEach((c) => {
           c.classList.toggle('active', c.dataset.style === styleKey);
         });
-        if (vizHintEl) vizHintEl.style.display = 'none';
+        if (vizPlaceholderEl) vizPlaceholderEl.style.display = 'none';
+        if (vizNoteEl) vizNoteEl.style.display = 'block';
         showRenderEstimate(tookMs);
         // Revoke the previous object URL -- each preview is a fresh multi-megabyte blob, and
         // holding onto them would pin that memory for the life of the page.
         if (vizPreviewUrl) URL.revokeObjectURL(vizPreviewUrl);
         vizPreviewUrl = URL.createObjectURL(blob);
         vizVideoEl.src = vizPreviewUrl;
-        vizResultEl.style.display = 'block';
         vizVideoEl.play().catch(() => {});
       }
 
@@ -1611,7 +1617,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
       if (vizPreviewBtn) vizPreviewBtn.addEventListener('click', renderVizPreview);
       const vizSizeEl = root.querySelector('#viz-size');
-      if (vizSizeEl) vizSizeEl.addEventListener('change', () => { if (file && vizResultEl.style.display !== 'none') renderVizPreview(); });
+      // Re-preview on size change only if something has already been rendered -- otherwise
+      // changing the dropdown before ever picking a style would kick off a render unasked.
+      if (vizSizeEl) vizSizeEl.addEventListener('change', () => { if (file && vizVideoEl.src) renderVizPreview(); });
     }
 
     if (config.controls === 'speed1') {
@@ -2598,8 +2606,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   @media(max-width:480px){.audio-tool .speed-presets{grid-template-columns:repeat(3,1fr)}}
   .audio-tool .speed-presets .preset-card{padding:12px 6px}
   .audio-tool .viz-preview-btn{width:100%;margin-bottom:14px}
-  .audio-tool .viz-result{margin-bottom:16px}
-  .audio-tool .viz-result video{width:100%;display:block;border-radius:12px;background:#0a0b0d;border:1px solid var(--line)}
+  .audio-tool .viz-player{margin-bottom:16px}
+  /* Fixed 16:9 box reserved up front, so a finished render drops into place instead of pushing
+     everything below it down the page. */
+  .audio-tool .viz-stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0a0b0d;border:1px solid var(--line)}
+  .audio-tool .viz-stage video{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0a0b0d}
+  .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:13px;color:var(--muted);line-height:1.5}
   .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
   .audio-tool .viz-estimate{display:none;font-size:12.5px;font-weight:600;color:var(--accent);margin-top:8px}
   .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
