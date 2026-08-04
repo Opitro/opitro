@@ -175,11 +175,15 @@ export function pitchShift(buffer, semitones) {
   return wsolaStretch(resampled, buffer.length / resampled.length);
 }
 
+// Reads its own CSS height (falls back to the classic 130px) rather than hardcoding one size,
+// so a smaller waveform (e.g. the compact inline preview) just needs a shorter CSS height and
+// draws correctly at that size -- no separate drawing code path needed.
 export function drawWaveform(canvas, buffer) {
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
+  const cssHeight = rect.height || 130;
   canvas.width = Math.max(1, rect.width * dpr);
-  canvas.height = 130 * dpr;
+  canvas.height = Math.max(1, cssHeight * dpr);
   const g = canvas.getContext('2d');
   const W = canvas.width;
   const H = canvas.height;

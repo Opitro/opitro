@@ -70,7 +70,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="playhead" id="playhead"></div>
       </div>
     )}
-    {showWaveform && !config.simplePreview && (
+    {showWaveform && config.compactPreview && (
+      <div class="wave-shell compact" id="wave-shell">
+        <button type="button" class="wave-play-btn" id="wave-play-btn" disabled aria-label={labels.listenSelectionLabel}>
+          <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <canvas id="wave-canvas"></canvas>
+        <span class="wave-duration" id="wave-duration">0:00</span>
+        <div class="playhead" id="playhead"></div>
+      </div>
+    )}
+    {showWaveform && !config.simplePreview && !config.compactPreview && (
       <div class="wave-shell" id="wave-shell">
         <canvas id="wave-canvas"></canvas>
         {showTrimHandles && (
@@ -84,16 +94,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       </div>
     )}
     {controls === 'select' && config.abCompare && (
-      <div class="ab-compare" id="ab-compare" style="display:none">
-        <button type="button" class="ab-seg" id="ab-original-btn">
-          <svg class="ico" id="ab-original-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          {labels.abOriginalLabel}
-        </button>
-        <button type="button" class="ab-seg" id="ab-result-btn" disabled>
-          <svg class="ico" id="ab-result-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          {labels.abResultLabel}
-        </button>
+      <div class="ab-pill" id="ab-compare" style="display:none">
+        <button type="button" class="ab-pill-seg active" id="ab-original-btn" data-which="original">{labels.abOriginalLabel}</button>
+        <button type="button" class="ab-pill-seg" id="ab-result-btn" data-which="result" disabled>{labels.abResultLabel}</button>
       </div>
+    )}
+    {controls === 'select' && config.abCompare && (
+      <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
       <div class="times" id="times">
@@ -223,9 +230,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           {config.formats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
         </select>
       </div>
-    )}
-    {controls === 'select' && config.abCompare && (
-      <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
 
     {controls === 'eq3' && (
@@ -553,6 +557,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       lastResultBlob = null;
       lastResultPreset = null;
       waveSeekPos = null;
+      abSelected = 'original';
       if (runBtn && config.abCompare) runBtn.disabled = true;
       if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
       if (presetDescEl) presetDescEl.style.display = 'none';
@@ -563,6 +568,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       const fileMetaEl = root.querySelector('#file-meta');
       if (fileMetaEl) fileMetaEl.style.display = 'none';
       if (abCompareEl) abCompareEl.style.display = 'none';
+      if (abOriginalBtn) abOriginalBtn.classList.add('active');
+      if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
+      if (wavePlayBtn) wavePlayBtn.disabled = true;
+      if (waveDurationEl) waveDurationEl.textContent = '0:00';
       if (listenBtn) listenBtn.disabled = true;
       clearError();
     }
@@ -634,14 +643,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             // start; "Result" just starts disabled until something has actually been produced.
             if (config.abCompare && abCompareEl) {
               abCompareEl.style.display = 'flex';
-              if (abResultBtn) abResultBtn.disabled = true;
+              if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
+              if (abOriginalBtn) abOriginalBtn.classList.add('active');
+              if (wavePlayBtn) wavePlayBtn.disabled = false;
+              if (waveDurationEl) waveDurationEl.textContent = fmtTime(dur).split('.')[0];
               if (runBtn) runBtn.disabled = true;
               if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
               if (presetDescEl) presetDescEl.style.display = 'none';
+              abSelected = 'original';
               lastResultBuffer = null;
               lastResultBlob = null;
               lastResultPreset = null;
-      waveSeekPos = null;
+              waveSeekPos = null;
             }
             const fileMetaEl = root.querySelector('#file-meta');
             if (fileMetaEl) {
@@ -911,41 +924,49 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         lastResultBuffer = null;
         lastResultPreset = null;
         if (runBtn) runBtn.disabled = true;
-        if (abResultBtn) abResultBtn.disabled = true;
+        if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
+        if (abOriginalBtn) abOriginalBtn.classList.add('active');
+        abSelected = 'original';
+        if (wavePlayBtn) wavePlayBtn.disabled = !currentAbBuffer();
       });
     }
 
-    // A/B compare (enhance): "Original" reuses the already-decoded sourceBuffer (same source
-    // the waveform click-to-preview plays); "Result" plays the last processed buffer once it
-    // exists. Both share one toggle-aware play/pause (tapping the same button again pauses
-    // instead of restarting) and drive the real playhead, not a no-op progress callback.
+    // A/B compare (enhance): the pill (Original/Result) only SELECTS which buffer is "loaded"
+    // -- matches timbrica's Before/After switch -- and the one round play button transports
+    // whichever is selected. Previously each side had its own independent play control, which
+    // is why switching used to restart from 0 and pause/stop got confused about which side
+    // "playing" even meant.
     const abCompareEl = root.querySelector('#ab-compare');
     const abOriginalBtn = root.querySelector('#ab-original-btn');
     const abResultBtn = root.querySelector('#ab-result-btn');
-    const abOriginalIco = root.querySelector('#ab-original-ico');
-    const abResultIco = root.querySelector('#ab-result-ico');
+    const wavePlayBtn = root.querySelector('#wave-play-btn');
+    const wavePlayIco = root.querySelector('#wave-play-ico');
+    const waveDurationEl = root.querySelector('#wave-duration');
     let lastResultBuffer = null;
     let lastResultBlob = null;
     let lastResultName = 'result';
     let lastResultPreset = null;
+    let abSelected = 'original';
     let abPlayingWhich = null;
-    // Set by tapping the waveform (position only, no play) -- consumed once by whichever
-    // Original/Result button gets pressed next, then cleared so later presses go back to
-    // normal toggle/resume behavior instead of jumping back to this spot forever.
+    // Set by tapping the waveform (position only, no play) -- consumed once by the next play,
+    // then cleared so later presses go back to normal toggle/resume behavior instead of
+    // jumping back to this spot forever.
     let waveSeekPos = null;
+    function currentAbBuffer() {
+      return abSelected === 'result' ? lastResultBuffer : sourceBuffer;
+    }
     function stopAB() {
       player.stop();
-      if (abOriginalIco) abOriginalIco.innerHTML = ICO_PLAY;
-      if (abResultIco) abResultIco.innerHTML = ICO_PLAY;
+      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
       if (playhead) playhead.style.display = 'none';
       abPlayingWhich = null;
     }
     // `seekTo` present (waveform click) always seeks+plays from that point -- toggle/pause
-    // only applies to a plain button press (no seek position) on the currently-playing side.
-    function playAB(which, buf, icoEl, otherIcoEl, seekTo) {
+    // only applies to a plain play-button press (no seek position) on the playing side.
+    function playAB(which, buf, seekTo) {
       if (seekTo == null && abPlayingWhich === which && player.isPlaying()) {
         player.pause();
-        icoEl.innerHTML = ICO_PLAY;
+        if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
         abPlayingWhich = null;
         return;
       }
@@ -957,8 +978,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
       player.unlock();
       player.stop();
-      if (otherIcoEl) otherIcoEl.innerHTML = ICO_PLAY;
-      icoEl.innerHTML = ICO_PAUSE;
+      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PAUSE;
       abPlayingWhich = which;
       player.play(
         buf,
@@ -970,27 +990,32 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           playhead.style.display = 'block';
         },
         () => {
-          icoEl.innerHTML = ICO_PLAY;
+          if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
           if (playhead) playhead.style.display = 'none';
           abPlayingWhich = null;
         },
         resumeAt
       );
     }
-    if (abOriginalBtn) {
-      abOriginalBtn.addEventListener('click', () => {
-        if (!sourceBuffer) return;
-        const seek = waveSeekPos;
-        waveSeekPos = null;
-        playAB('original', sourceBuffer, abOriginalIco, abResultIco, seek ?? undefined);
-      });
+    function selectAbSide(which) {
+      abSelected = which;
+      if (abOriginalBtn) abOriginalBtn.classList.toggle('active', which === 'original');
+      if (abResultBtn) abResultBtn.classList.toggle('active', which === 'result');
+      if (wavePlayBtn) wavePlayBtn.disabled = !currentAbBuffer();
+      // Switching selection while something's playing continues on the new buffer instead of
+      // going silent -- playAB's own "switching sides" logic (above) picks up the position.
+      const buf = currentAbBuffer();
+      if (buf && player.isPlaying()) playAB(which, buf);
     }
-    if (abResultBtn) {
-      abResultBtn.addEventListener('click', () => {
-        if (!lastResultBuffer) return;
+    if (abOriginalBtn) abOriginalBtn.addEventListener('click', () => selectAbSide('original'));
+    if (abResultBtn) abResultBtn.addEventListener('click', () => { if (!abResultBtn.disabled) selectAbSide('result'); });
+    if (wavePlayBtn) {
+      wavePlayBtn.addEventListener('click', () => {
+        const buf = currentAbBuffer();
+        if (!buf) return;
         const seek = waveSeekPos;
         waveSeekPos = null;
-        playAB('result', lastResultBuffer, abResultIco, abOriginalIco, seek ?? undefined);
+        playAB(abSelected, buf, seek ?? undefined);
       });
     }
 
@@ -1448,11 +1473,16 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               lastResultBuffer = await decodeFile(new File([blob], 'result', { type: mimeType }));
               abCompareEl.style.display = 'flex';
               if (abResultBtn) abResultBtn.disabled = false;
+              if (wavePlayBtn) wavePlayBtn.disabled = false;
+              abSelected = 'result';
+              if (abOriginalBtn) abOriginalBtn.classList.remove('active');
+              if (abResultBtn) abResultBtn.classList.add('active');
               // Auto-play the result immediately -- previously you had to notice and tap the
               // "Result" A/B button yourself, which read as "nothing happened" after a click.
               // Starts from wherever the waveform was last tapped, if anywhere.
-              playAB('result', lastResultBuffer, abResultIco, abOriginalIco, waveSeekPos ?? undefined);
+              const seek = waveSeekPos;
               waveSeekPos = null;
+              playAB('result', lastResultBuffer, seek ?? undefined);
             } catch (e) {}
           }
         } catch (e) {
@@ -1736,20 +1766,31 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .pc-emoji{font-size:24px}
   .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
 
-  /* No card/pill chrome here on purpose -- just a big icon and a label, plainly clickable,
-     not styled like the preset-card buttons (those read as "another option to pick", not
-     "the play control"). */
-  .audio-tool .ab-compare{display:none;gap:28px;justify-content:center;margin-top:16px;margin-bottom:8px}
-  .audio-tool .ab-seg{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--accent);padding:6px 12px}
-  .audio-tool .ab-seg:not(:disabled):hover{opacity:.75}
-  .audio-tool .ab-seg .ico{width:34px;height:34px}
-  .audio-tool .ab-seg:disabled{opacity:.3;cursor:not-allowed}
+  /* Compact inline preview (enhance): round play button + a short waveform + duration, all in
+     one row -- matches timbrica's layout, and doesn't need the full-height canvas since there
+     are no trim handles to draw here. */
+  .audio-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:12px 16px}
+  .audio-tool .wave-shell.compact canvas{height:44px;width:auto;flex:1}
+  .audio-tool .wave-play-btn{flex:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#08130d}
+  .audio-tool .wave-play-btn:hover{transform:scale(1.05)}
+  .audio-tool .wave-play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .audio-tool .wave-play-btn .ico{width:18px;height:18px}
+  .audio-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* Before/After as one pill with a moving highlight, not two separate play controls --
+     matches timbrica's "До / После" switch. */
+  .audio-tool .ab-pill{display:none;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:4px;margin-top:14px}
+  .audio-tool .ab-pill-seg{flex:1;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--muted);padding:10px;border-radius:8px;transition:background .15s,color .15s}
+  .audio-tool .ab-pill-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+  .audio-tool .ab-pill-seg:not(:disabled):not(.active):hover{color:var(--text)}
+  .audio-tool .ab-pill-seg:disabled{opacity:.35;cursor:not-allowed}
 
   .audio-tool .hero-btn{width:100%;font-size:16px;padding:18px;margin-bottom:12px}
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
 
-  .audio-tool .file-meta{display:none;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  /* Plain info, not a button -- no border/background box, just labels under the waveform. */
+  .audio-tool .file-meta{display:none;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px 16px;margin-top:14px;margin-bottom:16px}
   .audio-tool .fm-item{display:flex;flex-direction:column;gap:3px}
   .audio-tool .fm-key{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
   .audio-tool .fm-val{font-size:13.5px;font-weight:600;color:var(--text)}

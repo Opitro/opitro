@@ -627,6 +627,7 @@ export const AUDIO_TOOLS = {
     accept: 'audio/*',
     presetCards: true,
     abCompare: true,
+    compactPreview: true,
     runLabel: 'enhanceRunLabel',
     // Output format choice -- was hardcoded to MP3, which meant a WAV upload always came back
     // lossy even though nothing about "enhance" should force that. MP3/WAV/M4A cover the
