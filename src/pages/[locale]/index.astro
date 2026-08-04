@@ -27,7 +27,7 @@ const toolsByCategory = Object.fromEntries(
 
 const searchIndex = categories.flatMap((c) => {
   const items = toolsByCategory[c.data.catSlug].map((t) => ({
-    title: t.data.h1,
+    title: t.data.navName || t.data.h1,
     category: c.data.name,
     href: `/${locale}/${t.data.toolSlug}`,
   }));
@@ -75,7 +75,7 @@ const t = {
           </summary>
           <div class="acc-body">
             {toolsByCategory[c.data.catSlug].map((tool) => (
-              <a class="acc-link" href={`/${tool.data.locale}/${tool.data.toolSlug}`}>{tool.data.h1}</a>
+              <a class="acc-link" href={`/${tool.data.locale}/${tool.data.toolSlug}`}>{tool.data.navName || tool.data.h1}</a>
             ))}
             <a class="acc-link acc-all" href={`/${locale}/tools/${c.data.catSlug}`}>{t.allTools}</a>
           </div>

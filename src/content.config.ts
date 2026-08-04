@@ -77,6 +77,10 @@ const mediaTools = defineCollection({
     tool: z.string(),
     title: z.string(),
     h1: z.string(),
+    // Optional short name for the category-page tool grid card, where a longer SEO-oriented h1
+    // (e.g. "Audio Converter Online") reads as clutter next to a dozen other tool names. Falls
+    // back to h1 when not set, so this is opt-in per tool, not a second field everyone must fill.
+    navName: z.string().optional(),
     description: z.string(),
     faq: z.array(
       z.object({

@@ -270,7 +270,7 @@ const pairsLabel = translate(entry.data.locale, 'pairsLabel');
     <div class="all-tools-grid">
       {tools.map((t) => (
         <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-          <span class="tc-name">{t.data.h1}</span>
+          <span class="tc-name">{t.data.navName || t.data.h1}</span>
         </a>
       ))}
     </div>
