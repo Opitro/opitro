@@ -1220,7 +1220,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           // completely independently, so those buttons had no idea it was playing and pause
           // never worked right (clicking Original again just restarted instead of pausing).
           if (config.abCompare) {
-            playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
+            // Tapping the waveform while something is already playing stops it -- previously
+            // every tap re-seeked and restarted, so a second tap (meant as "stop") never
+            // actually stopped anything, leaving people hunting for a separate pause button.
+            if (player.isPlaying()) stopAB();
+            else playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
             return;
           }
           const simpleIco = root.querySelector('.simple-preview-ico');
