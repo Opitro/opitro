@@ -1302,7 +1302,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           // for that already, so a tap here used to fight with them (starting playback the
           // buttons then had to fight to pause).
           if (config.abCompare) {
-            if (player.isPlaying()) stopAB();
+            // Unconditional, NOT `if (player.isPlaying())` -- player.stop() already ran at the
+            // top of this handler, so by here isPlaying() is always false and the guarded
+            // version silently skipped resetting the play icon, leaving it stuck on "pause"
+            // after a seek even though nothing was playing anymore.
+            stopAB();
             waveSeekPos = t;
             setPlayheadTime(t);
             return;
@@ -1358,6 +1362,44 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           seekTo
         );
       });
+    }
+
+    // Drag the position marker on the compact preview (enhance). The click handler above only
+    // covers a single tap -- holding and moving did nothing, so the marker felt un-draggable.
+    // Dragging stops playback immediately (you're choosing a new spot, not scrubbing audio) and
+    // parks the marker there; pressing play afterwards resumes from exactly that point.
+    if (waveShell && config.abCompare) {
+      let scrubbing = false;
+      const scrubTo = (clientX) => {
+        if (dur <= 0) return;
+        const t = px2t(clientX);
+        waveSeekPos = t;
+        setPlayheadTime(t);
+      };
+      const onScrubMove = (e) => {
+        if (!scrubbing) return;
+        e.preventDefault();
+        scrubTo(e.touches ? e.touches[0].clientX : e.clientX);
+      };
+      const endScrub = () => {
+        scrubbing = false;
+        document.removeEventListener('mousemove', onScrubMove);
+        document.removeEventListener('touchmove', onScrubMove);
+        document.removeEventListener('mouseup', endScrub);
+        document.removeEventListener('touchend', endScrub);
+      };
+      const startScrub = (e) => {
+        if (e.target.closest('.wave-play-btn') || dur <= 0) return;
+        scrubbing = true;
+        stopAB();
+        scrubTo(e.touches ? e.touches[0].clientX : e.clientX);
+        document.addEventListener('mousemove', onScrubMove);
+        document.addEventListener('touchmove', onScrubMove, { passive: false });
+        document.addEventListener('mouseup', endScrub);
+        document.addEventListener('touchend', endScrub);
+      };
+      waveShell.addEventListener('mousedown', startScrub);
+      waveShell.addEventListener('touchstart', startScrub, { passive: true });
     }
 
     if (dlMp3Btn) {
