@@ -174,13 +174,50 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       </div>
     )}
 
-    {controls === 'select' && (
+    {controls === 'select' && !config.presetCards && (
       <div class="field">
         <label for="ctrl-select">{labels[config.selectLabel]}</label>
         <select id="ctrl-select">
           {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
         </select>
       </div>
+    )}
+    {controls === 'select' && config.presetCards && (
+      <button type="button" class="act primary hero-btn" id="hero-auto-btn">
+        ✨ {labels.enhanceHeroLabel}
+      </button>
+    )}
+    {controls === 'select' && config.presetCards && (
+      <div class="preset-or">{labels.enhanceOrPickLabel}</div>
+    )}
+    {controls === 'select' && config.presetCards && (
+      <div class="preset-cards" id="preset-cards">
+        {config.selectOptions.filter((o) => !o.hero).map((o) => (
+          <button type="button" class="preset-card" data-value={o.value}>
+            <span class="pc-emoji">{o.emoji}</span>
+            <span class="pc-label">{labels[o.label] || o.label}</span>
+          </button>
+        ))}
+        <input type="hidden" id="ctrl-select" value={config.selectOptions[0] ? config.selectOptions[0].value : ''}>
+      </div>
+    )}
+    {controls === 'select' && config.presetCards && (
+      <div class="preset-desc" id="preset-desc" style="display:none"></div>
+    )}
+    {controls === 'select' && config.abCompare && (
+      <div class="ab-compare" id="ab-compare" style="display:none">
+        <button type="button" class="ab-seg" id="ab-original-btn">
+          <svg class="ico" id="ab-original-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          {labels.abOriginalLabel}
+        </button>
+        <button type="button" class="ab-seg" id="ab-result-btn" disabled>
+          <svg class="ico" id="ab-result-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          {labels.abResultLabel}
+        </button>
+      </div>
+    )}
+    {controls === 'select' && config.abCompare && (
+      <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
 
     {controls === 'eq3' && (
@@ -269,7 +306,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
         </button>
       )}
-      {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn">{labels[config.runLabel] || labels.processLabel}</button>}
+      {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
       {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
       {(controls === 'multi-file' || config.allowBatch) && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
@@ -496,6 +533,31 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
     }
 
+    // Explicit "remove this file" (the × on the file-info card) -- previously the only way to
+    // change your mind was picking a replacement file; there was no way to just clear it.
+    function resetFile() {
+      file = null;
+      sourceBuffer = null;
+      dur = 0;
+      renderedBuffer = null;
+      stopAB();
+      lastResultBuffer = null;
+      lastResultBlob = null;
+      lastResultPreset = null;
+      if (runBtn && config.abCompare) runBtn.disabled = true;
+      if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+      if (presetDescEl) presetDescEl.style.display = 'none';
+      fileInfo.innerHTML = '';
+      panel.classList.remove('on');
+      if (drop) drop.style.display = '';
+      if (waveShell) waveShell.style.display = 'none';
+      const fileMetaEl = root.querySelector('#file-meta');
+      if (fileMetaEl) fileMetaEl.style.display = 'none';
+      if (abCompareEl) abCompareEl.style.display = 'none';
+      if (listenBtn) listenBtn.disabled = true;
+      clearError();
+    }
+
     async function pickFile(f) {
       clearError();
       if (f.size > MAX_MB * 1024 * 1024) {
@@ -526,10 +588,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
       file = f;
       const sizeMB = f.size / 1048576;
-      fileInfo.innerHTML = `<b>${f.name}</b> · ${sizeMB.toFixed(1)} MB`;
+      fileInfo.innerHTML = `<div class="fi-row"><span class="fi-name">🎵 ${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-remove" id="fi-remove-btn" aria-label="${labels.removeFileLabel || 'Remove'}">×</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
+      const fiRemoveBtn = root.querySelector('#fi-remove-btn');
+      if (fiRemoveBtn) fiRemoveBtn.addEventListener('click', resetFile);
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
 
@@ -552,6 +616,33 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             if (inEnd) inEnd.max = dur;
             if (waveCanvas) drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
+            // Show the A/B row as soon as there's something to listen to, not only after a
+            // first successful process -- "Original" is a real, obvious play button from the
+            // start; "Result" just starts disabled until something has actually been produced.
+            if (config.abCompare && abCompareEl) {
+              abCompareEl.style.display = 'flex';
+              if (abResultBtn) abResultBtn.disabled = true;
+              if (runBtn) runBtn.disabled = true;
+              if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+              if (presetDescEl) presetDescEl.style.display = 'none';
+              lastResultBuffer = null;
+              lastResultBlob = null;
+              lastResultPreset = null;
+            }
+            const fileMetaEl = root.querySelector('#file-meta');
+            if (fileMetaEl) {
+              const ext = (f.name.split('.').pop() || '').toUpperCase();
+              const sizeMB = (f.size / 1048576).toFixed(1);
+              const ch = sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono');
+              fileMetaEl.innerHTML = [
+                [labels.fileFormatLabel || 'Format', ext],
+                [labels.fileSizeLabel || 'Size', `${sizeMB} MB`],
+                [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
+                [labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`],
+                [labels.fileChannelsLabel || 'Channels', ch],
+              ].map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
+              fileMetaEl.style.display = 'grid';
+            }
           } catch (e) {
             // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
             // never needed a successful browser decode to run ffmpeg directly on the raw file,
@@ -755,6 +846,109 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       fmtSel.addEventListener('change', () => {
         bitrateField.style.display = ['wav', 'flac', 'aiff'].includes(fmtSel.value) ? 'none' : '';
         if (formatHint && labels.formatHints) formatHint.textContent = labels.formatHints[fmtSel.value] || '';
+      });
+    }
+
+    const presetCardsEl = root.querySelector('#preset-cards');
+    const presetDescEl = root.querySelector('#preset-desc');
+    const heroAutoBtn = root.querySelector('#hero-auto-btn');
+    function updatePresetDesc(value) {
+      if (!presetDescEl || !config.selectOptions) return;
+      const opt = config.selectOptions.find((o) => o.value === value);
+      const text = opt && opt.desc ? labels[opt.desc] : null;
+      if (text) { presetDescEl.textContent = text; presetDescEl.style.display = 'block'; }
+      else presetDescEl.style.display = 'none';
+    }
+    if (presetCardsEl) {
+      const hiddenSelect = root.querySelector('#ctrl-select');
+      presetCardsEl.querySelectorAll('.preset-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+          card.classList.add('active');
+          if (hiddenSelect) hiddenSelect.value = card.dataset.value;
+          updatePresetDesc(card.dataset.value);
+          // Stop whatever's currently playing right away -- switching presets used to leave
+          // stale audio playing until the new result was ready, seconds later.
+          stopAB();
+          // Tapping a card previews it immediately (processes + auto-plays, no download) --
+          // picking a scenario and hearing nothing happen was the exact complaint this fixes.
+          if (file) runFfmpegProcess(false);
+        });
+      });
+    }
+    if (heroAutoBtn) {
+      heroAutoBtn.addEventListener('click', () => {
+        const hiddenSelect = root.querySelector('#ctrl-select');
+        if (hiddenSelect) hiddenSelect.value = 'auto';
+        if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+        updatePresetDesc('auto');
+        stopAB();
+        // The hero button is the true one-click path: process AND download immediately,
+        // no separate "now tap Download" step needed for the default/recommended scenario.
+        if (file) runFfmpegProcess(true);
+      });
+    }
+
+    // A/B compare (enhance): "Original" reuses the already-decoded sourceBuffer (same source
+    // the waveform click-to-preview plays); "Result" plays the last processed buffer once it
+    // exists. Both share one toggle-aware play/pause (tapping the same button again pauses
+    // instead of restarting) and drive the real playhead, not a no-op progress callback.
+    const abCompareEl = root.querySelector('#ab-compare');
+    const abOriginalBtn = root.querySelector('#ab-original-btn');
+    const abResultBtn = root.querySelector('#ab-result-btn');
+    const abOriginalIco = root.querySelector('#ab-original-ico');
+    const abResultIco = root.querySelector('#ab-result-ico');
+    let lastResultBuffer = null;
+    let lastResultBlob = null;
+    let lastResultName = 'result';
+    let lastResultPreset = null;
+    let abPlayingWhich = null;
+    function stopAB() {
+      player.stop();
+      if (abOriginalIco) abOriginalIco.innerHTML = ICO_PLAY;
+      if (abResultIco) abResultIco.innerHTML = ICO_PLAY;
+      if (playhead) playhead.style.display = 'none';
+      abPlayingWhich = null;
+    }
+    // `seekTo` present (waveform click) always seeks+plays from that point -- toggle/pause
+    // only applies to a plain button press (no seek position) on the currently-playing side.
+    function playAB(which, buf, icoEl, otherIcoEl, seekTo) {
+      if (seekTo == null && abPlayingWhich === which && player.isPlaying()) {
+        player.pause();
+        icoEl.innerHTML = ICO_PLAY;
+        abPlayingWhich = null;
+        return;
+      }
+      player.unlock();
+      player.stop();
+      if (otherIcoEl) otherIcoEl.innerHTML = ICO_PLAY;
+      icoEl.innerHTML = ICO_PAUSE;
+      abPlayingWhich = which;
+      player.play(
+        buf,
+        (frac) => {
+          if (!waveShell || !playhead || dur <= 0) return;
+          const t = frac * buf.duration;
+          const W = waveShell.clientWidth;
+          playhead.style.left = ((t / dur) * W) + 'px';
+          playhead.style.display = 'block';
+        },
+        () => {
+          icoEl.innerHTML = ICO_PLAY;
+          if (playhead) playhead.style.display = 'none';
+          abPlayingWhich = null;
+        },
+        seekTo
+      );
+    }
+    if (abOriginalBtn) {
+      abOriginalBtn.addEventListener('click', () => {
+        if (sourceBuffer) playAB('original', sourceBuffer, abOriginalIco, abResultIco);
+      });
+    }
+    if (abResultBtn) {
+      abResultBtn.addEventListener('click', () => {
+        if (lastResultBuffer) playAB('result', lastResultBuffer, abResultIco, abOriginalIco);
       });
     }
 
@@ -1021,6 +1215,14 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
         if (config.engine === 'ffmpeg') {
           if (!sourceBuffer) return;
+          // Tools with A/B compare (enhance) route through playAB so this stays in sync with
+          // the Original/Result buttons -- previously the waveform click played sourceBuffer
+          // completely independently, so those buttons had no idea it was playing and pause
+          // never worked right (clicking Original again just restarted instead of pausing).
+          if (config.abCompare) {
+            playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
+            return;
+          }
           const simpleIco = root.querySelector('.simple-preview-ico');
           if (simpleIco) simpleIco.innerHTML = ICO_PAUSE;
           player.play(
@@ -1102,13 +1304,22 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       });
     }
 
-    // ffmpeg-engine tools (convert, ringtone, video-to-audio, visualizer, denoise, enhance)
-    if (runBtn) {
-      runBtn.addEventListener('click', async () => {
+    // ffmpeg-engine tools (convert, ringtone, video-to-audio, visualizer, denoise, enhance).
+    // `download` is false for the "just preview this preset" path (preset-card clicks) --
+    // separates trying a scenario (cheap, just listen) from actually exporting the file.
+    // `ffmpegBusy` guards against overlapping exec calls -- ffmpeg.wasm is one shared instance,
+    // not built for concurrent calls, and clicking through preset cards quickly (a very natural
+    // thing to do while exploring) fired them on top of each other with no error, just a stuck
+    // "Working..." state and nothing in the UI ever updating again.
+    let ffmpegBusy = false;
+    async function runFfmpegProcess(download) {
+        if (ffmpegBusy) return;
         if (config.allowBatch ? !files.length : !file) return;
         window.dispatchEvent(new Event('opitro:tool-interaction'));
         clearError();
+        ffmpegBusy = true;
         runBtn.disabled = true;
+        if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = true; });
         progress.classList.add('on');
         progressFill.style.width = '0%';
         progressText.textContent = labels.preparingLabel;
@@ -1157,7 +1368,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           } else {
             progress.classList.remove('on');
           }
+          ffmpegBusy = false;
           runBtn.disabled = false;
+          if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = false; });
           return;
         }
 
@@ -1175,15 +1388,44 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           });
           const base = file.name.replace(/\.[^.]+$/, '') || 'audio';
           progressFill.style.width = '100%';
-          progressText.textContent = labels.doneLabel;
+          progressText.textContent = download ? labels.doneLabel : (labels.previewDoneLabel || labels.doneLabel);
           runBtn.textContent = labels[config.runLabel] || labels.processLabel;
           runBtn.onclick = null;
-          downloadFfmpegBlob(blob, `${base}.${ext}`);
+          if (download) downloadFfmpegBlob(blob, `${base}.${ext}`);
+          if (config.abCompare && abCompareEl) {
+            lastResultBlob = blob;
+            lastResultName = `${base}.${ext}`;
+            lastResultPreset = params.value;
+            try {
+              lastResultBuffer = await decodeFile(new File([blob], 'result', { type: mimeType }));
+              abCompareEl.style.display = 'flex';
+              if (abResultBtn) abResultBtn.disabled = false;
+              // Auto-play the result immediately -- previously you had to notice and tap the
+              // "Result" A/B button yourself, which read as "nothing happened" after a click.
+              playAB('result', lastResultBuffer, abResultIco, abOriginalIco);
+            } catch (e) {}
+          }
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
           progress.classList.remove('on');
         }
-        runBtn.disabled = false;
+        ffmpegBusy = false;
+        // Tools with abCompare start the download button disabled and only enable it once a
+        // result actually exists -- a failed attempt shouldn't light it up either.
+        runBtn.disabled = config.abCompare ? !lastResultBlob : false;
+        if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = false; });
+    }
+    if (runBtn) {
+      runBtn.addEventListener('click', () => {
+        // If the currently-selected preset was already previewed (a preset-card tap runs it
+        // for free), just download that cached result instead of processing the exact same
+        // thing again -- one button, no confusing "which download button do I want" choice.
+        const currentPreset = config.presetCards ? (root.querySelector('#ctrl-select')?.value) : null;
+        if (config.abCompare && lastResultBlob && currentPreset && lastResultPreset === currentPreset) {
+          downloadFfmpegBlob(lastResultBlob, lastResultName);
+          return;
+        }
+        runFfmpegProcess(true);
       });
     }
 
@@ -1358,6 +1600,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .panel.on{display:block}
   .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:10px;padding:11px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
+  .audio-tool .fi-row{display:flex;align-items:center;gap:10px}
+  .audio-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .audio-tool .fi-size{flex:none;color:var(--muted)}
+  .audio-tool .fi-remove{flex:none;font-family:inherit;font-size:16px;line-height:1;cursor:pointer;background:none;border:none;color:var(--muted);padding:2px 6px;border-radius:6px}
+  .audio-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.1)}
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
   .audio-tool .filelist-item span{flex:1;min-width:0}
   .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
@@ -1429,6 +1676,30 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
   .audio-tool .guide{display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(74,222,158,0.25);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.6;color:var(--muted)}
   .audio-tool .guide.on{display:block}
+
+  .audio-tool .preset-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  @media(max-width:480px){.audio-tool .preset-cards{grid-template-columns:repeat(2,1fr)}}
+  .audio-tool .preset-card{cursor:pointer;border:1px solid var(--line);background:var(--surface-2);border-radius:13px;padding:14px 8px;text-align:center;transition:transform .12s,border-color .2s,background .2s;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
+  .audio-tool .preset-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .audio-tool .preset-card.active{border-color:var(--accent);background:rgba(74,222,158,0.1);box-shadow:0 0 0 1px var(--accent) inset}
+  .audio-tool .preset-card:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .audio-tool .pc-emoji{font-size:24px}
+  .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
+
+  .audio-tool .ab-compare{display:none;gap:4px;margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
+  .audio-tool .ab-seg{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;color:var(--muted);padding:9px;border-radius:9px;transition:background .15s,color .15s}
+  .audio-tool .ab-seg:not(:disabled):hover{color:var(--text)}
+  .audio-tool .ab-seg .ico{width:14px;height:14px}
+  .audio-tool .ab-seg:disabled{opacity:.4;cursor:not-allowed}
+
+  .audio-tool .hero-btn{width:100%;font-size:16px;padding:18px;margin-bottom:12px}
+  .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
+  .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
+
+  .audio-tool .file-meta{display:none;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:10px;margin-top:16px;background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px 16px}
+  .audio-tool .fm-item{display:flex;flex-direction:column;gap:3px}
+  .audio-tool .fm-key{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
+  .audio-tool .fm-val{font-size:13.5px;font-weight:600;color:var(--text)}
 
   /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
      "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps

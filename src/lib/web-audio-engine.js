@@ -321,8 +321,13 @@ export function createPlayer() {
     getCtx();
   }
 
+  // Calling .stop() on a source fires its 'ended' event too, same as a natural finish -- if a
+  // NEW source has already started playing by the time that fires (stop, then immediately play
+  // again, e.g. pause-then-resume or switching presets quickly), the OLD source's onended still
+  // fires and clobbers state for the new playback. Detaching onended before stopping prevents
+  // that stale callback from firing at all. Confirmed live: intermittent "pause doesn't work".
   function stop() {
-    if (source) { try { source.stop(); } catch (e) {} }
+    if (source) { source.onended = null; try { source.stop(); } catch (e) {} }
     source = null;
     pausedAt = 0;
     cancelAnimationFrame(rafId);
@@ -353,6 +358,7 @@ export function createPlayer() {
     if (!source) return;
     const c = getCtx();
     pausedAt = Math.min(buffer.duration, c.currentTime - startedAt);
+    source.onended = null;
     try { source.stop(); } catch (e) {}
     source = null;
     cancelAnimationFrame(rafId);

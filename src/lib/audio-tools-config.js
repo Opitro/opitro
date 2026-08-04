@@ -618,23 +618,43 @@ export const AUDIO_TOOLS = {
   },
 
   enhance: {
-    // Was one fixed filter chain with zero settings -- now content-type presets tuned with
-    // different noise-reduction and loudness-normalization targets (LUFS) per type, matching
-    // how competitors frame this (Speech/Podcast/Music presets rather than raw dB knobs).
+    // One-click positioning per the redesign: preset CARDS (not a bare dropdown) with an
+    // Auto default, a single big "Enhance" action, and A/B compare (original vs result) --
+    // the settings themselves (afftdn strength, a rumble-cutting highpass, a presence EQ bump,
+    // loudnorm target) all stay hidden behind the preset choice, never exposed as raw knobs.
     engine: 'ffmpeg',
     controls: 'select',
     accept: 'audio/*',
+    presetCards: true,
+    abCompare: true,
+    runLabel: 'enhanceRunLabel',
     selectLabel: 'enhancePresetLabel',
+    // `hero: true` marks the entry driven by the big standalone button above the cards, not a
+    // card of its own -- there's no separate "pick Auto" click, the hero button IS that choice.
     selectOptions: [
-      { value: 'speech', label: 'enhanceSpeechLabel' },
-      { value: 'podcast', label: 'enhancePodcastLabel' },
-      { value: 'music', label: 'enhanceMusicLabel' },
+      { value: 'auto', emoji: '✨', label: 'enhanceAutoOptionLabel', hero: true, desc: 'enhanceAutoDesc' },
+      { value: 'voice', emoji: '🎤', label: 'enhanceVoiceLabel', desc: 'enhanceVoiceDesc' },
+      { value: 'podcast', emoji: '🎙', label: 'enhancePodcastLabel', desc: 'enhancePodcastDesc' },
+      { value: 'music', emoji: '🎵', label: 'enhanceMusicLabel', desc: 'enhanceMusicDesc' },
+      { value: 'call', emoji: '📞', label: 'enhanceCallLabel', desc: 'enhanceCallDesc' },
+      { value: 'old', emoji: '📼', label: 'enhanceOldLabel', desc: 'enhanceOldDesc' },
     ],
     output: () => MP3_OUT,
     buildArgs: ([inp], out, params) => {
-      const presets = { speech: { nr: 12, i: -16 }, podcast: { nr: 8, i: -16 }, music: { nr: 4, i: -14 } };
-      const p = presets[params.value] || presets.speech;
-      return ['-i', inp, '-af', `afftdn=nr=${p.nr},loudnorm=I=${p.i}:TP=-1.5:LRA=11`, '-b:a', '192k', out];
+      const presets = {
+        auto: { nr: 10, i: -16, hp: 0, presence: 0 },
+        voice: { nr: 10, i: -16, hp: 100, presence: 3 },
+        podcast: { nr: 8, i: -16, hp: 80, presence: 2 },
+        music: { nr: 4, i: -14, hp: 0, presence: 0 },
+        call: { nr: 16, i: -16, hp: 200, presence: 4 },
+        old: { nr: 20, i: -16, hp: 90, presence: 1 },
+      };
+      const p = presets[params.value] || presets.auto;
+      const filters = [`afftdn=nr=${p.nr}`];
+      if (p.hp) filters.push(`highpass=f=${p.hp}`);
+      if (p.presence) filters.push(`equalizer=f=3000:t=q:w=1.5:g=${p.presence}`);
+      filters.push(`loudnorm=I=${p.i}:TP=-1.5:LRA=11`);
+      return ['-i', inp, '-af', filters.join(','), '-b:a', '192k', out];
     },
   },
 
