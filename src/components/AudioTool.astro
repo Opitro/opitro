@@ -453,7 +453,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
       if (config.engine === 'ffmpeg') {
         loadFFmpeg().catch(() => {});
-        if (waveCanvas) {
+        // Was gated on waveCanvas existing -- that broke the simple-preview tools entirely
+        // (no canvas there, so this whole decode step, and with it sourceBuffer/dur, never ran
+        // at all -- confirmed live: "Listen" did nothing). Gate on waveShell instead, which
+        // exists for both the canvas and simple-preview variants; only the draw call itself
+        // needs the canvas.
+        if (waveShell) {
           try {
             const decoded = await decodeFileRobust(f);
             sourceBuffer = decoded.buffer;
@@ -463,7 +468,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
             if (inStart) inStart.max = dur;
             if (inEnd) inEnd.max = dur;
-            drawWaveform(waveCanvas, sourceBuffer);
+            if (waveCanvas) drawWaveform(waveCanvas, sourceBuffer);
             updateSel();
           } catch (e) {
             // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
