@@ -385,19 +385,62 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
     function renderFileList() {
-      fileList.innerHTML = files.map((f, i) => `<div class="filelist-item"><span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span><button type="button" class="filelist-remove" data-index="${i}" aria-label="${labels.removeFileLabel || 'Remove'}">×</button></div>`).join('');
+      fileList.innerHTML = files.map((f, i) => `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${labels.listenSelectionLabel || 'Listen'}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button><span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span><button type="button" class="filelist-remove" data-index="${i}" aria-label="${labels.removeFileLabel || 'Remove'}">×</button></div>`).join('');
+    }
+    // Per-file preview in the multi-file list (merge, batch convert) -- decodes only when
+    // tapped, not up front for every file, since a batch can be up to 20 files at 1GB each.
+    const fileBuffers = new Map();
+    let filePlayingIndex = -1;
+    function setFilePlayIcon(idx, playing) {
+      const svg = fileList.querySelector(`.filelist-play[data-index="${idx}"] svg`);
+      if (svg) svg.innerHTML = playing ? ICO_PAUSE : ICO_PLAY;
     }
     if (fileList) {
-      fileList.addEventListener('click', (e) => {
-        const btn = e.target.closest('.filelist-remove');
-        if (!btn) return;
-        files.splice(Number(btn.dataset.index), 1);
-        renderFileList();
-        invalidateRender();
-        if (!files.length) {
-          panel.classList.remove('on');
-          if (drop) drop.style.display = '';
-          if (listenBtn) listenBtn.disabled = true;
+      fileList.addEventListener('click', async (e) => {
+        const removeBtn = e.target.closest('.filelist-remove');
+        if (removeBtn) {
+          files.splice(Number(removeBtn.dataset.index), 1);
+          renderFileList();
+          invalidateRender();
+          filePlayingIndex = -1;
+          if (!files.length) {
+            panel.classList.remove('on');
+            if (drop) drop.style.display = '';
+            if (listenBtn) listenBtn.disabled = true;
+          }
+          return;
+        }
+        const playBtn = e.target.closest('.filelist-play');
+        if (!playBtn) return;
+        const idx = Number(playBtn.dataset.index);
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        player.unlock();
+        if (filePlayingIndex === idx && player.isPlaying()) {
+          player.pause();
+          setFilePlayIcon(idx, false);
+          filePlayingIndex = -1;
+          return;
+        }
+        player.stop();
+        if (filePlayingIndex >= 0) setFilePlayIcon(filePlayingIndex, false);
+        filePlayingIndex = idx;
+        setFilePlayIcon(idx, true);
+        try {
+          const f = files[idx];
+          let buf = fileBuffers.get(f);
+          if (!buf) {
+            buf = await decodeFile(f);
+            fileBuffers.set(f, buf);
+          }
+          if (filePlayingIndex !== idx) return;
+          player.play(buf, () => {}, () => {
+            setFilePlayIcon(idx, false);
+            if (filePlayingIndex === idx) filePlayingIndex = -1;
+          });
+        } catch (err) {
+          setFilePlayIcon(idx, false);
+          if (filePlayingIndex === idx) filePlayingIndex = -1;
+          showError(labels.decodeErrorLabel);
         }
       });
     }
@@ -1315,7 +1358,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .panel.on{display:block}
   .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:10px;padding:11px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
-  .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;justify-content:space-between;gap:10px}
+  .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
+  .audio-tool .filelist-item span{flex:1;min-width:0}
+  .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
+  .audio-tool .filelist-play:hover{background:rgba(74,222,158,0.15)}
+  .audio-tool .filelist-play .ico{width:16px;height:16px}
   .audio-tool .filelist-remove{font-family:inherit;font-size:16px;line-height:1;cursor:pointer;background:none;border:none;color:var(--muted);padding:2px 6px;flex:none;border-radius:6px}
   .audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.1)}
 
