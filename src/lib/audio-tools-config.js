@@ -15,23 +15,42 @@ export const AUDIO_TOOLS = {
     controls: 'convert',
     accept: 'audio/*',
     // Sample-rate/channel dropdowns -- gated to just this tool (not video-to-audio, which
-    // reuses the same 'convert' controls block) so that one stays simple.
+    // reuses the same 'convert' controls block) so that one stays simple. Format list expanded
+    // from the original 6 based on ffmpegwasm/ffmpeg.wasm's actual Dockerfile (checked directly,
+    // not guessed) -- libmp3lame/libvorbis/libopus are compiled in, plus ffmpeg's own native
+    // codecs (wmav2, aiff/pcm) that need no external library at all.
     advancedConvert: true,
+    runLabel: 'convertLabel',
+    // Waveform replaced with a plain "file loaded, tap to listen" bar -- a converter doesn't
+    // need the visual, and the canvas render was extra weight for no real benefit here.
+    simplePreview: true,
+    formats: ['mp3', 'm4a', 'm4r', 'wav', 'ogg', 'flac', 'opus', 'wma', 'aiff'],
     output: (params) => {
-      const map = { mp3: 'audio/mpeg', m4a: 'audio/mp4', m4r: 'audio/x-m4r', wav: 'audio/wav', ogg: 'audio/ogg', flac: 'audio/flac' };
+      const map = {
+        mp3: 'audio/mpeg', m4a: 'audio/mp4', m4r: 'audio/x-m4r', wav: 'audio/wav', ogg: 'audio/ogg',
+        flac: 'audio/flac', opus: 'audio/ogg', wma: 'audio/x-ms-wma', aiff: 'audio/aiff',
+      };
       return { outputName: `out.${params.format}`, mimeType: map[params.format] || 'audio/mpeg', ext: params.format };
     },
     buildArgs: ([inp], out, params) => {
       const { format, bitrate, sampleRate, channels } = params;
       const extra = [];
-      if (sampleRate && sampleRate !== 'auto') extra.push('-ar', sampleRate);
       if (channels && channels !== 'auto') extra.push('-ac', channels);
+      if (format === 'opus') {
+        // libopus's 48kHz internal resample path is a confirmed ffmpeg.wasm crash (see the
+        // ringtone config's comment for the full writeup) -- force a safe rate regardless of
+        // the sample-rate dropdown rather than let a user pick their way into that crash.
+        return ['-i', inp, ...extra, '-ar', '24000', '-c:a', 'libopus', '-b:a', `${bitrate}k`, out];
+      }
+      if (sampleRate && sampleRate !== 'auto') extra.push('-ar', sampleRate);
       if (format === 'mp3') return ['-i', inp, ...extra, '-b:a', `${bitrate}k`, out];
       if (format === 'm4a') return ['-i', inp, ...extra, '-c:a', 'aac', '-b:a', `${bitrate}k`, out];
       if (format === 'm4r') return ['-i', inp, ...extra, '-c:a', 'aac', '-b:a', `${bitrate}k`, '-f', 'ipod', out];
       if (format === 'wav') return ['-i', inp, ...extra, out];
       if (format === 'ogg') return ['-i', inp, ...extra, '-c:a', 'libvorbis', '-b:a', `${bitrate}k`, out];
       if (format === 'flac') return ['-i', inp, ...extra, out];
+      if (format === 'wma') return ['-i', inp, ...extra, '-c:a', 'wmav2', '-b:a', `${bitrate}k`, out];
+      if (format === 'aiff') return ['-i', inp, ...extra, out];
       return ['-i', inp, ...extra, out];
     },
   },
