@@ -742,10 +742,27 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     let moveStartT = 0;
     let moveSelStart = 0;
     let moveSelEnd = 0;
+    // Uses waveCanvas's own box, not waveShell's -- the compact preview (enhance) has a play
+    // button sitting inside wave-shell before the canvas, so wave-shell's box no longer matches
+    // where the waveform actually starts. Falls back to waveShell for simple-preview tools
+    // (convert etc.), which have no canvas at all -- that surface has no other siblings anyway.
     function px2t(clientX) {
-      const r = waveShell.getBoundingClientRect();
+      const el = waveCanvas || waveShell;
+      const r = el.getBoundingClientRect();
       const x = Math.max(0, Math.min(r.width, clientX - r.left));
       return (x / r.width) * dur;
+    }
+    // Moves the playhead marker to time `t`. The marker is positioned absolute inside
+    // wave-shell (its nearest positioned ancestor), so its `left` has to be measured from
+    // wave-shell's edge even though the fraction itself is computed against the canvas --
+    // waveCanvas.offsetLeft bridges the two (0 for every non-compact tool, since the canvas
+    // there fills wave-shell with nothing before it).
+    function setPlayheadTime(t) {
+      if (!playhead || !waveShell || dur <= 0) return;
+      const base = waveCanvas ? waveCanvas.offsetLeft : 0;
+      const W = waveCanvas ? waveCanvas.clientWidth : waveShell.clientWidth;
+      playhead.style.left = (base + (t / dur) * W) + 'px';
+      playhead.style.display = 'block';
     }
     function maxSelLen() {
       return config.controls === 'ringtone-targets' ? MAX_RINGTONE_SEC : Infinity;
@@ -985,9 +1002,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         (frac) => {
           if (!waveShell || !playhead || dur <= 0) return;
           const t = frac * buf.duration;
-          const W = waveShell.clientWidth;
-          playhead.style.left = ((t / dur) * W) + 'px';
-          playhead.style.display = 'block';
+          setPlayheadTime(t);
         },
         () => {
           if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
@@ -1247,7 +1262,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // same lazily-rendered/cached `renderedBuffer` the Listen button already relies on.
     if (waveShell) {
       waveShell.addEventListener('click', async (e) => {
-        if (e.target.closest('.handle') || e.target.closest('.sel-overlay')) return;
+        if (e.target.closest('.handle') || e.target.closest('.sel-overlay') || e.target.closest('.wave-play-btn')) return;
         if (dur <= 0) return;
         const t = px2t(e.clientX);
         player.unlock();
@@ -1289,11 +1304,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           if (config.abCompare) {
             if (player.isPlaying()) stopAB();
             waveSeekPos = t;
-            if (playhead && waveShell) {
-              const W = waveShell.clientWidth;
-              playhead.style.left = ((t / dur) * W) + 'px';
-              playhead.style.display = 'block';
-            }
+            setPlayheadTime(t);
             return;
           }
           const simpleIco = root.querySelector('.simple-preview-ico');
@@ -1797,6 +1808,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
   /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
      "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps
-     the waveform inset from the edge specifically on narrow viewports. */
-  @media(max-width:640px){.audio-tool .wave-shell{margin-left:20px;margin-right:20px}}
+     the waveform inset from the edge specifically on narrow viewports. The compact preview
+     (enhance) has nothing to drag -- tap-to-seek only -- so it doesn't need the inset and can
+     use the full width. */
+  @media(max-width:640px){.audio-tool .wave-shell:not(.compact){margin-left:20px;margin-right:20px}}
 </style>
