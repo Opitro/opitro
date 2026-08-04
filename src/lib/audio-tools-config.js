@@ -830,34 +830,59 @@ export const AUDIO_TOOLS = {
   },
 
   visualizer: {
-    // Was one fixed render (green line waveform) -- now a style picker over standard ffmpeg
-    // lavfi filters (all built into any ffmpeg-core build, no external-lib crash risk like
-    // libopus had).
+    // Turning audio into a video is by far the slowest thing on this site -- x264 encoding
+    // inside WebAssembly runs at a fraction of native speed, so a few minutes of audio can mean
+    // a genuinely long wait. Making somebody sit through that only to discover they picked the
+    // wrong style is the real problem here, so the tool renders a SHORT preview (previewSeconds)
+    // through the exact same pipeline first. Same filters, same encoder, same everything -- just
+    // truncated -- so what you preview cannot differ from what you download.
     engine: 'ffmpeg',
-    controls: 'select',
+    controls: 'vizstyles',
     accept: 'audio/*',
-    selectLabel: 'visualizerStyleLabel',
-    selectOptions: [
-      { value: 'wave-green', label: 'visualizerWaveGreenLabel' },
-      { value: 'wave-blue', label: 'visualizerWaveBlueLabel' },
-      { value: 'bars', label: 'visualizerBarsLabel' },
-      { value: 'spectrum', label: 'visualizerSpectrumLabel' },
+    previewSeconds: 6,
+    runLabel: 'vizDownloadLabel',
+    // No waveform on this page: there's no region to pick and the result is judged from the
+    // video preview, so the canvas was decoration -- and it forced a full decode of the file
+    // just to draw it. Duration is read from the file's metadata instead, which is instant.
+    noWaveform: true,
+    vizStyles: [
+      { key: 'wave-green', emoji: '\u3030\uFE0F', label: 'visualizerWaveGreenLabel' },
+      { key: 'wave-blue', emoji: '\uD83C\uDF0A', label: 'visualizerWaveBlueLabel' },
+      { key: 'bars', emoji: '\uD83D\uDCCA', label: 'visualizerBarsLabel' },
+      { key: 'spectrum', emoji: '\uD83C\uDF08', label: 'visualizerSpectrumLabel' },
+      { key: 'circle', emoji: '\u26AA', label: 'visualizerCircleLabel' },
+      { key: 'volume', emoji: '\uD83D\uDCC8', label: 'visualizerVolumeLabel' },
+    ],
+    vizSizes: [
+      { key: '854x480', label: '480p' },
+      { key: '1280x720', label: '720p' },
+      { key: '1920x1080', label: '1080p' },
     ],
     output: () => ({ outputName: 'out.mp4', mimeType: 'video/mp4', ext: 'mp4' }),
     buildArgs: ([inp], out, params) => {
+      const size = params.size || '1280x720';
       const filters = {
-        'wave-green': 'showwaves=s=1280x720:mode=cline:colors=0x4ade9e',
-        'wave-blue': 'showwaves=s=1280x720:mode=cline:colors=0x4a9eff',
-        bars: 'showfreqs=s=1280x720:mode=bar:ascale=log:colors=0x4ade9e',
-        spectrum: 'showspectrum=s=1280x720:mode=combined:color=intensity',
+        'wave-green': `showwaves=s=${size}:mode=cline:colors=0x4ade9e`,
+        'wave-blue': `showwaves=s=${size}:mode=cline:colors=0x4a9eff`,
+        bars: `showfreqs=s=${size}:mode=bar:ascale=log:colors=0x4ade9e`,
+        spectrum: `showspectrum=s=${size}:mode=combined:color=intensity`,
+        circle: `avectorscope=s=${size}:zoom=1.5:draw=line:rc=74:gc=222:bc=158`,
+        volume: `showvolume=w=${Math.round(Number(size.split('x')[0]) * 0.75)}:h=60:f=0.5:c=VOLUME,pad=${size.replace('x', ':')}:(ow-iw)/2:(oh-ih)/2`,
       };
       const filter = filters[params.value] || filters['wave-green'];
-      return [
-        '-i', inp,
+      const args = ['-i', inp];
+      // A preview is the same command with a duration cap -- deliberately not a separate,
+      // cheaper code path that could end up looking different from the real export.
+      if (params.previewSeconds) args.push('-t', String(params.previewSeconds));
+      args.push(
         '-filter_complex', `[0:a]${filter}[v]`,
         '-map', '[v]', '-map', '0:a',
-        '-c:v', 'libx264', '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-shortest', out,
-      ];
+        // ultrafast + a sane CRF: encoding speed is the whole bottleneck in wasm, and for a
+        // waveform animation the visual cost of a fast preset is essentially invisible.
+        '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
+        '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', out,
+      );
+      return args;
     },
   },
 

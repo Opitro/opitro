@@ -24,7 +24,7 @@ const isGenerator = controls === 'generator';
 // the first render (see the client script), instead of never existing at all.
 // Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
 // doesn't map cleanly onto "several files queued for conversion".
-const showWaveform = !config.allowBatch;
+const showWaveform = !config.allowBatch && !config.noWaveform;
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
 const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
@@ -115,7 +115,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     {/* Gated on the compact player rather than on abCompare -- the file-info strip belongs to
         every tool using the new layout, and tying it to the A/B switch made it vanish from the
         speed tool the moment that switch was removed. */}
-    {config.compactPreview && (
+    {(config.compactPreview || config.noWaveform) && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
@@ -289,6 +289,40 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <input type="number" id="ctrl-fadeout" min="0" max="30" value="0">
         </div>
       </div>
+    )}
+    {controls === 'vizstyles' && (
+      <>
+        <div class="viz-hint" id="viz-hint" style="display:none">{labels.vizHintLabel}</div>
+        <div class="preset-cards" id="viz-styles">
+          {/* Nothing is pre-selected: highlighting a card before anything has been rendered
+              claims a choice the user never made. The active state is set once a preview for
+              that style actually exists. */}
+          {config.vizStyles.map((v) => (
+            <button type="button" class="preset-card" data-style={v.key}>
+              <span class="pc-emoji">{v.emoji}</span>
+              <span class="pc-label">{labels[v.label] || v.key}</span>
+            </button>
+          ))}
+        </div>
+        <div class="row">
+          <div class="field">
+            <label for="viz-size">{labels.vizSizeLabel}</label>
+            <select id="viz-size">
+              {config.vizSizes.map((s) => (
+                <option value={s.key} selected={s.key === '1280x720' ? true : undefined}>{s.label}</option>
+              ))}
+            </select>
+          </div>
+        </div>
+        <button type="button" class="act primary viz-preview-btn" id="viz-preview-btn">
+          ▶ {labels.vizPreviewLabel}
+        </button>
+        <div class="viz-result" id="viz-result" style="display:none">
+          <video id="viz-video" controls playsinline preload="metadata"></video>
+          <div class="viz-note">{labels.vizPreviewNoteLabel}</div>
+          <div class="viz-estimate" id="viz-estimate"></div>
+        </div>
+      </>
     )}
     {controls === 'speed1' && (
       <>
@@ -593,21 +627,43 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       });
     }
 
+    // Duration straight from the file's own metadata -- no decoding. decodeAudioData has to
+    // expand the entire track into memory, which for an hour-long podcast is seconds of waiting
+    // and hundreds of megabytes, and the visualizer only needs the number to estimate render
+    // time. A media element reports duration as soon as it has read the header.
+    function probeDuration(f) {
+      return new Promise((resolve) => {
+        const url = URL.createObjectURL(f);
+        const el = new Audio();
+        const done = (v) => { URL.revokeObjectURL(url); resolve(v); };
+        el.preload = 'metadata';
+        el.onloadedmetadata = () => done(isFinite(el.duration) ? el.duration : 0);
+        el.onerror = () => done(0);
+        el.src = url;
+      });
+    }
+
     // Plain "format / size / duration / rate / channels" strip, shown by any tool that opts in
     // via a #file-meta element. Reads sourceBuffer, so only call it after a successful decode.
     function renderFileMeta(f) {
       const fileMetaEl = root.querySelector('#file-meta');
-      if (!fileMetaEl || !sourceBuffer) return;
+      if (!fileMetaEl) return;
       const ext = (f.name.split('.').pop() || '').toUpperCase();
       const sizeMB = (f.size / 1048576).toFixed(1);
-      const ch = sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono');
-      fileMetaEl.innerHTML = [
+      const rows = [
         [labels.fileFormatLabel || 'Format', ext],
         [labels.fileSizeLabel || 'Size', `${sizeMB} MB`],
         [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
-        [labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`],
-        [labels.fileChannelsLabel || 'Channels', ch],
-      ].map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
+      ];
+      // Sample rate and channel count are only known from a decoded buffer. Tools that skip the
+      // decode on purpose (visualizer) show the rest rather than nothing.
+      if (sourceBuffer) {
+        rows.push([labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`]);
+        rows.push([labels.fileChannelsLabel || 'Channels',
+          sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono')]);
+      }
+      fileMetaEl.innerHTML = rows
+        .map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
       fileMetaEl.style.display = 'flex';
     }
 
@@ -816,6 +872,15 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
       if (config.engine === 'ffmpeg') {
         loadFFmpeg().catch(() => {});
+        // No waveform on this tool -> no decode at all. Read the duration from the file header
+        // (instant), fill the info strip, and show the "pick a style" hint.
+        if (config.noWaveform) {
+          dur = await probeDuration(f);
+          renderFileMeta(f);
+          const hintEl = root.querySelector('#viz-hint');
+          if (hintEl) hintEl.style.display = 'block';
+          return;
+        }
         // Was gated on waveCanvas existing -- that broke the simple-preview tools entirely
         // (no canvas there, so this whole decode step, and with it sourceBuffer/dur, never ran
         // at all -- confirmed live: "Listen" did nothing). Gate on waveShell instead, which
@@ -1481,6 +1546,74 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         invalidateRender();
       });
     }
+    // ---- Visualizer -------------------------------------------------------------------------
+    // Rendering video in WebAssembly is slow, so the point of this block is to let people judge
+    // a style from a few seconds instead of committing to a full render. The preview goes
+    // through runFfmpegProcess with previewSeconds set, i.e. the identical command with a
+    // duration cap, so it cannot end up looking different from the downloaded file.
+    if (config.controls === 'vizstyles') {
+      const vizStylesEl = root.querySelector('#viz-styles');
+      const vizPreviewBtn = root.querySelector('#viz-preview-btn');
+      const vizResultEl = root.querySelector('#viz-result');
+      const vizVideoEl = root.querySelector('#viz-video');
+      let vizPreviewUrl = null;
+
+      const vizEstimateEl = root.querySelector('#viz-estimate');
+      const vizHintEl = root.querySelector('#viz-hint');
+
+      // Estimate the full render from how long the preview actually took ON THIS DEVICE with
+      // THESE settings, rather than quoting a made-up number. Encoding time scales roughly with
+      // duration at a fixed resolution, so preview-time x (track / preview) is a fair guide.
+      function showRenderEstimate(previewMs) {
+        if (!vizEstimateEl || !dur || dur <= 0) return;
+        const secs = (previewMs / 1000) * (dur / config.previewSeconds);
+        const text = secs < 60
+          ? labels.vizEstUnderMinuteLabel
+          : (labels.vizEstMinutesLabel || '~{n} min').replace('{n}', String(Math.max(1, Math.round(secs / 60))));
+        vizEstimateEl.textContent = `${labels.vizEstPrefixLabel} ${text}`;
+        vizEstimateEl.style.display = 'block';
+      }
+
+      async function renderVizPreview() {
+        if (!file) return;
+        vizPreviewBtn.disabled = true;
+        // Whatever style is about to be rendered -- the active card if there is one, otherwise
+        // the first, which is what readParams falls back to for the plain Preview button.
+        const styleKey = (root.querySelector('#viz-styles .preset-card.active')
+          || vizStylesEl.querySelector('.preset-card')).dataset.style;
+        const startedAt = performance.now();
+        const blob = await runFfmpegProcess(false, { previewSeconds: config.previewSeconds });
+        const tookMs = performance.now() - startedAt;
+        vizPreviewBtn.disabled = false;
+        if (!blob) return;
+        vizStylesEl.querySelectorAll('.preset-card').forEach((c) => {
+          c.classList.toggle('active', c.dataset.style === styleKey);
+        });
+        if (vizHintEl) vizHintEl.style.display = 'none';
+        showRenderEstimate(tookMs);
+        // Revoke the previous object URL -- each preview is a fresh multi-megabyte blob, and
+        // holding onto them would pin that memory for the life of the page.
+        if (vizPreviewUrl) URL.revokeObjectURL(vizPreviewUrl);
+        vizPreviewUrl = URL.createObjectURL(blob);
+        vizVideoEl.src = vizPreviewUrl;
+        vizResultEl.style.display = 'block';
+        vizVideoEl.play().catch(() => {});
+      }
+
+      vizStylesEl.querySelectorAll('.preset-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          vizStylesEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+          card.classList.add('active');
+          if (file) renderVizPreview();
+        });
+      });
+      // readParams reads the active card; with none selected it falls back to the first style.
+
+      if (vizPreviewBtn) vizPreviewBtn.addEventListener('click', renderVizPreview);
+      const vizSizeEl = root.querySelector('#viz-size');
+      if (vizSizeEl) vizSizeEl.addEventListener('change', () => { if (file && vizResultEl.style.display !== 'none') renderVizPreview(); });
+    }
+
     if (config.controls === 'speed1') {
       const speedSlider = root.querySelector('#ctrl-slider');
       const speedValEl = root.querySelector('#speed-val');
@@ -1747,6 +1880,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (config.controls === 'eq10') params.bands = eqBandGains();
       if (get('#ctrl-cents')) params.cents = Number(get('#ctrl-cents').value);
       if (get('#ctrl-keeppitch')) params.keepPitch = get('#ctrl-keeppitch').checked;
+      if (config.controls === 'vizstyles') {
+        const activeStyle = root.querySelector('#viz-styles .preset-card.active');
+        params.value = activeStyle ? activeStyle.dataset.style : 'wave-green';
+        if (get('#viz-size')) params.size = get('#viz-size').value;
+      }
       if (config.controls === 'voicefx') {
         const active = root.querySelector('#voice-fx .preset-card.active');
         params.effect = active ? active.dataset.effect : null;
@@ -2104,7 +2242,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // thing to do while exploring) fired them on top of each other with no error, just a stuck
     // "Working..." state and nothing in the UI ever updating again.
     let ffmpegBusy = false;
-    async function runFfmpegProcess(download) {
+    // `extraParams` is merged over readParams() -- used by the visualizer to render a
+    // duration-capped preview through the exact same command as the real export.
+    // Returns the produced blob (or undefined) so callers can preview it without re-running.
+    async function runFfmpegProcess(download, extraParams) {
         if (ffmpegBusy) return;
         if (config.allowBatch ? !files.length : !file) return;
         window.dispatchEvent(new Event('opitro:tool-interaction'));
@@ -2116,7 +2257,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         progressFill.style.width = '0%';
         progressText.textContent = labels.preparingLabel;
 
-        const params = readParams();
+        const params = Object.assign(readParams(), extraParams || {});
+        let producedBlob;
 
         if (config.allowBatch) {
           const results = [];
@@ -2206,6 +2348,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               playAB('result', lastResultBuffer, seek ?? undefined);
             } catch (e) {}
           }
+          producedBlob = blob;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
           progress.classList.remove('on');
@@ -2215,6 +2358,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         // result actually exists -- a failed attempt shouldn't light it up either.
         runBtn.disabled = config.abCompare ? !lastResultBlob : false;
         if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = false; });
+        return producedBlob;
     }
     if (runBtn) {
       runBtn.addEventListener('click', () => {
@@ -2453,6 +2597,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .speed-presets{grid-template-columns:repeat(6,1fr)}
   @media(max-width:480px){.audio-tool .speed-presets{grid-template-columns:repeat(3,1fr)}}
   .audio-tool .speed-presets .preset-card{padding:12px 6px}
+  .audio-tool .viz-preview-btn{width:100%;margin-bottom:14px}
+  .audio-tool .viz-result{margin-bottom:16px}
+  .audio-tool .viz-result video{width:100%;display:block;border-radius:12px;background:#0a0b0d;border:1px solid var(--line)}
+  .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .audio-tool .viz-estimate{display:none;font-size:12.5px;font-weight:600;color:var(--accent);margin-top:8px}
+  .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
   .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
   .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
   .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
