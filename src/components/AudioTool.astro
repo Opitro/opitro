@@ -883,9 +883,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
         updatePresetDesc('auto');
         stopAB();
-        // The hero button is the true one-click path: process AND download immediately,
-        // no separate "now tap Download" step needed for the default/recommended scenario.
-        if (file) runFfmpegProcess(true);
+        // Same as any preset card -- preview only (process + auto-play, no download). The
+        // separate Download button is the only thing that ever downloads a file.
+        if (file) runFfmpegProcess(false);
       });
     }
 
@@ -1687,10 +1687,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
 
   .audio-tool .ab-compare{display:none;gap:4px;margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
-  .audio-tool .ab-seg{flex:1;display:flex;align-items:center;justify-content:center;gap:6px;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;color:var(--muted);padding:9px;border-radius:9px;transition:background .15s,color .15s}
-  .audio-tool .ab-seg:not(:disabled):hover{color:var(--text)}
-  .audio-tool .ab-seg .ico{width:14px;height:14px}
-  .audio-tool .ab-seg:disabled{opacity:.4;cursor:not-allowed}
+  .audio-tool .ab-seg{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--accent);padding:14px;border-radius:9px;transition:background .15s,color .15s}
+  .audio-tool .ab-seg:not(:disabled):hover{background:rgba(74,222,158,0.12)}
+  .audio-tool .ab-seg .ico{width:20px;height:20px}
+  .audio-tool .ab-seg:disabled{opacity:.35;cursor:not-allowed;color:var(--muted)}
 
   .audio-tool .hero-btn{width:100%;font-size:16px;padding:18px;margin-bottom:12px}
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
