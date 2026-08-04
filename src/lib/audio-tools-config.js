@@ -5,7 +5,7 @@
 // format/codec transcoding (convert, ringtone's final export), reading a video container
 // (video-to-audio), muxing a video output (visualizer), and spectral noise reduction
 // (denoise/enhance -- no native noise-reduction node exists in Web Audio).
-import { wsolaStretch, pitchShift } from './web-audio-engine.js';
+import { wsolaStretch, pitchShift, resampleLinear } from './web-audio-engine.js';
 
 const MP3_OUT = { outputName: 'out.mp3', mimeType: 'audio/mpeg', ext: 'mp3' };
 
@@ -351,18 +351,30 @@ export const AUDIO_TOOLS = {
   },
 
   speed: {
-    // Was playbackRate-only, so speed also changed pitch as a side effect (a "chipmunk" or
-    // "monster" effect nobody asked for) -- competitors default to pitch-preserving. Now uses
-    // WSOLA time-stretch, matching timbrica's default behavior.
+    // TEMPO only. Pitch is preserved by default (WSOLA time-stretch) because that's what people
+    // actually want when speeding up a lecture or slowing music down to learn a part -- the old
+    // playbackRate behaviour made everything sound like a chipmunk or a monster.
+    // The "keep pitch" checkbox can be turned off for the deliberate tape/vinyl effect. That is
+    // NOT a duplicate of the pitch tool: this changes tempo (and lets pitch follow), the pitch
+    // tool changes pitch while holding tempo. Neither borrows the other's control.
     engine: 'webaudio',
-    controls: 'slider',
+    controls: 'speed1',
     accept: 'audio/*',
-    sliderLabel: 'speedLabel',
-    sliderMin: 50,
-    sliderMax: 200,
-    sliderDefault: 100,
-    sliderUnit: '%',
-    directRender: (buffer, { value }) => wsolaStretch(buffer, 100 / (value || 100)),
+    // No Original/Result switch here: at a different tempo the two aren't comparable moment to
+    // moment the way they are for EQ or fades -- you'd be A/B-ing two tracks of different
+    // lengths. A plain Reset back to 1x is what's actually useful.
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    speedMin: 25,
+    speedMax: 400,
+    speedPresets: [50, 75, 100, 125, 150, 200],
+    directRender: (buffer, { value, keepPitch }) => {
+      const pct = value || 100;
+      if (pct === 100) return buffer;
+      // 200% speed -> half the length. wsolaStretch takes an output/input length ratio.
+      return keepPitch === false ? resampleLinear(buffer, pct / 100) : wsolaStretch(buffer, 100 / pct);
+    },
   },
 
   pitch: {

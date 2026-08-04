@@ -147,8 +147,9 @@ export function wsolaStretch(buffer, stretchFactor) {
 }
 
 // Resample (linear interpolation) without preserving duration -- the "naive" transform that
-// changes both pitch and length together. Used as pitchShift()'s first step.
-function resampleLinear(buffer, rateFactor) {
+// changes both pitch and length together. Used as pitchShift()'s first step, and exported for
+// the speed tool's "don't preserve pitch" mode, which is exactly this tape/vinyl behaviour.
+export function resampleLinear(buffer, rateFactor) {
   const outLen = Math.max(1, Math.round(buffer.length / rateFactor));
   const out = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: outLen, sampleRate: buffer.sampleRate });
   for (let c = 0; c < buffer.numberOfChannels; c++) {

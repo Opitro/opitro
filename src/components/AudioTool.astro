@@ -112,7 +112,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <button type="button" class="ab-pill-seg" id="ab-result-btn" data-which="result" disabled>{labels.abResultLabel}</button>
       </div>
     )}
-    {config.abCompare && (
+    {/* Gated on the compact player rather than on abCompare -- the file-info strip belongs to
+        every tool using the new layout, and tying it to the A/B switch made it vanish from the
+        speed tool the moment that switch was removed. */}
+    {config.compactPreview && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
@@ -286,6 +289,28 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <input type="number" id="ctrl-fadeout" min="0" max="30" value="0">
         </div>
       </div>
+    )}
+    {controls === 'speed1' && (
+      <>
+        <div class="fade-card pitch-card">
+          <label class="fade-card-title" for="ctrl-slider">{labels.speedLabel}</label>
+          <input type="range" id="ctrl-slider" min={config.speedMin} max={config.speedMax} step="5" value="100">
+          <span class="fade-card-val" id="speed-val">1.0x</span>
+        </div>
+        <div class="preset-cards speed-presets" id="speed-presets">
+          {config.speedPresets.map((p) => (
+            <button type="button" class={`preset-card${p === 100 ? ' active' : ''}`} data-speed={p}>
+              <span class="pc-label">{(p / 100).toFixed(p % 100 === 0 ? 0 : 2).replace(/0$/, '')}x</span>
+            </button>
+          ))}
+        </div>
+        <div class="checks">
+          <label class="check"><input type="checkbox" id="ctrl-keeppitch" checked> {labels.keepPitchLabel}</label>
+        </div>
+        <div class="eq-toolbar">
+          <button type="button" class="act eq-reset-btn" id="speed-reset-btn">{labels.speedResetLabel}</button>
+        </div>
+      </>
     )}
     {controls === 'voicefx' && (
       <>
@@ -944,10 +969,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // waveCanvas.offsetLeft bridges the two (0 for every non-compact tool, since the canvas
     // there fills wave-shell with nothing before it).
     function setPlayheadTime(t) {
-      if (!playhead || !waveShell || dur <= 0) return;
+      if (dur <= 0) return;
+      setPlayheadFrac(t / dur);
+    }
+    // Fraction of the way through whatever is playing, NOT seconds against the original's
+    // duration. The speed tool's processed side is a different length from the original, so
+    // a seconds-based position would drift -- at 2x the marker would only reach halfway.
+    function setPlayheadFrac(frac) {
+      if (!playhead || !waveShell) return;
       const base = waveCanvas ? waveCanvas.offsetLeft : 0;
       const W = waveCanvas ? waveCanvas.clientWidth : waveShell.clientWidth;
-      playhead.style.left = (base + (t / dur) * W) + 'px';
+      playhead.style.left = (base + Math.max(0, Math.min(1, frac)) * W) + 'px';
       playhead.style.display = 'block';
     }
     function maxSelLen() {
@@ -1236,6 +1268,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         return (!!st && Number(st.value) !== 0) || (!!ct && Number(ct.value) !== 0);
       }
       if (config.controls === 'voicefx') return !!root.querySelector('#voice-fx .preset-card.active');
+      if (config.controls === 'speed1') {
+        const el = root.querySelector('#ctrl-slider'), kp = root.querySelector('#ctrl-keeppitch');
+        return (!!el && Number(el.value) !== 100) || (!!kp && !kp.checked);
+      }
       return true;
     }
     function eqSyncState() {
@@ -1250,6 +1286,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     let lastResultPreset = null;
     let abSelected = 'original';
     let abPlayingWhich = null;
+    // Which buffer is currently loaded in the player -- needed to convert a position between
+    // the original and a processed side of a different length (see playAB).
+    let abPlayingBuffer = null;
     // Set by tapping the waveform (position only, no play) -- consumed once by the next play,
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
@@ -1262,8 +1301,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     //    computed on demand and cached by settings so re-selecting it is instant.
     //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
     const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder };
-    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx'];
+    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx', 'speed1'];
     const isRenderedAb = RENDERED_AB_TOOLS.includes(config.controls);
+    // A render-on-demand tool WITHOUT an Original/Result switch (speed) has only one thing to
+    // play: the processed version. Without this it would sit on 'original' forever and the play
+    // button would keep playing the untouched file no matter what the slider said.
+    if (isRenderedAb && !config.abCompare) abSelected = 'result';
     function currentAbBuffer() {
       if (LIVE_CHAIN_TOOLS[config.controls]) return sourceBuffer;
       if (isRenderedAb) return abSelected === 'result' ? renderedBuffer : sourceBuffer;
@@ -1312,23 +1355,31 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         abPlayingWhich = null;
         return;
       }
-      // Switching sides (Original <-> Result) mid-playback should continue from the same
-      // spot, not jump back to 0 -- grab the current position before stopping the old source.
+      // CONTRACT: `seekTo`, when given, is already expressed in `buf`'s own timeline. Callers
+      // that hold a position from a different-length buffer (the speed tool's processed side)
+      // convert it before calling -- doing it in both places would scale it twice.
+      //
+      // The one conversion that belongs here is switching sides mid-playback: the position
+      // comes from the buffer that was playing, so it's translated through a fraction of the
+      // track. 0:30 into a 60s original is the same moment as 0:15 into its 2x version.
       let resumeAt = seekTo;
       if (resumeAt == null && abPlayingWhich && abPlayingWhich !== which && player.isPlaying()) {
-        resumeAt = player.getPosition();
+        const from = player.getPosition();
+        resumeAt = abPlayingBuffer && abPlayingBuffer.duration > 0
+          ? (from / abPlayingBuffer.duration) * buf.duration
+          : from;
       }
       player.unlock();
       player.stop();
       if (wavePlayIco) wavePlayIco.innerHTML = ICO_PAUSE;
       abPlayingWhich = which;
+      abPlayingBuffer = buf;
+      if (transportDurEl) transportDurEl.textContent = fmtClock(buf.duration);
       player.play(
         buf,
         (frac) => {
-          const t = frac * buf.duration;
-          if (transportCurEl) transportCurEl.textContent = fmtClock(t);
-          if (!waveShell || !playhead || dur <= 0) return;
-          setPlayheadTime(t);
+          if (transportCurEl) transportCurEl.textContent = fmtClock(frac * buf.duration);
+          setPlayheadFrac(frac);
         },
         () => {
           if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
@@ -1375,7 +1426,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         if (!(await ensureAbResult())) return;
         const buf = currentAbBuffer();
         if (!buf) return;
-        playAB(abSelected, buf, seek ?? undefined);
+        // waveSeekPos is measured against the ORIGINAL waveform on screen; scale it if the
+        // buffer about to play is a different length (speed tool).
+        const seekIn = seek == null ? undefined
+          : (dur > 0 ? (seek / dur) * buf.duration : seek);
+        playAB(abSelected, buf, seekIn);
       });
     }
 
@@ -1426,6 +1481,67 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         invalidateRender();
       });
     }
+    if (config.controls === 'speed1') {
+      const speedSlider = root.querySelector('#ctrl-slider');
+      const speedValEl = root.querySelector('#speed-val');
+      const keepPitchEl = root.querySelector('#ctrl-keeppitch');
+      const speedPresetsEl = root.querySelector('#speed-presets');
+      let speedTimer = 0;
+      function speedLabelText(pct) {
+        const x = pct / 100;
+        return `${x.toFixed(2).replace(/\.?0+$/, '')}x`;
+      }
+      async function applySpeed(immediate) {
+        // Position is a FRACTION of the track: at a new speed the same musical moment sits at
+        // a different number of seconds, so carrying raw seconds over would jump.
+        const oldBuf = abPlayingBuffer;
+        const posFrac = oldBuf && oldBuf.duration > 0
+          ? Math.min(1, resumePosition() / oldBuf.duration) : 0;
+        stopAB();
+        renderedBuffer = null;
+        exportedClean = false;
+        eqSyncState();
+        if (!sourceBuffer || !toolIsDirty()) return;
+        if (abSelected !== 'result') { selectAbSide('result'); return; }
+        if (!(await ensureAbResult())) return;
+        const buf = currentAbBuffer();
+        if (buf) playAB('result', buf, posFrac * buf.duration);
+      }
+      function onSpeedInput() {
+        const pct = Number(speedSlider.value);
+        if (speedValEl) speedValEl.textContent = speedLabelText(pct);
+        if (speedPresetsEl) {
+          speedPresetsEl.querySelectorAll('.preset-card').forEach((c) => {
+            c.classList.toggle('active', Number(c.dataset.speed) === pct);
+          });
+        }
+        clearTimeout(speedTimer);
+        speedTimer = window.setTimeout(applySpeed, 500);
+      }
+      speedSlider.addEventListener('input', onSpeedInput);
+      if (keepPitchEl) keepPitchEl.addEventListener('change', () => { clearTimeout(speedTimer); applySpeed(); });
+      const speedResetBtn = root.querySelector('#speed-reset-btn');
+      if (speedResetBtn) {
+        speedResetBtn.addEventListener('click', () => {
+          speedSlider.value = '100';
+          if (keepPitchEl) keepPitchEl.checked = true;
+          stopAB();
+          renderedBuffer = null;
+          onSpeedInput();
+          clearTimeout(speedTimer);
+          eqSyncState();
+        });
+      }
+      if (speedPresetsEl) {
+        speedPresetsEl.querySelectorAll('.preset-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            speedSlider.value = card.dataset.speed;
+            onSpeedInput();
+          });
+        });
+      }
+    }
+
     if (config.controls === 'voicefx') {
       const voiceFxEl = root.querySelector('#voice-fx');
       const voiceDescEl = root.querySelector('#voice-desc');
@@ -1630,6 +1746,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (get('#ctrl-select')) params.value = get('#ctrl-select').value;
       if (config.controls === 'eq10') params.bands = eqBandGains();
       if (get('#ctrl-cents')) params.cents = Number(get('#ctrl-cents').value);
+      if (get('#ctrl-keeppitch')) params.keepPitch = get('#ctrl-keeppitch').checked;
       if (config.controls === 'voicefx') {
         const active = root.querySelector('#voice-fx .preset-card.active');
         params.effect = active ? active.dataset.effect : null;
@@ -2333,6 +2450,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
   .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
   .audio-tool .pitch-card{margin-bottom:16px}
+  .audio-tool .speed-presets{grid-template-columns:repeat(6,1fr)}
+  @media(max-width:480px){.audio-tool .speed-presets{grid-template-columns:repeat(3,1fr)}}
+  .audio-tool .speed-presets .preset-card{padding:12px 6px}
   .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
   .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
   .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
