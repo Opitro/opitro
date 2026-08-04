@@ -76,7 +76,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </button>
         <canvas id="wave-canvas"></canvas>
-        <span class="wave-duration" id="wave-duration">0:00</span>
+        {config.transport ? (
+          <span class="wave-duration"><b id="transport-cur">0:00</b> / <span id="transport-dur">0:00</span></span>
+        ) : (
+          <span class="wave-duration" id="wave-duration">0:00</span>
+        )}
         <div class="playhead" id="playhead"></div>
       </div>
     )}
@@ -93,13 +97,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="playhead" id="playhead"></div>
       </div>
     )}
-    {controls === 'select' && config.abCompare && (
+    {config.abCompare && (
       <div class="ab-pill" id="ab-compare" style="display:none">
         <button type="button" class="ab-pill-seg active" id="ab-original-btn" data-which="original">{labels.abOriginalLabel}</button>
         <button type="button" class="ab-pill-seg" id="ab-result-btn" data-which="result" disabled>{labels.abResultLabel}</button>
       </div>
     )}
-    {controls === 'select' && config.abCompare && (
+    {config.abCompare && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
@@ -187,7 +191,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="times" id="peak-meter-label" style="display:none"><span id="peak-meter-text"></span></div>
       </>
     )}
-    {(controls === 'slider' || controls === 'eq3') && config.presets && (
+    {controls === 'slider' && config.presets && (
       <div class="presets" id="presets-row">
         {config.presets.map((p) => <button type="button" class="preset-btn" data-preset={p.key}>{labels[p.label] || p.key}</button>)}
       </div>
@@ -232,21 +236,41 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       </div>
     )}
 
-    {controls === 'eq3' && (
-      <div class="row eq-row">
-        <div class="field slider-field">
-          <label for="eq-bass">{labels.bassLabel}: <span id="eq-bass-val">0dB</span></label>
-          <input type="range" id="eq-bass" min="-12" max="12" step="1" value="0">
+    {controls === 'eq10' && (
+      <>
+        <div class="eq-toolbar">
+          <button type="button" class="act eq-reset-btn" id="eq-reset-btn">{labels.eqResetLabel}</button>
+          <button class="act eq-reset-btn" id="audio-new-btn">{labels.newFileLabel}</button>
         </div>
-        <div class="field slider-field">
-          <label for="eq-mid">{labels.midLabel}: <span id="eq-mid-val">0dB</span></label>
-          <input type="range" id="eq-mid" min="-12" max="12" step="1" value="0">
+        <div class="eq-bands-scroll">
+          <div class="eq-bands" id="eq-bands">
+            {config.bands.map((b) => (
+              <div class="eq-band" title={`${b.label} Hz — ${(labels.eqBandRoles || {})[b.id] || ''}`}>
+                <span class="eq-band-val" id={`eq-val-${b.id}`}>0</span>
+                <input type="range" class="eq-slider" id={`eq-band-${b.id}`} data-band={b.id}
+                  min="-12" max="12" step="0.5" value="0" aria-label={`${b.label} Hz`}>
+                <span class="eq-band-freq">{b.label}</span>
+                <span class="eq-band-role">{(labels.eqBandRoles || {})[b.id]}</span>
+              </div>
+            ))}
+          </div>
         </div>
-        <div class="field slider-field">
-          <label for="eq-treble">{labels.trebleLabel}: <span id="eq-treble-val">0dB</span></label>
-          <input type="range" id="eq-treble" min="-12" max="12" step="1" value="0">
+        <div class="preset-cards" id="eq-presets">
+          {config.eqPresets.map((p) => (
+            <button type="button" class="preset-card" data-preset={p.key}>
+              <span class="pc-emoji">{p.emoji}</span>
+              <span class="pc-label">{labels[p.label] || p.key}</span>
+            </button>
+          ))}
         </div>
-      </div>
+        <div class="field">
+          <label for="eq-format">{labels.enhanceFormatLabel}</label>
+          <select id="eq-format">
+            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+          </select>
+        </div>
+        <button type="button" class="act primary eq-download-btn" id="eq-download-btn" disabled>⬇ {labels.downloadResultLabel}</button>
+      </>
     )}
 
     {(controls === 'fade' || controls === 'trim') && (
@@ -312,20 +336,20 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
 
     <div class="controls">
-      {!isFfmpeg && !isRingtoneTargets && (
+      {!isFfmpeg && !isRingtoneTargets && controls !== 'eq10' && (
         <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
           <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
         </button>
       )}
       {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
-      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
+      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && controls !== 'eq10' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
       {(controls === 'multi-file' || config.allowBatch) && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
 
     {!isRingtoneTargets && <AdSlot />}
 
-    {!isFfmpeg && (
+    {!isFfmpeg && controls !== 'eq10' && (
       <div class="controls" id="download-row" style="display:none">
         <button class="act primary" id="dl-mp3-btn">{labels.downloadMp3Label}</button>
         <button class="act" id="dl-wav-btn">{labels.downloadWavLabel}</button>
@@ -417,10 +441,71 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       const d = Math.floor((s * 10) % 10);
       return `${m}:${String(sec).padStart(2, '0')}.${d}`;
     }
+    // Whole seconds only -- for a transport readout, tenths just flicker distractingly.
+    function fmtClock(s) {
+      const m = Math.floor(s / 60);
+      return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    }
+    // Drawing the waveform needs the canvas to already have a real width -- it reads its own
+    // layout box to size itself. A single requestAnimationFrame usually gets there, but not
+    // always: in the compact player the canvas is a flex child, and on the very first paint
+    // after the panel is revealed it can still measure 0, which silently produced a blank
+    // waveform that only appeared after a manual page reload (reported live). Retry across a
+    // few frames until the box is real, and keep a ResizeObserver on it afterwards so any later
+    // relayout (orientation change, font swap, container resize) redraws instead of stretching
+    // a stale bitmap.
+    let waveDrawBuffer = null;
+    let waveObserver = null;
+    function scheduleWaveformDraw(buffer, attempt = 0) {
+      if (!waveCanvas || !buffer) return;
+      waveDrawBuffer = buffer;
+      requestAnimationFrame(() => {
+        if (waveDrawBuffer !== buffer) return;
+        if (waveCanvas.getBoundingClientRect().width < 1) {
+          if (attempt < 20) scheduleWaveformDraw(buffer, attempt + 1);
+          return;
+        }
+        drawWaveform(waveCanvas, buffer);
+        updateSel();
+        if (!waveObserver && typeof ResizeObserver !== 'undefined') {
+          waveObserver = new ResizeObserver(() => {
+            if (waveDrawBuffer && waveCanvas.getBoundingClientRect().width >= 1) {
+              drawWaveform(waveCanvas, waveDrawBuffer);
+              updateSel();
+            }
+          });
+          waveObserver.observe(waveCanvas);
+        }
+      });
+    }
+
+    // Plain "format / size / duration / rate / channels" strip, shown by any tool that opts in
+    // via a #file-meta element. Reads sourceBuffer, so only call it after a successful decode.
+    function renderFileMeta(f) {
+      const fileMetaEl = root.querySelector('#file-meta');
+      if (!fileMetaEl || !sourceBuffer) return;
+      const ext = (f.name.split('.').pop() || '').toUpperCase();
+      const sizeMB = (f.size / 1048576).toFixed(1);
+      const ch = sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono');
+      fileMetaEl.innerHTML = [
+        [labels.fileFormatLabel || 'Format', ext],
+        [labels.fileSizeLabel || 'Size', `${sizeMB} MB`],
+        [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
+        [labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`],
+        [labels.fileChannelsLabel || 'Channels', ch],
+      ].map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
+      fileMetaEl.style.display = 'flex';
+    }
 
     function invalidateRender() {
       renderedBuffer = null;
       if (downloadRow) downloadRow.style.display = 'none';
+      // The EQ adjusts a LIVE filter chain, so a settings change must not interrupt playback --
+      // stopping here silently killed the audio on every slider move (and left the play icon
+      // showing "pause", since that icon isn't the one this function resets). Only the cached
+      // export render is invalidated for it; everything else still stops, because for those
+      // tools the playing buffer really is the now-stale result.
+      if (config.controls === 'eq10') return;
       player.reset();
       if (listenIco) listenIco.innerHTML = ICO_PLAY;
       if (listenLabel) listenLabel.textContent = isGeneratorLabel();
@@ -632,11 +717,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
             if (inStart) inStart.max = dur;
             if (inEnd) inEnd.max = dur;
-            // requestAnimationFrame, not a direct call -- a small/fast file can finish decoding
-            // before the browser has laid out the just-revealed panel, so the canvas measures
-            // 0 width at draw time and nothing visible gets drawn (confirmed live: a 425KB MP3
-            // played fine with no waveform at all). Waiting a frame guarantees layout has run.
-            if (waveCanvas) requestAnimationFrame(() => drawWaveform(waveCanvas, sourceBuffer));
+            scheduleWaveformDraw(sourceBuffer);
             updateSel();
             // Show the A/B row as soon as there's something to listen to, not only after a
             // first successful process -- "Original" is a real, obvious play button from the
@@ -656,20 +737,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               lastResultPreset = null;
               waveSeekPos = null;
             }
-            const fileMetaEl = root.querySelector('#file-meta');
-            if (fileMetaEl) {
-              const ext = (f.name.split('.').pop() || '').toUpperCase();
-              const sizeMB = (f.size / 1048576).toFixed(1);
-              const ch = sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono');
-              fileMetaEl.innerHTML = [
-                [labels.fileFormatLabel || 'Format', ext],
-                [labels.fileSizeLabel || 'Size', `${sizeMB} MB`],
-                [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
-                [labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`],
-                [labels.fileChannelsLabel || 'Channels', ch],
-              ].map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
-              fileMetaEl.style.display = 'grid';
-            }
+            renderFileMeta(f);
           } catch (e) {
             // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
             // never needed a successful browser decode to run ffmpeg directly on the raw file,
@@ -688,8 +756,19 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         return;
       }
 
+      // Only the decode itself is guarded. This used to wrap the UI setup below too, so ANY
+      // scripting bug in that setup was reported to the user as "couldn't read this file" on a
+      // perfectly valid MP3 -- which is exactly how a load-order bug in the EQ wiring disguised
+      // itself. A real decode failure still gets the real message; a code bug now surfaces as a
+      // code bug instead of blaming the user's file.
+      let decoded;
       try {
-        const decoded = await decodeFileRobust(f);
+        decoded = await decodeFileRobust(f);
+      } catch (e) {
+        showError(labels.decodeErrorLabel);
+        return;
+      }
+      {
         sourceBuffer = decoded.buffer;
         if (decoded.replacementFile) file = decoded.replacementFile;
         dur = sourceBuffer.duration;
@@ -697,12 +776,20 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         selEnd = dur;
         if (inStart) inStart.max = dur;
         if (inEnd) inEnd.max = dur;
-        requestAnimationFrame(() => drawWaveform(waveCanvas, sourceBuffer));
-        updateSel();
+        scheduleWaveformDraw(sourceBuffer);
         if (listenBtn) listenBtn.disabled = false;
         invalidateRender();
-      } catch (e) {
-        showError(labels.decodeErrorLabel);
+        // The EQ's "processed" side needs nothing rendered up front (it's a live filter chain),
+        // so both A/B halves and the transport are usable the moment a file decodes.
+        if (config.controls === 'eq10') {
+          if (abCompareEl) abCompareEl.style.display = 'flex';
+          if (abResultBtn) abResultBtn.disabled = false;
+          if (wavePlayBtn) wavePlayBtn.disabled = false;
+          if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
+          if (transportCurEl) transportCurEl.textContent = '0:00';
+          eqSyncState();
+          renderFileMeta(f);
+        }
       }
     }
 
@@ -735,7 +822,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (newBtn) newBtn.addEventListener('click', () => fileInput.click());
     if (addBtn) addBtn.addEventListener('click', () => fileInput.click());
 
-    window.addEventListener('resize', () => { if (sourceBuffer && waveCanvas) { drawWaveform(waveCanvas, sourceBuffer); updateSel(); } });
 
     // Drag handles for trim-style tools.
     let dragging = null;
@@ -959,6 +1045,42 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     const wavePlayBtn = root.querySelector('#wave-play-btn');
     const wavePlayIco = root.querySelector('#wave-play-ico');
     const waveDurationEl = root.querySelector('#wave-duration');
+    const transportCurEl = root.querySelector('#transport-cur');
+    const transportDurEl = root.querySelector('#transport-dur');
+
+    // ---- 10-band graphic EQ state ------------------------------------------------------------
+    // Declared up here, ahead of every consumer (currentAbChain, the download handler, pickFile).
+    // These were originally further down the file and, being const/let rather than hoisted
+    // function declarations, the download handler referenced them before initialization -- which
+    // threw at page-load, aborted the rest of the script, and surfaced later as a bogus
+    // "couldn't read this file" decode error on a perfectly good MP3.
+    // Preview runs through a LIVE filter chain (eqChainBuilder): moving a slider writes straight
+    // into the playing filters' gain, audible instantly with no re-render. The identical band
+    // values feed an OfflineAudioContext render only when exporting.
+    let eqLiveFilters = [];
+    const eqDownloadBtn = root.querySelector('#eq-download-btn');
+    const eqFormatSel = root.querySelector('#eq-format');
+    function eqBandGains() {
+      const gains = {};
+      (config.bands || []).forEach((b) => {
+        const el = root.querySelector(`#eq-band-${b.id}`);
+        gains[b.id] = el ? Number(el.value) : 0;
+      });
+      return gains;
+    }
+    function eqIsFlat() {
+      return Object.values(eqBandGains()).every((v) => v === 0);
+    }
+    function eqChainBuilder(ctx, srcNode) {
+      const built = config.buildLiveChain(ctx, srcNode, eqBandGains());
+      eqLiveFilters = built.filters;
+      return built.output;
+    }
+    function eqSyncState() {
+      const touched = !eqIsFlat();
+      if (eqDownloadBtn) eqDownloadBtn.disabled = !touched || !sourceBuffer;
+    }
+
     let lastResultBuffer = null;
     let lastResultBlob = null;
     let lastResultName = 'result';
@@ -969,8 +1091,15 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
     let waveSeekPos = null;
+    // For ffmpeg tools (enhance) the "result" is a separately-decoded processed buffer. For the
+    // EQ it's the SAME buffer played through a live filter chain instead -- nothing has to be
+    // rendered up front, which is what makes its A/B switch and its sliders instant.
     function currentAbBuffer() {
+      if (config.controls === 'eq10') return sourceBuffer;
       return abSelected === 'result' ? lastResultBuffer : sourceBuffer;
+    }
+    function currentAbChain() {
+      return config.controls === 'eq10' && abSelected === 'result' ? eqChainBuilder : null;
     }
     function stopAB() {
       player.stop();
@@ -1000,16 +1129,20 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       player.play(
         buf,
         (frac) => {
-          if (!waveShell || !playhead || dur <= 0) return;
           const t = frac * buf.duration;
+          if (transportCurEl) transportCurEl.textContent = fmtClock(t);
+          if (!waveShell || !playhead || dur <= 0) return;
           setPlayheadTime(t);
         },
         () => {
           if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
           if (playhead) playhead.style.display = 'none';
+          if (transportCurEl) transportCurEl.textContent = '0:00';
           abPlayingWhich = null;
+          eqLiveFilters = [];
         },
-        resumeAt
+        resumeAt,
+        currentAbChain()
       );
     }
     function selectAbSide(which) {
@@ -1039,6 +1172,45 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       });
     }
 
+    // EQ export: the live preview chain is only a preview -- writing a file still needs a real
+    // OfflineAudioContext render through the same band values (config.render), then an encode.
+    // WAV/MP3 are native; OGG borrows ffmpeg's libvorbis, same path the Convert tool uses.
+    if (eqDownloadBtn) {
+      eqDownloadBtn.addEventListener('click', async () => {
+        if (!sourceBuffer) return;
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        clearError();
+        eqDownloadBtn.disabled = true;
+        progress.classList.add('on');
+        progressFill.style.width = '30%';
+        progressText.textContent = labels.workingLabel;
+        try {
+          const rendered = await doRender();
+          const fmt = eqFormatSel ? eqFormatSel.value : 'wav';
+          const base = (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
+          progressFill.style.width = '70%';
+          let blob;
+          if (fmt === 'mp3') blob = await encodeMP3(rendered, 192);
+          else if (fmt === 'ogg') {
+            const wavFile = new File([encodeWAV(rendered)], 'eq.wav', { type: 'audio/wav' });
+            blob = await execFFmpeg({
+              inputs: [{ name: 'in0', file: wavFile }],
+              buildArgs: (names, out) => ['-i', names[0], '-c:a', 'libvorbis', '-b:a', '192k', out],
+              outputName: 'out.ogg',
+              mimeType: 'audio/ogg',
+            });
+          } else blob = encodeWAV(rendered);
+          progressFill.style.width = '100%';
+          progressText.textContent = labels.doneLabel;
+          downloadBlob(blob, `${base}-eq.${fmt}`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+          progress.classList.remove('on');
+        }
+        eqSyncState();
+      });
+    }
+
     const slider = root.querySelector('#ctrl-slider');
     const sliderVal = root.querySelector('#ctrl-slider-val');
     if (slider && sliderVal) {
@@ -1052,11 +1224,56 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (rtVolumeEl && rtVolumeVal) {
       rtVolumeEl.addEventListener('input', () => { rtVolumeVal.textContent = rtVolumeEl.value + '%'; });
     }
-    ['bass', 'mid', 'treble'].forEach((band) => {
-      const el = root.querySelector(`#eq-${band}`);
-      const valEl = root.querySelector(`#eq-${band}-val`);
-      if (el && valEl) el.addEventListener('input', () => { valEl.textContent = el.value + 'dB'; invalidateRender(); });
-    });
+    if (config.controls === 'eq10') {
+      (config.bands || []).forEach((b, i) => {
+        const el = root.querySelector(`#eq-band-${b.id}`);
+        const valEl = root.querySelector(`#eq-val-${b.id}`);
+        if (!el) return;
+        el.addEventListener('input', () => {
+          if (valEl) valEl.textContent = Number(el.value) === 0 ? '0' : (Number(el.value) > 0 ? '+' : '') + el.value;
+          // Live: push the new gain into the already-playing filter, no re-render needed.
+          if (eqLiveFilters[i]) eqLiveFilters[i].gain.value = Number(el.value);
+          eqSyncState();
+          invalidateRender();
+          // Moving a slider while listening to the untouched original would be silent -- flip
+          // to the processed side so the change you just made is what you actually hear.
+          if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
+        });
+      });
+      const eqPresetsEl = root.querySelector('#eq-presets');
+      if (eqPresetsEl) {
+        eqPresetsEl.querySelectorAll('.preset-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            const preset = (config.eqPresets || []).find((p) => p.key === card.dataset.preset);
+            if (!preset) return;
+            eqPresetsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+            card.classList.add('active');
+            applyEqGains(preset.gains);
+          });
+        });
+      }
+      const eqResetBtn = root.querySelector('#eq-reset-btn');
+      if (eqResetBtn) {
+        eqResetBtn.addEventListener('click', () => {
+          if (eqPresetsEl) eqPresetsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+          applyEqGains((config.bands || []).map(() => 0));
+        });
+      }
+    }
+    function applyEqGains(gains) {
+      (config.bands || []).forEach((b, i) => {
+        const el = root.querySelector(`#eq-band-${b.id}`);
+        const valEl = root.querySelector(`#eq-val-${b.id}`);
+        if (!el) return;
+        const v = gains[i] ?? 0;
+        el.value = String(v);
+        if (valEl) valEl.textContent = v === 0 ? '0' : (v > 0 ? '+' : '') + v;
+        if (eqLiveFilters[i]) eqLiveFilters[i].gain.value = v;
+      });
+      eqSyncState();
+      invalidateRender();
+      if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
+    }
     ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize'].forEach((sel) => {
       const el = root.querySelector(sel);
       if (el) el.addEventListener('input', invalidateRender);
@@ -1091,9 +1308,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (get('#ctrl-bitrate')) params.bitrate = get('#ctrl-bitrate').value;
       if (get('#ctrl-slider')) params.value = Number(get('#ctrl-slider').value);
       if (get('#ctrl-select')) params.value = get('#ctrl-select').value;
-      if (get('#eq-bass')) params.bass = Number(get('#eq-bass').value);
-      if (get('#eq-mid')) params.mid = Number(get('#eq-mid').value);
-      if (get('#eq-treble')) params.treble = Number(get('#eq-treble').value);
+      if (config.controls === 'eq10') params.bands = eqBandGains();
       if (get('#ctrl-fadein')) params.fadeIn = get('#ctrl-fadein').value;
       if (get('#ctrl-fadeout')) params.fadeOut = get('#ctrl-fadeout').value;
       if (get('#chk-fadein')) params.fadeIn = get('#chk-fadein').checked;
@@ -1207,7 +1422,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (!waveShell || !waveCanvas) return;
       dur = buffer.duration;
       waveShell.style.display = '';
-      requestAnimationFrame(() => drawWaveform(waveCanvas, buffer));
+      scheduleWaveformDraw(buffer);
     }
 
     if (listenBtn) {
@@ -1300,22 +1515,24 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           return;
         }
 
+        // Any tool with A/B compare (enhance, equalizer): tapping the waveform only moves the
+        // position marker, it doesn't start playback -- there's a dedicated play button for
+        // that, and a tap here used to fight with it. Checked BEFORE the engine branch, since
+        // the equalizer is a webaudio tool and was falling through to the render-and-play path.
+        if (config.abCompare) {
+          if (!sourceBuffer) return;
+          // Unconditional, NOT `if (player.isPlaying())` -- player.stop() already ran at the
+          // top of this handler, so by here isPlaying() is always false and the guarded
+          // version silently skipped resetting the play icon, leaving it stuck on "pause"
+          // after a seek even though nothing was playing anymore.
+          stopAB();
+          waveSeekPos = t;
+          setPlayheadTime(t);
+          return;
+        }
+
         if (config.engine === 'ffmpeg') {
           if (!sourceBuffer) return;
-          // Tools with A/B compare (enhance): tapping the waveform only moves the position
-          // marker, it doesn't start playback -- there are dedicated Original/Result buttons
-          // for that already, so a tap here used to fight with them (starting playback the
-          // buttons then had to fight to pause).
-          if (config.abCompare) {
-            // Unconditional, NOT `if (player.isPlaying())` -- player.stop() already ran at the
-            // top of this handler, so by here isPlaying() is always false and the guarded
-            // version silently skipped resetting the play icon, leaving it stuck on "pause"
-            // after a seek even though nothing was playing anymore.
-            stopAB();
-            waveSeekPos = t;
-            setPlayheadTime(t);
-            return;
-          }
           const simpleIco = root.querySelector('.simple-preview-ico');
           if (simpleIco) simpleIco.innerHTML = ICO_PAUSE;
           player.play(
@@ -1776,6 +1993,25 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .times b{color:var(--accent)}
 
   .audio-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  /* ---- 10-band graphic EQ ----
+     Vertical sliders are declared two ways on purpose: `writing-mode` is the standardised
+     route (Chrome/Firefox), `-webkit-appearance: slider-vertical` is what Safari still needs.
+     `direction: rtl` is what puts the maximum at the TOP under writing-mode -- without it a
+     boost would read as dragging downward. */
+  .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  .audio-tool .eq-reset-btn{flex:1 1 160px;min-width:0;padding:10px 16px;font-size:13px}
+  .audio-tool .eq-bands-scroll{overflow-x:auto;overflow-y:hidden;margin-bottom:18px;padding-bottom:4px}
+  .audio-tool .eq-bands{display:flex;gap:6px;min-width:min-content;justify-content:space-between}
+  .audio-tool .eq-band{flex:1 0 48px;min-width:48px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default}
+  .audio-tool .eq-band-val{font-size:11.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .audio-tool .eq-band-freq{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .audio-tool .eq-band-role{font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.75;text-align:center;line-height:1.15;margin-top:-3px}
+  .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;-webkit-appearance:slider-vertical;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
+  @media(max-width:768px){.audio-tool .eq-bands{justify-content:flex-start}.audio-tool .eq-band{flex:0 0 48px}}
+  .audio-tool .eq-download-btn{width:100%}
+
+  .audio-tool .wave-duration b{color:var(--text)}
+
   .audio-tool .eq-row .field{min-width:110px}
   .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
   .audio-tool .row .field{margin-bottom:0}
@@ -1847,11 +2083,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
 
-  /* Plain info, not a button -- no border/background box, just labels under the waveform. */
-  .audio-tool .file-meta{display:none;grid-template-columns:repeat(auto-fit,minmax(100px,1fr));gap:10px 16px;margin-top:14px;margin-bottom:16px}
-  .audio-tool .fm-item{display:flex;flex-direction:column;gap:3px}
-  .audio-tool .fm-key{font-size:10.5px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted)}
-  .audio-tool .fm-val{font-size:13.5px;font-weight:600;color:var(--text)}
+  /* Plain info, not a button -- no border/background box, just small labels sitting directly
+     under the player where they describe the file you just loaded. */
+  .audio-tool .file-meta{display:none;flex-wrap:wrap;gap:6px 18px;margin:12px 0 18px}
+  .audio-tool .fm-item{display:flex;align-items:baseline;gap:5px}
+  .audio-tool .fm-key{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .audio-tool .fm-val{font-size:12px;font-weight:600;color:var(--text)}
 
   /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
      "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps

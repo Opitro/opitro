@@ -339,13 +339,18 @@ export function createPlayer() {
 
   // `seekTo` (seconds), when given, jumps to that position instead of resuming from wherever
   // pause() last left off -- used by the click/tap-to-seek handler on the waveform.
-  function play(buf, onProgress, onEnded, seekTo) {
+  // `buildChain(ctx, sourceNode) => outputNode`, when given, inserts a live processing graph
+  // between the source and the speakers. The caller keeps its own references to the nodes it
+  // created, so it can change their parameters WHILE audio plays -- that's what makes an EQ
+  // slider audible the instant you drag it, with no re-render of the file.
+  function play(buf, onProgress, onEnded, seekTo, buildChain) {
     buffer = buf;
     if (seekTo != null) pausedAt = Math.max(0, Math.min(seekTo, buffer.duration));
     const c = getCtx();
     source = c.createBufferSource();
     source.buffer = buffer;
-    source.connect(c.destination);
+    const chainOut = buildChain ? buildChain(c, source) : source;
+    chainOut.connect(c.destination);
     // Clear internal state BEFORE handing control to onEnded -- reaching the end of a track is
     // just as much "not playing anymore" as an explicit stop, but this used to leave `source`
     // set, so isPlaying() kept returning true forever after a track finished on its own. Every

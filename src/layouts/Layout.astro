@@ -25,6 +25,12 @@ const { locale, title, description, translations = [], path = '', breadcrumb } =
 const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español', uk: 'Українська' };
 const DEFAULT_LOCALE = 'en';
 
+// Standing rule: every page title ends with the site name. Applied here rather than typed into
+// each of the ~170 content files, so it can't be forgotten on a new page and can be changed in
+// one place. Titles that already name the brand are left alone instead of doubling it up.
+const BRAND = 'Opitro';
+const fullTitle = title.includes(BRAND) ? title : `${title} | ${BRAND}`;
+
 // Every page needs a way to browse to other categories — fetched here once, in the shared
 // Layout, instead of every page having to remember to pass it down.
 const allCategories = await getCollection('categories');
@@ -50,11 +56,11 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 <link rel="manifest" href="/manifest.json">
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-title" content="Opitro">
-<title>{title}</title>
+<title>{fullTitle}</title>
 <meta name="description" content={description}>
 <meta name="robots" content="index, follow">
 <meta property="og:type" content="website">
-<meta property="og:title" content={title}>
+<meta property="og:title" content={fullTitle}>
 <meta property="og:description" content={description}>
 <meta property="og:url" content={canonicalUrl}>
 <meta name="theme-color" content="#0e0f11">

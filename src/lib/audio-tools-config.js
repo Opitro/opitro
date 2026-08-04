@@ -9,6 +9,41 @@ import { wsolaStretch, pitchShift } from './web-audio-engine.js';
 
 const MP3_OUT = { outputName: 'out.mp3', mimeType: 'audio/mpeg', ext: 'mp3' };
 
+// Standard ISO octave centres for a 10-band graphic EQ. Q of 1.41 is the usual choice at
+// one-octave spacing -- narrow enough that bands stay distinct, wide enough that all ten set
+// flat sums back to a flat response.
+const EQ_BANDS = [
+  { id: 'b31', freq: 31, label: '31' },
+  { id: 'b62', freq: 62, label: '62' },
+  { id: 'b125', freq: 125, label: '125' },
+  { id: 'b250', freq: 250, label: '250' },
+  { id: 'b500', freq: 500, label: '500' },
+  { id: 'b1k', freq: 1000, label: '1k' },
+  { id: 'b2k', freq: 2000, label: '2k' },
+  { id: 'b4k', freq: 4000, label: '4k' },
+  { id: 'b8k', freq: 8000, label: '8k' },
+  { id: 'b16k', freq: 16000, label: '16k' },
+];
+
+// Returns the chain's last node plus the filter list, so the live-preview caller can keep the
+// filters around and tweak `.gain.value` on them while audio is playing (that's what makes
+// dragging a slider audible instantly instead of needing a re-render).
+function buildEqChain(ctx, src, bands) {
+  let node = src;
+  const filters = [];
+  EQ_BANDS.forEach((b) => {
+    const f = ctx.createBiquadFilter();
+    f.type = 'peaking';
+    f.frequency.value = b.freq;
+    f.Q.value = 1.41;
+    f.gain.value = bands[b.id] || 0;
+    node.connect(f);
+    node = f;
+    filters.push(f);
+  });
+  return { output: node, filters };
+}
+
 export const AUDIO_TOOLS = {
   convert: {
     engine: 'ffmpeg',
@@ -379,29 +414,37 @@ export const AUDIO_TOOLS = {
   },
 
   equalizer: {
+    // Deliberately the most "hands-on" tool in the set: a real 10-band graphic EQ and nothing
+    // else. No denoise/normalize/limiter/compressor here on purpose -- those all live on their
+    // own pages, and mixing them in is what makes competitors' EQ pages feel like a dumping
+    // ground. Preview is a LIVE Web Audio filter chain (see buildLiveChain), so dragging a
+    // slider is audible instantly instead of re-rendering the whole file per input event; the
+    // same band values feed an OfflineAudioContext render only when exporting.
     engine: 'webaudio',
-    controls: 'eq3',
+    controls: 'eq10',
     accept: 'audio/*',
-    presets: [
-      { key: 'flat', label: 'presetFlatLabel', set: { bass: 0, mid: 0, treble: 0 } },
-      { key: 'bassboost', label: 'presetBassBoostLabel', set: { bass: 7, mid: 0, treble: 1 } },
-      { key: 'vocal', label: 'presetVocalLabel', set: { bass: -3, mid: 5, treble: 2 } },
-      { key: 'podcast', label: 'presetPodcastLabel', set: { bass: -2, mid: 3, treble: 3 } },
+    abCompare: true,
+    // Same one-row player as the enhance tool (play button beside the waveform, not floating on
+    // top of it) -- an overlaid button both obscured the waveform and, being absolutely
+    // positioned, was fragile against the shared hover rule.
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    bands: EQ_BANDS,
+    eqPresets: [
+      { key: 'flat', emoji: '➖', label: 'eqFlatLabel', gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },
+      { key: 'bass', emoji: '🎵', label: 'eqBassBoostLabel', gains: [7, 6, 5, 3, 1, 0, 0, 0, 0, 0] },
+      { key: 'treble', emoji: '✨', label: 'eqTrebleBoostLabel', gains: [0, 0, 0, 0, 0, 1, 3, 5, 6, 7] },
+      { key: 'vocal', emoji: '🎤', label: 'eqVocalLabel', gains: [-3, -3, -2, 0, 3, 4, 4, 2, 0, -1] },
+      { key: 'rock', emoji: '🎧', label: 'eqRockLabel', gains: [5, 4, 2, -1, -2, 0, 2, 4, 5, 5] },
+      { key: 'classical', emoji: '🎼', label: 'eqClassicalLabel', gains: [4, 3, 2, 0, 0, 0, -1, -1, 2, 3] },
+      { key: 'movie', emoji: '🎬', label: 'eqMovieLabel', gains: [5, 4, 1, 0, 2, 3, 2, 2, 3, 3] },
+      { key: 'radio', emoji: '📻', label: 'eqRadioLabel', gains: [-6, -5, -2, 2, 4, 4, 3, 0, -4, -8] },
     ],
-    // A WaveShaper soft-clip limiter at the end of the chain -- boosting all three bands at
-    // once can genuinely clip otherwise, and there was no protection against that at all before.
-    render: (oc, src, { bass, mid, treble }) => {
-      const b = oc.createBiquadFilter(); b.type = 'peaking'; b.frequency.value = 100; b.Q.value = 1; b.gain.value = bass;
-      const m = oc.createBiquadFilter(); m.type = 'peaking'; m.frequency.value = 1000; m.Q.value = 1; m.gain.value = mid;
-      const t = oc.createBiquadFilter(); t.type = 'peaking'; t.frequency.value = 8000; t.Q.value = 1; t.gain.value = treble;
-      const limiter = oc.createWaveShaper();
-      const curve = new Float32Array(1024);
-      for (let i = 0; i < 1024; i++) { const x = (i / 1023) * 2 - 1; curve[i] = Math.tanh(x * 1.2); }
-      limiter.curve = curve;
-      limiter.oversample = '2x';
-      src.connect(b); b.connect(m); m.connect(t); t.connect(limiter);
-      return limiter;
-    },
+    // Both the live preview chain and the offline export render go through buildEqChain, so
+    // what you hear while dragging is exactly what gets written to the file.
+    buildLiveChain: buildEqChain,
+    render: (oc, src, params) => buildEqChain(oc, src, params.bands || {}).output,
   },
 
   'reverb-echo': {
