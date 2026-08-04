@@ -11,7 +11,7 @@ engineParams:
   toUnitShort: km
 title: Steps to Km Converter — Free, No Sign-Up Required
 h1: Steps to Kilometers
-description: Find out how many kilometers you walked based on your step count. Uses an average step length of 76 cm, the same default most fitness trackers use.
+description: Find out how many kilometers you walked based on your step count. Uses an average step length of 76 cm, the same default most fitness trackers use. Free, no sign-up.
 faq:
   - question: How many steps are in a kilometer?
     answer: Around 1,312 steps per km, assuming a 76 cm stride. Taller people take longer steps and shorter people take shorter ones, so your real number can be a bit different.

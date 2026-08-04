@@ -11,7 +11,7 @@ engineParams:
   toUnitShort: steps
 title: Km to Steps Converter — Free, No Sign-Up Required
 h1: Kilometers to Steps
-description: Estimate how many steps it takes to cover a given distance in kilometers. Based on an average stride length of 76 cm.
+description: Estimate how many steps it takes to cover a given distance in kilometers. Based on an average stride length of 76 cm. Free, no sign-up.
 faq:
   - question: How many steps is 5 km?
     answer: About 6,562 steps at a 76 cm average stride — a bit over an hour of easy walking.

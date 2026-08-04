@@ -4,7 +4,7 @@ locale: en
 name: Volume
 title: Volume Calculator — Free, No Sign-Up — liters, gallons, ml, cups, ounces
 h1: Volume Calculator Online
-description: Converts between any volume units at once — liters, milliliters, gallons, cups, fluid ounces. Enter a number, pick the units, done.
+description: Converts between any volume units at once — liters, milliliters, gallons, cups, fluid ounces. Enter a number, pick the units, done. Free, no sign-up.
 faq:
   - question: Which units does the calculator support?
     answer: Milliliters, liters, cubic meters, gallons (US), cups, fluid ounces, and tablespoons — pick any pair.

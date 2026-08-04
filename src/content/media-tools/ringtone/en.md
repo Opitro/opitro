@@ -5,7 +5,7 @@ category: audio
 tool: ringtone
 title: Make a Ringtone for iPhone, Android Online, Free | Opitro
 h1: Make a Ringtone
-description: Make a ringtone from a song or from a video for iPhone, Android, Telegram, WhatsApp, an alarm, or a notification sound — pick a section and download the file. Free, no sign-up, no generation — it's your own track, not an AI-composed tune.
+description: Make a ringtone from a song or from a video for iPhone, Android, Telegram, WhatsApp, an alarm, or a notification sound — pick a section and download the file. Free, no sign-up, no generation — it's your own track, not an AI-composed tune, and nothing gets uploaded.
 faq:
   - question: How do I set the file as my ringtone on iPhone?
     answer: Download the file with the "iPhone" tile — it's a real M4R (Apple's native ringtone format), then open the Files app, tap it, and choose Share → More → Use as Ringtone — it shows up right after under Settings → Sounds & Haptics. This works from iOS 26 onward; older versions still need GarageBand.
