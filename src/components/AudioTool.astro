@@ -949,6 +949,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         abPlayingWhich = null;
         return;
       }
+      // Switching sides (Original <-> Result) mid-playback should continue from the same
+      // spot, not jump back to 0 -- grab the current position before stopping the old source.
+      let resumeAt = seekTo;
+      if (resumeAt == null && abPlayingWhich && abPlayingWhich !== which && player.isPlaying()) {
+        resumeAt = player.getPosition();
+      }
       player.unlock();
       player.stop();
       if (otherIcoEl) otherIcoEl.innerHTML = ICO_PLAY;
@@ -968,7 +974,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           if (playhead) playhead.style.display = 'none';
           abPlayingWhich = null;
         },
-        seekTo
+        resumeAt
       );
     }
     if (abOriginalBtn) {

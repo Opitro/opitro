@@ -369,5 +369,13 @@ export function createPlayer() {
     pausedAt = 0;
   }
 
-  return { play, pause, stop, reset, unlock, isPlaying: () => !!source };
+  // Current elapsed position (seconds), whether actively playing or paused -- lets a caller
+  // switch to a *different* buffer (e.g. A/B original vs. result) starting from the same
+  // point, instead of losing the position on every switch.
+  function getPosition() {
+    if (!source) return pausedAt;
+    return ctx.currentTime - startedAt;
+  }
+
+  return { play, pause, stop, reset, unlock, isPlaying: () => !!source, getPosition };
 }
