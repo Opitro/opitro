@@ -614,7 +614,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
             if (inStart) inStart.max = dur;
             if (inEnd) inEnd.max = dur;
-            if (waveCanvas) drawWaveform(waveCanvas, sourceBuffer);
+            // requestAnimationFrame, not a direct call -- a small/fast file can finish decoding
+            // before the browser has laid out the just-revealed panel, so the canvas measures
+            // 0 width at draw time and nothing visible gets drawn (confirmed live: a 425KB MP3
+            // played fine with no waveform at all). Waiting a frame guarantees layout has run.
+            if (waveCanvas) requestAnimationFrame(() => drawWaveform(waveCanvas, sourceBuffer));
             updateSel();
             // Show the A/B row as soon as there's something to listen to, not only after a
             // first successful process -- "Original" is a real, obvious play button from the
@@ -670,7 +674,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         selEnd = dur;
         if (inStart) inStart.max = dur;
         if (inEnd) inEnd.max = dur;
-        drawWaveform(waveCanvas, sourceBuffer);
+        requestAnimationFrame(() => drawWaveform(waveCanvas, sourceBuffer));
         updateSel();
         if (listenBtn) listenBtn.disabled = false;
         invalidateRender();
@@ -1120,7 +1124,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (!waveShell || !waveCanvas) return;
       dur = buffer.duration;
       waveShell.style.display = '';
-      drawWaveform(waveCanvas, buffer);
+      requestAnimationFrame(() => drawWaveform(waveCanvas, buffer));
     }
 
     if (listenBtn) {
@@ -1686,11 +1690,14 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .pc-emoji{font-size:24px}
   .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
 
-  .audio-tool .ab-compare{display:none;gap:4px;margin-top:14px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:4px}
-  .audio-tool .ab-seg{flex:1;display:flex;align-items:center;justify-content:center;gap:8px;font-family:inherit;font-size:14.5px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--accent);padding:14px;border-radius:9px;transition:background .15s,color .15s}
-  .audio-tool .ab-seg:not(:disabled):hover{background:rgba(74,222,158,0.12)}
-  .audio-tool .ab-seg .ico{width:20px;height:20px}
-  .audio-tool .ab-seg:disabled{opacity:.35;cursor:not-allowed;color:var(--muted)}
+  /* No card/pill chrome here on purpose -- just a big icon and a label, plainly clickable,
+     not styled like the preset-card buttons (those read as "another option to pick", not
+     "the play control"). */
+  .audio-tool .ab-compare{display:none;gap:28px;justify-content:center;margin-top:16px;margin-bottom:8px}
+  .audio-tool .ab-seg{display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit;font-size:13px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--accent);padding:6px 12px}
+  .audio-tool .ab-seg:not(:disabled):hover{opacity:.75}
+  .audio-tool .ab-seg .ico{width:34px;height:34px}
+  .audio-tool .ab-seg:disabled{opacity:.3;cursor:not-allowed}
 
   .audio-tool .hero-btn{width:100%;font-size:16px;padding:18px;margin-bottom:12px}
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
