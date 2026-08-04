@@ -544,6 +544,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       lastResultBuffer = null;
       lastResultBlob = null;
       lastResultPreset = null;
+      waveSeekPos = null;
       if (runBtn && config.abCompare) runBtn.disabled = true;
       if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
       if (presetDescEl) presetDescEl.style.display = 'none';
@@ -632,6 +633,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               lastResultBuffer = null;
               lastResultBlob = null;
               lastResultPreset = null;
+      waveSeekPos = null;
             }
             const fileMetaEl = root.querySelector('#file-meta');
             if (fileMetaEl) {
@@ -907,6 +909,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     let lastResultName = 'result';
     let lastResultPreset = null;
     let abPlayingWhich = null;
+    // Set by tapping the waveform (position only, no play) -- consumed once by whichever
+    // Original/Result button gets pressed next, then cleared so later presses go back to
+    // normal toggle/resume behavior instead of jumping back to this spot forever.
+    let waveSeekPos = null;
     function stopAB() {
       player.stop();
       if (abOriginalIco) abOriginalIco.innerHTML = ICO_PLAY;
@@ -947,12 +953,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     }
     if (abOriginalBtn) {
       abOriginalBtn.addEventListener('click', () => {
-        if (sourceBuffer) playAB('original', sourceBuffer, abOriginalIco, abResultIco);
+        if (!sourceBuffer) return;
+        const seek = waveSeekPos;
+        waveSeekPos = null;
+        playAB('original', sourceBuffer, abOriginalIco, abResultIco, seek ?? undefined);
       });
     }
     if (abResultBtn) {
       abResultBtn.addEventListener('click', () => {
-        if (lastResultBuffer) playAB('result', lastResultBuffer, abResultIco, abOriginalIco);
+        if (!lastResultBuffer) return;
+        const seek = waveSeekPos;
+        waveSeekPos = null;
+        playAB('result', lastResultBuffer, abResultIco, abOriginalIco, seek ?? undefined);
       });
     }
 
@@ -1219,12 +1231,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
         if (config.engine === 'ffmpeg') {
           if (!sourceBuffer) return;
-          // Tools with A/B compare (enhance) route through playAB so this stays in sync with
-          // the Original/Result buttons -- previously the waveform click played sourceBuffer
-          // completely independently, so those buttons had no idea it was playing and pause
-          // never worked right (clicking Original again just restarted instead of pausing).
+          // Tools with A/B compare (enhance): tapping the waveform only moves the position
+          // marker, it doesn't start playback -- there are dedicated Original/Result buttons
+          // for that already, so a tap here used to fight with them (starting playback the
+          // buttons then had to fight to pause).
           if (config.abCompare) {
-            playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
+            if (player.isPlaying()) stopAB();
+            waveSeekPos = t;
+            if (playhead && waveShell) {
+              const W = waveShell.clientWidth;
+              playhead.style.left = ((t / dur) * W) + 'px';
+              playhead.style.display = 'block';
+            }
             return;
           }
           const simpleIco = root.querySelector('.simple-preview-ico');
@@ -1406,7 +1424,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               if (abResultBtn) abResultBtn.disabled = false;
               // Auto-play the result immediately -- previously you had to notice and tap the
               // "Result" A/B button yourself, which read as "nothing happened" after a click.
-              playAB('result', lastResultBuffer, abResultIco, abOriginalIco);
+              // Starts from wherever the waveform was last tapped, if anywhere.
+              playAB('result', lastResultBuffer, abResultIco, abOriginalIco, waveSeekPos ?? undefined);
+              waveSeekPos = null;
             } catch (e) {}
           }
         } catch (e) {
