@@ -83,6 +83,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="playhead" id="playhead"></div>
       </div>
     )}
+    {controls === 'select' && config.abCompare && (
+      <div class="ab-compare" id="ab-compare" style="display:none">
+        <button type="button" class="ab-seg" id="ab-original-btn">
+          <svg class="ico" id="ab-original-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          {labels.abOriginalLabel}
+        </button>
+        <button type="button" class="ab-seg" id="ab-result-btn" disabled>
+          <svg class="ico" id="ab-result-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          {labels.abResultLabel}
+        </button>
+      </div>
+    )}
     {showTrimHandles && (
       <div class="times" id="times">
         <span>{labels.startLabel}: <b id="t-start">0:00.0</b></span>
@@ -203,18 +215,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
     {controls === 'select' && config.presetCards && (
       <div class="preset-desc" id="preset-desc" style="display:none"></div>
-    )}
-    {controls === 'select' && config.abCompare && (
-      <div class="ab-compare" id="ab-compare" style="display:none">
-        <button type="button" class="ab-seg" id="ab-original-btn">
-          <svg class="ico" id="ab-original-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          {labels.abOriginalLabel}
-        </button>
-        <button type="button" class="ab-seg" id="ab-result-btn" disabled>
-          <svg class="ico" id="ab-result-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          {labels.abResultLabel}
-        </button>
-      </div>
     )}
     {controls === 'select' && config.abCompare && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
@@ -1220,11 +1220,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           // completely independently, so those buttons had no idea it was playing and pause
           // never worked right (clicking Original again just restarted instead of pausing).
           if (config.abCompare) {
-            // Tapping the waveform while something is already playing stops it -- previously
-            // every tap re-seeked and restarted, so a second tap (meant as "stop") never
-            // actually stopped anything, leaving people hunting for a separate pause button.
-            if (player.isPlaying()) stopAB();
-            else playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
+            playAB('original', sourceBuffer, abOriginalIco, abResultIco, t);
             return;
           }
           const simpleIco = root.querySelector('.simple-preview-ico');
