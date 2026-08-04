@@ -16,6 +16,8 @@ faq:
     answer: Yes — after processing, two buttons appear, "Original" and "Result", switch between them to hear the difference right away.
   - question: What kind of recording benefits most from this?
     answer: A rough phone or laptop-mic recording — noisy background and uneven volume are the two most common problems with casual recordings, and this fixes both at once.
+  - question: What format does the result download as?
+    answer: Pick MP3, WAV, or M4A — if you uploaded a WAV and want to keep it lossless, choose WAV. Other formats (OGG, FLAC, Opus, and so on) go through the separate audio converter.
 ---
 
 Upload a file and hit "✨ Improve automatically" — that's the main path, sensible settings get picked for you. Want something tuned to a specific situation instead? Scenarios for voice, podcast, music, phone calls, and old recordings are right below it. Once it's done, compare the original and the result with the "Original" / "Result" buttons, and download once you're happy with it.
@@ -27,4 +29,4 @@ What this tool does:
 - Makes voices sound clearer
 - Runs entirely in your browser — files never get uploaded to a server
 
-The result is always MP3. Need a different format? Use the [audio converter](/en/audio-converter) — it supports MP3, WAV, M4A, OGG, FLAC, Opus, WMA, and AIFF.
+Save as MP3, WAV, or M4A — pick the format before processing so a WAV upload doesn't turn into MP3 unnecessarily. Need something else — OGG, FLAC, Opus, and so on — use the [audio converter](/en/audio-converter).

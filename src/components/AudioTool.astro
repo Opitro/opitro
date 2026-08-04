@@ -216,6 +216,14 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     {controls === 'select' && config.presetCards && (
       <div class="preset-desc" id="preset-desc" style="display:none"></div>
     )}
+    {controls === 'select' && config.presetCards && config.formats && (
+      <div class="field enhance-format-field">
+        <label for="ctrl-format">{labels.enhanceFormatLabel}</label>
+        <select id="ctrl-format">
+          {config.formats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+        </select>
+      </div>
+    )}
     {controls === 'select' && config.abCompare && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
@@ -892,6 +900,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         // Same as any preset card -- preview only (process + auto-play, no download). The
         // separate Download button is the only thing that ever downloads a file.
         if (file) runFfmpegProcess(false);
+      });
+    }
+    const enhanceFormatSel = root.querySelector('.enhance-format-field #ctrl-format');
+    if (enhanceFormatSel) {
+      enhanceFormatSel.addEventListener('change', () => {
+        // The cached result is now the wrong format to just hand out -- clear it so Download
+        // is disabled again until a fresh preview runs in the newly-picked format.
+        lastResultBlob = null;
+        lastResultBuffer = null;
+        lastResultPreset = null;
+        if (runBtn) runBtn.disabled = true;
+        if (abResultBtn) abResultBtn.disabled = true;
       });
     }
 

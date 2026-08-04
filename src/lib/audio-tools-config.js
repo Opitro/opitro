@@ -628,6 +628,10 @@ export const AUDIO_TOOLS = {
     presetCards: true,
     abCompare: true,
     runLabel: 'enhanceRunLabel',
+    // Output format choice -- was hardcoded to MP3, which meant a WAV upload always came back
+    // lossy even though nothing about "enhance" should force that. MP3/WAV/M4A cover the
+    // popular cases without turning this into the full Convert tool.
+    formats: ['mp3', 'wav', 'm4a'],
     selectLabel: 'enhancePresetLabel',
     // `hero: true` marks the entry driven by the big standalone button above the cards, not a
     // card of its own -- there's no separate "pick Auto" click, the hero button IS that choice.
@@ -639,7 +643,12 @@ export const AUDIO_TOOLS = {
       { value: 'call', emoji: '📞', label: 'enhanceCallLabel', desc: 'enhanceCallDesc' },
       { value: 'old', emoji: '📼', label: 'enhanceOldLabel', desc: 'enhanceOldDesc' },
     ],
-    output: () => MP3_OUT,
+    output: (params) => {
+      const format = params.format || 'mp3';
+      if (format === 'wav') return { outputName: 'out.wav', mimeType: 'audio/wav', ext: 'wav' };
+      if (format === 'm4a') return { outputName: 'out.m4a', mimeType: 'audio/mp4', ext: 'm4a' };
+      return MP3_OUT;
+    },
     buildArgs: ([inp], out, params) => {
       const presets = {
         auto: { nr: 10, i: -16, hp: 0, presence: 0 },
@@ -654,6 +663,9 @@ export const AUDIO_TOOLS = {
       if (p.hp) filters.push(`highpass=f=${p.hp}`);
       if (p.presence) filters.push(`equalizer=f=3000:t=q:w=1.5:g=${p.presence}`);
       filters.push(`loudnorm=I=${p.i}:TP=-1.5:LRA=11`);
+      const format = params.format || 'mp3';
+      if (format === 'wav') return ['-i', inp, '-af', filters.join(','), out];
+      if (format === 'm4a') return ['-i', inp, '-af', filters.join(','), '-c:a', 'aac', '-b:a', '192k', out];
       return ['-i', inp, '-af', filters.join(','), '-b:a', '192k', out];
     },
   },
