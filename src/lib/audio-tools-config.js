@@ -25,6 +25,37 @@ const EQ_BANDS = [
   { id: 'b16k', freq: 16000, label: '16k' },
 ];
 
+// Writes a linear fade-in/fade-out envelope onto a GainNode's `gain` AudioParam.
+//
+// `offset` is where playback starts inside the track (0 for an offline render, the current
+// position when re-scheduling a live preview mid-playback) and `now` is the context clock time
+// that offset corresponds to. Everything is expressed relative to those two so the SAME function
+// drives both the live preview and the exported file -- there's no second implementation that
+// could drift from what the user actually heard.
+//
+// Linear rather than exponential: exponential can't reach or leave true zero, so it needs a
+// 0.0001 fudge at both ends, and over a long fade the early part is nearly inaudible, which
+// reads as "the fade doesn't start until later".
+function scheduleFadeAutomation(param, offset, total, fadeIn, fadeOut, now) {
+  const fi = Math.max(0, Math.min(fadeIn, total));
+  // Overlapping fades would fight over the same stretch of time; give fade-in what it asked for
+  // and let fade-out use whatever is left.
+  const fo = Math.max(0, Math.min(fadeOut, total - fi));
+  const foStart = total - fo;
+  param.cancelScheduledValues(now);
+
+  let level = 1;
+  if (fi > 0 && offset < fi) level = offset / fi;
+  else if (fo > 0 && offset >= foStart) level = Math.max(0, (total - offset) / fo);
+  param.setValueAtTime(level, now);
+
+  if (fi > 0 && offset < fi) param.linearRampToValueAtTime(1, now + (fi - offset));
+  if (fo > 0) {
+    if (offset < foStart) param.setValueAtTime(1, now + (foStart - offset));
+    param.linearRampToValueAtTime(0, now + (total - offset));
+  }
+}
+
 // Returns the chain's last node plus the filter list, so the live-preview caller can keep the
 // filters around and tweak `.gain.value` on them while audio is playing (that's what makes
 // dragging a slider audible instantly instead of needing a re-render).
@@ -318,21 +349,32 @@ export const AUDIO_TOOLS = {
   },
 
   fade: {
+    // Fade in / fade out only -- everything else (trim, volume, EQ...) has its own page.
+    // Preview is live: a single GainNode whose automation is (re)scheduled from the current
+    // playback position, so moving a slider is audible immediately without re-rendering.
+    // scheduleFadeAutomation is shared with the offline export render below, so the preview and
+    // the downloaded file follow exactly the same curve.
     engine: 'webaudio',
-    controls: 'fade',
+    controls: 'fade2',
     accept: 'audio/*',
+    abCompare: true,
+    compactPreview: true,
+    transport: true,
+    fadeRegions: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    readyNote: true,
+    fadeMax: 15,
+    fadePresets: [
+      { key: 'soft', emoji: '🎵', label: 'fadeSoftStartLabel', fadeIn: 2, fadeOut: 0 },
+      { key: 'outro', emoji: '🌅', label: 'fadeSmoothEndLabel', fadeIn: 0, fadeOut: 3 },
+      { key: 'movie', emoji: '🎬', label: 'fadeMovieLabel', fadeIn: 3, fadeOut: 3 },
+      { key: 'music', emoji: '🎧', label: 'fadeMusicLabel', fadeIn: 1, fadeOut: 5 },
+      { key: 'none', emoji: '➖', label: 'fadeNoneLabel', fadeIn: 0, fadeOut: 0 },
+    ],
+    scheduleFade: scheduleFadeAutomation,
     render: (oc, src, { fadeIn, fadeOut }) => {
       const g = oc.createGain();
-      const dur = src.buffer.duration;
-      const fi = Math.min(Number(fadeIn) || 0, dur / 2);
-      const fo = Math.min(Number(fadeOut) || 0, dur / 2);
-      g.gain.setValueAtTime(0.0001, 0);
-      if (fi > 0) g.gain.exponentialRampToValueAtTime(1, fi);
-      else g.gain.setValueAtTime(1, 0);
-      if (fo > 0) {
-        g.gain.setValueAtTime(1, Math.max(fi, dur - fo));
-        g.gain.exponentialRampToValueAtTime(0.0001, dur);
-      }
+      scheduleFadeAutomation(g.gain, 0, src.buffer.duration, Number(fadeIn) || 0, Number(fadeOut) || 0, 0);
       src.connect(g);
       return g;
     },

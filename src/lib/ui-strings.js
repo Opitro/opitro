@@ -149,6 +149,15 @@ export const UI = {
       enhanceHeroLabel: 'Improve automatically',
       enhanceOrPickLabel: 'or pick a scenario',
       eqResetLabel: 'Reset equalizer',
+      fadeInCardLabel: 'Fade in',
+      fadeOutCardLabel: 'Fade out',
+      secShortLabel: 'sec',
+      fadeReadyLabel: 'Effects ready to save',
+      fadeSoftStartLabel: 'Soft start',
+      fadeSmoothEndLabel: 'Smooth ending',
+      fadeMovieLabel: 'Movie',
+      fadeMusicLabel: 'Music',
+      fadeNoneLabel: 'No effects',
       // One word per band, so it's obvious what a slider actually changes without needing to
       // know what "250 Hz" sounds like. The title attribute carries the same text on hover.
       eqBandRoles: {
@@ -324,6 +333,15 @@ export const UI = {
       enhanceHeroLabel: 'Улучшить автоматически',
       enhanceOrPickLabel: 'или выберите сценарий',
       eqResetLabel: 'Сбросить эквалайзер',
+      fadeInCardLabel: 'Плавное появление',
+      fadeOutCardLabel: 'Плавное затухание',
+      secShortLabel: 'сек',
+      fadeReadyLabel: 'Эффекты готовы к сохранению',
+      fadeSoftStartLabel: 'Мягкое начало',
+      fadeSmoothEndLabel: 'Плавное завершение',
+      fadeMovieLabel: 'Кино',
+      fadeMusicLabel: 'Музыка',
+      fadeNoneLabel: 'Без эффектов',
       eqBandRoles: {
         b31: 'Суббас', b62: 'Бас', b125: 'Низ', b250: 'Тело', b500: 'Мутность',
         b1k: 'Голос', b2k: 'Чёткость', b4k: 'Атака', b8k: 'Яркость', b16k: 'Воздух',

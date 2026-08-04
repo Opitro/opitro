@@ -76,6 +76,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </button>
         <canvas id="wave-canvas"></canvas>
+        {config.fadeRegions && <div class="fade-region fade-region-in" id="fade-region-in"></div>}
+        {config.fadeRegions && <div class="fade-region fade-region-out" id="fade-region-out"></div>}
         {config.transport ? (
           <span class="wave-duration"><b id="transport-cur">0:00</b> / <span id="transport-dur">0:00</span></span>
         ) : (
@@ -263,26 +265,43 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             </button>
           ))}
         </div>
-        <div class="field">
-          <label for="eq-format">{labels.enhanceFormatLabel}</label>
-          <select id="eq-format">
-            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
-          </select>
-        </div>
-        <button type="button" class="act primary eq-download-btn" id="eq-download-btn" disabled>⬇ {labels.downloadResultLabel}</button>
       </>
     )}
 
-    {(controls === 'fade' || controls === 'trim') && (
+    {controls === 'trim' && (
       <div class="row">
         <div class="field">
           <label for="ctrl-fadein">{labels.fadeInLabel}</label>
-          <input type="number" id="ctrl-fadein" min="0" max="30" value={controls === 'trim' ? 0 : 2}>
+          <input type="number" id="ctrl-fadein" min="0" max="30" value="0">
         </div>
         <div class="field">
           <label for="ctrl-fadeout">{labels.fadeOutLabel}</label>
-          <input type="number" id="ctrl-fadeout" min="0" max="30" value={controls === 'trim' ? 0 : 2}>
+          <input type="number" id="ctrl-fadeout" min="0" max="30" value="0">
         </div>
+      </div>
+    )}
+    {controls === 'fade2' && (
+      <div class="fade-cards">
+        <div class="fade-card">
+          <label class="fade-card-title" for="ctrl-fadein">{labels.fadeInCardLabel}</label>
+          <input type="range" id="ctrl-fadein" min="0" max={config.fadeMax} step="0.5" value="0">
+          <span class="fade-card-val" id="fadein-val">0 {labels.secShortLabel}</span>
+        </div>
+        <div class="fade-card">
+          <label class="fade-card-title" for="ctrl-fadeout">{labels.fadeOutCardLabel}</label>
+          <input type="range" id="ctrl-fadeout" min="0" max={config.fadeMax} step="0.5" value="0">
+          <span class="fade-card-val" id="fadeout-val">0 {labels.secShortLabel}</span>
+        </div>
+      </div>
+    )}
+    {controls === 'fade2' && (
+      <div class="preset-cards" id="fade-presets">
+        {config.fadePresets.map((p) => (
+          <button type="button" class="preset-card" data-preset={p.key}>
+            <span class="pc-emoji">{p.emoji}</span>
+            <span class="pc-label">{labels[p.label] || p.key}</span>
+          </button>
+        ))}
       </div>
     )}
     {controls === 'trim' && (
@@ -349,11 +368,25 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
     {!isRingtoneTargets && <AdSlot />}
 
-    {!isFfmpeg && controls !== 'eq10' && (
+    {!isFfmpeg && !config.downloadFormats && (
       <div class="controls" id="download-row" style="display:none">
         <button class="act primary" id="dl-mp3-btn">{labels.downloadMp3Label}</button>
         <button class="act" id="dl-wav-btn">{labels.downloadWavLabel}</button>
       </div>
+    )}
+    {/* Shared export bar for webaudio tools that offer a format choice and a single Download
+        button (equalizer, fade). Disabled until the tool reports the user has changed something. */}
+    {config.downloadFormats && (
+      <>
+        <div class="field">
+          <label for="tool-format">{labels.enhanceFormatLabel}</label>
+          <select id="tool-format">
+            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+          </select>
+        </div>
+        <button type="button" class="act primary tool-download-btn" id="tool-download-btn" disabled>⬇ {labels.downloadResultLabel}</button>
+        {config.readyNote && <div class="ready-note" id="ready-note" style="display:none">{labels.fadeReadyLabel}</div>}
+      </>
     )}
 
     {isRingtoneTargets && <div class="guide" id="ringtone-guide"></div>}
@@ -500,12 +533,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     function invalidateRender() {
       renderedBuffer = null;
       if (downloadRow) downloadRow.style.display = 'none';
-      // The EQ adjusts a LIVE filter chain, so a settings change must not interrupt playback --
-      // stopping here silently killed the audio on every slider move (and left the play icon
-      // showing "pause", since that icon isn't the one this function resets). Only the cached
-      // export render is invalidated for it; everything else still stops, because for those
-      // tools the playing buffer really is the now-stale result.
-      if (config.controls === 'eq10') return;
+      // Tools that adjust a LIVE graph (EQ, fade) must not have playback interrupted by a
+      // settings change -- stopping here silently killed the audio on every slider move (and
+      // left the play icon showing "pause", since that icon isn't the one this function resets).
+      // Only the cached export render is invalidated for them; everything else still stops,
+      // because for those tools the playing buffer really is the now-stale result.
+      if (LIVE_CHAIN_TOOLS[config.controls]) return;
       player.reset();
       if (listenIco) listenIco.innerHTML = ICO_PLAY;
       if (listenLabel) listenLabel.textContent = isGeneratorLabel();
@@ -779,16 +812,18 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         scheduleWaveformDraw(sourceBuffer);
         if (listenBtn) listenBtn.disabled = false;
         invalidateRender();
-        // The EQ's "processed" side needs nothing rendered up front (it's a live filter chain),
-        // so both A/B halves and the transport are usable the moment a file decodes.
-        if (config.controls === 'eq10') {
+        // Live-graph tools (EQ, fade) need nothing rendered up front, so both A/B halves and
+        // the transport are usable the moment a file decodes.
+        if (LIVE_CHAIN_TOOLS[config.controls]) {
           if (abCompareEl) abCompareEl.style.display = 'flex';
           if (abResultBtn) abResultBtn.disabled = false;
           if (wavePlayBtn) wavePlayBtn.disabled = false;
           if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
           if (transportCurEl) transportCurEl.textContent = '0:00';
+          exportedClean = false;
           eqSyncState();
           renderFileMeta(f);
+          updateFadeRegions();
         }
       }
     }
@@ -1058,8 +1093,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // into the playing filters' gain, audible instantly with no re-render. The identical band
     // values feed an OfflineAudioContext render only when exporting.
     let eqLiveFilters = [];
-    const eqDownloadBtn = root.querySelector('#eq-download-btn');
-    const eqFormatSel = root.querySelector('#eq-format');
+    const eqDownloadBtn = root.querySelector('#tool-download-btn');
+    const eqFormatSel = root.querySelector('#tool-format');
+    const readyNoteEl = root.querySelector('#ready-note');
+    let exportedClean = false;
     function eqBandGains() {
       const gains = {};
       (config.bands || []).forEach((b) => {
@@ -1076,9 +1113,65 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       eqLiveFilters = built.filters;
       return built.output;
     }
+
+    // ---- Fade in / fade out state ------------------------------------------------------------
+    // One GainNode whose automation is re-scheduled from the CURRENT playback position whenever a
+    // slider moves, so the change is heard immediately rather than after re-rendering the file.
+    let fadeLiveGain = null;
+    let fadeLiveCtx = null;
+    const fadeInEl = root.querySelector('#ctrl-fadein');
+    const fadeOutEl = root.querySelector('#ctrl-fadeout');
+    function fadeValues() {
+      return {
+        fadeIn: fadeInEl ? Number(fadeInEl.value) || 0 : 0,
+        fadeOut: fadeOutEl ? Number(fadeOutEl.value) || 0 : 0,
+      };
+    }
+    function fadeChainBuilder(ctx, srcNode, startOffset) {
+      const g = ctx.createGain();
+      const { fadeIn, fadeOut } = fadeValues();
+      config.scheduleFade(g.gain, startOffset, dur, fadeIn, fadeOut, ctx.currentTime);
+      srcNode.connect(g);
+      fadeLiveGain = g;
+      fadeLiveCtx = ctx;
+      return g;
+    }
+    function fadeReschedule() {
+      if (!fadeLiveGain || !fadeLiveCtx || !player.isPlaying()) return;
+      const { fadeIn, fadeOut } = fadeValues();
+      config.scheduleFade(fadeLiveGain.gain, player.getPosition(), dur, fadeIn, fadeOut, fadeLiveCtx.currentTime);
+    }
+    // Green gradient bands drawn over the start/end of the waveform, sized to the fade lengths.
+    // Positioned against the canvas (not the shell) because the compact player puts a play
+    // button before it, so the shell's left edge isn't where the waveform starts.
+    function updateFadeRegions() {
+      const inEl = root.querySelector('#fade-region-in');
+      const outEl = root.querySelector('#fade-region-out');
+      if (!inEl || !outEl || !waveCanvas) return;
+      const { fadeIn, fadeOut } = fadeValues();
+      const base = waveCanvas.offsetLeft;
+      const W = waveCanvas.clientWidth;
+      if (dur <= 0 || W < 1) { inEl.style.display = 'none'; outEl.style.display = 'none'; return; }
+      const inW = Math.min(W, (Math.min(fadeIn, dur) / dur) * W);
+      const outW = Math.min(W - inW, (Math.min(fadeOut, dur) / dur) * W);
+      inEl.style.display = inW > 0 ? 'block' : 'none';
+      inEl.style.left = base + 'px';
+      inEl.style.width = inW + 'px';
+      outEl.style.display = outW > 0 ? 'block' : 'none';
+      outEl.style.left = (base + W - outW) + 'px';
+      outEl.style.width = outW + 'px';
+    }
+
+    // Whether the user has actually changed anything -- drives the shared Download button.
+    function toolIsDirty() {
+      if (config.controls === 'eq10') return !eqIsFlat();
+      if (config.controls === 'fade2') { const v = fadeValues(); return v.fadeIn > 0 || v.fadeOut > 0; }
+      return true;
+    }
     function eqSyncState() {
-      const touched = !eqIsFlat();
+      const touched = toolIsDirty();
       if (eqDownloadBtn) eqDownloadBtn.disabled = !touched || !sourceBuffer;
+      if (readyNoteEl) readyNoteEl.style.display = touched && !exportedClean && sourceBuffer ? 'block' : 'none';
     }
 
     let lastResultBuffer = null;
@@ -1094,12 +1187,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // For ffmpeg tools (enhance) the "result" is a separately-decoded processed buffer. For the
     // EQ it's the SAME buffer played through a live filter chain instead -- nothing has to be
     // rendered up front, which is what makes its A/B switch and its sliders instant.
+    // Tools whose "processed" side is a live graph (EQ, fade) always play the SAME buffer --
+    // the difference is only whether the processing chain is inserted. Nothing has to be
+    // rendered up front, which is what makes their A/B switch and sliders instant.
+    const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder };
     function currentAbBuffer() {
-      if (config.controls === 'eq10') return sourceBuffer;
+      if (LIVE_CHAIN_TOOLS[config.controls]) return sourceBuffer;
       return abSelected === 'result' ? lastResultBuffer : sourceBuffer;
     }
     function currentAbChain() {
-      return config.controls === 'eq10' && abSelected === 'result' ? eqChainBuilder : null;
+      const get = LIVE_CHAIN_TOOLS[config.controls];
+      return get && abSelected === 'result' ? get() : null;
     }
     function stopAB() {
       player.stop();
@@ -1202,7 +1300,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           } else blob = encodeWAV(rendered);
           progressFill.style.width = '100%';
           progressText.textContent = labels.doneLabel;
-          downloadBlob(blob, `${base}-eq.${fmt}`);
+          downloadBlob(blob, `${base}-${config.controls === 'fade2' ? 'fade' : 'eq'}.${fmt}`);
+          exportedClean = true;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
           progress.classList.remove('on');
@@ -1223,6 +1322,36 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     const rtVolumeVal = root.querySelector('#rt-volume-val');
     if (rtVolumeEl && rtVolumeVal) {
       rtVolumeEl.addEventListener('input', () => { rtVolumeVal.textContent = rtVolumeEl.value + '%'; });
+    }
+    if (config.controls === 'fade2') {
+      const sec = labels.secShortLabel || 'sec';
+      function onFadeInput() {
+        if (fadeInEl) root.querySelector('#fadein-val').textContent = `${fadeInEl.value} ${sec}`;
+        if (fadeOutEl) root.querySelector('#fadeout-val').textContent = `${fadeOutEl.value} ${sec}`;
+        exportedClean = false;
+        eqSyncState();
+        updateFadeRegions();
+        invalidateRender();
+        fadeReschedule();
+        // Adjusting a fade while listening to the untouched original would be silent -- flip to
+        // the processed side so the change you just made is what you actually hear.
+        if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
+      }
+      [fadeInEl, fadeOutEl].forEach((el) => el && el.addEventListener('input', onFadeInput));
+      const fadePresetsEl = root.querySelector('#fade-presets');
+      if (fadePresetsEl) {
+        fadePresetsEl.querySelectorAll('.preset-card').forEach((card) => {
+          card.addEventListener('click', () => {
+            const p = (config.fadePresets || []).find((x) => x.key === card.dataset.preset);
+            if (!p) return;
+            fadePresetsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+            card.classList.add('active');
+            if (fadeInEl) fadeInEl.value = String(p.fadeIn);
+            if (fadeOutEl) fadeOutEl.value = String(p.fadeOut);
+            onFadeInput();
+          });
+        });
+      }
     }
     if (config.controls === 'eq10') {
       (config.bands || []).forEach((b, i) => {
@@ -1998,6 +2127,22 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
      route (Chrome/Firefox), `-webkit-appearance: slider-vertical` is what Safari still needs.
      `direction: rtl` is what puts the maximum at the TOP under writing-mode -- without it a
      boost would read as dragging downward. */
+  /* ---- Fade in / fade out ----
+     Two side-by-side cards on desktop, stacked full-width on mobile so the sliders stay big
+     enough to drag with a thumb and nothing ever scrolls sideways. */
+  .audio-tool .fade-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
+  .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
+  .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
+  .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  /* Sits over the waveform, so pointer-events off -- tapping there must still seek. */
+  .audio-tool .fade-region{position:absolute;top:0;bottom:0;z-index:2;pointer-events:none;display:none}
+  .audio-tool .fade-region-in{background:linear-gradient(90deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
+  .audio-tool .fade-region-out{background:linear-gradient(270deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
+  .audio-tool .ready-note{font-size:12.5px;color:var(--accent);margin-top:10px;text-align:center}
+  .audio-tool .tool-download-btn{width:100%}
+
   .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .eq-reset-btn{flex:1 1 160px;min-width:0;padding:10px 16px;font-size:13px}
   .audio-tool .eq-bands-scroll{overflow-x:auto;overflow-y:hidden;margin-bottom:18px;padding-bottom:4px}
@@ -2008,7 +2153,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .eq-band-role{font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.75;text-align:center;line-height:1.15;margin-top:-3px}
   .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;-webkit-appearance:slider-vertical;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
   @media(max-width:768px){.audio-tool .eq-bands{justify-content:flex-start}.audio-tool .eq-band{flex:0 0 48px}}
-  .audio-tool .eq-download-btn{width:100%}
 
   .audio-tool .wave-duration b{color:var(--text)}
 
