@@ -101,6 +101,7 @@ export const UI = {
       batchZippingLabel: 'Packing into a ZIP…',
       batchTooManyLabel: 'Max {n} files per batch.',
       batchTooLargeLabel: 'Batch total exceeds {n} MB — remove a file or convert it separately.',
+      removeFileLabel: 'Remove this file',
       formatHints: {
         mp3: 'Universal, small size — music, podcasts, voice memos.',
         m4a: 'Better quality than MP3 at the same size — Apple devices, audiobooks.',
@@ -238,6 +239,7 @@ export const UI = {
       batchZippingLabel: 'Упаковка в ZIP…',
       batchTooManyLabel: 'Максимум {n} файлов за раз.',
       batchTooLargeLabel: 'Суммарный размер больше {n} МБ — уберите файл или сконвертируйте его отдельно.',
+      removeFileLabel: 'Убрать этот файл',
       formatHints: {
         mp3: 'Универсальный, небольшой размер — музыка, подкасты, голосовые заметки.',
         m4a: 'Лучше качество, чем у MP3 при том же размере — устройства Apple, аудиокниги.',
