@@ -99,6 +99,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <div class="playhead" id="playhead"></div>
       </div>
     )}
+    {/* Progress sits directly under the waveform, where the thing it reports on is happening.
+        It used to live at the very bottom of the page, far below the fold on every tool, which
+        meant "reading the file…" and processing progress were effectively invisible. */}
+    <div class="progress" id="audio-progress">
+      <div class="progress-bar"><div class="progress-fill" id="audio-progress-fill"></div></div>
+      <div class="progress-text" id="audio-progress-text"></div>
+    </div>
     {config.abCompare && (
       <div class="ab-pill" id="ab-compare" style="display:none">
         <button type="button" class="ab-pill-seg active" id="ab-original-btn" data-which="original">{labels.abOriginalLabel}</button>
@@ -280,6 +287,38 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         </div>
       </div>
     )}
+    {controls === 'voicefx' && (
+      <>
+        <div class="preset-cards" id="voice-fx">
+          {config.voiceEffects.map((e) => (
+            <button type="button" class="preset-card" data-effect={e.key} data-desc={labels[e.desc] || ''}>
+              <span class="pc-emoji">{e.emoji}</span>
+              <span class="pc-label">{labels[e.label] || e.key}</span>
+            </button>
+          ))}
+        </div>
+        <div class="preset-desc" id="voice-desc" style="display:none"></div>
+        <div class="fade-card pitch-card" id="voice-intensity-wrap" style="display:none">
+          <label class="fade-card-title" for="voice-intensity">{labels.voiceIntensityLabel}</label>
+          <input type="range" id="voice-intensity" min="0" max="100" step="5" value="60">
+          <span class="fade-card-val" id="voice-intensity-val">60%</span>
+        </div>
+      </>
+    )}
+    {controls === 'pitch1' && (
+      <div class="fade-cards">
+        <div class="fade-card">
+          <label class="fade-card-title" for="ctrl-slider">{labels.pitchSemitonesLabel}</label>
+          <input type="range" id="ctrl-slider" min={config.semitoneMin} max={config.semitoneMax} step="1" value="0">
+          <span class="fade-card-val" id="pitch-val">{labels.pitchUnchangedLabel}</span>
+        </div>
+        <div class="fade-card">
+          <label class="fade-card-title" for="ctrl-cents">{labels.pitchCentsLabel}</label>
+          <input type="range" id="ctrl-cents" min={config.centsMin} max={config.centsMax} step="1" value="0">
+          <span class="fade-card-val" id="cents-val">0 {labels.centsShortLabel}</span>
+        </div>
+      </div>
+    )}
     {controls === 'fade2' && (
       <div class="fade-cards">
         <div class="fade-card">
@@ -355,7 +394,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
 
     <div class="controls">
-      {!isFfmpeg && !isRingtoneTargets && controls !== 'eq10' && (
+      {/* Tools with their own transport + export bar (config.downloadFormats) don't want the
+          old generic Process/Listen button -- keyed off that capability rather than a list of
+          control names, which is what let it linger on three pages after only one was excluded
+          by name. */}
+      {!isFfmpeg && !isRingtoneTargets && !config.downloadFormats && (
         <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
           <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
@@ -390,11 +433,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
 
     {isRingtoneTargets && <div class="guide" id="ringtone-guide"></div>}
-
-    <div class="progress" id="audio-progress">
-      <div class="progress-bar"><div class="progress-fill" id="audio-progress-fill"></div></div>
-      <div class="progress-text" id="audio-progress-text"></div>
-    </div>
 
     <div class="err" id="audio-err"></div>
   </div>
@@ -449,6 +487,24 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     const progressFill = root.querySelector('#audio-progress-fill');
     const progressText = root.querySelector('#audio-progress-text');
     const errBox = root.querySelector('#audio-err');
+
+    // The progress strip is feedback, not a permanent status line -- leaving "Done!" sitting at
+    // the bottom of the page forever told nobody anything (and lived below the fold anyway).
+    // finishProgress() shows the result briefly and then clears it.
+    let progressHideTimer = 0;
+    function showProgress(text, pct) {
+      clearTimeout(progressHideTimer);
+      progress.classList.add('on');
+      progressFill.style.width = (pct == null ? 0 : pct) + '%';
+      progressText.textContent = text;
+    }
+    function finishProgress(text) {
+      clearTimeout(progressHideTimer);
+      progress.classList.add('on');
+      progressFill.style.width = '100%';
+      progressText.textContent = text;
+      progressHideTimer = window.setTimeout(() => progress.classList.remove('on'), 2500);
+    }
 
     let file = null;
     let files = [];
@@ -741,8 +797,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         // exists for both the canvas and simple-preview variants; only the draw call itself
         // needs the canvas.
         if (waveShell) {
+          showProgress(labels.decodingLabel || labels.preparingLabel, 25);
           try {
             const decoded = await decodeFileRobust(f);
+            progress.classList.remove('on');
             sourceBuffer = decoded.buffer;
             if (decoded.replacementFile) file = decoded.replacementFile;
             dur = sourceBuffer.duration;
@@ -783,6 +841,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             if (timesEl) timesEl.style.display = 'none';
             const inputsRow = inStart ? inStart.closest('.row') : null;
             if (inputsRow) inputsRow.style.display = 'none';
+            progress.classList.remove('on');
             showError(labels.noPreviewLabel || labels.decodeErrorLabel);
           }
         }
@@ -795,12 +854,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       // itself. A real decode failure still gets the real message; a code bug now surfaces as a
       // code bug instead of blaming the user's file.
       let decoded;
+      // Decoding a longer file takes a few seconds, during which the play button is necessarily
+      // disabled -- with no feedback that read as a dead button rather than as "still loading".
+      showProgress(labels.decodingLabel || labels.preparingLabel, 25);
       try {
         decoded = await decodeFileRobust(f);
       } catch (e) {
+        progress.classList.remove('on');
         showError(labels.decodeErrorLabel);
         return;
       }
+      progress.classList.remove('on');
       {
         sourceBuffer = decoded.buffer;
         if (decoded.replacementFile) file = decoded.replacementFile;
@@ -812,9 +876,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         scheduleWaveformDraw(sourceBuffer);
         if (listenBtn) listenBtn.disabled = false;
         invalidateRender();
-        // Live-graph tools (EQ, fade) need nothing rendered up front, so both A/B halves and
-        // the transport are usable the moment a file decodes.
-        if (LIVE_CHAIN_TOOLS[config.controls]) {
+        // Live-graph tools (EQ, fade) and render-on-demand tools (pitch, voice) both have their
+        // A/B halves and transport usable the moment a file decodes -- the latter just render
+        // lazily the first time the processed side is actually asked for.
+        if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (abCompareEl) abCompareEl.style.display = 'flex';
           if (abResultBtn) abResultBtn.disabled = false;
           if (wavePlayBtn) wavePlayBtn.disabled = false;
@@ -1166,6 +1231,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     function toolIsDirty() {
       if (config.controls === 'eq10') return !eqIsFlat();
       if (config.controls === 'fade2') { const v = fadeValues(); return v.fadeIn > 0 || v.fadeOut > 0; }
+      if (config.controls === 'pitch1') {
+        const st = root.querySelector('#ctrl-slider'), ct = root.querySelector('#ctrl-cents');
+        return (!!st && Number(st.value) !== 0) || (!!ct && Number(ct.value) !== 0);
+      }
+      if (config.controls === 'voicefx') return !!root.querySelector('#voice-fx .preset-card.active');
       return true;
     }
     function eqSyncState() {
@@ -1184,20 +1254,48 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
     let waveSeekPos = null;
-    // For ffmpeg tools (enhance) the "result" is a separately-decoded processed buffer. For the
-    // EQ it's the SAME buffer played through a live filter chain instead -- nothing has to be
-    // rendered up front, which is what makes its A/B switch and its sliders instant.
-    // Tools whose "processed" side is a live graph (EQ, fade) always play the SAME buffer --
-    // the difference is only whether the processing chain is inserted. Nothing has to be
-    // rendered up front, which is what makes their A/B switch and sliders instant.
+    // Three different ways a tool can produce its "processed" side:
+    //  - LIVE_CHAIN_TOOLS (EQ, fade): same buffer, a processing graph inserted while it plays.
+    //    Nothing rendered up front, so A/B and sliders are instant.
+    //  - RENDERED_AB_TOOLS (pitch, voice): the transform is far too heavy for a live graph
+    //    (pitch-shifting rewrites every sample), so the processed side is an offline render,
+    //    computed on demand and cached by settings so re-selecting it is instant.
+    //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
     const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder };
+    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx'];
+    const isRenderedAb = RENDERED_AB_TOOLS.includes(config.controls);
     function currentAbBuffer() {
       if (LIVE_CHAIN_TOOLS[config.controls]) return sourceBuffer;
+      if (isRenderedAb) return abSelected === 'result' ? renderedBuffer : sourceBuffer;
       return abSelected === 'result' ? lastResultBuffer : sourceBuffer;
+    }
+    // Renders the processed side if it isn't cached yet, showing progress -- pitch-shifting a
+    // long file takes a moment and silently doing nothing would read as a broken button.
+    async function ensureAbResult() {
+      if (!isRenderedAb || abSelected !== 'result' || renderedBuffer) return true;
+      progress.classList.add('on');
+      progressFill.style.width = '40%';
+      progressText.textContent = labels.workingLabel;
+      try {
+        renderedBuffer = await doRender();
+        finishProgress(labels.previewDoneLabel || labels.doneLabel);
+        return true;
+      } catch (e) {
+        showError(e && e.message ? e.message : String(e));
+        progress.classList.remove('on');
+        return false;
+      }
     }
     function currentAbChain() {
       const get = LIVE_CHAIN_TOOLS[config.controls];
       return get && abSelected === 'result' ? get() : null;
+    }
+    // Position to resume from after a settings change. Must be read BEFORE stopAB(), which
+    // zeroes it. If the track had already finished, resuming at the very end would play
+    // nothing at all, so that case restarts from the beginning instead.
+    function resumePosition() {
+      const p = player.getPosition();
+      return (dur > 0 && p >= dur - 0.1) ? 0 : p;
     }
     function stopAB() {
       player.stop();
@@ -1249,23 +1347,34 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       // treated it as a play/pause toggle, so tapping the lit-up half of the pill paused the
       // audio. The pill selects; the round play button transports.
       if (abSelected === which) return;
+      const wasPlaying = player.isPlaying();
+      const resumeFrom = wasPlaying ? player.getPosition() : null;
       abSelected = which;
       if (abOriginalBtn) abOriginalBtn.classList.toggle('active', which === 'original');
       if (abResultBtn) abResultBtn.classList.toggle('active', which === 'result');
-      if (wavePlayBtn) wavePlayBtn.disabled = !currentAbBuffer();
       // Switching selection while something's playing continues on the new buffer instead of
-      // going silent -- playAB's own "switching sides" logic (above) picks up the position.
-      const buf = currentAbBuffer();
-      if (buf && player.isPlaying()) playAB(which, buf);
+      // going silent. For render-on-demand tools the buffer may not exist yet, so the render
+      // has to finish first -- the position is captured up front so the await doesn't lose it.
+      (async () => {
+        const ok = await ensureAbResult();
+        if (!ok || abSelected !== which) return;
+        const buf = currentAbBuffer();
+        if (wavePlayBtn) wavePlayBtn.disabled = !buf;
+        if (buf && wasPlaying) playAB(which, buf, resumeFrom ?? undefined);
+      })();
     }
     if (abOriginalBtn) abOriginalBtn.addEventListener('click', () => selectAbSide('original'));
     if (abResultBtn) abResultBtn.addEventListener('click', () => { if (!abResultBtn.disabled) selectAbSide('result'); });
     if (wavePlayBtn) {
-      wavePlayBtn.addEventListener('click', () => {
-        const buf = currentAbBuffer();
-        if (!buf) return;
+      wavePlayBtn.addEventListener('click', async () => {
+        // unlock() first and synchronously -- iOS only grants an AudioContext inside the
+        // original gesture call stack, and ensureAbResult() below may await.
+        player.unlock();
         const seek = waveSeekPos;
         waveSeekPos = null;
+        if (!(await ensureAbResult())) return;
+        const buf = currentAbBuffer();
+        if (!buf) return;
         playAB(abSelected, buf, seek ?? undefined);
       });
     }
@@ -1298,8 +1407,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               mimeType: 'audio/ogg',
             });
           } else blob = encodeWAV(rendered);
-          progressFill.style.width = '100%';
-          progressText.textContent = labels.doneLabel;
+          finishProgress(labels.doneLabel);
           downloadBlob(blob, `${base}-${config.controls === 'fade2' ? 'fade' : 'eq'}.${fmt}`);
           exportedClean = true;
         } catch (e) {
@@ -1318,6 +1426,89 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         invalidateRender();
       });
     }
+    if (config.controls === 'voicefx') {
+      const voiceFxEl = root.querySelector('#voice-fx');
+      const voiceDescEl = root.querySelector('#voice-desc');
+      const voiceIntensityWrap = root.querySelector('#voice-intensity-wrap');
+      const voiceIntensity = root.querySelector('#voice-intensity');
+      const voiceIntensityVal = root.querySelector('#voice-intensity-val');
+      let voiceTimer = 0;
+      async function applyVoiceSelection() {
+        // Capture the position BEFORE stopping -- stopAB() resets it to zero, which is why
+        // switching effects used to jump back to the start of the track instead of carrying on
+        // from where you were listening.
+        const resumeAt = resumePosition();
+        stopAB();
+        renderedBuffer = null;      // cached render belongs to the previous effect/intensity
+        exportedClean = false;
+        eqSyncState();
+        if (!sourceBuffer) return;
+        if (abSelected !== 'result') { selectAbSide('result'); return; }
+        if (!(await ensureAbResult())) return;
+        const buf = currentAbBuffer();
+        if (buf) playAB('result', buf, resumeAt);
+      }
+      voiceFxEl.querySelectorAll('.preset-card').forEach((card) => {
+        card.addEventListener('click', () => {
+          voiceFxEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+          card.classList.add('active');
+          if (voiceDescEl) {
+            voiceDescEl.textContent = card.dataset.desc || '';
+            voiceDescEl.style.display = card.dataset.desc ? 'block' : 'none';
+          }
+          // The intensity slider only makes sense once there's an effect to scale, so it stays
+          // hidden until one is picked rather than sitting there doing nothing.
+          if (voiceIntensityWrap) voiceIntensityWrap.style.display = 'flex';
+          applyVoiceSelection();
+        });
+      });
+      if (voiceIntensity) {
+        voiceIntensity.addEventListener('input', () => {
+          if (voiceIntensityVal) voiceIntensityVal.textContent = voiceIntensity.value + '%';
+          // Debounced, same reason as the pitch slider: each change is a full-file re-render.
+          clearTimeout(voiceTimer);
+          voiceTimer = window.setTimeout(applyVoiceSelection, 500);
+        });
+      }
+    }
+
+    if (config.controls === 'pitch1') {
+      const pitchSlider = root.querySelector('#ctrl-slider');
+      const centsSlider = root.querySelector('#ctrl-cents');
+      const pitchValEl = root.querySelector('#pitch-val');
+      const centsValEl = root.querySelector('#cents-val');
+      let pitchTimer = 0;
+      function onPitchInput() {
+        const v = Number(pitchSlider.value);
+        const c = centsSlider ? Number(centsSlider.value) : 0;
+        if (pitchValEl) {
+          pitchValEl.textContent = v === 0
+            ? labels.pitchUnchangedLabel
+            : `${v > 0 ? '+' : ''}${v} ${labels.semitonesShortLabel} (${v > 0 ? labels.pitchUpLabel : labels.pitchDownLabel})`;
+        }
+        if (centsValEl) centsValEl.textContent = `${c > 0 ? '+' : ''}${c} ${labels.centsShortLabel}`;
+        // Same as the voice tool: remember where we were before stopAB() zeroes it, so changing
+        // key carries on from the same spot rather than restarting the track.
+        const resumeAt = resumePosition();
+        stopAB();
+        renderedBuffer = null;        // cached render is for the previous value
+        exportedClean = false;
+        eqSyncState();
+        // Debounced: pitch-shifting is a full-file transform, so firing it on every pixel of
+        // slider travel would queue up renders nobody asked for. Half a second after the slider
+        // settles, render and play so there's no extra button to press.
+        clearTimeout(pitchTimer);
+        pitchTimer = window.setTimeout(async () => {
+          if (!sourceBuffer || !toolIsDirty()) return;
+          if (abSelected !== 'result') { selectAbSide('result'); return; }
+          if (!(await ensureAbResult())) return;
+          const buf = currentAbBuffer();
+          if (buf) playAB('result', buf, resumeAt);
+        }, 500);
+      }
+      [pitchSlider, centsSlider].forEach((el) => el && el.addEventListener('input', onPitchInput));
+    }
+
     const rtVolumeEl = root.querySelector('#rt-volume');
     const rtVolumeVal = root.querySelector('#rt-volume-val');
     if (rtVolumeEl && rtVolumeVal) {
@@ -1438,6 +1629,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       if (get('#ctrl-slider')) params.value = Number(get('#ctrl-slider').value);
       if (get('#ctrl-select')) params.value = get('#ctrl-select').value;
       if (config.controls === 'eq10') params.bands = eqBandGains();
+      if (get('#ctrl-cents')) params.cents = Number(get('#ctrl-cents').value);
+      if (config.controls === 'voicefx') {
+        const active = root.querySelector('#voice-fx .preset-card.active');
+        params.effect = active ? active.dataset.effect : null;
+        const inten = get('#voice-intensity');
+        params.intensity = inten ? Number(inten.value) : 60;
+      }
       if (get('#ctrl-fadein')) params.fadeIn = get('#ctrl-fadein').value;
       if (get('#ctrl-fadeout')) params.fadeOut = get('#ctrl-fadeout').value;
       if (get('#chk-fadein')) params.fadeIn = get('#chk-fadein').checked;
@@ -1807,7 +2005,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           const results = [];
           for (let i = 0; i < files.length; i++) {
             const f = files[i];
-            progressFill.style.width = '0%';
             progressText.textContent = `${labels.batchProcessingLabel || 'Processing'} ${i + 1}/${files.length}: ${f.name}`;
             try {
               const { outputName, mimeType, ext } = config.output(params);
@@ -1816,7 +2013,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
                 buildArgs: (inputNames, out) => config.buildArgs(inputNames, out, params),
                 outputName,
                 mimeType,
-                onProgress: (pct) => { progressFill.style.width = pct + '%'; },
+                // Overall batch progress, not per-file: the caption that used to say "3/12" is
+                // gone, so the bar has to carry that information itself -- otherwise it would
+                // reset to zero on every file and tell you nothing about how much is left.
+                onProgress: (pct) => {
+                  progressFill.style.width = (((i + pct / 100) / files.length) * 100).toFixed(1) + '%';
+                },
               });
               const base = f.name.replace(/\.[^.]+$/, '') || `file-${i + 1}`;
               results.push({ name: `${base}.${ext}`, blob });
@@ -1839,8 +2041,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               const zipBlob = await zip.generateAsync({ type: 'blob' });
               downloadFfmpegBlob(zipBlob, 'converted.zip');
             }
-            progressFill.style.width = '100%';
-            progressText.textContent = labels.doneLabel;
+            finishProgress(labels.doneLabel);
             runBtn.textContent = labels[config.runLabel] || labels.processLabel;
           } else {
             progress.classList.remove('on');
@@ -1864,8 +2065,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             },
           });
           const base = file.name.replace(/\.[^.]+$/, '') || 'audio';
-          progressFill.style.width = '100%';
-          progressText.textContent = download ? labels.doneLabel : (labels.previewDoneLabel || labels.doneLabel);
+          finishProgress(download ? labels.doneLabel : (labels.previewDoneLabel || labels.doneLabel));
           runBtn.textContent = labels[config.runLabel] || labels.processLabel;
           runBtn.onclick = null;
           if (download) downloadFfmpegBlob(blob, `${base}.${ext}`);
@@ -2053,8 +2253,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             }
 
             const base = `${(file.name.replace(/\.[^.]+$/, '') || 'ringtone')}-${target.key}`;
-            progressFill.style.width = '100%';
-            progressText.textContent = labels.doneLabel;
+            finishProgress(labels.doneLabel);
             downloadBlob(blob, `${base}.${target.fmt}`);
             const guideText = labels.targetGuides && labels.targetGuides[target.key];
             if (ringtoneGuide && guideText) {
@@ -2133,6 +2332,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .fade-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
   @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
   .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .audio-tool .pitch-card{margin-bottom:16px}
   .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
   .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
   .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
@@ -2173,11 +2373,17 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
   .audio-tool .ico{width:16px;height:16px;flex:none}
 
-  .audio-tool .progress{display:none;margin-top:16px}
-  .audio-tool .progress.on{display:block}
-  .audio-tool .progress-bar{height:6px;background:rgba(255,255,255,0.08);border-radius:6px;overflow:hidden}
+  /* Always occupies its (tiny) space and only fades in/out -- toggling display made the whole
+     page jump every time processing started or finished. Just the bar, no caption: the label
+     under it said nothing the bar itself didn't already show. */
+  /* Deliberately understated: 2px, semi-transparent, and a slow fade. The slow fade-in is the
+     point -- a quick operation now barely registers instead of flashing a bright bar, while a
+     genuinely long one still ramps up to clearly visible. */
+  .audio-tool .progress{height:2px;margin:10px 0;opacity:0;transition:opacity .35s ease}
+  .audio-tool .progress.on{opacity:.55}
+  .audio-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
   .audio-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
-  .audio-tool .progress-text{font-size:12px;color:var(--muted);margin-top:8px;text-align:center}
+  .audio-tool .progress-text{display:none}
 
   .audio-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
   .audio-tool .err.show{display:block}

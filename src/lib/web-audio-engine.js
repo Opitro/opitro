@@ -360,7 +360,16 @@ export function createPlayer() {
     // fixing it here means callers that don't (the A/B compare path) behave correctly too.
     const startedSource = source;
     source.onended = () => {
-      if (source === startedSource) { source = null; cancelAnimationFrame(rafId); }
+      if (source === startedSource) {
+        source = null;
+        cancelAnimationFrame(rafId);
+        // Rewind on a natural finish. `pausedAt` holds the offset playback STARTED from, and
+        // nothing was updating it when a track simply ran out -- so after playing from, say,
+        // 0:50 to the end, getPosition() still reported 0:50 and the next play resumed there
+        // instead of at the beginning. Reaching the end means the playhead is at the end, and
+        // the sensible next play is from the top.
+        pausedAt = 0;
+      }
       if (onEnded) onEnded();
     };
     source.start(0, pausedAt);

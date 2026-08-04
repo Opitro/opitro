@@ -56,6 +56,136 @@ function scheduleFadeAutomation(param, offset, total, fadeIn, fadeOut, now) {
   }
 }
 
+// ---- Voice effects -------------------------------------------------------------------------
+// Every effect here is something Web Audio can genuinely do well offline. There is deliberately
+// no "make it sound like a woman/man" effect: that needs real voice conversion, which a
+// pitch shift plus some EQ cannot fake convincingly.
+
+// Runs a node graph over a buffer in an OfflineAudioContext and hands back the rendered result.
+function renderGraph(buffer, build) {
+  const oc = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
+  const src = oc.createBufferSource();
+  src.buffer = buffer;
+  build(oc, src).connect(oc.destination);
+  src.start(0);
+  return oc.startRendering();
+}
+
+// tanh-shaped soft clipping. `drive` above ~3 starts sounding genuinely broken up, which is
+// exactly what the megaphone/radio effects want.
+function distortionCurve(drive) {
+  const curve = new Float32Array(1024);
+  for (let i = 0; i < 1024; i++) {
+    const x = (i / 1023) * 2 - 1;
+    curve[i] = Math.tanh(x * drive);
+  }
+  return curve;
+}
+
+// Band-limits the signal, which is what actually sells "telephone"/"radio"/"megaphone" -- the
+// characteristic sound of those devices is mostly their narrow frequency response.
+function bandPass(oc, src, lowHz, highHz) {
+  const hp = oc.createBiquadFilter();
+  hp.type = 'highpass'; hp.frequency.value = lowHz; hp.Q.value = 0.7;
+  const lp = oc.createBiquadFilter();
+  lp.type = 'lowpass'; lp.frequency.value = highHz; lp.Q.value = 0.7;
+  src.connect(hp); hp.connect(lp);
+  return lp;
+}
+
+// Mixes processed and dry signal by `amount` (0..1) so the intensity slider does something
+// meaningful for every effect rather than only for a few.
+function blendBuffers(dry, wet, amount) {
+  const out = new AudioBuffer({ numberOfChannels: dry.numberOfChannels, length: dry.length, sampleRate: dry.sampleRate });
+  for (let c = 0; c < dry.numberOfChannels; c++) {
+    const d = dry.getChannelData(c);
+    const w = wet.getChannelData(Math.min(c, wet.numberOfChannels - 1));
+    const o = out.getChannelData(c);
+    for (let i = 0; i < d.length; i++) o[i] = d[i] * (1 - amount) + (w[i] || 0) * amount;
+  }
+  return out;
+}
+
+async function applyVoiceEffect(buffer, effect, intensityPct) {
+  // 0 % must be a true no-op, and the slider should never fully mute the character of an
+  // effect the user explicitly picked, so it maps onto a 0.15..1 blend rather than 0..1.
+  const amount = Math.max(0, Math.min(1, (Number(intensityPct) || 0) / 100));
+  const mix = 0.15 + amount * 0.85;
+  const sr = buffer.sampleRate;
+  let wet;
+
+  if (effect === 'robot') {
+    // Ring modulation: multiply by a steady low-frequency sine. That single operation is what
+    // strips the natural pitch variation out of speech and makes it sound machine-generated.
+    const carrier = 45 + amount * 35;
+    wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: sr });
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const d = buffer.getChannelData(c);
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < d.length; i++) o[i] = d[i] * Math.sin((2 * Math.PI * carrier * i) / sr);
+    }
+    wet = await renderGraph(wet, (oc, src) => bandPass(oc, src, 200, 4000));
+  } else if (effect === 'phone') {
+    wet = await renderGraph(buffer, (oc, src) => {
+      const bp = bandPass(oc, src, 300, 3400);
+      const g = oc.createGain(); g.gain.value = 1.5;
+      bp.connect(g);
+      return g;
+    });
+  } else if (effect === 'radio') {
+    wet = await renderGraph(buffer, (oc, src) => {
+      const bp = bandPass(oc, src, 200, 5000);
+      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(1.6); sh.oversample = '2x';
+      const g = oc.createGain(); g.gain.value = 1.3;
+      bp.connect(sh); sh.connect(g);
+      return g;
+    });
+  } else if (effect === 'megaphone') {
+    wet = await renderGraph(buffer, (oc, src) => {
+      const bp = bandPass(oc, src, 500, 4000);
+      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(4.5); sh.oversample = '4x';
+      const peak = oc.createBiquadFilter();
+      peak.type = 'peaking'; peak.frequency.value = 1800; peak.Q.value = 1.2; peak.gain.value = 8;
+      const g = oc.createGain(); g.gain.value = 0.9;
+      bp.connect(sh); sh.connect(peak); peak.connect(g);
+      return g;
+    });
+  } else if (effect === 'retro') {
+    // Bit-depth quantization plus sample-and-hold decimation -- the two things that actually
+    // make audio sound like an early digital toy. Smooth resampling alone just sounds muffled.
+    const bits = 6 - Math.round(amount * 2);
+    const targetRate = 11025 - Math.round(amount * 3000);
+    const step = Math.max(1, Math.round(sr / targetRate));
+    const levels = Math.pow(2, bits);
+    wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: sr });
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const d = buffer.getChannelData(c);
+      const o = wet.getChannelData(c);
+      let held = 0;
+      for (let i = 0; i < d.length; i++) {
+        if (i % step === 0) held = Math.max(-1, Math.min(1, Math.round(d[i] * (levels / 2)) / (levels / 2)));
+        o[i] = held;
+      }
+    }
+  } else if (effect === 'deep' || effect === 'high' || effect === 'cartoon') {
+    const semis = effect === 'deep' ? -(3 + amount * 3)
+      : effect === 'high' ? (3 + amount * 3)
+      : (6 + amount * 4);
+    const shifted = pitchShift(buffer, semis);
+    wet = await renderGraph(shifted, (oc, src) => {
+      const eq = oc.createBiquadFilter();
+      if (effect === 'deep') { eq.type = 'lowshelf'; eq.frequency.value = 250; eq.gain.value = 4; }
+      else { eq.type = 'peaking'; eq.frequency.value = 3000; eq.Q.value = 1; eq.gain.value = 3; }
+      src.connect(eq);
+      return eq;
+    });
+  } else {
+    return buffer;
+  }
+
+  return blendBuffers(buffer, wet, mix);
+}
+
 // Returns the chain's last node plus the filter list, so the live-preview caller can keep the
 // filters around and tweak `.gain.value` on them while audio is playing (that's what makes
 // dragging a slider audible instantly instead of needing a re-render).
@@ -236,17 +366,53 @@ export const AUDIO_TOOLS = {
   },
 
   pitch: {
-    // Was literally the same playbackRate transform as speed (mislabeled -- it changed tempo
-    // too, not just pitch). Now a real pitch-shift with tempo locked, via resample+WSOLA.
+    // MUSIC transposition only -- one semitone slider and nothing else. Voice-character presets
+    // deliberately do NOT live here; they belong to the separate voice-effects tool, so the two
+    // pages don't turn into duplicates competing for the same searches.
+    // Real pitch-shift with tempo locked (resample + WSOLA), not the old playbackRate trick that
+    // changed speed along with pitch.
     engine: 'webaudio',
-    controls: 'slider',
+    controls: 'pitch1',
     accept: 'audio/*',
-    sliderLabel: 'pitchLabel',
-    sliderMin: -24,
-    sliderMax: 24,
-    sliderDefault: 0,
-    sliderUnit: ' st',
-    directRender: (buffer, { value }) => pitchShift(buffer, value || 0),
+    abCompare: true,
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    semitoneMin: -12,
+    semitoneMax: 12,
+    // Cents are hundredths of a semitone -- the fine-tuning musicians actually need: matching a
+    // recording that drifted off-pitch, lining two takes up that sit a quarter-tone apart, or
+    // retuning to A=432 instead of 440. Still the same single job (pitch), just a finer step.
+    centsMin: -50,
+    centsMax: 50,
+    directRender: (buffer, { value, cents }) => pitchShift(buffer, (value || 0) + (cents || 0) / 100),
+  },
+
+  voice: {
+    // VOICE EFFECTS, deliberately not "voice conversion". With Web Audio alone (no AI, no
+    // server) you cannot convincingly turn one person's voice into another's -- pitch shifting
+    // plus filtering just doesn't get there, and promising it would leave people disappointed.
+    // So the whole page is framed as effects that genuinely do sound right computed locally.
+    // Also: no semitone control anywhere here on purpose -- that's the pitch tool's job, and
+    // exposing one would make these two pages duplicates competing for the same searches.
+    engine: 'webaudio',
+    controls: 'voicefx',
+    accept: 'audio/*',
+    abCompare: true,
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    voiceEffects: [
+      { key: 'robot', emoji: '🤖', label: 'voiceRobotLabel', desc: 'voiceRobotDesc' },
+      { key: 'phone', emoji: '📞', label: 'voicePhoneLabel', desc: 'voicePhoneDesc' },
+      { key: 'radio', emoji: '📻', label: 'voiceRadioLabel', desc: 'voiceRadioDesc' },
+      { key: 'megaphone', emoji: '📢', label: 'voiceMegaphoneLabel', desc: 'voiceMegaphoneDesc' },
+      { key: 'retro', emoji: '👾', label: 'voiceRetroLabel', desc: 'voiceRetroDesc' },
+      { key: 'deep', emoji: '🎙', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
+      { key: 'high', emoji: '🐿', label: 'voiceHighLabel', desc: 'voiceHighDesc' },
+      { key: 'cartoon', emoji: '🎭', label: 'voiceCartoonLabel', desc: 'voiceCartoonDesc' },
+    ],
+    directRender: (buffer, params) => applyVoiceEffect(buffer, params.effect, params.intensity),
   },
 
   reverse: {
