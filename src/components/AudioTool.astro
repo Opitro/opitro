@@ -809,15 +809,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // change your mind was picking a replacement file; there was no way to just clear it.
     function resetFile() {
       file = null;
-      sourceBuffer = null;
-      dur = 0;
-      renderedBuffer = null;
-      stopAB();
-      lastResultBuffer = null;
-      lastResultBlob = null;
-      lastResultPreset = null;
-      waveSeekPos = null;
-      abSelected = 'original';
+      resetPlaybackState();
       if (runBtn && config.abCompare) runBtn.disabled = true;
       if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
       if (presetDescEl) presetDescEl.style.display = 'none';
@@ -828,6 +820,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       const fileMetaEl = root.querySelector('#file-meta');
       if (fileMetaEl) fileMetaEl.style.display = 'none';
       if (abCompareEl) abCompareEl.style.display = 'none';
+      const vizPlayer = root.querySelector('#viz-player');
+      if (vizPlayer) vizPlayer.style.display = 'none';
       if (abOriginalBtn) abOriginalBtn.classList.add('active');
       if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
       if (wavePlayBtn) wavePlayBtn.disabled = true;
@@ -836,8 +830,49 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       clearError();
     }
 
+    // Everything derived from the PREVIOUS file. Loading a new one has to run this or the
+    // player keeps happily playing audio the user just replaced (or deleted): invalidateRender()
+    // returns early for live-chain tools before it ever reaches player.reset(), and the ffmpeg
+    // path never called it at all, so nothing was stopping playback on a new upload.
+    function resetPlaybackState() {
+      stopAB();
+      player.reset();
+      sourceBuffer = null;
+      renderedBuffer = null;
+      abPlayingBuffer = null;
+      lastResultBuffer = null;
+      lastResultBlob = null;
+      lastResultPreset = null;
+      waveSeekPos = null;
+      dur = 0;
+      if (wavePlayBtn) wavePlayBtn.disabled = true;
+      if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
+      if (abOriginalBtn) abOriginalBtn.classList.add('active');
+      abSelected = config.abCompare ? 'original' : abSelected;
+      if (transportCurEl) transportCurEl.textContent = '0:00';
+      if (transportDurEl) transportDurEl.textContent = '0:00';
+      // A rendered preview belongs to the file it was made from -- keeping it on screen after a
+      // new upload would show one file's video next to another file's name.
+      const vizVid = root.querySelector('#viz-video');
+      if (vizVid) {
+        vizVid.pause();
+        vizVid.removeAttribute('src');
+        vizVid.load();
+        const stage = vizVid.closest('.viz-stage');
+        if (stage) stage.classList.remove('has-video');
+        const ph = root.querySelector('#viz-placeholder');
+        if (ph) ph.style.display = 'flex';
+        const note = root.querySelector('#viz-note');
+        if (note) note.style.display = 'none';
+        const est = root.querySelector('#viz-estimate');
+        if (est) est.style.display = 'none';
+        root.querySelectorAll('#viz-styles .preset-card').forEach((c) => c.classList.remove('active'));
+      }
+    }
+
     async function pickFile(f) {
       clearError();
+      resetPlaybackState();
       if (f.size > MAX_MB * 1024 * 1024) {
         showError(`File is larger than ${MAX_MB} MB.`);
         return;
@@ -1559,7 +1594,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     if (config.controls === 'vizstyles') {
       const vizStylesEl = root.querySelector('#viz-styles');
       const vizPreviewBtn = root.querySelector('#viz-preview-btn');
-      const vizPlayerEl = root.querySelector('#viz-player');
       const vizPlaceholderEl = root.querySelector('#viz-placeholder');
       const vizNoteEl = root.querySelector('#viz-note');
       const vizVideoEl = root.querySelector('#viz-video');
