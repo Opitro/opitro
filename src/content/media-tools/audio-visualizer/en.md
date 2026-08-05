@@ -18,6 +18,8 @@ faq:
     answer: Ten — waveform in green and blue, dotted wave, frequency bars, spectrum, spectrum line, musical spectrum, vectorscope, polar, and a volume meter. Waveform is the safest all-rounder for music and podcasts, spectrum suits electronic music, and the musical spectrum lays frequencies out by note and looks the most striking.
   - question: Why do some styles carry a badge?
     answer: A stereo badge means the style needs a stereo file — on mono it draws close to a straight line, because it plots the difference between channels. A slower badge means the musical spectrum is noticeably heavier to compute; the estimate shown after a preview accounts for it.
+  - question: What formats can I upload?
+    answer: Practically anything — MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, WMA, AIFF. A video file works too; its audio track is used. The size limit is 1 GB.
   - question: What format does it download as?
     answer: MP4 with the audio inside — ready to upload straight to YouTube or Instagram, or to drop into an editor.
 ---

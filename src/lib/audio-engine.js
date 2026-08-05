@@ -28,17 +28,25 @@ export function resetFFmpeg() {
   loadPromise = null;
 }
 
+// Where progress events are forwarded. It has to be a mutable module-level slot rather than a
+// captured argument, because ffmpeg's 'progress' listener can only be attached to an instance
+// once, at creation -- and the instance is created by whichever call happens first. That was a
+// real bug: pickFile warms the engine up with a bare loadFFmpeg() (no callback), so the listener
+// was never attached at all, and every later execFFmpeg passed an onProgress that silently went
+// nowhere. Percentages were dead on every ffmpeg tool; the bar just jumped 0 -> 100.
+let progressTarget = null;
+
 export function loadFFmpeg(onProgress) {
+  if (onProgress) progressTarget = onProgress;
   if (ffmpeg) return Promise.resolve(ffmpeg);
   if (loadPromise) return loadPromise;
 
   loadPromise = (async () => {
     const instance = new FFmpeg();
-    if (onProgress) {
-      instance.on('progress', ({ progress }) => {
-        onProgress(Math.max(0, Math.min(100, Math.round(progress * 100))));
-      });
-    }
+    // Attached unconditionally, and forwards to whatever the current target is.
+    instance.on('progress', ({ progress }) => {
+      if (progressTarget) progressTarget(Math.max(0, Math.min(100, Math.round(progress * 100))));
+    });
     await instance.load({
       coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
       wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
@@ -56,6 +64,9 @@ export function loadFFmpeg(onProgress) {
 // function replaces a bespoke exec call per tool.
 export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType, onProgress }) {
   const instance = await loadFFmpeg(onProgress);
+  // Authoritative per run: set it even when undefined, so a call without a progress callback
+  // can't leave the previous run's callback attached and report an unrelated file's progress.
+  progressTarget = onProgress || null;
   const writtenNames = [];
   let crashed = false;
   try {
@@ -78,6 +89,7 @@ export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType,
     loadPromise = null;
     throw e;
   } finally {
+    progressTarget = null;
     if (!crashed) {
       for (const name of writtenNames) await instance.deleteFile(name).catch(() => {});
       await instance.deleteFile(outputName).catch(() => {});

@@ -45,6 +45,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               .replace('{n}', config.maxBatchFiles).replace('{mb}', config.maxBatchMB)}
           </div>
         )}
+        {/* Which files are actually accepted. Every audio tool here reads its input through
+            ffmpeg (directly, or as a fallback when the browser's own decoder refuses), so the
+            list is the same everywhere and video files work too -- their audio track is used. */}
+        {!accept.startsWith('video') && <div class="small formats">{labels.dropFormatsLabel}</div>}
       </div>
       {accept.startsWith('video') ? (
         <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file' || config.allowBatch}>
@@ -306,8 +310,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               <span id="viz-busy-text">{labels.vizRenderingLabel}</span>
             </div>
           </div>
-          <div class="viz-note" id="viz-note" style="display:none">{labels.vizPreviewNoteLabel}</div>
+          {/* The estimate comes before the note on purpose: it's the actionable, personalised
+              number, and underneath a long grey paragraph it was easy to miss entirely. */}
           <div class="viz-estimate" id="viz-estimate"></div>
+          <div class="viz-note" id="viz-note" style="display:none">{labels.vizPreviewNoteLabel}</div>
         </div>
         <div class="preset-cards" id="viz-styles">
           {/* Nothing is pre-selected: highlighting a card before anything has been rendered
@@ -563,6 +569,9 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // The progress strip is feedback, not a permanent status line -- leaving "Done!" sitting at
     // the bottom of the page forever told nobody anything (and lived below the fold anyway).
     // finishProgress() shows the result briefly and then clears it.
+    // Lets a tool mirror ffmpeg's real progress into its own UI. Set by the visualizer so the
+    // overlay on the video can show a percentage instead of an indefinite spinner.
+    let progressHook = null;
     let progressHideTimer = 0;
     function showProgress(text, pct) {
       clearTimeout(progressHideTimer);
@@ -648,9 +657,33 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       return new Promise((resolve) => {
         const url = URL.createObjectURL(f);
         const el = new Audio();
-        const done = (v) => { URL.revokeObjectURL(url); resolve(v); };
+        let settled = false;
+        const done = (v) => {
+          if (settled) return;
+          settled = true;
+          clearTimeout(guard);
+          el.onloadedmetadata = el.ondurationchange = el.onerror = null;
+          el.src = '';
+          URL.revokeObjectURL(url);
+          resolve(v > 0 && isFinite(v) ? v : 0);
+        };
+        // Nothing downstream may hang on this. If neither event ever fires -- and browsers do
+        // occasionally stay silent on odd files -- the tool still has to become usable.
+        const guard = setTimeout(() => done(0), 8000);
+
         el.preload = 'metadata';
-        el.onloadedmetadata = () => done(isFinite(el.duration) ? el.duration : 0);
+        el.onloadedmetadata = () => {
+          if (isFinite(el.duration) && el.duration > 0) return done(el.duration);
+          // MP3s written without a Xing/Info header -- very common for VBR encodes -- report
+          // Infinity here until the browser has actually scanned the file. Seeking far past
+          // the end forces it to work the real length out and fire durationchange. This was
+          // the actual reason the render estimate never appeared: Infinity failed the finite
+          // check, fell through as 0, and the estimate silently skipped itself.
+          el.ondurationchange = () => {
+            if (isFinite(el.duration) && el.duration > 0) done(el.duration);
+          };
+          try { el.currentTime = 1e101; } catch (e) { done(0); }
+        };
         el.onerror = () => done(0);
         el.src = url;
       });
@@ -1613,11 +1646,21 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       // THESE settings, rather than quoting a made-up number. Encoding time scales roughly with
       // duration at a fixed resolution, so preview-time x (track / preview) is a fair guide.
       function showRenderEstimate(previewMs) {
-        if (!vizEstimateEl || !dur || dur <= 0) return;
-        const secs = (previewMs / 1000) * (dur / config.previewSeconds);
-        const text = secs < 60
-          ? labels.vizEstUnderMinuteLabel
-          : (labels.vizEstMinutesLabel || '~{n} min').replace('{n}', String(Math.max(1, Math.round(secs / 60))));
+        if (!vizEstimateEl) return;
+        const perSec = previewMs / 1000 / config.previewSeconds;
+        let text;
+        if (dur > 0) {
+          const secs = perSec * dur;
+          text = secs < 60
+            ? labels.vizEstUnderMinuteLabel
+            : (labels.vizEstMinutesLabel || '~{n} min').replace('{n}', String(Math.max(1, Math.round(secs / 60))));
+        } else {
+          // Some files don't expose a usable duration. Rather than silently showing nothing --
+          // which just looks like the feature is missing -- report the measured rate instead,
+          // which is still enough to judge whether to drop the resolution.
+          text = (labels.vizEstPerMinuteLabel || '~{n}s per minute of audio')
+            .replace('{n}', String(Math.max(1, Math.round(perSec * 60))));
+        }
         vizEstimateEl.textContent = `${labels.vizEstPrefixLabel} ${text}`;
         vizEstimateEl.style.display = 'block';
       }
@@ -1625,7 +1668,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       function setVizBusy(on, slow) {
         const busy = root.querySelector('#viz-busy');
         const busyText = root.querySelector('#viz-busy-text');
-        if (busyText) busyText.textContent = slow ? labels.vizRenderingSlowLabel : labels.vizRenderingLabel;
+        const baseText = slow ? labels.vizRenderingSlowLabel : labels.vizRenderingLabel;
+        if (busyText) busyText.textContent = baseText;
+        // Real percentage from ffmpeg rather than an open-ended spinner -- "how long is this
+        // going to take" is the actual question during a wait.
+        progressHook = on && busyText ? (pct) => { busyText.textContent = `${baseText} ${pct}%`; } : null;
         if (busy) busy.style.display = on ? 'flex' : 'none';
         vizPreviewBtn.disabled = on;
         vizStylesEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = on; });
@@ -2387,6 +2434,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             onProgress: (pct) => {
               progressFill.style.width = pct + '%';
               progressText.textContent = `${labels.workingLabel} ${pct}%`;
+              if (progressHook) progressHook(pct);
             },
           });
           const base = file.name.replace(/\.[^.]+$/, '') || 'audio';
@@ -2604,6 +2652,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
   .audio-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
   .audio-tool .drop .small{font-size:12px;color:var(--muted)}
+  .audio-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
   .audio-tool input[type=file]{display:none}
 
   .audio-tool .panel{display:none;margin-top:8px}
@@ -2681,7 +2730,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   @media(prefers-reduced-motion:reduce){.audio-tool .viz-spinner{animation-duration:2.4s}}
   .audio-tool .pc-badge{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-top:2px}
   .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
-  .audio-tool .viz-estimate{display:none;font-size:12.5px;font-weight:600;color:var(--accent);margin-top:8px}
+  .audio-tool .viz-estimate{display:none;font-size:14px;font-weight:700;color:var(--accent);margin-top:12px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);border-radius:9px;padding:10px 13px;text-align:center}
   .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
   .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
   .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
