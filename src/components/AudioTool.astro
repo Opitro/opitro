@@ -299,6 +299,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <div class="viz-stage">
             <video id="viz-video" controls playsinline preload="metadata"></video>
             <div class="viz-placeholder" id="viz-placeholder">{labels.vizHintLabel}</div>
+            {/* Sits over the whole stage while a render runs. Clicking a style used to look
+                like nothing happened for several seconds. */}
+            <div class="viz-busy" id="viz-busy" style="display:none">
+              <span class="viz-spinner"></span>
+              <span id="viz-busy-text">{labels.vizRenderingLabel}</span>
+            </div>
           </div>
           <div class="viz-note" id="viz-note" style="display:none">{labels.vizPreviewNoteLabel}</div>
           <div class="viz-estimate" id="viz-estimate"></div>
@@ -308,9 +314,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               claims a choice the user never made. The active state is set once a preview for
               that style actually exists. */}
           {config.vizStyles.map((v) => (
-            <button type="button" class="preset-card" data-style={v.key}>
+            <button type="button" class="preset-card" data-style={v.key} data-slow={v.slow ? '1' : undefined}>
               <span class="pc-emoji">{v.emoji}</span>
               <span class="pc-label">{labels[v.label] || v.key}</span>
+              {v.stereo && <span class="pc-badge">{labels.vizStereoBadgeLabel}</span>}
+              {v.slow && <span class="pc-badge">{labels.vizSlowBadgeLabel}</span>}
             </button>
           ))}
         </div>
@@ -1614,17 +1622,29 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         vizEstimateEl.style.display = 'block';
       }
 
+      function setVizBusy(on, slow) {
+        const busy = root.querySelector('#viz-busy');
+        const busyText = root.querySelector('#viz-busy-text');
+        if (busyText) busyText.textContent = slow ? labels.vizRenderingSlowLabel : labels.vizRenderingLabel;
+        if (busy) busy.style.display = on ? 'flex' : 'none';
+        vizPreviewBtn.disabled = on;
+        vizStylesEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = on; });
+        const sizeEl = root.querySelector('#viz-size');
+        if (sizeEl) sizeEl.disabled = on;
+      }
+
       async function renderVizPreview() {
         if (!file) return;
-        vizPreviewBtn.disabled = true;
         // Whatever style is about to be rendered -- the active card if there is one, otherwise
         // the first, which is what readParams falls back to for the plain Preview button.
-        const styleKey = (root.querySelector('#viz-styles .preset-card.active')
-          || vizStylesEl.querySelector('.preset-card')).dataset.style;
+        const styleCard = root.querySelector('#viz-styles .preset-card.active')
+          || vizStylesEl.querySelector('.preset-card');
+        const styleKey = styleCard.dataset.style;
+        setVizBusy(true, styleCard.dataset.slow === '1');
         const startedAt = performance.now();
         const blob = await runFfmpegProcess(false, { previewSeconds: config.previewSeconds });
         const tookMs = performance.now() - startedAt;
-        vizPreviewBtn.disabled = false;
+        setVizBusy(false);
         if (!blob) return;
         vizStylesEl.querySelectorAll('.preset-card').forEach((c) => {
           c.classList.toggle('active', c.dataset.style === styleKey);
@@ -2655,6 +2675,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .viz-stage.has-video video{display:block}
   .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:15px;color:rgba(210,215,228,0.9);line-height:1.55;max-width:34ch;margin:0 auto}
   @media(max-width:640px){.audio-tool .viz-placeholder{font-size:13.5px;padding:16px}}
+  .audio-tool .viz-busy{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;gap:12px;background:rgba(10,11,13,.82);color:var(--text);font-size:14.5px;font-weight:600;text-align:center;padding:20px}
+  .audio-tool .viz-spinner{width:20px;height:20px;flex:none;border:2px solid rgba(74,222,158,.25);border-top-color:var(--accent);border-radius:50%;animation:viz-spin .8s linear infinite}
+  @keyframes viz-spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.audio-tool .viz-spinner{animation-duration:2.4s}}
+  .audio-tool .pc-badge{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-top:2px}
   .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
   .audio-tool .viz-estimate{display:none;font-size:12.5px;font-weight:600;color:var(--accent);margin-top:8px}
   .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}

@@ -850,8 +850,12 @@ export const AUDIO_TOOLS = {
       { key: 'wave-blue', emoji: '\uD83C\uDF0A', label: 'visualizerWaveBlueLabel' },
       { key: 'bars', emoji: '\uD83D\uDCCA', label: 'visualizerBarsLabel' },
       { key: 'spectrum', emoji: '\uD83C\uDF08', label: 'visualizerSpectrumLabel' },
-      { key: 'circle', emoji: '\u26AA', label: 'visualizerCircleLabel' },
+      { key: 'circle', emoji: '\u26AA', label: 'visualizerCircleLabel', stereo: true },
       { key: 'volume', emoji: '\uD83D\uDCC8', label: 'visualizerVolumeLabel' },
+      { key: 'musical', emoji: '\uD83C\uDFB9', label: 'visualizerMusicalLabel', slow: true },
+      { key: 'freqline', emoji: '\uD83D\uDCC9', label: 'visualizerFreqLineLabel' },
+      { key: 'wavepoint', emoji: '\u2728', label: 'visualizerWavePointLabel' },
+      { key: 'polar', emoji: '\uD83C\uDF00', label: 'visualizerPolarLabel', stereo: true },
     ],
     vizSizes: [
       { key: '854x480', label: '480p' },
@@ -867,6 +871,15 @@ export const AUDIO_TOOLS = {
         bars: `showfreqs=s=${size}:mode=bar:ascale=log:colors=0x4ade9e`,
         spectrum: `showspectrum=s=${size}:mode=combined:color=intensity`,
         circle: `avectorscope=s=${size}:zoom=1.5:draw=line:rc=74:gc=222:bc=158`,
+        // Constant-Q transform: frequencies laid out by musical note rather than linearly, so
+        // the picture moves in time with the music. Much the best-looking option, and also the
+        // most expensive -- flagged `slow` so the UI can warn before someone starts a render.
+        musical: `showcqt=s=${size}`,
+        freqline: `showfreqs=s=${size}:mode=line:ascale=log:colors=0x4ade9e`,
+        wavepoint: `showwaves=s=${size}:mode=point:colors=0x4ade9e`,
+        // The existing 'circle' entry is avectorscope's default (lissajous); polar is a
+        // genuinely different shape rather than a recolour.
+        polar: `avectorscope=s=${size}:mode=polar:zoom=1.5:draw=line:rc=74:gc=222:bc=158`,
         volume: `showvolume=w=${Math.round(Number(size.split('x')[0]) * 0.75)}:h=60:f=0.5:c=VOLUME,pad=${size.replace('x', ':')}:(ow-iw)/2:(oh-ih)/2`,
       };
       const filter = filters[params.value] || filters['wave-green'];

@@ -6,7 +6,7 @@ tool: visualizer
 title: Audio Visualizer Online, Free — Turn Music Into Video
 h1: Audio Visualizer
 navName: Visualizer
-description: Turn a track into a video with a moving waveform, spectrum, or frequency bars — for YouTube, a clip, or stories. Six styles, a few-second preview, up to 1080p. Free, no sign-up, nothing uploaded.
+description: Turn a track into a video with a moving waveform, spectrum, or frequency bars — for YouTube, a clip, or stories. Ten visualization styles, a few-second preview, up to 1080p. Free, no sign-up, nothing uploaded.
 faq:
   - question: Why a preview first instead of the video straight away?
     answer: Rendering video in the browser is by far the heaviest thing on this site, minutes for a long track. Waiting all that out only to find the style was wrong is miserable. So a short section is rendered first, with the exact settings the final file will use — look at it, and if you like it, start the full render.
@@ -15,12 +15,14 @@ faq:
   - question: How long does a full render take?
     answer: It depends on track length, video size, and your device. As a rough guide, a minute of audio at 720p takes about half a minute to a minute on a typical laptop; 1080p is noticeably longer, and so is a phone. If speed matters, pick 480p or 720p.
   - question: What styles are available?
-    answer: Waveform (green and blue), frequency bars, spectrum, vectorscope, and a volume meter. Waveform is the safest all-rounder for music and podcasts; spectrum looks better on electronic music.
+    answer: Ten — waveform in green and blue, dotted wave, frequency bars, spectrum, spectrum line, musical spectrum, vectorscope, polar, and a volume meter. Waveform is the safest all-rounder for music and podcasts, spectrum suits electronic music, and the musical spectrum lays frequencies out by note and looks the most striking.
+  - question: Why do some styles carry a badge?
+    answer: A stereo badge means the style needs a stereo file — on mono it draws close to a straight line, because it plots the difference between channels. A slower badge means the musical spectrum is noticeably heavier to compute; the estimate shown after a preview accounts for it.
   - question: What format does it download as?
     answer: MP4 with the audio inside — ready to upload straight to YouTube or Instagram, or to drop into an editor.
 ---
 
-Load a track and pick a style — the preview runs by itself and shows you a few seconds of the video to come. Like it? Start the full render and you get an MP4 with the audio inside.
+Visualize your audio file, music, podcast, or voice recording — ten sound visualization styles to choose from. Load a track, tap a style, and a few seconds later you see a slice of the video to come, right on the page. Like it? Start the full render and you get an MP4 with the audio inside.
 
 What it's for:
 
