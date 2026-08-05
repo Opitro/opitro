@@ -1596,6 +1596,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           c.classList.toggle('active', c.dataset.style === styleKey);
         });
         if (vizPlaceholderEl) vizPlaceholderEl.style.display = 'none';
+        // Reveals the <video>; it is kept hidden until now so its built-in play button can't
+        // sit on top of the placeholder text.
+        const stageEl = vizVideoEl.closest('.viz-stage');
+        if (stageEl) stageEl.classList.add('has-video');
         if (vizNoteEl) vizNoteEl.style.display = 'block';
         showRenderEstimate(tookMs);
         // Revoke the previous object URL -- each preview is a fresh multi-megabyte blob, and
@@ -2610,8 +2614,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   /* Fixed 16:9 box reserved up front, so a finished render drops into place instead of pushing
      everything below it down the page. */
   .audio-tool .viz-stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0a0b0d;border:1px solid var(--line)}
-  .audio-tool .viz-stage video{position:absolute;inset:0;width:100%;height:100%;display:block;background:#0a0b0d}
-  .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:24px;font-size:13px;color:var(--muted);line-height:1.5}
+  /* The video stays out of the flow until it actually has something to show. An empty
+     <video controls> still draws the browser's own big centred play button, which landed
+     right on top of the placeholder text on mobile. */
+  .audio-tool .viz-stage video{position:absolute;inset:0;width:100%;height:100%;display:none;background:#0a0b0d}
+  .audio-tool .viz-stage.has-video video{display:block}
+  .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:15px;color:rgba(210,215,228,0.9);line-height:1.55;max-width:34ch;margin:0 auto}
+  @media(max-width:640px){.audio-tool .viz-placeholder{font-size:13.5px;padding:16px}}
   .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
   .audio-tool .viz-estimate{display:none;font-size:12.5px;font-weight:600;color:var(--accent);margin-top:8px}
   .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
