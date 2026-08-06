@@ -250,6 +250,9 @@ const ICO = {
         </select>
       </div>
     )}
+    {/* A tool that wants to say something about the file it was actually given -- "this is
+        already mono", "this will throw away your right channel". Filled in after decode. */}
+    {config.sourceNote && <div class="rate-note" id="tool-note" style="display:none"></div>}
     {controls === 'select' && config.presetCards && (
       <button type="button" class="act primary hero-btn" id="hero-auto-btn">
         ✨ {labels.enhanceHeroLabel}
@@ -1200,6 +1203,7 @@ const ICO = {
         exportedClean = false;
         renderFileMeta(f);
         eqSyncState();
+        syncSourceNote();
         if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (abCompareEl) abCompareEl.style.display = 'flex';
           if (abResultBtn) abResultBtn.disabled = false;
@@ -1628,6 +1632,15 @@ if (config.controls === 'speed1') {
       if (config.controls === 'multi-file') return files.length >= 2;
       return true;
     }
+    // Says something true about the file the user actually loaded, e.g. that it is already mono,
+    // or that converting it will discard a channel. Empty string means nothing to say.
+    function syncSourceNote() {
+      const el = root.querySelector('#tool-note');
+      if (!el || !config.sourceNote) return;
+      const key = config.sourceNote(sourceBuffer);
+      el.textContent = key ? (labels[key] || '') : '';
+      el.style.display = el.textContent ? 'block' : 'none';
+    }
     // Merge has no single decoded source -- its input is the file list -- so "is there anything
     // to work with" can't just be `sourceBuffer`. Keying the export button off sourceBuffer left
     // it permanently disabled there.
@@ -1662,8 +1675,10 @@ if (config.controls === 'speed1') {
     //    computed on demand and cached by settings so re-selecting it is instant.
     //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
     const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder, volume1: () => volumeChainBuilder };
-    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx', 'speed1', 'rate1'];
-    const isRenderedAb = RENDERED_AB_TOOLS.includes(config.controls);
+    // Declared per tool rather than by control type. A hardcoded list of `controls` names can't
+    // express this any more: six different tools share controls:'select', and only some of them
+    // want the play button to play the processed result.
+    const isRenderedAb = !!config.renderedAb;
     // A tool WITHOUT an Original/Result switch (speed, volume) has only one thing to play: the
     // processed version. Without this it would sit on 'original' forever and the play button
     // would keep playing the untouched file no matter what the slider said.
@@ -1829,10 +1844,13 @@ if (config.controls === 'speed1') {
           finishProgress(labels.doneLabel);
           // Every tool sharing this export path was writing "-eq" (or "-fade") into the
           // filename, so a trimmed file came out as "song-eq.mp3". Named after what was done.
+          // Keyed on the tool, not on the control type: six tools share controls:'select', so
+          // keying on that gave four of them the same meaningless "-result".
           const suffix = {
-            eq10: 'eq', fade2: 'fade', trim: 'trim',
-            pitch1: 'pitch', voicefx: 'voice', speed1: 'speed', volume1: 'volume', rate1: 'resampled',
-          }[config.controls] || 'result';
+            equalizer: 'eq', fade: 'fade', trim: 'trim', pitch: 'pitch', voice: 'voice',
+            speed: 'speed', volume: 'volume', 'sample-rate': 'resampled', reverse: 'reversed',
+            normalize: 'normalized', 'stereo-to-mono': 'mono', 'mono-to-stereo': 'stereo',
+          }[tool] || 'result';
           // Merge has no source name to qualify, so it's just "merged" -- pairing the fallback
           // base with a suffix produced "merged-merged.wav".
           downloadBlob(blob, config.controls === 'multi-file' ? `merged.${fmt}` : `${base}-${suffix}.${fmt}`);

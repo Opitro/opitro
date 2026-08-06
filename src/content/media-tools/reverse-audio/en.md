@@ -5,12 +5,30 @@ category: audio
 tool: reverse
 title: Reverse Audio Online, Free — Play a Track Backwards
 h1: Reverse Audio
-description: Flip an audio file so it plays backwards from end to start. Free, in your browser, no sign-up.
+navName: Reverse
+description: Flip a recording so it plays from end to start — hear the result right on the page and download it. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: Is this the classic "backwards message" effect?
-    answer: Yes — the same trick used to check songs for hidden backwards messages, or just for a strange/interesting sound effect.
-  - question: Will it work on a voice recording?
-    answer: Yes, any audio file works — voice reversed sounds like the classic garbled backwards-speech effect.
+    answer: That's the one. It's the trick people use to check songs for hidden phrases, and in sound design a reversed sound is the basis of that swelling build-up before a hit or a transition.
+  - question: What does it do to a voice?
+    answer: It gives you the familiar garbled backwards speech. The words don't read, but the intonation and rhythm survive, which is exactly why the effect is so recognisable.
+  - question: Does it affect the quality?
+    answer: No. Putting the samples in the opposite order is lossless — not a single sample changes value, only their order does. Any loss comes from encoding the result, so take the WAV if it's heading into an editor.
+  - question: Can I flip it back?
+    answer: Yes. Reversing a reversed file gives you the original — the operation undoes itself exactly.
+  - question: Does the length change?
+    answer: No, it stays identical. Only the direction changes.
+  - question: Can I hear it before downloading?
+    answer: Yes — the play button plays the reversed version.
 ---
 
-Upload a file and hit Process — the reversed version downloads as an MP3. A fun effect for music production, sound design, or just curiosity about what a track sounds like flipped.
+Load a file and press play — you'll hear the reversed version straight away. There's nothing to configure. Then pick a format and download.
+
+What it's good for:
+
+- **Sound design** — a reversed cymbal or guitar chord makes the swell that leads into a hit
+- **Music experiments** — reversed samples sound unfamiliar even when the source is not
+- **Checking a song for hidden phrases** — the argument that's quicker to settle than to have
+- **Plain curiosity** about what a track you know sounds like backwards
+
+Nearby: [trim audio](/en/trim-audio) to reverse just one section, plus [change speed](/en/audio-speed) and [change pitch](/en/audio-pitch), which often get used alongside reversing.

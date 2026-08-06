@@ -349,6 +349,11 @@ export const AUDIO_TOOLS = {
   },
 
   normalize: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
     engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
@@ -371,6 +376,7 @@ export const AUDIO_TOOLS = {
   },
 
   speed: {
+    renderedAb: true,
     // TEMPO only. Pitch is preserved by default (WSOLA time-stretch) because that's what people
     // actually want when speeding up a lecture or slowing music down to learn a part -- the old
     // playbackRate behaviour made everything sound like a chipmunk or a monster.
@@ -399,6 +405,7 @@ export const AUDIO_TOOLS = {
   },
 
   pitch: {
+    renderedAb: true,
     // MUSIC transposition only -- one semitone slider and nothing else. Voice-character presets
     // deliberately do NOT live here; they belong to the separate voice-effects tool, so the two
     // pages don't turn into duplicates competing for the same searches.
@@ -423,6 +430,7 @@ export const AUDIO_TOOLS = {
   },
 
   voice: {
+    renderedAb: true,
     // VOICE EFFECTS, deliberately not "voice conversion". With Web Audio alone (no AI, no
     // server) you cannot convincingly turn one person's voice into another's -- pitch shifting
     // plus filtering just doesn't get there, and promising it would leave people disappointed.
@@ -451,6 +459,11 @@ export const AUDIO_TOOLS = {
   },
 
   reverse: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
     engine: 'webaudio',
     controls: 'none',
     accept: 'audio/*',
@@ -605,6 +618,13 @@ export const AUDIO_TOOLS = {
   },
 
   'stereo-to-mono': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    // Converting a file that is already mono produces an identical file.
+    sourceNote: (buffer) => (buffer && buffer.numberOfChannels < 2 ? 'noteAlreadyMono' : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -632,6 +652,15 @@ export const AUDIO_TOOLS = {
   },
 
   'mono-to-stereo': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    // Feeding a real stereo file to this discards the right channel entirely -- channel 0 is
+    // read and copied to both sides. Silently losing half a recording is the kind of thing
+    // people only notice later, so it gets said up front.
+    sourceNote: (buffer) => (buffer && buffer.numberOfChannels >= 2 ? 'noteAlreadyStereo' : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -804,6 +833,7 @@ export const AUDIO_TOOLS = {
   },
 
   'sample-rate': {
+    renderedAb: true,
     // Deliberately one control. The processed side is a real resample, so it renders on demand
     // and the play button plays THAT -- hearing 8 kHz next to 44.1 kHz is the entire point of
     // the tool, and resampling is fast enough that waiting for it isn't a burden.
