@@ -795,6 +795,8 @@ export const AUDIO_TOOLS = {
     accept: 'audio/*',
     compactPreview: true,
     transport: true,
+    // Swap/remove live on the file chip instead of as a full-width button further down.
+    fileChipActions: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     // MPEG audio only defines these rates -- MPEG-1 gives 32/44.1/48, MPEG-2 adds 16/22.05/24
     // and MPEG-2.5 adds 8/11.025/12. 96 kHz simply has no representation in MP3, so offering it

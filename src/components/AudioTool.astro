@@ -421,12 +421,8 @@ const ICO = {
           </button>
         </div>
         <div class="rate-note" id="rate-note" style="display:none"></div>
-        {/* Swapping the file isn't what anyone came here to do, so it's the quietest thing on
-            the page -- outline only, no fill, below the action rather than beside it. */}
-        <button type="button" class="act ghost act-wide" id="audio-new-btn">
-          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.upload} />
-          <span>{labels.newFileLabel}</span>
-        </button>
+        {/* No "upload a different file" button down here: it sits on the file chip instead,
+            next to the remove button (config.fileChipActions). */}
       </>
     )}
     {controls === 'volume1' && (
@@ -665,6 +661,7 @@ const ICO = {
     // has no access to it. Keep the two in step.
     const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
     const ICO_CLOSE = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>';
+    const ICO_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>';
     const svgIco = (paths, cls) => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 
     function showError(message) {
@@ -981,6 +978,10 @@ const ICO = {
         if (est) est.style.display = 'none';
         root.querySelectorAll('#viz-styles .preset-card').forEach((c) => c.classList.remove('active'));
       }
+      // The export button is only ever enabled/disabled from here, and nothing re-ran it after a
+      // file was removed -- so it stayed clickable with no source buffer behind it. Same CDP run
+      // that caught the missing waveform caught this.
+      eqSyncState();
     }
 
     async function pickFile(f) {
@@ -1014,14 +1015,29 @@ const ICO = {
       }
       file = f;
       const sizeMB = f.size / 1048576;
-      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-remove" id="fi-remove-btn" aria-label="${labels.removeFileLabel || 'Remove'}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      // Actions on the file live on the file: swap and remove, two identical round targets.
+      // A full-width "upload a different file" button lower down claimed an importance the
+      // action doesn't have -- it's a correction, not a step.
+      const swapBtn = config.fileChipActions
+        ? `<button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${escapeHtml(labels.newFileLabel || 'Upload a different file')}" title="${escapeHtml(labels.newFileLabel || 'Upload a different file')}">${svgIco(ICO_UPLOAD, 'i')}</button>`
+        : '';
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${swapBtn}<button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${escapeHtml(labels.removeFileLabel || 'Remove')}" title="${escapeHtml(labels.removeFileLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
       const fiRemoveBtn = root.querySelector('#fi-remove-btn');
       if (fiRemoveBtn) fiRemoveBtn.addEventListener('click', resetFile);
+      const fiSwapBtn = root.querySelector('#fi-swap-btn');
+      if (fiSwapBtn) fiSwapBtn.addEventListener('click', () => fileInput.click());
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
+      // resetFile() hides the player; nothing ever brought it back, so removing a file and then
+      // loading another one left a tool with no waveform, no play button and no seek bar until
+      // the page was reloaded. Confirmed in a real browser over CDP: after remove-then-add the
+      // shell stayed display:none with the previous file's pixels still on the canvas. Restoring
+      // it here, where the panel is revealed, keeps hide and show symmetric. Tools whose decode
+      // fails hide it again a few lines below, which is the one case it should stay hidden.
+      if (waveShell) waveShell.style.display = '';
 
       if (config.engine === 'ffmpeg') {
         loadFFmpeg().catch(() => {});
@@ -2782,10 +2798,13 @@ if (config.controls === 'speed1') {
   .audio-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
   .audio-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
   .audio-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
-  /* A real 30px round target rather than a bare glyph -- it was the one control on the page
-     with no hit area to speak of. */
-  .audio-tool .fi-remove,.audio-tool .filelist-remove{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
-  .audio-tool .fi-remove .i,.audio-tool .filelist-remove .i{width:15px;height:15px}
+  /* Real 30px round targets rather than bare glyphs -- these were the only controls on the page
+     with no hit area to speak of. Swap and remove are the same shape and size because they're
+     the same kind of thing (something you do to the file), and differ only on hover: green for
+     the harmless one, red for the destructive one. */
+  .audio-tool .fi-act,.audio-tool .filelist-remove{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .audio-tool .fi-act .i,.audio-tool .filelist-remove .i{width:15px;height:15px}
+  .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
   .audio-tool .filelist-item span{flex:1;min-width:0}
@@ -2889,13 +2908,20 @@ if (config.controls === 'speed1') {
   .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
   .audio-tool .deck .field{flex:1 1 200px;margin-bottom:0}
   .audio-tool .deck .field-fmt{flex:0 1 130px}
-  .audio-tool .deck-act{flex:1 1 210px;height:48px;padding:0 18px;border-radius:12px;min-width:0}
+  /* No min-width:0 here on purpose: the automatic min-content floor is what stops the button
+     shrinking narrower than its own label. Without it the label wrapped to two lines inside a
+     fixed 48px box at around 600px wide (caught by measuring, not by looking). Now the row
+     folds to a second line instead, which is the behaviour that was asked for. */
+  /* min-width:auto overrides the 130px floor every .act carries, so the content-based minimum
+     applies and the button can't be squeezed narrower than its own label. Needs button.act.* to
+     outweigh the base rule's specificity -- with the plain class the floor silently won and the
+     label overflowed by a pixel or two at around 600px. Measured, not eyeballed. */
+  /* flex-basis:auto, i.e. the label's own width, is what decides where the row breaks. A fixed
+     210px basis made the button claim more than it needs and pushed itself onto a third line on
+     a phone; sized to its content, "format + download" stay together on one line under the rate,
+     which is the pairing that makes sense -- the format belongs to the download, not to the rate. */
+  .audio-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
   .audio-tool .deck .field select{height:48px;border-radius:12px}
-  /* A quiet outline, so the eye lands on the green action first and finds this only when it
-     goes looking. Full width, on its own line -- it isn't part of the decision above it. */
-  .audio-tool .act-wide{width:100%;height:48px;padding:0 18px;border-radius:12px}
-  .audio-tool button.act.ghost{background:transparent;color:var(--muted)}
-  .audio-tool button.act.ghost:hover{color:var(--text);background:var(--surface-2)}
   .audio-tool .act .i{width:17px;height:17px;flex:none}
   .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
 
