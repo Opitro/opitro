@@ -309,20 +309,28 @@ export const AUDIO_TOOLS = {
   },
 
   volume: {
+    // Deliberately minimal: one slider. A gain change is cheap enough to run as a LIVE node, so
+    // the preview updates as you drag instead of re-rendering the file -- same approach as the
+    // EQ and fade tools. Loudness normalisation and compression live on their own pages.
     engine: 'webaudio',
-    controls: 'slider',
+    controls: 'volume1',
     accept: 'audio/*',
-    sliderLabel: 'volumeLabel',
-    sliderMin: 10,
-    sliderMax: 300,
-    sliderDefault: 100,
-    sliderUnit: '%',
-    // Peak/clip meter -- there was no feedback at all before about how close (or over) 300%
-    // pushes the audio to clipping, a real gap vs. competitors' loudness metering.
-    showMeter: true,
+    // No Original/Result switch: comparing loudness A/B is a rigged test anyway -- the louder
+    // side always wins -- and the whole point here is one slider and nothing else.
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    volumeMin: 10,
+    volumeMax: 300,
+    buildLiveChain: (ctx, src, value) => {
+      const g = ctx.createGain();
+      g.gain.value = (value || 100) / 100;
+      src.connect(g);
+      return { output: g, filters: [g] };
+    },
     render: (oc, src, { value }) => {
       const g = oc.createGain();
-      g.gain.value = value / 100;
+      g.gain.value = (value || 100) / 100;
       src.connect(g);
       return g;
     },

@@ -201,12 +201,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         <input type="range" id="ctrl-slider" min={config.sliderMin} max={config.sliderMax} step={config.sliderStep || 1} value={config.sliderDefault}>
       </div>
     )}
-    {controls === 'slider' && config.showMeter && (
-      <>
-        <div class="meter" id="peak-meter"><div class="meter-fill" id="peak-meter-fill"></div></div>
-        <div class="times" id="peak-meter-label" style="display:none"><span id="peak-meter-text"></span></div>
-      </>
-    )}
     {controls === 'slider' && config.presets && (
       <div class="presets" id="presets-row">
         {config.presets.map((p) => <button type="button" class="preset-btn" data-preset={p.key}>{labels[p.label] || p.key}</button>)}
@@ -380,6 +374,15 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           <label class="fade-card-title" for="voice-intensity">{labels.voiceIntensityLabel}</label>
           <input type="range" id="voice-intensity" min="0" max="100" step="5" value="60">
           <span class="fade-card-val" id="voice-intensity-val">60%</span>
+        </div>
+      </>
+    )}
+    {controls === 'volume1' && (
+      <>
+        <div class="fade-card pitch-card">
+          <label class="fade-card-title" for="ctrl-slider">{labels.volumeLabel}</label>
+          <input type="range" id="ctrl-slider" min={config.volumeMin} max={config.volumeMax} step="5" value="100">
+          <span class="fade-card-val" id="volume-val">100%</span>
         </div>
       </>
     )}
@@ -1237,10 +1240,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         player.play(
           slice,
           (frac) => {
-            const t = selStart + (selEnd - selStart) * frac;
-            const W = waveShell.clientWidth;
-            playhead.style.left = ((t / dur) * W) + 'px';
-            playhead.style.display = 'block';
+            setPlayheadTime(selStart + (selEnd - selStart) * frac);
           },
           () => { listenSelIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
         );
@@ -1357,6 +1357,20 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       return built.output;
     }
 
+    // ---- Volume state --------------------------------------------------------------------------
+    // A single GainNode. Cheap enough to run live, so dragging the slider is heard immediately
+    // and the peak readout follows without touching the file.
+    let volumeLiveGain = null;
+    const volumeSliderEl = root.querySelector('#ctrl-slider');
+    function volumeValue() {
+      return config.controls === 'volume1' && volumeSliderEl ? Number(volumeSliderEl.value) || 100 : 100;
+    }
+    function volumeChainBuilder(ctx, srcNode) {
+      const built = config.buildLiveChain(ctx, srcNode, volumeValue());
+      volumeLiveGain = built.filters[0];
+      return built.output;
+    }
+
     // ---- Fade in / fade out state ------------------------------------------------------------
     // One GainNode whose automation is re-scheduled from the CURRENT playback position whenever a
     // slider moves, so the change is heard immediately rather than after re-rendering the file.
@@ -1414,7 +1428,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         return (!!st && Number(st.value) !== 0) || (!!ct && Number(ct.value) !== 0);
       }
       if (config.controls === 'voicefx') return !!root.querySelector('#voice-fx .preset-card.active');
-      if (config.controls === 'speed1') {
+      if (config.controls === 'volume1') return volumeValue() !== 100;
+if (config.controls === 'speed1') {
         const el = root.querySelector('#ctrl-slider'), kp = root.querySelector('#ctrl-keeppitch');
         return (!!el && Number(el.value) !== 100) || (!!kp && !kp.checked);
       }
@@ -1446,13 +1461,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     //    (pitch-shifting rewrites every sample), so the processed side is an offline render,
     //    computed on demand and cached by settings so re-selecting it is instant.
     //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
-    const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder };
+    const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder, volume1: () => volumeChainBuilder };
     const RENDERED_AB_TOOLS = ['pitch1', 'voicefx', 'speed1'];
     const isRenderedAb = RENDERED_AB_TOOLS.includes(config.controls);
-    // A render-on-demand tool WITHOUT an Original/Result switch (speed) has only one thing to
-    // play: the processed version. Without this it would sit on 'original' forever and the play
-    // button would keep playing the untouched file no matter what the slider said.
-    if (isRenderedAb && !config.abCompare) abSelected = 'result';
+    // A tool WITHOUT an Original/Result switch (speed, volume) has only one thing to play: the
+    // processed version. Without this it would sit on 'original' forever and the play button
+    // would keep playing the untouched file no matter what the slider said.
+    if ((isRenderedAb || LIVE_CHAIN_TOOLS[config.controls]) && !config.abCompare) abSelected = 'result';
     function currentAbBuffer() {
       if (LIVE_CHAIN_TOOLS[config.controls]) return sourceBuffer;
       if (isRenderedAb) return abSelected === 'result' ? renderedBuffer : sourceBuffer;
@@ -1725,6 +1740,29 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       // Re-preview on size change only if something has already been rendered -- otherwise
       // changing the dropdown before ever picking a style would kick off a render unasked.
       if (vizSizeEl) vizSizeEl.addEventListener('change', () => { if (file && vizVideoEl.src) renderVizPreview(); });
+    }
+
+    if (config.controls === 'volume1') {
+      const volumeValEl = root.querySelector('#volume-val');
+      function onVolumeInput() {
+        const pct = volumeValue();
+        const gain = pct / 100;
+        // Percent alone doesn't tell you much about headroom; dB is the unit that does, and
+        // showing both costs nothing and adds no extra control.
+        const db = gain > 0 ? (20 * Math.log10(gain)) : -Infinity;
+        if (volumeValEl) {
+          volumeValEl.textContent = pct === 100
+            ? '100% (0 dB)'
+            : `${pct}% (${db > 0 ? '+' : ''}${db.toFixed(1)} dB)`;
+        }
+        // Live: write straight into the playing gain node, no re-render.
+        if (volumeLiveGain) volumeLiveGain.gain.value = gain;
+        exportedClean = false;
+        eqSyncState();
+        invalidateRender();
+        if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
+      }
+      if (volumeSliderEl) volumeSliderEl.addEventListener('input', onVolumeInput);
     }
 
     if (config.controls === 'speed1') {
@@ -2022,33 +2060,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       requestAnimationFrame(animatePlayhead);
     }
 
-    // Peak/clip meter (volume tool only) -- there was no feedback before about how close (or
-    // past) the boosted signal gets to clipping.
-    const peakMeter = root.querySelector('#peak-meter');
-    const peakMeterFill = root.querySelector('#peak-meter-fill');
-    const peakMeterLabel = root.querySelector('#peak-meter-label');
-    const peakMeterText = root.querySelector('#peak-meter-text');
-    function updateMeter(buffer) {
-      if (!config.showMeter || !peakMeter || !buffer) return;
-      let peak = 0;
-      for (let c = 0; c < buffer.numberOfChannels; c++) {
-        const d = buffer.getChannelData(c);
-        for (let i = 0; i < d.length; i += 8) peak = Math.max(peak, Math.abs(d[i]));
-      }
-      peakMeter.classList.add('on');
-      if (peakMeterLabel) peakMeterLabel.style.display = '';
-      const pct = Math.min(100, peak * 100);
-      peakMeterFill.style.width = pct + '%';
-      const clipping = peak >= 0.999;
-      peakMeterFill.classList.toggle('clip', clipping);
-      if (peakMeterText) {
-        const db = peak > 0 ? (20 * Math.log10(peak)).toFixed(1) : '-inf';
-        peakMeterText.textContent = clipping
-          ? (labels.peakClippingLabel || 'Clipping!')
-          : `${labels.peakLabel || 'Peak'}: ${db} dB`;
-      }
-    }
-
     async function doRender() {
       const params = readParams();
       if (config.engine === 'webaudio-generator') {
@@ -2136,7 +2147,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             progress.classList.add('on');
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
-            updateMeter(renderedBuffer);
             progress.classList.remove('on');
             listenBtn.disabled = false;
             downloadRow.style.display = 'flex';
@@ -2148,10 +2158,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
               if (!waveShell) return;
               const base = config.controls === 'trim' ? selStart : 0;
               const range = config.controls === 'trim' ? (selEnd - selStart) : renderedBuffer.duration;
-              const t = base + range * frac;
-              const W = waveShell.clientWidth;
-              playhead.style.left = ((t / dur) * W) + 'px';
-              playhead.style.display = 'block';
+              setPlayheadTime(base + range * frac);
             },
             () => { listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
           );
@@ -2164,7 +2171,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     }
 
     async function ensureRendered() {
-      if (!renderedBuffer) { renderedBuffer = await doRender(); updateMeter(renderedBuffer); }
+      if (!renderedBuffer) renderedBuffer = await doRender();
       return renderedBuffer;
     }
 
@@ -2199,10 +2206,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           player.play(
             slice,
             (frac) => {
-              const tt = selStart + (selEnd - selStart) * frac;
-              const W = waveShell.clientWidth;
-              playhead.style.left = ((tt / dur) * W) + 'px';
-              playhead.style.display = 'block';
+              setPlayheadTime(selStart + (selEnd - selStart) * frac);
             },
             () => { if (listenSelIco) listenSelIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); },
             seekTo
@@ -2210,11 +2214,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           return;
         }
 
-        // Any tool with A/B compare (enhance, equalizer): tapping the waveform only moves the
-        // position marker, it doesn't start playback -- there's a dedicated play button for
-        // that, and a tap here used to fight with it. Checked BEFORE the engine branch, since
-        // the equalizer is a webaudio tool and was falling through to the render-and-play path.
-        if (config.abCompare) {
+        // Any tool using the compact player -- with or without an A/B switch -- treats a tap on
+        // the waveform as "move the marker", not "start playing": there's a dedicated play
+        // button for that. Keyed off the player rather than off abCompare, because volume and
+        // speed have no A/B switch and were falling through to the legacy render-and-play path,
+        // which positioned the marker from a different origin (hence a playhead that appeared
+        // sometimes before and sometimes after the play button).
+        if (config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (!sourceBuffer) return;
           // Unconditional, NOT `if (player.isPlaying())` -- player.stop() already ran at the
           // top of this handler, so by here isPlaying() is always false and the guarded
@@ -2233,10 +2239,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           player.play(
             sourceBuffer,
             (frac) => {
-              const tt = frac * dur;
-              const W = waveShell.clientWidth;
-              playhead.style.left = ((tt / dur) * W) + 'px';
-              playhead.style.display = 'block';
+              setPlayheadTime(frac * dur);
             },
             () => {
               playhead.style.display = 'none';
@@ -2253,7 +2256,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             progress.classList.add('on');
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
-            updateMeter(renderedBuffer);
             progress.classList.remove('on');
             if (downloadRow) downloadRow.style.display = 'flex';
           }
@@ -2270,10 +2272,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         player.play(
           renderedBuffer,
           (frac2) => {
-            const tt = base + range * frac2;
-            const W = waveShell.clientWidth;
-            playhead.style.left = ((tt / dur) * W) + 'px';
-            playhead.style.display = 'block';
+            setPlayheadTime(base + range * frac2);
           },
           () => { if (listenIco) listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); },
           seekTo
@@ -2285,7 +2284,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // covers a single tap -- holding and moving did nothing, so the marker felt un-draggable.
     // Dragging stops playback immediately (you're choosing a new spot, not scrubbing audio) and
     // parks the marker there; pressing play afterwards resumes from exactly that point.
-    if (waveShell && config.abCompare) {
+    if (waveShell && (config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb)) {
       let scrubbing = false;
       const scrubTo = (clientX) => {
         if (dur <= 0) return;
@@ -2684,10 +2683,6 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
   .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
   .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
   .audio-tool .preset-btn:hover{border-color:var(--accent)}
-  .audio-tool .meter{height:8px;background:rgba(255,255,255,0.08);border-radius:5px;overflow:hidden;margin-bottom:14px;display:none}
-  .audio-tool .meter.on{display:block}
-  .audio-tool .meter-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .1s}
-  .audio-tool .meter-fill.clip{background:#ff3a5e}
   .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}

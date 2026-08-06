@@ -229,8 +229,6 @@ export const UI = {
       fileChannelsLabel: 'Channels',
       downloadResultLabel: 'Download result',
       silenceSensitivityLabel: 'Sensitivity',
-      peakLabel: 'Peak',
-      peakClippingLabel: 'Clipping! Lower the volume to avoid distortion.',
     },
   },
   ru: {
@@ -458,8 +456,6 @@ export const UI = {
       fileChannelsLabel: 'Каналы',
       downloadResultLabel: 'Скачать результат',
       silenceSensitivityLabel: 'Чувствительность',
-      peakLabel: 'Пик',
-      peakClippingLabel: 'Перегруз! Снизьте громкость, чтобы избежать искажений.',
     },
   },
   es: {
