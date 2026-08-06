@@ -2412,7 +2412,11 @@ if (config.controls === 'speed1') {
             renderedBuffer = await doRender();
             progress.classList.remove('on');
             listenBtn.disabled = false;
-            downloadRow.style.display = 'flex';
+            // The old two-button download strip only exists on tools without an export bar.
+            // Merge grew one, so this went null there and threw -- inside the try, so it
+            // surfaced as an error message instead of a console error, and the merged track
+            // never started playing even though its waveform had already appeared.
+            if (downloadRow) downloadRow.style.display = 'flex';
           }
           listenIco.innerHTML = ICO_PAUSE;
           player.play(
