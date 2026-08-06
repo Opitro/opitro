@@ -266,6 +266,11 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'trim',
     accept: 'audio/*',
+    // Was MP3-or-WAV via two buttons that only appeared after a "Process" step. Now the same
+    // export bar every other tool has: pick a format, download. The play button previews the
+    // exact result, so there's nothing left for a separate Process step to do.
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     directRender: (buffer, { start, end, cutOut, fadeIn, fadeOut }) => {
       const sr = buffer.sampleRate;
       const s = Math.max(0, Math.floor((start || 0) * sr));
@@ -306,6 +311,12 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio-merge',
     controls: 'multi-file',
     accept: 'audio/*',
+    // Unlike the single-file tools there IS nothing to download until the files have actually
+    // been joined, so this one keeps its action button -- it just leads to a waveform you can
+    // listen to before exporting, instead of straight to a file.
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
+    runLabel: 'mergeRunLabel',
   },
 
   volume: {

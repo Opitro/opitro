@@ -34,7 +34,11 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // Tools with their own transport + export bar (config.downloadFormats) don't want the old
 // generic Process/Listen button -- keyed off that capability rather than a list of control
 // names, which is what let it linger on three pages after only one was excluded by name.
-const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.downloadFormats;
+// Generator and merge have nothing to export until they've produced something, so they keep an
+// action button even though they now have an export bar. Every other tool renders on demand from
+// a file that's already loaded, which leaves a "Process" step with no work of its own to do.
+const needsRenderAction = isGenerator || controls === 'multi-file';
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && (!config.downloadFormats || needsRenderAction);
 const showRunBtn = isFfmpeg && !isRingtoneTargets;
 const showAddBtn = controls === 'multi-file' || !!config.allowBatch;
 const showControlsRow = showListenBtn || showRunBtn || showAddBtn;
@@ -141,11 +145,20 @@ const ICO = {
     {/* Gated on the compact player rather than on abCompare -- the file-info strip belongs to
         every tool using the new layout, and tying it to the A/B switch made it vanish from the
         speed tool the moment that switch was removed. */}
-    {(config.compactPreview || config.noWaveform) && (
+    {(config.compactPreview || config.noWaveform || controls === 'trim') && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
+      /* The play button lives in the times row rather than in a button bar further down: it
+         previews the selection the numbers describe, so it belongs beside them. Trim's preview
+         is the exact thing that gets downloaded -- fades and cut-out included -- which is what
+         made the old separate "Process" step redundant. */
       <div class="times" id="times">
+        {controls === 'trim' && (
+          <button type="button" class="wave-play-btn times-play" id="listen-sel-btn" aria-label={labels.listenSelectionLabel}>
+            <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+        )}
         <span>{labels.startLabel}: <b id="t-start">0:00.0</b></span>
         <span id="t-len-wrap">{labels.durationLabel}: <b id="t-len">0:00.0</b></span>
         <span>{labels.endLabel}: <b id="t-end">0:00.0</b></span>
@@ -535,7 +548,7 @@ const ICO = {
         {showListenBtn && (
           <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
             <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-            <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
+            <span id="listen-label">{isGenerator ? labels.generateLabel : (labels[config.runLabel] || labels.processLabel)}</span>
           </button>
         )}
         {showRunBtn && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
@@ -551,10 +564,24 @@ const ICO = {
         <button class="act" id="dl-wav-btn">{labels.downloadWavLabel}</button>
       </div>
     )}
-    {/* Shared export bar for webaudio tools that offer a format choice and a single Download
-        button (equalizer, fade). Disabled until the tool reports the user has changed something. */}
-    {/* rate1 renders its own export controls inside the deck above. */}
-    {config.downloadFormats && controls !== 'rate1' && (
+    {/* Export bar, one row: format then action, same as the sample-rate deck. rate1 builds its
+        own because its setting belongs on that row too. */}
+    {config.exportDeck && controls !== 'rate1' && (
+      <div class="deck">
+        <div class="field field-fmt">
+          <label for="tool-format">{labels.enhanceFormatLabel}</label>
+          <select id="tool-format">
+            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+          </select>
+        </div>
+        <button type="button" class="act primary deck-act" id="tool-download-btn" disabled>
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+          <span>{labels.downloadResultLabel}</span>
+        </button>
+      </div>
+    )}
+    {/* Older stacked bar -- still what the tools that haven't been reworked yet render. */}
+    {config.downloadFormats && !config.exportDeck && controls !== 'rate1' && (
       <>
         <div class="field">
           <label for="tool-format">{labels.enhanceFormatLabel}</label>
@@ -665,6 +692,8 @@ const ICO = {
     const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
     const ICO_CLOSE = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>';
     const ICO_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>';
+    const ICO_ARROW_UP = '<path d="M12 19V5"/><path d="M6 11l6-6 6 6"/>';
+    const ICO_ARROW_DOWN = '<path d="M12 5v14"/><path d="M18 13l-6 6-6-6"/>';
     const svgIco = (paths, cls) => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 
     function showError(message) {
@@ -800,14 +829,32 @@ const ICO = {
       if (playhead) playhead.style.display = 'none';
     }
     function isGeneratorLabel() {
-      return config.controls === 'generator' ? labels.generateLabel : labels.processLabel;
+      if (config.controls === 'generator') return labels.generateLabel;
+      // config.runLabel used to be read only by the ffmpeg Run button, so merge's own wording
+      // was reset to the generic "Process" the first time this ran.
+      return labels[config.runLabel] || labels.processLabel;
     }
 
     function escapeHtml(s) {
       return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
+    // Order is the whole point for merge -- the files play back in list order -- and the only way
+    // to change it used to be removing everything and re-adding it in sequence, which is what the
+    // page's own FAQ had to tell people to do. Reorder arrows instead of drag-and-drop because
+    // they work identically with a finger, a mouse and a keyboard.
+    const canReorder = config.controls === 'multi-file';
     function renderFileList() {
-      fileList.innerHTML = files.map((f, i) => `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${labels.listenSelectionLabel || 'Listen'}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button><span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span><button type="button" class="filelist-remove" data-index="${i}" aria-label="${labels.removeFileLabel || 'Remove'}">${svgIco(ICO_CLOSE, 'i')}</button></div>`).join('');
+      const last = files.length - 1;
+      fileList.innerHTML = files.map((f, i) => {
+        const move = canReorder && files.length > 1
+          ? `<button type="button" class="filelist-move" data-move="up" data-index="${i}" aria-label="${escapeHtml(labels.moveUpLabel || 'Move up')}" title="${escapeHtml(labels.moveUpLabel || 'Move up')}"${i === 0 ? ' disabled' : ''}>${svgIco(ICO_ARROW_UP, 'i')}</button>`
+            + `<button type="button" class="filelist-move" data-move="down" data-index="${i}" aria-label="${escapeHtml(labels.moveDownLabel || 'Move down')}" title="${escapeHtml(labels.moveDownLabel || 'Move down')}"${i === last ? ' disabled' : ''}>${svgIco(ICO_ARROW_DOWN, 'i')}</button>`
+          : '';
+        return `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${escapeHtml(labels.listenSelectionLabel || 'Listen')}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button>`
+          + `<span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span>`
+          + move
+          + `<button type="button" class="filelist-remove" data-index="${i}" aria-label="${escapeHtml(labels.removeFileLabel || 'Remove')}" title="${escapeHtml(labels.removeFileLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      }).join('');
     }
     // Per-file preview in the multi-file list (merge, batch convert) -- decodes only when
     // tapped, not up front for every file, since a batch can be up to 20 files at 1GB each.
@@ -819,11 +866,26 @@ const ICO = {
     }
     if (fileList) {
       fileList.addEventListener('click', async (e) => {
+        const moveBtn = e.target.closest('.filelist-move');
+        if (moveBtn) {
+          const from = Number(moveBtn.dataset.index);
+          const to = moveBtn.dataset.move === 'up' ? from - 1 : from + 1;
+          if (to < 0 || to >= files.length) return;
+          [files[from], files[to]] = [files[to], files[from]];
+          // Stop whatever was playing: after a swap the highlighted row is a different file.
+          player.stop();
+          filePlayingIndex = -1;
+          renderFileList();
+          invalidateRender();
+          eqSyncState();
+          return;
+        }
         const removeBtn = e.target.closest('.filelist-remove');
         if (removeBtn) {
           files.splice(Number(removeBtn.dataset.index), 1);
           renderFileList();
           invalidateRender();
+          eqSyncState();
           filePlayingIndex = -1;
           if (!files.length) {
             panel.classList.remove('on');
@@ -880,6 +942,9 @@ const ICO = {
       if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
       if (inStart) inStart.value = selStart.toFixed(1);
       if (inEnd) inEnd.value = selEnd.toFixed(1);
+      // Every selection change -- drag, handle, typed number -- lands here, so this is the one
+      // place that has to tell the export button whether there's anything to export yet.
+      eqSyncState();
     }
 
     // Some containers (certain iPhone .MOV exports, some odd MP4 variants) fail the browser's
@@ -1011,6 +1076,7 @@ const ICO = {
         files.push(f);
         renderFileList();
         invalidateRender();
+        eqSyncState();
         panel.classList.add('on');
         if (drop) drop.style.display = 'none';
         if (files.length >= 1 && listenBtn) listenBtn.disabled = false;
@@ -1142,16 +1208,19 @@ const ICO = {
         // Live-graph tools (EQ, fade) and render-on-demand tools (pitch, voice) both have their
         // A/B halves and transport usable the moment a file decodes -- the latter just render
         // lazily the first time the processed side is actually asked for.
+        // True of any decoded file, whatever the tool does with it. These used to sit inside the
+        // A/B branch below, so trim -- which is neither a live-chain nor an A/B tool -- decoded a
+        // file and then showed no info strip and never re-evaluated its export button.
+        exportedClean = false;
+        renderFileMeta(f);
+        eqSyncState();
         if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (abCompareEl) abCompareEl.style.display = 'flex';
           if (abResultBtn) abResultBtn.disabled = false;
           if (wavePlayBtn) wavePlayBtn.disabled = false;
           if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
           if (transportCurEl) transportCurEl.textContent = '0:00';
-          exportedClean = false;
           if (rateStateSync) rateStateSync();
-          eqSyncState();
-          renderFileMeta(f);
           updateFadeRegions();
         }
       }
@@ -1319,6 +1388,34 @@ const ICO = {
         }
         player.unlock();
         if (!sourceBuffer || selEnd - selStart < 0.05) return;
+        // Trim previews the actual export -- the same directRender the download runs -- so fades
+        // and cut-out are audible before committing. With cut-out on, the selection is the part
+        // being thrown away, so previewing the selection would play exactly the wrong audio.
+        if (config.controls === 'trim') {
+          listenSelIco.innerHTML = ICO_PAUSE;
+          let result;
+          try {
+            result = await doRender();
+          } catch (err) {
+            listenSelIco.innerHTML = ICO_PLAY;
+            showError(err && err.message ? err.message : String(err));
+            return;
+          }
+          const cutting = !!(root.querySelector('#ctrl-cutout') || {}).checked;
+          const resultDur = result.duration;
+          player.play(
+            result,
+            (frac) => {
+              const t = frac * resultDur;
+              // Map result time back onto the source waveform. When cutting out, the result is
+              // the two surviving halves joined, so past the cut point the playhead jumps the
+              // removed region -- which shows what "cut out" means better than any label.
+              setPlayheadTime(cutting ? (t < selStart ? t : selEnd + (t - selStart)) : selStart + t);
+            },
+            () => { listenSelIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
+          );
+          return;
+        }
         listenSelIco.innerHTML = ICO_PAUSE;
         let slice = sliceBuffer(sourceBuffer, selStart, selEnd);
         const rtVolumeEl2 = root.querySelector('#rt-volume');
@@ -1531,12 +1628,31 @@ if (config.controls === 'speed1') {
         const el = root.querySelector('#ctrl-slider'), kp = root.querySelector('#ctrl-keeppitch');
         return (!!el && Number(el.value) !== 100) || (!!kp && !kp.checked);
       }
+      // Exporting the whole file unchanged isn't trimming -- that's what the converter is for.
+      // Fades and cut-out count as changes on their own, since either one alters the audio even
+      // when the selection still covers the entire track.
+      if (config.controls === 'trim') {
+        if (!sourceBuffer) return false;
+        const fi = Number((root.querySelector('#ctrl-fadein') || {}).value) || 0;
+        const fo = Number((root.querySelector('#ctrl-fadeout') || {}).value) || 0;
+        const cut = !!(root.querySelector('#ctrl-cutout') || {}).checked;
+        return selStart > 0.01 || selEnd < dur - 0.01 || fi > 0 || fo > 0 || cut;
+      }
+      // One file joined to nothing is just that file.
+      if (config.controls === 'multi-file') return files.length >= 2;
       return true;
+    }
+    // Merge has no single decoded source -- its input is the file list -- so "is there anything
+    // to work with" can't just be `sourceBuffer`. Keying the export button off sourceBuffer left
+    // it permanently disabled there.
+    function hasWorkableInput() {
+      return config.controls === 'multi-file' ? files.length >= 2 : !!sourceBuffer;
     }
     function eqSyncState() {
       const touched = toolIsDirty();
-      if (eqDownloadBtn) eqDownloadBtn.disabled = !touched || !sourceBuffer;
-      if (readyNoteEl) readyNoteEl.style.display = touched && !exportedClean && sourceBuffer ? 'block' : 'none';
+      const ready = hasWorkableInput();
+      if (eqDownloadBtn) eqDownloadBtn.disabled = !touched || !ready;
+      if (readyNoteEl) readyNoteEl.style.display = touched && !exportedClean && ready ? 'block' : 'none';
     }
 
     let lastResultBuffer = null;
@@ -1698,7 +1814,7 @@ if (config.controls === 'speed1') {
     // WAV/MP3 are native; OGG borrows ffmpeg's libvorbis, same path the Convert tool uses.
     if (eqDownloadBtn) {
       eqDownloadBtn.addEventListener('click', async () => {
-        if (!sourceBuffer) return;
+        if (!hasWorkableInput()) return;
         window.dispatchEvent(new Event('opitro:tool-interaction'));
         clearError();
         eqDownloadBtn.disabled = true;
@@ -1708,7 +1824,10 @@ if (config.controls === 'speed1') {
         try {
           const rendered = await doRender();
           const fmt = eqFormatSel ? eqFormatSel.value : 'wav';
-          const base = (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
+          // Merge has no single input file to name the result after.
+          const base = config.controls === 'multi-file'
+            ? 'merged'
+            : (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
           progressFill.style.width = '70%';
           let blob;
           if (fmt === 'mp3') blob = await encodeMP3(rendered, 192);
@@ -1722,7 +1841,15 @@ if (config.controls === 'speed1') {
             });
           } else blob = encodeWAV(rendered);
           finishProgress(labels.doneLabel);
-          downloadBlob(blob, `${base}-${config.controls === 'fade2' ? 'fade' : 'eq'}.${fmt}`);
+          // Every tool sharing this export path was writing "-eq" (or "-fade") into the
+          // filename, so a trimmed file came out as "song-eq.mp3". Named after what was done.
+          const suffix = {
+            eq10: 'eq', fade2: 'fade', trim: 'trim',
+            pitch1: 'pitch', voicefx: 'voice', speed1: 'speed', volume1: 'volume', rate1: 'resampled',
+          }[config.controls] || 'result';
+          // Merge has no source name to qualify, so it's just "merged" -- pairing the fallback
+          // base with a suffix produced "merged-merged.wav".
+          downloadBlob(blob, config.controls === 'multi-file' ? `merged.${fmt}` : `${base}-${suffix}.${fmt}`);
           exportedClean = true;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
@@ -2807,8 +2934,10 @@ if (config.controls === 'speed1') {
      with no hit area to speak of. Swap and remove are the same shape and size because they're
      the same kind of thing (something you do to the file), and differ only on hover: green for
      the harmless one, red for the destructive one. */
-  .audio-tool .fi-act,.audio-tool .filelist-remove{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
-  .audio-tool .fi-act .i,.audio-tool .filelist-remove .i{width:15px;height:15px}
+  .audio-tool .fi-act,.audio-tool .filelist-remove,.audio-tool .filelist-move{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .audio-tool .fi-act .i,.audio-tool .filelist-remove .i,.audio-tool .filelist-move .i{width:15px;height:15px}
+  .audio-tool .filelist-move:hover:not(:disabled){color:var(--accent);background:rgba(74,222,158,0.14)}
+  .audio-tool .filelist-move:disabled{opacity:.25;cursor:not-allowed}
   .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
@@ -2834,8 +2963,12 @@ if (config.controls === 'speed1') {
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
   .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
   .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.85;pointer-events:none;z-index:2;display:none}
-  .audio-tool .times{display:flex;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px}
+  .audio-tool .times{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px 14px}
   .audio-tool .times b{color:var(--accent)}
+  /* Same green disc as the compact player's play button -- one play control across the site,
+     just parked next to the numbers it previews here. */
+  .audio-tool .times-play{width:40px;height:40px;margin-right:2px}
+  .audio-tool .times-play .ico{width:16px;height:16px}
 
   .audio-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
   /* ---- 10-band graphic EQ ----
