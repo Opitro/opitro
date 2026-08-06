@@ -30,6 +30,21 @@ const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
 const accept = config.accept || 'audio/*';
 const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
+
+// One icon family for the whole tool: 24x24 grid, no fill, 2px round-capped strokes -- the same
+// language the drop-zone arrow was already drawn in. Before this the page mixed a colour emoji
+// (the file chip), two text glyphs typed straight into the markup (x and the download arrow),
+// a solid SVG triangle and two browser-drawn select chevrons, so five different visual systems
+// shared one screen. Download and "another file" are deliberately mirror images of each other:
+// same tray, arrow reversed, so the pair reads as in/out at a glance.
+// The play/pause glyph stays solid on purpose -- it sits inside a filled green disc, where a
+// hairline outline would disappear. Solid on solid, outlined on flat.
+const ICO = {
+  wave: '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>',
+  close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
+  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>',
+};
 ---
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
@@ -377,6 +392,43 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         </div>
       </>
     )}
+    {controls === 'rate1' && (
+      <>
+        {/* The whole tool is one line of cause and effect, so it's laid out as one: what the
+            audio becomes, what it's saved as, then the action. Splitting those across two
+            stacked bars with a button between them made three unrelated-looking blocks out of
+            a single decision. Every cell is the same 48px tall on the same 12px radius, and the
+            row wraps by its own min-width rather than at a guessed breakpoint -- which matters
+            because these labels are far longer in Russian than in English. */}
+        <div class="deck">
+          <div class="field">
+            <label for="ctrl-select">{labels.sampleRateLabel}</label>
+            <select id="ctrl-select">
+              {config.rateOptions.map((o) => (
+                <option value={o.value} selected={o.value === 44100 ? true : undefined}>{o.label}</option>
+              ))}
+            </select>
+          </div>
+          <div class="field field-fmt">
+            <label for="tool-format">{labels.enhanceFormatLabel}</label>
+            <select id="tool-format">
+              {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <button type="button" class="act primary deck-act" id="tool-download-btn" disabled>
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+            <span>{labels.downloadResultLabel}</span>
+          </button>
+        </div>
+        <div class="rate-note" id="rate-note" style="display:none"></div>
+        {/* Swapping the file isn't what anyone came here to do, so it's the quietest thing on
+            the page -- outline only, no fill, below the action rather than beside it. */}
+        <button type="button" class="act ghost act-wide" id="audio-new-btn">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.upload} />
+          <span>{labels.newFileLabel}</span>
+        </button>
+      </>
+    )}
     {controls === 'volume1' && (
       <>
         <div class="fade-card pitch-card">
@@ -474,7 +526,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       </>
     )}
 
-    <div class="controls">
+    {/* rate1 carries its only button inside the setting row above, so this bar would render empty. */}
+    <div class="controls" style={controls === 'rate1' ? 'display:none' : undefined}>
       {/* Tools with their own transport + export bar (config.downloadFormats) don't want the
           old generic Process/Listen button -- keyed off that capability rather than a list of
           control names, which is what let it linger on three pages after only one was excluded
@@ -486,7 +539,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
         </button>
       )}
       {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
-      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && controls !== 'eq10' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
+      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && controls !== 'eq10' && controls !== 'rate1' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
       {(controls === 'multi-file' || config.allowBatch) && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
     </div>
 
@@ -500,7 +553,8 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     )}
     {/* Shared export bar for webaudio tools that offer a format choice and a single Download
         button (equalizer, fade). Disabled until the tool reports the user has changed something. */}
-    {config.downloadFormats && (
+    {/* rate1 renders its own export controls inside the deck above. */}
+    {config.downloadFormats && controls !== 'rate1' && (
       <>
         <div class="field">
           <label for="tool-format">{labels.enhanceFormatLabel}</label>
@@ -508,7 +562,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
             {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
           </select>
         </div>
-        <button type="button" class="act primary tool-download-btn" id="tool-download-btn" disabled>⬇ {labels.downloadResultLabel}</button>
+        {/* Same icon as the deck's action and as the drop zone, rather than a typed-in glyph
+            that rendered in the text font and sat on a different baseline. */}
+        <button type="button" class="act primary tool-download-btn" id="tool-download-btn" disabled>
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+          <span>{labels.downloadResultLabel}</span>
+        </button>
         {config.readyNote && <div class="ready-note" id="ready-note" style="display:none">{labels.fadeReadyLabel}</div>}
       </>
     )}
@@ -598,8 +657,15 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     let selStart = 0;
     let selEnd = 0;
     const player = createPlayer();
+    // Solid glyphs -- these two live inside the filled green disc (see the ICO note in the
+    // component frontmatter for why the outlined set stops there).
     const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
     const ICO_PAUSE = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+    // Outlined set, duplicated from the frontmatter ICO object because this runs client-side and
+    // has no access to it. Keep the two in step.
+    const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
+    const ICO_CLOSE = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>';
+    const svgIco = (paths, cls) => `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
 
     function showError(message) {
       errBox.textContent = message;
@@ -707,7 +773,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       // Sample rate and channel count are only known from a decoded buffer. Tools that skip the
       // decode on purpose (visualizer) show the rest rather than nothing.
       if (sourceBuffer) {
-        rows.push([labels.fileSampleRateLabel || 'Sample rate', `${sourceBuffer.sampleRate} Hz`]);
+        // Thin-space grouping, so the strip reads "48 000 Hz" exactly like the dropdown right
+        // below it does -- "48000 Hz" next to "44 100 Hz (CD)" looked like two different units.
+        rows.push([labels.fileSampleRateLabel || 'Sample rate',
+          `${String(sourceBuffer.sampleRate).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} Hz`]);
         rows.push([labels.fileChannelsLabel || 'Channels',
           sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono')]);
       }
@@ -738,7 +807,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       return s.replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
     }
     function renderFileList() {
-      fileList.innerHTML = files.map((f, i) => `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${labels.listenSelectionLabel || 'Listen'}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button><span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span><button type="button" class="filelist-remove" data-index="${i}" aria-label="${labels.removeFileLabel || 'Remove'}">×</button></div>`).join('');
+      fileList.innerHTML = files.map((f, i) => `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${labels.listenSelectionLabel || 'Listen'}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button><span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span><button type="button" class="filelist-remove" data-index="${i}" aria-label="${labels.removeFileLabel || 'Remove'}">${svgIco(ICO_CLOSE, 'i')}</button></div>`).join('');
     }
     // Per-file preview in the multi-file list (merge, batch convert) -- decodes only when
     // tapped, not up front for every file, since a batch can be up to 20 files at 1GB each.
@@ -945,7 +1014,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
       file = f;
       const sizeMB = f.size / 1048576;
-      fileInfo.innerHTML = `<div class="fi-row"><span class="fi-name">🎵 ${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-remove" id="fi-remove-btn" aria-label="${labels.removeFileLabel || 'Remove'}">×</button></div>`;
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-remove" id="fi-remove-btn" aria-label="${labels.removeFileLabel || 'Remove'}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
@@ -1060,6 +1129,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
           if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
           if (transportCurEl) transportCurEl.textContent = '0:00';
           exportedClean = false;
+          if (rateStateSync) rateStateSync();
           eqSyncState();
           renderFileMeta(f);
           updateFadeRegions();
@@ -1360,6 +1430,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
     // ---- Volume state --------------------------------------------------------------------------
     // A single GainNode. Cheap enough to run live, so dragging the slider is heard immediately
     // and the peak readout follows without touching the file.
+    let rateStateSync = null;
     let volumeLiveGain = null;
     const volumeSliderEl = root.querySelector('#ctrl-slider');
     function volumeValue() {
@@ -1429,6 +1500,12 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
       }
       if (config.controls === 'voicefx') return !!root.querySelector('#voice-fx .preset-card.active');
       if (config.controls === 'volume1') return volumeValue() !== 100;
+      // Only "dirty" when the target rate actually differs from the file's own -- converting
+      // 44.1 kHz to 44.1 kHz produces a copy and nothing else.
+      if (config.controls === 'rate1') {
+        const el = root.querySelector('#ctrl-select');
+        return !!el && !!sourceBuffer && Number(el.value) !== sourceBuffer.sampleRate;
+      }
 if (config.controls === 'speed1') {
         const el = root.querySelector('#ctrl-slider'), kp = root.querySelector('#ctrl-keeppitch');
         return (!!el && Number(el.value) !== 100) || (!!kp && !kp.checked);
@@ -1462,7 +1539,7 @@ if (config.controls === 'speed1') {
     //    computed on demand and cached by settings so re-selecting it is instant.
     //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
     const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder, volume1: () => volumeChainBuilder };
-    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx', 'speed1'];
+    const RENDERED_AB_TOOLS = ['pitch1', 'voicefx', 'speed1', 'rate1'];
     const isRenderedAb = RENDERED_AB_TOOLS.includes(config.controls);
     // A tool WITHOUT an Original/Result switch (speed, volume) has only one thing to play: the
     // processed version. Without this it would sit on 'original' forever and the play button
@@ -1740,6 +1817,44 @@ if (config.controls === 'speed1') {
       // Re-preview on size change only if something has already been rendered -- otherwise
       // changing the dropdown before ever picking a style would kick off a render unasked.
       if (vizSizeEl) vizSizeEl.addEventListener('change', () => { if (file && vizVideoEl.src) renderVizPreview(); });
+    }
+
+    if (config.controls === 'rate1') {
+      const rateSel = root.querySelector('#ctrl-select');
+      const rateNote = root.querySelector('#rate-note');
+      const fmtSelect = root.querySelector('#tool-format');
+      function syncRateState() {
+        const rate = Number(rateSel.value);
+        // MP3 can't represent every rate. Rather than let someone export a file that is quietly
+        // wrong, the option is disabled and the reason is stated.
+        const mp3Ok = (config.mp3Rates || []).includes(rate);
+        if (fmtSelect) {
+          const mp3Opt = fmtSelect.querySelector('option[value="mp3"]');
+          if (mp3Opt) {
+            mp3Opt.disabled = !mp3Ok;
+            if (!mp3Ok && fmtSelect.value === 'mp3') fmtSelect.value = 'wav';
+          }
+        }
+        if (rateNote) {
+          const same = sourceBuffer && rate === sourceBuffer.sampleRate;
+          rateNote.textContent = !mp3Ok
+            ? labels.rateNoMp3Label
+            : same ? labels.rateSameLabel : '';
+          rateNote.style.display = rateNote.textContent ? 'block' : 'none';
+        }
+        renderedBuffer = null;
+        exportedClean = false;
+        eqSyncState();
+      }
+      if (rateSel) {
+        rateSel.addEventListener('change', () => {
+          stopAB();
+          syncRateState();
+        });
+      }
+      // Re-run once a file is decoded, so the "same as the original" note and the disabled
+      // download reflect the actual file rather than a guess.
+      rateStateSync = syncRateState;
     }
 
     if (config.controls === 'volume1') {
@@ -2656,20 +2771,27 @@ if (config.controls === 'speed1') {
 
   .audio-tool .panel{display:none;margin-top:8px}
   .audio-tool .panel.on{display:block}
-  .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:10px;padding:11px 14px}
+  /* 12px radius and a 48px-tall row, same as every other control -- the chip used to sit on a
+     10px radius and a slightly different height, which is the sort of half-pixel mismatch you
+     feel as "not quite tidy" without being able to point at it. */
+  .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .fi-row{display:flex;align-items:center;gap:10px}
+  /* Bars, not a music note: it echoes the waveform in the player directly below, so the chip
+     and the track read as the same object rather than two unrelated widgets. */
+  .audio-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
   .audio-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
-  .audio-tool .fi-size{flex:none;color:var(--muted)}
-  .audio-tool .fi-remove{flex:none;font-family:inherit;font-size:16px;line-height:1;cursor:pointer;background:none;border:none;color:var(--muted);padding:2px 6px;border-radius:6px}
-  .audio-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.1)}
+  .audio-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  /* A real 30px round target rather than a bare glyph -- it was the one control on the page
+     with no hit area to speak of. */
+  .audio-tool .fi-remove,.audio-tool .filelist-remove{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .audio-tool .fi-remove .i,.audio-tool .filelist-remove .i{width:15px;height:15px}
+  .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
   .audio-tool .filelist-item span{flex:1;min-width:0}
   .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
   .audio-tool .filelist-play:hover{background:rgba(74,222,158,0.15)}
   .audio-tool .filelist-play .ico{width:16px;height:16px}
-  .audio-tool .filelist-remove{font-family:inherit;font-size:16px;line-height:1;cursor:pointer;background:none;border:none;color:var(--muted);padding:2px 6px;flex:none;border-radius:6px}
-  .audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.1)}
 
   .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none;cursor:pointer}
   .audio-tool canvas{display:block;width:100%;height:130px}
@@ -2759,6 +2881,32 @@ if (config.controls === 'speed1') {
   .audio-tool .field input[type=text],.audio-tool .field input[type=number]{cursor:text}
   .audio-tool .field select:focus,.audio-tool .field input:focus{outline:none;border-color:rgba(74,222,158,0.5)}
   .audio-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
+
+  /* --- The deck: setting, format, action on one line ------------------------------------- */
+  /* One height and one radius across every cell. The two dropdowns each hold their own share
+     of the space (the rate strings are the longest), the action takes the rest, and the whole
+     row folds by flex-basis when it genuinely runs out of room. */
+  .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
+  .audio-tool .deck .field{flex:1 1 200px;margin-bottom:0}
+  .audio-tool .deck .field-fmt{flex:0 1 130px}
+  .audio-tool .deck-act{flex:1 1 210px;height:48px;padding:0 18px;border-radius:12px;min-width:0}
+  .audio-tool .deck .field select{height:48px;border-radius:12px}
+  /* A quiet outline, so the eye lands on the green action first and finds this only when it
+     goes looking. Full width, on its own line -- it isn't part of the decision above it. */
+  .audio-tool .act-wide{width:100%;height:48px;padding:0 18px;border-radius:12px}
+  .audio-tool button.act.ghost{background:transparent;color:var(--muted)}
+  .audio-tool button.act.ghost:hover{color:var(--text);background:var(--surface-2)}
+  .audio-tool .act .i{width:17px;height:17px;flex:none}
+  .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
+
+  /* The native select arrow is drawn by the browser, so it looked different on every platform
+     and matched nothing else here. Replaced with the same 2px round-capped chevron the rest of
+     the icons use; the dropdown list itself stays native. */
+  .audio-tool .field select{
+    appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px;
+  }
 
   .audio-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
   .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}

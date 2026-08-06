@@ -787,17 +787,26 @@ export const AUDIO_TOOLS = {
   },
 
   'sample-rate': {
+    // Deliberately one control. The processed side is a real resample, so it renders on demand
+    // and the play button plays THAT -- hearing 8 kHz next to 44.1 kHz is the entire point of
+    // the tool, and resampling is fast enough that waiting for it isn't a burden.
     engine: 'webaudio',
-    controls: 'select',
+    controls: 'rate1',
     accept: 'audio/*',
-    selectLabel: 'sampleRateLabel',
-    selectOptions: [
-      { value: '8000', label: '8,000 Hz' },
-      { value: '16000', label: '16,000 Hz' },
-      { value: '22050', label: '22,050 Hz' },
-      { value: '44100', label: '44,100 Hz (CD)' },
-      { value: '48000', label: '48,000 Hz' },
-      { value: '96000', label: '96,000 Hz' },
+    compactPreview: true,
+    transport: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    // MPEG audio only defines these rates -- MPEG-1 gives 32/44.1/48, MPEG-2 adds 16/22.05/24
+    // and MPEG-2.5 adds 8/11.025/12. 96 kHz simply has no representation in MP3, so offering it
+    // would hand back a file that is either broken or silently retagged at another rate.
+    mp3Rates: [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000],
+    rateOptions: [
+      { value: 8000, label: '8 000 Hz' },
+      { value: 16000, label: '16 000 Hz' },
+      { value: 22050, label: '22 050 Hz' },
+      { value: 44100, label: '44 100 Hz (CD)' },
+      { value: 48000, label: '48 000 Hz' },
+      { value: 96000, label: '96 000 Hz' },
     ],
     render: (oc, src) => src,
     outputSampleRate: ({ value }) => Number(value),
