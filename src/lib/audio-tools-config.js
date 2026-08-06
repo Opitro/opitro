@@ -331,6 +331,7 @@ export const AUDIO_TOOLS = {
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     volumeMin: 10,
     volumeMax: 300,
     buildLiveChain: (ctx, src, value) => {
@@ -385,6 +386,7 @@ export const AUDIO_TOOLS = {
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     speedMin: 25,
     speedMax: 400,
     speedPresets: [50, 75, 100, 125, 150, 200],
@@ -409,6 +411,7 @@ export const AUDIO_TOOLS = {
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     semitoneMin: -12,
     semitoneMax: 12,
     // Cents are hundredths of a semitone -- the fine-tuning musicians actually need: matching a
@@ -433,6 +436,7 @@ export const AUDIO_TOOLS = {
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     voiceEffects: [
       { key: 'robot', emoji: '🤖', label: 'voiceRobotLabel', desc: 'voiceRobotDesc' },
       { key: 'phone', emoji: '📞', label: 'voicePhoneLabel', desc: 'voicePhoneDesc' },
@@ -559,6 +563,7 @@ export const AUDIO_TOOLS = {
     transport: true,
     fadeRegions: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     readyNote: true,
     fadeMax: 15,
     fadePresets: [
@@ -669,6 +674,7 @@ export const AUDIO_TOOLS = {
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
+    exportDeck: true,
     bands: EQ_BANDS,
     eqPresets: [
       { key: 'flat', emoji: '➖', label: 'eqFlatLabel', gains: [0, 0, 0, 0, 0, 0, 0, 0, 0, 0] },

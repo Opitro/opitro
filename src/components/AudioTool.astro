@@ -564,9 +564,11 @@ const ICO = {
         <button class="act" id="dl-wav-btn">{labels.downloadWavLabel}</button>
       </div>
     )}
-    {/* Export bar, one row: format then action, same as the sample-rate deck. rate1 builds its
-        own because its setting belongs on that row too. */}
-    {config.exportDeck && controls !== 'rate1' && (
+    {/* Export bar, one row: format then action. Every tool with a format choice uses this now;
+        sample-rate is the one exception and builds its own, because its setting belongs on that
+        same row. The older stacked version (a full-width select over a full-width button) is
+        gone -- two rows made one decision look like two. */}
+    {config.exportDeck && (
       <div class="deck">
         <div class="field field-fmt">
           <label for="tool-format">{labels.enhanceFormatLabel}</label>
@@ -580,24 +582,8 @@ const ICO = {
         </button>
       </div>
     )}
-    {/* Older stacked bar -- still what the tools that haven't been reworked yet render. */}
-    {config.downloadFormats && !config.exportDeck && controls !== 'rate1' && (
-      <>
-        <div class="field">
-          <label for="tool-format">{labels.enhanceFormatLabel}</label>
-          <select id="tool-format">
-            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
-          </select>
-        </div>
-        {/* Same icon as the deck's action and as the drop zone, rather than a typed-in glyph
-            that rendered in the text font and sat on a different baseline. */}
-        <button type="button" class="act primary tool-download-btn" id="tool-download-btn" disabled>
-          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
-          <span>{labels.downloadResultLabel}</span>
-        </button>
-        {config.readyNote && <div class="ready-note" id="ready-note" style="display:none">{labels.fadeReadyLabel}</div>}
-      </>
-    )}
+    {/* Sits under the row rather than in it -- it's a status line, not a control. */}
+    {config.exportDeck && config.readyNote && <div class="ready-note" id="ready-note" style="display:none">{labels.fadeReadyLabel}</div>}
 
     {isRingtoneTargets && <div class="guide" id="ringtone-guide"></div>}
 
@@ -3017,8 +3003,8 @@ if (config.controls === 'speed1') {
   .audio-tool .fade-region{position:absolute;top:0;bottom:0;z-index:2;pointer-events:none;display:none}
   .audio-tool .fade-region-in{background:linear-gradient(90deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
   .audio-tool .fade-region-out{background:linear-gradient(270deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
-  .audio-tool .ready-note{font-size:12.5px;color:var(--accent);margin-top:10px;text-align:center}
-  .audio-tool .tool-download-btn{width:100%}
+  /* Sits directly under the export row, so it aligns with it rather than centring on the page. */
+  .audio-tool .ready-note{font-size:12.5px;color:var(--accent);margin:-4px 0 14px}
 
   .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
   /* Reset is the only button here now that "upload a different file" moved onto the file chip.
