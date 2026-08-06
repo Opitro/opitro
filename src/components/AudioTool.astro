@@ -31,6 +31,14 @@ const isRingtoneTargets = controls === 'ringtone-targets';
 const accept = config.accept || 'audio/*';
 const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 
+// Tools with their own transport + export bar (config.downloadFormats) don't want the old
+// generic Process/Listen button -- keyed off that capability rather than a list of control
+// names, which is what let it linger on three pages after only one was excluded by name.
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.downloadFormats;
+const showRunBtn = isFfmpeg && !isRingtoneTargets;
+const showAddBtn = controls === 'multi-file' || !!config.allowBatch;
+const showControlsRow = showListenBtn || showRunBtn || showAddBtn;
+
 // One icon family for the whole tool: 24x24 grid, no fill, 2px round-capped strokes -- the same
 // language the drop-zone arrow was already drawn in. Before this the page mixed a colour emoji
 // (the file chip), two text glyphs typed straight into the markup (x and the download arrow),
@@ -39,11 +47,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // same tray, arrow reversed, so the pair reads as in/out at a glance.
 // The play/pause glyph stays solid on purpose -- it sits inside a filled green disc, where a
 // hairline outline would disappear. Solid on solid, outlined on flat.
+// Only the markup-rendered icon lives here; wave/close/upload are drawn into the file chip by
+// the client script, which has its own copies (it can't reach this scope).
 const ICO = {
-  wave: '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>',
-  close: '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>',
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
-  upload: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>',
 };
 ---
 
@@ -265,7 +272,6 @@ const ICO = {
       <>
         <div class="eq-toolbar">
           <button type="button" class="act eq-reset-btn" id="eq-reset-btn">{labels.eqResetLabel}</button>
-          <button class="act eq-reset-btn" id="audio-new-btn">{labels.newFileLabel}</button>
         </div>
         <div class="eq-bands-scroll">
           <div class="eq-bands" id="eq-bands">
@@ -503,7 +509,6 @@ const ICO = {
           <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           <span id="listen-sel-label">{labels.listenSelectionLabel}</span>
         </button>
-        <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>
       </div>
     )}
     {isRingtoneTargets && <AdSlot />}
@@ -522,22 +527,21 @@ const ICO = {
       </>
     )}
 
-    {/* rate1 carries its only button inside the setting row above, so this bar would render empty. */}
-    <div class="controls" style={controls === 'rate1' ? 'display:none' : undefined}>
-      {/* Tools with their own transport + export bar (config.downloadFormats) don't want the
-          old generic Process/Listen button -- keyed off that capability rather than a list of
-          control names, which is what let it linger on three pages after only one was excluded
-          by name. */}
-      {!isFfmpeg && !isRingtoneTargets && !config.downloadFormats && (
-        <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
-          <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
-        </button>
-      )}
-      {isFfmpeg && !isRingtoneTargets && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
-      {!isGenerator && !isRingtoneTargets && controls !== 'multi-file' && controls !== 'eq10' && controls !== 'rate1' && !config.allowBatch && <button class="act" id="audio-new-btn">{labels.newFileLabel}</button>}
-      {(controls === 'multi-file' || config.allowBatch) && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
-    </div>
+    {/* Rendered only when it actually has a button in it. "Upload a different file" used to be
+        the sole occupant on most tools; now that it lives on the file chip, an unconditional bar
+        left an empty flex row with its own margin on every one of those pages. */}
+    {showControlsRow && (
+      <div class="controls">
+        {showListenBtn && (
+          <button class="act" id="audio-listen-btn" disabled={!isGenerator}>
+            <svg class="ico" id="listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+            <span id="listen-label">{isGenerator ? labels.generateLabel : labels.processLabel}</span>
+          </button>
+        )}
+        {showRunBtn && <button class="act primary" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>{labels[config.runLabel] || labels.processLabel}</button>}
+        {showAddBtn && <button class="act" id="audio-add-btn">{labels.addFileLabel}</button>}
+      </div>
+    )}
 
     {!isRingtoneTargets && <AdSlot />}
 
@@ -614,7 +618,6 @@ const ICO = {
     const targetsEl = root.querySelector('#targets');
     const ringtoneGuide = root.querySelector('#ringtone-guide');
     const runBtn = root.querySelector('#audio-run-btn');
-    const newBtn = root.querySelector('#audio-new-btn');
     const addBtn = root.querySelector('#audio-add-btn');
     const downloadRow = root.querySelector('#download-row');
     const dlMp3Btn = root.querySelector('#dl-mp3-btn');
@@ -1017,11 +1020,12 @@ const ICO = {
       const sizeMB = f.size / 1048576;
       // Actions on the file live on the file: swap and remove, two identical round targets.
       // A full-width "upload a different file" button lower down claimed an importance the
-      // action doesn't have -- it's a correction, not a step.
-      const swapBtn = config.fileChipActions
-        ? `<button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${escapeHtml(labels.newFileLabel || 'Upload a different file')}" title="${escapeHtml(labels.newFileLabel || 'Upload a different file')}">${svgIco(ICO_UPLOAD, 'i')}</button>`
-        : '';
-      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${swapBtn}<button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${escapeHtml(labels.removeFileLabel || 'Remove')}" title="${escapeHtml(labels.removeFileLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      // action doesn't have -- it's a correction, not a step. This branch only ever runs for
+      // single-file tools (batch and merge have a per-item list with its own controls), so both
+      // buttons belong here unconditionally.
+      const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
+      const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button><button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
@@ -1179,7 +1183,8 @@ const ICO = {
         fileInput.value = '';
       });
     }
-    if (newBtn) newBtn.addEventListener('click', () => fileInput.click());
+    // "Upload a different file" is the swap button on the file chip now, wired up in pickFile
+    // where the chip is built. Batch tools keep their own Add button.
     if (addBtn) addBtn.addEventListener('click', () => fileInput.click());
 
 
@@ -2879,7 +2884,12 @@ if (config.controls === 'speed1') {
   .audio-tool .tool-download-btn{width:100%}
 
   .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  .audio-tool .eq-reset-btn{flex:1 1 160px;min-width:0;padding:10px 16px;font-size:13px}
+  /* Reset is the only button here now that "upload a different file" moved onto the file chip.
+     It used to be one of two halves; left to grow it stretched the full width, which is exactly
+     the overstatement we just took off the other page. Sized to its own label instead. */
+  /* Scoped through .eq-toolbar to outweigh the base "button.act{flex:1}", which is declared
+     later in this stylesheet and otherwise wins on equal specificity. */
+  .audio-tool .eq-toolbar button.eq-reset-btn{flex:0 0 auto;min-width:0;padding:10px 16px;font-size:13px}
   .audio-tool .eq-bands-scroll{overflow-x:auto;overflow-y:hidden;margin-bottom:18px;padding-bottom:4px}
   .audio-tool .eq-bands{display:flex;gap:6px;min-width:min-content;justify-content:space-between}
   .audio-tool .eq-band{flex:1 0 48px;min-width:48px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default}
