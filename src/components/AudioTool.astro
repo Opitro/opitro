@@ -319,6 +319,18 @@ const ICO = {
       </>
     )}
 
+    {controls === 'silence2' && (
+      <div class="row">
+        <div class="field">
+          <label for="ctrl-silence-start">{labels.silenceStartLabel}</label>
+          <input type="number" id="ctrl-silence-start" min="0" max="60" step="0.5" value="0">
+        </div>
+        <div class="field">
+          <label for="ctrl-silence-end">{labels.silenceEndLabel}</label>
+          <input type="number" id="ctrl-silence-end" min="0" max="60" step="0.5" value="0">
+        </div>
+      </div>
+    )}
     {controls === 'trim' && (
       <div class="row">
         <div class="field">
@@ -1864,6 +1876,11 @@ if (config.controls === 'speed1') {
         const cut = !!(root.querySelector('#ctrl-cutout') || {}).checked;
         return selStart > 0.01 || selEnd < dur - 0.01 || fi > 0 || fo > 0 || cut;
       }
+      if (config.controls === 'silence2') {
+        const a = Number((root.querySelector('#ctrl-silence-start') || {}).value) || 0;
+        const b = Number((root.querySelector('#ctrl-silence-end') || {}).value) || 0;
+        return !!sourceBuffer && (a > 0 || b > 0);
+      }
       // One file joined to nothing is just that file.
       if (config.controls === 'multi-file') return files.length >= 2;
       return true;
@@ -2115,7 +2132,8 @@ if (config.controls === 'speed1') {
             speed: 'speed', volume: 'volume', 'sample-rate': 'resampled', reverse: 'reversed',
             normalize: 'normalized', 'stereo-to-mono': 'mono', 'mono-to-stereo': 'stereo',
             compress: 'compressed', loop: 'loop', 'remove-silence': 'trimmed',
-            'reverb-echo': 'reverb', chiptune: 'chiptune',
+            'reverb-echo': 'reverb', chiptune: 'chiptune', 'add-silence': 'padded',
+            'dynamic-compressor': 'leveled', 'vocal-remover': 'karaoke',
           }[tool] || 'result';
           // Merge has no source name to qualify, so it's just "merged" -- pairing the fallback
           // base with a suffix produced "merged-merged.wav".
@@ -2539,9 +2557,9 @@ if (config.controls === 'speed1') {
       invalidateRender();
       if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
     }
-    ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize'].forEach((sel) => {
+    ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize', '#ctrl-silence-start', '#ctrl-silence-end'].forEach((sel) => {
       const el = root.querySelector(sel);
-      if (el) el.addEventListener('input', () => { invalidateRender(); syncSourceNote(); });
+      if (el) el.addEventListener('input', () => { invalidateRender(); syncSourceNote(); eqSyncState(); });
     });
 
     // Preset quick-pick buttons (compress bitrate targets, EQ genre presets, etc.) -- each
@@ -2597,6 +2615,8 @@ if (config.controls === 'speed1') {
       if (get('#ctrl-channels')) params.channels = get('#ctrl-channels').value;
       if (get('#ctrl-normalize')) params.normalize = get('#ctrl-normalize').checked;
       if (get('#ctrl-cutout')) params.cutOut = get('#ctrl-cutout').checked;
+      if (get('#ctrl-silence-start')) params.silenceStart = Number(get('#ctrl-silence-start').value) || 0;
+      if (get('#ctrl-silence-end')) params.silenceEnd = Number(get('#ctrl-silence-end').value) || 0;
       if (config.controls === 'trim' || config.controls === 'ringtone-targets') { params.start = selStart; params.end = selEnd; }
       return params;
     }

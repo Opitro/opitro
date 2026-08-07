@@ -1114,6 +1114,123 @@ export const AUDIO_TOOLS = {
     },
   },
 
+  'add-silence': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    controls: 'silence2',
+    accept: 'audio/*',
+    note: ({ buffer, params, labels, fmtTime }) => {
+      if (!buffer) return '';
+      const a = Number(params.silenceStart) || 0;
+      const b = Number(params.silenceEnd) || 0;
+      if (a <= 0 && b <= 0) return '';
+      return (labels.addSilenceNote || '').replace('{len}', fmtTime(buffer.duration + a + b));
+    },
+    directRender: (buffer, { silenceStart, silenceEnd }) => {
+      const sr = buffer.sampleRate;
+      const head = Math.max(0, Math.round((Number(silenceStart) || 0) * sr));
+      const tail = Math.max(0, Math.round((Number(silenceEnd) || 0) * sr));
+      const out = new AudioBuffer({
+        numberOfChannels: buffer.numberOfChannels,
+        length: head + buffer.length + tail,
+        sampleRate: sr,
+      });
+      for (let c = 0; c < buffer.numberOfChannels; c++) out.getChannelData(c).set(buffer.getChannelData(c), head);
+      return out;
+    },
+  },
+  'dynamic-compressor': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    controls: 'select',
+    accept: 'audio/*',
+    selectLabel: 'compressorPresetLabel',
+    selectOptions: [
+      { value: 'voice', label: 'compressorVoiceLabel' },
+      { value: 'podcast', label: 'compressorPodcastLabel' },
+      { value: 'music', label: 'compressorMusicLabel' },
+      { value: 'hard', label: 'compressorHardLabel' },
+    ],
+    render: (oc, src, { value }) => {
+      const presets = {
+        voice:   { threshold: -24, ratio: 4,  attack: 0.005, release: 0.20, knee: 6,  makeup: 1.8 },
+        podcast: { threshold: -20, ratio: 3,  attack: 0.010, release: 0.25, knee: 10, makeup: 1.5 },
+        music:   { threshold: -18, ratio: 2.5, attack: 0.020, release: 0.30, knee: 12, makeup: 1.3 },
+        hard:    { threshold: -30, ratio: 8,  attack: 0.003, release: 0.15, knee: 3,  makeup: 2.6 },
+      };
+      const cfg = presets[value] || presets.voice;
+      const comp = oc.createDynamicsCompressor();
+      comp.threshold.value = cfg.threshold;
+      comp.ratio.value = cfg.ratio;
+      comp.attack.value = cfg.attack;
+      comp.release.value = cfg.release;
+      comp.knee.value = cfg.knee;
+      // A compressor only ever turns things down, so without make-up gain the result is quieter
+      // than the input and reads as "it did nothing, just worse".
+      const gain = oc.createGain();
+      gain.gain.value = cfg.makeup;
+      src.connect(comp);
+      comp.connect(gain);
+      return gain;
+    },
+  },
+  'vocal-remover': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    controls: 'select',
+    accept: 'audio/*',
+    selectLabel: 'vocalModeLabel',
+    selectOptions: [
+      { value: 'keepbass', label: 'vocalKeepBassLabel' },
+      { value: 'full', label: 'vocalFullLabel' },
+    ],
+    // Nothing to subtract in a mono file -- the method needs two channels that differ.
+    note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels < 2 ? labels.vocalMonoNote : ''),
+    directRender: (buffer, { value }) => {
+      const sr = buffer.sampleRate;
+      const n = buffer.length;
+      const L = buffer.getChannelData(0);
+      const R = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : L;
+      const out = new AudioBuffer({ numberOfChannels: 1, length: n, sampleRate: sr });
+      const dst = out.getChannelData(0);
+      // Anything panned dead centre cancels when the channels are subtracted -- which is usually
+      // the lead vocal, but also the bass and the kick. Keeping the low end from the summed
+      // signal and taking only the highs from the difference leaves the track with a bottom.
+      const keepBass = value !== 'full';
+      const cutoff = 200;
+      const k = Math.exp(-2 * Math.PI * cutoff / sr);
+      // Three one-pole stages, not one. A single pole only rolls off 6 dB/octave, so the vocal
+      // -- centred, and therefore surviving only through the bass path -- leaked back in at
+      // about -11 dB, which is audible. Measured on a test mix: one pole took a 0.350 vocal down
+      // to 0.096; three take it far lower while 60 Hz bass, well below the corner, still passes.
+      const m = [0, 0, 0];
+      const sd = [0, 0, 0];
+      for (let i = 0; i < n; i++) {
+        const mid = (L[i] + R[i]) / 2;
+        const side = (L[i] - R[i]) / 2;
+        if (!keepBass) { dst[i] = Math.max(-1, Math.min(1, side * 2)); continue; }
+        let mv = mid, sv = side;
+        for (let j = 0; j < 3; j++) {
+          m[j] = mv * (1 - k) + m[j] * k; mv = m[j];
+          sd[j] = sv * (1 - k) + sd[j] * k; sv = sd[j];
+        }
+        dst[i] = Math.max(-1, Math.min(1, (side - sv) * 2 + mv));
+      }
+      return out;
+    },
+  },
   'white-noise': {
     // A player first: a short seamless loop plays on repeat for as long as you like, so listening
     // for eight hours costs the same few megabytes as listening for one minute. Downloading a
