@@ -1,6 +1,6 @@
 // Runs the shipped analysis functions against signals whose answer is known in advance.
 // AudioBuffer doesn't exist in Node, so a tiny shim provides what these functions actually use.
-import { analyzeVocalRange, detectKey, analyzeAudiobook, hzToNote } from '../src/lib/web-audio-engine.js';
+import { analyzeVocalRange, detectKey, analyzeAudiobook, hzToNote, detectBpm } from '../src/lib/web-audio-engine.js';
 
 const SR = 44100;
 const buf = (a) => ({ sampleRate: SR, length: a.length, duration: a.length / SR, numberOfChannels: 1, getChannelData: () => a });
@@ -77,6 +77,31 @@ check('вердикт по порогу (тихо -> ok)', String(a.floorOk), 't
 const loud = analyzeAudiobook(buf(speech(0.07, 0.99, 0.02)));
 check('шумный файл -> порог не проходит', String(loud.floorOk), 'false', loud.floorOk === false);
 check('пик 0.99 -> не проходит (нужно <= -3 дБ)', String(loud.peakOk), 'false', loud.peakOk === false);
+
+// Tempo. Moved out of the component so two tools can share one algorithm instead of two copies
+// drifting apart -- which means it needs a test here, where it now lives.
+function clickTrack(bpm, secs = 12) {
+  const n = Math.round(SR * secs);
+  const a = new Float32Array(n);
+  const period = Math.round(SR * 60 / bpm);
+  const len = Math.round(SR * 0.02);
+  let seed = 7;
+  for (let k = 0; k * period < n; k++) {
+    for (let i = 0; i < len && k * period + i < n; i++) {
+      seed = (seed * 1103515245 + 12345) & 0x7fffffff;
+      a[k * period + i] = Math.exp(-i / (SR * 0.004)) * (seed / 0x7fffffff * 2 - 1);
+    }
+  }
+  return { sampleRate: SR, length: n, duration: secs, numberOfChannels: 1, getChannelData: () => a };
+}
+for (const bpm of [70, 90, 100, 120, 128, 140, 160]) {
+  const got = detectBpm(clickTrack(bpm));
+  check(`темп ${bpm} BPM`, String(got), String(bpm), Math.abs(got - bpm) <= 2);
+}
+// Half tempo is the failure this detector was specifically fixed for: at 140 every beat also
+// lines up at 70, so raw correlation used to answer 70.
+check(`140 не читается как 70`, String(detectBpm(clickTrack(140))), '>= 130', detectBpm(clickTrack(140)) >= 130);
+check(`тишина не даёт темпа`, String(detectBpm({ sampleRate: SR, length: SR * 12, duration: 12, numberOfChannels: 1, getChannelData: () => new Float32Array(SR * 12) })), '0', detectBpm({ sampleRate: SR, length: SR * 12, duration: 12, numberOfChannels: 1, getChannelData: () => new Float32Array(SR * 12) }) === 0);
 
 console.log(`\nитого: ${pass} прошло, ${fail} не прошло`);
 process.exit(fail ? 1 : 0);

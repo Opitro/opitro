@@ -4,6 +4,7 @@ import Layout from '../../layouts/Layout.astro';
 import LinearConverter from '../../components/LinearConverter.astro';
 import TemperatureConverter from '../../components/TemperatureConverter.astro';
 import AudioTool from '../../components/AudioTool.astro';
+import AudioToMidi from '../../components/AudioToMidi.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 
@@ -122,7 +123,15 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
     {kind === 'tool' && (
       <a class="universal-link" href={`/${entry.data.locale}/tools/${entry.data.category}`}>{categoryLabel}</a>
     )}
-    {kind === 'media' && <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />}
+    {/* Audio-to-MIDI has its own component: its output is notes rather than a buffer, so none of
+        AudioTool's render/export machinery applies to it. Keyed on the tool name rather than on a
+        flag in the config, because it has no AUDIO_TOOLS entry at all. */}
+    {kind === 'media' && entry.data.tool === 'audio-to-midi' && (
+      <AudioToMidi locale={entry.data.locale} labels={audioLabels} />
+    )}
+    {kind === 'media' && entry.data.tool !== 'audio-to-midi' && (
+      <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
+    )}
   </div>
 
   <AdSlot />

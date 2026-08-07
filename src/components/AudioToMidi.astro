@@ -1,0 +1,1047 @@
+---
+// Audio to MIDI. Separate from AudioTool.astro because nothing about it fits that component's
+// shape: there is no rendered audio buffer to export, the output is notes rather than sound, and
+// the result needs four different views of the same data instead of one waveform.
+//
+// The recognition itself is Spotify's Basic Pitch (Apache 2.0) -- a 0.9 MB model, loaded from a
+// CDN on demand and run in the visitor's own browser. The audio never leaves the device, same as
+// every other tool here.
+//
+// What this file adds on top of the model is the part that decides whether the result is usable:
+// a sensitivity control (measured to move F1 from 52 to 100 across its range on test material),
+// fragment merging, beat-synchronous chord estimation and the three export formats. All of that
+// lives in src/lib/midi-transcribe.js so it can be tested in Node -- see tests/midi-transcribe.
+import AdSlot from './AdSlot.astro';
+
+interface Props {
+  locale: string;
+  labels: Record<string, any>;
+}
+
+const { locale, labels } = Astro.props;
+
+// Same 24x24, 2px round-capped family as the audio tools, so a visitor moving between pages sees
+// one icon set rather than two.
+const ICO = {
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
+  notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
+};
+---
+
+<div class="midi-tool" data-locale={locale} data-labels={JSON.stringify(labels)}>
+  <div class="drop" id="mt-drop">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+    <div class="big">{labels.dropLabel}</div>
+    <div class="small">{labels.dropHint}</div>
+    <div class="small formats">{labels.midiBestOnLabel}</div>
+  </div>
+  {/* No `accept` on purpose: with accept="audio/*" iOS Safari's picker hides files the OS does
+      not recognise by MIME, which makes perfectly valid recordings unselectable. */}
+  <input type="file" id="mt-file">
+
+  <div class="panel" id="mt-panel">
+    <div class="fileinfo" id="mt-fileinfo"></div>
+
+    <div class="wave-shell compact" id="mt-wave-shell">
+      <button type="button" class="wave-play-btn" id="mt-play" disabled aria-label={labels.listenSelectionLabel}>
+        <svg class="ico" id="mt-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <canvas id="mt-wave"></canvas>
+      <span class="wave-duration"><b id="mt-cur">0:00</b> / <span id="mt-total">0:00</span></span>
+      <div class="playhead" id="mt-playhead"></div>
+    </div>
+
+    <div class="progress" id="mt-progress">
+      <div class="progress-bar"><div class="progress-fill" id="mt-progress-fill"></div></div>
+    </div>
+    <div class="stage-text" id="mt-stage"></div>
+
+    <div class="controls" id="mt-run-row">
+      <button type="button" class="act primary" id="mt-run">
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.notes} />
+        <span id="mt-run-label">{labels.midiRunLabel}</span>
+      </button>
+    </div>
+
+    <div class="results" id="mt-results" style="display:none">
+      <div class="summary" id="mt-summary"></div>
+
+      <div class="tune">
+        <div class="field tune-sens">
+          <label for="mt-sens">{labels.midiSensLabel}: <b id="mt-sens-name"></b></label>
+          <input type="range" id="mt-sens" min="0" max="4" step="1" value="2">
+          <div class="tune-hint">{labels.midiSensHint}</div>
+        </div>
+        <div class="field tune-transpose">
+          <label>{labels.midiTransposeLabel}</label>
+          <div class="tr-row">
+            <button type="button" class="tr-btn tr-wide" id="mt-oct-down">{labels.midiOctaveDownLabel}</button>
+            <button type="button" class="tr-btn" id="mt-semi-down" aria-label={labels.midiSemitoneDownLabel}>−</button>
+            <b class="tr-val" id="mt-tr-val">0</b>
+            <button type="button" class="tr-btn" id="mt-semi-up" aria-label={labels.midiSemitoneUpLabel}>+</button>
+            <button type="button" class="tr-btn tr-wide" id="mt-oct-up">{labels.midiOctaveUpLabel}</button>
+          </div>
+          <div class="tune-hint">{labels.midiTransposeHint}</div>
+        </div>
+      </div>
+
+      <div class="tabs" id="mt-tabs" role="tablist">
+        <button type="button" class="tab active" data-view="roll" role="tab">{labels.midiTabRollLabel}</button>
+        <button type="button" class="tab" data-view="list" role="tab">{labels.midiTabListLabel}</button>
+        <button type="button" class="tab" data-view="chords" role="tab">{labels.midiTabChordsLabel}</button>
+        <button type="button" class="tab" data-view="score" role="tab">{labels.midiTabScoreLabel}</button>
+      </div>
+
+      <div class="view" id="mt-view-roll">
+        <div class="roll-wrap" id="mt-roll-wrap">
+          <canvas class="roll-keys" id="mt-roll-keys"></canvas>
+          <div class="roll-scroll" id="mt-roll-scroll">
+            <canvas class="roll-canvas" id="mt-roll"></canvas>
+            <div class="roll-playhead" id="mt-roll-playhead"></div>
+          </div>
+        </div>
+        <div class="roll-hint">{labels.midiRollHint}</div>
+      </div>
+
+      <div class="view" id="mt-view-list" hidden>
+        <div class="notelist-head">
+          <span class="nl-i">#</span><span class="nl-n">{labels.midiColNoteLabel}</span>
+          <span class="nl-t">{labels.midiColStartLabel}</span><span class="nl-d">{labels.midiColLengthLabel}</span>
+          <span class="nl-x"></span>
+        </div>
+        <div class="notelist" id="mt-notelist"></div>
+      </div>
+
+      <div class="view" id="mt-view-chords" hidden>
+        <div class="chord-style" id="mt-chord-style">
+          <button type="button" class="cs-seg active" data-style="chord">{labels.midiChordStyleChordsLabel}</button>
+          <button type="button" class="cs-seg" data-style="degree">{labels.midiChordStyleDegreesLabel}</button>
+          <button type="button" class="cs-seg" data-style="nashville">{labels.midiChordStyleNashvilleLabel}</button>
+        </div>
+        <div class="chords" id="mt-chords"></div>
+        <div class="roll-hint">{labels.midiChordsHint}</div>
+      </div>
+
+      <div class="view" id="mt-view-score" hidden>
+        {/* Real sheet music on white, inside a dark page. It reads as paper, and -- unlike white
+            staff lines on black -- it prints without anyone having to think about it. */}
+        <div class="score-paper" id="mt-score-paper">
+          <div class="score-status" id="mt-score-status"></div>
+          <div id="mt-score"></div>
+        </div>
+        <div class="score-actions">
+          <button type="button" class="act" id="mt-print">
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M6 9V2h12v7"/><path d="M6 18H4a2 2 0 0 1-2-2v-5a2 2 0 0 1 2-2h16a2 2 0 0 1 2 2v5a2 2 0 0 1-2 2h-2"/><path d="M6 14h12v8H6z"/></svg>
+            {labels.midiPrintLabel}
+          </button>
+        </div>
+        <div class="roll-hint">{labels.midiScoreHint}</div>
+      </div>
+
+      <div class="deck">
+        <div class="field field-fmt">
+          <label for="mt-fmt">{labels.formatLabel}</label>
+          <select id="mt-fmt">
+            <option value="mid">{labels.midiFmtMidiLabel}</option>
+            <option value="xml">{labels.midiFmtXmlLabel}</option>
+            <option value="csv">{labels.midiFmtCsvLabel}</option>
+          </select>
+        </div>
+        <button type="button" class="act primary deck-act" id="mt-dl">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+          {labels.downloadResultLabel}
+        </button>
+      </div>
+      <div class="fmt-hint" id="mt-fmt-hint"></div>
+    </div>
+
+    <div class="err" id="mt-err"></div>
+  </div>
+</div>
+
+<script>
+  import { decodeFile, drawWaveform, createPlayer, detectKey, detectBpm } from '../lib/web-audio-engine.js';
+  import {
+    SENSITIVITY, SENSITIVITY_DEFAULT, cleanNotes, transposeNotes, estimateChords,
+    notesToMidi, notesToCsv, notesToMusicXml, noteStats, midiToName, keyUsesFlats,
+    keyFromNotes, tempoFromNotes, notesToScore,
+  } from '../lib/midi-transcribe.js';
+
+  // Pinned versions, not a floating tag: a silent major bump in either would change the model's
+  // output for everyone with no way to notice.
+  const BASIC_PITCH = 'https://cdn.jsdelivr.net/npm/@spotify/basic-pitch@1.0.1/+esm';
+  const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@spotify/basic-pitch@1.0.1/model/model.json';
+  const MODEL_RATE = 22050;   // what Basic Pitch was trained on; anything else is wrong, not just worse
+  const VEXFLOW = 'https://cdn.jsdelivr.net/npm/vexflow@4.2.3/+esm';
+  const MAX_MINUTES = 12;
+
+  const root = document.querySelector('.midi-tool');
+  if (root) {
+    const labels = JSON.parse(root.dataset.labels);
+    const $ = (id) => root.querySelector('#' + id);
+
+    const drop = $('mt-drop');
+    const fileInput = $('mt-file');
+    const panel = $('mt-panel');
+    const fileInfo = $('mt-fileinfo');
+    const waveShell = $('mt-wave-shell');
+    const waveCanvas = $('mt-wave');
+    const playBtn = $('mt-play');
+    const playIco = $('mt-play-ico');
+    const curEl = $('mt-cur');
+    const totalEl = $('mt-total');
+    const playhead = $('mt-playhead');
+    const progress = $('mt-progress');
+    const progressFill = $('mt-progress-fill');
+    const stageEl = $('mt-stage');
+    const runRow = $('mt-run-row');
+    const runBtn = $('mt-run');
+    const runLabel = $('mt-run-label');
+    const results = $('mt-results');
+    const summaryEl = $('mt-summary');
+    const sensInput = $('mt-sens');
+    const sensName = $('mt-sens-name');
+    const trValEl = $('mt-tr-val');
+    const tabsEl = $('mt-tabs');
+    const rollWrap = $('mt-roll-wrap');
+    const rollScroll = $('mt-roll-scroll');
+    const rollCanvas = $('mt-roll');
+    const rollKeys = $('mt-roll-keys');
+    const rollPlayhead = $('mt-roll-playhead');
+    const noteListEl = $('mt-notelist');
+    const chordsEl = $('mt-chords');
+    const chordStyleEl = $('mt-chord-style');
+    const scoreEl = $('mt-score');
+    const scoreStatus = $('mt-score-status');
+    const fmtSelect = $('mt-fmt');
+    const fmtHint = $('mt-fmt-hint');
+    const dlBtn = $('mt-dl');
+    const errBox = $('mt-err');
+
+    const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
+    const ICO_CLOSE = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>';
+    const ICO_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>';
+    const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
+    const ICO_PAUSE = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+    const svgIco = (paths, cls) =>
+      `<svg class="${cls}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${paths}</svg>`;
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const player = createPlayer();
+    let file = null;
+    let sourceBuffer = null;
+    // The model's raw output, kept so the sensitivity slider can re-derive notes without running
+    // the network again -- that turns a two-second wait into an instant one, and is the whole
+    // reason the control is usable at all rather than a "re-transcribe" button in disguise.
+    let modelOutput = null;
+    let bpApi = null;
+    let rawNotes = [];
+    let notes = [];
+    let removed = new Set();
+    let key = null;
+    let bpm = 0;
+    let transpose = 0;
+    let chordStyle = 'chord';
+    let rafId = 0;
+
+    /* --- small helpers ------------------------------------------------------------------- */
+    function showError(msg) { errBox.textContent = msg; errBox.classList.add('show'); }
+    function clearError() { errBox.classList.remove('show'); }
+    function fmtClock(s) {
+      const m = Math.floor(s / 60);
+      return `${m}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    }
+    function fmtSec(s) { return s.toFixed(2) + ' ' + (labels.midiSecShortLabel || 's'); }
+    let stageTimer = 0;
+    function setStage(text, pct) {
+      clearTimeout(stageTimer);
+      stageEl.textContent = text || '';
+      if (text) { progress.classList.add('on'); progressFill.style.width = (pct == null ? 0 : pct) + '%'; }
+      else progress.classList.remove('on');
+    }
+    function finishStage(text) {
+      clearTimeout(stageTimer);
+      progressFill.style.width = '100%';
+      stageEl.textContent = text;
+      stageTimer = window.setTimeout(() => { progress.classList.remove('on'); stageEl.textContent = ''; }, 2200);
+    }
+
+    /* --- file in ------------------------------------------------------------------------- */
+    drop.addEventListener('click', () => fileInput.click());
+    drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+    drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+    drop.addEventListener('drop', (e) => {
+      e.preventDefault();
+      drop.classList.remove('over');
+      if (e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]);
+    });
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      // Clear the input straight away, otherwise picking the SAME file again -- after removing it,
+      // or via the swap button -- leaves the value unchanged and the browser fires no change event
+      // at all, so the page just sits there doing nothing. Caught by scripting remove-then-re-add
+      // in a real browser; it would have looked like a dead button to anyone who hit it.
+      e.target.value = '';
+      if (f) pickFile(f);
+    });
+
+    function resetAll() {
+      player.stop();
+      cancelAnimationFrame(rafId);
+      file = null; sourceBuffer = null; modelOutput = null;
+      rawNotes = []; notes = []; removed = new Set();
+      key = null; bpm = 0; transpose = 0;
+      fileInfo.innerHTML = '';
+      panel.classList.remove('on');
+      drop.style.display = '';
+      // Symmetry with pickFile(): the shell is hidden here, so it has to be shown there. The
+      // audio tools had exactly this bug -- remove a file, add another, no waveform until reload.
+      waveShell.style.display = 'none';
+      results.style.display = 'none';
+      runRow.style.display = '';
+      // Disabled, not enabled: there is no file to work on after a reset. The audio tools had the
+      // mirror image of this -- a download button left live with nothing loaded.
+      runBtn.disabled = true;
+      playBtn.disabled = true;
+      playIco.innerHTML = ICO_PLAY;
+      setStage('');
+      clearError();
+    }
+
+    async function pickFile(f) {
+      clearError();
+      player.stop();
+      cancelAnimationFrame(rafId);
+      modelOutput = null; rawNotes = []; notes = []; removed = new Set(); transpose = 0;
+      results.style.display = 'none';
+      runRow.style.display = '';
+      runBtn.disabled = true;
+      file = f;
+
+      const sizeMB = f.size / (1024 * 1024);
+      const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
+      const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-act fi-swap" id="mt-fi-swap" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button><button type="button" class="fi-act fi-remove" id="mt-fi-remove" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      $('mt-fi-swap').addEventListener('click', () => fileInput.click());
+      $('mt-fi-remove').addEventListener('click', resetAll);
+      panel.classList.add('on');
+      drop.style.display = 'none';
+      waveShell.style.display = '';
+
+      setStage(labels.midiReadingLabel);
+      try {
+        sourceBuffer = await decodeFile(f);
+      } catch (e) {
+        setStage('');
+        showError(labels.midiDecodeErrorLabel);
+        return;
+      }
+      if (sourceBuffer.duration > MAX_MINUTES * 60) {
+        setStage('');
+        showError((labels.midiTooLongLabel || '').replace('{n}', String(MAX_MINUTES)));
+        runBtn.disabled = true;
+        return;
+      }
+      setStage('');
+      totalEl.textContent = fmtClock(sourceBuffer.duration);
+      curEl.textContent = '0:00';
+      playhead.style.display = 'none';
+      playBtn.disabled = false;
+      runBtn.disabled = false;
+      drawWave();
+      window.dispatchEvent(new Event('opitro:tool-interaction'));
+    }
+
+    // The canvas needs a real layout box before it can size itself; on the first paint after the
+    // panel is revealed it can still measure zero, which silently draws nothing.
+    function drawWave(attempt = 0) {
+      if (!sourceBuffer) return;
+      if (waveCanvas.clientWidth < 2 && attempt < 6) {
+        requestAnimationFrame(() => drawWave(attempt + 1));
+        return;
+      }
+      drawWaveform(waveCanvas, sourceBuffer);
+    }
+    new ResizeObserver(() => { if (sourceBuffer) drawWaveform(waveCanvas, sourceBuffer); }).observe(waveCanvas);
+
+    /* --- playback ------------------------------------------------------------------------ */
+    // Positioned against the CANVAS, not against the whole shell. As a percentage of the shell the
+    // marker starts underneath the play button and slides across it, which is what it was doing.
+    // The audio tools solve it the same way; keep the two in step.
+    function setPlayhead(frac) {
+      const base = waveCanvas.offsetLeft;
+      const w = waveCanvas.clientWidth || waveShell.clientWidth;
+      playhead.style.left = (base + Math.max(0, Math.min(1, frac)) * w) + 'px';
+      playhead.style.display = 'block';
+    }
+    function hidePlayhead() { playhead.style.display = 'none'; }
+    function tick() {
+      const pos = player.getPosition();
+      const d = sourceBuffer ? sourceBuffer.duration : 0;
+      curEl.textContent = fmtClock(pos);
+      if (d) setPlayhead(pos / d);
+      if (notes.length) movePlayhead(pos);
+      if (player.isPlaying()) rafId = requestAnimationFrame(tick);
+    }
+    function startPlayback(seekTo) {
+      player.unlock();
+      player.play(sourceBuffer, null, () => {
+        playIco.innerHTML = ICO_PLAY;
+        cancelAnimationFrame(rafId);
+        curEl.textContent = fmtClock(0);
+        hidePlayhead();
+        movePlayhead(0);
+      }, seekTo);
+      playIco.innerHTML = ICO_PAUSE;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(tick);
+    }
+    playBtn.addEventListener('click', (e) => {
+      // The handler swaps the glyph, which detaches the event target from the DOM -- without
+      // this the shell's own click handler then sees a target it cannot match and stops
+      // playback a few milliseconds after it started. Learned the hard way on the audio tools.
+      e.stopPropagation();
+      if (!sourceBuffer) return;
+      if (player.isPlaying()) { player.pause(); playIco.innerHTML = ICO_PLAY; cancelAnimationFrame(rafId); }
+      else startPlayback();
+    });
+    waveShell.addEventListener('click', (e) => {
+      if (!sourceBuffer) return;
+      if (e.composedPath().some((n) => n instanceof Element && n.classList?.contains('wave-play-btn'))) return;
+      // Against the canvas, matching where the marker is drawn. Measured off the whole shell, a
+      // click landed a button's width away from the spot in the waveform under the cursor.
+      const r = waveCanvas.getBoundingClientRect();
+      const at = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * sourceBuffer.duration;
+      startPlayback(at);
+    });
+
+    /* --- recognition --------------------------------------------------------------------- */
+    async function toModelRate(buffer) {
+      // Mono at exactly 22050 Hz. A single-channel destination downmixes for us, and the
+      // OfflineAudioContext resampler is the browser's own -- better than anything worth
+      // hand-writing here.
+      const oc = new OfflineAudioContext(1, Math.ceil(buffer.duration * MODEL_RATE), MODEL_RATE);
+      const src = oc.createBufferSource();
+      src.buffer = buffer;
+      src.connect(oc.destination);
+      src.start(0);
+      const out = await oc.startRendering();
+      return out.getChannelData(0);
+    }
+
+    runBtn.addEventListener('click', async () => {
+      if (!sourceBuffer) return;
+      clearError();
+      runBtn.disabled = true;
+      runLabel.textContent = labels.midiRunningLabel;
+      try {
+        if (!bpApi) {
+          setStage(labels.midiLoadingModelLabel, 5);
+          bpApi = await import(/* @vite-ignore */ BASIC_PITCH);
+        }
+        setStage(labels.midiPreparingLabel, 12);
+        const mono = await toModelRate(sourceBuffer);
+        setStage(labels.midiAnalyzingLabel, 18);
+        const bp = new bpApi.BasicPitch(MODEL_URL);
+        const frames = [], onsets = [], contours = [];
+        await bp.evaluateModel(
+          mono,
+          (f, o, c) => { frames.push(...f); onsets.push(...o); contours.push(...c); },
+          (p) => setStage(labels.midiAnalyzingLabel, 18 + p * 78)
+        );
+        modelOutput = { frames, onsets, contours };
+        deriveNotes();
+        finishStage(labels.midiDoneLabel);
+        runRow.style.display = 'none';
+        results.style.display = '';
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+      } catch (e) {
+        setStage('');
+        showError((labels.midiFailedLabel || 'Recognition failed.') + ' ' + (e && e.message ? e.message : ''));
+        runBtn.disabled = false;
+      } finally {
+        runLabel.textContent = labels.midiRunLabel;
+      }
+    });
+
+    // Re-derives the note list from cached model output. Runs on load and on every sensitivity
+    // change; no network, no model, just thresholds applied to numbers we already have.
+    function deriveNotes() {
+      if (!modelOutput || !bpApi) return;
+      const s = SENSITIVITY[Number(sensInput.value)] || SENSITIVITY[SENSITIVITY_DEFAULT];
+      const poly = bpApi.outputToNotesPoly(modelOutput.frames, modelOutput.onsets, s.onsetThresh, s.frameThresh, s.minLen);
+      const timed = bpApi.noteFramesToTime(bpApi.addPitchBendsToNoteEvents(modelOutput.contours, poly));
+      rawNotes = cleanNotes(timed.map((n) => ({
+        midi: n.pitchMidi,
+        onset: +n.startTimeSeconds.toFixed(4),
+        dur: +n.durationSeconds.toFixed(4),
+        amp: Math.max(0, Math.min(1, n.amplitude)),
+      })));
+      // Deleting a note is keyed on pitch+onset rather than on an index, so the deletions a
+      // person made survive a sensitivity change instead of silently jumping to other notes.
+      removed = new Set([...removed].filter((k) => rawNotes.some((n) => noteKey(n) === k)));
+
+      // Read tempo and key off the notes we are about to show, not off the raw audio. Measured
+      // on the test piece (C major, 120 BPM, with reverb) the audio detectors answered G major
+      // and 156 BPM; the note-based ones answer C major and 120. They also cannot disagree with
+      // what is on screen, which is the point. The audio detectors stay as a fallback for
+      // material too sparse to read a grid from -- a few long chords and nothing else.
+      bpm = tempoFromNotes(rawNotes) || detectBpm(sourceBuffer) || 120;
+      key = keyFromNotes(rawNotes) || detectKey(sourceBuffer);
+      applyEdits();
+    }
+    const noteKey = (n) => n.midi + '@' + n.onset.toFixed(3);
+
+    function applyEdits() {
+      notes = transposeNotes(rawNotes.filter((n) => !removed.has(noteKey(n))), transpose);
+      renderAll();
+    }
+
+    sensInput.addEventListener('input', () => { updateSensName(); deriveNotes(); });
+    function updateSensName() {
+      const names = labels.midiSensNames || [];
+      sensName.textContent = names[Number(sensInput.value)] || '';
+    }
+    sensInput.value = String(SENSITIVITY_DEFAULT);
+    updateSensName();
+
+    function setTranspose(v) {
+      transpose = Math.max(-24, Math.min(24, v));
+      trValEl.textContent = (transpose > 0 ? '+' : '') + transpose;
+      applyEdits();
+    }
+    $('mt-oct-down').addEventListener('click', () => setTranspose(transpose - 12));
+    $('mt-oct-up').addEventListener('click', () => setTranspose(transpose + 12));
+    $('mt-semi-down').addEventListener('click', () => setTranspose(transpose - 1));
+    $('mt-semi-up').addEventListener('click', () => setTranspose(transpose + 1));
+
+    /* --- views --------------------------------------------------------------------------- */
+    tabsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.tab');
+      if (!btn) return;
+      tabsEl.querySelectorAll('.tab').forEach((b) => b.classList.toggle('active', b === btn));
+      for (const v of ['roll', 'list', 'chords', 'score']) $('mt-view-' + v).hidden = v !== btn.dataset.view;
+      if (btn.dataset.view === 'roll') drawRoll();
+      if (btn.dataset.view === 'score') drawScore();
+    });
+    chordStyleEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.cs-seg');
+      if (!btn) return;
+      chordStyle = btn.dataset.style;
+      chordStyleEl.querySelectorAll('.cs-seg').forEach((b) => b.classList.toggle('active', b === btn));
+      renderChords();
+    });
+
+    function renderAll() {
+      renderSummary();
+      drawRoll();
+      renderList();
+      renderChords();
+      drawScore();
+      renderFmtHint();
+    }
+
+    function renderSummary() {
+      const flats = keyUsesFlats(key);
+      const st = noteStats(notes, flats);
+      if (!st.count) {
+        summaryEl.innerHTML = `<div class="sum-empty">${escapeHtml(labels.midiEmptyLabel)}</div>`;
+        return;
+      }
+      const keyText = key ? key.name + ' ' + (key.mode === 'minor' ? labels.keyMinorLabel : labels.keyMajorLabel) : '—';
+      const cells = [
+        [labels.midiStatNotesLabel, String(st.count)],
+        [labels.midiStatTempoLabel, Math.round(bpm) + ' BPM'],
+        [labels.midiStatKeyLabel, keyText],
+        [labels.midiStatRangeLabel, st.lowest + ' – ' + st.highest],
+      ];
+      summaryEl.innerHTML = cells
+        .map(([l, v]) => `<div class="sum-cell"><span class="sum-label">${escapeHtml(l)}</span><span class="sum-value">${escapeHtml(v)}</span></div>`)
+        .join('');
+    }
+
+    // --- piano roll ---
+    const KEY_W = 46;
+    const ROW_H = 9;
+    let rollLo = 36, rollHi = 84, pxPerSec = 90;
+    function rollGeometry() {
+      if (!notes.length) return false;
+      let lo = Infinity, hi = -Infinity, last = 0;
+      for (const n of notes) {
+        if (n.midi < lo) lo = n.midi;
+        if (n.midi > hi) hi = n.midi;
+        if (n.onset + n.dur > last) last = n.onset + n.dur;
+      }
+      // Always show whole octaves with a little air, so the C labels line up and the highest and
+      // lowest notes are not glued to the edge of the picture.
+      rollLo = Math.floor((lo - 2) / 12) * 12;
+      rollHi = Math.ceil((hi + 2) / 12) * 12;
+      const avail = Math.max(240, rollWrap.clientWidth - KEY_W);
+      // Short pieces fill the width; long ones scroll rather than squeezing every note into
+      // one pixel. 90 px/sec is about a finger-width per beat at 120 BPM.
+      pxPerSec = Math.max(avail / Math.max(last, 0.001), 90);
+      if (last * pxPerSec < avail) pxPerSec = avail / Math.max(last, 0.001);
+      return true;
+    }
+    function drawRoll() {
+      if ($('mt-view-roll').hidden) return;
+      if (!rollGeometry()) { rollCanvas.width = 0; rollKeys.width = 0; return; }
+      const dpr = Math.min(window.devicePixelRatio || 1, 2);
+      const rows = rollHi - rollLo + 1;
+      const h = rows * ROW_H;
+      const last = Math.max(...notes.map((n) => n.onset + n.dur));
+      const w = Math.ceil(last * pxPerSec) + 8;
+      const flats = keyUsesFlats(key);
+
+      for (const [cv, cw] of [[rollKeys, KEY_W], [rollCanvas, w]]) {
+        cv.width = Math.round(cw * dpr);
+        cv.height = Math.round(h * dpr);
+        cv.style.width = cw + 'px';
+        cv.style.height = h + 'px';
+      }
+      const y = (midi) => (rollHi - midi) * ROW_H;
+      const isBlack = (m) => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
+
+      // keyboard column
+      const kc = rollKeys.getContext('2d');
+      kc.setTransform(dpr, 0, 0, dpr, 0, 0);
+      kc.clearRect(0, 0, KEY_W, h);
+      kc.fillStyle = '#101318';
+      kc.fillRect(0, 0, KEY_W, h);
+      kc.font = '9px ui-sans-serif,system-ui,sans-serif';
+      kc.textBaseline = 'middle';
+      for (let m = rollLo; m <= rollHi; m++) {
+        const top = y(m);
+        kc.fillStyle = isBlack(m) ? '#181c22' : '#22262e';
+        kc.fillRect(0, top, KEY_W - 1, ROW_H - 1);
+        if (m % 12 === 0) {
+          kc.fillStyle = '#8b93a1';
+          kc.fillText(midiToName(m, flats), 4, top + ROW_H / 2);
+        }
+      }
+      kc.strokeStyle = 'rgba(255,255,255,0.09)';
+      kc.beginPath(); kc.moveTo(KEY_W - 0.5, 0); kc.lineTo(KEY_W - 0.5, h); kc.stroke();
+
+      // roll
+      const c = rollCanvas.getContext('2d');
+      c.setTransform(dpr, 0, 0, dpr, 0, 0);
+      c.clearRect(0, 0, w, h);
+      c.fillStyle = '#0a0b0d';
+      c.fillRect(0, 0, w, h);
+      for (let m = rollLo; m <= rollHi; m++) {
+        if (!isBlack(m)) continue;
+        c.fillStyle = 'rgba(255,255,255,0.022)';
+        c.fillRect(0, y(m), w, ROW_H);
+      }
+      // Bar lines from the detected tempo, so the picture is readable as music and not just as
+      // a scatter of blocks. Beats faint, downbeats brighter.
+      if (bpm > 0) {
+        const beat = 60 / bpm;
+        for (let b = 0, t = 0; t < last + beat; b++, t = b * beat) {
+          const x = Math.round(t * pxPerSec) + 0.5;
+          c.strokeStyle = b % 4 === 0 ? 'rgba(255,255,255,0.13)' : 'rgba(255,255,255,0.05)';
+          c.beginPath(); c.moveTo(x, 0); c.lineTo(x, h); c.stroke();
+        }
+      }
+      for (let m = rollLo; m <= rollHi; m += 12) {
+        c.strokeStyle = 'rgba(255,255,255,0.08)';
+        const yy = Math.round(y(m) + ROW_H) + 0.5;
+        c.beginPath(); c.moveTo(0, yy); c.lineTo(w, yy); c.stroke();
+      }
+      for (const n of notes) {
+        if (n.midi < rollLo || n.midi > rollHi) continue;
+        const x = n.onset * pxPerSec;
+        const nw = Math.max(2.5, n.dur * pxPerSec - 1);
+        // Louder notes read stronger, which is what tells a melody apart from an accompaniment
+        // at a glance -- a flat single colour makes every roll look like the same grey soup.
+        const a = 0.42 + 0.58 * Math.min(1, n.amp);
+        c.fillStyle = `rgba(74,222,158,${a.toFixed(3)})`;
+        const top = y(n.midi) + 1;
+        const rh = ROW_H - 2;
+        const r = Math.min(2, nw / 2, rh / 2);
+        c.beginPath();
+        c.roundRect ? c.roundRect(x, top, nw, rh, r) : c.rect(x, top, nw, rh);
+        c.fill();
+      }
+    }
+    function movePlayhead(pos) {
+      if ($('mt-view-roll').hidden || !notes.length) return;
+      const x = pos * pxPerSec;
+      rollPlayhead.style.transform = `translateX(${x}px)`;
+      rollPlayhead.style.display = '';
+      // Keep the playhead in view without yanking the scroll on every frame.
+      const left = rollScroll.scrollLeft, width = rollScroll.clientWidth;
+      if (x < left + 40 || x > left + width - 40) rollScroll.scrollLeft = Math.max(0, x - width / 2);
+    }
+    rollScroll.addEventListener('click', (e) => {
+      if (!sourceBuffer || !pxPerSec) return;
+      const r = rollScroll.getBoundingClientRect();
+      const at = (e.clientX - r.left + rollScroll.scrollLeft) / pxPerSec;
+      startPlayback(Math.max(0, Math.min(at, sourceBuffer.duration)));
+    });
+    new ResizeObserver(() => drawRoll()).observe(rollWrap);
+    new ResizeObserver(() => drawScore()).observe($('mt-score-paper'));
+
+    // --- note list ---
+    function renderList() {
+      const flats = keyUsesFlats(key);
+      if (!notes.length) { noteListEl.innerHTML = `<div class="nl-empty">${escapeHtml(labels.midiEmptyLabel)}</div>`; return; }
+      const visible = transposeNotes(rawNotes.filter((n) => !removed.has(noteKey(n))), transpose);
+      const source = rawNotes.filter((n) => !removed.has(noteKey(n)));
+      noteListEl.innerHTML = visible.map((n, i) => {
+        const orig = source[i];
+        return `<div class="nl-row" data-key="${escapeHtml(noteKey(orig))}">
+          <span class="nl-i">${i + 1}</span>
+          <span class="nl-n">${escapeHtml(midiToName(n.midi, flats))}</span>
+          <span class="nl-t">${escapeHtml(fmtSec(n.onset))}</span>
+          <span class="nl-d">${escapeHtml(fmtSec(n.dur))}</span>
+          <button type="button" class="nl-x" aria-label="${escapeHtml(labels.midiRemoveNoteLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button>
+        </div>`;
+      }).join('');
+    }
+    noteListEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.nl-x');
+      if (!btn) return;
+      const row = btn.closest('.nl-row');
+      if (row) { removed.add(row.dataset.key); applyEdits(); }
+    });
+
+    // --- chords ---
+    let chordSpans = [];
+    function renderChords() {
+      // Chords are estimated from the transposed notes, so shifting the piece shifts the chart
+      // with it instead of leaving a chord sheet that no longer matches what is on screen.
+      chordSpans = notes.length ? estimateChords(notes, bpm, { key: transposedKey() }) : [];
+      if (!chordSpans.length) { chordsEl.innerHTML = `<div class="nl-empty">${escapeHtml(labels.midiEmptyLabel)}</div>`; return; }
+      chordsEl.innerHTML = chordSpans.map((c) => {
+        const main = chordStyle === 'degree' ? (c.degree || '—')
+          : chordStyle === 'nashville' ? (c.nashville || '—')
+          : (c.label || labels.midiNoChordLabel);
+        const dim = c.label === null ? ' ch-none' : '';
+        return `<button type="button" class="chord${dim}" data-at="${c.start}">
+          <span class="ch-main">${escapeHtml(main)}</span>
+          <span class="ch-time">${escapeHtml(fmtClock(c.start))}</span>
+        </button>`;
+      }).join('');
+    }
+    function transposedKey() {
+      if (!key || !transpose) return key;
+      const NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+      const i = NAMES.indexOf(key.name);
+      if (i < 0) return key;
+      return { ...key, name: NAMES[((i + transpose) % 12 + 12) % 12] };
+    }
+    chordsEl.addEventListener('click', (e) => {
+      const btn = e.target.closest('.chord');
+      if (!btn || !sourceBuffer) return;
+      startPlayback(Math.min(Number(btn.dataset.at) || 0, sourceBuffer.duration));
+    });
+
+    /* --- sheet music --------------------------------------------------------------------- */
+    // VexFlow is about 300 KB over the wire and only matters to someone who opens this tab, so it
+    // is fetched the first time that happens and never on page load.
+    let vf = null;
+    let vfFailed = false;
+    async function ensureVexflow() {
+      if (vf || vfFailed) return vf;
+      scoreStatus.textContent = labels.midiScoreLoadingLabel;
+      try {
+        vf = await import(/* @vite-ignore */ VEXFLOW);
+      } catch (e) {
+        vfFailed = true;
+        scoreStatus.textContent = labels.midiScoreFailedLabel;
+        return null;
+      }
+      scoreStatus.textContent = '';
+      return vf;
+    }
+
+    const STAFF_GAP = 92;       // treble baseline to bass baseline
+    const SYSTEM_GAP = 186;     // one system to the next
+    const REST_KEY = { treble: 'b/4', bass: 'd/3' };
+
+    async function drawScore() {
+      if ($('mt-view-score').hidden || !notes.length) return;
+      const V = await ensureVexflow();
+      if (!V) return;
+      const score = notesToScore(notes, bpm, transposedKey());
+      scoreEl.innerHTML = '';
+
+      const width = Math.max(320, scoreEl.clientWidth || 640);
+      // Fewer bars per line on a narrow screen, or the notes are packed too tightly to read.
+      const perSystem = width < 480 ? 1 : width < 700 ? 2 : 4;
+      const systems = Math.ceil(score.measures.length / perSystem);
+
+      const renderer = new V.Renderer(scoreEl, V.Renderer.Backends.SVG);
+      renderer.resize(width, systems * SYSTEM_GAP + 40);
+      const ctx = renderer.getContext();
+      ctx.setFont('Arial', 10);
+
+      for (let s = 0; s < systems; s++) {
+        const bars = score.measures.slice(s * perSystem, (s + 1) * perSystem);
+        const y = 10 + s * SYSTEM_GAP;
+        // The opening bar of each system carries the clef and key signature, so it needs more
+        // room than the rest; the remainder is shared out evenly.
+        const lead = 58 + Math.abs(score.key.fifths) * 9 + (s === 0 ? 26 : 0);
+        const plain = Math.max(90, (width - 20 - lead) / bars.length);
+        let x = 10;
+        let firstTreble = null, firstBass = null, lastTreble = null;
+
+        bars.forEach((bar, bi) => {
+          const w = bi === 0 ? plain + lead : plain;
+          const treble = new V.Stave(x, y, w);
+          const bass = new V.Stave(x, y + STAFF_GAP, w);
+          if (bi === 0) {
+            treble.addClef('treble').addKeySignature(score.key.name);
+            bass.addClef('bass').addKeySignature(score.key.name);
+            if (s === 0) {
+              treble.addTimeSignature(score.beatsPerMeasure + '/4');
+              bass.addTimeSignature(score.beatsPerMeasure + '/4');
+              treble.setTempo({ duration: 'q', bpm: score.bpm }, -2);
+            }
+            firstTreble = treble; firstBass = bass;
+          }
+          treble.setContext(ctx).draw();
+          bass.setContext(ctx).draw();
+          lastTreble = treble;
+          x += w;
+
+          for (const [staff, stave] of [['treble', treble], ['bass', bass]]) {
+            const events = bar.staves[staff];
+            if (!events.length) continue;
+            const built = events.map((ev) => {
+              const note = new V.StaveNote({
+                keys: ev.rest ? [REST_KEY[staff]] : ev.keys.map((k) => k.name.toLowerCase() + '/' + k.octave),
+                duration: ev.duration + (ev.rest ? 'r' : ''),
+                clef: staff,
+              });
+              if (ev.dots) V.Dot.buildAndAttach([note], { all: true });
+              return { note, ev };
+            });
+            const voice = new V.Voice({ num_beats: score.beatsPerMeasure, beat_value: 4 })
+              .setMode(V.Voice.Mode.SOFT)
+              .addTickables(built.map((b) => b.note));
+            // Let VexFlow decide which accidentals the key signature already covers, rather than
+            // printing a sharp on every black key -- that is what makes a score look machine-made.
+            V.Accidental.applyAccidentals([voice], score.key.name);
+            const beams = V.Beam.generateBeams(built.filter((b) => !b.ev.rest).map((b) => b.note));
+            new V.Formatter().joinVoices([voice]).formatToStave([voice], stave);
+            voice.setStave(stave).draw(ctx, stave);
+            beams.forEach((b) => b.setContext(ctx).draw());
+            // Ties between the pieces of one long note. Only within a bar: a tie across a barline
+            // or a line break needs a curve VexFlow cannot place from here, and a half-drawn one
+            // reads worse than none.
+            built.forEach((b, i) => {
+              if (!b.ev.tieStart || !built[i + 1] || !built[i + 1].ev.tieEnd) return;
+              new V.StaveTie({ first_note: b.note, last_note: built[i + 1].note }).setContext(ctx).draw();
+            });
+          }
+        });
+
+        if (firstTreble && firstBass) {
+          new V.StaveConnector(firstTreble, firstBass).setType(V.StaveConnector.type.BRACE).setContext(ctx).draw();
+          new V.StaveConnector(firstTreble, firstBass).setType(V.StaveConnector.type.SINGLE_LEFT).setContext(ctx).draw();
+        }
+      }
+    }
+    $('mt-print').addEventListener('click', () => window.print());
+
+    /* --- export -------------------------------------------------------------------------- */
+    function renderFmtHint() {
+      const hints = labels.midiFmtHints || {};
+      fmtHint.textContent = hints[fmtSelect.value] || '';
+    }
+    fmtSelect.addEventListener('change', renderFmtHint);
+
+    dlBtn.addEventListener('click', () => {
+      if (!notes.length) { showError(labels.midiEmptyLabel); return; }
+      const base = (file?.name || 'transcription').replace(/\.[^.]+$/, '');
+      const k = transposedKey();
+      const fmt = fmtSelect.value;
+      let blob, name;
+      if (fmt === 'mid') {
+        blob = new Blob([notesToMidi(notes, bpm, k, { trackName: base })], { type: 'audio/midi' });
+        name = base + '.mid';
+      } else if (fmt === 'xml') {
+        blob = new Blob([notesToMusicXml(notes, bpm, k, { title: base })], { type: 'application/vnd.recordare.musicxml+xml' });
+        name = base + '.musicxml';
+      } else {
+        blob = new Blob([notesToCsv(notes, keyUsesFlats(k))], { type: 'text/csv' });
+        name = base + '.csv';
+      }
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = name;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      window.dispatchEvent(new Event('opitro:tool-interaction'));
+    });
+  }
+</script>
+
+<style is:global>
+  /* Drop zone, file chip, compact player, fields and deck are deliberately identical to the
+     audio tools -- same measurements, same radii, same hover colours. Copied rather than shared
+     because Astro only ships a component's styles when that component is on the page, and this
+     tool never renders AudioTool. */
+  .midi-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+  .midi-tool .drop:hover,.midi-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
+  .midi-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
+  .midi-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .midi-tool .drop .small{font-size:12px;color:var(--muted)}
+  .midi-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
+  .midi-tool input[type=file]{display:none}
+
+  .midi-tool .panel{display:none;margin-top:8px}
+  .midi-tool .panel.on{display:block}
+  .midi-tool .fileinfo:empty{display:none}
+  .midi-tool .fileinfo{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
+  .midi-tool .fi-row{display:flex;align-items:center;gap:10px}
+  .midi-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
+  .midi-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .midi-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  .midi-tool .fi-act{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .midi-tool .fi-act .i{width:15px;height:15px}
+  .midi-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
+  .midi-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+
+  .midi-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none;cursor:pointer;display:none}
+  .midi-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px}
+  .midi-tool .wave-shell canvas{display:block;width:100%;height:52px;flex:1;min-width:0}
+  .midi-tool .wave-play-btn{flex:none;width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#08130d;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .2s}
+  .midi-tool .wave-play-btn:hover:not(:disabled){transform:scale(1.06)}
+  .midi-tool .wave-play-btn:disabled{opacity:.35;cursor:not-allowed}
+  .midi-tool .wave-play-btn .ico{width:17px;height:17px}
+  .midi-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .midi-tool .wave-duration b{color:var(--text);font-weight:600}
+  /* Hidden until something is playing, and drawn above the canvas. It is positioned in pixels
+     against the canvas by the script -- as a percentage of the shell it sat on top of the play
+     button at rest and slid across it while playing. */
+  .midi-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
+
+  .midi-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
+  .midi-tool .progress.on{opacity:.55}
+  .midi-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+  .midi-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+  /* Unlike the audio tools, this one has a genuinely long step in it -- the model download and
+     the first run. A silent 2px bar is not enough feedback for something that can take twenty
+     seconds, so the stage gets a caption here. */
+  .midi-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px}
+  .midi-tool .stage-text:empty{margin:0}
+
+  .midi-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .midi-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .midi-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .midi-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
+  .midi-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  .midi-tool .ico{width:16px;height:16px;flex:none}
+  .midi-tool .act .i{width:17px;height:17px;flex:none}
+
+  .midi-tool .field{flex:1;min-width:150px;margin-bottom:14px}
+  .midi-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .midi-tool .field label b{color:var(--text);letter-spacing:0;text-transform:none;font-size:12.5px}
+  .midi-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
+  .midi-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
+  .midi-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+
+  .midi-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
+  .midi-tool .deck .field{flex:1 1 200px;margin-bottom:0}
+  .midi-tool .deck .field-fmt{flex:0 1 190px}
+  .midi-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  .midi-tool .deck .field select{height:48px;border-radius:12px}
+  .midi-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+
+  .midi-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
+  .midi-tool .err.show{display:block}
+
+  /* --- results ------------------------------------------------------------------------- */
+  /* Four numbers before any of the detail. Someone who only wants to know the key or the tempo
+     gets it here and never has to read a piano roll. */
+  .midi-tool .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 18px}
+  .midi-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
+  .midi-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .midi-tool .sum-value{font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .midi-tool .sum-empty{background:var(--surface);padding:16px;text-align:center;font-size:13px;color:var(--muted);grid-column:1/-1}
+  @media(max-width:560px){.midi-tool .summary{grid-template-columns:repeat(2,1fr)}}
+
+  .midi-tool .tune{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}
+  /* The transpose row needs about 420px to keep its five controls on one line. Side by side with
+     the sensitivity slider in a 696px column it got 340px and folded "Octave up" onto a second
+     line, which reads as sloppy. Sized so the two stack instead, each on a full-width row.
+     Measured at 390, 768 and 1280 px.
+     Note the selector: `.tune .field` outweighs a bare `.tune-transpose`, so the wider basis has
+     to be written on `.field.tune-transpose` or the cascade silently keeps the 300px one. */
+  .midi-tool .tune .field{flex:1 1 300px}
+  .midi-tool .tune .field.tune-transpose{flex:1 1 420px}
+  .midi-tool .tune-hint{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:6px}
+  .midi-tool .tr-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+  .midi-tool .tr-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:9px;height:36px;min-width:36px;padding:0 10px;transition:border-color .15s,background .15s}
+  .midi-tool .tr-btn:hover{border-color:rgba(74,222,158,0.5);background:rgba(74,222,158,0.08)}
+  .midi-tool .tr-val{min-width:34px;text-align:center;font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
+
+  .midi-tool .tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;margin:14px 0 12px}
+  .midi-tool .tab{flex:1;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:9px;padding:9px 6px;transition:background .15s,color .15s}
+  .midi-tool .tab:hover{color:var(--text)}
+  .midi-tool .tab.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+
+  /* 470px is four octaves plus the border at 9px a row -- enough that most solo material fits
+     without scrolling at all. Anything wider scrolls, which is right; at 440 a four-octave span
+     came out one pixel too tall and clipped its bottom label for no reason. */
+  .midi-tool .roll-wrap{display:flex;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;max-height:470px;overflow-y:auto}
+  .midi-tool .roll-keys{flex:none;position:sticky;left:0;z-index:2;display:block}
+  .midi-tool .roll-scroll{flex:1;min-width:0;overflow-x:auto;position:relative;cursor:pointer}
+  .midi-tool .roll-canvas{display:block}
+  .midi-tool .roll-playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;opacity:.75;pointer-events:none;display:none;will-change:transform}
+  .midi-tool .roll-hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
+
+  .midi-tool .notelist-head,.midi-tool .nl-row{display:grid;grid-template-columns:38px 1fr 1fr 1fr 34px;align-items:center;gap:8px}
+  .midi-tool .notelist-head{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 12px 8px}
+  .midi-tool .notelist{max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
+  .midi-tool .nl-row{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
+  .midi-tool .nl-row:last-child{border-bottom:none}
+  .midi-tool .nl-i{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
+  .midi-tool .nl-n{font-weight:600;color:var(--text)}
+  .midi-tool .nl-t,.midi-tool .nl-d{color:var(--muted);font-variant-numeric:tabular-nums}
+  .midi-tool button.nl-x{display:flex;align-items:center;justify-content:center;width:26px;height:26px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;padding:0;transition:color .15s,background .15s}
+  .midi-tool button.nl-x:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+  .midi-tool .nl-x .i{width:13px;height:13px}
+  .midi-tool .nl-empty{padding:22px;text-align:center;font-size:13px;color:var(--muted)}
+
+  .midi-tool .chord-style{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px;width:fit-content}
+  .midi-tool .cs-seg{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:7px;padding:7px 12px;transition:background .15s,color .15s}
+  .midi-tool .cs-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+  /* A chart, not a stream. Every chord here is at least half a bar long by construction, so they
+     can be laid out as cards you could actually read off while playing. */
+  .midi-tool .chords{display:flex;flex-wrap:wrap;gap:8px}
+  .midi-tool .chord{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 14px;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:border-color .15s,background .15s}
+  .midi-tool .chord:hover{border-color:rgba(74,222,158,0.5);background:rgba(74,222,158,0.07)}
+  .midi-tool .ch-main{font-size:16px;font-weight:700;color:var(--text)}
+  .midi-tool .ch-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .midi-tool .chord.ch-none{opacity:.45}
+  .midi-tool .chord.ch-none .ch-main{font-weight:500;color:var(--muted)}
+
+  /* Sheet music is black on white everywhere it exists, and pretending otherwise to match a dark
+     page would mean a printout nobody can read. So: paper. */
+  .midi-tool .score-paper{background:#fff;border-radius:12px;padding:10px 6px;overflow-x:auto;min-height:120px}
+  .midi-tool .score-paper svg{display:block;max-width:100%}
+  .midi-tool .score-status{font-size:12.5px;color:#555;text-align:center;padding:8px}
+  .midi-tool .score-status:empty{display:none;padding:0}
+  .midi-tool .score-actions{display:flex;margin:12px 0 0}
+  .midi-tool .score-actions .act{flex:0 1 auto;min-width:auto;height:44px;padding:0 18px;font-size:13.5px}
+
+  /* Printing sends the score alone to the page. `visibility` rather than `display` keeps the
+     layout intact, so VexFlow's already-drawn SVG is not re-flowed into something else. */
+  @media print {
+    body * { visibility: hidden; }
+    .midi-tool #mt-view-score, .midi-tool #mt-view-score * { visibility: visible; }
+    .midi-tool #mt-view-score { position: absolute; left: 0; top: 0; width: 100%; }
+    .midi-tool .score-paper { padding: 0; overflow: visible; }
+    .midi-tool .score-actions, .midi-tool #mt-view-score .roll-hint { display: none; }
+  }
+</style>
