@@ -10,6 +10,13 @@ let problems = 0;
 
 function checkFile(path) {
   const text = fs.readFileSync(path, 'utf8');
+  // A backslash before an apostrophe is an escape in JavaScript and literal text in Markdown.
+  // Writing Ukrainian prose (which is full of apostrophes) through a shell heredoc is an easy
+  // way to leak one in, where it renders on the page as a stray backslash.
+  if (text.includes("\\'")) {
+    console.log(`${path}: literal backslash before an apostrophe -- it will render as text`);
+    problems++;
+  }
   const fm = text.split('---')[1] || '';
   for (const line of fm.split('\n')) {
     const m = line.match(KEYS);
