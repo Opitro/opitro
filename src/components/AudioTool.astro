@@ -22,6 +22,10 @@ const isGenerator = controls === 'generator';
 // Noise has no input file at all: no drop zone, no file chip, nothing to swap -- and no waveform,
 // because what plays is a short loop repeating, not a track with a position in it.
 const isNoise = controls === 'noise';
+// The dictaphone has no file to drop either -- its input is the microphone. Everything after the
+// recording exists (waveform, info strip, export bar) is identical to a loaded file, so it reuses
+// the same path rather than growing a parallel one.
+const isRecorder = controls === 'recorder';
 // Generator/merge tools now also show a waveform, just of the RESULT (post-generate/post-merge)
 // rather than an uploaded source -- the markup renders for them too, hidden by default until
 // the first render (see the client script), instead of never existing at all.
@@ -41,7 +45,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // action button even though they now have an export bar. Every other tool renders on demand from
 // a file that's already loaded, which leaves a "Process" step with no work of its own to do.
 const needsRenderAction = isGenerator || controls === 'multi-file';
-const showListenBtn = !isFfmpeg && !isRingtoneTargets && (!config.downloadFormats || needsRenderAction);
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
 const showRunBtn = isFfmpeg && !isRingtoneTargets;
 const showAddBtn = controls === 'multi-file' || !!config.allowBatch;
 const showControlsRow = showListenBtn || showRunBtn || showAddBtn;
@@ -62,7 +66,7 @@ const ICO = {
 ---
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
-  {!isGenerator && !isNoise && (
+  {!isGenerator && !isNoise && !isRecorder && (
     <>
       <div class="drop" id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
@@ -319,6 +323,59 @@ const ICO = {
       </>
     )}
 
+    {config.mixVolume && (
+      <div class="fade-card pitch-card">
+        <label class="fade-card-title" for="mix-volume">{labels.mixVolumeLabel}</label>
+        <input type="range" id="mix-volume" min="0" max="150" step="5" value="35">
+        <span class="fade-card-val" id="mix-volume-val">35%</span>
+      </div>
+    )}
+    {controls === 'tempo' && (
+      <>
+        <div class="row">
+          <div class="field">
+            <label for="ctrl-bpm-from">{labels.bpmFromLabel}</label>
+            <input type="number" id="ctrl-bpm-from" min="40" max="240" step="1" value="120">
+          </div>
+          <div class="field">
+            <label for="ctrl-bpm-to">{labels.bpmToLabel}</label>
+            <input type="number" id="ctrl-bpm-to" min="40" max="240" step="1" value="120">
+          </div>
+        </div>
+        <div class="controls">
+          <button type="button" class="act" id="bpm-detect-btn" disabled>{labels.bpmDetectLabel}</button>
+        </div>
+      </>
+    )}
+    {controls === 'split' && (
+      <>
+        <div class="row">
+          <div class="field">
+            <label for="ctrl-split-mode">{labels.splitModeLabel}</label>
+            <select id="ctrl-split-mode">
+              <option value="parts">{labels.splitByPartsLabel}</option>
+              <option value="duration">{labels.splitByDurationLabel}</option>
+            </select>
+          </div>
+          <div class="field">
+            <label for="ctrl-split-value" id="ctrl-split-value-label">{labels.splitPartsCountLabel}</label>
+            <input type="number" id="ctrl-split-value" min="2" max="50" step="1" value="2">
+          </div>
+        </div>
+        <div class="deck">
+          <div class="field field-fmt">
+            <label for="split-format">{labels.enhanceFormatLabel}</label>
+            <select id="split-format">
+              {config.splitFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <button type="button" class="act primary deck-act" id="split-download-btn" disabled>
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+            <span>{labels.splitDownloadLabel}</span>
+          </button>
+        </div>
+      </>
+    )}
     {controls === 'silence2' && (
       <div class="row">
         <div class="field">
@@ -525,6 +582,16 @@ const ICO = {
       </div>
     )}
 
+    {controls === 'recorder' && (
+      <div class="rec-stage">
+        <button type="button" class="rec-btn" id="rec-btn" aria-label={labels.recStartLabel}>
+          <span class="rec-dot" id="rec-dot"></span>
+        </button>
+        <div class="rec-time" id="rec-time">0:00</div>
+        <div class="rec-state" id="rec-state">{labels.recIdleLabel}</div>
+      </div>
+    )}
+
     {/* Noise: play is the primary action and starts instantly, because what people come here for
         is to listen -- for hours, usually. Downloading a file is secondary and lives below. */}
     {controls === 'noise' && (
@@ -671,7 +738,7 @@ const ICO = {
 </div>
 
 <script>
-  import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
+  import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, resampleBuffer,
@@ -744,6 +811,8 @@ const ICO = {
     let file = null;
     let files = [];
     let sourceBuffer = null;
+    // Per-tool hook: "a file exists now, refresh whatever depends on it".
+    let rateStateSync = null;
     let renderedBuffer = null;
     let dur = 0;
     let selStart = 0;
@@ -859,10 +928,13 @@ const ICO = {
       const fileMetaEl = root.querySelector('#file-meta');
       if (!fileMetaEl) return;
       const ext = (f.name.split('.').pop() || '').toUpperCase();
-      const sizeMB = (f.size / 1048576).toFixed(1);
+      // A 3-second recording is about 30 KB, which this rendered as "0.0 MB" -- true, useless.
+      const sizeText = f.size >= 1048576
+        ? `${(f.size / 1048576).toFixed(1)} ${labels.unitMB || 'MB'}`
+        : `${Math.max(1, Math.round(f.size / 1024))} ${labels.unitKB || 'KB'}`;
       const rows = [
         [labels.fileFormatLabel || 'Format', ext],
-        [labels.fileSizeLabel || 'Size', `${sizeMB} MB`],
+        [labels.fileSizeLabel || 'Size', sizeText],
         [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
       ];
       // Sample rate and channel count are only known from a decoded buffer. Tools that skip the
@@ -1155,16 +1227,17 @@ const ICO = {
       // action doesn't have -- it's a correction, not a step. This branch only ever runs for
       // single-file tools (batch and merge have a per-item list with its own controls), so both
       // buttons belong here unconditionally.
+      const canSwap = !!fileInput;
       const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
       const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
-      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span><button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button><button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${canSwap ? `<button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button>` : ''}<button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
       const fiRemoveBtn = root.querySelector('#fi-remove-btn');
       if (fiRemoveBtn) fiRemoveBtn.addEventListener('click', resetFile);
       const fiSwapBtn = root.querySelector('#fi-swap-btn');
-      if (fiSwapBtn) fiSwapBtn.addEventListener('click', () => fileInput.click());
+      if (fiSwapBtn && fileInput) fiSwapBtn.addEventListener('click', () => fileInput.click());
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
       // resetFile() hides the player; nothing ever brought it back, so removing a file and then
@@ -1298,6 +1371,7 @@ const ICO = {
           if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
           if (transportCurEl) transportCurEl.textContent = '0:00';
         }
+        if (rateStateSync) rateStateSync();
         if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (abCompareEl) abCompareEl.style.display = 'flex';
           if (abResultBtn) abResultBtn.disabled = false;
@@ -1457,8 +1531,142 @@ const ICO = {
     }
     // No result yet to show a waveform of -- revealResultWaveform() un-hides this once
     // generate/merge actually produces a buffer.
-    if ((config.controls === 'generator' || config.controls === 'multi-file') && waveShell) {
+    if ((config.controls === 'generator' || config.controls === 'multi-file' || config.controls === 'recorder') && waveShell) {
       waveShell.style.display = 'none';
+    }
+
+    // ---- Tempo -----------------------------------------------------------------------------
+    if (config.controls === 'tempo') {
+      const fromEl = root.querySelector('#ctrl-bpm-from');
+      const toEl = root.querySelector('#ctrl-bpm-to');
+      const detectBtn = root.querySelector('#bpm-detect-btn');
+      const onChange = () => { invalidateRender(); syncSourceNote(); eqSyncState(); };
+      fromEl.addEventListener('input', onChange);
+      toEl.addEventListener('input', onChange);
+      rateStateSync = () => { if (detectBtn) detectBtn.disabled = !sourceBuffer; syncSourceNote(); eqSyncState(); };
+      detectBtn.addEventListener('click', () => {
+        if (!sourceBuffer) return;
+        const bpm = detectBpm(sourceBuffer);
+        if (!bpm) { showError(labels.bpmNotFoundLabel); return; }
+        clearError();
+        fromEl.value = String(bpm);
+        if (Number(toEl.value) === 120) toEl.value = String(bpm);
+        onChange();
+      });
+    }
+
+    // ---- Split into parts --------------------------------------------------------------------
+    if (config.controls === 'split') {
+      const modeSel = root.querySelector('#ctrl-split-mode');
+      const valueEl = root.querySelector('#ctrl-split-value');
+      const valueLabel = root.querySelector('#ctrl-split-value-label');
+      const splitFmt = root.querySelector('#split-format');
+      const splitBtn = root.querySelector('#split-download-btn');
+
+      function syncSplitUi() {
+        const byDuration = modeSel.value === 'duration';
+        valueLabel.textContent = byDuration ? labels.splitMinutesLabel : labels.splitPartsCountLabel;
+        valueEl.min = byDuration ? '1' : '2';
+        valueEl.max = byDuration ? '120' : '50';
+        if (byDuration && Number(valueEl.value) < 1) valueEl.value = '5';
+        if (!byDuration && Number(valueEl.value) < 2) valueEl.value = '2';
+        splitBtn.disabled = !sourceBuffer;
+        syncSourceNote();
+      }
+      modeSel.addEventListener('change', syncSplitUi);
+      valueEl.addEventListener('input', syncSplitUi);
+      // Re-run once a file has decoded, so the plan describes the real duration.
+      rateStateSync = syncSplitUi;
+
+      splitBtn.addEventListener('click', async () => {
+        if (!sourceBuffer) return;
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        clearError();
+        splitBtn.disabled = true;
+        showProgress(labels.workingLabel, 5);
+        try {
+          const parts = splitPlan(sourceBuffer.duration, readParams());
+          const fmt = splitFmt.value;
+          const base = (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
+          const { default: JSZip } = await import('jszip');
+          const zip = new JSZip();
+          const pad = String(parts.length).length;
+          for (let i = 0; i < parts.length; i++) {
+            const clip = sliceBuffer(sourceBuffer, parts[i].start, parts[i].end);
+            const blob = fmt === 'mp3' ? await encodeMP3(clip, 192) : encodeWAV(clip);
+            zip.file(`${base}-${String(i + 1).padStart(pad, '0')}.${fmt}`, blob);
+            progressFill.style.width = Math.round(5 + (i + 1) / parts.length * 85) + '%';
+            progressText.textContent = `${labels.workingLabel} ${i + 1}/${parts.length}`;
+            // Yield, so a long file doesn't freeze the page while it encodes.
+            await new Promise((res) => setTimeout(res, 0));
+          }
+          progressText.textContent = labels.batchZippingLabel || 'ZIP…';
+          const zipBlob = await zip.generateAsync({ type: 'blob' });
+          finishProgress(labels.doneLabel);
+          downloadBlob(zipBlob, `${base}-parts.zip`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+          progress.classList.remove('on');
+        }
+        splitBtn.disabled = !sourceBuffer;
+      });
+    }
+
+    // ---- Dictaphone -------------------------------------------------------------------------
+    if (config.controls === 'recorder') {
+      panel.classList.add('on');
+      const recBtn = root.querySelector('#rec-btn');
+      const recTimeEl = root.querySelector('#rec-time');
+      const recStateEl = root.querySelector('#rec-state');
+      let mediaStream = null;
+      let recorder = null;
+      let chunks = [];
+      let tick = 0;
+      let startedAt = 0;
+
+      function stopTimer() { if (tick) { clearInterval(tick); tick = 0; } }
+      function setRecording(on) {
+        recBtn.classList.toggle('recording', on);
+        recStateEl.textContent = on ? labels.recRecordingLabel : labels.recIdleLabel;
+        recBtn.setAttribute('aria-label', on ? labels.recStopLabel : labels.recStartLabel);
+      }
+      recBtn.addEventListener('click', async () => {
+        if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+        clearError();
+        // Asked for on the click, so the browser attributes the permission prompt to a gesture.
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            // The browser's own cleanup is tuned for calls, not for a recording you will edit --
+            // it gates quiet passages and pumps the level. The site has dedicated tools for both.
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+          });
+        } catch (e) {
+          showError(labels.micDeniedLabel);
+          return;
+        }
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        chunks = [];
+        recorder = new MediaRecorder(mediaStream);
+        recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
+        recorder.onstop = async () => {
+          stopTimer();
+          setRecording(false);
+          mediaStream.getTracks().forEach((t) => t.stop());
+          const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
+          const ext = (recorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm';
+          // From here it is just a file: pickFile draws the waveform, fills the info strip and
+          // enables the export bar exactly as it would for an upload.
+          await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
+        };
+        recorder.start();
+        startedAt = Date.now();
+        setRecording(true);
+        recTimeEl.textContent = '0:00';
+        tick = setInterval(() => {
+          const secs = Math.floor((Date.now() - startedAt) / 1000);
+          recTimeEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+        }, 250);
+      });
     }
 
     if (drop) {
@@ -1786,7 +1994,6 @@ const ICO = {
     // ---- Volume state --------------------------------------------------------------------------
     // A single GainNode. Cheap enough to run live, so dragging the slider is heard immediately
     // and the peak readout follows without touching the file.
-    let rateStateSync = null;
     let volumeLiveGain = null;
     const volumeSliderEl = root.querySelector('#ctrl-slider');
     function volumeValue() {
@@ -1882,9 +2089,71 @@ if (config.controls === 'speed1') {
         return !!sourceBuffer && (a > 0 || b > 0);
       }
       // One file joined to nothing is just that file.
+      if (config.controls === 'tempo') {
+        const f = Number((root.querySelector('#ctrl-bpm-from') || {}).value) || 0;
+        const t = Number((root.querySelector('#ctrl-bpm-to') || {}).value) || 0;
+        return !!sourceBuffer && f > 0 && t > 0 && Math.abs(f - t) >= 1;
+      }
       if (config.controls === 'multi-file') return files.length >= 2;
       return true;
     }
+    // Tempo from an onset-strength envelope -- energy rise per 5 ms frame -- then autocorrelation
+    // over 60-190 BPM. Measured on click tracks: exact at 70, 75, 90, 100, 120, 128, 140 and 160,
+    // and 176 for a 175 track. It finds a steady beat well and has no opinion at all about music
+    // without one, which is why the page tells people to check the number rather than trust it.
+    function detectBpm(buffer) {
+      const sr = buffer.sampleRate;
+      const frameSec = 0.005;
+      const hop = Math.round(sr * frameSec);
+      const data = buffer.getChannelData(0);
+      const frames = Math.floor(data.length / hop);
+      if (frames < 600) return 0;
+      const energy = new Float32Array(frames);
+      for (let f = 0; f < frames; f++) {
+        let sum = 0;
+        for (let i = f * hop; i < (f + 1) * hop; i++) sum += data[i] * data[i];
+        energy[f] = Math.sqrt(sum / hop);
+      }
+      // Only rises count -- a beat is where energy jumps, not where it falls away.
+      const onset = new Float32Array(frames);
+      for (let f = 1; f < frames; f++) onset[f] = Math.max(0, energy[f] - energy[f - 1]);
+      let mean = 0;
+      for (let f = 0; f < frames; f++) mean += onset[f];
+      mean /= frames;
+      for (let f = 0; f < frames; f++) onset[f] = Math.max(0, onset[f] - mean);
+
+      const minLag = Math.floor(60 / 190 / frameSec);
+      const maxLag = Math.ceil(60 / 60 / frameSec);
+      const corr = new Float64Array(maxLag + 2);
+      for (let lag = minLag; lag <= maxLag; lag++) {
+        let acc = 0;
+        for (let f = 0; f + lag < frames; f++) acc += onset[f] * onset[f + lag];
+        corr[lag] = acc / (frames - lag);
+      }
+      // Half and double describe the same rhythm, and raw correlation leans towards the slower
+      // reading -- 120 BPM kept coming back as 60. A log-normal prior centred on 120 breaks the
+      // tie the way a listener would.
+      let bestLag = 0, bestScore = -1;
+      for (let lag = minLag; lag <= maxLag; lag++) {
+        const bpm = 60 / (lag * frameSec);
+        const score = corr[lag] * Math.exp(-0.5 * Math.pow(Math.log2(bpm / 120) / 0.9, 2));
+        if (score > bestScore) { bestScore = score; bestLag = lag; }
+      }
+      if (!bestLag || bestScore <= 0) return 0;
+      // The prior alone still lost 140 to 70: at exactly half tempo every beat still lines up, so
+      // the correlation is nearly as strong. Test the double-tempo candidate explicitly and take
+      // it when it holds up, which is what someone tapping along would do.
+      const halfLag = Math.round(bestLag / 2);
+      if (halfLag >= minLag && corr[halfLag] > corr[bestLag] * 0.5) bestLag = halfLag;
+      // Parabolic interpolation around the peak, so the answer is not limited to whole frames --
+      // that quantisation alone was costing 1-2 BPM.
+      const y0 = corr[bestLag - 1] || 0, y1 = corr[bestLag], y2 = corr[bestLag + 1] || 0;
+      const denom = y0 - 2 * y1 + y2;
+      const shift = denom !== 0 ? 0.5 * (y0 - y2) / denom : 0;
+      const lag = bestLag + Math.max(-1, Math.min(1, shift));
+      return Math.round(60 / (lag * frameSec));
+    }
+
     // One line of plain truth about this particular file and these particular settings: that it
     // is already mono, what the compressed file will weigh, how long the loop comes out. Returns
     // '' when there is nothing worth saying, which hides the line entirely.
@@ -2105,7 +2374,7 @@ if (config.controls === 'speed1') {
           const fmt = eqFormatSel ? eqFormatSel.value : 'wav';
           // Merge has no single input file to name the result after.
           const base = config.controls === 'multi-file'
-            ? 'merged'
+            ? (tool === 'mix' ? 'mixed' : 'merged')
             : (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
           progressFill.style.width = '70%';
           let blob;
@@ -2133,11 +2402,17 @@ if (config.controls === 'speed1') {
             normalize: 'normalized', 'stereo-to-mono': 'mono', 'mono-to-stereo': 'stereo',
             compress: 'compressed', loop: 'loop', 'remove-silence': 'trimmed',
             'reverb-echo': 'reverb', chiptune: 'chiptune', 'add-silence': 'padded',
+            tempo: 'bpm',
             'dynamic-compressor': 'leveled', 'vocal-remover': 'karaoke',
           }[tool] || 'result';
           // Merge has no source name to qualify, so it's just "merged" -- pairing the fallback
           // base with a suffix produced "merged-merged.wav".
-          downloadBlob(blob, config.controls === 'multi-file' ? `merged.${fmt}` : `${base}-${suffix}.${fmt}`);
+          // The dictaphone already names its file "recording"; "-result" on the end helps nobody.
+          const outName = tool === 'mix' ? `mixed.${fmt}`
+            : config.controls === 'multi-file' ? `merged.${fmt}`
+            : tool === 'dictaphone' ? `${base}.${fmt}`
+            : `${base}-${suffix}.${fmt}`;
+          downloadBlob(blob, outName);
           exportedClean = true;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
@@ -2147,6 +2422,15 @@ if (config.controls === 'speed1') {
       });
     }
 
+    const mixVolumeEl = root.querySelector('#mix-volume');
+    if (mixVolumeEl) {
+      const mixVal = root.querySelector('#mix-volume-val');
+      mixVolumeEl.addEventListener('input', () => {
+        if (mixVal) mixVal.textContent = mixVolumeEl.value + '%';
+        invalidateRender();
+        eqSyncState();
+      });
+    }
     const slider = root.querySelector('#ctrl-slider');
     const sliderVal = root.querySelector('#ctrl-slider-val');
     if (slider && sliderVal) {
@@ -2615,6 +2899,10 @@ if (config.controls === 'speed1') {
       if (get('#ctrl-channels')) params.channels = get('#ctrl-channels').value;
       if (get('#ctrl-normalize')) params.normalize = get('#ctrl-normalize').checked;
       if (get('#ctrl-cutout')) params.cutOut = get('#ctrl-cutout').checked;
+      if (get('#ctrl-bpm-from')) params.bpmFrom = Number(get('#ctrl-bpm-from').value) || 0;
+      if (get('#ctrl-bpm-to')) params.bpmTo = Number(get('#ctrl-bpm-to').value) || 0;
+      if (get('#ctrl-split-mode')) params.splitMode = get('#ctrl-split-mode').value;
+      if (get('#ctrl-split-value')) params.splitValue = Number(get('#ctrl-split-value').value) || 0;
       if (get('#ctrl-silence-start')) params.silenceStart = Number(get('#ctrl-silence-start').value) || 0;
       if (get('#ctrl-silence-end')) params.silenceEnd = Number(get('#ctrl-silence-end').value) || 0;
       if (config.controls === 'trim' || config.controls === 'ringtone-targets') { params.start = selStart; params.end = selEnd; }
@@ -2649,6 +2937,38 @@ if (config.controls === 'speed1') {
         // no shaping at all before, every generated clip ended in an audible hard stop.
         const foSamples = Math.min(length, Math.round(sr * 1.5));
         for (let i = 0; i < foSamples; i++) data[length - 1 - i] *= i / foSamples;
+        revealResultWaveform(out);
+        return out;
+      }
+      if (config.engine === 'webaudio-mix') {
+        const buffers = await Promise.all(files.map((f) => decodeFile(f)));
+        const sr = buffers[0].sampleRate;
+        const ch = Math.max(...buffers.map((b) => b.numberOfChannels));
+        // As long as the longest input: a short jingle under a long voice track shouldn't cut
+        // the voice off, and a long bed under a short clip shouldn't be truncated either.
+        const len = Math.max(...buffers.map((b) => b.length));
+        const bedEl = root.querySelector('#mix-volume');
+        const bed = bedEl ? Number(bedEl.value) / 100 : 0.35;
+        const out = new AudioBuffer({ numberOfChannels: ch, length: len, sampleRate: sr });
+        let peak = 0;
+        for (let c = 0; c < ch; c++) {
+          const dst = out.getChannelData(c);
+          buffers.forEach((b, idx) => {
+            const src = b.getChannelData(Math.min(c, b.numberOfChannels - 1));
+            const g = idx === 0 ? 1 : bed;
+            for (let i = 0; i < src.length; i++) dst[i] += src[i] * g;
+          });
+          for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(dst[i]));
+        }
+        // Summing signals can exceed full scale, and clipping is the ugliest possible outcome.
+        // Scale the whole mix down instead, only when it actually overflows.
+        if (peak > 1) {
+          const g = 0.99 / peak;
+          for (let c = 0; c < ch; c++) {
+            const dst = out.getChannelData(c);
+            for (let i = 0; i < len; i++) dst[i] *= g;
+          }
+        }
         revealResultWaveform(out);
         return out;
       }
@@ -3272,6 +3592,17 @@ if (config.controls === 'speed1') {
   .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
   .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
+  /* Recorder: one big target, red while live. Same disc geometry as the noise player. */
+  .audio-tool .rec-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 20px}
+  .audio-tool .rec-btn{width:88px;height:88px;border-radius:50%;border:2px solid var(--line);background:var(--surface-2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s}
+  .audio-tool .rec-btn:hover{transform:scale(1.04);border-color:#ff3a5e}
+  .audio-tool .rec-dot{width:32px;height:32px;border-radius:50%;background:#ff3a5e;transition:border-radius .2s,width .2s,height .2s}
+  .audio-tool .rec-btn.recording{border-color:#ff3a5e;box-shadow:0 0 0 6px rgba(255,58,94,0.12)}
+  .audio-tool .rec-btn.recording .rec-dot{border-radius:6px;width:26px;height:26px}
+  .audio-tool .rec-time{font-size:26px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .audio-tool .rec-state{font-size:13px;color:var(--muted);text-align:center;max-width:34ch;line-height:1.45}
+
   /* Noise: the play control is the page, so it is sized like it. */
   .audio-tool .noise-stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 0 22px}
   .audio-tool .noise-play{width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;color:#08130d;

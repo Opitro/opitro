@@ -7,6 +7,21 @@
 // (denoise/enhance -- no native noise-reduction node exists in Web Audio).
 import { wsolaStretch, pitchShift, resampleLinear } from './web-audio-engine.js';
 
+// Where the cuts fall, for a given file and settings. One function so the "you'll get N parts"
+// line and the export can never disagree.
+export function splitPlan(duration, { splitMode, splitValue }) {
+  const out = [];
+  if (splitMode === 'duration') {
+    const chunk = Math.max(1, Number(splitValue) || 5) * 60;
+    for (let t = 0; t < duration - 0.05; t += chunk) out.push({ start: t, end: Math.min(duration, t + chunk) });
+  } else {
+    const n = Math.max(2, Math.min(50, Math.round(Number(splitValue) || 2)));
+    const chunk = duration / n;
+    for (let i = 0; i < n; i++) out.push({ start: i * chunk, end: (i + 1) * chunk });
+  }
+  return out;
+}
+
 const MP3_OUT = { outputName: 'out.mp3', mimeType: 'audio/mpeg', ext: 'mp3' };
 
 // Standard ISO octave centres for a 10-band graphic EQ. Q of 1.41 is the usual choice at
@@ -1114,6 +1129,75 @@ export const AUDIO_TOOLS = {
     },
   },
 
+  dictaphone: {
+    // Input is the microphone, not a file. Once a recording exists it behaves exactly like an
+    // uploaded one, so it opts into the same player, info strip and export bar.
+    compactPreview: true,
+    transport: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    controls: 'recorder',
+    render: (oc, src) => src,
+  },
+  tempo: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    controls: 'tempo',
+    accept: 'audio/*',
+    note: ({ buffer, params, labels, fmtTime }) => {
+      if (!buffer) return '';
+      const from = Number(params.bpmFrom) || 0;
+      const to = Number(params.bpmTo) || 0;
+      if (!from || !to || Math.abs(from - to) < 1) return '';
+      return (labels.bpmResultNote || '')
+        .replace('{pct}', String(Math.round((to / from) * 100)))
+        .replace('{len}', fmtTime(buffer.duration * (from / to)));
+    },
+    // Same WSOLA stretch the speed tool uses, driven by a ratio of two tempos instead of a
+    // percentage -- so the pitch stays where it was.
+    directRender: (buffer, { bpmFrom, bpmTo }) => {
+      const from = Number(bpmFrom) || 0;
+      const to = Number(bpmTo) || 0;
+      if (!from || !to || from === to) return buffer;
+      return wsolaStretch(buffer, from / to);
+    },
+  },
+  mix: {
+    // Layers the files on top of each other, where merge puts them end to end. The first file is
+    // the main one and keeps its level; everything after it is the bed, at whatever level you set.
+    engine: 'webaudio-mix',
+    controls: 'multi-file',
+    accept: 'audio/*',
+    compactPreview: true,
+    transport: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    mixVolume: true,
+    runLabel: 'mixRunLabel',
+  },
+  'split-audio': {
+    // Produces many files rather than one, so it has its own export button and hands back a ZIP
+    // instead of using the shared single-file bar.
+    compactPreview: true,
+    transport: true,
+    engine: 'webaudio',
+    controls: 'split',
+    accept: 'audio/*',
+    splitFormats: ['mp3', 'wav'],
+    note: ({ buffer, params, labels, fmtTime }) => {
+      if (!buffer) return '';
+      const parts = splitPlan(buffer.duration, params);
+      if (parts.length < 2) return labels.splitTooFewNote || '';
+      return (labels.splitPlanNote || '')
+        .replace('{n}', String(parts.length))
+        .replace('{len}', fmtTime(parts[0].end - parts[0].start));
+    },
+  },
   'add-silence': {
     compactPreview: true,
     transport: true,
