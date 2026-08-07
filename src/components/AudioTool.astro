@@ -1140,7 +1140,17 @@ const ICO = {
       if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
       if (presetDescEl) presetDescEl.style.display = 'none';
       fileInfo.innerHTML = '';
-      panel.classList.remove('on');
+      // A tool whose input is a file falls back to the drop zone when the file goes. The
+      // dictaphone has no drop zone -- its input is the microphone -- so hiding the panel took
+      // the record button with it and left an empty page with no way to start again.
+      if (config.controls === 'recorder') {
+        const recTime = root.querySelector('#rec-time');
+        const recState = root.querySelector('#rec-state');
+        if (recTime) recTime.textContent = '0:00';
+        if (recState) recState.textContent = labels.recIdleLabel;
+      } else {
+        panel.classList.remove('on');
+      }
       if (drop) drop.style.display = '';
       if (waveShell) waveShell.style.display = 'none';
       const fileMetaEl = root.querySelector('#file-meta');
