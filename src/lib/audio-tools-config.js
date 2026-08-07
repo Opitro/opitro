@@ -870,6 +870,9 @@ export const AUDIO_TOOLS = {
     engine: 'ffmpeg',
     controls: 'convert',
     accept: 'video/*',
+    compactPreview: true,
+    transport: true,
+    runLabel: 'extractRunLabel',
     formats: ['mp3', 'm4a', 'wav'],
     // Loudness-normalize checkbox (EBU R128 -16 LUFS, a common podcast/creator target) -- cheap
     // to add since it's just one more filter, and was flagged as a real gap vs competitors.
@@ -1028,15 +1031,31 @@ export const AUDIO_TOOLS = {
     engine: 'ffmpeg',
     controls: 'select',
     accept: 'audio/*',
+    // Same shape as the enhancer: picking a strength renders a preview and plays it, with an
+    // Original/Result switch, so noise reduction can be judged by ear before committing. It used
+    // to hand back a file you had not heard, from a filter you could not compare.
+    compactPreview: true,
+    abCompare: true,
+    // Was locked to MP3, so cleaning up a WAV always came back lossy.
+    formats: ['mp3', 'wav', 'm4a'],
+    runLabel: 'denoiseRunLabel',
     selectLabel: 'denoiseStrengthLabel',
     selectOptions: [
       { value: 'light', label: 'strengthLightLabel' },
       { value: 'medium', label: 'strengthMediumLabel' },
       { value: 'strong', label: 'strengthStrongLabel' },
     ],
-    output: () => MP3_OUT,
+    output: (params) => {
+      const format = params.format || 'mp3';
+      if (format === 'wav') return { outputName: 'out.wav', mimeType: 'audio/wav', ext: 'wav' };
+      if (format === 'm4a') return { outputName: 'out.m4a', mimeType: 'audio/mp4', ext: 'm4a' };
+      return MP3_OUT;
+    },
     buildArgs: ([inp], out, params) => {
       const nr = { light: 6, medium: 12, strong: 22 }[params.value] || 12;
+      const format = params.format || 'mp3';
+      if (format === 'wav') return ['-i', inp, '-af', `afftdn=nr=${nr}`, out];
+      if (format === 'm4a') return ['-i', inp, '-af', `afftdn=nr=${nr}`, '-c:a', 'aac', '-b:a', '192k', out];
       return ['-i', inp, '-af', `afftdn=nr=${nr}`, '-b:a', '192k', out];
     },
   },

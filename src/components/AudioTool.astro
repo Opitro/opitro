@@ -275,7 +275,10 @@ const ICO = {
     {controls === 'select' && config.presetCards && (
       <div class="preset-desc" id="preset-desc" style="display:none"></div>
     )}
-    {controls === 'select' && config.presetCards && config.formats && (
+    {/* No longer tied to preset cards: any select-driven ffmpeg tool that offers formats needs
+        this, and gating it on cards is what kept denoise locked to MP3 -- so a WAV upload came
+        back lossy for no reason anyone chose. */}
+    {controls === 'select' && config.formats && (
       <div class="field enhance-format-field">
         <label for="ctrl-format">{labels.enhanceFormatLabel}</label>
         <select id="ctrl-format">
@@ -1153,6 +1156,15 @@ const ICO = {
               lastResultPreset = null;
               waveSeekPos = null;
             }
+            // Same for an ffmpeg tool with the compact player but no A/B switch: it has a decoded
+            // buffer, so it can play it. video-to-audio was drawing a play button that could
+            // never be pressed and a duration frozen at 0:00, because enabling both lived inside
+            // the A/B branch above.
+            if (config.compactPreview && !config.abCompare) {
+              if (wavePlayBtn) wavePlayBtn.disabled = false;
+              if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
+              if (transportCurEl) transportCurEl.textContent = '0:00';
+            }
             renderFileMeta(f);
           } catch (e) {
             // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
@@ -1211,12 +1223,17 @@ const ICO = {
         renderFileMeta(f);
         eqSyncState();
         syncSourceNote();
-        if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
-          if (abCompareEl) abCompareEl.style.display = 'flex';
-          if (abResultBtn) abResultBtn.disabled = false;
+        // Anything with the compact player can play the file it just decoded, whether or not the
+        // tool has a processed side yet. Enabling this only for A/B tools left video-to-audio
+        // drawing a play button that could never be pressed and a duration stuck at 0:00.
+        if (config.compactPreview) {
           if (wavePlayBtn) wavePlayBtn.disabled = false;
           if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
           if (transportCurEl) transportCurEl.textContent = '0:00';
+        }
+        if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
+          if (abCompareEl) abCompareEl.style.display = 'flex';
+          if (abResultBtn) abResultBtn.disabled = false;
           if (rateStateSync) rateStateSync();
           updateFadeRegions();
         }
@@ -1468,6 +1485,19 @@ const ICO = {
           if (file) runFfmpegProcess(false);
         });
       });
+    }
+    // Same "picking a setting previews it" behaviour the preset cards have, for A/B tools whose
+    // setting is a plain dropdown. Without it the Download button -- which A/B tools deliberately
+    // keep disabled until a result exists -- could never be enabled at all, because nothing else
+    // on the page would ever produce that first result.
+    if (config.abCompare && !config.presetCards) {
+      const abSelect = root.querySelector('#ctrl-select');
+      if (abSelect) {
+        abSelect.addEventListener('change', () => {
+          stopAB();
+          if (file) runFfmpegProcess(false);
+        });
+      }
     }
     if (heroAutoBtn) {
       heroAutoBtn.addEventListener('click', () => {
@@ -1815,7 +1845,17 @@ if (config.controls === 'speed1') {
     if (abOriginalBtn) abOriginalBtn.addEventListener('click', () => selectAbSide('original'));
     if (abResultBtn) abResultBtn.addEventListener('click', () => { if (!abResultBtn.disabled) selectAbSide('result'); });
     if (wavePlayBtn) {
-      wavePlayBtn.addEventListener('click', async () => {
+      wavePlayBtn.addEventListener('click', async (e) => {
+        // The waveform around this button treats a click as "move the marker", and starts by
+        // stopping playback. Its guard asks whether the click came from the play button --
+        // but this handler swaps the play glyph for the pause glyph, which DETACHES the <path>
+        // that was the event target. By the time the event bubbles one level up, target.closest()
+        // walks a node that is no longer in the document and answers null, so the waveform
+        // happily stopped the playback this handler had just started, ~10ms earlier.
+        // Confirmed over CDP: source started with a valid 3s buffer, 'ended' fired at 0.01s, and
+        // the stack pointed straight at the waveform's click listener. It affected every tool
+        // with the in-waveform play button, not just the one it was noticed on.
+        e.stopPropagation();
         // unlock() first and synchronously -- iOS only grants an AudioContext inside the
         // original gesture call stack, and ensureAbResult() below may await.
         player.unlock();
@@ -2495,7 +2535,12 @@ if (config.controls === 'speed1') {
     // same lazily-rendered/cached `renderedBuffer` the Listen button already relies on.
     if (waveShell) {
       waveShell.addEventListener('click', async (e) => {
-        if (e.target.closest('.handle') || e.target.closest('.sel-overlay') || e.target.closest('.wave-play-btn')) return;
+        // composedPath() is fixed when the event is dispatched, so it still names the button even
+        // if a handler further down replaced the node that was clicked. target.closest() alone
+        // silently stops answering once that happens -- see the note on the play button.
+        const from = (sel) => (e.composedPath ? e.composedPath().some((n) => n.matches && n.matches(sel)) : false)
+          || !!(e.target.closest && e.target.closest(sel));
+        if (from('.handle') || from('.sel-overlay') || from('.wave-play-btn')) return;
         if (dur <= 0) return;
         const t = px2t(e.clientX);
         player.unlock();
@@ -2531,7 +2576,7 @@ if (config.controls === 'speed1') {
         // speed have no A/B switch and were falling through to the legacy render-and-play path,
         // which positioned the marker from a different origin (hence a playhead that appeared
         // sometimes before and sometimes after the play button).
-        if (config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
+        if (config.compactPreview || config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
           if (!sourceBuffer) return;
           // Unconditional, NOT `if (player.isPlaying())` -- player.stop() already ran at the
           // top of this handler, so by here isPlaying() is always false and the guarded
@@ -2595,7 +2640,7 @@ if (config.controls === 'speed1') {
     // covers a single tap -- holding and moving did nothing, so the marker felt un-draggable.
     // Dragging stops playback immediately (you're choosing a new spot, not scrubbing audio) and
     // parks the marker there; pressing play afterwards resumes from exactly that point.
-    if (waveShell && (config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb)) {
+    if (waveShell && (config.compactPreview || config.abCompare || LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb)) {
       let scrubbing = false;
       const scrubTo = (clientX) => {
         if (dur <= 0) return;
@@ -2789,8 +2834,11 @@ if (config.controls === 'speed1') {
         // If the currently-selected preset was already previewed (a preset-card tap runs it
         // for free), just download that cached result instead of processing the exact same
         // thing again -- one button, no confusing "which download button do I want" choice.
-        const currentPreset = config.presetCards ? (root.querySelector('#ctrl-select')?.value) : null;
-        if (config.abCompare && lastResultBlob && currentPreset && lastResultPreset === currentPreset) {
+        // Reads the current setting whether it came from a card or a dropdown -- it was gated on
+        // preset cards, so a dropdown-driven tool re-ran the identical ffmpeg job just to hand
+        // back a file it had already made moments earlier.
+        const currentPreset = root.querySelector('#ctrl-select')?.value ?? null;
+        if (config.abCompare && lastResultBlob && currentPreset !== null && lastResultPreset === currentPreset) {
           downloadFfmpegBlob(lastResultBlob, lastResultName);
           return;
         }
