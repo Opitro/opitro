@@ -94,7 +94,7 @@ const ICO = {
 
   <div class="panel" id="audio-panel">
     {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
-    {controls !== 'multi-file' && controls !== 'generator' && !config.allowBatch && <div class="fileinfo" id="audio-fileinfo"></div>}
+    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !config.allowBatch && <div class="fileinfo" id="audio-fileinfo"></div>}
 
     {showWaveform && config.simplePreview && (
       <div class="wave-shell simple-preview" id="wave-shell">
@@ -3217,6 +3217,7 @@ if (config.controls === 'speed1') {
   /* 12px radius and a 48px-tall row, same as every other control -- the chip used to sit on a
      10px radius and a slightly different height, which is the sort of half-pixel mismatch you
      feel as "not quite tidy" without being able to point at it. */
+  .audio-tool .fileinfo:empty,.audio-tool .filelist:empty{display:none}
   .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .fi-row{display:flex;align-items:center;gap:10px}
@@ -3262,6 +3263,7 @@ if (config.controls === 'speed1') {
   .audio-tool .noise-dl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
   .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
   .audio-tool .preset-btn:hover{border-color:var(--accent)}
+  .audio-tool .preset-btn.active{border-color:var(--accent);background:rgba(74,222,158,0.14);color:var(--accent)}
   .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}

@@ -3,13 +3,15 @@ toolSlug: white-noise-generator
 locale: en
 category: audio
 tool: white-noise
-title: White Noise Online, Free — Listen With No Time Limit
+title: White Noise Generator — Listen Online or Download
 h1: White Noise
 navName: White noise
-description: Start white noise with one button and listen all night if you want — with a volume control and a sleep timer. You can download a file too. Free, no sign-up, nothing gets uploaded.
+description: White noise generator for sleep and focus. Listen online for as long as you like or download an MP3. Sleep timer included. Free, no sign-up.
 faq:
   - question: How long can I listen for?
     answer: As long as you like. Nothing is downloaded or built into a file — a short section is generated and repeated seamlessly, so eight hours costs the same memory as one minute. Just leave the tab open.
+  - question: Will ads interrupt the sound?
+    answer: No. The audio runs unbroken — nothing cuts in at the start, in the middle, or an hour later. There is an ad block on the page, which appears after your first tap, but it has nothing to do with the sound and never interrupts it. That's the difference from video sites, where a mid-roll can start up at three in the morning.
   - question: What does the sleep timer do?
     answer: After the time you pick, the sound fades out over fifteen seconds and stops. Fades, because sudden silence wakes people just as reliably as sudden noise.
   - question: What is white noise?
@@ -22,7 +24,9 @@ faq:
     answer: Quieter than you'd think. For sleep, just enough to cover other sounds is plenty — the default of 60% already has room to spare.
 ---
 
-Press the button and the noise starts immediately, no waiting. Set the volume, add a sleep timer if you want one. Downloading a file is entirely optional.
+Press the button and the noise starts immediately, no waiting. Set the volume, add a sleep timer if you want one. The sound runs unbroken and nothing ever cuts into it — leave it on all night.
+
+**Want a file?** Further down the page you can download white noise as MP3 or WAV, at 1, 5, 10 or 30 minutes. You don't have to listen online at all: a downloaded file works with no connection, and any player will loop it with no audible join.
 
 What it's good for:
 
