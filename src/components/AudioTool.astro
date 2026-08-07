@@ -963,6 +963,13 @@ const ICO = {
       if (LIVE_CHAIN_TOOLS[config.controls]) return;
       player.reset();
       if (listenIco) listenIco.innerHTML = ICO_PLAY;
+      // The round button ON the waveform has its own icon, and this only ever reset the old
+      // Process button's. Changing a setting mid-playback stopped the audio but left the pause
+      // glyph sitting there, so it read as "something is loading" -- you wait for an icon that
+      // is never going to change. abPlayingWhich has to go too, or the next press pauses
+      // nothing instead of playing.
+      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
+      abPlayingWhich = null;
       if (listenLabel) listenLabel.textContent = isGeneratorLabel();
       if (playhead) playhead.style.display = 'none';
     }
@@ -2841,9 +2848,24 @@ if (config.controls === 'speed1') {
       invalidateRender();
       if (abSelected !== 'result' && !abResultBtn?.disabled) selectAbSide('result');
     }
+    // Picking a different setting while something is playing should swap to that setting and
+    // carry on from the same spot -- which is what the voice changer already does with its
+    // preset cards. Stopping dead and waiting for a second press loses your place in the track.
+    async function onSettingChanged() {
+      const wasPlaying = player.isPlaying();
+      const resumeAt = resumePosition();
+      invalidateRender();
+      syncSourceNote();
+      eqSyncState();
+      if (!wasPlaying || !isRenderedAb || !sourceBuffer) return;
+      if (abSelected !== 'result') return;
+      if (!(await ensureAbResult())) return;
+      const buf = currentAbBuffer();
+      if (buf) playAB('result', buf, resumeAt);
+    }
     ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize', '#ctrl-silence-start', '#ctrl-silence-end'].forEach((sel) => {
       const el = root.querySelector(sel);
-      if (el) el.addEventListener('input', () => { invalidateRender(); syncSourceNote(); eqSyncState(); });
+      if (el) el.addEventListener('input', onSettingChanged);
     });
 
     // Preset quick-pick buttons (compress bitrate targets, EQ genre presets, etc.) -- each
