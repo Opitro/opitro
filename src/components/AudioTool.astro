@@ -45,7 +45,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // action button even though they now have an export bar. Every other tool renders on demand from
 // a file that's already loaded, which leaves a "Process" step with no work of its own to do.
 const needsRenderAction = isGenerator || controls === 'multi-file';
-const showListenBtn = !isFfmpeg && !isRingtoneTargets && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
 const showRunBtn = isFfmpeg && !isRingtoneTargets;
 const showAddBtn = controls === 'multi-file' || !!config.allowBatch;
 const showControlsRow = showListenBtn || showRunBtn || showAddBtn;
@@ -347,6 +347,8 @@ const ICO = {
         </div>
       </>
     )}
+    {/* Report-only tools: they answer a question about the file and export nothing. */}
+    {controls === 'analyze' && <div class="analysis" id="analysis"></div>}
     {controls === 'split' && (
       <>
         <div class="row">
@@ -743,6 +745,7 @@ const ICO = {
   import {
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
+    analyzeVocalRange, detectKey, analyzeAudiobook,
   } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 1024;
@@ -1540,6 +1543,36 @@ const ICO = {
     // generate/merge actually produces a buffer.
     if ((config.controls === 'generator' || config.controls === 'multi-file' || config.controls === 'recorder') && waveShell) {
       waveShell.style.display = 'none';
+    }
+
+    // ---- Report-only tools -------------------------------------------------------------------
+    if (config.controls === 'analyze') {
+      const analysisEl = root.querySelector('#analysis');
+      rateStateSync = () => {
+        if (!analysisEl) return;
+        if (!sourceBuffer) { analysisEl.innerHTML = ''; return; }
+        showProgress(labels.workingLabel, 40);
+        // A frame, so the progress line actually paints before a second of analysis blocks it.
+        requestAnimationFrame(() => {
+          let report;
+          try {
+            report = config.report({ buffer: sourceBuffer, labels, tools: { analyzeVocalRange, detectKey, analyzeAudiobook } });
+          } catch (err) {
+            progress.classList.remove('on');
+            showError(err && err.message ? err.message : String(err));
+            return;
+          }
+          progress.classList.remove('on');
+          if (!report) { analysisEl.innerHTML = `<div class="an-empty">${escapeHtml(labels.analysisEmptyLabel || '')}</div>`; return; }
+          const rows = (report.rows || []).map((r) => {
+            const state = r.state ? ` an-${r.state}` : '';
+            return `<div class="an-row${state}"><span class="an-label">${escapeHtml(r.label)}</span><span class="an-value">${escapeHtml(String(r.value))}</span></div>`;
+          }).join('');
+          analysisEl.innerHTML = (report.headline ? `<div class="an-headline">${escapeHtml(report.headline)}</div>` : '')
+            + `<div class="an-rows">${rows}</div>`
+            + (report.hint ? `<div class="an-hint">${escapeHtml(report.hint)}</div>` : '');
+        });
+      };
     }
 
     // ---- Tempo -----------------------------------------------------------------------------
@@ -3615,6 +3648,18 @@ if (config.controls === 'speed1') {
   .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
   /* Recorder: one big target, red while live. Same disc geometry as the noise player. */
+  /* A report, not a control panel: one clear answer, then the numbers behind it. */
+  .audio-tool .analysis{margin:4px 0 18px}
+  .audio-tool .an-headline{font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:16px;line-height:1.3}
+  .audio-tool .an-rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .audio-tool .an-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;background:var(--surface);font-size:13.5px}
+  .audio-tool .an-label{color:var(--muted)}
+  .audio-tool .an-value{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .audio-tool .an-ok .an-value{color:var(--accent)}
+  .audio-tool .an-bad .an-value{color:#ff7a90}
+  .audio-tool .an-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:12px}
+  .audio-tool .an-empty{font-size:13px;color:var(--muted);text-align:center;padding:18px}
+
   .audio-tool .rec-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 20px}
   .audio-tool .rec-btn{width:88px;height:88px;border-radius:50%;border:2px solid var(--line);background:var(--surface-2);
     cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s}

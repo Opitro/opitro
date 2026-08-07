@@ -1140,6 +1140,72 @@ export const AUDIO_TOOLS = {
     controls: 'recorder',
     render: (oc, src) => src,
   },
+  'vocal-range': {
+    engine: 'webaudio',
+    controls: 'analyze',
+    accept: 'audio/*',
+    compactPreview: true,
+    transport: true,
+    report: ({ buffer, labels, tools }) => {
+      const r = tools.analyzeVocalRange(buffer);
+      if (!r) return null;
+      const octaves = (r.semitones / 12);
+      return {
+        headline: (labels.rangeHeadline || '{low} – {high}').replace('{low}', r.low.name).replace('{high}', r.high.name),
+        rows: [
+          { label: labels.rangeLowestLabel, value: r.low.name + ' (' + r.lowHz.toFixed(1) + ' ' + (labels.unitHz || 'Hz') + ')' },
+          { label: labels.rangeHighestLabel, value: r.high.name + ' (' + r.highHz.toFixed(1) + ' ' + (labels.unitHz || 'Hz') + ')' },
+          { label: labels.rangeWidthLabel, value: r.semitones + ' / ' + octaves.toFixed(1) },
+        ],
+        hint: labels.rangeHint,
+      };
+    },
+  },
+  'detect-key': {
+    engine: 'webaudio',
+    controls: 'analyze',
+    accept: 'audio/*',
+    compactPreview: true,
+    transport: true,
+    report: ({ buffer, labels, tools }) => {
+      const k = tools.detectKey(buffer);
+      if (!k) return null;
+      const modeName = k.mode === 'major' ? labels.keyMajorLabel : labels.keyMinorLabel;
+      // The correlation coefficient is not a probability, so it is reported as a plain
+      // strong/moderate/weak rather than dressed up as a percentage of certainty.
+      const conf = k.score > 0.75 ? labels.keyConfHigh : k.score > 0.55 ? labels.keyConfMid : labels.keyConfLow;
+      return {
+        headline: k.name + ' ' + modeName,
+        rows: [
+          { label: labels.keyTonicLabel, value: k.name },
+          { label: labels.keyModeLabel, value: modeName },
+          { label: labels.keyConfidenceLabel, value: conf, state: k.score > 0.55 ? 'ok' : 'bad' },
+        ],
+        hint: labels.keyHint,
+      };
+    },
+  },
+  'audiobook-check': {
+    engine: 'webaudio',
+    controls: 'analyze',
+    accept: 'audio/*',
+    compactPreview: true,
+    transport: true,
+    report: ({ buffer, labels, tools }) => {
+      const a = tools.analyzeAudiobook(buffer);
+      const db = (x) => (isFinite(x) ? x.toFixed(1) + ' ' + (labels.unitDb || 'dB') : '-∞');
+      const allOk = a.rmsOk && a.peakOk && a.floorOk;
+      return {
+        headline: allOk ? labels.acxPassLabel : labels.acxFailLabel,
+        rows: [
+          { label: labels.acxRmsLabel, value: db(a.rmsDb), state: a.rmsOk ? 'ok' : 'bad' },
+          { label: labels.acxPeakLabel, value: db(a.peakDb), state: a.peakOk ? 'ok' : 'bad' },
+          { label: labels.acxFloorLabel, value: db(a.floorDb), state: a.floorOk ? 'ok' : 'bad' },
+        ],
+        hint: allOk ? labels.acxHintPass : labels.acxHintFail,
+      };
+    },
+  },
   tempo: {
     compactPreview: true,
     transport: true,

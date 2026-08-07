@@ -550,3 +550,200 @@ export async function encodeLoopedMP3(loop, totalSamples, bitrate = 128) {
   if (end.length) chunks.push(end);
   return new Blob(chunks, { type: 'audio/mpeg' });
 }
+
+// ---- Analysis ------------------------------------------------------------------------------
+// These three answer questions rather than change audio, so they return numbers, not buffers.
+// They take anything with sampleRate/length/getChannelData, which keeps them testable outside a
+// browser -- every threshold below was checked against synthetic signals with a known answer.
+
+const NOTE_NAMES = ['C', 'C#', 'D', 'D#', 'E', 'F', 'F#', 'G', 'G#', 'A', 'A#', 'B'];
+
+export function hzToNote(hz) {
+  if (!hz || hz <= 0) return null;
+  const midi = Math.round(69 + 12 * Math.log2(hz / 440));
+  return { midi, name: NOTE_NAMES[((midi % 12) + 12) % 12] + (Math.floor(midi / 12) - 1) };
+}
+
+// Pitch detection needs nothing above about 4 kHz for a voice, so the signal is first decimated
+// to ~8 kHz. That cuts the cost of the search roughly thirtyfold, which is the difference between
+// a usable tool and one that locks the page up on a three-minute file.
+function decimateForPitch(data, sampleRate, target = 8000) {
+  const factor = Math.max(1, Math.floor(sampleRate / target));
+  if (factor === 1) return { data, sampleRate };
+  const out = new Float32Array(Math.floor(data.length / factor));
+  for (let i = 0; i < out.length; i++) {
+    // Averaging the samples being collapsed is a crude low-pass, which is what keeps higher
+    // frequencies from folding back down and inventing pitches that were never sung.
+    let sum = 0;
+    for (let j = 0; j < factor; j++) sum += data[i * factor + j];
+    out[i] = sum / factor;
+  }
+  return { data: out, sampleRate: sampleRate / factor };
+}
+
+// YIN. The two details that matter are both easy to get wrong, and I got both wrong first time:
+// the cumulative mean has to run from lag 1 -- starting it at the minimum lag of interest makes
+// the normaliser grow with lag and quietly rewards low frequencies -- and the answer is the FIRST
+// dip below the threshold, not the deepest. Taking the deepest is what made C4 read as C3 and
+// A4 as A2: a signal repeating every period also repeats every two periods, and the octave below
+// often correlates slightly better.
+function windowPitch(buf, start, size, sampleRate, minHz, maxHz) {
+  const maxLag = Math.min(Math.floor(sampleRate / minHz), size - 1);
+  const minLag = Math.max(2, Math.floor(sampleRate / maxHz));
+  if (start + size + maxLag > buf.length || maxLag <= minLag) return 0;
+  const diff = new Float32Array(maxLag + 1);
+  for (let lag = 1; lag <= maxLag; lag++) {
+    let sum = 0;
+    for (let i = 0; i < size; i++) {
+      const d = buf[start + i] - buf[start + i + lag];
+      sum += d * d;
+    }
+    diff[lag] = sum;
+  }
+  const norm = new Float32Array(maxLag + 1);
+  norm[0] = 1;
+  let running = 0;
+  for (let lag = 1; lag <= maxLag; lag++) {
+    running += diff[lag];
+    norm[lag] = running > 0 ? diff[lag] * lag / running : 1;
+  }
+  const THRESHOLD = 0.15;
+  let chosen = 0;
+  for (let lag = minLag; lag <= maxLag; lag++) {
+    if (norm[lag] < THRESHOLD) {
+      // Walk to the bottom of this dip rather than stopping on its leading edge.
+      while (lag + 1 <= maxLag && norm[lag + 1] < norm[lag]) lag++;
+      chosen = lag;
+      break;
+    }
+  }
+  if (!chosen) return 0;
+  const y0 = norm[chosen - 1] ?? norm[chosen];
+  const y1 = norm[chosen];
+  const y2 = norm[chosen + 1] ?? norm[chosen];
+  const denom = y0 - 2 * y1 + y2;
+  const lag = chosen + (denom !== 0 ? 0.5 * (y0 - y2) / denom : 0);
+  return sampleRate / lag;
+}
+
+export function analyzeVocalRange(buffer) {
+  const decimated = decimateForPitch(buffer.getChannelData(0), buffer.sampleRate);
+  const sr = decimated.sampleRate;
+  const data = decimated.data;
+  const size = Math.round(sr * 0.05);
+  const hop = Math.round(sr * 0.02);
+  const pitches = [];
+  for (let start = 0; start + size * 2 < data.length; start += hop) {
+    let energy = 0;
+    for (let i = 0; i < size; i++) energy += data[start + i] * data[start + i];
+    // Skip near-silence outright: pitch detection on room tone returns confident nonsense.
+    if (Math.sqrt(energy / size) < 0.01) continue;
+    const hz = windowPitch(data, start, size, sr, 60, 1200);
+    if (hz) pitches.push(hz);
+  }
+  if (pitches.length < 10) return null;
+  pitches.sort((a, b) => a - b);
+  // Percentiles rather than min/max: one cracked note or one octave error at the edge would
+  // otherwise decide the whole answer.
+  const at = (p) => pitches[Math.min(pitches.length - 1, Math.max(0, Math.round(p * (pitches.length - 1))))];
+  const low = at(0.03);
+  const high = at(0.97);
+  const lowNote = hzToNote(low);
+  const highNote = hzToNote(high);
+  return {
+    lowHz: low,
+    highHz: high,
+    low: lowNote,
+    high: highNote,
+    semitones: Math.max(0, highNote.midi - lowNote.midi),
+    frames: pitches.length,
+  };
+}
+
+// Krumhansl-Schmuckler: average the energy of each pitch class over the file, then see which of
+// the 24 keys its shape matches best. Relative keys (C major / A minor) share every note and are
+// told apart only by which degrees carry the weight, so this is a guess -- a well-founded one.
+const KS_MAJOR = [6.35, 2.23, 3.48, 2.33, 4.38, 4.09, 2.52, 5.19, 2.39, 3.66, 2.29, 2.88];
+const KS_MINOR = [6.33, 2.68, 3.52, 5.38, 2.60, 3.53, 2.54, 4.75, 3.98, 2.69, 3.34, 3.17];
+
+function correlate(a, b) {
+  const n = a.length;
+  const ma = a.reduce((s, x) => s + x, 0) / n;
+  const mb = b.reduce((s, x) => s + x, 0) / n;
+  let num = 0, da = 0, db = 0;
+  for (let i = 0; i < n; i++) {
+    const x = a[i] - ma, y = b[i] - mb;
+    num += x * y; da += x * x; db += y * y;
+  }
+  return da && db ? num / Math.sqrt(da * db) : 0;
+}
+
+export function detectKey(buffer) {
+  const sr = buffer.sampleRate;
+  const full = buffer.getChannelData(0);
+  // At most two minutes, taken from the middle -- intros and fade-outs are the least
+  // representative parts of a track, and the key does not change while it plays.
+  const maxLen = Math.min(full.length, Math.round(sr * 120));
+  const from = Math.floor((full.length - maxLen) / 2);
+  const data = maxLen < full.length ? full.subarray(from, from + maxLen) : full;
+  const chroma = new Float64Array(12);
+  // Every semitone from C2 to B6 -- low enough for bass lines, high enough for melody, and
+  // above that the harmonics of lower notes dominate and only blur the picture.
+  for (let midi = 36; midi <= 95; midi++) {
+    const hz = 440 * Math.pow(2, (midi - 69) / 12);
+    const k = 2 * Math.PI * hz / sr;
+    const c = 2 * Math.cos(k);
+    let s1 = 0, s2 = 0;
+    for (let i = 0; i < data.length; i++) {
+      const s0 = data[i] + c * s1 - s2;
+      s2 = s1; s1 = s0;
+    }
+    const re = s1 - s2 * Math.cos(k);
+    const im = s2 * Math.sin(k);
+    chroma[midi % 12] += Math.sqrt(re * re + im * im) / data.length;
+  }
+  let best = null;
+  for (let root = 0; root < 12; root++) {
+    for (const [mode, profile] of [['major', KS_MAJOR], ['minor', KS_MINOR]]) {
+      const rotated = profile.map((_, i) => profile[(i - root + 12) % 12]);
+      const score = correlate(Array.from(chroma), rotated);
+      if (!best || score > best.score) best = { root, mode, score };
+    }
+  }
+  if (!best) return null;
+  return { name: NOTE_NAMES[best.root], mode: best.mode, score: best.score, chroma: Array.from(chroma) };
+}
+
+// Loudness, peak and noise floor against the numbers audiobook platforms ask for.
+export function analyzeAudiobook(buffer) {
+  const sr = buffer.sampleRate;
+  const data = buffer.getChannelData(0);
+  let sumSq = 0, peak = 0;
+  for (let i = 0; i < data.length; i++) {
+    const v = data[i];
+    sumSq += v * v;
+    const a = Math.abs(v);
+    if (a > peak) peak = a;
+  }
+  const rms = Math.sqrt(sumSq / data.length);
+  // Noise floor is the quietest half-second in the file -- in a real recording that is a gap
+  // between sentences, which is exactly the part platforms measure.
+  const win = Math.round(sr * 0.5);
+  let quietest = Infinity;
+  for (let start = 0; start + win <= data.length; start += Math.round(win / 2)) {
+    let s = 0;
+    for (let i = 0; i < win; i++) s += data[start + i] * data[start + i];
+    const r = Math.sqrt(s / win);
+    if (r < quietest) quietest = r;
+  }
+  if (!isFinite(quietest)) quietest = rms;
+  const db = (x) => (x > 0 ? 20 * Math.log10(x) : -Infinity);
+  const rmsDb = db(rms), peakDb = db(peak), floorDb = db(quietest);
+  return {
+    rmsDb, peakDb, floorDb,
+    // ACX, and near enough what other audiobook platforms ask for.
+    rmsOk: rmsDb >= -23 && rmsDb <= -18,
+    peakOk: peakDb <= -3,
+    floorOk: floorDb <= -60,
+  };
+}
