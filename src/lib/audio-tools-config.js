@@ -1115,18 +1115,37 @@ export const AUDIO_TOOLS = {
   },
 
   'white-noise': {
-    engine: 'webaudio-generator',
-    controls: 'generator',
+    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
+    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
+    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
+    // reason the old "build the whole duration as one buffer" approach had to go.
+    engine: 'noise',
+    controls: 'noise',
     color: 'white',
-    durationDefault: 60,
-    durationMax: 3600,
+    downloadLengths: [60, 300, 600, 1800],
+    downloadFormats: ['mp3', 'wav'],
   },
 
   'pink-noise': {
-    engine: 'webaudio-generator',
-    controls: 'generator',
+    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
+    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
+    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
+    // reason the old "build the whole duration as one buffer" approach had to go.
+    engine: 'noise',
+    controls: 'noise',
     color: 'pink',
-    durationDefault: 60,
-    durationMax: 3600,
+    downloadLengths: [60, 300, 600, 1800],
+    downloadFormats: ['mp3', 'wav'],
+  },
+  'brown-noise': {
+    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
+    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
+    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
+    // reason the old "build the whole duration as one buffer" approach had to go.
+    engine: 'noise',
+    controls: 'noise',
+    color: 'brown',
+    downloadLengths: [60, 300, 600, 1800],
+    downloadFormats: ['mp3', 'wav'],
   },
 };

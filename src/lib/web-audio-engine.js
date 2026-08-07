@@ -346,12 +346,15 @@ export function createPlayer() {
   // makes an EQ slider audible the instant you drag it, with no re-render of the file.
   // `startOffset` is where in the track playback is beginning, which time-based effects (a fade
   // envelope) need in order to schedule themselves correctly after a seek or resume.
-  function play(buf, onProgress, onEnded, seekTo, buildChain) {
+  // `options.loop` repeats the buffer forever instead of ending. That's how the noise generators
+  // play for hours on a few megabytes: a short seamless loop rather than an hours-long buffer.
+  function play(buf, onProgress, onEnded, seekTo, buildChain, options = {}) {
     buffer = buf;
     if (seekTo != null) pausedAt = Math.max(0, Math.min(seekTo, buffer.duration));
     const c = getCtx();
     source = c.createBufferSource();
     source.buffer = buffer;
+    if (options.loop) source.loop = true;
     const chainOut = buildChain ? buildChain(c, source, pausedAt) : source;
     chainOut.connect(c.destination);
     // Clear internal state BEFORE handing control to onEnded -- reaching the end of a track is
@@ -408,4 +411,142 @@ export function createPlayer() {
   }
 
   return { play, pause, stop, reset, unlock, isPlaying: () => !!source, getPosition };
+}
+
+// ---- Noise ---------------------------------------------------------------------------------
+// The generators used to build the entire requested duration as one AudioBuffer. Measured on an
+// hour of noise: the JS heap went from 14 MB to 609 MB, and to 912 MB once a WAV was written --
+// a 317 MB file. A phone would not survive that, and the sleep/focus use case wants far longer
+// than an hour anyway. So nothing here ever materialises the full length: a short seamless loop
+// is generated once, played on repeat for as long as you like, and repeated straight into the
+// encoder when a file is actually wanted.
+
+// A loop only sounds seamless if its end runs into its beginning without a step. Extra audio is
+// generated beyond the loop length and crossfaded back over the start, which is inaudible on
+// noise and removes the click that plain repetition produces on pink and brown (both carry
+// low-frequency content, where a discontinuity is very audible).
+export function makeNoiseLoop(color, seconds = 10, sampleRate = 44100, channels = 2) {
+  const fade = Math.round(sampleRate * 0.5);
+  const len = Math.round(sampleRate * seconds);
+  const gen = len + fade;
+  const out = new AudioBuffer({ numberOfChannels: channels, length: len, sampleRate });
+  for (let c = 0; c < channels; c++) {
+    const raw = new Float32Array(gen);
+    if (color === 'white') {
+      for (let i = 0; i < gen; i++) raw[i] = Math.random() * 2 - 1;
+    } else if (color === 'brown') {
+      // Leaky integration of white noise: energy falls about 6 dB per octave, twice as steep as
+      // pink, which is what gives brown noise its deep "waterfall" character. The leak keeps it
+      // from wandering off into a DC offset.
+      let last = 0;
+      let peak = 0;
+      for (let i = 0; i < gen; i++) {
+        last = (last + 0.02 * (Math.random() * 2 - 1)) / 1.02;
+        raw[i] = last;
+        const a = Math.abs(last);
+        if (a > peak) peak = a;
+      }
+      const norm = peak > 0 ? 0.9 / peak : 1;
+      for (let i = 0; i < gen; i++) raw[i] *= norm;
+    } else {
+      // Paul Kellet's refined filter, ALL of it. The old code kept only the first three poles of
+      // the seven-term version and the coefficients of the three-term one. Those missing terms
+      // are precisely the ones carrying the high end, so the result rolled off at roughly
+      // 4.7 dB/octave instead of 3 -- measured on the exported file, pink came out within
+      // 1.5 dB of brown across the spectrum, when the two should differ by about 18 dB at
+      // 6.4 kHz. It was not pink noise.
+      let b0 = 0, b1 = 0, b2 = 0, b3 = 0, b4 = 0, b5 = 0, b6 = 0;
+      for (let i = 0; i < gen; i++) {
+        const white = Math.random() * 2 - 1;
+        b0 = 0.99886 * b0 + white * 0.0555179;
+        b1 = 0.99332 * b1 + white * 0.0750759;
+        b2 = 0.96900 * b2 + white * 0.1538520;
+        b3 = 0.86650 * b3 + white * 0.3104856;
+        b4 = 0.55000 * b4 + white * 0.5329522;
+        b5 = -0.7616 * b5 - white * 0.0168980;
+        raw[i] = (b0 + b1 + b2 + b3 + b4 + b5 + b6 + white * 0.5362) * 0.11;
+        b6 = white * 0.115926;
+      }
+    }
+    const dst = out.getChannelData(c);
+    dst.set(raw.subarray(0, len));
+    for (let i = 0; i < fade; i++) {
+      const w = i / fade;
+      dst[i] = dst[i] * w + raw[len + i] * (1 - w);
+    }
+  }
+  return out;
+}
+
+// Repeats `loop` up to `totalSamples` straight into a WAV. Peak memory is the file itself rather
+// than the file plus a full-length AudioBuffer.
+export function encodeLoopedWAV(loop, totalSamples) {
+  const ch = loop.numberOfChannels;
+  const sr = loop.sampleRate;
+  const blockAlign = ch * 2;
+  const dataLen = totalSamples * blockAlign;
+  const out = new ArrayBuffer(44 + dataLen);
+  const v = new DataView(out);
+  let o = 0;
+  const writeStr = (s) => { for (let i = 0; i < s.length; i++) v.setUint8(o++, s.charCodeAt(i)); };
+  const u32 = (x) => { v.setUint32(o, x, true); o += 4; };
+  const u16 = (x) => { v.setUint16(o, x, true); o += 2; };
+  writeStr('RIFF'); u32(36 + dataLen); writeStr('WAVE');
+  writeStr('fmt '); u32(16); u16(1); u16(ch); u32(sr); u32(sr * blockAlign); u16(blockAlign); u16(16);
+  writeStr('data'); u32(dataLen);
+  const chans = [];
+  for (let c = 0; c < ch; c++) chans.push(loop.getChannelData(c));
+  // A fade at both ends so a file doesn't begin or end with a hard edge.
+  const fade = Math.min(Math.round(sr * 1.5), Math.floor(totalSamples / 4));
+  for (let i = 0; i < totalSamples; i++) {
+    const j = i % loop.length;
+    let g = 1;
+    if (i < fade) g = i / fade;
+    else if (i >= totalSamples - fade) g = (totalSamples - i) / fade;
+    for (let c = 0; c < ch; c++) {
+      const s = Math.max(-1, Math.min(1, chans[c][j] * g));
+      v.setInt16(o, s < 0 ? s * 0x8000 : s * 0x7fff, true);
+      o += 2;
+    }
+  }
+  return new Blob([out], { type: 'audio/wav' });
+}
+
+// Same idea for MP3, and here it pays off properly: lamejs consumes 1152-sample frames, so the
+// only thing held in memory is the compressed output -- about 29 MB for half an hour at 128 kbps
+// instead of several hundred.
+export async function encodeLoopedMP3(loop, totalSamples, bitrate = 128) {
+  const { Mp3Encoder } = await import('@breezystack/lamejs');
+  const ch = Math.min(2, loop.numberOfChannels);
+  const encoder = new Mp3Encoder(ch, loop.sampleRate, bitrate);
+  const chans = [];
+  for (let c = 0; c < ch; c++) chans.push(loop.getChannelData(c));
+  const block = 1152;
+  const chunks = [];
+  const fade = Math.min(Math.round(loop.sampleRate * 1.5), Math.floor(totalSamples / 4));
+  const l = new Int16Array(block);
+  const r = ch > 1 ? new Int16Array(block) : null;
+  for (let i = 0; i < totalSamples; i += block) {
+    const n = Math.min(block, totalSamples - i);
+    for (let k = 0; k < n; k++) {
+      const pos = i + k;
+      const j = pos % loop.length;
+      let g = 1;
+      if (pos < fade) g = pos / fade;
+      else if (pos >= totalSamples - fade) g = (totalSamples - pos) / fade;
+      const a = Math.max(-1, Math.min(1, chans[0][j] * g));
+      l[k] = a < 0 ? a * 0x8000 : a * 0x7fff;
+      if (r) {
+        const b = Math.max(-1, Math.min(1, chans[1][j] * g));
+        r[k] = b < 0 ? b * 0x8000 : b * 0x7fff;
+      }
+    }
+    const mp3buf = r ? encoder.encodeBuffer(l.subarray(0, n), r.subarray(0, n)) : encoder.encodeBuffer(l.subarray(0, n));
+    if (mp3buf.length) chunks.push(mp3buf);
+    // Yield to the browser every few seconds of audio so a long export can't freeze the page.
+    if ((i / block) % 400 === 0) await new Promise((res) => setTimeout(res, 0));
+  }
+  const end = encoder.flush();
+  if (end.length) chunks.push(end);
+  return new Blob(chunks, { type: 'audio/mpeg' });
 }

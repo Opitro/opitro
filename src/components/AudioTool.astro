@@ -19,12 +19,15 @@ const { tool, locale, labels } = Astro.props;
 const config = AUDIO_TOOLS[tool];
 const controls = config.controls;
 const isGenerator = controls === 'generator';
+// Noise has no input file at all: no drop zone, no file chip, nothing to swap -- and no waveform,
+// because what plays is a short loop repeating, not a track with a position in it.
+const isNoise = controls === 'noise';
 // Generator/merge tools now also show a waveform, just of the RESULT (post-generate/post-merge)
 // rather than an uploaded source -- the markup renders for them too, hidden by default until
 // the first render (see the client script), instead of never existing at all.
 // Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
 // doesn't map cleanly onto "several files queued for conversion".
-const showWaveform = !config.allowBatch && !config.noWaveform;
+const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise;
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
 const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
@@ -59,7 +62,7 @@ const ICO = {
 ---
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
-  {!isGenerator && (
+  {!isGenerator && !isNoise && (
     <>
       <div class="drop" id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
@@ -510,6 +513,57 @@ const ICO = {
       </div>
     )}
 
+    {/* Noise: play is the primary action and starts instantly, because what people come here for
+        is to listen -- for hours, usually. Downloading a file is secondary and lives below. */}
+    {controls === 'noise' && (
+      <>
+        <div class="noise-stage">
+          <button type="button" class="noise-play" id="noise-play-btn" aria-label={labels.noisePlayLabel}>
+            <svg class="ico" id="noise-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <div class="noise-state" id="noise-state">{labels.noiseIdleLabel}</div>
+        </div>
+        <div class="fade-card pitch-card">
+          <label class="fade-card-title" for="noise-volume">{labels.volumeLabel}</label>
+          <input type="range" id="noise-volume" min="0" max="100" step="1" value="60">
+          <span class="fade-card-val" id="noise-volume-val">60%</span>
+        </div>
+        <div class="field">
+          <label>{labels.noiseTimerLabel}</label>
+          <div class="presets-row" id="noise-timer">
+            {[0, 15, 30, 60].map((m) => (
+              <button type="button" class={`preset-btn${m === 0 ? ' active' : ''}`} data-min={m}>
+                {m === 0 ? labels.noiseTimerOffLabel : `${m} ${labels.minutesShortLabel}`}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div class="noise-dl-title">{labels.noiseDownloadTitle}</div>
+        <div class="field">
+          <div class="presets-row" id="noise-lengths">
+            {config.downloadLengths.map((sec, i) => (
+              <button type="button" class={`preset-btn${i === 1 ? ' active' : ''}`} data-sec={sec}>
+                {sec < 60 ? `${sec} ${labels.secondsShortLabel}` : `${sec / 60} ${labels.minutesShortLabel}`}
+              </button>
+            ))}
+          </div>
+        </div>
+        <div class="deck">
+          <div class="field field-fmt">
+            <label for="tool-format">{labels.enhanceFormatLabel}</label>
+            <select id="tool-format">
+              {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+            </select>
+          </div>
+          <button type="button" class="act primary deck-act" id="noise-download-btn">
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+            <span>{labels.downloadResultLabel}</span>
+          </button>
+        </div>
+        <div class="rate-note" id="noise-size-note"></div>
+      </>
+    )}
+
     {isRingtoneTargets && (
       <div class="field slider-field">
         <label for="rt-volume">{labels.volumeLabel}: <span id="rt-volume-val">100%</span></label>
@@ -609,6 +663,7 @@ const ICO = {
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
     decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, resampleBuffer,
+    makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
   } from '../lib/web-audio-engine.js';
 
   const MAX_MB = 1024;
@@ -1244,6 +1299,150 @@ const ICO = {
     // place that reveals .panel, never runs for them. Confirmed live: the page was genuinely
     // blank (no duration field, no Generate button) until this.
     if (config.controls === 'generator') panel.classList.add('on');
+
+    // ---- Noise generators ---------------------------------------------------------------------
+    if (config.controls === 'noise') {
+      panel.classList.add('on');
+      const noisePlayBtn = root.querySelector('#noise-play-btn');
+      const noisePlayIco = root.querySelector('#noise-play-ico');
+      const noiseState = root.querySelector('#noise-state');
+      const noiseVolume = root.querySelector('#noise-volume');
+      const noiseVolumeVal = root.querySelector('#noise-volume-val');
+      const noiseTimerRow = root.querySelector('#noise-timer');
+      const noiseLengthsRow = root.querySelector('#noise-lengths');
+      const noiseDownloadBtn = root.querySelector('#noise-download-btn');
+      const noiseSizeNote = root.querySelector('#noise-size-note');
+      const noiseFormat = root.querySelector('#tool-format');
+
+      let loopBuffer = null;
+      let noiseGain = null;
+      let timerHandle = 0;
+      let timerMinutes = 0;
+
+      const vol = () => Number(noiseVolume.value) / 100;
+      // Generated once and reused: it is the same loop whether you listen for a minute or all
+      // night, and the same loop the downloaded file is built from.
+      const getLoop = () => (loopBuffer || (loopBuffer = makeNoiseLoop(config.color, 10, 44100, 2)));
+
+      function clearTimer() {
+        if (timerHandle) { clearTimeout(timerHandle); timerHandle = 0; }
+      }
+      function stopNoise(fading) {
+        clearTimer();
+        player.stop();
+        noiseGain = null;
+        noisePlayIco.innerHTML = ICO_PLAY;
+        noiseState.textContent = fading ? labels.noiseTimerDoneLabel : labels.noiseIdleLabel;
+      }
+      function armTimer() {
+        clearTimer();
+        if (!timerMinutes) return;
+        const total = timerMinutes * 60 * 1000;
+        const fadeMs = 15000;
+        timerHandle = setTimeout(() => {
+          // Fade out rather than cut: the point of a sleep timer is not to wake anyone up.
+          if (noiseGain) {
+            const now = noiseGain.context.currentTime;
+            noiseGain.gain.cancelScheduledValues(now);
+            noiseGain.gain.setValueAtTime(noiseGain.gain.value, now);
+            noiseGain.gain.linearRampToValueAtTime(0.0001, now + fadeMs / 1000);
+          }
+          timerHandle = setTimeout(() => stopNoise(true), fadeMs);
+        }, Math.max(0, total - fadeMs));
+      }
+      function startNoise() {
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        player.unlock();
+        const buf = getLoop();
+        noisePlayIco.innerHTML = ICO_PAUSE;
+        noiseState.textContent = timerMinutes
+          ? (labels.noisePlayingTimerLabel || '').replace('{n}', String(timerMinutes))
+          : labels.noisePlayingLabel;
+        player.play(
+          buf,
+          null,
+          () => { noisePlayIco.innerHTML = ICO_PLAY; noiseState.textContent = labels.noiseIdleLabel; },
+          0,
+          (ctx, src) => {
+            noiseGain = ctx.createGain();
+            noiseGain.gain.value = vol();
+            src.connect(noiseGain);
+            return noiseGain;
+          },
+          { loop: true }
+        );
+        armTimer();
+      }
+      noisePlayBtn.addEventListener('click', () => {
+        if (player.isPlaying()) stopNoise(false);
+        else startNoise();
+      });
+      noiseVolume.addEventListener('input', () => {
+        noiseVolumeVal.textContent = noiseVolume.value + '%';
+        // Applied live, no restart -- adjusting the level of something already playing is the
+        // whole point of a volume control here.
+        if (noiseGain) noiseGain.gain.value = vol();
+      });
+      noiseTimerRow.addEventListener('click', (e) => {
+        const btn = e.target.closest('.preset-btn');
+        if (!btn) return;
+        noiseTimerRow.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        timerMinutes = Number(btn.dataset.min) || 0;
+        if (player.isPlaying()) {
+          noiseState.textContent = timerMinutes
+            ? (labels.noisePlayingTimerLabel || '').replace('{n}', String(timerMinutes))
+            : labels.noisePlayingLabel;
+          armTimer();
+        }
+      });
+
+      const selectedSeconds = () => {
+        const active = noiseLengthsRow.querySelector('.preset-btn.active');
+        return Number(active ? active.dataset.sec : config.downloadLengths[0]);
+      };
+      function updateSizeNote() {
+        const secs = selectedSeconds();
+        const fmt = noiseFormat ? noiseFormat.value : 'mp3';
+        // Stereo 16-bit at 44.1 kHz for WAV; 128 kbps for MP3. Both are exact, not guesses.
+        const bytes = fmt === 'wav' ? secs * 44100 * 2 * 2 : (128000 / 8) * secs;
+        const mb = bytes / 1048576;
+        const size = mb >= 1 ? mb.toFixed(0) + ' ' + (labels.unitMB || 'MB')
+          : Math.max(1, Math.round(bytes / 1024)) + ' ' + (labels.unitKB || 'KB');
+        noiseSizeNote.textContent = (labels.noiseSizeNote || '').replace('{size}', size);
+      }
+      noiseLengthsRow.addEventListener('click', (e) => {
+        const btn = e.target.closest('.preset-btn');
+        if (!btn) return;
+        noiseLengthsRow.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
+        btn.classList.add('active');
+        updateSizeNote();
+      });
+      if (noiseFormat) noiseFormat.addEventListener('change', updateSizeNote);
+      updateSizeNote();
+
+      noiseDownloadBtn.addEventListener('click', async () => {
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        clearError();
+        noiseDownloadBtn.disabled = true;
+        showProgress(labels.workingLabel, 30);
+        try {
+          const secs = selectedSeconds();
+          const fmt = noiseFormat ? noiseFormat.value : 'mp3';
+          const loop = getLoop();
+          const total = Math.round(secs * loop.sampleRate);
+          const blob = fmt === 'wav'
+            ? encodeLoopedWAV(loop, total)
+            : await encodeLoopedMP3(loop, total, 128);
+          finishProgress(labels.doneLabel);
+          downloadBlob(blob, `${tool}-${secs >= 60 ? secs / 60 + 'min' : secs + 's'}.${fmt}`);
+        } catch (e) {
+          showError(e && e.message ? e.message : String(e));
+          progress.classList.remove('on');
+        }
+        noiseDownloadBtn.disabled = false;
+      });
+    }
     // No result yet to show a waveform of -- revealResultWaveform() un-hides this once
     // generate/merge actually produces a buffer.
     if ((config.controls === 'generator' || config.controls === 'multi-file') && waveShell) {
@@ -3052,6 +3251,15 @@ if (config.controls === 'speed1') {
   .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
   .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
+  /* Noise: the play control is the page, so it is sized like it. */
+  .audio-tool .noise-stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 0 22px}
+  .audio-tool .noise-play{width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;color:#08130d;
+    background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;
+    transition:transform .12s;box-shadow:0 8px 30px rgba(74,222,158,0.25)}
+  .audio-tool .noise-play:hover{transform:scale(1.04)}
+  .audio-tool .noise-play .ico{width:38px;height:38px}
+  .audio-tool .noise-state{font-size:13px;color:var(--muted);text-align:center;max-width:32ch;line-height:1.45}
+  .audio-tool .noise-dl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
   .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
   .audio-tool .preset-btn:hover{border-color:var(--accent)}
   .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
