@@ -11,7 +11,7 @@ faq:
   - question: What does normalizing actually do?
     answer: It finds the single loudest peak in the file and multiplies the whole recording by whatever factor puts that peak at 97% of maximum. Any louder and it would start clipping. A quiet recording peaking at 30% comes back roughly three times louder.
   - question: Will it even out the quiet and loud parts?
-    answer: No, and this is the part worth knowing. The entire recording is multiplied by one number, so the relationship between quiet and loud stays exactly as it was — everything simply gets louder together. To bring quiet passages up towards the loud ones, you want [dynamic range compression](/en/compress-audio).
+    answer: No, and this is the part worth knowing. The entire recording is multiplied by one number, so the relationship between quiet and loud stays exactly as it was — everything simply gets louder together. To bring quiet passages up towards the loud ones, use the [audio enhancer](/en/audio-enhancer) — it targets a broadcast loudness level rather than just scaling the file.
   - question: How is this different from changing the volume?
     answer: On the volume page you choose the factor, which makes it easy to overshoot and end up with distortion. Here the factor is calculated from the file itself, so it can never overload — but you don't get a say in it either.
   - question: Why did nothing change after normalizing?
@@ -31,6 +31,6 @@ What it's good for:
 - **Voice-over for video** that disappears under the music
 - **Old transfers** from tape and vinyl, where the recording level was set low
 
-Keep the main limitation in mind: normalizing moves the whole recording together. If one sentence in the file was shouted and the rest is a whisper, that shout hits the ceiling first and everything else stays just as quiet. In that case, [compress the dynamic range](/en/compress-audio) first and normalize afterwards.
+Keep the main limitation in mind: normalizing moves the whole recording together. If one sentence in the file was shouted and the rest is a whisper, that shout hits the ceiling first and everything else stays just as quiet. A recording like that is better served by the [audio enhancer](/en/audio-enhancer).
 
 Nearby: [change volume by hand](/en/audio-volume), [remove silence](/en/remove-silence), [enhance audio](/en/audio-enhancer).

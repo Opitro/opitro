@@ -479,6 +479,19 @@ export const AUDIO_TOOLS = {
   },
 
   loop: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    // Length is exactly predictable without rendering: N copies less one crossfade per seam.
+    note: ({ buffer, params, labels, fmtTime }) => {
+      if (!buffer) return '';
+      const times = Math.max(1, Math.round(Number(params.value) || 1));
+      if (times < 2) return '';
+      const total = buffer.duration * times - 0.05 * (times - 1);
+      return (labels.loopResultNote || '').replace('{len}', fmtTime(total));
+    },
     engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
@@ -524,6 +537,21 @@ export const AUDIO_TOOLS = {
   },
 
   'remove-silence': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    // Only knowable after a render, so this stays empty until the user presses play or exports.
+    note: ({ buffer, rendered, labels, fmtTime }) => {
+      if (!buffer || !rendered) return '';
+      const cut = Math.max(0, buffer.duration - rendered.duration);
+      if (cut < 0.05) return labels.silenceNoneNote || '';
+      return (labels.silenceResultNote || '')
+        .replace('{cut}', fmtTime(cut))
+        .replace('{was}', fmtTime(buffer.duration))
+        .replace('{now}', fmtTime(rendered.duration));
+    },
     engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
@@ -596,6 +624,22 @@ export const AUDIO_TOOLS = {
   },
 
   compress: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    // MP3 only: the whole tool is "same audio, smaller file", and every other format here
+    // would either ignore the bitrate (WAV) or need a different quality scale (OGG).
+    downloadFormats: ['mp3'],
+    // Constant-bitrate MP3 size is arithmetic, not a guess: kbps x seconds / 8.
+    note: ({ buffer, fileSize, params, labels, size }) => {
+      if (!buffer) return '';
+      const kbps = Number(params.value) || 128;
+      const out = (kbps * 1000 / 8) * buffer.duration;
+      return (labels.compressSizeNote || '')
+        .replace('{new}', size(out))
+        .replace('{old}', size(fileSize || 0));
+    },
     engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
@@ -605,6 +649,11 @@ export const AUDIO_TOOLS = {
     sliderDefault: 128,
     sliderUnit: ' kbps',
     sliderStep: 8,
+    // MPEG-1 Layer III defines exactly these bitrates. A free-running slider offered values like
+    // 150 kbps, which does not exist -- the encoder quietly rounded to 160 and the file came out
+    // bigger than the number on screen promised. Measured: asked 150, got a 160 kbps file.
+    // The slider now snaps to the ladder, so the displayed number is always the real one.
+    snapValues: [32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
     // Quick-pick buttons under the slider -- each just sets the bitrate to a size target
     // people actually search for, rather than making them guess a kbps number.
     presets: [
@@ -624,7 +673,7 @@ export const AUDIO_TOOLS = {
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     // Converting a file that is already mono produces an identical file.
-    sourceNote: (buffer) => (buffer && buffer.numberOfChannels < 2 ? 'noteAlreadyMono' : ''),
+    note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels < 2 ? labels.noteAlreadyMono : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -660,7 +709,7 @@ export const AUDIO_TOOLS = {
     // Feeding a real stereo file to this discards the right channel entirely -- channel 0 is
     // read and copied to both sides. Silently losing half a recording is the kind of thing
     // people only notice later, so it gets said up front.
-    sourceNote: (buffer) => (buffer && buffer.numberOfChannels >= 2 ? 'noteAlreadyStereo' : ''),
+    note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels >= 2 ? labels.noteAlreadyStereo : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -722,6 +771,11 @@ export const AUDIO_TOOLS = {
   },
 
   'reverb-echo': {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
     // Was echo-only despite the name (a plain delay+feedback loop, no actual room simulation).
     // Presets now include real convolution reverb -- a ConvolverNode fed a synthetically
     // generated impulse response (exponentially-decaying noise, the standard technique when
@@ -860,6 +914,11 @@ export const AUDIO_TOOLS = {
   },
 
   chiptune: {
+    compactPreview: true,
+    transport: true,
+    renderedAb: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
     // Was just a smooth resample down to 11025Hz -- sounds muffled, not "8-bit", because
     // OfflineAudioContext's resampler interpolates. Real chiptune character comes from
     // sample-and-hold decimation (audible stair-steps/aliasing, no smoothing) plus bit-depth

@@ -252,7 +252,7 @@ const ICO = {
     )}
     {/* A tool that wants to say something about the file it was actually given -- "this is
         already mono", "this will throw away your right channel". Filled in after decode. */}
-    {config.sourceNote && <div class="rate-note" id="tool-note" style="display:none"></div>}
+    {config.note && <div class="rate-note" id="tool-note" style="display:none"></div>}
     {controls === 'select' && config.presetCards && (
       <button type="button" class="act primary hero-btn" id="hero-auto-btn">
         ✨ {labels.enhanceHeroLabel}
@@ -573,12 +573,19 @@ const ICO = {
         gone -- two rows made one decision look like two. */}
     {config.exportDeck && (
       <div class="deck">
-        <div class="field field-fmt">
-          <label for="tool-format">{labels.enhanceFormatLabel}</label>
-          <select id="tool-format">
-            {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
-          </select>
-        </div>
+        {/* A dropdown holding a single option is a control that can't be used. The compressor
+            only ever writes MP3 -- choosing a bitrate is the entire point -- so it gets the
+            action alone, and a hidden input keeps the export path's format lookup working. */}
+        {config.downloadFormats.length > 1 ? (
+          <div class="field field-fmt">
+            <label for="tool-format">{labels.enhanceFormatLabel}</label>
+            <select id="tool-format">
+              {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+            </select>
+          </div>
+        ) : (
+          <input type="hidden" id="tool-format" value={config.downloadFormats[0]}>
+        )}
         <button type="button" class="act primary deck-act" id="tool-download-btn" disabled>
           <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
           <span>{labels.downloadResultLabel}</span>
@@ -1632,14 +1639,26 @@ if (config.controls === 'speed1') {
       if (config.controls === 'multi-file') return files.length >= 2;
       return true;
     }
-    // Says something true about the file the user actually loaded, e.g. that it is already mono,
-    // or that converting it will discard a channel. Empty string means nothing to say.
+    // One line of plain truth about this particular file and these particular settings: that it
+    // is already mono, what the compressed file will weigh, how long the loop comes out. Returns
+    // '' when there is nothing worth saying, which hides the line entirely.
     function syncSourceNote() {
       const el = root.querySelector('#tool-note');
-      if (!el || !config.sourceNote) return;
-      const key = config.sourceNote(sourceBuffer);
-      el.textContent = key ? (labels[key] || '') : '';
-      el.style.display = el.textContent ? 'block' : 'none';
+      if (!el || !config.note) return;
+      const text = config.note({
+        buffer: sourceBuffer,
+        rendered: renderedBuffer,
+        fileSize: file ? file.size : 0,
+        params: readParams(),
+        labels,
+        fmtTime: fmtClock,
+        // Adaptive unit: "0.0 MB" for a short clip is a true number that tells you nothing.
+        size: (bytes) => (bytes >= 1048576
+          ? (bytes / 1048576).toFixed(1) + ' ' + (labels.unitMB || 'MB')
+          : Math.max(1, Math.round(bytes / 1024)) + ' ' + (labels.unitKB || 'KB')),
+      }) || '';
+      el.textContent = text;
+      el.style.display = text ? 'block' : 'none';
     }
     // Merge has no single decoded source -- its input is the file list -- so "is there anything
     // to work with" can't just be `sourceBuffer`. Keying the export button off sourceBuffer left
@@ -1697,6 +1716,9 @@ if (config.controls === 'speed1') {
       progressText.textContent = labels.workingLabel;
       try {
         renderedBuffer = await doRender();
+        // A note that reports on the result (how much silence came out) can only be filled in
+        // once there IS a result.
+        syncSourceNote();
         finishProgress(labels.previewDoneLabel || labels.doneLabel);
         return true;
       } catch (e) {
@@ -1831,7 +1853,10 @@ if (config.controls === 'speed1') {
             : (file && file.name.replace(/\.[^.]+$/, '')) || 'audio';
           progressFill.style.width = '70%';
           let blob;
-          if (fmt === 'mp3') blob = await encodeMP3(rendered, 192);
+          // config.mp3Bitrate was only honoured by the old download strip, so a tool whose whole
+          // purpose is choosing a bitrate would have exported at a fixed 192 kbps here and its
+          // slider would have done nothing at all.
+          if (fmt === 'mp3') blob = await encodeMP3(rendered, config.mp3Bitrate ? config.mp3Bitrate(readParams()) : 192);
           else if (fmt === 'ogg') {
             const wavFile = new File([encodeWAV(rendered)], 'eq.wav', { type: 'audio/wav' });
             blob = await execFFmpeg({
@@ -1850,6 +1875,8 @@ if (config.controls === 'speed1') {
             equalizer: 'eq', fade: 'fade', trim: 'trim', pitch: 'pitch', voice: 'voice',
             speed: 'speed', volume: 'volume', 'sample-rate': 'resampled', reverse: 'reversed',
             normalize: 'normalized', 'stereo-to-mono': 'mono', 'mono-to-stereo': 'stereo',
+            compress: 'compressed', loop: 'loop', 'remove-silence': 'trimmed',
+            'reverb-echo': 'reverb', chiptune: 'chiptune',
           }[tool] || 'result';
           // Merge has no source name to qualify, so it's just "merged" -- pairing the fallback
           // base with a suffix produced "merged-merged.wav".
@@ -1866,9 +1893,21 @@ if (config.controls === 'speed1') {
     const slider = root.querySelector('#ctrl-slider');
     const sliderVal = root.querySelector('#ctrl-slider-val');
     if (slider && sliderVal) {
+      // Some scales aren't continuous -- MP3 bitrates come from a fixed ladder. Snapping here
+      // means the number on screen is the number that gets used, rather than one the encoder
+      // silently rounds somewhere else.
+      const snapSlider = () => {
+        if (!config.snapValues) return;
+        const v = Number(slider.value);
+        slider.value = config.snapValues.reduce((best, n) => (Math.abs(n - v) < Math.abs(best - v) ? n : best), config.snapValues[0]);
+      };
+      snapSlider();
+      sliderVal.textContent = slider.value + (config.sliderUnit || '');
       slider.addEventListener('input', () => {
+        snapSlider();
         sliderVal.textContent = slider.value + (config.sliderUnit || '');
         invalidateRender();
+        syncSourceNote();
       });
     }
     // ---- Visualizer -------------------------------------------------------------------------
@@ -2263,7 +2302,7 @@ if (config.controls === 'speed1') {
     }
     ['#ctrl-fadein', '#ctrl-fadeout', '#ctrl-select', '#ctrl-duration', '#ctrl-cutout', '#ctrl-samplerate', '#ctrl-channels', '#ctrl-normalize'].forEach((sel) => {
       const el = root.querySelector(sel);
-      if (el) el.addEventListener('input', invalidateRender);
+      if (el) el.addEventListener('input', () => { invalidateRender(); syncSourceNote(); });
     });
 
     // Preset quick-pick buttons (compress bitrate targets, EQ genre presets, etc.) -- each
@@ -2284,6 +2323,7 @@ if (config.controls === 'speed1') {
             if (valEl) valEl.textContent = val + (key === 'value' ? (config.sliderUnit || '') : 'dB');
           });
           invalidateRender();
+          syncSourceNote();
         });
       });
     }
