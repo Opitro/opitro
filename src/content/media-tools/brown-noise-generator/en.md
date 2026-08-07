@@ -6,12 +6,10 @@ tool: brown-noise
 title: Brown Noise Generator — Listen Online or Download
 h1: Brown Noise
 navName: Brown noise
-description: Brown noise generator for sleep and focus — the deepest of the three. Listen online ad-free or download an MP3. Sleep timer. Free.
+description: Brown noise generator for sleep and focus — the deepest of the three. Listen online or download an MP3. Sleep timer included. Free, no sign-up.
 faq:
   - question: What is brown noise?
     answer: Noise whose energy falls off by about 6 decibels per octave — twice as steep as pink. There's almost nothing left in the high frequencies, so it sounds low and dense — a distant waterfall, an aircraft cabin, surf on a beach.
-  - question: Is it ad-free?
-    answer: Yes — the sound plays straight through with no ad breaks. Nothing starts up at the beginning, in the middle, or an hour in, so you can leave it running all night. That's what makes an online generator easier to live with than the videos people use for this, where a mid-roll can fire at three in the morning.
   - question: How does it compare to white and pink?
     answer: They're three steps on one scale. White is an even hiss across all frequencies. [Pink](/en/pink-noise-generator) is softer, more like rain. Brown is the deepest, with barely any hiss left. The lower the noise, the less it tires you over long hours — and the worse it covers sharp, high sounds.
   - question: Why is everyone talking about it?
@@ -24,7 +22,7 @@ faq:
     answer: Because more isn't needed — any player will loop a short file, and the join in ours is inaudible. An hour of WAV would run past three hundred megabytes and might fail to build on a phone.
 ---
 
-Press the button and the sound starts straight away. Set the volume, add a sleep timer if you want one. It plays ad-free and unbroken — leave it on all night.
+Press the button and the sound starts straight away. Set the volume, add a sleep timer if you want one.
 
 **Want a file?** Below you can download brown noise as MP3 or WAV, at 1, 5, 10 or 30 minutes. A downloaded file plays with no connection, and any player will loop it with no audible join.
 
@@ -35,6 +33,8 @@ What it's good for:
 - **Listening for hours** without the fatigue high frequencies bring
 - **Winding down** to something like surf or distant thunder
 - **Softening tinnitus** with a dense low background
+
+Brown noise plays continuously here, with no ads — leave it on all night.
 
 Keep the volume lower than feels right: low frequencies are deceptive — they seem quieter than they are, and it's easy to end up above a safe level, especially on headphones.
 
