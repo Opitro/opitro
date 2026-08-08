@@ -1,6 +1,7 @@
 // @ts-check
 import { defineConfig } from 'astro/config';
 import sitemap from '@astrojs/sitemap';
+import modulePreload from './integrations/modulepreload.mjs';
 
 // https://astro.build/config
 export default defineConfig({
@@ -17,7 +18,7 @@ export default defineConfig({
       prefixDefaultLocale: true,
     },
   },
-  integrations: [sitemap()],
+  integrations: [sitemap(), modulePreload()],
   build: {
     // Our CSS is small (a couple KB) and Astro's default "auto" threshold was flip-flopping
     // between inlining it and extracting it to a separate file as the stylesheet grew across
