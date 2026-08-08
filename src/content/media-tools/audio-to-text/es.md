@@ -22,12 +22,12 @@ faq:
     answer: "Para eso hay una página aparte — [dictado por voz](/es/voice-typing). Pulsas el botón, hablas, paras, y el texto aparece solo. Esta página es para grabaciones que ya tienes: un archivo o un vídeo del que necesitas texto o subtítulos."
   - question: ¿Qué son los formatos de subtítulos y en qué se diferencian?
     answer: "SRT es el habitual, lo entienden YouTube, VLC y todos los editores de vídeo. VTT es lo mismo para un reproductor de vídeo en una web. En ambos los tiempos salen del habla reconocida; si corriges el texto a mano, esas correcciones van al TXT y los subtítulos conservan el reparto de tiempos original."
-  - question: ¿Distingue a los interlocutores?
-    answer: "No. El texto sale seguido, sin etiquetas de quién habla. Separar voces es otro trabajo con otro modelo y no se puede resolver honestamente por esta vía. Para entrevistas ayuda la vista con marcas de tiempo: con ellas es fácil repartir las intervenciones a mano."
+  - question: ¿Distingue quién habla?
+    answer: "Sí, marca la casilla «Marcar quién habla». El texto se separa en intervenciones — Voz 1, Voz 2 y así — y los nombres también van a los subtítulos. La primera vez que lo actives se carga un modelo pequeño adicional, de unos dos megabytes.\n\nUn límite honesto: dos voces claramente distintas se separan bien; en las pruebas los cambios de turno cayeron a una décima de segundo de la realidad. Dos parecidas, por ejemplo dos mujeres de registro similar, pueden fundirse en una. Quién es quién por su nombre no lo sabe: solo primera, segunda y siguientes."
   - question: ¿Puede traducir al inglés a la vez?
     answer: "Sí. En Resultado elige “Traducir al inglés” y el habla rusa, ucraniana, española o de cualquier otro idioma vuelve como texto en inglés ya hecho. Los subtítulos también salen en inglés, con los tiempos originales. Solo traduce al inglés: así funciona el propio modelo."
   - question: ¿Qué idiomas?
-    answer: "Ruso, ucraniano, inglés, español, alemán, francés, italiano, polaco, portugués, turco, kazajo, chino, japonés, coreano y árabe. También puedes dejarlo en automático y que el modelo deduzca el idioma, aunque indicándolo sale más preciso."
+    answer: "Noventa y nueve — todos los que conoce el modelo, del español, inglés y ruso al hebreo, hindi, suajili o cantonés. La lista aparece en el idioma de la página. Puedes dejarlo en Automático: deduce el idioma en un par de segundos y te dice cuál encontró. Si ya lo sabes, indicarlo es algo más preciso."
   - question: ¿Qué duración aguanta?
     answer: "Hasta una hora de una vez. El límite es la memoria del navegador, no el modelo: una hora de audio ya son cientos de megabytes en RAM y un móvil puede no aguantarlo. Lo más largo, córtalo antes — para eso está [cortar audio en partes](/es/split-audio)."
   - question: ¿Sirve con vídeo?
@@ -39,7 +39,7 @@ Sube una grabación y obtén un texto que puedes copiar, corregir aquí mismo y 
 Para qué se usa:
 
 - **Transcribir una clase** — grabada con el móvil, la lees en texto en vez de escuchar dos horas
-- **Entrevistas a texto** — para periodistas e investigadores, con marcas de tiempo
+- **Entrevistas a texto** — para periodistas e investigadores, con marcas de tiempo y separación por voces
 - **Subtítulos para vídeo** — SRT para YouTube y montaje, VTT para la web
 - **Subtítulos en inglés para un vídeo en otro idioma** — la traducción va incluida
 - **Notas de voz** — dices la idea y la tienes escrita

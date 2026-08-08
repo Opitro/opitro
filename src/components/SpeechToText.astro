@@ -89,6 +89,16 @@ const ICO = {
     </div>
     <div class="format-hint" id="st-quality-hint"></div>
 
+    {!isVoice && (
+    <label class="check-row" for="st-speakers">
+      <input type="checkbox" id="st-speakers">
+      <span>
+        <b>{labels.sttSpeakersLabel}</b>
+        <span class="check-hint">{labels.sttSpeakersHint}</span>
+      </span>
+    </label>
+    )}
+
     <div class="progress" id="st-progress">
       <div class="progress-bar"><div class="progress-fill" id="st-progress-fill"></div></div>
     </div>
@@ -154,7 +164,8 @@ const ICO = {
 
 <script>
   import { decodeFile, drawWaveform, createPlayer } from '../lib/web-audio-engine.js';
-  import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks } from '../lib/transcript-format.js';
+  import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks,
+    attachSpeakers, speakerCount, toSpeakerText, toSpeakerTimestamped } from '../lib/transcript-format.js';
 
   // Pinned exactly. A floating tag would change everyone's results on a silent major bump.
   const TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js';
@@ -171,17 +182,35 @@ const ICO = {
   const MAX_MINUTES = 60;
   const WARN_MINUTES = 20;
 
-  // Whisper's own language names (what the pipeline expects), with the two-letter codes it uses
-  // for its own language tokens -- detection returns a code, the pipeline wants a name.
-  const LANGUAGES = [
-    ['auto', 'sttLangAuto', null], ['russian', 'sttLangRu', 'ru'], ['ukrainian', 'sttLangUk', 'uk'],
-    ['english', 'sttLangEn', 'en'], ['spanish', 'sttLangEs', 'es'], ['german', 'sttLangDe', 'de'],
-    ['french', 'sttLangFr', 'fr'], ['italian', 'sttLangIt', 'it'], ['polish', 'sttLangPl', 'pl'],
-    ['portuguese', 'sttLangPt', 'pt'], ['turkish', 'sttLangTr', 'tr'], ['kazakh', 'sttLangKk', 'kk'],
-    ['chinese', 'sttLangZh', 'zh'], ['japanese', 'sttLangJa', 'ja'], ['korean', 'sttLangKo', 'ko'],
-    ['arabic', 'sttLangAr', 'ar'],
+  // Every language Whisper knows: its own two- or three-letter code and its own name for it,
+  // which is what the pipeline wants. There are 99 of them and no list of translations is kept
+  // here -- the browser writes each name in the page's own language through Intl.DisplayNames,
+  // so adding a site locale costs nothing and never leaves a language untranslated.
+  const WHISPER_LANGS = [
+    ['en','english'],['zh','chinese'],['de','german'],['es','spanish'],['ru','russian'],['ko','korean'],
+    ['fr','french'],['ja','japanese'],['pt','portuguese'],['tr','turkish'],['pl','polish'],['ca','catalan'],
+    ['nl','dutch'],['ar','arabic'],['sv','swedish'],['it','italian'],['id','indonesian'],['hi','hindi'],
+    ['fi','finnish'],['vi','vietnamese'],['he','hebrew'],['uk','ukrainian'],['el','greek'],['ms','malay'],
+    ['cs','czech'],['ro','romanian'],['da','danish'],['hu','hungarian'],['ta','tamil'],['no','norwegian'],
+    ['th','thai'],['ur','urdu'],['hr','croatian'],['bg','bulgarian'],['lt','lithuanian'],['la','latin'],
+    ['mi','maori'],['ml','malayalam'],['cy','welsh'],['sk','slovak'],['te','telugu'],['fa','persian'],
+    ['lv','latvian'],['bn','bengali'],['sr','serbian'],['az','azerbaijani'],['sl','slovenian'],['kn','kannada'],
+    ['et','estonian'],['mk','macedonian'],['br','breton'],['eu','basque'],['is','icelandic'],['hy','armenian'],
+    ['ne','nepali'],['mn','mongolian'],['bs','bosnian'],['kk','kazakh'],['sq','albanian'],['sw','swahili'],
+    ['gl','galician'],['mr','marathi'],['pa','punjabi'],['si','sinhala'],['km','khmer'],['sn','shona'],
+    ['yo','yoruba'],['so','somali'],['af','afrikaans'],['oc','occitan'],['ka','georgian'],['be','belarusian'],
+    ['tg','tajik'],['sd','sindhi'],['gu','gujarati'],['am','amharic'],['yi','yiddish'],['lo','lao'],
+    ['uz','uzbek'],['fo','faroese'],['ht','haitian creole'],['ps','pashto'],['tk','turkmen'],['nn','nynorsk'],
+    ['mt','maltese'],['sa','sanskrit'],['lb','luxembourgish'],['my','myanmar'],['bo','tibetan'],['tl','tagalog'],
+    ['mg','malagasy'],['as','assamese'],['tt','tatar'],['haw','hawaiian'],['ln','lingala'],['ha','hausa'],
+    ['ba','bashkir'],['jw','javanese'],['su','sundanese'],['yue','cantonese'],
   ];
-  const BY_CODE = new Map(LANGUAGES.filter((l) => l[2]).map((l) => [l[2], l]));
+  // Whisper's codes are not all valid BCP 47 tags; these are the ones Intl needs spelled its way.
+  const INTL_ALIAS = { jw: 'jv', yue: 'yue', haw: 'haw', nn: 'nn' };
+  // Offered first because they are what this site's visitors actually upload; the rest follow in
+  // alphabetical order of their translated names.
+  const COMMON = ['ru', 'uk', 'en', 'es', 'de', 'fr', 'pl', 'it', 'pt', 'tr', 'kk', 'ar', 'zh', 'ja', 'ko'];
+  const BY_CODE = new Map(WHISPER_LANGS.map((l) => [l[0], l]));
 
   const root = document.querySelector('.stt-tool');
   if (root) {
@@ -207,11 +236,11 @@ const ICO = {
     const langSel = $('st-lang');
     const taskSel = $('st-task');
     const qualitySel = $('st-quality');
+    const speakersBox = $('st-speakers');
     const qualityHint = $('st-quality-hint');
     const progress = $('st-progress');
     const progressFill = $('st-progress-fill');
     const stageEl = $('st-stage');
-    const runRow = $('st-run-row');
     const runBtn = $('st-run');
     const runLabel = $('st-run-label');
     const results = $('st-results');
@@ -245,11 +274,31 @@ const ICO = {
     let view = 'plain';
     let rafId = 0;
 
-    for (const [value, key] of LANGUAGES) {
-      const o = document.createElement('option');
-      o.value = value;
-      o.textContent = labels[key] || value;
-      langSel.appendChild(o);
+    // Names written by the browser in the page's own language, capitalised the way a list wants.
+    const locale = root.dataset.locale || 'en';
+    let displayNames = null;
+    try { displayNames = new Intl.DisplayNames([locale], { type: 'language' }); } catch (e) { /* older browser */ }
+    function nameOf(code, fallback) {
+      let n = null;
+      try { n = displayNames ? displayNames.of(INTL_ALIAS[code] || code) : null; } catch (e) { n = null; }
+      if (!n || n === code) n = fallback || code;
+      return n.charAt(0).toUpperCase() + n.slice(1);
+    }
+    const named = WHISPER_LANGS.map(([code, whisper]) => ({ code, whisper, label: nameOf(code, whisper) }));
+    const common = COMMON.map((c) => named.find((n) => n.code === c)).filter(Boolean);
+    const rest = named.filter((n) => !COMMON.includes(n.code)).sort((a, b) => a.label.localeCompare(b.label, locale));
+    const auto = document.createElement('option');
+    auto.value = 'auto';
+    auto.textContent = labels.sttLangAuto;
+    langSel.appendChild(auto);
+    for (const group of [common, rest]) {
+      for (const n of group) {
+        const o = document.createElement('option');
+        o.value = n.whisper;
+        o.dataset.code = n.code;
+        o.textContent = n.label;
+        langSel.appendChild(o);
+      }
     }
     langSel.value = 'auto';
     let detectedName = null;   // what auto-detection found, for the summary
@@ -335,8 +384,8 @@ const ICO = {
       if (micRow) micRow.style.display = '';
       waveShell.style.display = 'none';
       results.style.display = 'none';
-      runRow.style.display = '';
       runBtn.disabled = true;
+      runLabel.textContent = labels.sttRunLabel;
       playBtn.disabled = true;
       playIco.innerHTML = ICO_PLAY;
       textEl.value = '';
@@ -353,8 +402,8 @@ const ICO = {
       // and a stale buffer from the previous take would be transcribed instead of the new one.
       sourceBuffer = null;
       results.style.display = 'none';
-      runRow.style.display = '';
       runBtn.disabled = true;
+      runLabel.textContent = labels.sttRunLabel;
       file = f;
 
       const sizeMB = f.size / (1024 * 1024);
@@ -486,8 +535,6 @@ const ICO = {
     // the player uses. That buffer is already at the device's rate (usually 48 kHz), so going
     // through it means resampling twice, and measured on the same 48-word passage that cost real
     // accuracy: 89.6% through the double conversion against 95.8% decoding once at 16 kHz.
-    // Decoding the file a second time is cheap next to transcription, and the player keeps its
-    // full-rate buffer so what you hear is still the original.
     async function toModelRate(f, fallbackBuffer) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: MODEL_RATE });
@@ -512,69 +559,64 @@ const ICO = {
       return (await oc.startRendering()).getChannelData(0);
     }
 
+    // One worker for the life of the page, so the model stays loaded between runs.
+    let worker = null;
+    let pending = null;
+    const STAGE_LABELS = {
+      connecting: 'sttLoadingModelLabel',
+      detecting: 'sttDetectingLabel',
+      transcribing: 'sttTranscribingLabel',
+      translating: 'sttTranslatingLabel',
+      loadingSpeakers: 'sttLoadingSpeakersLabel',
+      speakers: 'sttSpeakersStageLabel',
+    };
+    function ensureWorker() {
+      if (worker) return worker;
+      worker = new Worker(new URL('../lib/stt-worker.js', import.meta.url), { type: 'module' });
+      worker.onmessage = (e) => {
+        const m = e.data || {};
+        if (m.type === 'stage') setStage(labels[STAGE_LABELS[m.stage]] || '', m.stage === 'connecting' ? 1 : 60);
+        else if (m.type === 'progress') setStage((labels.sttDownloadingLabel || '').replace('{pct}', String(Math.round(m.pct))), m.pct * 0.55);
+        else if (m.type === 'done' || m.type === 'failed') { const p = pending; pending = null; if (p) p(m); }
+      };
+      worker.onerror = () => { const p = pending; pending = null; if (p) p({ type: 'failed', message: '' }); };
+      return worker;
+    }
+
     runBtn.addEventListener('click', async () => {
-      if (!sourceBuffer) return;
+      if (!sourceBuffer || pending) return;
       clearError();
       runBtn.disabled = true;
       runLabel.textContent = labels.sttRunningLabel;
       try {
         const model = MODELS[qualitySel.value];
-        if (asrKey !== qualitySel.value) {
-          setStage(labels.sttLoadingModelLabel, 1);
-          const { pipeline, env } = await import(/* @vite-ignore */ TRANSFORMERS);
-          env.allowLocalModels = false;
-          // Real download progress across all the model's files, so a 239 MB wait shows a moving
-          // number instead of a bar that sits still for two minutes.
-          const seen = new Map();
-          let shownPct = 0;
-          asr = await pipeline('automatic-speech-recognition', model.repo, {
-            dtype: 'q8',
-            progress_callback: (p) => {
-              if (p.status !== 'progress' || !p.total) return;
-              seen.set(p.file, p.loaded);
-              // Measured against the model's KNOWN total rather than the sum of whatever files have
-              // registered so far. Summing the registered ones showed 100% within a second -- the
-              // tokenizer is 2.4 MB and arrives first, finishing before the 22 MB and 51 MB weights
-              // even appear -- and then fell back to 13%. Bytes received only ever grow, so dividing
-              // by a fixed total is monotonic by construction, no clamping needed.
-              let loaded = 0;
-              for (const v of seen.values()) loaded += v;
-              const pct = Math.min(99, (loaded / (model.mb * 1e6)) * 100);
-              shownPct = Math.max(shownPct, pct);
-              // Percent, not megabytes. A number in MB reads as "this site is pulling something
-              // into my machine" to anyone who does not already know what a model is; the honest
-              // size lives in the FAQ, where whoever needs it (someone on mobile data) will look.
-              setStage((labels.sttDownloadingLabel || '').replace('{pct}', String(Math.round(shownPct))), shownPct * 0.55);
-            },
-          });
-          asrKey = qualitySel.value;
-        }
-        setStage(labels.sttPreparingLabel, 58);
+        setStage(labels.sttPreparingLabel, 1);
         const audio = await toModelRate(file, sourceBuffer);
-
-        let lang = langSel.value;
-        detectedName = null;
-        if (lang === 'auto') {
-          setStage(labels.sttDetectingLabel, 60);
-          const code = await detectLanguage(audio).catch(() => null);
-          const known = code ? BY_CODE.get(code) : null;
-          // A code Whisper knows but this page does not list still works -- the model takes it.
-          lang = known ? known[0] : (code || 'english');
-          detectedName = known ? (labels[known[1]] || known[0]) : (code ? code.toUpperCase() : null);
-        }
-        const translate = taskSel.value === 'translate';
-        setStage(translate ? labels.sttTranslatingLabel : labels.sttTranscribingLabel, 64);
-        const out = await asr(audio, {
-          // Whisper can translate anything it understands into English. That is a real capability,
-          // not a side effect -- unlike the English text a Russian recording used to come back as.
-          task: translate ? 'translate' : 'transcribe',
-          language: lang,
-          chunk_length_s: 30,
-          stride_length_s: 5,
-          return_timestamps: true,
+        const langValue = langSel.value;
+        const result = await new Promise((resolve) => {
+          pending = resolve;
+          // The audio buffer is transferred, not copied: a long recording is tens of megabytes and
+          // cloning it would double the memory for no reason.
+          ensureWorker().postMessage({
+            type: 'run', rate: MODEL_RATE, audio,
+            repo: model.repo, key: qualitySel.value, totalBytes: model.mb * 1e6,
+            language: langValue === 'auto' ? null : langValue,
+            task: taskSel.value === 'translate' ? 'translate' : 'transcribe',
+            speakers: !!(speakersBox && speakersBox.checked),
+          }, [audio.buffer]);
         });
-        chunks = normalizeChunks(out.chunks && out.chunks.length ? out.chunks
-          : [{ timestamp: [0, sourceBuffer.duration], text: out.text || '' }], sourceBuffer.duration);
+        if (result.type === 'failed') throw new Error(result.message || '');
+
+        detectedName = null;
+        if (result.detected) {
+          const known = BY_CODE.get(result.detected);
+          detectedName = known ? nameOf(known[0], known[1]) : result.detected.toUpperCase();
+        }
+        const raw = result.chunks && result.chunks.length ? result.chunks
+          : [{ timestamp: [0, sourceBuffer.duration], text: result.text || '' }];
+        chunks = result.speakers && result.speakers.length
+          ? attachSpeakers(raw, result.speakers, { duration: sourceBuffer.duration })
+          : normalizeChunks(raw, sourceBuffer.duration);
         if (!chunks.length) {
           setStage('');
           showError(labels.sttEmptyLabel);
@@ -586,21 +628,35 @@ const ICO = {
         renderSummary();
         renderFmtHint();
         finishStage(labels.sttDoneLabel);
-        runRow.style.display = 'none';
         results.style.display = '';
         window.dispatchEvent(new Event('opitro:tool-interaction'));
       } catch (e) {
         setStage('');
         showError((labels.sttFailedLabel || 'Failed.') + ' ' + (e && e.message ? e.message : ''));
-        runBtn.disabled = false;
       } finally {
+        runBtn.disabled = false;
         runLabel.textContent = labels.sttRunLabel;
       }
     });
 
+    // Changing a setting after a run has to be actionable. The run row used to be hidden on
+    // success, so switching model or language left no way to try again short of removing the file
+    // and adding it back -- which is exactly what happened.
+    for (const sel of [qualitySel, taskSel, langSel, speakersBox].filter(Boolean)) {
+      sel.addEventListener('change', () => {
+        if (!chunks.length) return;
+        runLabel.textContent = labels.sttRerunLabel || labels.sttRunLabel;
+      });
+    }
+
     /* --- results -------------------------------------------------------------------------- */
+    const speakerName = (n) => (labels.sttSpeakerName || 'Speaker {n}').replace('{n}', String(n));
     function bodyFor(v) {
       const opts = { duration: sourceBuffer ? sourceBuffer.duration : 0 };
+      if (speakerCount(chunks) > 1) {
+        return v === 'stamped' ? toSpeakerTimestamped(chunks, speakerName) : toSpeakerText(chunks, speakerName, opts);
+      }
+      // One voice, or none found: names would be noise.
       return v === 'stamped' ? toTimestamped(chunks, opts) : toPlainText(chunks, opts);
     }
     function renderText() {
@@ -616,6 +672,8 @@ const ICO = {
       ];
       // Only when it was detected rather than chosen -- otherwise it just repeats the dropdown.
       if (detectedName) cells.push([labels.sttStatLanguageLabel, detectedName]);
+      const voices = speakerCount(chunks);
+      if (voices > 1) cells.push([labels.sttStatSpeakersLabel, String(voices)]);
       summaryEl.innerHTML = cells.map(([l, v]) => `<div class="sum-cell"><span class="sum-label">${escapeHtml(l)}</span><span class="sum-value">${escapeHtml(v)}</span></div>`).join('');
     }
     function renderSummary() { updateCount(); }
@@ -672,8 +730,13 @@ const ICO = {
       const duration = sourceBuffer ? sourceBuffer.duration : 0;
       const fmt = fmtSelect.value;
       let body, ext;
-      if (fmt === 'srt') { body = toSrt(chunks, { duration }); ext = 'srt'; }
-      else if (fmt === 'vtt') { body = toVtt(chunks, { duration }); ext = 'vtt'; }
+      // Subtitles name the speaker the way captions normally do, but only when there is more
+      // than one -- a single-speaker recording would just repeat "Speaker 1" on every line.
+      const named = speakerCount(chunks) > 1
+        ? chunks.map((c) => ({ ...c, text: (c.speaker ? speakerName(c.speaker) + ': ' : '') + c.text }))
+        : chunks;
+      if (fmt === 'srt') { body = toSrt(named, { duration }); ext = 'srt'; }
+      else if (fmt === 'vtt') { body = toVtt(named, { duration }); ext = 'vtt'; }
       // Plain text follows what is on screen, edits included -- subtitles cannot, because the
       // timings belong to the recognised chunks rather than to the edited text.
       else { body = textEl.value; ext = 'txt'; }
@@ -734,13 +797,23 @@ const ICO = {
   .stt-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
 
   .stt-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  .stt-tool .field{flex:1 1 200px;min-width:150px}
+  /* Layout.astro carries a global `.field{margin-bottom:16px}`. Left standing inside the export
+     row it made the field's outer box 16px taller than the select, and `align-items:flex-end`
+     then put the download button 16px BELOW the format list — side by side but not on the same
+     line, which is exactly how it looked. The audio tools cancel the same rule; this one didn't. */
+  .stt-tool .field{flex:1 1 200px;min-width:150px;margin-bottom:0}
   .stt-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
   .stt-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
     appearance:none;-webkit-appearance:none;padding-right:38px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
   .stt-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .stt-tool .check-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin:2px 0 4px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s}
+  .stt-tool .check-row:hover{border-color:rgba(74,222,158,0.4)}
+  .stt-tool .check-row input{width:18px;height:18px;flex:none;accent-color:var(--accent);margin-top:1px;cursor:pointer}
+  .stt-tool .check-row b{display:block;font-size:13.5px;color:var(--text);font-weight:600}
+  .stt-tool .check-hint{display:block;font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
   .stt-tool .format-hint{font-size:12.5px;color:var(--muted);margin:8px 0 4px;line-height:1.5}
 
   .stt-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
@@ -781,7 +854,10 @@ const ICO = {
 
   .stt-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
   .stt-tool .deck .field{flex:1 1 200px}
-  .stt-tool .deck .field-fmt{flex:0 1 150px}
+  /* The format names are short (TXT, SRT, VTT) so this cell needs far less room than the
+     button's label. At 150px the row folded to two lines on a 360px phone, which is where a lot
+     of Android screens sit. Measured from 320 to 1280. */
+  .stt-tool .deck .field-fmt{flex:0 1 116px;min-width:96px}
   .stt-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
   .stt-tool .deck .field select{height:48px;border-radius:12px}
   .stt-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}

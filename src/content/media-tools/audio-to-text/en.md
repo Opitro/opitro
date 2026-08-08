@@ -23,11 +23,11 @@ faq:
   - question: What are the subtitle formats and how do they differ?
     answer: "SRT is the common one, understood by YouTube, VLC and every video editor. VTT is the same thing for a video player on a web page. In both, the timings come from the recognised speech; if you correct the text by hand those corrections go into the TXT, while the subtitles keep the original timing."
   - question: Does it tell speakers apart?
-    answer: "No. The text comes out continuous, with no who-said-what labels. Separating speakers is a different job needing a different model, and it cannot be done honestly this way. For interviews the timestamped view helps: it makes it easy to mark up the turns yourself."
+    answer: "Yes — tick \"Mark who is speaking\". The text splits into turns labelled Voice 1, Voice 2 and so on, and the names go into the subtitles too. The first time you switch it on, a small extra model of about two megabytes is loaded.\n\nAn honest limit: two clearly different voices separate well — in testing the turn boundaries landed within a tenth of a second of the truth. Two similar ones, say two women in the same register, can be merged into one. It has no idea who anyone is by name, only first, second and so on."
   - question: Can it translate to English at the same time?
     answer: "Yes. Set Result to “Translate to English” and Russian, Ukrainian, Spanish or any other speech comes back as finished English text. The subtitles are English too, on the original timing. English is the only direction — that is how the model itself works."
   - question: Which languages?
-    answer: "Russian, Ukrainian, English, Spanish, German, French, Italian, Polish, Portuguese, Turkish, Kazakh, Chinese, Japanese, Korean and Arabic. You can also leave it on automatic and let the model work out the language, though naming it gives better results."
+    answer: "Ninety-nine — everything the model knows, from English, Russian and Ukrainian through to Hebrew, Hindi, Swahili and Cantonese. The list is written in the language of the page. You can leave it on Automatic: it works the language out in a couple of seconds and tells you what it found. If you already know, saying so is slightly more accurate."
   - question: How long a recording can it handle?
     answer: "Up to an hour at a time. The limit is browser memory rather than the model: an hour of audio is already hundreds of megabytes in RAM, and a phone may not survive it. Split anything longer first — there is [split audio](/en/split-audio) for that."
   - question: Does it work with video?
@@ -39,7 +39,7 @@ Upload a recording and get text you can copy, correct right here, and download �
 What people use it for:
 
 - **Transcribing a lecture** — recorded on a phone, read as text instead of sitting through two hours
-- **Interviews into text** — for journalists and researchers, with timestamps
+- **Interviews into text** — for journalists and researchers, with timestamps and speakers marked
 - **Subtitles for video** — SRT for YouTube and editing, VTT for a website
 - **English subtitles for a foreign clip** — translation to English is built in
 - **Voice memos** — say the thought, get it into your notes

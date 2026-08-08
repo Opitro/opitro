@@ -1,6 +1,7 @@
 // Subtitle timing is the kind of thing that looks right on screen and is wrong by a factor of a
 // thousand in the file, so every timestamp here is written out by hand and compared exactly.
-import { normalizeChunks, wrapCaption, toSrt, toVtt, toPlainText, toTimestamped, countWords }
+import { normalizeChunks, wrapCaption, toSrt, toVtt, toPlainText, toTimestamped, countWords,
+  attachSpeakers, groupBySpeaker, speakerCount, toSpeakerText, toSpeakerTimestamped }
   from '../src/lib/transcript-format.js';
 
 let pass = 0, fail = 0;
@@ -121,6 +122,52 @@ console.log('\nсчётчик слов');
 eq('обычная фраза', countWords('раз два три'), 3);
 eq('лишние пробелы не считаются', countWords('  раз   два  '), 2);
 eq('пусто -> ноль', countWords(''), 0);
+
+/* --- speakers ------------------------------------------------------------------------------- */
+console.log('\nговорящие');
+// Exactly the shape the segmentation model returned on a measured two-voice conversation: id 0 is
+// its "nobody is speaking" class, and the two real voices came back as 2 and 3.
+const talk = [
+  { timestamp: [0, 4.0], text: 'Доброе утро.' },
+  { timestamp: [4.6, 7.3], text: 'Конечно.' },
+  { timestamp: [7.8, 11.0], text: 'Про бюджет.' },
+  { timestamp: [11.4, 15.4], text: 'Договорились.' },
+];
+const segs = [
+  { id: 0, start: 0, end: 0.1 }, { id: 2, start: 0.1, end: 4.02 },
+  { id: 0, start: 4.02, end: 4.56 }, { id: 3, start: 4.56, end: 7.28 },
+  { id: 0, start: 7.28, end: 7.74 }, { id: 2, start: 7.74, end: 10.98 },
+  { id: 0, start: 10.98, end: 11.4 }, { id: 3, start: 11.4, end: 15.37 },
+];
+const marked = attachSpeakers(talk, segs, { duration: 15.8 });
+eq('каждой строке достался говорящий', marked.map((c) => c.speaker).join(','), '1,2,1,2');
+eq('всего голосов', speakerCount(marked), 2);
+// The model's own ids are 2 and 3; a reader expects 1 and 2, in the order they first speak.
+check('нумерация с единицы, по порядку появления', marked.map((c) => c.speaker), '1 и 2',
+  Math.min(...marked.map((c) => c.speaker)) === 1 && Math.max(...marked.map((c) => c.speaker)) === 2);
+// Silence is not a speaker.
+check('класс тишины не стал говорящим', marked.map((c) => c.speaker), 'нет нулей', marked.every((c) => c.speaker > 0));
+
+const turns = groupBySpeaker(marked);
+eq('четыре реплики -> четыре хода', turns.length, 4);
+const merged = groupBySpeaker(attachSpeakers([
+  { timestamp: [0, 2], text: 'Первая часть.' },
+  { timestamp: [2, 4], text: 'И сразу вторая.' },
+  { timestamp: [4.5, 7], text: 'А это уже другой.' },
+], [{ id: 1, start: 0, end: 4.1 }, { id: 2, start: 4.4, end: 7 }], { duration: 7 }));
+eq('подряд идущие реплики одного склеены', merged.length, 2);
+eq('склеенный текст целиком', merged[0].text, 'Первая часть. И сразу вторая.');
+
+eq('текст с именами', toSpeakerText(marked, (n) => 'Говорящий ' + n).split('\n\n')[1], 'Говорящий 2: Конечно.');
+eq('с метками времени', toSpeakerTimestamped(marked, (n) => 'Говорящий ' + n).split('\n')[1], '[0:04] Говорящий 2: Конечно.');
+
+// Nothing from the segmentation model at all -- the text still has to come out, unlabelled.
+const noSegs = attachSpeakers(talk, [], { duration: 15.8 });
+check('без разметки голосов текст не теряется', noSegs.length, '4', noSegs.length === 4 && noSegs.every((c) => c.speaker === null));
+eq('и выводится без имён', toSpeakerText(noSegs, (n) => 'Говорящий ' + n).split('\n\n')[0], 'Доброе утро. Конечно. Про бюджет. Договорились.');
+// A line nobody covers is left alone rather than assigned to whoever happens to be nearest.
+const sparse = attachSpeakers([{ timestamp: [0, 10], text: 'Длинная фраза.' }], [{ id: 1, start: 0, end: 0.5 }], { duration: 10 });
+eq('строка почти без перекрытия остаётся без имени', sparse[0].speaker, null);
 
 console.log(`\nитого: ${pass} прошло, ${fail} не прошло`);
 process.exit(fail ? 1 : 0);
