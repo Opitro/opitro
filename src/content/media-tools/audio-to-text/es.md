@@ -24,6 +24,8 @@ faq:
     answer: "SRT es el habitual, lo entienden YouTube, VLC y todos los editores de vídeo. VTT es lo mismo para un reproductor de vídeo en una web. En ambos los tiempos salen del habla reconocida; si corriges el texto a mano, esas correcciones van al TXT y los subtítulos conservan el reparto de tiempos original."
   - question: ¿Distingue a los interlocutores?
     answer: "No. El texto sale seguido, sin etiquetas de quién habla. Separar voces es otro trabajo con otro modelo y no se puede resolver honestamente por esta vía. Para entrevistas ayuda la vista con marcas de tiempo: con ellas es fácil repartir las intervenciones a mano."
+  - question: ¿Puede traducir al inglés a la vez?
+    answer: "Sí. En Resultado elige “Traducir al inglés” y el habla rusa, ucraniana, española o de cualquier otro idioma vuelve como texto en inglés ya hecho. Los subtítulos también salen en inglés, con los tiempos originales. Solo traduce al inglés: así funciona el propio modelo."
   - question: ¿Qué idiomas?
     answer: "Ruso, ucraniano, inglés, español, alemán, francés, italiano, polaco, portugués, turco, kazajo, chino, japonés, coreano y árabe. También puedes dejarlo en automático y que el modelo deduzca el idioma, aunque indicándolo sale más preciso."
   - question: ¿Qué duración aguanta?
@@ -39,6 +41,7 @@ Para qué se usa:
 - **Transcribir una clase** — grabada con el móvil, la lees en texto en vez de escuchar dos horas
 - **Entrevistas a texto** — para periodistas e investigadores, con marcas de tiempo
 - **Subtítulos para vídeo** — SRT para YouTube y montaje, VTT para la web
+- **Subtítulos en inglés para un vídeo en otro idioma** — la traducción va incluida
 - **Notas de voz** — dices la idea y la tienes escrita
 - **Acta de una reunión** — a partir de la grabación de la videollamada
 

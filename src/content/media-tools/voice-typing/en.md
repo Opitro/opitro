@@ -20,6 +20,8 @@ faq:
     answer: "Roughly as long as you spoke, with the best model, and about four times less with the lighter one. Talk for a minute, wait fifteen to fifty seconds. For long dictation take the lighter model; for a short note the difference does not show."
   - question: Does it punctuate?
     answer: "Yes, by itself. Full stops, commas, question marks and capitals are placed by meaning — no need to say “comma” out loud. It gets some wrong, but far fewer than any scheme based on pauses."
+  - question: Can I speak Russian and get English?
+    answer: "Yes — set Result to “Translate to English”. Talk in your own language and the text comes back in English. The other direction does not exist: the model only translates one way."
   - question: Which languages?
     answer: "Russian, Ukrainian, English, Spanish, German, French, Italian, Polish, Portuguese, Turkish, Kazakh, Chinese, Japanese, Korean and Arabic. You can leave it on automatic, but naming the language gives better results."
   - question: How long can I talk for?

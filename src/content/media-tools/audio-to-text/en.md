@@ -24,6 +24,8 @@ faq:
     answer: "SRT is the common one, understood by YouTube, VLC and every video editor. VTT is the same thing for a video player on a web page. In both, the timings come from the recognised speech; if you correct the text by hand those corrections go into the TXT, while the subtitles keep the original timing."
   - question: Does it tell speakers apart?
     answer: "No. The text comes out continuous, with no who-said-what labels. Separating speakers is a different job needing a different model, and it cannot be done honestly this way. For interviews the timestamped view helps: it makes it easy to mark up the turns yourself."
+  - question: Can it translate to English at the same time?
+    answer: "Yes. Set Result to “Translate to English” and Russian, Ukrainian, Spanish or any other speech comes back as finished English text. The subtitles are English too, on the original timing. English is the only direction — that is how the model itself works."
   - question: Which languages?
     answer: "Russian, Ukrainian, English, Spanish, German, French, Italian, Polish, Portuguese, Turkish, Kazakh, Chinese, Japanese, Korean and Arabic. You can also leave it on automatic and let the model work out the language, though naming it gives better results."
   - question: How long a recording can it handle?
@@ -39,6 +41,7 @@ What people use it for:
 - **Transcribing a lecture** — recorded on a phone, read as text instead of sitting through two hours
 - **Interviews into text** — for journalists and researchers, with timestamps
 - **Subtitles for video** — SRT for YouTube and editing, VTT for a website
+- **English subtitles for a foreign clip** — translation to English is built in
 - **Voice memos** — say the thought, get it into your notes
 - **Meeting minutes** — from a call recording
 

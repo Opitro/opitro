@@ -20,6 +20,8 @@ faq:
     answer: "Más o menos lo que hayas hablado con el modelo mejor, y unas cuatro veces menos con el ligero. Un minuto hablando son entre quince y cincuenta segundos de espera. Para dictados largos coge el ligero; en una nota corta la diferencia no se nota."
   - question: ¿Pone los signos de puntuación?
     answer: "Sí, solo. Puntos, comas, interrogaciones y mayúsculas se colocan por sentido — no hace falta decir “coma” en voz alta. Alguno falla, pero muchos menos que cualquier método basado en las pausas."
+  - question: ¿Puedo hablar en español y obtenerlo en inglés?
+    answer: "Sí, en Resultado elige “Traducir al inglés”. Hablas en tu idioma y el texto sale en inglés. Al revés no: el modelo solo traduce en un sentido."
   - question: ¿Qué idiomas?
     answer: "Ruso, ucraniano, inglés, español, alemán, francés, italiano, polaco, portugués, turco, kazajo, chino, japonés, coreano y árabe. Puedes dejarlo en automático, pero indicando el idioma sale más preciso."
   - question: ¿Cuánto rato puedo hablar?

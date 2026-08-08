@@ -73,6 +73,13 @@ const ICO = {
         <select id="st-lang"></select>
       </div>
       <div class="field">
+        <label for="st-task">{labels.sttTaskLabel}</label>
+        <select id="st-task">
+          <option value="transcribe">{labels.sttTaskTranscribeLabel}</option>
+          <option value="translate">{labels.sttTaskTranslateLabel}</option>
+        </select>
+      </div>
+      <div class="field">
         <label for="st-quality">{labels.sttQualityLabel}</label>
         <select id="st-quality">
           <option value="small" selected>{labels.sttQualityBestLabel}</option>
@@ -164,13 +171,17 @@ const ICO = {
   const MAX_MINUTES = 60;
   const WARN_MINUTES = 20;
 
-  // Whisper's own language names, which is what the pipeline expects.
+  // Whisper's own language names (what the pipeline expects), with the two-letter codes it uses
+  // for its own language tokens -- detection returns a code, the pipeline wants a name.
   const LANGUAGES = [
-    ['auto', 'sttLangAuto'], ['russian', 'sttLangRu'], ['ukrainian', 'sttLangUk'], ['english', 'sttLangEn'],
-    ['spanish', 'sttLangEs'], ['german', 'sttLangDe'], ['french', 'sttLangFr'], ['italian', 'sttLangIt'],
-    ['polish', 'sttLangPl'], ['portuguese', 'sttLangPt'], ['turkish', 'sttLangTr'], ['kazakh', 'sttLangKk'],
-    ['chinese', 'sttLangZh'], ['japanese', 'sttLangJa'], ['korean', 'sttLangKo'], ['arabic', 'sttLangAr'],
+    ['auto', 'sttLangAuto', null], ['russian', 'sttLangRu', 'ru'], ['ukrainian', 'sttLangUk', 'uk'],
+    ['english', 'sttLangEn', 'en'], ['spanish', 'sttLangEs', 'es'], ['german', 'sttLangDe', 'de'],
+    ['french', 'sttLangFr', 'fr'], ['italian', 'sttLangIt', 'it'], ['polish', 'sttLangPl', 'pl'],
+    ['portuguese', 'sttLangPt', 'pt'], ['turkish', 'sttLangTr', 'tr'], ['kazakh', 'sttLangKk', 'kk'],
+    ['chinese', 'sttLangZh', 'zh'], ['japanese', 'sttLangJa', 'ja'], ['korean', 'sttLangKo', 'ko'],
+    ['arabic', 'sttLangAr', 'ar'],
   ];
+  const BY_CODE = new Map(LANGUAGES.filter((l) => l[2]).map((l) => [l[2], l]));
 
   const root = document.querySelector('.stt-tool');
   if (root) {
@@ -194,6 +205,7 @@ const ICO = {
     const totalEl = $('st-total');
     const playhead = $('st-playhead');
     const langSel = $('st-lang');
+    const taskSel = $('st-task');
     const qualitySel = $('st-quality');
     const qualityHint = $('st-quality-hint');
     const progress = $('st-progress');
@@ -240,6 +252,31 @@ const ICO = {
       langSel.appendChild(o);
     }
     langSel.value = 'auto';
+    let detectedName = null;   // what auto-detection found, for the summary
+
+    /**
+     * Whisper predicts the language itself, as the very first token after the start marker.
+     * transformers.js never lets it: with no `language` option it forces English, so a Russian
+     * recording came back translated into English and the "detect automatically" choice was a lie.
+     * Feeding only the start token and generating exactly one more gives the model's own answer,
+     * which is what this does. Measured: correct on Russian, English and Ukrainian in under two
+     * seconds, on thirty seconds of audio.
+     */
+    async function detectLanguage(audio) {
+      const tok = asr.tokenizer;
+      const ids = tok.model.tokens_to_ids;
+      const idOf = (t) => (ids && typeof ids.get === 'function' ? ids.get(t) : ids?.[t]);
+      const sot = idOf('<|startoftranscript|>');
+      if (sot == null) return null;
+      const inputs = await asr.processor(audio.slice(0, MODEL_RATE * 30));
+      const out = await asr.model.generate({ ...inputs, decoder_input_ids: [[sot]], max_new_tokens: 1, return_dict_in_generate: true });
+      const seq = out.sequences?.tolist ? out.sequences.tolist() : out.sequences;
+      const last = seq?.[0]?.[seq[0].length - 1];
+      if (last == null) return null;
+      const text = tok.decode([Number(last)], { skip_special_tokens: false });
+      const code = (String(text).match(/^<\|([a-z]{2,3})\|>$/) || [])[1];
+      return code || null;
+    }
 
     function showError(m) { errBox.textContent = m; errBox.classList.add('show'); }
     function clearError() { errBox.classList.remove('show'); }
@@ -515,11 +552,23 @@ const ICO = {
         setStage(labels.sttPreparingLabel, 58);
         const audio = await toModelRate(file, sourceBuffer);
 
-        setStage(labels.sttTranscribingLabel, 62);
-        const lang = langSel.value;
+        let lang = langSel.value;
+        detectedName = null;
+        if (lang === 'auto') {
+          setStage(labels.sttDetectingLabel, 60);
+          const code = await detectLanguage(audio).catch(() => null);
+          const known = code ? BY_CODE.get(code) : null;
+          // A code Whisper knows but this page does not list still works -- the model takes it.
+          lang = known ? known[0] : (code || 'english');
+          detectedName = known ? (labels[known[1]] || known[0]) : (code ? code.toUpperCase() : null);
+        }
+        const translate = taskSel.value === 'translate';
+        setStage(translate ? labels.sttTranslatingLabel : labels.sttTranscribingLabel, 64);
         const out = await asr(audio, {
-          task: 'transcribe',
-          ...(lang === 'auto' ? {} : { language: lang }),
+          // Whisper can translate anything it understands into English. That is a real capability,
+          // not a side effect -- unlike the English text a Russian recording used to come back as.
+          task: translate ? 'translate' : 'transcribe',
+          language: lang,
           chunk_length_s: 30,
           stride_length_s: 5,
           return_timestamps: true,
@@ -560,11 +609,14 @@ const ICO = {
     }
     function updateCount() {
       const words = countWords(textEl.value);
-      summaryEl.innerHTML = [
+      const cells = [
         [labels.sttStatWordsLabel, String(words)],
         [labels.sttStatCharsLabel, String(textEl.value.length)],
         [labels.sttStatDurationLabel, sourceBuffer ? fmtClock(sourceBuffer.duration) : '—'],
-      ].map(([l, v]) => `<div class="sum-cell"><span class="sum-label">${escapeHtml(l)}</span><span class="sum-value">${escapeHtml(v)}</span></div>`).join('');
+      ];
+      // Only when it was detected rather than chosen -- otherwise it just repeats the dropdown.
+      if (detectedName) cells.push([labels.sttStatLanguageLabel, detectedName]);
+      summaryEl.innerHTML = cells.map(([l, v]) => `<div class="sum-cell"><span class="sum-label">${escapeHtml(l)}</span><span class="sum-value">${escapeHtml(v)}</span></div>`).join('');
     }
     function renderSummary() { updateCount(); }
 
@@ -707,7 +759,9 @@ const ICO = {
   .stt-tool .ico{width:16px;height:16px;flex:none}
   .stt-tool .act .i{width:17px;height:17px;flex:none}
 
-  .stt-tool .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 16px}
+  /* auto-fit rather than a fixed three: the language cell only appears when it was detected, and
+     a fourth item in a three-column grid left an empty box sitting there looking unfinished. */
+  .stt-tool .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 16px}
   .stt-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
   .stt-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
   .stt-tool .sum-value{font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
