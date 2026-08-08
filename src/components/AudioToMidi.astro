@@ -1,4 +1,5 @@
 ---
+import css from '../styles/audio-to-midi.css?inline';
 // Audio to MIDI. Separate from AudioTool.astro because nothing about it fits that component's
 // shape: there is no rendered audio buffer to export, the output is notes rather than sound, and
 // the result needs four different views of the same data instead of one waveform.
@@ -27,6 +28,15 @@ const ICO = {
   notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
 };
 ---
+
+{/* The component's stylesheet is imported as a string and written out here, rather
+    than left as an Astro <style> block. Astro attaches a page's styles by walking what
+    the page module imports, not what it renders, so one route file importing all the
+    tool components put every component's CSS into every page -- an identical 47 KB
+    everywhere, of which a calculator page used almost none. As a plain string it lands
+    only on the page that renders this component. It goes first, before any markup, so
+    nothing is ever painted unstyled. */}
+<style is:inline set:html={css}></style>
 
 <div class="midi-tool" data-locale={locale} data-labels={JSON.stringify(labels)}>
   <div class="drop" id="mt-drop">
@@ -883,168 +893,3 @@ const ICO = {
   }
 </script>
 
-<style is:global>
-  /* Drop zone, file chip, compact player, fields and deck are deliberately identical to the
-     audio tools -- same measurements, same radii, same hover colours. Copied rather than shared
-     because Astro only ships a component's styles when that component is on the page, and this
-     tool never renders AudioTool. */
-  .midi-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
-  .midi-tool .drop:hover,.midi-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
-  .midi-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
-  .midi-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
-  .midi-tool .drop .small{font-size:12px;color:var(--muted)}
-  .midi-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
-  .midi-tool input[type=file]{display:none}
-
-  .midi-tool .panel{display:none;margin-top:8px}
-  .midi-tool .panel.on{display:block}
-  .midi-tool .fileinfo:empty{display:none}
-  .midi-tool .fileinfo{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
-  .midi-tool .fi-row{display:flex;align-items:center;gap:10px}
-  .midi-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
-  .midi-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
-  .midi-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
-  .midi-tool .fi-act{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
-  .midi-tool .fi-act .i{width:15px;height:15px}
-  .midi-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
-  .midi-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
-
-  .midi-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none;cursor:pointer;display:none}
-  .midi-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px}
-  .midi-tool .wave-shell canvas{display:block;width:100%;height:52px;flex:1;min-width:0}
-  .midi-tool .wave-play-btn{flex:none;width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#08130d;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .2s}
-  .midi-tool .wave-play-btn:hover:not(:disabled){transform:scale(1.06)}
-  .midi-tool .wave-play-btn:disabled{opacity:.35;cursor:not-allowed}
-  .midi-tool .wave-play-btn .ico{width:17px;height:17px}
-  .midi-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .midi-tool .wave-duration b{color:var(--text);font-weight:600}
-  /* Hidden until something is playing, and drawn above the canvas. It is positioned in pixels
-     against the canvas by the script -- as a percentage of the shell it sat on top of the play
-     button at rest and slid across it while playing. */
-  .midi-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
-
-  .midi-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
-  .midi-tool .progress.on{opacity:.55}
-  .midi-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
-  .midi-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
-  /* Unlike the audio tools, this one has a genuinely long step in it -- the model download and
-     the first run. A silent 2px bar is not enough feedback for something that can take twenty
-     seconds, so the stage gets a caption here. */
-  .midi-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px}
-  .midi-tool .stage-text:empty{margin:0}
-
-  .midi-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
-  .midi-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
-  .midi-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
-  .midi-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
-  .midi-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
-  .midi-tool .ico{width:16px;height:16px;flex:none}
-  .midi-tool .act .i{width:17px;height:17px;flex:none}
-
-  .midi-tool .field{flex:1;min-width:150px;margin-bottom:14px}
-  /* See the note on `.field-cap` in AudioTool.astro -- caption for a button group, not a <label>. */
-  .midi-tool .field label,
-  .midi-tool .field .field-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
-  .midi-tool .field label b{color:var(--text);letter-spacing:0;text-transform:none;font-size:12.5px}
-  .midi-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
-  .midi-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
-    appearance:none;-webkit-appearance:none;padding-right:38px;
-    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
-    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
-  .midi-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
-
-  .midi-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
-  .midi-tool .deck .field{flex:1 1 200px;margin-bottom:0}
-  .midi-tool .deck .field-fmt{flex:0 1 190px}
-  .midi-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
-  .midi-tool .deck .field select{height:48px;border-radius:12px}
-  .midi-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
-
-  .midi-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
-  .midi-tool .err.show{display:block}
-
-  /* --- results ------------------------------------------------------------------------- */
-  /* Four numbers before any of the detail. Someone who only wants to know the key or the tempo
-     gets it here and never has to read a piano roll. */
-  .midi-tool .summary{display:grid;grid-template-columns:repeat(4,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 18px}
-  .midi-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
-  .midi-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
-  .midi-tool .sum-value{font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
-  .midi-tool .sum-empty{background:var(--surface);padding:16px;text-align:center;font-size:13px;color:var(--muted);grid-column:1/-1}
-  @media(max-width:560px){.midi-tool .summary{grid-template-columns:repeat(2,1fr)}}
-
-  .midi-tool .tune{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:8px}
-  /* The transpose row needs about 420px to keep its five controls on one line. Side by side with
-     the sensitivity slider in a 696px column it got 340px and folded "Octave up" onto a second
-     line, which reads as sloppy. Sized so the two stack instead, each on a full-width row.
-     Measured at 390, 768 and 1280 px.
-     Note the selector: `.tune .field` outweighs a bare `.tune-transpose`, so the wider basis has
-     to be written on `.field.tune-transpose` or the cascade silently keeps the 300px one. */
-  .midi-tool .tune .field{flex:1 1 300px}
-  .midi-tool .tune .field.tune-transpose{flex:1 1 420px}
-  .midi-tool .tune-hint{font-size:11.5px;color:var(--muted);line-height:1.45;margin-top:6px}
-  .midi-tool .tr-row{display:flex;align-items:center;gap:6px;flex-wrap:wrap}
-  .midi-tool .tr-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:9px;height:36px;min-width:36px;padding:0 10px;transition:border-color .15s,background .15s}
-  .midi-tool .tr-btn:hover{border-color:rgba(74,222,158,0.5);background:rgba(74,222,158,0.08)}
-  .midi-tool .tr-val{min-width:34px;text-align:center;font-size:15px;font-variant-numeric:tabular-nums;color:var(--text)}
-
-  .midi-tool .tabs{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:12px;padding:3px;margin:14px 0 12px}
-  .midi-tool .tab{flex:1;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:9px;padding:9px 6px;transition:background .15s,color .15s}
-  .midi-tool .tab:hover{color:var(--text)}
-  .midi-tool .tab.active{background:rgba(74,222,158,0.14);color:var(--accent)}
-
-  /* 470px is four octaves plus the border at 9px a row -- enough that most solo material fits
-     without scrolling at all. Anything wider scrolls, which is right; at 440 a four-octave span
-     came out one pixel too tall and clipped its bottom label for no reason. */
-  .midi-tool .roll-wrap{display:flex;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;max-height:470px;overflow-y:auto}
-  .midi-tool .roll-keys{flex:none;position:sticky;left:0;z-index:2;display:block}
-  .midi-tool .roll-scroll{flex:1;min-width:0;overflow-x:auto;position:relative;cursor:pointer}
-  .midi-tool .roll-canvas{display:block}
-  .midi-tool .roll-playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;opacity:.75;pointer-events:none;display:none;will-change:transform}
-  .midi-tool .roll-hint{font-size:12px;color:var(--muted);line-height:1.5;margin-top:8px}
-
-  .midi-tool .notelist-head,.midi-tool .nl-row{display:grid;grid-template-columns:38px 1fr 1fr 1fr 34px;align-items:center;gap:8px}
-  .midi-tool .notelist-head{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);padding:0 12px 8px}
-  .midi-tool .notelist{max-height:400px;overflow-y:auto;border:1px solid var(--line);border-radius:12px;background:var(--surface)}
-  .midi-tool .nl-row{padding:9px 12px;border-bottom:1px solid var(--line);font-size:13.5px}
-  .midi-tool .nl-row:last-child{border-bottom:none}
-  .midi-tool .nl-i{color:var(--muted);font-variant-numeric:tabular-nums;font-size:12px}
-  .midi-tool .nl-n{font-weight:600;color:var(--text)}
-  .midi-tool .nl-t,.midi-tool .nl-d{color:var(--muted);font-variant-numeric:tabular-nums}
-  .midi-tool button.nl-x{display:flex;align-items:center;justify-content:center;width:26px;height:26px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;padding:0;transition:color .15s,background .15s}
-  .midi-tool button.nl-x:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
-  .midi-tool .nl-x .i{width:13px;height:13px}
-  .midi-tool .nl-empty{padding:22px;text-align:center;font-size:13px;color:var(--muted)}
-
-  .midi-tool .chord-style{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px;width:fit-content}
-  .midi-tool .cs-seg{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:7px;padding:7px 12px;transition:background .15s,color .15s}
-  .midi-tool .cs-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
-  /* A chart, not a stream. Every chord here is at least half a bar long by construction, so they
-     can be laid out as cards you could actually read off while playing. */
-  .midi-tool .chords{display:flex;flex-wrap:wrap;gap:8px}
-  .midi-tool .chord{font-family:inherit;cursor:pointer;border:1px solid var(--line);background:var(--surface);border-radius:11px;padding:10px 14px;min-width:74px;display:flex;flex-direction:column;align-items:center;gap:3px;transition:border-color .15s,background .15s}
-  .midi-tool .chord:hover{border-color:rgba(74,222,158,0.5);background:rgba(74,222,158,0.07)}
-  .midi-tool .ch-main{font-size:16px;font-weight:700;color:var(--text)}
-  .midi-tool .ch-time{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
-  .midi-tool .chord.ch-none{opacity:.45}
-  .midi-tool .chord.ch-none .ch-main{font-weight:500;color:var(--muted)}
-
-  /* Sheet music is black on white everywhere it exists, and pretending otherwise to match a dark
-     page would mean a printout nobody can read. So: paper. */
-  .midi-tool .score-paper{background:#fff;border-radius:12px;padding:10px 6px;overflow-x:auto;min-height:120px}
-  .midi-tool .score-paper svg{display:block;max-width:100%}
-  .midi-tool .score-status{font-size:12.5px;color:#555;text-align:center;padding:8px}
-  .midi-tool .score-status:empty{display:none;padding:0}
-  .midi-tool .score-actions{display:flex;margin:12px 0 0}
-  .midi-tool .score-actions .act{flex:0 1 auto;min-width:auto;height:44px;padding:0 18px;font-size:13.5px}
-
-  /* Printing sends the score alone to the page. `visibility` rather than `display` keeps the
-     layout intact, so VexFlow's already-drawn SVG is not re-flowed into something else. */
-  @media print {
-    body * { visibility: hidden; }
-    .midi-tool #mt-view-score, .midi-tool #mt-view-score * { visibility: visible; }
-    .midi-tool #mt-view-score { position: absolute; left: 0; top: 0; width: 100%; }
-    .midi-tool .score-paper { padding: 0; overflow: visible; }
-    .midi-tool .score-actions, .midi-tool #mt-view-score .roll-hint { display: none; }
-  }
-</style>

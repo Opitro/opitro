@@ -1,0 +1,306 @@
+.audio-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+  .audio-tool .drop:hover,.audio-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
+  .audio-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
+  .audio-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .audio-tool .drop .small{font-size:12px;color:var(--muted)}
+  .audio-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
+  .audio-tool input[type=file]{display:none}
+
+  .audio-tool .panel{display:none;margin-top:8px}
+  .audio-tool .panel.on{display:block}
+  /* 12px radius and a 48px-tall row, same as every other control -- the chip used to sit on a
+     10px radius and a slightly different height, which is the sort of half-pixel mismatch you
+     feel as "not quite tidy" without being able to point at it. */
+  .audio-tool .fileinfo:empty,.audio-tool .filelist:empty{display:none}
+  .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
+  .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
+  .audio-tool .fi-row{display:flex;align-items:center;gap:10px}
+  /* Bars, not a music note: it echoes the waveform in the player directly below, so the chip
+     and the track read as the same object rather than two unrelated widgets. */
+  .audio-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
+  .audio-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .audio-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  /* Real 30px round targets rather than bare glyphs -- these were the only controls on the page
+     with no hit area to speak of. Swap and remove are the same shape and size because they're
+     the same kind of thing (something you do to the file), and differ only on hover: green for
+     the harmless one, red for the destructive one. */
+  .audio-tool .fi-act,.audio-tool .filelist-remove,.audio-tool .filelist-move{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .audio-tool .fi-act .i,.audio-tool .filelist-remove .i,.audio-tool .filelist-move .i{width:15px;height:15px}
+  .audio-tool .filelist-move:hover:not(:disabled){color:var(--accent);background:rgba(74,222,158,0.14)}
+  .audio-tool .filelist-move:disabled{opacity:.25;cursor:not-allowed}
+  .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
+  .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+  .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
+  .audio-tool .filelist-item span{flex:1;min-width:0}
+  .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
+  .audio-tool .filelist-play:hover{background:rgba(74,222,158,0.15)}
+  .audio-tool .filelist-play .ico{width:16px;height:16px}
+
+  .audio-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:6px;user-select:none;cursor:pointer}
+  .audio-tool canvas{display:block;width:100%;height:130px}
+  .audio-tool .wave-shell.simple-preview{display:flex;align-items:center;gap:12px;padding:18px 20px}
+  .audio-tool .simple-preview-ico{width:26px;height:26px;color:var(--accent);flex:none}
+  .audio-tool .simple-preview-text{font-size:14px;color:var(--muted)}
+  .audio-tool .sel-overlay{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.14);border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab;display:flex;align-items:center;justify-content:center}
+  .audio-tool .sel-overlay:active{cursor:grabbing}
+  .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
+  .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
+  .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
+  /* Recorder: one big target, red while live. Same disc geometry as the noise player. */
+  /* A report, not a control panel: one clear answer, then the numbers behind it. */
+  .audio-tool .analysis{margin:4px 0 18px}
+  .audio-tool .an-headline{font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:16px;line-height:1.3}
+  .audio-tool .an-rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
+  .audio-tool .an-row{display:flex;align-items:center;justify-content:space-between;gap:14px;padding:12px 16px;background:var(--surface);font-size:13.5px}
+  .audio-tool .an-label{color:var(--muted)}
+  .audio-tool .an-value{color:var(--text);font-weight:600;font-variant-numeric:tabular-nums;text-align:right}
+  .audio-tool .an-ok .an-value{color:var(--accent)}
+  .audio-tool .an-bad .an-value{color:#ff7a90}
+  .audio-tool .an-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:12px}
+  .audio-tool .an-empty{font-size:13px;color:var(--muted);text-align:center;padding:18px}
+
+  .audio-tool .rec-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 20px}
+  .audio-tool .rec-row{display:flex;align-items:center;gap:18px}
+  /* Flanking the record button, and smaller than it: they are the second and third things you
+     reach for, and the sizes should say so before you read the icons. */
+  .audio-tool .rec-side{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);
+    color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s,opacity .2s}
+  .audio-tool .rec-side:hover:not(:disabled){transform:scale(1.06);border-color:rgba(255,255,255,0.25)}
+  .audio-tool .rec-side:disabled{opacity:.3;cursor:not-allowed;transform:none}
+  .audio-tool .rec-side .ico{width:19px;height:19px}
+  .audio-tool .rec-meter{width:220px;max-width:70%;height:4px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;opacity:0;transition:opacity .25s}
+  .audio-tool .rec-meter.on{opacity:1}
+  .audio-tool .rec-meter-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
+  /* Red at the top of the scale: the one thing a level bar must tell you is when it is clipping. */
+  .audio-tool .rec-meter-fill.hot{background:#ff3a5e}
+  .audio-tool .rec-btn{width:88px;height:88px;border-radius:50%;border:2px solid var(--line);background:var(--surface-2);
+    cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s}
+  .audio-tool .rec-btn:hover{transform:scale(1.04);border-color:#ff3a5e}
+  .audio-tool .rec-dot{width:32px;height:32px;border-radius:50%;background:#ff3a5e;transition:border-radius .2s,width .2s,height .2s}
+  .audio-tool .rec-btn.recording{border-color:#ff3a5e;box-shadow:0 0 0 6px rgba(255,58,94,0.12)}
+  .audio-tool .rec-btn.recording .rec-dot{border-radius:6px;width:26px;height:26px}
+  .audio-tool .rec-time{font-size:26px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+  .audio-tool .rec-state{font-size:13px;color:var(--muted);text-align:center;max-width:34ch;line-height:1.45}
+
+  /* Noise: the play control is the page, so it is sized like it. */
+  .audio-tool .noise-stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 0 22px}
+  .audio-tool .noise-play{width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;color:#08130d;
+    background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;
+    transition:transform .12s;box-shadow:0 8px 30px rgba(74,222,158,0.25)}
+  .audio-tool .noise-play:hover{transform:scale(1.04)}
+  .audio-tool .noise-play .ico{width:38px;height:38px}
+  .audio-tool .noise-state{font-size:13px;color:var(--muted);text-align:center;max-width:32ch;line-height:1.45}
+  .audio-tool .noise-dl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
+  .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
+  .audio-tool .preset-btn:hover{border-color:var(--accent)}
+  .audio-tool .preset-btn.active{border-color:var(--accent);background:rgba(74,222,158,0.14);color:var(--accent)}
+  .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
+  .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
+  .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
+  .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
+  .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.85;pointer-events:none;z-index:2;display:none}
+  .audio-tool .times{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px 14px}
+  .audio-tool .times b{color:var(--accent)}
+  /* Same green disc as the compact player's play button -- one play control across the site,
+     just parked next to the numbers it previews here. */
+  .audio-tool .times-play{width:40px;height:40px;margin-right:2px}
+  .audio-tool .times-play .ico{width:16px;height:16px}
+
+  .audio-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
+  /* ---- 10-band graphic EQ ----
+     Vertical sliders are declared two ways on purpose: `writing-mode` is the standardised
+     route (Chrome/Firefox), `-webkit-appearance: slider-vertical` is what Safari still needs.
+     `direction: rtl` is what puts the maximum at the TOP under writing-mode -- without it a
+     boost would read as dragging downward. */
+  /* ---- Fade in / fade out ----
+     Two side-by-side cards on desktop, stacked full-width on mobile so the sliders stay big
+     enough to drag with a thumb and nothing ever scrolls sideways. */
+  .audio-tool .fade-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
+  @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
+  .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
+  .audio-tool .pitch-card{margin-bottom:16px}
+  .audio-tool .speed-presets{grid-template-columns:repeat(6,1fr)}
+  @media(max-width:480px){.audio-tool .speed-presets{grid-template-columns:repeat(3,1fr)}}
+  .audio-tool .speed-presets .preset-card{padding:12px 6px}
+  .audio-tool .viz-preview-btn{width:100%;margin-bottom:14px}
+  .audio-tool .viz-player{margin-bottom:16px}
+  /* Fixed 16:9 box reserved up front, so a finished render drops into place instead of pushing
+     everything below it down the page. */
+  .audio-tool .viz-stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0a0b0d;border:1px solid var(--line)}
+  /* The video stays out of the flow until it actually has something to show. An empty
+     <video controls> still draws the browser's own big centred play button, which landed
+     right on top of the placeholder text on mobile. */
+  .audio-tool .viz-stage video{position:absolute;inset:0;width:100%;height:100%;display:none;background:#0a0b0d}
+  .audio-tool .viz-stage.has-video video{display:block}
+  .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:15px;color:rgba(210,215,228,0.9);line-height:1.55;max-width:34ch;margin:0 auto}
+  @media(max-width:640px){.audio-tool .viz-placeholder{font-size:13.5px;padding:16px}}
+  .audio-tool .viz-busy{position:absolute;inset:0;z-index:3;display:flex;align-items:center;justify-content:center;gap:12px;background:rgba(10,11,13,.82);color:var(--text);font-size:14.5px;font-weight:600;text-align:center;padding:20px}
+  .audio-tool .viz-spinner{width:20px;height:20px;flex:none;border:2px solid rgba(74,222,158,.25);border-top-color:var(--accent);border-radius:50%;animation:viz-spin .8s linear infinite}
+  @keyframes viz-spin{to{transform:rotate(360deg)}}
+  @media(prefers-reduced-motion:reduce){.audio-tool .viz-spinner{animation-duration:2.4s}}
+  .audio-tool .pc-badge{font-size:9px;letter-spacing:.05em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);border-radius:5px;padding:1px 5px;margin-top:2px}
+  .audio-tool .viz-note{font-size:12.5px;color:var(--muted);line-height:1.5;margin-top:10px}
+  .audio-tool .viz-estimate{display:none;font-size:14px;font-weight:700;color:var(--accent);margin-top:12px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);border-radius:9px;padding:10px 13px;text-align:center}
+  .audio-tool .viz-hint{font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-bottom:14px}
+  .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
+  .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
+  .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
+  /* Sits over the waveform, so pointer-events off -- tapping there must still seek. */
+  .audio-tool .fade-region{position:absolute;top:0;bottom:0;z-index:2;pointer-events:none;display:none}
+  .audio-tool .fade-region-in{background:linear-gradient(90deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
+  .audio-tool .fade-region-out{background:linear-gradient(270deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
+  /* Sits directly under the export row, so it aligns with it rather than centring on the page. */
+  .audio-tool .ready-note{font-size:12.5px;color:var(--accent);margin:-4px 0 14px}
+
+  .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
+  /* Reset is the only button here now that "upload a different file" moved onto the file chip.
+     It used to be one of two halves; left to grow it stretched the full width, which is exactly
+     the overstatement we just took off the other page. Sized to its own label instead. */
+  /* Scoped through .eq-toolbar to outweigh the base "button.act{flex:1}", which is declared
+     later in this stylesheet and otherwise wins on equal specificity. */
+  .audio-tool .eq-toolbar button.eq-reset-btn{flex:0 0 auto;min-width:0;padding:10px 16px;font-size:13px}
+  .audio-tool .eq-bands-scroll{overflow-x:auto;overflow-y:hidden;margin-bottom:18px;padding-bottom:4px}
+  .audio-tool .eq-bands{display:flex;gap:6px;min-width:min-content;justify-content:space-between}
+  .audio-tool .eq-band{flex:1 0 48px;min-width:48px;display:flex;flex-direction:column;align-items:center;gap:7px;cursor:default}
+  .audio-tool .eq-band-val{font-size:11.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
+  .audio-tool .eq-band-freq{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .audio-tool .eq-band-role{font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.75;text-align:center;line-height:1.15;margin-top:-3px}
+  .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
+  /* The vertical slider is done with `writing-mode: vertical-rl` + `direction: rtl`, which is the
+     standard route (Chrome 121+, Firefox 129+, Safari 17.4+).
+     The old `-webkit-appearance: slider-vertical` is deliberately NOT here, in any form. Chrome
+     counts that value as a deprecated API when it *parses* the stylesheet, so hiding it behind
+     @supports does not help -- two different Safari-only guards were tried and Chrome reported it
+     both times. The cost of leaving it out is that Safari older than 17.4 (March 2024) draws the
+     thumb travelling sideways in a tall box; the slider still works. */
+  @media(max-width:768px){.audio-tool .eq-bands{justify-content:flex-start}.audio-tool .eq-band{flex:0 0 48px}}
+
+  .audio-tool .wave-duration b{color:var(--text)}
+
+  .audio-tool .eq-row .field{min-width:110px}
+  .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
+  .audio-tool .row .field{margin-bottom:0}
+  /* `.field-cap` is the caption for a group of buttons. It looks exactly like a field label but is
+     not a <label>, because a <label> with no form control to point at is an accessibility error --
+     Chrome reports it as FormLabelHasNeitherForNorNestedInput. The group carries aria-labelledby. */
+  .audio-tool .field label,
+  .audio-tool .field .field-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .audio-tool .format-hint{font-size:12.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5}
+  .audio-tool .field select,.audio-tool .field input[type=text],.audio-tool .field input[type=number]{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer}
+  .audio-tool .field input[type=text],.audio-tool .field input[type=number]{cursor:text}
+  .audio-tool .field select:focus,.audio-tool .field input:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .audio-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
+
+  /* --- The deck: setting, format, action on one line ------------------------------------- */
+  /* One height and one radius across every cell. The two dropdowns each hold their own share
+     of the space (the rate strings are the longest), the action takes the rest, and the whole
+     row folds by flex-basis when it genuinely runs out of room. */
+  .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
+  .audio-tool .deck .field{flex:1 1 200px;margin-bottom:0}
+  .audio-tool .deck .field-fmt{flex:0 1 130px}
+  /* No min-width:0 here on purpose: the automatic min-content floor is what stops the button
+     shrinking narrower than its own label. Without it the label wrapped to two lines inside a
+     fixed 48px box at around 600px wide (caught by measuring, not by looking). Now the row
+     folds to a second line instead, which is the behaviour that was asked for. */
+  /* min-width:auto overrides the 130px floor every .act carries, so the content-based minimum
+     applies and the button can't be squeezed narrower than its own label. Needs button.act.* to
+     outweigh the base rule's specificity -- with the plain class the floor silently won and the
+     label overflowed by a pixel or two at around 600px. Measured, not eyeballed. */
+  /* flex-basis:auto, i.e. the label's own width, is what decides where the row breaks. A fixed
+     210px basis made the button claim more than it needs and pushed itself onto a third line on
+     a phone; sized to its content, "format + download" stay together on one line under the rate,
+     which is the pairing that makes sense -- the format belongs to the download, not to the rate. */
+  .audio-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  .audio-tool .deck .field select{height:48px;border-radius:12px}
+  .audio-tool .act .i{width:17px;height:17px;flex:none}
+  .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
+
+  /* The native select arrow is drawn by the browser, so it looked different on every platform
+     and matched nothing else here. Replaced with the same 2px round-capped chevron the rest of
+     the icons use; the dropdown list itself stays native. */
+  .audio-tool .field select{
+    appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px;
+  }
+
+  .audio-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .audio-tool button.act:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .audio-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
+  .audio-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  .audio-tool .ico{width:16px;height:16px;flex:none}
+
+  /* Always occupies its (tiny) space and only fades in/out -- toggling display made the whole
+     page jump every time processing started or finished. Just the bar, no caption: the label
+     under it said nothing the bar itself didn't already show. */
+  /* Deliberately understated: 2px, semi-transparent, and a slow fade. The slow fade-in is the
+     point -- a quick operation now barely registers instead of flashing a bright bar, while a
+     genuinely long one still ramps up to clearly visible. */
+  .audio-tool .progress{height:2px;margin:10px 0;opacity:0;transition:opacity .35s ease}
+  .audio-tool .progress.on{opacity:.55}
+  .audio-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+  .audio-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+  .audio-tool .progress-text{display:none}
+
+  .audio-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
+  .audio-tool .err.show{display:block}
+
+  .audio-tool .targets-title{font-size:13px;color:var(--muted);margin-bottom:12px;text-align:center}
+  .audio-tool .targets{display:grid;grid-template-columns:repeat(4,1fr);gap:10px;margin-bottom:16px}
+  @media(max-width:600px){.audio-tool .targets{grid-template-columns:repeat(2,1fr)}}
+  .audio-tool .target{cursor:pointer;border:1px solid var(--line);background:var(--surface-2);border-radius:13px;padding:16px 8px;text-align:center;transition:transform .12s,border-color .2s,background .2s;display:flex;flex-direction:column;align-items:center;gap:7px;font-family:inherit}
+  .audio-tool .target:hover{transform:translateY(-3px);border-color:var(--accent);background:rgba(74,222,158,0.06)}
+  .audio-tool .target:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .audio-tool .t-emoji{font-size:26px}
+  .audio-tool .t-name{font-size:12.5px;font-weight:600;color:var(--text);line-height:1.25}
+  .audio-tool .t-fmt{font-size:10px;color:var(--muted);letter-spacing:.05em}
+
+  .audio-tool .guide{display:none;margin-top:16px;background:var(--surface);border:1px solid rgba(74,222,158,0.25);border-radius:14px;padding:14px 16px;font-size:13px;line-height:1.6;color:var(--muted)}
+  .audio-tool .guide.on{display:block}
+
+  .audio-tool .preset-cards{display:grid;grid-template-columns:repeat(3,1fr);gap:10px;margin-bottom:16px}
+  @media(max-width:480px){.audio-tool .preset-cards{grid-template-columns:repeat(2,1fr)}}
+  .audio-tool .preset-card{cursor:pointer;border:1px solid var(--line);background:var(--surface-2);border-radius:13px;padding:14px 8px;text-align:center;transition:transform .12s,border-color .2s,background .2s;display:flex;flex-direction:column;align-items:center;gap:6px;font-family:inherit}
+  .audio-tool .preset-card:hover{transform:translateY(-2px);border-color:var(--accent)}
+  .audio-tool .preset-card.active{border-color:var(--accent);background:rgba(74,222,158,0.1);box-shadow:0 0 0 1px var(--accent) inset}
+  .audio-tool .preset-card:disabled{opacity:.45;cursor:not-allowed;transform:none}
+  .audio-tool .pc-emoji{font-size:24px}
+  .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
+
+  /* Compact inline preview (enhance): round play button + a short waveform + duration, all in
+     one row -- matches timbrica's layout, and doesn't need the full-height canvas since there
+     are no trim handles to draw here. */
+  .audio-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:12px 16px}
+  .audio-tool .wave-shell.compact canvas{height:44px;width:auto;flex:1}
+  .audio-tool .wave-play-btn{flex:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#08130d}
+  .audio-tool .wave-play-btn:hover{transform:scale(1.05)}
+  .audio-tool .wave-play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
+  .audio-tool .wave-play-btn .ico{width:18px;height:18px}
+  .audio-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+
+  /* Before/After as one pill with a moving highlight, not two separate play controls --
+     matches timbrica's "До / После" switch. */
+  .audio-tool .ab-pill{display:none;background:var(--surface-2);border:1px solid var(--line);border-radius:11px;padding:4px;margin-top:14px}
+  .audio-tool .ab-pill-seg{flex:1;font-family:inherit;font-size:13.5px;font-weight:700;cursor:pointer;background:none;border:none;color:var(--muted);padding:10px;border-radius:8px;transition:background .15s,color .15s}
+  .audio-tool .ab-pill-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+  .audio-tool .ab-pill-seg:not(:disabled):not(.active):hover{color:var(--text)}
+  .audio-tool .ab-pill-seg:disabled{opacity:.35;cursor:not-allowed}
+
+  .audio-tool .hero-btn{width:100%;font-size:16px;padding:18px;margin-bottom:12px}
+  .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
+  .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
+
+  /* Plain info, not a button -- no border/background box, just small labels sitting directly
+     under the player where they describe the file you just loaded. */
+  .audio-tool .file-meta{display:none;flex-wrap:wrap;gap:6px 18px;margin:12px 0 18px}
+  .audio-tool .fm-item{display:flex;align-items:baseline;gap:5px}
+  .audio-tool .fm-key{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
+  .audio-tool .fm-val{font-size:12px;font-weight:600;color:var(--text)}
+
+  /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
+     "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps
+     the waveform inset from the edge specifically on narrow viewports. The compact preview
+     (enhance) has nothing to drag -- tap-to-seek only -- so it doesn't need the inset and can
+     use the full width. */
+  @media(max-width:640px){.audio-tool .wave-shell:not(.compact){margin-left:20px;margin-right:20px}}

@@ -1,0 +1,113 @@
+.stt-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+  .stt-tool .drop:hover,.stt-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
+  .stt-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
+  .stt-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .stt-tool .drop .small{font-size:12px;color:var(--muted)}
+  .stt-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
+  .stt-tool input[type=file]{display:none}
+
+  /* The dictation page opens on the microphone, so it gets a line of plain guidance where the
+     other page has its drop zone. */
+  .stt-tool .voice-lead{font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 16px;text-align:center;max-width:52ch;margin-left:auto;margin-right:auto}
+  .stt-tool .mic-row{display:flex;align-items:center;gap:14px}
+  .stt-tool button.act.mic-btn{flex:1;min-width:auto}
+  .stt-tool .mic-btn.on{border-color:#ff3a5e;background:rgba(255,58,94,0.12);color:#ffb3c0}
+  .stt-tool .mic-time{font-size:15px;font-variant-numeric:tabular-nums;color:var(--text);min-width:44px}
+  .stt-tool .mic-time:empty{display:none}
+
+  .stt-tool .panel{display:none;margin-top:8px}
+  .stt-tool .panel.on{display:block}
+  .stt-tool .fileinfo:empty{display:none}
+  .stt-tool .fileinfo{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
+  .stt-tool .fi-row{display:flex;align-items:center;gap:10px}
+  .stt-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
+  .stt-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .stt-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  .stt-tool .fi-act{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .stt-tool .fi-act .i{width:15px;height:15px}
+  .stt-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
+  .stt-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+
+  .stt-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px;user-select:none;cursor:pointer;display:none}
+  .stt-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px}
+  .stt-tool .wave-shell canvas{display:block;width:100%;height:52px;flex:1;min-width:0}
+  .stt-tool .wave-play-btn{flex:none;width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#08130d;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .2s}
+  .stt-tool .wave-play-btn:hover:not(:disabled){transform:scale(1.06)}
+  .stt-tool .wave-play-btn:disabled{opacity:.35;cursor:not-allowed}
+  .stt-tool .wave-play-btn .ico{width:17px;height:17px}
+  .stt-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .stt-tool .wave-duration b{color:var(--text);font-weight:600}
+  .stt-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
+
+  .stt-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  /* Layout.astro carries a global `.field{margin-bottom:16px}`. Left standing inside the export
+     row it made the field's outer box 16px taller than the select, and `align-items:flex-end`
+     then put the download button 16px BELOW the format list — side by side but not on the same
+     line, which is exactly how it looked. The audio tools cancel the same rule; this one didn't. */
+  .stt-tool .field{flex:1 1 200px;min-width:150px;margin-bottom:0}
+  .stt-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .stt-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
+  .stt-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .stt-tool .check-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin:2px 0 4px;padding:10px 12px;
+    border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s}
+  .stt-tool .check-row:hover{border-color:rgba(74,222,158,0.4)}
+  .stt-tool .check-row input{width:18px;height:18px;flex:none;accent-color:var(--accent);margin-top:1px;cursor:pointer}
+  .stt-tool .check-row b{display:block;font-size:13.5px;color:var(--text);font-weight:600}
+  .stt-tool .check-hint{display:block;font-size:12px;color:var(--muted);line-height:1.45;margin-top:3px}
+  .stt-tool .format-hint{font-size:12.5px;color:var(--muted);margin:8px 0 4px;line-height:1.5}
+
+  .stt-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
+  .stt-tool .progress.on{opacity:.55}
+  .stt-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+  .stt-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+  /* A 239 MB download and a multi-minute transcription both need words, not just a hairline bar. */
+  .stt-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px;
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .stt-tool .stage-text:has(span:empty:only-child){margin:0}
+  /* Tabular digits so a ticking clock does not jiggle the line it sits on. */
+  .stt-tool .stage-clock{font-variant-numeric:tabular-nums;color:var(--text);opacity:.85}
+  .stt-tool .stage-clock:empty{display:none}
+
+  .stt-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .stt-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .stt-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .stt-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
+  .stt-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  .stt-tool .ico{width:16px;height:16px;flex:none}
+  .stt-tool .act .i{width:17px;height:17px;flex:none}
+
+  /* auto-fit rather than a fixed three: the language cell only appears when it was detected, and
+     a fourth item in a three-column grid left an empty box sitting there looking unfinished. */
+  .stt-tool .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 16px}
+  .stt-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
+  .stt-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .stt-tool .sum-value{font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+
+  .stt-tool .view-toggle{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px;width:fit-content}
+  .stt-tool .vt-seg{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:7px;padding:7px 12px;transition:background .15s,color .15s}
+  .stt-tool .vt-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+
+  /* Reading width and line height matter more here than anywhere else on the site -- this is the
+     one tool whose output someone actually sits and reads. */
+  .stt-tool textarea{width:100%;min-height:320px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--text);
+    font-family:inherit;font-size:15px;line-height:1.65;padding:16px 18px;white-space:pre-wrap}
+  .stt-tool textarea:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .stt-tool .text-note{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px}
+  .stt-tool .text-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+  .stt-tool .text-actions .act{flex:1 1 160px;height:46px;padding:0 16px;font-size:13.5px}
+
+  .stt-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
+  .stt-tool .deck .field{flex:1 1 200px}
+  /* The format names are short (TXT, SRT, VTT) so this cell needs far less room than the
+     button's label. At 150px the row folded to two lines on a 360px phone, which is where a lot
+     of Android screens sit. Measured from 320 to 1280. */
+  .stt-tool .deck .field-fmt{flex:0 1 116px;min-width:96px}
+  .stt-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  .stt-tool .deck .field select{height:48px;border-radius:12px}
+  .stt-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+
+  .stt-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
+  .stt-tool .err.show{display:block}
