@@ -5,7 +5,7 @@
 // format/codec transcoding (convert, ringtone's final export), reading a video container
 // (video-to-audio), muxing a video output (visualizer), and spectral noise reduction
 // (denoise/enhance -- no native noise-reduction node exists in Web Audio).
-import { wsolaStretch, pitchShift, resampleLinear } from './web-audio-engine.js';
+import { wsolaStretch, pitchShift, resampleLinear, sliceBuffer } from './web-audio-engine.js';
 
 // Where the cuts fall, for a given file and settings. One function so the "you'll get N parts"
 // line and the export can never disagree.
@@ -1131,14 +1131,25 @@ export const AUDIO_TOOLS = {
 
   dictaphone: {
     // Input is the microphone, not a file. Once a recording exists it behaves exactly like an
-    // uploaded one, so it opts into the same player, info strip and export bar.
-    compactPreview: true,
-    transport: true,
+    // uploaded one, so it opts into the same waveform, info strip and export bar.
+    //
+    // The waveform is the full-width band rather than the compact player: on this page it is the
+    // thing being edited, not a preview strip, and the transport lives next to the record button
+    // where the hand already is -- play on the left of it, pause on the right.
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     engine: 'webaudio',
     controls: 'recorder',
-    render: (oc, src) => src,
+    // Handles on the waveform, and the selection is what gets saved: drag the two edges in and
+    // press download. Every take starts with the gap before you speak and ends with the reach
+    // for the stop button, and those are what you drag off.
+    trimSelection: true,
+    directRender: (buffer, { start, end }) => {
+      const s = start || 0;
+      const e = end ?? buffer.duration;
+      if (s <= 0.001 && e >= buffer.duration - 0.001) return buffer;
+      return sliceBuffer(buffer, s, e);
+    },
   },
   'vocal-range': {
     engine: 'webaudio',

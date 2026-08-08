@@ -804,3 +804,4 @@ export function detectBpm(buffer) {
   const lag = bestLag + Math.max(-1, Math.min(1, shift));
   return Math.round(60 / (lag * frameSec));
 }
+

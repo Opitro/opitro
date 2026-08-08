@@ -32,7 +32,9 @@ const isRecorder = controls === 'recorder';
 // Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
 // doesn't map cleanly onto "several files queued for conversion".
 const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise;
-const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets';
+// Trimming is a capability, not a kind of tool: the recorder wants the handles too, so it asks
+// for them by config instead of being added to a growing list of control names here.
+const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets' || !!config.trimSelection;
 const isFfmpeg = config.engine === 'ffmpeg';
 const isRingtoneTargets = controls === 'ringtone-targets';
 const accept = config.accept || 'audio/*';
@@ -171,7 +173,7 @@ const ICO = {
         <span>{labels.endLabel}: <b id="t-end">0:00.0</b></span>
       </div>
     )}
-    {showTrimHandles && (
+    {showTrimHandles && controls !== 'recorder' && (
       <div class="row">
         <div class="field">
           <label for="in-start">{labels.startSecLabel}</label>
@@ -586,10 +588,23 @@ const ICO = {
 
     {controls === 'recorder' && (
       <div class="rec-stage">
-        <button type="button" class="rec-btn" id="rec-btn" aria-label={labels.recStartLabel}>
-          <span class="rec-dot" id="rec-dot"></span>
-        </button>
+        {/* Listen on the left, record in the middle, pause on the right: the red button is the
+            one thing you came here to press, so it sits in the centre and the other two flank it. */}
+        <div class="rec-row">
+          <button type="button" class="rec-side" id="rec-play" disabled aria-label={labels.recPlayLabel}>
+            <svg class="ico" id="rec-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <button type="button" class="rec-btn" id="rec-btn" aria-label={labels.recStartLabel}>
+            <span class="rec-dot" id="rec-dot"></span>
+          </button>
+          <button type="button" class="rec-side" id="rec-pause" disabled aria-label={labels.recPauseLabel}>
+            <svg class="ico" id="rec-pause-ico" viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/></svg>
+          </button>
+        </div>
         <div class="rec-time" id="rec-time">0:00</div>
+        {/* A live level bar. The classic disaster is recording twenty minutes into a muted or
+            wrong microphone and only finding out at the end; a bar that moves proves it hears you. */}
+        <div class="rec-meter" id="rec-meter"><div class="rec-meter-fill" id="rec-meter-fill"></div></div>
         <div class="rec-state" id="rec-state">{labels.recIdleLabel}</div>
       </div>
     )}
@@ -825,6 +840,7 @@ const ICO = {
     // component frontmatter for why the outlined set stops there).
     const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
     const ICO_PAUSE = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+    const ICO_PAUSE_SOLID = ICO_PAUSE;
     // Outlined set, duplicated from the frontmatter ICO object because this runs client-side and
     // has no access to it. Keep the two in step.
     const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
@@ -1079,12 +1095,23 @@ const ICO = {
 
     function updateSel() {
       if (!waveShell) return;
-      const W = waveShell.clientWidth;
-      const x1 = (selStart / dur) * W;
-      const x2 = (selEnd / dur) * W;
+      // Against the CANVAS, not the shell -- px2t already measures that way, and in the compact
+      // player the canvas is inset by the play button and the time readout. Measured off the
+      // shell the handles would sit a button's width away from the sound they point at, which is
+      // the same mistake the playhead made before it was moved onto the canvas.
+      const base = waveCanvas ? waveCanvas.offsetLeft : 0;
+      const W = waveCanvas ? waveCanvas.clientWidth : waveShell.clientWidth;
+      const x1 = base + (selStart / dur) * W;
+      const x2 = base + (selEnd / dur) * W;
       if (selOverlay) { selOverlay.style.left = x1 + 'px'; selOverlay.style.width = (x2 - x1) + 'px'; }
-      if (hStart) hStart.style.left = (x1 - 7) + 'px';
-      if (hEnd) hEnd.style.left = (x2 - 7) + 'px';
+      // Kept fully inside the shell, which clips its overflow. Centred on the edge, a handle at
+      // 0:00 or at the very end lost half its width to the clip and could not be grabbed at all --
+      // and the end of a recording is exactly the edge people drag in.
+      const HW = 14;
+      const shellW = waveShell.clientWidth;
+      const clamp = (x) => Math.max(0, Math.min(shellW - HW, x - HW / 2));
+      if (hStart) hStart.style.left = clamp(x1) + 'px';
+      if (hEnd) hEnd.style.left = clamp(x2) + 'px';
       if (tStart) tStart.textContent = fmtTime(selStart);
       if (tEnd) tEnd.textContent = fmtTime(selEnd);
       if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
@@ -1666,22 +1693,78 @@ const ICO = {
     if (config.controls === 'recorder') {
       panel.classList.add('on');
       const recBtn = root.querySelector('#rec-btn');
+      const recPauseBtn = root.querySelector('#rec-pause');
+      const recPauseIco = root.querySelector('#rec-pause-ico');
+      const recPlayBtn = root.querySelector('#rec-play');
+      const recPlayIco = root.querySelector('#rec-play-ico');
       const recTimeEl = root.querySelector('#rec-time');
       const recStateEl = root.querySelector('#rec-state');
+      const meterEl = root.querySelector('#rec-meter');
+      const meterFill = root.querySelector('#rec-meter-fill');
       let mediaStream = null;
       let recorder = null;
       let chunks = [];
       let tick = 0;
-      let startedAt = 0;
+      // Elapsed time has to exclude the pauses, so it is accumulated per segment rather than
+      // measured from a single start stamp -- otherwise a two-minute pause would be counted as
+      // two minutes of recording and the timer would disagree with the file.
+      let recordedMs = 0;
+      let segmentStart = 0;
+      let meterCtx = null;
+      let meterRaf = 0;
 
       function stopTimer() { if (tick) { clearInterval(tick); tick = 0; } }
-      function setRecording(on) {
-        recBtn.classList.toggle('recording', on);
-        recStateEl.textContent = on ? labels.recRecordingLabel : labels.recIdleLabel;
-        recBtn.setAttribute('aria-label', on ? labels.recStopLabel : labels.recStartLabel);
+      function elapsedMs() {
+        return recordedMs + (segmentStart ? Date.now() - segmentStart : 0);
       }
+      function showTime() {
+        const secs = Math.floor(elapsedMs() / 1000);
+        recTimeEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
+      }
+      function setRecording(on, paused) {
+        recBtn.classList.toggle('recording', on);
+        recStateEl.textContent = on
+          ? (paused ? labels.recPausedLabel : labels.recRecordingLabel)
+          : labels.recIdleLabel;
+        recBtn.setAttribute('aria-label', on ? labels.recStopLabel : labels.recStartLabel);
+        recPauseBtn.disabled = !on;
+        recPauseIco.innerHTML = paused ? ICO_PLAY : ICO_PAUSE_SOLID;
+        recPauseBtn.setAttribute('aria-label', paused ? labels.recResumeLabel : labels.recPauseLabel);
+        if (meterEl) meterEl.classList.toggle('on', on && !paused);
+      }
+      function startMeter(stream) {
+        stopMeter();
+        try {
+          meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+          const src = meterCtx.createMediaStreamSource(stream);
+          const an = meterCtx.createAnalyser();
+          an.fftSize = 1024;
+          src.connect(an);
+          const buf = new Float32Array(an.fftSize);
+          let shown = 0;
+          const draw = () => {
+            an.getFloatTimeDomainData(buf);
+            let peak = 0;
+            for (const v of buf) { const a = Math.abs(v); if (a > peak) peak = a; }
+            // Falls back gently rather than snapping to zero between syllables, so the bar reads
+            // as a level and not as a strobe.
+            shown = Math.max(peak, shown * 0.88);
+            meterFill.style.width = Math.min(100, shown * 140) + '%';
+            meterFill.classList.toggle('hot', shown > 0.92);
+            meterRaf = requestAnimationFrame(draw);
+          };
+          draw();
+        } catch (e) { /* a level bar is a nicety; never let it stop a recording */ }
+      }
+      function stopMeter() {
+        cancelAnimationFrame(meterRaf);
+        meterRaf = 0;
+        if (meterFill) { meterFill.style.width = '0%'; meterFill.classList.remove('hot'); }
+        if (meterCtx) { try { meterCtx.close(); } catch (e) {} meterCtx = null; }
+      }
+
       recBtn.addEventListener('click', async () => {
-        if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+        if (recorder && recorder.state !== 'inactive') { recorder.stop(); return; }
         clearError();
         // Asked for on the click, so the browser attributes the permission prompt to a gesture.
         try {
@@ -1696,27 +1779,69 @@ const ICO = {
         }
         window.dispatchEvent(new Event('opitro:tool-interaction'));
         chunks = [];
+        recordedMs = 0;
         recorder = new MediaRecorder(mediaStream);
         recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
         recorder.onstop = async () => {
           stopTimer();
-          setRecording(false);
+          stopMeter();
+          segmentStart = 0;
+          setRecording(false, false);
           mediaStream.getTracks().forEach((t) => t.stop());
           const blob = new Blob(chunks, { type: recorder.mimeType || 'audio/webm' });
           const ext = (recorder.mimeType || '').includes('ogg') ? 'ogg' : 'webm';
           // From here it is just a file: pickFile draws the waveform, fills the info strip and
           // enables the export bar exactly as it would for an upload.
           await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
+          if (recPlayBtn) recPlayBtn.disabled = !sourceBuffer;
         };
         recorder.start();
-        startedAt = Date.now();
-        setRecording(true);
+        segmentStart = Date.now();
+        setRecording(true, false);
+        if (recPlayBtn) recPlayBtn.disabled = true;
         recTimeEl.textContent = '0:00';
-        tick = setInterval(() => {
-          const secs = Math.floor((Date.now() - startedAt) / 1000);
-          recTimeEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
-        }, 250);
+        startMeter(mediaStream);
+        tick = setInterval(showTime, 250);
       });
+
+      // Pause and carry on. MediaRecorder keeps the same output, so the parts join seamlessly --
+      // there is no second file and nothing to stitch afterwards.
+      recPauseBtn.addEventListener('click', () => {
+        if (!recorder || recorder.state === 'inactive') return;
+        if (recorder.state === 'recording') {
+          recorder.pause();
+          recordedMs += Date.now() - segmentStart;
+          segmentStart = 0;
+          stopMeter();
+          setRecording(true, true);
+        } else {
+          recorder.resume();
+          segmentStart = Date.now();
+          startMeter(mediaStream);
+          setRecording(true, false);
+        }
+        showTime();
+      });
+
+      // Plays the part between the handles, so what you hear is what will be saved.
+      recPlayBtn.addEventListener('click', () => {
+        if (!sourceBuffer) return;
+        player.unlock();
+        if (player.isPlaying()) {
+          player.pause();
+          recPlayIco.innerHTML = ICO_PLAY;
+          return;
+        }
+        recPlayIco.innerHTML = ICO_PAUSE_SOLID;
+        const from = Math.max(0, selStart);
+        const to = selEnd > from + 0.05 ? selEnd : sourceBuffer.duration;
+        player.play(
+          sliceBuffer(sourceBuffer, from, to),
+          (frac) => setPlayheadTime(from + (to - from) * frac),
+          () => { recPlayIco.innerHTML = ICO_PLAY; if (playhead) playhead.style.display = 'none'; player.reset(); }
+        );
+      });
+
     }
 
     if (drop) {
@@ -2145,6 +2270,8 @@ if (config.controls === 'speed1') {
         return !!sourceBuffer && f > 0 && t > 0 && Math.abs(f - t) >= 1;
       }
       if (config.controls === 'multi-file') return files.length >= 2;
+      // Nothing has been recorded yet -- the export bar must not look ready.
+      if (config.controls === 'recorder') return !!sourceBuffer;
       return true;
     }
 
@@ -2914,7 +3041,7 @@ if (config.controls === 'speed1') {
       if (get('#ctrl-split-value')) params.splitValue = Number(get('#ctrl-split-value').value) || 0;
       if (get('#ctrl-silence-start')) params.silenceStart = Number(get('#ctrl-silence-start').value) || 0;
       if (get('#ctrl-silence-end')) params.silenceEnd = Number(get('#ctrl-silence-end').value) || 0;
-      if (config.controls === 'trim' || config.controls === 'ringtone-targets') { params.start = selStart; params.end = selEnd; }
+      if (config.controls === 'trim' || config.controls === 'ringtone-targets' || config.trimSelection) { params.start = selStart; params.end = selEnd; }
       return params;
     }
 
@@ -3055,8 +3182,10 @@ if (config.controls === 'speed1') {
             renderedBuffer,
             (frac) => {
               if (!waveShell) return;
-              const base = config.controls === 'trim' ? selStart : 0;
-              const range = config.controls === 'trim' ? (selEnd - selStart) : renderedBuffer.duration;
+              // What plays back is the SELECTION, so the marker has to be mapped onto it.
+              const trimmed = config.controls === 'trim' || config.trimSelection;
+              const base = trimmed ? selStart : 0;
+              const range = trimmed ? (selEnd - selStart) : renderedBuffer.duration;
               setPlayheadTime(base + range * frac);
             },
             () => { listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
@@ -3615,6 +3744,19 @@ if (config.controls === 'speed1') {
   .audio-tool .an-empty{font-size:13px;color:var(--muted);text-align:center;padding:18px}
 
   .audio-tool .rec-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 20px}
+  .audio-tool .rec-row{display:flex;align-items:center;gap:18px}
+  /* Flanking the record button, and smaller than it: they are the second and third things you
+     reach for, and the sizes should say so before you read the icons. */
+  .audio-tool .rec-side{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);
+    color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s,opacity .2s}
+  .audio-tool .rec-side:hover:not(:disabled){transform:scale(1.06);border-color:rgba(255,255,255,0.25)}
+  .audio-tool .rec-side:disabled{opacity:.3;cursor:not-allowed;transform:none}
+  .audio-tool .rec-side .ico{width:19px;height:19px}
+  .audio-tool .rec-meter{width:220px;max-width:70%;height:4px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;opacity:0;transition:opacity .25s}
+  .audio-tool .rec-meter.on{opacity:1}
+  .audio-tool .rec-meter-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
+  /* Red at the top of the scale: the one thing a level bar must tell you is when it is clipping. */
+  .audio-tool .rec-meter-fill.hot{background:#ff3a5e}
   .audio-tool .rec-btn{width:88px;height:88px;border-radius:50%;border:2px solid var(--line);background:var(--surface-2);
     cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s}
   .audio-tool .rec-btn:hover{transform:scale(1.04);border-color:#ff3a5e}
