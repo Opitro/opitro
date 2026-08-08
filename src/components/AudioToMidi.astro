@@ -57,7 +57,8 @@ const ICO = {
     <div class="stage-text" id="mt-stage"></div>
 
     <div class="controls" id="mt-run-row">
-      <button type="button" class="act primary" id="mt-run">
+      {/* Disabled until a file is loaded -- see the note on resetAll(). */}
+      <button type="button" class="act primary" id="mt-run" disabled>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.notes} />
         <span id="mt-run-label">{labels.midiRunLabel}</span>
       </button>

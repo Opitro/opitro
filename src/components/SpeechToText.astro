@@ -1,0 +1,737 @@
+---
+// Speech to text. Its own component for the same reason AudioToMidi is: the output is text, not
+// a buffer, so none of AudioTool's render/export machinery applies.
+//
+// Whisper via transformers.js, running in the visitor's own browser. The model is downloaded from
+// a CDN; the recording is not uploaded anywhere, which is what lets this page carry the same
+// promise as every other page here.
+//
+// Deliberately NOT the browser's built-in SpeechRecognition, which is what the reference
+// implementation used: that one is microphone-only (it cannot transcribe a file at all), works
+// only in Chrome and Edge, and sends the audio to Google's servers. See project-browser-models.
+import AdSlot from './AdSlot.astro';
+
+interface Props {
+  locale: string;
+  labels: Record<string, any>;
+  // 'file'  — a recording you already have: lectures, interviews, subtitles for video.
+  // 'voice' — speaking into the microphone right now.
+  // Two pages, one component: the work is identical, but the two are different jobs people search
+  // for in different words, and each page is simpler for dropping the other one's controls.
+  mode?: 'file' | 'voice';
+}
+
+const { locale, labels, mode = 'file' } = Astro.props;
+const isVoice = mode === 'voice';
+
+const ICO = {
+  download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
+  copy: '<rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>',
+  check: '<polyline points="20 6 9 17 4 12"/>',
+  text: '<path d="M4 7V4h16v3"/><path d="M9 20h6"/><path d="M12 4v16"/>',
+  trash: '<path d="M3 6h18"/><path d="M8 6V4h8v2"/><path d="M19 6l-1 14a2 2 0 0 1-2 2H8a2 2 0 0 1-2-2L5 6"/>',
+};
+---
+
+<div class="stt-tool" data-locale={locale} data-mode={mode} data-labels={JSON.stringify(labels)}>
+  {!isVoice && (
+  <div class="drop" id="st-drop">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+    <div class="big">{labels.dropLabel}</div>
+    <div class="small">{labels.dropHint}</div>
+    <div class="small formats">{labels.sttAcceptsLabel}</div>
+  </div>
+  )}
+  <input type="file" id="st-file">
+
+  {isVoice && <div class="voice-lead">{labels.voiceLeadLabel}</div>}
+  {isVoice && (
+  <div class="mic-row" id="st-mic-row">
+    <button type="button" class="act mic-btn" id="st-mic">
+      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
+      <span id="st-mic-label">{labels.sttRecordLabel}</span>
+    </button>
+    <span class="mic-time" id="st-mic-time"></span>
+  </div>
+  )}
+
+  <div class="panel" id="st-panel">
+    <div class="fileinfo" id="st-fileinfo"></div>
+
+    <div class="wave-shell compact" id="st-wave-shell">
+      <button type="button" class="wave-play-btn" id="st-play" disabled aria-label={labels.listenSelectionLabel}>
+        <svg class="ico" id="st-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <canvas id="st-wave"></canvas>
+      <span class="wave-duration"><b id="st-cur">0:00</b> / <span id="st-total">0:00</span></span>
+      <div class="playhead" id="st-playhead"></div>
+    </div>
+
+    <div class="row" id="st-settings">
+      <div class="field">
+        <label for="st-lang">{labels.sttLanguageLabel}</label>
+        <select id="st-lang"></select>
+      </div>
+      <div class="field">
+        <label for="st-quality">{labels.sttQualityLabel}</label>
+        <select id="st-quality">
+          <option value="small" selected>{labels.sttQualityBestLabel}</option>
+          <option value="base">{labels.sttQualityFastLabel}</option>
+        </select>
+      </div>
+    </div>
+    <div class="format-hint" id="st-quality-hint"></div>
+
+    <div class="progress" id="st-progress">
+      <div class="progress-bar"><div class="progress-fill" id="st-progress-fill"></div></div>
+    </div>
+    <div class="stage-text" id="st-stage"></div>
+
+    <div class="controls" id="st-run-row">
+      {/* Disabled until a file is loaded. The panel hides it anyway, but a control that looks
+          live with nothing to act on is the same defect the audio tools had with download. */}
+      <button type="button" class="act primary" id="st-run" disabled>
+        <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.text} />
+        <span id="st-run-label">{labels.sttRunLabel}</span>
+      </button>
+    </div>
+
+    <div class="results" id="st-results" style="display:none">
+      <div class="summary" id="st-summary"></div>
+
+      {/* Timestamps and subtitles belong to a recording of something that happened; dictation is
+          just text, and the extra controls would only be in the way. */}
+      {!isVoice && (
+      <div class="view-toggle" id="st-view-toggle">
+        <button type="button" class="vt-seg active" data-view="plain">{labels.sttViewPlainLabel}</button>
+        <button type="button" class="vt-seg" data-view="stamped">{labels.sttViewStampedLabel}</button>
+      </div>
+      )}
+
+      {/* Editable on purpose. No recogniser is perfect, and fixing two words in place beats
+          copying the text somewhere else to fix it there. */}
+      <textarea id="st-text" spellcheck="true" aria-label={labels.sttTextAreaLabel}></textarea>
+      <div class="text-note" id="st-edit-note"></div>
+
+      <div class="text-actions">
+        <button type="button" class="act" id="st-copy">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.copy} />
+          <span id="st-copy-label">{labels.sttCopyLabel}</span>
+        </button>
+        <button type="button" class="act" id="st-clear">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.trash} />
+          {labels.sttClearLabel}
+        </button>
+      </div>
+
+      <div class="deck">
+        <div class="field field-fmt">
+          <label for="st-fmt">{labels.formatLabel}</label>
+          <select id="st-fmt">
+            <option value="txt">TXT</option>
+            {!isVoice && <option value="srt">SRT</option>}
+            {!isVoice && <option value="vtt">VTT</option>}
+          </select>
+        </div>
+        <button type="button" class="act primary deck-act" id="st-dl">
+          <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+          {labels.downloadResultLabel}
+        </button>
+      </div>
+      <div class="fmt-hint" id="st-fmt-hint"></div>
+    </div>
+
+    <div class="err" id="st-err"></div>
+  </div>
+</div>
+
+<script>
+  import { decodeFile, drawWaveform, createPlayer } from '../lib/web-audio-engine.js';
+  import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks } from '../lib/transcript-format.js';
+
+  // Pinned exactly. A floating tag would change everyone's results on a silent major bump.
+  const TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js';
+  // `rate` is seconds of work per second of audio, measured on this page (not on a benchmark
+  // harness) against 188 seconds of Russian speech on a desktop with the model already cached:
+  // the light model ran at 0.22x, the best one at 0.82x. That is nearly a fourfold difference and
+  // it decides whether an hour-long lecture takes thirteen minutes or fifty, so it is shown to
+  // the user for their actual file rather than left as a surprise.
+  const MODELS = {
+    small: { repo: 'onnx-community/whisper-small', mb: 240, rate: 0.82 },
+    base: { repo: 'onnx-community/whisper-base', mb: 76, rate: 0.22 },
+  };
+  const MODEL_RATE = 16000;   // what Whisper was trained on
+  const MAX_MINUTES = 60;
+  const WARN_MINUTES = 20;
+
+  // Whisper's own language names, which is what the pipeline expects.
+  const LANGUAGES = [
+    ['auto', 'sttLangAuto'], ['russian', 'sttLangRu'], ['ukrainian', 'sttLangUk'], ['english', 'sttLangEn'],
+    ['spanish', 'sttLangEs'], ['german', 'sttLangDe'], ['french', 'sttLangFr'], ['italian', 'sttLangIt'],
+    ['polish', 'sttLangPl'], ['portuguese', 'sttLangPt'], ['turkish', 'sttLangTr'], ['kazakh', 'sttLangKk'],
+    ['chinese', 'sttLangZh'], ['japanese', 'sttLangJa'], ['korean', 'sttLangKo'], ['arabic', 'sttLangAr'],
+  ];
+
+  const root = document.querySelector('.stt-tool');
+  if (root) {
+    const labels = JSON.parse(root.dataset.labels);
+    const isVoice = root.dataset.mode === 'voice';
+    const $ = (id) => root.querySelector('#' + id);
+
+    const drop = $('st-drop');
+    const fileInput = $('st-file');
+    const micRow = $('st-mic-row');
+    const micBtn = $('st-mic');
+    const micLabel = $('st-mic-label');
+    const micTime = $('st-mic-time');
+    const panel = $('st-panel');
+    const fileInfo = $('st-fileinfo');
+    const waveShell = $('st-wave-shell');
+    const waveCanvas = $('st-wave');
+    const playBtn = $('st-play');
+    const playIco = $('st-play-ico');
+    const curEl = $('st-cur');
+    const totalEl = $('st-total');
+    const playhead = $('st-playhead');
+    const langSel = $('st-lang');
+    const qualitySel = $('st-quality');
+    const qualityHint = $('st-quality-hint');
+    const progress = $('st-progress');
+    const progressFill = $('st-progress-fill');
+    const stageEl = $('st-stage');
+    const runRow = $('st-run-row');
+    const runBtn = $('st-run');
+    const runLabel = $('st-run-label');
+    const results = $('st-results');
+    const summaryEl = $('st-summary');
+    const viewToggle = $('st-view-toggle');
+    const textEl = $('st-text');
+    const editNote = $('st-edit-note');
+    const copyBtn = $('st-copy');
+    const copyLabel = $('st-copy-label');
+    const clearBtn = $('st-clear');
+    const fmtSelect = $('st-fmt');
+    const fmtHint = $('st-fmt-hint');
+    const dlBtn = $('st-dl');
+    const errBox = $('st-err');
+
+    const ICO_WAVE = '<path d="M4 10v4"/><path d="M8 6v12"/><path d="M12 9v6"/><path d="M16 4v16"/><path d="M20 10v4"/>';
+    const ICO_CLOSE = '<path d="M6 6l12 12"/><path d="M18 6L6 18"/>';
+    const ICO_UPLOAD = '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 8l5-5 5 5M12 3v12"/>';
+    const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
+    const ICO_PAUSE = '<rect x="6" y="5" width="4" height="14"/><rect x="14" y="5" width="4" height="14"/>';
+    const svgIco = (p, c) => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
+    const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
+
+    const player = createPlayer();
+    let file = null;
+    let sourceBuffer = null;
+    let asr = null;
+    let asrKey = '';
+    let chunks = [];
+    let edited = false;
+    let view = 'plain';
+    let rafId = 0;
+
+    for (const [value, key] of LANGUAGES) {
+      const o = document.createElement('option');
+      o.value = value;
+      o.textContent = labels[key] || value;
+      langSel.appendChild(o);
+    }
+    langSel.value = 'auto';
+
+    function showError(m) { errBox.textContent = m; errBox.classList.add('show'); }
+    function clearError() { errBox.classList.remove('show'); }
+    const fmtClock = (s) => `${Math.floor(s / 60)}:${String(Math.floor(s % 60)).padStart(2, '0')}`;
+    let stageTimer = 0;
+    function setStage(text, pct) {
+      clearTimeout(stageTimer);
+      stageEl.textContent = text || '';
+      if (text) { progress.classList.add('on'); progressFill.style.width = (pct == null ? 0 : pct) + '%'; }
+      else progress.classList.remove('on');
+    }
+    function finishStage(text) {
+      clearTimeout(stageTimer);
+      progressFill.style.width = '100%';
+      stageEl.textContent = text;
+      stageTimer = window.setTimeout(() => { progress.classList.remove('on'); stageEl.textContent = ''; }, 2200);
+    }
+
+    function renderQualityHint() {
+      const m = MODELS[qualitySel.value];
+      let text = labels.sttQualityHint || '';
+      if (sourceBuffer) {
+        // An estimate for THIS file, which is the only form of "it depends" anyone can act on.
+        const secs = sourceBuffer.duration * m.rate;
+        const pretty = secs < 90
+          ? Math.max(5, Math.round(secs / 5) * 5) + ' ' + (labels.sttSecondsShortLabel || 's')
+          : Math.max(1, Math.round(secs / 60)) + ' ' + (labels.sttMinutesShortLabel || 'min');
+        text += ' ' + (labels.sttEstimateLabel || '').replace('{time}', pretty);
+      }
+      qualityHint.textContent = text;
+    }
+    qualitySel.addEventListener('change', renderQualityHint);
+    renderQualityHint();
+
+    /* --- input --------------------------------------------------------------------------- */
+    if (drop) {
+      drop.addEventListener('click', () => fileInput.click());
+      drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
+      drop.addEventListener('dragleave', () => drop.classList.remove('over'));
+      drop.addEventListener('drop', (e) => { e.preventDefault(); drop.classList.remove('over'); if (e.dataTransfer.files[0]) pickFile(e.dataTransfer.files[0]); });
+    }
+    fileInput.addEventListener('change', (e) => {
+      const f = e.target.files[0];
+      // Cleared immediately so picking the same file again still fires a change event.
+      e.target.value = '';
+      if (f) pickFile(f);
+    });
+
+    function resetAll() {
+      player.stop();
+      cancelAnimationFrame(rafId);
+      file = null; sourceBuffer = null; chunks = []; edited = false;
+      fileInfo.innerHTML = '';
+      panel.classList.remove('on');
+      if (drop) drop.style.display = '';
+      if (micRow) micRow.style.display = '';
+      waveShell.style.display = 'none';
+      results.style.display = 'none';
+      runRow.style.display = '';
+      runBtn.disabled = true;
+      playBtn.disabled = true;
+      playIco.innerHTML = ICO_PLAY;
+      textEl.value = '';
+      setStage('');
+      clearError();
+    }
+
+    async function pickFile(f) {
+      clearError();
+      player.stop();
+      cancelAnimationFrame(rafId);
+      chunks = []; edited = false;
+      // Cleared before the decode, not after: the dictation page auto-runs once pickFile settles,
+      // and a stale buffer from the previous take would be transcribed instead of the new one.
+      sourceBuffer = null;
+      results.style.display = 'none';
+      runRow.style.display = '';
+      runBtn.disabled = true;
+      file = f;
+
+      const sizeMB = f.size / (1024 * 1024);
+      const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
+      const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
+      // No "swap file" button on the dictation page: there was no file to swap, and the button
+      // would open a file picker, which is not what anyone who just spoke into a microphone wants.
+      const swapBtn = isVoice ? '' : `<button type="button" class="fi-act fi-swap" id="st-fi-swap" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button>`;
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${swapBtn}<button type="button" class="fi-act fi-remove" id="st-fi-remove" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      if (!isVoice) $('st-fi-swap').addEventListener('click', () => fileInput.click());
+      $('st-fi-remove').addEventListener('click', resetAll);
+      panel.classList.add('on');
+      if (drop) drop.style.display = 'none';
+      if (micRow) micRow.style.display = 'none';
+      waveShell.style.display = '';
+
+      setStage(labels.sttReadingLabel);
+      try {
+        sourceBuffer = await decodeFile(f);
+      } catch (e) {
+        setStage('');
+        showError(labels.sttDecodeErrorLabel);
+        return;
+      }
+      if (sourceBuffer.duration > MAX_MINUTES * 60) {
+        setStage('');
+        showError((labels.sttTooLongLabel || '').replace('{n}', String(MAX_MINUTES)));
+        return;
+      }
+      setStage('');
+      totalEl.textContent = fmtClock(sourceBuffer.duration);
+      curEl.textContent = '0:00';
+      playhead.style.display = 'none';
+      playBtn.disabled = false;
+      runBtn.disabled = false;
+      renderQualityHint();
+      if (sourceBuffer.duration > WARN_MINUTES * 60) {
+        // Not an error -- just an honest heads-up before someone starts a long wait.
+        showError((labels.sttLongFileNoteLabel || '').replace('{n}', String(Math.round(sourceBuffer.duration / 60))));
+      }
+      drawWave();
+      window.dispatchEvent(new Event('opitro:tool-interaction'));
+    }
+
+    function drawWave(attempt = 0) {
+      if (!sourceBuffer) return;
+      if (waveCanvas.clientWidth < 2 && attempt < 6) { requestAnimationFrame(() => drawWave(attempt + 1)); return; }
+      drawWaveform(waveCanvas, sourceBuffer);
+    }
+    new ResizeObserver(() => { if (sourceBuffer) drawWaveform(waveCanvas, sourceBuffer); }).observe(waveCanvas);
+
+    /* --- microphone ---------------------------------------------------------------------- */
+    let recorder = null, recChunks = [], recTimer = 0, recStart = 0;
+    if (micBtn) micBtn.addEventListener('click', async () => {
+      if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
+      let stream;
+      try {
+        stream = await navigator.mediaDevices.getUserMedia({ audio: true });
+      } catch (e) {
+        showError(labels.micDeniedLabel || 'No microphone access.');
+        return;
+      }
+      clearError();
+      recChunks = [];
+      recorder = new MediaRecorder(stream);
+      recorder.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
+      recorder.onstop = () => {
+        clearInterval(recTimer);
+        stream.getTracks().forEach((t) => t.stop());
+        micBtn.classList.remove('on');
+        micLabel.textContent = labels.sttRecordLabel;
+        micTime.textContent = '';
+        const blob = new Blob(recChunks, { type: recorder.mimeType || 'audio/webm' });
+        const ext = (recorder.mimeType || '').includes('mp4') ? 'm4a' : 'webm';
+        // On the dictation page the recording IS the request: making someone press a second
+        // button after they have stopped talking adds a step for nothing.
+        pickFile(new File([blob], (labels.sttRecordingFileName || 'recording') + '.' + ext, { type: blob.type }))
+          .then(() => { if (isVoice && sourceBuffer) runBtn.click(); });
+      };
+      recorder.start();
+      recStart = performance.now();
+      micBtn.classList.add('on');
+      micLabel.textContent = labels.sttStopLabel;
+      recTimer = window.setInterval(() => { micTime.textContent = fmtClock((performance.now() - recStart) / 1000); }, 250);
+    });
+
+    /* --- playback ------------------------------------------------------------------------ */
+    function setPlayhead(frac) {
+      const base = waveCanvas.offsetLeft;
+      const w = waveCanvas.clientWidth || waveShell.clientWidth;
+      playhead.style.left = (base + Math.max(0, Math.min(1, frac)) * w) + 'px';
+      playhead.style.display = 'block';
+    }
+    function tick() {
+      const pos = player.getPosition();
+      curEl.textContent = fmtClock(pos);
+      if (sourceBuffer) setPlayhead(pos / sourceBuffer.duration);
+      if (player.isPlaying()) rafId = requestAnimationFrame(tick);
+    }
+    function startPlayback(seekTo) {
+      player.unlock();
+      player.play(sourceBuffer, null, () => {
+        playIco.innerHTML = ICO_PLAY;
+        cancelAnimationFrame(rafId);
+        curEl.textContent = fmtClock(0);
+        playhead.style.display = 'none';
+      }, seekTo);
+      playIco.innerHTML = ICO_PAUSE;
+      cancelAnimationFrame(rafId);
+      rafId = requestAnimationFrame(tick);
+    }
+    playBtn.addEventListener('click', (e) => {
+      // Swapping the glyph detaches the event target, which the shell's own handler then cannot
+      // match -- without this, playback stops a few milliseconds after it starts.
+      e.stopPropagation();
+      if (!sourceBuffer) return;
+      if (player.isPlaying()) { player.pause(); playIco.innerHTML = ICO_PLAY; cancelAnimationFrame(rafId); }
+      else startPlayback();
+    });
+    waveShell.addEventListener('click', (e) => {
+      if (!sourceBuffer) return;
+      if (e.composedPath().some((n) => n instanceof Element && n.classList?.contains('wave-play-btn'))) return;
+      const r = waveCanvas.getBoundingClientRect();
+      startPlayback(Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * sourceBuffer.duration);
+    });
+
+    /* --- transcription -------------------------------------------------------------------- */
+    // Decoded straight to 16 kHz mono from the original file, NOT resampled down from the buffer
+    // the player uses. That buffer is already at the device's rate (usually 48 kHz), so going
+    // through it means resampling twice, and measured on the same 48-word passage that cost real
+    // accuracy: 89.6% through the double conversion against 95.8% decoding once at 16 kHz.
+    // Decoding the file a second time is cheap next to transcription, and the player keeps its
+    // full-rate buffer so what you hear is still the original.
+    async function toModelRate(f, fallbackBuffer) {
+      try {
+        const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: MODEL_RATE });
+        const decoded = await ctx.decodeAudioData(await f.arrayBuffer());
+        ctx.close();
+        if (decoded.sampleRate === MODEL_RATE) {
+          if (decoded.numberOfChannels === 1) return decoded.getChannelData(0);
+          const a = decoded.getChannelData(0), b = decoded.getChannelData(1);
+          const mono = new Float32Array(a.length);
+          for (let i = 0; i < a.length; i++) mono[i] = (a[i] + b[i]) / 2;
+          return mono;
+        }
+      } catch (e) {
+        // Safari has historically ignored the requested sample rate, and some containers only
+        // decode through the default context. Falling back keeps the tool working.
+      }
+      const oc = new OfflineAudioContext(1, Math.ceil(fallbackBuffer.duration * MODEL_RATE), MODEL_RATE);
+      const src = oc.createBufferSource();
+      src.buffer = fallbackBuffer;
+      src.connect(oc.destination);
+      src.start(0);
+      return (await oc.startRendering()).getChannelData(0);
+    }
+
+    runBtn.addEventListener('click', async () => {
+      if (!sourceBuffer) return;
+      clearError();
+      runBtn.disabled = true;
+      runLabel.textContent = labels.sttRunningLabel;
+      try {
+        const model = MODELS[qualitySel.value];
+        if (asrKey !== qualitySel.value) {
+          setStage(labels.sttLoadingModelLabel, 1);
+          const { pipeline, env } = await import(/* @vite-ignore */ TRANSFORMERS);
+          env.allowLocalModels = false;
+          // Real download progress across all the model's files, so a 239 MB wait shows a moving
+          // number instead of a bar that sits still for two minutes.
+          const seen = new Map();
+          let shownPct = 0;
+          asr = await pipeline('automatic-speech-recognition', model.repo, {
+            dtype: 'q8',
+            progress_callback: (p) => {
+              if (p.status !== 'progress' || !p.total) return;
+              seen.set(p.file, p.loaded);
+              // Measured against the model's KNOWN total rather than the sum of whatever files have
+              // registered so far. Summing the registered ones showed 100% within a second -- the
+              // tokenizer is 2.4 MB and arrives first, finishing before the 22 MB and 51 MB weights
+              // even appear -- and then fell back to 13%. Bytes received only ever grow, so dividing
+              // by a fixed total is monotonic by construction, no clamping needed.
+              let loaded = 0;
+              for (const v of seen.values()) loaded += v;
+              const pct = Math.min(99, (loaded / (model.mb * 1e6)) * 100);
+              shownPct = Math.max(shownPct, pct);
+              // Percent, not megabytes. A number in MB reads as "this site is pulling something
+              // into my machine" to anyone who does not already know what a model is; the honest
+              // size lives in the FAQ, where whoever needs it (someone on mobile data) will look.
+              setStage((labels.sttDownloadingLabel || '').replace('{pct}', String(Math.round(shownPct))), shownPct * 0.55);
+            },
+          });
+          asrKey = qualitySel.value;
+        }
+        setStage(labels.sttPreparingLabel, 58);
+        const audio = await toModelRate(file, sourceBuffer);
+
+        setStage(labels.sttTranscribingLabel, 62);
+        const lang = langSel.value;
+        const out = await asr(audio, {
+          task: 'transcribe',
+          ...(lang === 'auto' ? {} : { language: lang }),
+          chunk_length_s: 30,
+          stride_length_s: 5,
+          return_timestamps: true,
+        });
+        chunks = normalizeChunks(out.chunks && out.chunks.length ? out.chunks
+          : [{ timestamp: [0, sourceBuffer.duration], text: out.text || '' }], sourceBuffer.duration);
+        if (!chunks.length) {
+          setStage('');
+          showError(labels.sttEmptyLabel);
+          runBtn.disabled = false;
+          return;
+        }
+        edited = false;
+        renderText();
+        renderSummary();
+        renderFmtHint();
+        finishStage(labels.sttDoneLabel);
+        runRow.style.display = 'none';
+        results.style.display = '';
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+      } catch (e) {
+        setStage('');
+        showError((labels.sttFailedLabel || 'Failed.') + ' ' + (e && e.message ? e.message : ''));
+        runBtn.disabled = false;
+      } finally {
+        runLabel.textContent = labels.sttRunLabel;
+      }
+    });
+
+    /* --- results -------------------------------------------------------------------------- */
+    function bodyFor(v) {
+      const opts = { duration: sourceBuffer ? sourceBuffer.duration : 0 };
+      return v === 'stamped' ? toTimestamped(chunks, opts) : toPlainText(chunks, opts);
+    }
+    function renderText() {
+      textEl.value = bodyFor(view);
+      updateCount();
+    }
+    function updateCount() {
+      const words = countWords(textEl.value);
+      summaryEl.innerHTML = [
+        [labels.sttStatWordsLabel, String(words)],
+        [labels.sttStatCharsLabel, String(textEl.value.length)],
+        [labels.sttStatDurationLabel, sourceBuffer ? fmtClock(sourceBuffer.duration) : '—'],
+      ].map(([l, v]) => `<div class="sum-cell"><span class="sum-label">${escapeHtml(l)}</span><span class="sum-value">${escapeHtml(v)}</span></div>`).join('');
+    }
+    function renderSummary() { updateCount(); }
+
+    textEl.addEventListener('input', () => {
+      edited = true;
+      updateCount();
+      // Switching views would throw away hand corrections, so once the text has been touched the
+      // toggle says so instead of silently replacing it.
+      editNote.textContent = labels.sttEditedNote || '';
+    });
+
+    if (viewToggle) viewToggle.addEventListener('click', (e) => {
+      const btn = e.target.closest('.vt-seg');
+      if (!btn || btn.dataset.view === view) return;
+      if (edited && !window.confirm(labels.sttSwitchWarning || 'Your edits will be lost. Continue?')) return;
+      view = btn.dataset.view;
+      viewToggle.querySelectorAll('.vt-seg').forEach((b) => b.classList.toggle('active', b === btn));
+      edited = false;
+      editNote.textContent = '';
+      renderText();
+    });
+
+    copyBtn.addEventListener('click', async () => {
+      if (!textEl.value.trim()) return;
+      try {
+        await navigator.clipboard.writeText(textEl.value);
+      } catch (e) {
+        // Clipboard access can be refused; selecting the text is something the user can act on.
+        textEl.select();
+        showError(labels.sttCopyFailedLabel);
+        return;
+      }
+      const original = copyLabel.textContent;
+      copyLabel.textContent = labels.sttCopiedLabel;
+      setTimeout(() => { copyLabel.textContent = original; }, 1500);
+    });
+
+    clearBtn.addEventListener('click', () => {
+      textEl.value = '';
+      edited = true;
+      editNote.textContent = '';
+      updateCount();
+    });
+
+    function renderFmtHint() {
+      const hints = labels.sttFmtHints || {};
+      fmtHint.textContent = hints[fmtSelect.value] || '';
+    }
+    fmtSelect.addEventListener('change', renderFmtHint);
+
+    dlBtn.addEventListener('click', () => {
+      const base = (file?.name || 'transcript').replace(/\.[^.]+$/, '');
+      const duration = sourceBuffer ? sourceBuffer.duration : 0;
+      const fmt = fmtSelect.value;
+      let body, ext;
+      if (fmt === 'srt') { body = toSrt(chunks, { duration }); ext = 'srt'; }
+      else if (fmt === 'vtt') { body = toVtt(chunks, { duration }); ext = 'vtt'; }
+      // Plain text follows what is on screen, edits included -- subtitles cannot, because the
+      // timings belong to the recognised chunks rather than to the edited text.
+      else { body = textEl.value; ext = 'txt'; }
+      const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = base + '.' + ext;
+      document.body.appendChild(a);
+      a.click();
+      a.remove();
+      setTimeout(() => URL.revokeObjectURL(url), 1000);
+      window.dispatchEvent(new Event('opitro:tool-interaction'));
+    });
+  }
+</script>
+
+<style is:global>
+  .stt-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+  .stt-tool .drop:hover,.stt-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
+  .stt-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
+  .stt-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .stt-tool .drop .small{font-size:12px;color:var(--muted)}
+  .stt-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
+  .stt-tool input[type=file]{display:none}
+
+  /* The dictation page opens on the microphone, so it gets a line of plain guidance where the
+     other page has its drop zone. */
+  .stt-tool .voice-lead{font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 16px;text-align:center;max-width:52ch;margin-left:auto;margin-right:auto}
+  .stt-tool .mic-row{display:flex;align-items:center;gap:14px}
+  .stt-tool button.act.mic-btn{flex:1;min-width:auto}
+  .stt-tool .mic-btn.on{border-color:#ff3a5e;background:rgba(255,58,94,0.12);color:#ffb3c0}
+  .stt-tool .mic-time{font-size:15px;font-variant-numeric:tabular-nums;color:var(--text);min-width:44px}
+  .stt-tool .mic-time:empty{display:none}
+
+  .stt-tool .panel{display:none;margin-top:8px}
+  .stt-tool .panel.on{display:block}
+  .stt-tool .fileinfo:empty{display:none}
+  .stt-tool .fileinfo{font-size:13px;color:var(--muted);margin-bottom:16px;word-break:break-word;background:rgba(74,222,158,0.08);border:1px solid rgba(74,222,158,0.25);border-radius:12px;padding:9px 10px 9px 14px}
+  .stt-tool .fi-row{display:flex;align-items:center;gap:10px}
+  .stt-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
+  .stt-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
+  .stt-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
+  .stt-tool .fi-act{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
+  .stt-tool .fi-act .i{width:15px;height:15px}
+  .stt-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
+  .stt-tool .fi-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+
+  .stt-tool .wave-shell{position:relative;background:#0a0b0d;border:1px solid var(--line);border-radius:12px;overflow:hidden;margin-bottom:16px;user-select:none;cursor:pointer;display:none}
+  .stt-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:10px 14px 10px 10px}
+  .stt-tool .wave-shell canvas{display:block;width:100%;height:52px;flex:1;min-width:0}
+  .stt-tool .wave-play-btn{flex:none;width:38px;height:38px;border-radius:50%;border:none;background:linear-gradient(180deg,var(--accent),var(--accent2));color:#08130d;cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,opacity .2s}
+  .stt-tool .wave-play-btn:hover:not(:disabled){transform:scale(1.06)}
+  .stt-tool .wave-play-btn:disabled{opacity:.35;cursor:not-allowed}
+  .stt-tool .wave-play-btn .ico{width:17px;height:17px}
+  .stt-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
+  .stt-tool .wave-duration b{color:var(--text);font-weight:600}
+  .stt-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
+
+  .stt-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
+  .stt-tool .field{flex:1 1 200px;min-width:150px}
+  .stt-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  .stt-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
+    appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
+  .stt-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .stt-tool .format-hint{font-size:12.5px;color:var(--muted);margin:8px 0 4px;line-height:1.5}
+
+  .stt-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
+  .stt-tool .progress.on{opacity:.55}
+  .stt-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
+  .stt-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
+  /* A 239 MB download and a multi-minute transcription both need words, not just a hairline bar. */
+  .stt-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px}
+  .stt-tool .stage-text:empty{margin:0}
+
+  .stt-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  .stt-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
+  .stt-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .stt-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
+  .stt-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  .stt-tool .ico{width:16px;height:16px;flex:none}
+  .stt-tool .act .i{width:17px;height:17px;flex:none}
+
+  .stt-tool .summary{display:grid;grid-template-columns:repeat(3,1fr);gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 16px}
+  .stt-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
+  .stt-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
+  .stt-tool .sum-value{font-size:15px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
+
+  .stt-tool .view-toggle{display:flex;gap:2px;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;padding:3px;margin-bottom:12px;width:fit-content}
+  .stt-tool .vt-seg{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:7px;padding:7px 12px;transition:background .15s,color .15s}
+  .stt-tool .vt-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
+
+  /* Reading width and line height matter more here than anywhere else on the site -- this is the
+     one tool whose output someone actually sits and reads. */
+  .stt-tool textarea{width:100%;min-height:320px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--text);
+    font-family:inherit;font-size:15px;line-height:1.65;padding:16px 18px;white-space:pre-wrap}
+  .stt-tool textarea:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  .stt-tool .text-note{font-size:12px;color:var(--muted);margin-top:6px;min-height:16px}
+  .stt-tool .text-actions{display:flex;gap:12px;flex-wrap:wrap;margin-top:10px}
+  .stt-tool .text-actions .act{flex:1 1 160px;height:46px;padding:0 16px;font-size:13.5px}
+
+  .stt-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
+  .stt-tool .deck .field{flex:1 1 200px}
+  .stt-tool .deck .field-fmt{flex:0 1 150px}
+  .stt-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  .stt-tool .deck .field select{height:48px;border-radius:12px}
+  .stt-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
+
+  .stt-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
+  .stt-tool .err.show{display:block}
+</style>
