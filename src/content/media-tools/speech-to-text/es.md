@@ -1,12 +1,12 @@
 ---
-toolSlug: voice-typing
+toolSlug: speech-to-text
 locale: es
 category: audio
-tool: voice-typing
-title: Dictado por voz online — escribir hablando, gratis
-h1: Dictado por voz
-navName: Dictado por voz
-description: Pulsa el botón, habla y obtén el texto. Notas, correos, un borrador, un mensaje. Todo se calcula en tu navegador y tu voz no se envía a ningún sitio. Gratis, sin registro.
+tool: speech-to-text
+title: Voz a texto online — dictar texto con la voz, gratis
+h1: Voz a texto
+navName: Voz a texto
+description: Habla y obtén el texto ya terminado, con puntos, comas y mayúsculas puestos — sin decir «coma» en voz alta. Todo se calcula en tu navegador y tu voz no sale de tu dispositivo. Gratis, sin registro.
 faq:
   - question: ¿El texto aparece mientras hablo?
     answer: "No, y conviene decirlo de entrada. El texto aparece cuando paras: el modelo escucha todo lo dicho de una vez, no palabra por palabra. Tiene su ventaja — la puntuación se coloca por sentido y no adivinando por las pausas, y no hay medias palabras temblando en pantalla. Pero si necesitas ver las palabras según hablas, esta herramienta no lo hace."
@@ -32,20 +32,17 @@ faq:
     answer: "La [grabadora](/es/dictaphone) graba sonido y te da un archivo de audio. Aquí el sonido se convierte en texto y la grabación no se guarda: lo que importa son las palabras."
 ---
 
-Pulsa el botón, di lo que quieres dejar por escrito, para — y el texto aparece. Lo corriges aquí mismo, lo copias de un clic o lo descargas como archivo.
+Pulsa el botón, di lo que quieres dejar por escrito, para — y el texto está listo. No un chorro de palabras, sino texto de verdad: con puntos, comas, signos de interrogación y mayúsculas donde toca.
 
-Para qué se usa:
+Lo que hace y un dictado normal no:
 
-- **Una nota sobre la marcha** — la idea se dice antes de lo que se teclea
-- **Un borrador de correo o de artículo** — hablar un párrafo es más rápido que escribirlo
-- **Un mensaje con las manos ocupadas** — conduciendo, cocinando, con un niño en brazos
-- **Una lista de tareas** — la dictas y la pegas en tus notas
-- **A quien le cuesta teclear** — por el motivo que sea
+- **La puntuación se pone sola** — por el sentido de la frase, no por dónde hiciste una pausa. Sin decir «coma», «punto», «párrafo nuevo»
+- **Mayúsculas en su sitio** — al empezar frases, en nombres y títulos
+- **Números en cifras** — «veintitrés de marzo» sale como «23 de marzo», y un teléfono dictado sale en cifras
+- **Funciona en cualquier navegador** — también en iPhone, no solo en Chrome
+- **Tu voz no va a ningún sitio** — el reconocimiento funciona en tu dispositivo, no en el servidor de otro
+- **Se corrige aquí mismo** — y se copia de un clic
 
-La puntuación y las mayúsculas se colocan solas; no hace falta decir “coma” en voz alta.
-
-Tu voz no va a ninguna parte: el reconocedor funciona dentro de tu navegador. Tras la primera preparación puedes desconectarte de internet y sigue funcionando.
-
-**El texto aparece cuando paras, no mientras hablas.** Eso es lo que permite que la puntuación tenga sentido, pero aquí no hay escritura en vivo palabra por palabra.
+Las palabras aparecen cuando paras, no mientras hablas: el modelo escucha todo de una vez. Justamente por eso la puntuación tiene sentido — ve la frase terminada en lugar de adivinar por una pausa.
 
 Cerca: [audio a texto](/es/audio-to-text), [grabadora](/es/dictaphone), [quitar ruido](/es/denoise-audio), [quitar silencios](/es/remove-silence).

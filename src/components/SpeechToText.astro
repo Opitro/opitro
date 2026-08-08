@@ -102,7 +102,9 @@ const ICO = {
     <div class="progress" id="st-progress">
       <div class="progress-bar"><div class="progress-fill" id="st-progress-fill"></div></div>
     </div>
-    <div class="stage-text" id="st-stage"></div>
+    {/* The stage caption and a clock beside it. During a long transcription nothing else on the
+        page moves, and a still screen reads as a hung one -- which is exactly how it felt. */}
+    <div class="stage-text"><span id="st-stage"></span><span class="stage-clock" id="st-timer"></span></div>
 
     <div class="controls" id="st-run-row">
       {/* Disabled until a file is loaded. The panel hides it anyway, but a control that looks
@@ -241,6 +243,7 @@ const ICO = {
     const progress = $('st-progress');
     const progressFill = $('st-progress-fill');
     const stageEl = $('st-stage');
+    const timerEl = $('st-timer');
     const runBtn = $('st-run');
     const runLabel = $('st-run-label');
     const results = $('st-results');
@@ -342,6 +345,43 @@ const ICO = {
       progressFill.style.width = '100%';
       stageEl.textContent = text;
       stageTimer = window.setTimeout(() => { progress.classList.remove('on'); stageEl.textContent = ''; }, 2200);
+    }
+
+    // A clock, ticking on the page's own thread -- which it can only do because the model runs in
+    // a worker. Elapsed time is always shown because it is always true; the estimate is only
+    // offered while it still holds, and once it runs out the line says "almost done" rather than
+    // counting into the negative or freezing on zero, either of which would be a small lie.
+    let clockTimer = 0;
+    let clockStart = 0;
+    let clockEstimate = 0;
+    function startClock(estimateSeconds) {
+      stopClock();
+      clockStart = Date.now();
+      clockEstimate = estimateSeconds || 0;
+      const tick = () => {
+        const elapsed = (Date.now() - clockStart) / 1000;
+        let text = fmtClock(elapsed);
+        if (clockEstimate > 0) {
+          const left = clockEstimate - elapsed;
+          text += ' · ' + (left > 1
+            ? (labels.sttRemainingLabel || '').replace('{t}', fmtClock(left))
+            : (labels.sttAlmostLabel || ''));
+        }
+        timerEl.textContent = text;
+      };
+      tick();
+      clockTimer = window.setInterval(tick, 1000);
+    }
+    function setClockEstimate(seconds) {
+      // The estimate only becomes meaningful once the model is loaded and the actual work starts;
+      // before that the wait is a download whose speed nobody here knows.
+      clockEstimate = seconds || 0;
+      clockStart = Date.now();
+    }
+    function stopClock() {
+      clearInterval(clockTimer);
+      clockTimer = 0;
+      timerEl.textContent = '';
     }
 
     function renderQualityHint() {
@@ -575,7 +615,17 @@ const ICO = {
       worker = new Worker(new URL('../lib/stt-worker.js', import.meta.url), { type: 'module' });
       worker.onmessage = (e) => {
         const m = e.data || {};
-        if (m.type === 'stage') setStage(labels[STAGE_LABELS[m.stage]] || '', m.stage === 'connecting' ? 1 : 60);
+        if (m.type === 'stage') {
+          setStage(labels[STAGE_LABELS[m.stage]] || '', m.stage === 'connecting' ? 1 : 60);
+          // Once the audio itself is being worked through, the wait becomes predictable: the rate
+          // for each model was measured on this page, so the estimate is arithmetic, not a guess.
+          if (m.stage === 'transcribing' || m.stage === 'translating') {
+            const model = MODELS[qualitySel.value];
+            setClockEstimate(sourceBuffer ? sourceBuffer.duration * model.rate : 0);
+          } else if (m.stage === 'speakers' || m.stage === 'detecting') {
+            setClockEstimate(0);
+          }
+        }
         else if (m.type === 'progress') setStage((labels.sttDownloadingLabel || '').replace('{pct}', String(Math.round(m.pct))), m.pct * 0.55);
         else if (m.type === 'done' || m.type === 'failed') { const p = pending; pending = null; if (p) p(m); }
       };
@@ -591,6 +641,7 @@ const ICO = {
       try {
         const model = MODELS[qualitySel.value];
         setStage(labels.sttPreparingLabel, 1);
+        startClock(0);
         const audio = await toModelRate(file, sourceBuffer);
         const langValue = langSel.value;
         const result = await new Promise((resolve) => {
@@ -618,6 +669,7 @@ const ICO = {
           ? attachSpeakers(raw, result.speakers, { duration: sourceBuffer.duration })
           : normalizeChunks(raw, sourceBuffer.duration);
         if (!chunks.length) {
+          stopClock();
           setStage('');
           showError(labels.sttEmptyLabel);
           runBtn.disabled = false;
@@ -627,10 +679,12 @@ const ICO = {
         renderText();
         renderSummary();
         renderFmtHint();
+        stopClock();
         finishStage(labels.sttDoneLabel);
         results.style.display = '';
         window.dispatchEvent(new Event('opitro:tool-interaction'));
       } catch (e) {
+        stopClock();
         setStage('');
         showError((labels.sttFailedLabel || 'Failed.') + ' ' + (e && e.message ? e.message : ''));
       } finally {
@@ -821,8 +875,12 @@ const ICO = {
   .stt-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
   .stt-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
   /* A 239 MB download and a multi-minute transcription both need words, not just a hairline bar. */
-  .stt-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px}
-  .stt-tool .stage-text:empty{margin:0}
+  .stt-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px;
+    display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
+  .stt-tool .stage-text:has(span:empty:only-child){margin:0}
+  /* Tabular digits so a ticking clock does not jiggle the line it sits on. */
+  .stt-tool .stage-clock{font-variant-numeric:tabular-nums;color:var(--text);opacity:.85}
+  .stt-tool .stage-clock:empty{display:none}
 
   .stt-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
   .stt-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}

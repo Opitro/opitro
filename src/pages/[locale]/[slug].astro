@@ -136,10 +136,10 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
     {kind === 'media' && entry.data.tool === 'audio-to-text' && (
       <SpeechToText locale={entry.data.locale} labels={audioLabels} mode="file" />
     )}
-    {kind === 'media' && entry.data.tool === 'voice-typing' && (
+    {kind === 'media' && entry.data.tool === 'speech-to-text' && (
       <SpeechToText locale={entry.data.locale} labels={audioLabels} mode="voice" />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'voice-typing'].includes(entry.data.tool) && (
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
   </div>

@@ -19,7 +19,7 @@ faq:
   - question: What is the “setup” on the first run?
     answer: "That is the recogniser itself arriving. It runs in your browser rather than on our server, so it has to be delivered to you once. The lighter one is about 79 MB, the best one about 239 MB. After that it lives in your browser's cache: reload the page, come back tomorrow, and there is no setup again — transcription starts straight away. If you are on mobile data and counting it, take the lighter one."
   - question: Can I speak it instead?
-    answer: "There is a separate page for that — [voice typing](/en/voice-typing). Press the button, talk, stop, and the text appears by itself. This page is for recordings you already have: a file or a video you need text or subtitles from."
+    answer: "There is a separate page for that — [voice typing](/en/speech-to-text). Press the button, talk, stop, and the text appears by itself. This page is for recordings you already have: a file or a video you need text or subtitles from."
   - question: What are the subtitle formats and how do they differ?
     answer: "SRT is the common one, understood by YouTube, VLC and every video editor. VTT is the same thing for a video player on a web page. In both, the timings come from the recognised speech; if you correct the text by hand those corrections go into the TXT, while the subtitles keep the original timing."
   - question: Does it tell speakers apart?
@@ -49,4 +49,4 @@ It runs on your device. The model comes to you once and stays in your browser's 
 
 The text is editable in place: no recogniser is perfect, and fixing two words where they are beats moving everything somewhere else to fix it there.
 
-Nearby: [voice typing](/en/voice-typing), [split audio](/en/split-audio), [video to audio](/en/video-to-audio), [remove noise](/en/denoise-audio), [remove silence](/en/remove-silence), [voice recorder](/en/dictaphone).
+Nearby: [voice typing](/en/speech-to-text), [split audio](/en/split-audio), [video to audio](/en/video-to-audio), [remove noise](/en/denoise-audio), [remove silence](/en/remove-silence), [voice recorder](/en/dictaphone).

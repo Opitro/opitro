@@ -19,7 +19,7 @@ faq:
   - question: ¿Qué es la “preparación” de la primera vez?
     answer: "Es el propio reconocedor llegando. Funciona en tu navegador y no en nuestro servidor, así que hay que entregártelo una vez. El ligero pesa unos 79 MB y el mejor unos 239 MB. Después queda en la caché del navegador: recargas la página, vuelves mañana, y ya no hay preparación — la transcripción empieza al momento. Si vas con datos móviles y los cuentas, coge el ligero."
   - question: ¿Puedo dictarlo hablando?
-    answer: "Para eso hay una página aparte — [dictado por voz](/es/voice-typing). Pulsas el botón, hablas, paras, y el texto aparece solo. Esta página es para grabaciones que ya tienes: un archivo o un vídeo del que necesitas texto o subtítulos."
+    answer: "Para eso hay una página aparte — [dictado por voz](/es/speech-to-text). Pulsas el botón, hablas, paras, y el texto aparece solo. Esta página es para grabaciones que ya tienes: un archivo o un vídeo del que necesitas texto o subtítulos."
   - question: ¿Qué son los formatos de subtítulos y en qué se diferencian?
     answer: "SRT es el habitual, lo entienden YouTube, VLC y todos los editores de vídeo. VTT es lo mismo para un reproductor de vídeo en una web. En ambos los tiempos salen del habla reconocida; si corriges el texto a mano, esas correcciones van al TXT y los subtítulos conservan el reparto de tiempos original."
   - question: ¿Distingue quién habla?
@@ -49,4 +49,4 @@ Funciona en tu dispositivo. El modelo llega una vez y se queda en la caché del 
 
 El texto se edita en el propio cuadro: ningún reconocedor es perfecto, y arreglar dos palabras donde están es más fácil que llevárselo todo a otra parte.
 
-Cerca: [dictado por voz](/es/voice-typing), [cortar audio en partes](/es/split-audio), [vídeo a audio](/es/video-to-audio), [quitar ruido](/es/denoise-audio), [quitar silencios](/es/remove-silence), [grabadora](/es/dictaphone).
+Cerca: [dictado por voz](/es/speech-to-text), [cortar audio en partes](/es/split-audio), [vídeo a audio](/es/video-to-audio), [quitar ruido](/es/denoise-audio), [quitar silencios](/es/remove-silence), [grabadora](/es/dictaphone).

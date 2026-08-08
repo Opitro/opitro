@@ -1,12 +1,12 @@
 ---
-toolSlug: voice-typing
+toolSlug: speech-to-text
 locale: en
 category: audio
-tool: voice-typing
-title: Voice Typing Online — Dictate Text with Your Voice, Free
-h1: Voice Typing
-navName: Voice Typing
-description: Press the button, say it, get the text. Notes, emails, a draft, a message. Everything runs in your browser; your voice is never sent anywhere. Free, no sign-up.
+tool: speech-to-text
+title: Speech to Text Online — Dictate Text with Your Voice, Free
+h1: Speech to Text
+navName: Speech to Text
+description: Say it and get finished text, with full stops, commas and capitals already in place — no need to say "comma" out loud. Everything runs in your browser; your voice never leaves your device. Free, no sign-up.
 faq:
   - question: Does the text appear while I am speaking?
     answer: "No, and that is worth saying up front. The text appears once you stop — the model listens to the whole thing rather than word by word. There is an upside: punctuation is placed by meaning rather than guessed from pauses, and there are no half-words twitching on screen. But if you need to watch the words land as you talk, this tool does not do that."
@@ -32,20 +32,17 @@ faq:
     answer: "The [voice recorder](/en/dictaphone) records sound and hands you an audio file. Here the sound becomes text and the recording itself is not kept — words are the whole point."
 ---
 
-Press the button, say what you need written down, stop — and the text appears. Correct it right here, copy it in one click, or download it as a file.
+Press the button, say what you need written down, stop — and the text is ready. Not a stream of words but proper text: full stops, commas, question marks and capitals where they belong.
 
-What people use it for:
+What it does that plain dictation does not:
 
-- **A note on the move** — the thought is easier said than typed
-- **A draft email or article** — talking a paragraph out beats typing it
-- **A message when your hands are busy** — driving, cooking, holding a child
-- **A to-do list** — say it, paste it into your notes
-- **Anyone who finds typing hard** — for whatever reason
+- **Punctuation is placed for you** — by the sense of the sentence, not by where you paused. No saying "comma", "full stop", "new paragraph"
+- **Capitals in the right places** — starting sentences, in names and titles
+- **Numbers as digits** — "the twenty-third of March" becomes "23 March", and a dictated phone number comes out in digits
+- **Works in any browser** — on an iPhone too, not only in Chrome
+- **Your voice goes nowhere** — recognition runs on your own device, not on someone else's server
+- **Correct it right here** — and copy it in one click
 
-Punctuation and capitals are placed for you; no need to say “comma” out loud.
-
-Your voice goes nowhere: the recogniser runs inside your browser. After the first setup you can disconnect from the internet entirely and it keeps working.
-
-**The text appears after you stop, not as you speak.** That is what lets the punctuation make sense, but there is no live word-by-word typing here.
+The words appear once you stop rather than as you speak: the model listens to the whole thing. That is exactly why the punctuation makes sense — it sees the sentence finish instead of guessing from a pause.
 
 Nearby: [audio to text](/en/audio-to-text), [voice recorder](/en/dictaphone), [remove noise](/en/denoise-audio), [remove silence](/en/remove-silence).
