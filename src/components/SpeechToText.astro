@@ -352,17 +352,18 @@ const ICO = {
     // offered while it still holds, and once it runs out the line says "almost done" rather than
     // counting into the negative or freezing on zero, either of which would be a small lie.
     let clockTimer = 0;
-    let clockStart = 0;
+    let clockStart = 0;      // when the whole run began -- the elapsed count never restarts
+    let phaseStart = 0;      // when the current phase began -- what the estimate counts against
     let clockEstimate = 0;
-    function startClock(estimateSeconds) {
+    function startClock() {
       stopClock();
-      clockStart = Date.now();
-      clockEstimate = estimateSeconds || 0;
+      clockStart = phaseStart = Date.now();
+      clockEstimate = 0;
       const tick = () => {
         const elapsed = (Date.now() - clockStart) / 1000;
         let text = fmtClock(elapsed);
         if (clockEstimate > 0) {
-          const left = clockEstimate - elapsed;
+          const left = clockEstimate - (Date.now() - phaseStart) / 1000;
           text += ' · ' + (left > 1
             ? (labels.sttRemainingLabel || '').replace('{t}', fmtClock(left))
             : (labels.sttAlmostLabel || ''));
@@ -372,11 +373,13 @@ const ICO = {
       tick();
       clockTimer = window.setInterval(tick, 1000);
     }
+    // The estimate only becomes meaningful once the model is loaded and the work itself starts;
+    // before that the wait is a download whose speed nobody here knows. Only the PHASE clock is
+    // reset -- restarting the elapsed count too made the seconds jump backwards from 0:04 to 0:00,
+    // which reads as a glitch for the same reason a percentage falling from 100 to 13 does.
     function setClockEstimate(seconds) {
-      // The estimate only becomes meaningful once the model is loaded and the actual work starts;
-      // before that the wait is a download whose speed nobody here knows.
       clockEstimate = seconds || 0;
-      clockStart = Date.now();
+      phaseStart = Date.now();
     }
     function stopClock() {
       clearInterval(clockTimer);
@@ -641,7 +644,7 @@ const ICO = {
       try {
         const model = MODELS[qualitySel.value];
         setStage(labels.sttPreparingLabel, 1);
-        startClock(0);
+        startClock();
         const audio = await toModelRate(file, sourceBuffer);
         const langValue = langSel.value;
         const result = await new Promise((resolve) => {
