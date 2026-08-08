@@ -74,8 +74,8 @@ const ICO = {
           <div class="tune-hint">{labels.midiSensHint}</div>
         </div>
         <div class="field tune-transpose">
-          <label>{labels.midiTransposeLabel}</label>
-          <div class="tr-row">
+          <div class="field-cap" id="mt-tr-cap">{labels.midiTransposeLabel}</div>
+          <div class="tr-row" role="group" aria-labelledby="mt-tr-cap">
             <button type="button" class="tr-btn tr-wide" id="mt-oct-down">{labels.midiOctaveDownLabel}</button>
             <button type="button" class="tr-btn" id="mt-semi-down" aria-label={labels.midiSemitoneDownLabel}>−</button>
             <b class="tr-val" id="mt-tr-val">0</b>
@@ -942,7 +942,9 @@ const ICO = {
   .midi-tool .act .i{width:17px;height:17px;flex:none}
 
   .midi-tool .field{flex:1;min-width:150px;margin-bottom:14px}
-  .midi-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  /* See the note on `.field-cap` in AudioTool.astro -- caption for a button group, not a <label>. */
+  .midi-tool .field label,
+  .midi-tool .field .field-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
   .midi-tool .field label b{color:var(--text);letter-spacing:0;text-transform:none;font-size:12.5px}
   .midi-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
   .midi-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;

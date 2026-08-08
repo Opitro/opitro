@@ -625,8 +625,8 @@ const ICO = {
           <span class="fade-card-val" id="noise-volume-val">60%</span>
         </div>
         <div class="field">
-          <label>{labels.noiseTimerLabel}</label>
-          <div class="presets-row" id="noise-timer">
+          <div class="field-cap" id="noise-timer-cap">{labels.noiseTimerLabel}</div>
+          <div class="presets-row" id="noise-timer" role="group" aria-labelledby="noise-timer-cap">
             {[0, 15, 30, 60].map((m) => (
               <button type="button" class={`preset-btn${m === 0 ? ' active' : ''}`} data-min={m}>
                 {m === 0 ? labels.noiseTimerOffLabel : `${m} ${labels.minutesShortLabel}`}
@@ -3849,7 +3849,14 @@ if (config.controls === 'speed1') {
   .audio-tool .eq-band-val{font-size:11.5px;font-weight:700;color:var(--accent);font-variant-numeric:tabular-nums}
   .audio-tool .eq-band-freq{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
   .audio-tool .eq-band-role{font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.75;text-align:center;line-height:1.15;margin-top:-3px}
-  .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;-webkit-appearance:slider-vertical;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
+  .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
+  /* The vertical slider is done with `writing-mode: vertical-rl` + `direction: rtl`, which is the
+     standard route (Chrome 121+, Firefox 129+, Safari 17.4+).
+     The old `-webkit-appearance: slider-vertical` is deliberately NOT here, in any form. Chrome
+     counts that value as a deprecated API when it *parses* the stylesheet, so hiding it behind
+     @supports does not help -- two different Safari-only guards were tried and Chrome reported it
+     both times. The cost of leaving it out is that Safari older than 17.4 (March 2024) draws the
+     thumb travelling sideways in a tall box; the slider still works. */
   @media(max-width:768px){.audio-tool .eq-bands{justify-content:flex-start}.audio-tool .eq-band{flex:0 0 48px}}
 
   .audio-tool .wave-duration b{color:var(--text)}
@@ -3857,7 +3864,11 @@ if (config.controls === 'speed1') {
   .audio-tool .eq-row .field{min-width:110px}
   .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
   .audio-tool .row .field{margin-bottom:0}
-  .audio-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
+  /* `.field-cap` is the caption for a group of buttons. It looks exactly like a field label but is
+     not a <label>, because a <label> with no form control to point at is an accessibility error --
+     Chrome reports it as FormLabelHasNeitherForNorNestedInput. The group carries aria-labelledby. */
+  .audio-tool .field label,
+  .audio-tool .field .field-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
   .audio-tool .format-hint{font-size:12.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5}
   .audio-tool .field select,.audio-tool .field input[type=text],.audio-tool .field input[type=number]{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer}
   .audio-tool .field input[type=text],.audio-tool .field input[type=number]{cursor:text}
