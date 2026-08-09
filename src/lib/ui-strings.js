@@ -97,6 +97,8 @@ export const UI = {
       generateLabel: 'Generate',
       downloadMp3Label: 'Download MP3',
       downloadWavLabel: 'Download WAV',
+      playLabel: 'Play',
+      stopLabel: 'Stop',
       listenSelectionLabel: 'Listen to selection',
       targetsTitle: 'Where is this ringtone for? Pick a tile:',
       targetNames: {
@@ -564,6 +566,8 @@ export const UI = {
       generateLabel: 'Сгенерировать',
       downloadMp3Label: 'Скачать MP3',
       downloadWavLabel: 'Скачать WAV',
+      playLabel: 'Слушать',
+      stopLabel: 'Стоп',
       listenSelectionLabel: 'Прослушать фрагмент',
       targetsTitle: 'Куда сделать рингтон — нажмите плашку:',
       targetNames: {
@@ -980,6 +984,8 @@ export const UI = {
       generateLabel: 'Generar',
       downloadMp3Label: 'Descargar MP3',
       downloadWavLabel: 'Descargar WAV',
+      playLabel: 'Reproducir',
+      stopLabel: 'Detener',
       listenSelectionLabel: 'Escuchar la selección',
       targetsTitle: '¿Para dónde es el tono? Elige una opción:',
       targetNames: {
@@ -1445,6 +1451,8 @@ export const UI = {
       generateLabel: 'Згенерувати',
       downloadMp3Label: 'Завантажити MP3',
       downloadWavLabel: 'Завантажити WAV',
+      playLabel: 'Слухати',
+      stopLabel: 'Стоп',
       listenSelectionLabel: 'Прослухати фрагмент',
       targetsTitle: 'Куди зробити рингтон — натисніть плитку:',
       targetNames: {

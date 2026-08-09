@@ -190,19 +190,43 @@ export function drawWaveform(canvas, buffer) {
   const H = canvas.height;
   g.clearRect(0, 0, W, H);
   const data = buffer.getChannelData(0);
-  const step = Math.max(1, Math.ceil(data.length / W));
-  g.fillStyle = 'rgba(74,222,158,.55)';
-  for (let x = 0; x < W; x++) {
+
+  // Столбики с зазором, а не сплошная заливка по пикселю. Сплошная заливка на длинном файле
+  // сливается в мутное пятно -- ровно то, что выглядит как «нарисовали как получилось».
+  // Ширина столбика привязана к плотности точек: 2 CSS-пикселя на столбик и 1 на промежуток.
+  const bar = Math.max(1, Math.round(2 * dpr));
+  const gap = Math.max(1, Math.round(1 * dpr));
+  const stride = bar + gap;
+  const cols = Math.max(1, Math.floor(W / stride));
+  const step = Math.max(1, Math.floor(data.length / cols));
+  const mid = H / 2;
+
+  // Ось по центру: в звуковых редакторах она есть всегда, и именно она читается как «прибор».
+  g.fillStyle = 'rgba(255,255,255,.07)';
+  g.fillRect(0, Math.round(mid), W, Math.max(1, Math.round(dpr)));
+
+  g.fillStyle = 'rgba(74,222,158,.62)';
+  for (let c = 0; c < cols; c++) {
     let min = 1;
     let max = -1;
+    const from = c * step;
     for (let j = 0; j < step; j++) {
-      const d = data[x * step + j] || 0;
+      const d = data[from + j] || 0;
       if (d < min) min = d;
       if (d > max) max = d;
     }
+    if (max < min) { min = 0; max = 0; }
     const y1 = ((1 + min) * H) / 2;
     const y2 = ((1 + max) * H) / 2;
-    g.fillRect(x, y1, 1, Math.max(1, y2 - y1));
+    const h = Math.max(Math.round(dpr), y2 - y1);
+    const x = c * stride;
+    // Скруглённые концы: тонкая деталь, которую не замечают по отдельности, но без неё
+    // столбики выглядят обрубленными.
+    const r = Math.min(bar / 2, h / 2);
+    g.beginPath();
+    if (g.roundRect) g.roundRect(x, y1, bar, h, r);
+    else g.rect(x, y1, bar, h);
+    g.fill();
   }
 }
 

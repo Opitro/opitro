@@ -35,7 +35,12 @@
   /* Hidden until something is playing, and drawn above the canvas. It is positioned in pixels
      against the canvas by the script -- as a percentage of the shell it sat on top of the play
      button at rest and slid across it while playing. */
-  .midi-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
+  /* Бегунок как в аудиоинструментах: фирменный зелёный со слабым свечением вместо белой
+     нитки. Пока внешний вид плеера описан в трёх файлах, такие правила приходится
+     повторять -- это и есть причина, по которой они уже разъезжались (44/38 пикселей
+     у кнопки, 2/1.5 у бегунка). */
+  .midi-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
+    box-shadow:0 0 8px rgba(74,222,158,.55);pointer-events:none;z-index:2;display:none}
 
   .midi-tool .progress{height:2px;margin:10px 0 0;opacity:0;transition:opacity .35s ease}
   .midi-tool .progress.on{opacity:.55}

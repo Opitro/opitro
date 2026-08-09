@@ -37,7 +37,12 @@
   .stt-tool .wave-play-btn .ico{width:17px;height:17px}
   .stt-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
   .stt-tool .wave-duration b{color:var(--text);font-weight:600}
-  .stt-tool .playhead{position:absolute;top:0;bottom:0;width:1.5px;background:#fff;pointer-events:none;opacity:.85;z-index:2;display:none}
+  /* Бегунок как в аудиоинструментах: фирменный зелёный со слабым свечением вместо белой
+     нитки. Пока внешний вид плеера описан в трёх файлах, такие правила приходится
+     повторять -- это и есть причина, по которой они уже разъезжались (44/38 пикселей
+     у кнопки, 2/1.5 у бегунка). */
+  .stt-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
+    box-shadow:0 0 8px rgba(74,222,158,.55);pointer-events:none;z-index:2;display:none}
 
   .stt-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
   /* Layout.astro carries a global `.field{margin-bottom:16px}`. Left standing inside the export
@@ -118,7 +123,15 @@
      button's label. At 150px the row folded to two lines on a 360px phone, which is where a lot
      of Android screens sit. Measured from 320 to 1280. */
   .stt-tool .deck .field-fmt{flex:0 1 116px;min-width:96px}
-  .stt-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  /* Кнопка по содержимому, а не во всю ширину. Это уже чинилось в аудио-в-миди, но правка
+     легла только туда -- здесь кнопка оставалась в 774 пикселя. Третий раз одна и та же
+     ошибка в разных файлах: пока внешний вид описан трижды, так и будет. */
+  .stt-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:44px;padding:0 22px;
+    border-radius:12px;white-space:nowrap}
+  @media(max-width:640px){
+    .stt-tool .deck .field-fmt{flex:1 1 100%}
+    .stt-tool button.act.deck-act{flex:1 1 100%;min-width:0}
+  }
   .stt-tool .deck .field select{height:48px;border-radius:12px}
   .stt-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
 

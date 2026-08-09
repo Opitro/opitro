@@ -110,7 +110,7 @@ const ICO = {
 
   <div class="panel" id="audio-panel">
     {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
-    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !config.allowBatch && <div class="fileinfo" id="audio-fileinfo"></div>}
+    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
 
     {showWaveform && config.simplePreview && (
       <div class="wave-shell simple-preview" id="wave-shell">
@@ -121,18 +121,48 @@ const ICO = {
     )}
     {showWaveform && config.compactPreview && (
       <div class="wave-shell compact" id="wave-shell">
-        <button type="button" class="wave-play-btn" id="wave-play-btn" disabled aria-label={labels.listenSelectionLabel}>
+        {/* Имя файла -- верхняя строка ТОЙ ЖЕ панели, а не отдельная плашка над ней. Зелёная
+            заливка убрана: она была самым громким пятном на странице, хотя несла наименее
+            важное. Подтверждением загрузки служит сама волна -- она появилась, значит файл
+            прочитан; это сигнал сильнее любого цвета. Размер оттуда убран, он есть ниже как
+            SIZE, и в одних единицах, а не 0.4 MB против 366 KB. */}
+        <div class="fileinfo" id="audio-fileinfo"></div>
+        {/* Отдельная область под волну: бегунок и подсказка отсчитываются от неё, а не от всей
+            панели. Пока они лежали прямо в панели, бегунок протыкал строку с именем файла --
+            он растянут сверху донизу, а панель теперь начинается с этой строки. */}
+        <div class="wave-area" id="wave-area">
+          <canvas id="wave-canvas"></canvas>
+          {config.fadeRegions && <div class="fade-region fade-region-in" id="fade-region-in"></div>}
+          {config.fadeRegions && <div class="fade-region fade-region-out" id="fade-region-out"></div>}
+          <div class="playhead" id="playhead"></div>
+          {/* Подсказка при наведении: показывает, в какую секунду попадёт нажатие. Без неё по
+              волне можно кликать, но человек об этом не догадывается и не видит, куда целится. */}
+          <div class="wave-guide" id="wave-guide"></div>
+          <div class="wave-tip" id="wave-tip"></div>
+        </div>
+      </div>
+    )}
+    {/* Управление вынесено из-под волны наружу. Внутри оболочки кнопка занимала левый край --
+        на телефоне это была половина ширины волны, -- и мешала там, где волна рабочая
+        поверхность: ровно на левом крае живёт ручка выделения. Общая длительность не
+        дублируется: она уже написана в строке сведений о файле ниже. */}
+    {showWaveform && config.compactPreview && (
+      <div class="transport" id="transport">
+        <button type="button" class="tp-btn tp-play" id="wave-play-btn" disabled aria-label={labels.playLabel}>
           <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
         </button>
-        <canvas id="wave-canvas"></canvas>
-        {config.fadeRegions && <div class="fade-region fade-region-in" id="fade-region-in"></div>}
-        {config.fadeRegions && <div class="fade-region fade-region-out" id="fade-region-out"></div>}
-        {config.transport ? (
-          <span class="wave-duration"><b id="transport-cur">0:00</b> / <span id="transport-dur">0:00</span></span>
-        ) : (
-          <span class="wave-duration" id="wave-duration">0:00</span>
-        )}
-        <div class="playhead" id="playhead"></div>
+        <button type="button" class="tp-btn tp-stop" id="wave-stop-btn" disabled aria-label={labels.stopLabel}>
+          <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+        </button>
+        {/* Время появляется только когда есть что показывать -- в покое у кнопок пусто. */}
+        <span class="tp-time" id="transport-cur" hidden>0:00</span>
+        <span class="tp-total" id="transport-dur" hidden>0:00</span>
+        <span class="wave-duration" id="wave-duration" hidden>0:00</span>
+        {/* Сведения о файле переехали в тот же ряд: на десктопе там свободно 848px при нужных
+            620, и панель становится одним предметом вместо панели и отдельной строки под ней.
+            На узком экране свободно 270px -- туда они не помещаются и переносятся на вторую
+            строку ВНУТРИ той же панели, так что предмет остаётся один. */}
+        <div class="file-meta" id="file-meta" style="display:none"></div>
       </div>
     )}
     {showWaveform && !config.simplePreview && !config.compactPreview && (
@@ -164,7 +194,7 @@ const ICO = {
     {/* Gated on the compact player rather than on abCompare -- the file-info strip belongs to
         every tool using the new layout, and tying it to the A/B switch made it vanish from the
         speed tool the moment that switch was removed. */}
-    {(config.compactPreview || config.noWaveform || controls === 'trim') && (
+    {(config.noWaveform || controls === 'trim') && !config.compactPreview && (
       <div class="file-meta" id="file-meta" style="display:none"></div>
     )}
     {showTrimHandles && (
@@ -690,7 +720,10 @@ const ICO = {
         </button>
       </div>
     )}
-    {isRingtoneTargets && <AdSlot />}
+    {/* Рекламное место ВНУТРИ инструмента убрано. Оно стояло между настройками и кнопкой
+        скачивания -- то есть разрывало единственное действие, ради которого человек пришёл,
+        ровно в тот момент, когда цель уже видна. Два оставшихся места (между инструментом и
+        текстом и после текста) стоят на естественных границах и работе не мешают. */}
     {isRingtoneTargets && (
       <>
         <div class="targets-title">{labels.targetsTitle}</div>
@@ -722,7 +755,7 @@ const ICO = {
       </div>
     )}
 
-    {!isRingtoneTargets && <AdSlot />}
+
 
     {!isFfmpeg && !config.downloadFormats && (
       <div class="controls" id="download-row" style="display:none">
@@ -822,18 +855,37 @@ const ICO = {
     // overlay on the video can show a percentage instead of an indefinite spinner.
     let progressHook = null;
     let progressHideTimer = 0;
+    // Полоса выполнения появляется с задержкой: если работа уложилась примерно в 400 мс, человек
+    // её вообще не увидит. На маленьком файле она раньше мелькала и исчезала -- мельканье читается
+    // как мусор и обесценивает саму полосу. Зато на стоминутном подкасте распаковка идёт секунды,
+    // а шумоподавление и смена тональности -- десятки секунд, и там без неё экран выглядит
+    // замершим: работа идёт, а человек об этом не знает и уходит.
+    let progressShowTimer = 0;
+    function armProgress() {
+      clearTimeout(progressShowTimer);
+      progressShowTimer = window.setTimeout(() => progress.classList.add("on"), 400);
+    }
+    function hideProgress() {
+      clearTimeout(progressShowTimer);
+      progress.classList.remove('on');
+    }
     function showProgress(text, pct) {
       clearTimeout(progressHideTimer);
-      progress.classList.add('on');
+      armProgress();
       progressFill.style.width = (pct == null ? 0 : pct) + '%';
       progressText.textContent = text;
     }
+
     function finishProgress(text) {
       clearTimeout(progressHideTimer);
-      progress.classList.add('on');
+      clearTimeout(progressShowTimer);
       progressFill.style.width = '100%';
       progressText.textContent = text;
-      progressHideTimer = window.setTimeout(() => progress.classList.remove('on'), 2500);
+      // Итог показываем только если полоса уже была видна. Иначе быстрая операция всё равно
+      // мигнёт -- ровно то, от чего задержка и защищает.
+      if (progress.classList.contains('on')) {
+        progressHideTimer = window.setTimeout(() => progress.classList.remove('on'), 2500);
+      }
     }
 
     let file = null;
@@ -959,22 +1011,27 @@ const ICO = {
       const ext = (f.name.split('.').pop() || '').toUpperCase();
       // A 3-second recording is about 30 KB, which this rendered as "0.0 MB" -- true, useless.
       const sizeText = f.size >= 1048576
-        ? `${(f.size / 1048576).toFixed(1)} ${labels.unitMB || 'MB'}`
-        : `${Math.max(1, Math.round(f.size / 1024))} ${labels.unitKB || 'KB'}`;
+        ? `${(f.size / 1048576).toFixed(1)} MB`
+        : `${Math.max(1, Math.round(f.size / 1024))} KB`;
+      // Подписи и единицы намеренно английские и НЕ переводятся. Причины три: они вдвое-втрое
+      // короче ("TIME" против "ДЛИТЕЛЬНОСТЬ" -- 4 знака против 13, и именно длина этих слов
+      // ломала строку на телефоне); значения тут и так английские (WAV, MP3, Hz), и половинчатый
+      // перевод читается хуже обоих вариантов; и это язык, на котором говорит любая звуковая
+      // программа, так что слова узнаются без чтения.
       const rows = [
-        [labels.fileFormatLabel || 'Format', ext],
-        [labels.fileSizeLabel || 'Size', sizeText],
-        [labels.fileDurationLabel || 'Duration', fmtTime(dur)],
+        ['FORMAT', ext],
+        ['SIZE', sizeText],
+        ['TIME', fmtTime(dur)],
       ];
       // Sample rate and channel count are only known from a decoded buffer. Tools that skip the
       // decode on purpose (visualizer) show the rest rather than nothing.
       if (sourceBuffer) {
         // Thin-space grouping, so the strip reads "48 000 Hz" exactly like the dropdown right
         // below it does -- "48000 Hz" next to "44 100 Hz (CD)" looked like two different units.
-        rows.push([labels.fileSampleRateLabel || 'Sample rate',
-          `${String(sourceBuffer.sampleRate).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} Hz`]);
-        rows.push([labels.fileChannelsLabel || 'Channels',
-          sourceBuffer.numberOfChannels >= 2 ? (labels.channelStereoLabel || 'Stereo') : (labels.channelMonoLabel || 'Mono')]);
+        rows.push(['RATE', `${String(sourceBuffer.sampleRate).replace(/\B(?=(\d{3})+(?!\d))/g, ' ')} Hz`]);
+        // CHAN, а не CHANNELS: так подписан вход на любом микшере и звуковой карте, узнаваемость
+        // та же, а слово вдвое короче -- на телефоне именно оно оставалось самым длинным.
+        rows.push(['CHAN', sourceBuffer.numberOfChannels >= 2 ? 'Stereo' : 'Mono']);
       }
       fileMetaEl.innerHTML = rows
         .map(([k, v]) => `<div class="fm-item"><span class="fm-key">${escapeHtml(k)}</span><span class="fm-val">${escapeHtml(String(v))}</span></div>`).join('');
@@ -1287,7 +1344,7 @@ const ICO = {
       const canSwap = !!fileInput;
       const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
       const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
-      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${canSwap ? `<button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button>` : ''}<button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+      fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span>${canSwap ? `<button type="button" class="fi-act fi-swap" id="fi-swap-btn" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button>` : ''}<button type="button" class="fi-act fi-remove" id="fi-remove-btn" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (sizeMB > WARN_MB) {
         fileInfo.innerHTML += `<br><span style="color:#ffb020;font-size:12px;">${labels.largeFileWarningLabel}</span>`;
       }
@@ -1325,7 +1382,7 @@ const ICO = {
           showProgress(labels.decodingLabel || labels.preparingLabel, 25);
           try {
             const decoded = await decodeFileRobust(f);
-            progress.classList.remove('on');
+            hideProgress();
             sourceBuffer = decoded.buffer;
             if (decoded.replacementFile) file = decoded.replacementFile;
             dur = sourceBuffer.duration;
@@ -1375,7 +1432,7 @@ const ICO = {
             if (timesEl) timesEl.style.display = 'none';
             const inputsRow = inStart ? inStart.closest('.row') : null;
             if (inputsRow) inputsRow.style.display = 'none';
-            progress.classList.remove('on');
+            hideProgress();
             showError(labels.noPreviewLabel || labels.decodeErrorLabel);
           }
         }
@@ -1394,11 +1451,11 @@ const ICO = {
       try {
         decoded = await decodeFileRobust(f);
       } catch (e) {
-        progress.classList.remove('on');
+        hideProgress();
         showError(labels.decodeErrorLabel);
         return;
       }
-      progress.classList.remove('on');
+      hideProgress();
       {
         sourceBuffer = decoded.buffer;
         if (decoded.replacementFile) file = decoded.replacementFile;
@@ -1581,7 +1638,7 @@ const ICO = {
           downloadBlob(blob, `${tool}-${secs >= 60 ? secs / 60 + 'min' : secs + 's'}.${fmt}`);
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
-          progress.classList.remove('on');
+          hideProgress();
         }
         noiseDownloadBtn.disabled = false;
       });
@@ -1605,11 +1662,11 @@ const ICO = {
           try {
             report = config.report({ buffer: sourceBuffer, labels, tools: { analyzeVocalRange, detectKey, analyzeAudiobook } });
           } catch (err) {
-            progress.classList.remove('on');
+            hideProgress();
             showError(err && err.message ? err.message : String(err));
             return;
           }
-          progress.classList.remove('on');
+          hideProgress();
           if (!report) { analysisEl.innerHTML = `<div class="an-empty">${escapeHtml(labels.analysisEmptyLabel || '')}</div>`; return; }
           const rows = (report.rows || []).map((r) => {
             const state = r.state ? ` an-${r.state}` : '';
@@ -1693,7 +1750,7 @@ const ICO = {
           downloadBlob(zipBlob, `${base}-parts.zip`);
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
-          progress.classList.remove('on');
+          hideProgress();
         }
         splitBtn.disabled = !sourceBuffer;
       });
@@ -2142,6 +2199,32 @@ const ICO = {
     const wavePlayBtn = root.querySelector('#wave-play-btn');
     const wavePlayIco = root.querySelector('#wave-play-ico');
     const waveDurationEl = root.querySelector('#wave-duration');
+    const waveStopBtn = root.querySelector('#wave-stop-btn');
+    // Подсказка со временем под курсором. Живёт только на компактной панели -- там волна
+    // не рабочая поверхность, и ничто не спорит с ней за движения мыши.
+    const waveArea = root.querySelector('#wave-area');
+    const waveGuide = root.querySelector('#wave-guide');
+    const waveTip = root.querySelector('#wave-tip');
+    if (waveArea && waveGuide && waveTip) {
+      waveArea.addEventListener('mousemove', (e) => {
+        if (!dur) return;
+        const r = waveArea.getBoundingClientRect();
+        const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+        const t = (x / r.width) * dur;
+        waveGuide.style.left = x + 'px';
+        waveGuide.style.display = 'block';
+        waveTip.textContent = fmtClock(t);
+        waveTip.style.display = 'block';
+        // Подсказка не должна вылезать за края области -- у самого начала и конца дорожки
+        // она иначе обрезается рамкой панели.
+        const half = waveTip.offsetWidth / 2;
+        waveTip.style.left = Math.max(half + 2, Math.min(r.width - half - 2, x)) + 'px';
+      });
+      waveArea.addEventListener('mouseleave', () => {
+        waveGuide.style.display = 'none';
+        waveTip.style.display = 'none';
+      });
+    }
     const transportCurEl = root.querySelector('#transport-cur');
     const transportDurEl = root.querySelector('#transport-dur');
 
@@ -2357,7 +2440,7 @@ if (config.controls === 'speed1') {
     // long file takes a moment and silently doing nothing would read as a broken button.
     async function ensureAbResult() {
       if (!isRenderedAb || abSelected !== 'result' || renderedBuffer) return true;
-      progress.classList.add('on');
+      armProgress();
       progressFill.style.width = '40%';
       progressText.textContent = labels.workingLabel;
       try {
@@ -2369,7 +2452,7 @@ if (config.controls === 'speed1') {
         return true;
       } catch (e) {
         showError(e && e.message ? e.message : String(e));
-        progress.classList.remove('on');
+        hideProgress();
         return false;
       }
     }
@@ -2414,6 +2497,13 @@ if (config.controls === 'speed1') {
           : from;
       }
       player.unlock();
+      // Позицию надо забрать ДО остановки: stop() обнуляет запомненное на паузе место, а вызван
+      // он здесь же, строкой ниже. Из-за этого пауза честно сохраняла момент, а следующее
+      // нажатие стирало его за миг до старта, и запись начиналась сначала.
+      if (resumeAt == null) {
+        const held = player.getPosition();
+        if (held > 0.05 && held < buf.duration - 0.05) resumeAt = held;
+      }
       player.stop();
       if (wavePlayIco) wavePlayIco.innerHTML = ICO_PAUSE;
       abPlayingWhich = which;
@@ -2422,7 +2512,11 @@ if (config.controls === 'speed1') {
       player.play(
         buf,
         (frac) => {
-          if (transportCurEl) transportCurEl.textContent = fmtClock(frac * buf.duration);
+          if (transportCurEl) {
+            transportCurEl.textContent = fmtClock(frac * buf.duration);
+            transportCurEl.hidden = false;
+          }
+          if (waveStopBtn) waveStopBtn.disabled = false;
           setPlayheadFrac(frac);
         },
         () => {
@@ -2464,6 +2558,20 @@ if (config.controls === 'speed1') {
         if (buf && wasPlaying) playAB(which, buf, resumeFrom ?? undefined);
       })();
     }
+    // Стоп: остановить и вернуть бегунок к НАЧАЛУ ВЫДЕЛЕНИЯ, а не к нулю файла. Правило общее для
+    // всех инструментов с выделением: человек слушает свой отрезок и хочет переслушать его же,
+    // а не улетать в начало часовой записи. Там, где выделения нет, начало выделения и есть ноль.
+    if (waveStopBtn) {
+      waveStopBtn.addEventListener('click', () => {
+        stopAB();
+        player.reset();
+        const back = (typeof selStart === 'number' && selStart > 0) ? selStart : 0;
+        if (dur > 0) setPlayheadFrac(back / dur);
+        if (playhead) playhead.style.display = back > 0 ? 'block' : 'none';
+        if (transportCurEl) { transportCurEl.textContent = fmtClock(back); transportCurEl.hidden = true; }
+        waveStopBtn.disabled = true;
+      });
+    }
     if (abOriginalBtn) abOriginalBtn.addEventListener('click', () => selectAbSide('original'));
     if (abResultBtn) abResultBtn.addEventListener('click', () => { if (!abResultBtn.disabled) selectAbSide('result'); });
     if (wavePlayBtn) {
@@ -2503,7 +2611,7 @@ if (config.controls === 'speed1') {
         window.dispatchEvent(new Event('opitro:tool-interaction'));
         clearError();
         eqDownloadBtn.disabled = true;
-        progress.classList.add('on');
+        armProgress();
         progressFill.style.width = '30%';
         progressText.textContent = labels.workingLabel;
         try {
@@ -2553,7 +2661,7 @@ if (config.controls === 'speed1') {
           exportedClean = true;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
-          progress.classList.remove('on');
+          hideProgress();
         }
         eqSyncState();
       });
@@ -3182,10 +3290,10 @@ if (config.controls === 'speed1') {
         try {
           if (!renderedBuffer) {
             listenBtn.disabled = true;
-            progress.classList.add('on');
+            armProgress();
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
-            progress.classList.remove('on');
+            hideProgress();
             listenBtn.disabled = false;
             // The old two-button download strip only exists on tools without an export bar.
             // Merge grew one, so this went null there and threw -- inside the try, so it
@@ -3208,7 +3316,7 @@ if (config.controls === 'speed1') {
           );
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
-          progress.classList.remove('on');
+          hideProgress();
           listenBtn.disabled = false;
         }
       });
@@ -3302,14 +3410,14 @@ if (config.controls === 'speed1') {
 
         try {
           if (!renderedBuffer) {
-            progress.classList.add('on');
+            armProgress();
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
-            progress.classList.remove('on');
+            hideProgress();
             if (downloadRow) downloadRow.style.display = 'flex';
           }
         } catch (err) {
-          progress.classList.remove('on');
+          hideProgress();
           return;
         }
         const base = config.controls === 'trim' ? selStart : 0;
@@ -3414,7 +3522,7 @@ if (config.controls === 'speed1') {
         ffmpegBusy = true;
         runBtn.disabled = true;
         if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => { c.disabled = true; });
-        progress.classList.add('on');
+        armProgress();
         progressFill.style.width = '0%';
         progressText.textContent = labels.preparingLabel;
 
@@ -3464,7 +3572,7 @@ if (config.controls === 'speed1') {
             finishProgress(labels.doneLabel);
             runBtn.textContent = labels[config.runLabel] || labels.processLabel;
           } else {
-            progress.classList.remove('on');
+            hideProgress();
           }
           ffmpegBusy = false;
           runBtn.disabled = false;
@@ -3513,7 +3621,7 @@ if (config.controls === 'speed1') {
           producedBlob = blob;
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
-          progress.classList.remove('on');
+          hideProgress();
         }
         ffmpegBusy = false;
         // Tools with abCompare start the download button disabled and only enable it once a
@@ -3593,7 +3701,7 @@ if (config.controls === 'speed1') {
           clearError();
           if (ringtoneGuide) ringtoneGuide.classList.remove('on');
           targetsEl.querySelectorAll('.target').forEach((b) => { b.disabled = true; });
-          progress.classList.add('on');
+          armProgress();
           progressFill.style.width = '0%';
           progressText.textContent = labels.preparingLabel;
 
@@ -3688,7 +3796,7 @@ if (config.controls === 'speed1') {
             }
           } catch (e) {
             showError(e && e.message ? e.message : String(e));
-            progress.classList.remove('on');
+            hideProgress();
           }
           targetsEl.querySelectorAll('.target').forEach((b) => { b.disabled = false; });
         });

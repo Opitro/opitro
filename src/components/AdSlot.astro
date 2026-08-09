@@ -9,10 +9,15 @@
        fill the cross axis by default. Without this, the box shrinks to its (empty) content
        size -- a near-zero-width sliver that still reserves its min-height, which read as a
        thin vertical line before the ad is revealed. Caught live via a user screenshot. */
-    width:100%;max-width:680px;margin:16px auto;padding:0 2rem;
+    width:100%;max-width:680px;margin:0 auto;padding:0 2rem;
   }
   .ad-slot-box{
-    min-height:50px;border-radius:10px;
+    /* Резерв высоты снят до подключения рекламной сети. Он держался ради того, чтобы появление
+       объявления не сдвигало текст, -- решение верное, но сети пока нет, и в это место ничего не
+       приходит: два пустых просвета по 82 пикселя на каждой странице отдавались под то, чего не
+       существует. Когда сеть подключат, вернуть min-height и поля -- и именно с первой отрисовки,
+       иначе сдвиг вернётся. */
+    min-height:0;border-radius:10px;
     opacity:0;transition:opacity .35s ease;pointer-events:none;
   }
   /* No border reveal -- there's no real ad network wired up yet, so a bordered empty box

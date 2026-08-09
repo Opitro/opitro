@@ -94,11 +94,82 @@
   .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
   .audio-tool .preset-btn:hover{border-color:var(--accent)}
   .audio-tool .preset-btn.active{border-color:var(--accent);background:rgba(74,222,158,0.14);color:var(--accent)}
-  .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:13px;cursor:pointer;color:var(--text)}
+  .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;color:var(--muted)}
+  .audio-tool .check:hover{color:var(--text)}
+  /* Галочка и «вернуть как было» -- в одну строку и мелким: это редкие второстепенные
+     действия, и размер должен об этом говорить. Раньше каждое занимало полную строку в
+     полный рост, наравне с главным. */
+  /* Кнопка «вернуть как было» лежит в своей полоске .eq-toolbar, а не рядом с галочкой --
+     первый вариант правила по соседству с .check в неё просто не попадал. */
+  .audio-tool .eq-toolbar{margin-bottom:14px}
+  .audio-tool button.act.eq-reset-btn{height:30px;padding:0 14px;font-size:12.5px;font-weight:600;
+    flex:0 0 auto;min-width:auto;border-radius:9px;background:transparent;border:1px solid var(--line);
+    color:var(--muted)}
+  .audio-tool button.act.eq-reset-btn:hover{border-color:rgba(255,255,255,0.22);color:var(--text);transform:none}
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
   .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
-  .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:#fff;opacity:.85;pointer-events:none;z-index:2;display:none}
+  /* Волна и управление -- ОДНА панель, а не три предмета, лежащие рядом. Пока они были
+     отдельными (бордюр вокруг волны, а под ним две круглые кнопки в пустоте), это читалось как
+     набор деталей: детский вид, о котором и было сказано. Общая рамка со внутренним разделителем
+     превращает их в прибор.
+     Заливки у кнопок нет намеренно: залитая кнопка на тёмном фоне читается как уже нажатая --
+     ту же заливку мы по этой причине убирали с кнопки скачивания. Цвет живёт в значке. */
+  .audio-tool .wave-shell.compact{display:block;padding:0;background:#0a0b0d;border:1px solid var(--line);
+    border-radius:14px 14px 0 0;border-bottom:none;margin-bottom:0;overflow:hidden}
+  .audio-tool .wave-shell.compact .wave-area{position:relative;display:block}
+  .audio-tool .wave-shell.compact canvas{display:block;width:100%;height:72px}
+  /* Направляющая и подсказка при наведении. Обе бледные: они помогают прицелиться, но не
+     должны спорить с самой волной. */
+  .audio-tool .wave-guide{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.28);
+    pointer-events:none;display:none;z-index:1}
+  .audio-tool .wave-tip{position:absolute;top:6px;transform:translateX(-50%);pointer-events:none;
+    display:none;z-index:3;background:rgba(10,11,13,0.92);border:1px solid var(--line);
+    border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:600;color:var(--text);
+    font-variant-numeric:tabular-nums}
+  /* Верхняя строка панели: нейтральная, с волосяной чертой снизу -- как секция прибора. */
+  .audio-tool .wave-shell.compact .fileinfo{margin:0;background:none;border:none;
+    border-bottom:1px solid rgba(255,255,255,0.06);border-radius:0;padding:9px 12px;font-size:13px}
+  .audio-tool .wave-shell.compact .fi-row{display:flex;align-items:center;gap:9px}
+  .audio-tool .wave-shell.compact .fi-ico{color:var(--accent);opacity:.8;flex:none}
+  /* Длинное имя обрезается многоточием, а не растягивает строку. */
+  .audio-tool .wave-shell.compact .fi-name{flex:1;min-width:0;font-weight:400;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .audio-tool .wave-shell.compact .fi-act{flex:none;color:var(--muted);opacity:.75}
+  .audio-tool .wave-shell.compact .fi-act:hover{opacity:1;color:var(--text)}
+  .audio-tool .transport{display:flex;align-items:center;gap:8px;margin:0 0 6px;
+    padding:8px 10px;background:var(--surface);border:1px solid var(--line);
+    border-top:1px solid rgba(255,255,255,0.06);border-radius:0 0 14px 14px}
+  /* Контур есть сразу, а не только при наведении. Прозрачная кнопка без границ читается как
+     значок, а не как кнопка: понять, что на неё можно нажать, удаётся только наведя мышь -- то
+     есть уже после того, как человек искал глазами. Наведение теперь усиливает то, что и так
+     видно, а не сообщает о существовании кнопки. */
+  .audio-tool .tp-btn{flex:none;width:34px;height:34px;border-radius:10px;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;
+    background:rgba(255,255,255,0.035);border:1px solid var(--line);color:var(--text);
+    transition:background .18s,border-color .18s,color .18s,opacity .18s}
+  .audio-tool .tp-btn:hover:not(:disabled){background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.22)}
+  .audio-tool .tp-btn:active:not(:disabled){background:rgba(74,222,158,0.14);border-color:rgba(74,222,158,0.4)}
+  .audio-tool .tp-btn:disabled{opacity:.3;cursor:not-allowed}
+  .audio-tool .tp-btn svg{width:17px;height:17px}
+  .audio-tool .tp-play{color:var(--accent)}
+  /* Тонкая черта между кнопками и временем -- как между секциями на приборе. */
+  .audio-tool .tp-time{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);
+    font-size:13.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;
+    letter-spacing:.02em;line-height:34px}
+  .audio-tool .tp-total{display:none}
+  /* Сведения о файле прижаты вправо и переносятся на вторую строку панели, когда не помещаются. */
+  .audio-tool .transport{flex-wrap:wrap;row-gap:6px}
+  .audio-tool .transport .file-meta{margin:0 0 0 auto;padding:0;border:none;background:none;
+    display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;justify-content:flex-end}
+  @media(max-width:640px){
+    .audio-tool .transport .file-meta{margin-left:0;width:100%;justify-content:flex-start}
+  }
+  /* Бегунок фирменного цвета со слабым свечением: белая нитка выглядела служебной
+     отметкой, а не частью инструмента. Свечение намеренно слабое -- неон хорош ровно
+     до того момента, когда его становится много. */
+  .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
+    box-shadow:0 0 8px rgba(74,222,158,.55);pointer-events:none;z-index:2;display:none}
   .audio-tool .times{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px 14px}
   .audio-tool .times b{color:var(--accent)}
   /* Same green disc as the compact player's play button -- one play control across the site,
@@ -119,9 +190,33 @@
   @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
   .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
   .audio-tool .pitch-card{margin-bottom:16px}
-  .audio-tool .speed-presets{grid-template-columns:repeat(6,1fr)}
-  @media(max-width:480px){.audio-tool .speed-presets{grid-template-columns:repeat(3,1fr)}}
-  .audio-tool .speed-presets .preset-card{padding:12px 6px}
+  /* --- Управления под плеером: один размерный ряд вместо семи -----------------------------
+     Замер до правки: плеер занимал 174 пикселя, а всё под ним -- 460, при семи разных высотах
+     кнопок на одном экране (27, 30, 34, 37, 40, 41, 48). Когда всё разного размера и при этом
+     всё крупное, глаз не понимает, что главное. Размеров теперь три: 36 -- обычное управление,
+     30 -- второстепенное, 44 -- главное действие. */
+
+  /* Ползунок строкой, а не карточкой в три этажа: подпись слева, значение справа. */
+  .audio-tool .pitch-card{flex-direction:row;align-items:center;gap:14px;padding:8px 14px;margin-bottom:10px}
+  .audio-tool .pitch-card .fade-card-title{flex:none;margin:0;font-size:10px;letter-spacing:.09em;
+    text-transform:uppercase;color:var(--muted);white-space:nowrap}
+  .audio-tool .pitch-card input[type=range]{flex:1;min-width:0;margin:0}
+  .audio-tool .pitch-card .fade-card-val{flex:none;min-width:52px;text-align:right}
+
+  /* Пресеты -- сегментированный переключатель: выбирается ОДНО из, а не шесть независимых
+     действий. Шесть кнопок по 46 пикселей в два ряда занимали 92; одна полоса занимает 34. */
+  .audio-tool .preset-cards.speed-presets{display:flex;gap:0;background:var(--surface-2);border:1px solid var(--line);
+    border-radius:10px;overflow:hidden;margin-bottom:12px}
+  .audio-tool .preset-cards.speed-presets .preset-card{flex:1;min-width:0;padding:0;height:34px;border:none;
+    border-right:1px solid var(--line);border-radius:0;background:transparent;font-size:12.5px;
+    font-weight:600;color:var(--muted);display:flex;align-items:center;justify-content:center;
+    transition:background .15s,color .15s}
+  .audio-tool .preset-cards.speed-presets .preset-card:last-child{border-right:none}
+  .audio-tool .preset-cards.speed-presets .preset-card:hover{transform:none;background:rgba(255,255,255,0.05);color:var(--text)}
+  .audio-tool .preset-cards.speed-presets .preset-card.active{background:rgba(74,222,158,0.14);color:var(--accent);
+    box-shadow:none;border-color:var(--line)}
+  @media(max-width:480px){.audio-tool .preset-cards.speed-presets{flex-wrap:wrap}
+    .audio-tool .preset-cards.speed-presets .preset-card{flex:1 0 33.333%;border-bottom:1px solid var(--line)}}
   .audio-tool .viz-preview-btn{width:100%;margin-bottom:14px}
   .audio-tool .viz-player{margin-bottom:16px}
   /* Fixed 16:9 box reserved up front, so a finished render drops into place instead of pushing
@@ -210,7 +305,15 @@
      210px basis made the button claim more than it needs and pushed itself onto a third line on
      a phone; sized to its content, "format + download" stay together on one line under the rate,
      which is the pairing that makes sense -- the format belongs to the download, not to the rate. */
-  .audio-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  /* Кнопка по содержимому, а не во всю ширину. Это уже чинилось в аудио-в-миди, но правка
+     легла только туда -- здесь кнопка оставалась в 774 пикселя. Третий раз одна и та же
+     ошибка в разных файлах: пока внешний вид описан трижды, так и будет. */
+  .audio-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:44px;padding:0 22px;
+    border-radius:12px;white-space:nowrap}
+  @media(max-width:640px){
+    .audio-tool .deck .field-fmt{flex:1 1 100%}
+    .audio-tool button.act.deck-act{flex:1 1 100%;min-width:0}
+  }
   .audio-tool .deck .field select{height:48px;border-radius:12px}
   .audio-tool .act .i{width:17px;height:17px;flex:none}
   .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
@@ -284,8 +387,10 @@
   /* Compact inline preview (enhance): round play button + a short waveform + duration, all in
      one row -- matches timbrica's layout, and doesn't need the full-height canvas since there
      are no trim handles to draw here. */
-  .audio-tool .wave-shell.compact{display:flex;align-items:center;gap:12px;padding:12px 16px}
-  .audio-tool .wave-shell.compact canvas{height:44px;width:auto;flex:1}
+  /* Прежнее правило компактной оболочки (строкой: кнопка, волна, часы) удалено -- оно шло ниже
+     нового и перебивало его, из-за чего имя файла вставало РЯДОМ с волной, а не над ней.
+     Раскладку панели задаёт правило выше, в одном месте. */
+
   .audio-tool .wave-play-btn{flex:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#08130d}
   .audio-tool .wave-play-btn:hover{transform:scale(1.05)}
   .audio-tool .wave-play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
@@ -307,9 +412,17 @@
   /* Plain info, not a button -- no border/background box, just small labels sitting directly
      under the player where they describe the file you just loaded. */
   .audio-tool .file-meta{display:none;flex-wrap:wrap;gap:6px 18px;margin:12px 0 18px}
-  .audio-tool .fm-item{display:flex;align-items:baseline;gap:5px}
-  .audio-tool .fm-key{font-size:10px;letter-spacing:.07em;text-transform:uppercase;color:var(--muted)}
-  .audio-tool .fm-val{font-size:12px;font-weight:600;color:var(--text)}
+  /* Подпись сверху, значение снизу -- столбиком, как в приборной панели. В строку это читалось
+     медленнее: глаз каждый раз разбирал, где кончается подпись и начинается значение, потому что
+     между парами и внутри пары были похожие промежутки. В столбик разделение делает сама
+     вертикаль, и подпись можно сделать мельче, не теряя читаемости значения. */
+  .audio-tool .fm-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.25}
+  .audio-tool .fm-key{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);opacity:.75}
+  /* Значения намеренно негромкие: это справка о файле, а не то, ради чего человек пришёл.
+     Полужирные 12.5px перетягивали внимание с волны и кнопок -- главного на панели. */
+  .audio-tool .fm-val{font-size:11.5px;font-weight:500;color:rgba(240,240,242,0.88);font-variant-numeric:tabular-nums}
+  .audio-tool .transport .file-meta{gap:4px 22px}
+  @media(max-width:640px){.audio-tool .transport .file-meta{gap:8px 18px}}
 
   /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
      "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps
