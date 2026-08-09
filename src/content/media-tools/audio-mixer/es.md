@@ -20,6 +20,10 @@ faq:
     answer: Sumar señales puede pasarse del máximo, y eso distorsionaría. Lo comprobamos, y si la suma se pasa del techo bajamos toda la mezcla en proporción — sale un poco más floja en lugar de sonar rota.
   - question: ¿La música puede bajar sola cuando habla la voz?
     answer: No, aquí no hay atenuación automática — el nivel de la base es el mismo de principio a fin. Es bastante más simple de lo que hace un editor de vídeo, pero cubre la mayoría de los casos.
+related:
+  - merge-audio
+  - loop-audio
+  - dynamic-compressor
 ---
 
 Añade los archivos de uno en uno — el primero será el principal y el resto irán debajo. Ajusta el nivel de la base, pulsa «Mezclar y escuchar» y valora el resultado antes de descargarlo.
@@ -31,5 +35,3 @@ Añade los archivos de uno en uno — el primero será el principal y el resto i
 - **Meditación o audioguía** — voz sobre un fondo tranquilo
 - **Una maqueta** — voz sobre una pista de acompañamiento
 - **Una felicitación grabada** con música detrás
-
-Cerca: [unir audio](/es/merge-audio) si los archivos deben ir seguidos, [poner en bucle](/es/loop-audio) para estirar una música corta y [nivelar el volumen](/es/dynamic-compressor) de la voz antes de mezclar.

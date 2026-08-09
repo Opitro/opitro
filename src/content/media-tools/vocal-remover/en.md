@@ -20,6 +20,10 @@ faq:
     answer: Because subtracting the channels leaves you with one signal. That's a consequence of the method, not a shortcut. For karaoke and practice it makes no difference.
   - question: Will a file from my phone or a messenger work?
     answer: Only if it's stereo. Voice messages and many phone recordings are mono, so there's nothing to subtract — the tool says so directly once you load one.
+related:
+  - audio-pitch
+  - audio-speed
+  - trim-audio
 ---
 
 Load a track and press play — you'll hear the result immediately. The method doesn't work on every song, so listening first isn't optional here.
@@ -32,5 +36,3 @@ Load a track and press play — you'll hear the result immediately. The method d
 - **A starting point for a remix**
 
 Straight about the method: this is channel subtraction, not neural separation. On tidy studio recordings it does a decent job; on modern wide mixes it often does nothing useful. There's no telling in advance, which is why you listen.
-
-Nearby: [change pitch](/en/audio-pitch) if the backing track is in the wrong key, [change speed](/en/audio-speed) for learning a part, and [trim audio](/en/trim-audio).

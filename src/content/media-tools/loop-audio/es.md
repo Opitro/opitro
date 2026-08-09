@@ -20,6 +20,9 @@ faq:
     answer: Sí, el botón de reproducir suena la versión en bucle entera, costuras incluidas.
   - question: ¿En qué se diferencia del modo repetir de un reproductor?
     answer: Un reproductor repite el archivo en tu dispositivo, siempre con un hueco mientras se reinicia. Aquí obtienes un único archivo continuo que puedes poner donde quieras — en un vídeo, en una web, en una aplicación que no tenga función de repetición.
+related:
+  - trim-audio
+  - merge-audio
 ---
 
 Sube un archivo y elige cuántas repeticiones — la duración final aparece bajo el control al momento. Dale a reproducir para comprobar las uniones y descarga.
@@ -31,5 +34,3 @@ Sube un archivo y elige cuántas repeticiones — la duración final aparece baj
 - **Una base rítmica** — repetir un compás para ensayar o para sacar algo
 - **Audio para un juego o una aplicación** que necesita un archivo largo continuo
 - **Meditación o temporizadores** construidos con un tramo repetido hasta una duración concreta
-
-Cerca: [recortar audio](/es/trim-audio) para sacar un tramo limpio para el bucle, y [unir audio](/es/merge-audio) si lo que necesitas es juntar archivos distintos en vez de repetir uno.

@@ -20,6 +20,10 @@ faq:
     answer: No, el efecto es de ida — el detalle descartado no vuelve. Guarda el original aparte si aún lo vas a necesitar.
   - question: ¿El archivo se hace más pequeño?
     answer: No necesariamente. El audio se degrada pero se guarda a la misma frecuencia de muestreo que la fuente, así que el tamaño depende solo del formato que elijas. Para bajar el peso, usa [comprimir audio](/es/compress-audio).
+related:
+  - voice-changer
+  - audio-pitch
+  - reverb-echo
 ---
 
 Sube un archivo, elige un estilo y dale a reproducir — el efecto se oye al momento. Alterna entre ellos y descarga el que te guste.
@@ -30,5 +34,3 @@ Sube un archivo, elige un estilo y dale a reproducir — el efecto se oye al mom
 - **Una entradilla retro** para un vídeo o un directo
 - **Un meme o una broma** — un tema conocido en versión de 8 bits
 - **Experimentos sonoros** — el lo-fi como textura deliberada en un arreglo
-
-Cerca: [cambiar la voz](/es/voice-changer), que tiene efectos emparentados como radio y megáfono, además de [cambiar el tono](/es/audio-pitch) y [eco y reverberación](/es/reverb-echo).

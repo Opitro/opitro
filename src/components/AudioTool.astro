@@ -2455,6 +2455,12 @@ if (config.controls === 'speed1') {
         if (!ok || abSelected !== which) return;
         const buf = currentAbBuffer();
         if (wavePlayBtn) wavePlayBtn.disabled = !buf;
+        // Перерисовка волны под выбранную сторону. Включена только там, где сама форма волны и
+        // есть результат -- у реверса зеркальная волна это единственное наглядное доказательство,
+        // что переворот случился. Остальным инструментам не включаю: у сдвига тональности или
+        // шумоподавления форма меняется еле заметно, и мигание волны при переключении будет
+        // выглядеть сбоем, а не сообщением.
+        if (config.abWaveform && buf && waveCanvas) drawWaveform(waveCanvas, buf);
         if (buf && wasPlaying) playAB(which, buf, resumeFrom ?? undefined);
       })();
     }

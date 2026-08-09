@@ -22,6 +22,10 @@ faq:
     answer: Elige una intensidad y el proceso arranca solo, y luego suena el resultado. El interruptor de Original y Resultado alterna entre los dos sobre la marcha, desde el mismo punto de la grabación.
   - question: ¿En qué formato se guarda el resultado?
     answer: MP3, WAV o M4A, a tu elección. Antes solo había MP3, lo que hacía que limpiar un WAV devolviera un archivo con pérdidas; eso ya no pasa.
+related:
+  - audio-enhancer
+  - audio-equalizer
+  - remove-silence
 ---
 
 Sube una grabación y elige una intensidad de limpieza — el proceso empieza al momento y el resultado suena solo. Alterna entre el original y el resultado para valorar la diferencia con honestidad, y descarga.
@@ -34,5 +38,3 @@ Sube una grabación y elige una intensidad de limpieza — el proceso empieza al
 - **Llamadas y clases** grabadas junto al ventilador de un ordenador
 
 Claro con los límites: esto es resta espectral de un fondo, no restauración de voz por redes neuronales. Con ruido parejo funciona bien, pero cuanto más limpia, más sufre la propia voz. Si el ruido está más alto que la voz, aquí no hay nada que hacer — ningún procesado lo va a salvar.
-
-Cerca: [mejorar el sonido](/es/audio-enhancer), que combina la limpieza con el nivelado y el ecualizador, además del [ecualizador](/es/audio-equalizer) para cortar un zumbido concreto y [quitar el silencio](/es/remove-silence).

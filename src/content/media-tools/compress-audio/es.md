@@ -20,6 +20,9 @@ faq:
     answer: Aquí todo gira en torno al tamaño a un bitrate dado, y eso significa MP3. WAV no tiene bitrate del que hablar y OGG usa otra escala de calidad. Si necesitas otro formato, usa el [conversor de audio](/es/audio-converter).
   - question: ¿Tiene sentido comprimir un MP3 ya comprimido?
     answer: Lo tiene si hay un límite de tamaño que cumplir, pero la calidad cae más de lo normal porque se apila pérdida sobre pérdida. Parte de una fuente mejor siempre que puedas.
+related:
+  - audio-converter
+  - remove-silence
 ---
 
 Sube un archivo y mueve el control — el tamaño resultante aparece debajo mientras lo haces. Los botones preparados fijan un bitrate para un trabajo concreto — correo, mensajería, Discord, archivo. Escucha y descarga.
@@ -32,5 +35,3 @@ Sube un archivo y mueve el control — el tamaño resultante aparece debajo mien
 - **Liberar espacio** en el móvil o en la nube para un archivo de grabaciones
 
 Una regla práctica — habla a 64 o 96 kbps, un pódcast con música a 128, música para escuchar a 192 y más. Baja de 64 solo cuando el tamaño importe de verdad más que el sonido.
-
-Cerca: [conversor de audio](/es/audio-converter) para cambiar de formato, y [quitar el silencio](/es/remove-silence), que a veces reduce un archivo más que comprimirlo y sin ninguna pérdida de calidad.

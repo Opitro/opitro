@@ -20,6 +20,10 @@ faq:
     answer: No, se queda idéntica. Solo cambia la dirección.
   - question: ¿Puedo escucharlo antes de descargar?
     answer: Sí, el botón de reproducir suena la versión invertida.
+related:
+  - trim-audio
+  - audio-speed
+  - audio-pitch
 ---
 
 Sube un archivo y dale a reproducir — oirás la versión invertida al momento. No hay nada que configurar. Después elige formato y descarga.
@@ -30,5 +34,3 @@ Sube un archivo y dale a reproducir — oirás la versión invertida al momento.
 - **Experimentos musicales** — un sample invertido suena ajeno aunque la fuente no lo sea
 - **Comprobar una canción** buscando frases ocultas — la discusión que se zanja antes de tenerla
 - **Pura curiosidad** por cómo suena al revés un tema que conoces
-
-Cerca: [recortar audio](/es/trim-audio) para invertir solo un tramo, y [cambiar la velocidad](/es/audio-speed) y [el tono](/es/audio-pitch), que suelen usarse junto con la inversión.

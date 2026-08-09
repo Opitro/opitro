@@ -20,6 +20,10 @@ faq:
     answer: No, it stays identical. Only the direction changes.
   - question: Can I hear it before downloading?
     answer: Yes — the play button plays the reversed version.
+related:
+  - trim-audio
+  - audio-speed
+  - audio-pitch
 ---
 
 Load a file and press play — you'll hear the reversed version straight away. There's nothing to configure. Then pick a format and download.
@@ -30,5 +34,3 @@ Load a file and press play — you'll hear the reversed version straight away. T
 - **Music experiments** — reversed samples sound unfamiliar even when the source is not
 - **Checking a song for hidden phrases** — the argument that's quicker to settle than to have
 - **Plain curiosity** about what a track you know sounds like backwards
-
-Nearby: [trim audio](/en/trim-audio) to reverse just one section, plus [change speed](/en/audio-speed) and [change pitch](/en/audio-pitch), which often get used alongside reversing.

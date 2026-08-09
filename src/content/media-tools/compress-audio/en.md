@@ -20,6 +20,9 @@ faq:
     answer: The whole point here is size at a chosen bitrate, and that means MP3. WAV has no bitrate to speak of and OGG uses a different quality scale. If you need a different format, use the [audio converter](/en/audio-converter).
   - question: Is there any point compressing an MP3 that's already compressed?
     answer: There is, if you have a size limit to meet, but the quality drops more than usual because you're stacking loss on loss. Start from a better source where you can.
+related:
+  - audio-converter
+  - remove-silence
 ---
 
 Load a file and move the slider — the resulting size appears underneath as you go. The preset buttons set a bitrate for a specific job: email, messengers, Discord, archive. Have a listen, then download.
@@ -32,5 +35,3 @@ Load a file and move the slider — the resulting size appears underneath as you
 - **Freeing up space** on a phone or in cloud storage for an archive of recordings
 
 A working rule of thumb: speech at 64–96 kbps, a podcast with music at 128, music for listening at 192 and up. Go below 64 only when size genuinely matters more than sound.
-
-Nearby: [audio converter](/en/audio-converter) to change format, and [remove silence](/en/remove-silence) — which sometimes shrinks a file more than compression does, without any quality loss at all.

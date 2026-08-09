@@ -20,6 +20,9 @@ faq:
     answer: Sistemas de telefonía y de voz, pódcast grabados con un solo micrófono, audio para altavoces inteligentes, y cualquier caso en el que no haya efecto estéreo que oír pero se esté pagando en tamaño de archivo.
   - question: ¿Y si el archivo ya es mono?
     answer: La herramienta lo dice, justo debajo del ajuste. Volver a convertirlo no consigue nada — obtendrías el mismo audio.
+related:
+  - normalize-audio
+  - audio-converter
 ---
 
 Sube un archivo, elige un modo y dale a reproducir — oirás la versión reducida a un canal. Después elige formato y descarga.
@@ -31,4 +34,4 @@ Sube un archivo, elige un modo y dale a reproducir — oirás la versión reduci
 - **Locuciones y mensajes** para sistemas telefónicos que esperan mono
 - **Reducir el tamaño** cuando en la grabación no hay efecto estéreo de todos modos
 
-El camino inverso es [mono a estéreo](/es/mono-to-stereo). Cerca: [normalizar](/es/normalize-audio), [conversor de audio](/es/audio-converter).
+El camino inverso es [mono a estéreo](/es/mono-to-stereo).

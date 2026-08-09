@@ -22,6 +22,10 @@ faq:
     answer: Pick a strength and processing starts on its own, then plays the result. The Original / Result switch flips between the two on the fly, from the same point in the recording.
   - question: What format does the result save in?
     answer: MP3, WAV or M4A, your choice. It used to be MP3 only, which meant cleaning up a WAV handed back a lossy file — that's gone now.
+related:
+  - audio-enhancer
+  - audio-equalizer
+  - remove-silence
 ---
 
 Load a recording and pick a cleaning strength — processing starts immediately and the result plays. Flip between original and result to judge the difference honestly, then download.
@@ -34,5 +38,3 @@ Load a recording and pick a cleaning strength — processing starts immediately 
 - **Calls and lectures** recorded next to a computer fan
 
 Straight about the limits: this is spectral subtraction of a background, not neural speech restoration. It handles steady noise well, but the harder it cleans, the more the voice itself suffers. If the noise is louder than the voice, nothing here will save it — no amount of processing will.
-
-Nearby: [enhance audio](/en/audio-enhancer), which combines cleaning with loudness levelling and EQ, plus the [equalizer](/en/audio-equalizer) for cutting a specific hum, and [remove silence](/en/remove-silence).

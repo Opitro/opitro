@@ -20,6 +20,9 @@ faq:
     answer: Phone and voice systems, single-mic podcasts, audio for smart speakers, and anything else where there's no stereo effect to hear but you're paying for it in file size.
   - question: What if the file is already mono?
     answer: The tool says so, right under the setting. Converting it again achieves nothing — you'd get the same audio back.
+related:
+  - normalize-audio
+  - audio-converter
 ---
 
 Load a file, pick a mode and press play — you'll hear the folded-down version. Then pick a format and download.
@@ -31,4 +34,4 @@ Load a file, pick a mode and press play — you'll hear the folded-down version.
 - **Voice prompts and IVR** for phone systems that expect mono
 - **Cutting file size** when there's no stereo effect in the recording anyway
 
-Going the other way: [mono to stereo](/en/mono-to-stereo). Nearby: [normalize audio](/en/normalize-audio), [audio converter](/en/audio-converter).
+Going the other way: [mono to stereo](/en/mono-to-stereo).

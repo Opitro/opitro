@@ -20,6 +20,9 @@ faq:
     answer: No. Bajar la frecuencia descarta las frecuencias altas para siempre; volver a subirla solo hace el archivo más pesado sin devolver nada. Es un error frecuente, así que conviene decirlo claro.
   - question: ¿En qué formato se guarda el resultado?
     answer: WAV, MP3 u OGG, según lo permita la frecuencia elegida.
+related:
+  - audio-converter
+  - compress-audio
 ---
 
 Sube un archivo — su frecuencia actual aparece en la línea de información. Elige el valor que necesitas, escucha el resultado con el botón de reproducir y descarga.
@@ -30,5 +33,3 @@ Sube un archivo — su frecuencia actual aparece en la línea de información. E
 - **Audio para telefonía o sistemas de voz**, que suelen pedir 8.000 o 16.000 Hz
 - **Igualar archivos** antes de un montaje para que todos vayan a la misma frecuencia
 - **Reducir el tamaño** de una grabación de voz, donde la frecuencia alta no aporta nada
-
-Cerca: [conversor de audio](/es/audio-converter) para cambiar de formato y [comprimir audio](/es/compress-audio) para reducir el peso por bitrate.

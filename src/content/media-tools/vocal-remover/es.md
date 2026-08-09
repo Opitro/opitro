@@ -20,6 +20,10 @@ faq:
     answer: Porque restar los canales deja una sola señal. Es consecuencia del método, no un atajo. Para karaoke y para ensayar da igual.
   - question: ¿Sirve un archivo del móvil o de un mensaje?
     answer: Solo si es estéreo. Los mensajes de voz y muchas grabaciones de móvil son mono, así que no hay nada que restar, y la herramienta lo dice en cuanto cargas uno.
+related:
+  - audio-pitch
+  - audio-speed
+  - trim-audio
 ---
 
 Sube un tema y dale a reproducir — oirás el resultado al momento. El método no funciona con todas las canciones, así que aquí escuchar antes no es opcional.
@@ -32,5 +36,3 @@ Sube un tema y dale a reproducir — oirás el resultado al momento. El método 
 - **Un punto de partida para un remix**
 
 Con el método, la verdad por delante: esto es resta de canales, no separación neuronal. Con grabaciones de estudio ordenadas hace un trabajo decente; con mezclas modernas y anchas, a menudo no sirve de nada. No hay forma de saberlo por adelantado, y por eso se escucha.
-
-Cerca: [cambiar el tono](/es/audio-pitch) si la base no está en tu tonalidad, [cambiar la velocidad](/es/audio-speed) para aprender una parte y [recortar audio](/es/trim-audio).

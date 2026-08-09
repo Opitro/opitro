@@ -20,6 +20,10 @@ faq:
     answer: No, the effect is one-way — the discarded detail doesn't come back. Keep the original separately if you'll still need it.
   - question: Does the file get smaller?
     answer: Not necessarily. The audio is coarsened but saved at the same sample rate as the source, so the size depends only on the format you pick. To cut the weight, use [compress audio](/en/compress-audio).
+related:
+  - voice-changer
+  - audio-pitch
+  - reverb-echo
 ---
 
 Load a file, pick a style and press play — the effect is audible immediately. Switch between them and download the one you like.
@@ -30,5 +34,3 @@ Load a file, pick a style and press play — the effect is audible immediately. 
 - **A retro intro** for a video or stream
 - **A meme or a joke** — a familiar track in 8-bit form
 - **Sound experiments** — lo-fi as a deliberate texture in an arrangement
-
-Nearby: [voice changer](/en/voice-changer), which has related effects like radio and megaphone, plus [change pitch](/en/audio-pitch) and [echo and reverb](/en/reverb-echo).

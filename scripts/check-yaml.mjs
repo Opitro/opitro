@@ -8,6 +8,31 @@ import fs from 'node:fs';
 const KEYS = /^\s*(?:- )?(?:question|answer|title|description|h1|navName):\s+(.*)$/;
 let problems = 0;
 
+
+// Абзац, который почти целиком состоит из ссылок, -- это перечень «Рядом: то, сё, третье».
+// Такие перечни жили в текстах до появления плиток «Попробуйте ещё», а потом стали дублировать
+// их слово в слово: одни и те же четыре ссылки подряд, сначала строкой, потом плитками.
+// Связи переехали в поле related служебной части, строки убраны. Проверка стоит здесь, чтобы
+// они не завелись снова: искать их по слову «Рядом» бесполезно -- в четырёх языках оно разное,
+// а границы слов в регулярных выражениях с кириллицей не работают (на этом я один раз уже
+// обжёгся и пропустил 30 файлов). Признак надёжнее: доля текста, занятая ссылками.
+function checkLinkDump(path, text) {
+  const body = text.split(/^---$/m).slice(2).join('---');
+  for (const para of body.split(/\n\n+/)) {
+    const p = para.trim();
+    if (!p || p.startsWith('#') || p.startsWith('-') || p.startsWith('<')) continue;
+    const links = [...p.matchAll(/\[([^\]]+)\]\([^)]+\)/g)];
+    if (links.length < 2) continue;
+    const linkChars = links.reduce((n, m) => n + m[1].length, 0);
+    const plain = p.replace(/\[[^\]]+\]\([^)]+\)/g, '').replace(/\s+/g, ' ').trim();
+    if (linkChars > plain.length * 1.4) {
+      console.log(`${path}: абзац почти целиком из ссылок -- перенесите их в related и уберите строку`);
+      console.log(`   ${p.slice(0, 90)}…`);
+      problems++;
+    }
+  }
+}
+
 function checkFile(path) {
   const text = fs.readFileSync(path, 'utf8');
   // A backslash before an apostrophe is an escape in JavaScript and literal text in Markdown.
@@ -17,6 +42,7 @@ function checkFile(path) {
     console.log(`${path}: literal backslash before an apostrophe -- it will render as text`);
     problems++;
   }
+  checkLinkDump(path, text);
   const fm = text.split('---')[1] || '';
   for (const line of fm.split('\n')) {
     const m = line.match(KEYS);

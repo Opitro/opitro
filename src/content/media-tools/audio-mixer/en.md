@@ -20,6 +20,10 @@ faq:
     answer: Adding signals together can exceed full scale, which would distort. We check for that, and if the sum goes over the ceiling the whole mix is scaled down proportionally — you get slightly quieter rather than crunchy.
   - question: Can the music duck automatically under the voice?
     answer: No, there's no automatic ducking here — the bed level is constant throughout. That's noticeably simpler than what editing software does, but it covers most jobs.
+related:
+  - merge-audio
+  - loop-audio
+  - dynamic-compressor
 ---
 
 Add your files one at a time — the first becomes the main track and the rest go underneath it. Set the bed level, press "Mix and listen", and judge the result before downloading.
@@ -31,5 +35,3 @@ Add your files one at a time — the first becomes the main track and the rest g
 - **Meditation or an audio guide** — voice over a calm background
 - **A demo** — vocals over a backing track
 - **An audio greeting** — a message over music
-
-Nearby: [merge audio](/en/merge-audio) if the files should follow each other, [loop](/en/loop-audio) to stretch short music, and [even out the levels](/en/dynamic-compressor) on the voice before mixing.

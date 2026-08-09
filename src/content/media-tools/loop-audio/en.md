@@ -20,6 +20,9 @@ faq:
     answer: Yes — the play button plays the whole looped version, seams and all.
   - question: How is this different from repeat mode in a player?
     answer: A player repeats the file on your device, always with a gap while it restarts. Here you get one continuous file you can put anywhere — into a video, onto a site, into an app that has no repeat function at all.
+related:
+  - trim-audio
+  - merge-audio
 ---
 
 Load a file and choose how many repeats — the resulting length appears under the slider straight away. Press play to check the seams, then download.
@@ -31,5 +34,3 @@ Load a file and choose how many repeats — the resulting length appears under t
 - **A rhythm bed** — repeat a bar for practice or for working something out
 - **Audio for a game or app** that needs one long continuous file
 - **Meditation or timing tracks** built from a repeated section to a set total length
-
-Nearby: [trim audio](/en/trim-audio) to cut a clean section for the loop, and [merge audio](/en/merge-audio) if you need to join different files rather than repeat one.
