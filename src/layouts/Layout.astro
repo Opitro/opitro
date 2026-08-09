@@ -18,9 +18,13 @@ interface Props {
   path?: string;
   /** Category link shown above the page content, e.g. { label: "Длина", href: "/ru/tools/length" }. Omit on pages with no parent category (homepage, category pages themselves). */
   breadcrumb?: { label: string; href: string };
+  /** Показывать ли в подвале ссылку «Написать нам». Страницы инструментов её отключают: у них
+      та же ссылка стоит плиткой в конце текста, и в подвале она оказывалась вторым таким же
+      приглашением в паре сантиметров от первого. */
+  footerContact?: boolean;
 }
 
-const { locale, title, description, translations = [], path = '', breadcrumb } = Astro.props;
+const { locale, title, description, translations = [], path = '', breadcrumb, footerContact = true } = Astro.props;
 
 const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español', uk: 'Українська' };
 const DEFAULT_LOCALE = 'en';
@@ -286,7 +290,9 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 </main>
 <footer>
   © 2026 Opitro
-  <a href={getRelativeLocaleUrl(locale, 'contact')}>{translate(locale, 'contactFooterLink')}</a>
+  {footerContact && (
+    <a href={getRelativeLocaleUrl(locale, 'contact')}>{translate(locale, 'contactFooterLink')}</a>
+  )}
 </footer>
 <script>
   const dropdowns = document.querySelectorAll<HTMLElement>('[data-dropdown]');

@@ -145,6 +145,7 @@ const wideLayout = kind === 'media';
   translations={translations}
   path={entry.data.toolSlug}
   breadcrumb={breadcrumb}
+  footerContact={false}
 >
   <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}`}>
     <h1>{entry.data.h1}</h1>
@@ -185,16 +186,6 @@ const wideLayout = kind === 'media';
     )}
   </div>
 
-  {/* Строка стоит сразу под инструментом, а не только в подвале: человек, у которого что-то
-      не сработало, находится здесь, а до конца статьи доходят единицы. Ссылка несёт название
-      страницы, чтобы тема письма подставилась сама и было видно, какой инструмент ломается. */}
-  <a class="report-tile" href={`/${entry.data.locale}/contact?from=${entry.data.toolSlug}`}>
-    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
-      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1 1 21 11.5Z"/><path d="M12 8.2v4"/><path d="M12 15.6h.01"/>
-    </svg>
-    <span class="rt-text">{translate(entry.data.locale, 'contactToolLine')}</span>
-    <b class="rt-link">{translate(entry.data.locale, 'contactToolLineLink')}</b>
-  </a>
 
   <AdSlot />
 
@@ -222,6 +213,17 @@ const wideLayout = kind === 'media';
         <p set:html={answerHtml(item.answer)} />
       </div>
     ))}
+
+    {/* Плитка стоит в конце текста, а не под инструментом: там она попадала в полосу, отведённую
+        под рекламу, и читалась как объявление. Здесь она на своём месте по смыслу -- человек
+        дочитал вопросы, ответа не нашёл, и следующий разумный шаг именно этот. */}
+  <a class="report-tile" href={`/${entry.data.locale}/contact?from=${entry.data.toolSlug}`}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1 1 21 11.5Z"/><path d="M12 8.2v4"/><path d="M12 15.6h.01"/>
+    </svg>
+    <span class="rt-text">{translate(entry.data.locale, 'contactToolLine')}</span>
+    <b class="rt-link">{translate(entry.data.locale, 'contactToolLineLink')}</b>
+  </a>
   </section>
 
   <AdSlot />
@@ -252,7 +254,7 @@ const wideLayout = kind === 'media';
      место, где человек стоит в момент поломки. Оформлена как остальные плитки на сайте, но
      приглушённее -- она должна быть заметна, а не спорить с самим инструментом. */
   .report-tile{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
-    width:fit-content;max-width:calc(100% - 2rem);margin:18px auto 0;padding:13px 20px;
+    width:fit-content;max-width:100%;margin:30px auto 0;padding:13px 20px;
     background:var(--surface);border:1px solid var(--line);border-radius:13px;
     color:var(--muted);font-size:13.5px;text-decoration:none;
     transition:transform .12s,border-color .2s,background .2s,color .2s}
