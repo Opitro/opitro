@@ -1,0 +1,186 @@
+/* Плеер: один файл на все три компонента.
+ *
+ * До этого файла правила плеера жили в трёх копиях -- audio-tool.css, audio-to-midi.css,
+ * speech-to-text.css. Копии разошлись сами собой: кнопка воспроизведения была 44 пикселя в
+ * одном месте и 38 в двух других, бегунок 2 против 1.5, часы обычные против полужирных. Человек,
+ * переходя с обрезки на аудио-в-миди, видел плеер «почти такой же, но чуть другой».
+ *
+ * Хуже того, правки ложились в одну копию из трёх: кнопку скачивания пришлось чинить трижды,
+ * и владелец сайта указывал на неё дважды, прежде чем она была исправлена везде.
+ *
+ * Поэтому селекторы здесь перечислены через запятую для всех трёх префиксов. Это не изящно, но
+ * это ровно то, что нужно: одно правило -- одно место. Файл подключается каждым компонентом
+ * строкой (?inline), поэтому на страницу попадает только один раз -- вместе с тем компонентом,
+ * который на ней рисуется.
+ *
+ * Что сюда входит: панель (имя файла, волна, ряд управления), бегунок, подсказка при наведении,
+ * кнопки транспорта и часы. Что НЕ входит: всё, что относится к самому инструменту, -- ползунки,
+ * пресеты, блок скачивания. У них своя жизнь в файлах инструментов.
+ */
+
+/* --- Панель: имя файла сверху, волна, управление снизу -- один предмет ---------------------- */
+.audio-tool .wave-shell.compact,
+.midi-tool .wave-shell.compact,
+.stt-tool .wave-shell.compact {
+  display: block;
+  padding: 0;
+  margin-bottom: 0;
+  background: #0a0b0d;
+  border: 1px solid var(--line);
+  border-bottom: none;
+  border-radius: 14px 14px 0 0;
+  overflow: hidden;
+}
+
+/* Имя файла -- верхняя строка панели. Зелёной заливки нет намеренно: подтверждением загрузки
+   служит сама волна, она появилась -- значит файл прочитан. Это сигнал сильнее цвета. */
+.audio-tool .wave-shell.compact .fileinfo,
+.midi-tool .wave-shell.compact .fileinfo,
+.stt-tool .wave-shell.compact .fileinfo {
+  margin: 0;
+  padding: 9px 12px;
+  background: none;
+  border: none;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 0;
+  font-size: 13px;
+}
+.audio-tool .wave-shell.compact .fi-row,
+.midi-tool .wave-shell.compact .fi-row,
+.stt-tool .wave-shell.compact .fi-row { display: flex; align-items: center; gap: 9px; }
+.audio-tool .wave-shell.compact .fi-ico,
+.midi-tool .wave-shell.compact .fi-ico,
+.stt-tool .wave-shell.compact .fi-ico { flex: none; color: var(--accent); opacity: .8; }
+/* Длинное имя обрезается многоточием, а не растягивает строку. */
+.audio-tool .wave-shell.compact .fi-name,
+.midi-tool .wave-shell.compact .fi-name,
+.stt-tool .wave-shell.compact .fi-name {
+  flex: 1; min-width: 0; font-weight: 400; color: var(--text);
+  white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
+}
+.audio-tool .wave-shell.compact .fi-act,
+.midi-tool .wave-shell.compact .fi-act,
+.stt-tool .wave-shell.compact .fi-act { flex: none; color: var(--muted); opacity: .75; }
+.audio-tool .wave-shell.compact .fi-act:hover,
+.midi-tool .wave-shell.compact .fi-act:hover,
+.stt-tool .wave-shell.compact .fi-act:hover { opacity: 1; color: var(--text); }
+
+/* --- Область волны --------------------------------------------------------------------------
+   Бегунок и подсказка отсчитываются от неё, а не от всей панели: иначе бегунок протыкает строку
+   с именем файла, потому что он растянут сверху донизу. */
+.audio-tool .wave-shell.compact .wave-area,
+.midi-tool .wave-shell.compact .wave-area,
+.stt-tool .wave-shell.compact .wave-area { position: relative; display: block; }
+.audio-tool .wave-shell.compact canvas,
+.midi-tool .wave-shell.compact canvas,
+.stt-tool .wave-shell.compact canvas { display: block; width: 100%; height: 72px; }
+
+/* Бегунок фирменного цвета со слабым свечением. Белая нитка выглядела служебной отметкой, а не
+   частью инструмента; свечение намеренно слабое -- неон хорош ровно до того момента, когда его
+   становится много. */
+.audio-tool .playhead,
+.midi-tool .playhead,
+.stt-tool .playhead {
+  position: absolute; top: 0; bottom: 0; width: 2px;
+  background: var(--accent); box-shadow: 0 0 8px rgba(74, 222, 158, .55);
+  pointer-events: none; z-index: 2; display: none;
+}
+
+/* Направляющая и время под курсором: по волне можно кликать для перемотки, но без подсказки
+   человек об этом не догадывается и не видит, куда попадёт. */
+.audio-tool .wave-guide,
+.midi-tool .wave-guide,
+.stt-tool .wave-guide {
+  position: absolute; top: 0; bottom: 0; width: 1px;
+  background: rgba(255, 255, 255, 0.28); pointer-events: none; display: none; z-index: 1;
+}
+.audio-tool .wave-tip,
+.midi-tool .wave-tip,
+.stt-tool .wave-tip {
+  position: absolute; top: 6px; transform: translateX(-50%);
+  pointer-events: none; display: none; z-index: 3;
+  background: rgba(10, 11, 13, 0.92); border: 1px solid var(--line); border-radius: 7px;
+  padding: 2px 7px; font-size: 11.5px; font-weight: 600; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Ряд управления -------------------------------------------------------------------------
+   Заливки у кнопок нет: залитая кнопка на тёмном фоне читается как уже нажатая. Цвет живёт в
+   значке. Контур есть сразу, а не только при наведении -- прозрачная кнопка без границ читается
+   как значок, и понять, что на неё можно нажать, удаётся только наведя мышь. */
+.audio-tool .transport,
+.midi-tool .transport,
+.stt-tool .transport {
+  display: flex; align-items: center; gap: 8px; flex-wrap: wrap; row-gap: 6px;
+  margin: 0 0 6px; padding: 8px 10px;
+  background: var(--surface); border: 1px solid var(--line);
+  border-top: 1px solid rgba(255, 255, 255, 0.06); border-radius: 0 0 14px 14px;
+}
+.audio-tool .tp-btn,
+.midi-tool .tp-btn,
+.stt-tool .tp-btn {
+  flex: none; width: 34px; height: 34px; border-radius: 10px;
+  display: flex; align-items: center; justify-content: center; cursor: pointer;
+  background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); color: var(--text);
+  transition: background .18s, border-color .18s, color .18s, opacity .18s;
+}
+.audio-tool .tp-btn:hover:not(:disabled),
+.midi-tool .tp-btn:hover:not(:disabled),
+.stt-tool .tp-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); }
+.audio-tool .tp-btn:active:not(:disabled),
+.midi-tool .tp-btn:active:not(:disabled),
+.stt-tool .tp-btn:active:not(:disabled) { background: rgba(74, 222, 158, 0.14); border-color: rgba(74, 222, 158, 0.4); }
+.audio-tool .tp-btn:disabled,
+.midi-tool .tp-btn:disabled,
+.stt-tool .tp-btn:disabled { opacity: .3; cursor: not-allowed; }
+.audio-tool .tp-btn svg,
+.midi-tool .tp-btn svg,
+.stt-tool .tp-btn svg { width: 17px; height: 17px; }
+.audio-tool .tp-play,
+.midi-tool .tp-play,
+.stt-tool .tp-play { color: var(--accent); }
+
+/* Часы отделены чертой, как секции на приборе. Моноширинные: иначе при переходе с 0:09 на 0:10
+   строка дёргается -- мусор, который не осознаётся, но оставляет ощущение дешевизны. */
+.audio-tool .tp-time,
+.midi-tool .tp-time,
+.stt-tool .tp-time {
+  margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--line);
+  font-size: 13.5px; font-weight: 600; color: var(--text);
+  font-variant-numeric: tabular-nums; letter-spacing: .02em; line-height: 34px;
+}
+.audio-tool .tp-total,
+.midi-tool .tp-total,
+.stt-tool .tp-total { display: none; }
+
+/* --- Сведения о файле в ряду управления -----------------------------------------------------
+   Подпись сверху, значение снизу. В строку глаз каждый раз разбирал, где кончается подпись и
+   начинается значение: промежутки внутри пары и между парами были похожими. Значения негромкие --
+   это справка о файле, а не то, ради чего человек пришёл. */
+.audio-tool .transport .file-meta,
+.midi-tool .transport .file-meta,
+.stt-tool .transport .file-meta {
+  margin: 0 0 0 auto; padding: 0; border: none; background: none;
+  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 22px; justify-content: flex-end;
+}
+.audio-tool .transport .fm-item,
+.midi-tool .transport .fm-item,
+.stt-tool .transport .fm-item {
+  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; line-height: 1.25;
+}
+.audio-tool .transport .fm-key,
+.midi-tool .transport .fm-key,
+.stt-tool .transport .fm-key {
+  font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); opacity: .75;
+}
+.audio-tool .transport .fm-val,
+.midi-tool .transport .fm-val,
+.stt-tool .transport .fm-val {
+  font-size: 11.5px; font-weight: 500; color: rgba(240, 240, 242, 0.88); font-variant-numeric: tabular-nums;
+}
+
+@media (max-width: 640px) {
+  .audio-tool .transport .file-meta,
+  .midi-tool .transport .file-meta,
+  .stt-tool .transport .file-meta { margin-left: 0; width: 100%; justify-content: flex-start; gap: 8px 18px; }
+}

@@ -109,67 +109,9 @@
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
   .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
-  /* Волна и управление -- ОДНА панель, а не три предмета, лежащие рядом. Пока они были
-     отдельными (бордюр вокруг волны, а под ним две круглые кнопки в пустоте), это читалось как
-     набор деталей: детский вид, о котором и было сказано. Общая рамка со внутренним разделителем
-     превращает их в прибор.
-     Заливки у кнопок нет намеренно: залитая кнопка на тёмном фоне читается как уже нажатая --
-     ту же заливку мы по этой причине убирали с кнопки скачивания. Цвет живёт в значке. */
-  .audio-tool .wave-shell.compact{display:block;padding:0;background:#0a0b0d;border:1px solid var(--line);
-    border-radius:14px 14px 0 0;border-bottom:none;margin-bottom:0;overflow:hidden}
-  .audio-tool .wave-shell.compact .wave-area{position:relative;display:block}
-  .audio-tool .wave-shell.compact canvas{display:block;width:100%;height:72px}
-  /* Направляющая и подсказка при наведении. Обе бледные: они помогают прицелиться, но не
-     должны спорить с самой волной. */
-  .audio-tool .wave-guide{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.28);
-    pointer-events:none;display:none;z-index:1}
-  .audio-tool .wave-tip{position:absolute;top:6px;transform:translateX(-50%);pointer-events:none;
-    display:none;z-index:3;background:rgba(10,11,13,0.92);border:1px solid var(--line);
-    border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:600;color:var(--text);
-    font-variant-numeric:tabular-nums}
-  /* Верхняя строка панели: нейтральная, с волосяной чертой снизу -- как секция прибора. */
-  .audio-tool .wave-shell.compact .fileinfo{margin:0;background:none;border:none;
-    border-bottom:1px solid rgba(255,255,255,0.06);border-radius:0;padding:9px 12px;font-size:13px}
-  .audio-tool .wave-shell.compact .fi-row{display:flex;align-items:center;gap:9px}
-  .audio-tool .wave-shell.compact .fi-ico{color:var(--accent);opacity:.8;flex:none}
-  /* Длинное имя обрезается многоточием, а не растягивает строку. */
-  .audio-tool .wave-shell.compact .fi-name{flex:1;min-width:0;font-weight:400;color:var(--text);
-    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
-  .audio-tool .wave-shell.compact .fi-act{flex:none;color:var(--muted);opacity:.75}
-  .audio-tool .wave-shell.compact .fi-act:hover{opacity:1;color:var(--text)}
-  .audio-tool .transport{display:flex;align-items:center;gap:8px;margin:0 0 6px;
-    padding:8px 10px;background:var(--surface);border:1px solid var(--line);
-    border-top:1px solid rgba(255,255,255,0.06);border-radius:0 0 14px 14px}
-  /* Контур есть сразу, а не только при наведении. Прозрачная кнопка без границ читается как
-     значок, а не как кнопка: понять, что на неё можно нажать, удаётся только наведя мышь -- то
-     есть уже после того, как человек искал глазами. Наведение теперь усиливает то, что и так
-     видно, а не сообщает о существовании кнопки. */
-  .audio-tool .tp-btn{flex:none;width:34px;height:34px;border-radius:10px;display:flex;
-    align-items:center;justify-content:center;cursor:pointer;
-    background:rgba(255,255,255,0.035);border:1px solid var(--line);color:var(--text);
-    transition:background .18s,border-color .18s,color .18s,opacity .18s}
-  .audio-tool .tp-btn:hover:not(:disabled){background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.22)}
-  .audio-tool .tp-btn:active:not(:disabled){background:rgba(74,222,158,0.14);border-color:rgba(74,222,158,0.4)}
-  .audio-tool .tp-btn:disabled{opacity:.3;cursor:not-allowed}
-  .audio-tool .tp-btn svg{width:17px;height:17px}
-  .audio-tool .tp-play{color:var(--accent)}
-  /* Тонкая черта между кнопками и временем -- как между секциями на приборе. */
-  .audio-tool .tp-time{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);
-    font-size:13.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;
-    letter-spacing:.02em;line-height:34px}
-  .audio-tool .tp-total{display:none}
-  /* Сведения о файле прижаты вправо и переносятся на вторую строку панели, когда не помещаются. */
-  .audio-tool .transport{flex-wrap:wrap;row-gap:6px}
-  .audio-tool .transport .file-meta{margin:0 0 0 auto;padding:0;border:none;background:none;
-    display:flex;flex-wrap:wrap;align-items:center;gap:6px 16px;justify-content:flex-end}
-  @media(max-width:640px){
-    .audio-tool .transport .file-meta{margin-left:0;width:100%;justify-content:flex-start}
-  }
-  /* Бегунок фирменного цвета со слабым свечением: белая нитка выглядела служебной
-     отметкой, а не частью инструмента. Свечение намеренно слабое -- неон хорош ровно
-     до того момента, когда его становится много. */
-  .audio-tool .playhead{position:absolute;top:0;bottom:0;width:2px;background:var(--accent);
-    box-shadow:0 0 8px rgba(74,222,158,.55);pointer-events:none;z-index:2;display:none}
+  /* Правила плеера переехали в src/styles/player.css -- один файл на все три компонента.
+     До этого они жили в трёх копиях и расходились сами собой: кнопка 44 пикселя против 38,
+     бегунок 2 против 1.5. Правки при этом ложились в одну копию из трёх. */
   .audio-tool .times{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px 14px}
   .audio-tool .times b{color:var(--accent)}
   /* Same green disc as the compact player's play button -- one play control across the site,
@@ -416,12 +358,8 @@
      медленнее: глаз каждый раз разбирал, где кончается подпись и начинается значение, потому что
      между парами и внутри пары были похожие промежутки. В столбик разделение делает сама
      вертикаль, и подпись можно сделать мельче, не теряя читаемости значения. */
-  .audio-tool .fm-item{display:flex;flex-direction:column;align-items:flex-start;gap:1px;line-height:1.25}
-  .audio-tool .fm-key{font-size:9px;letter-spacing:.08em;text-transform:uppercase;color:var(--muted);opacity:.75}
   /* Значения намеренно негромкие: это справка о файле, а не то, ради чего человек пришёл.
      Полужирные 12.5px перетягивали внимание с волны и кнопок -- главного на панели. */
-  .audio-tool .fm-val{font-size:11.5px;font-weight:500;color:rgba(240,240,242,0.88);font-variant-numeric:tabular-nums}
-  .audio-tool .transport .file-meta{gap:4px 22px}
   @media(max-width:640px){.audio-tool .transport .file-meta{gap:8px 18px}}
 
   /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe

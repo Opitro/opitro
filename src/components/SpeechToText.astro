@@ -1,4 +1,5 @@
 ---
+import playerCss from '../styles/player.css?inline';
 import css from '../styles/speech-to-text.css?inline';
 // Speech to text. Its own component for the same reason AudioToMidi is: the output is text, not
 // a buffer, so none of AudioTool's render/export machinery applies.
@@ -41,7 +42,7 @@ const ICO = {
     everywhere, of which a calculator page used almost none. As a plain string it lands
     only on the page that renders this component. It goes first, before any markup, so
     nothing is ever painted unstyled. */}
-<style is:inline set:html={css}></style>
+<style is:inline set:html={playerCss + css}></style>
 
 <div class="stt-tool" data-locale={locale} data-mode={mode} data-labels={JSON.stringify(labels)}>
   {!isVoice && (

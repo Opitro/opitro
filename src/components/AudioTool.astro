@@ -1,4 +1,5 @@
 ---
+import playerCss from '../styles/player.css?inline';
 import css from '../styles/audio-tool.css?inline';
 // One component drives every audio tool. `AUDIO_TOOLS[tool].engine` picks the processing path:
 // 'webaudio' (native Web Audio API, waveform + live preview, no ffmpeg download at all),
@@ -75,7 +76,7 @@ const ICO = {
     everywhere, of which a calculator page used almost none. As a plain string it lands
     only on the page that renders this component. It goes first, before any markup, so
     nothing is ever painted unstyled. */}
-<style is:inline set:html={css}></style>
+<style is:inline set:html={playerCss + css}></style>
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
   {!isGenerator && !isNoise && !isRecorder && (

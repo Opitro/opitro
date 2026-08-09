@@ -1,4 +1,5 @@
 ---
+import playerCss from '../styles/player.css?inline';
 import css from '../styles/audio-to-midi.css?inline';
 // Audio to MIDI. Separate from AudioTool.astro because nothing about it fits that component's
 // shape: there is no rendered audio buffer to export, the output is notes rather than sound, and
@@ -36,7 +37,7 @@ const ICO = {
     everywhere, of which a calculator page used almost none. As a plain string it lands
     only on the page that renders this component. It goes first, before any markup, so
     nothing is ever painted unstyled. */}
-<style is:inline set:html={css}></style>
+<style is:inline set:html={playerCss + css}></style>
 
 <div class="midi-tool" data-locale={locale} data-labels={JSON.stringify(labels)}>
   <div class="drop" id="mt-drop">
@@ -50,15 +51,26 @@ const ICO = {
   <input type="file" id="mt-file">
 
   <div class="panel" id="mt-panel">
-    <div class="fileinfo" id="mt-fileinfo"></div>
-
+    {/* Панель того же вида, что на остальных аудиоинструментах: имя файла -- верхняя строка,
+        волна, под ней ряд управления. */}
     <div class="wave-shell compact" id="mt-wave-shell">
-      <button type="button" class="wave-play-btn" id="mt-play" disabled aria-label={labels.listenSelectionLabel}>
+      <div class="fileinfo" id="mt-fileinfo"></div>
+      <div class="wave-area" id="mt-wave-area">
+        <canvas id="mt-wave"></canvas>
+        <div class="playhead" id="mt-playhead"></div>
+        <div class="wave-guide" id="mt-wave-guide"></div>
+        <div class="wave-tip" id="mt-wave-tip"></div>
+      </div>
+    </div>
+    <div class="transport" id="mt-transport">
+      <button type="button" class="tp-btn tp-play" id="mt-play" disabled aria-label={labels.playLabel}>
         <svg class="ico" id="mt-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
-      <canvas id="mt-wave"></canvas>
-      <span class="wave-duration"><b id="mt-cur">0:00</b> / <span id="mt-total">0:00</span></span>
-      <div class="playhead" id="mt-playhead"></div>
+      <button type="button" class="tp-btn tp-stop" id="mt-stop" disabled aria-label={labels.stopLabel}>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+      </button>
+      <span class="tp-time" id="mt-cur" hidden>0:00</span>
+      <span class="tp-total" id="mt-total" hidden>0:00</span>
     </div>
 
     <div class="progress" id="mt-progress">
@@ -199,6 +211,10 @@ const ICO = {
     const waveCanvas = $('mt-wave');
     const playBtn = $('mt-play');
     const playIco = $('mt-play-ico');
+    const stopBtn = $('mt-stop');
+    const waveArea = $('mt-wave-area');
+    const waveGuide = $('mt-wave-guide');
+    const waveTip = $('mt-wave-tip');
     const curEl = $('mt-cur');
     const totalEl = $('mt-total');
     const playhead = $('mt-playhead');
@@ -390,6 +406,8 @@ const ICO = {
       const pos = player.getPosition();
       const d = sourceBuffer ? sourceBuffer.duration : 0;
       curEl.textContent = fmtClock(pos);
+      curEl.hidden = false;
+      if (stopBtn) stopBtn.disabled = false;
       if (d) setPlayhead(pos / d);
       if (notes.length) movePlayhead(pos);
       if (player.isPlaying()) rafId = requestAnimationFrame(tick);
@@ -400,12 +418,45 @@ const ICO = {
         playIco.innerHTML = ICO_PLAY;
         cancelAnimationFrame(rafId);
         curEl.textContent = fmtClock(0);
+        curEl.hidden = true;
+        if (stopBtn) stopBtn.disabled = true;
         hidePlayhead();
         movePlayhead(0);
       }, seekTo);
       playIco.innerHTML = ICO_PAUSE;
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(tick);
+    }
+    // Стоп: остановить и вернуть в начало. Выделения на этой странице нет.
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        player.reset();
+        cancelAnimationFrame(rafId);
+        playIco.innerHTML = ICO_PLAY;
+        hidePlayhead();
+        movePlayhead(0);
+        curEl.textContent = fmtClock(0);
+        curEl.hidden = true;
+        stopBtn.disabled = true;
+      });
+    }
+    // Подсказка со временем под курсором -- как на остальных инструментах.
+    if (waveArea && waveGuide && waveTip) {
+      waveArea.addEventListener('mousemove', (e) => {
+        if (!sourceBuffer) return;
+        const r = waveArea.getBoundingClientRect();
+        const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+        waveGuide.style.left = x + 'px';
+        waveGuide.style.display = 'block';
+        waveTip.textContent = fmtClock((x / r.width) * sourceBuffer.duration);
+        waveTip.style.display = 'block';
+        const half = waveTip.offsetWidth / 2;
+        waveTip.style.left = Math.max(half + 2, Math.min(r.width - half - 2, x)) + 'px';
+      });
+      waveArea.addEventListener('mouseleave', () => {
+        waveGuide.style.display = 'none';
+        waveTip.style.display = 'none';
+      });
     }
     playBtn.addEventListener('click', (e) => {
       // The handler swaps the glyph, which detaches the event target from the DOM -- without
