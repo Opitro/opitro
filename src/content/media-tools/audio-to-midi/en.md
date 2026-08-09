@@ -30,6 +30,12 @@ faq:
     answer: Shifting every note up or down without changing anything else. Useful when a melody does not sit in your voice, or your instrument is tuned differently. A semitone is the next key along; an octave is twelve semitones. The shift applies both to what you download and to the chord chart.
   - question: Is my recording uploaded anywhere?
     answer: No. The only thing downloaded is the model — nothing leaves your device, not the file and not the result. You can disconnect from the internet once the model has arrived and everything keeps working.
+related:
+  - detect-key
+  - change-tempo
+  - vocal-range
+  - vocal-remover
+  - audio-pitch
 ---
 
 Upload a recording and get the notes: a piano roll, a list with the exact timing of every note, a chord chart, and a MIDI file that opens in any music program.
@@ -45,5 +51,3 @@ Upload a recording and get the notes: a piano roll, a list with the exact timing
 It works on a recording of one instrument or one voice. A full song with drums and vocals comes out as mush — that is a limit of the approach, not a setting waiting to be adjusted.
 
 Notes are lined up on a grid of sixteenths, and notes played together are written as one chord per staff — a readable draft rather than an engraved edition.
-
-Nearby: [detect key](/en/detect-key), [detect tempo](/en/change-tempo), [vocal range](/en/vocal-range), [remove vocals](/en/vocal-remover), [change pitch](/en/audio-pitch).

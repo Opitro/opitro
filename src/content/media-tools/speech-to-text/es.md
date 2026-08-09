@@ -30,6 +30,11 @@ faq:
     answer: "Sí, en cualquier navegador — también en iPhone, a diferencia del reconocimiento integrado en el navegador, que solo existe en Chrome. Pero el procesador del móvil es más lento, así que la espera tras parar es mayor. En el móvil tiene sentido el modelo ligero."
   - question: ¿En qué se diferencia de una grabadora?
     answer: "La [grabadora](/es/dictaphone) graba sonido y te da un archivo de audio. Aquí el sonido se convierte en texto y la grabación no se guarda: lo que importa son las palabras."
+related:
+  - audio-to-text
+  - dictaphone
+  - denoise-audio
+  - remove-silence
 ---
 
 Pulsa el botón, di lo que quieres dejar por escrito, para — y el texto está listo. No un chorro de palabras, sino texto de verdad: con puntos, comas, signos de interrogación y mayúsculas donde toca.
@@ -44,5 +49,3 @@ Pulsa el botón, di lo que quieres dejar por escrito, para — y el texto está 
 - **Se corrige aquí mismo** — y se copia de un clic
 
 Las palabras aparecen cuando paras, no mientras hablas: el modelo escucha todo de una vez. Justamente por eso la puntuación tiene sentido — ve la frase terminada en lugar de adivinar por una pausa.
-
-Cerca: [audio a texto](/es/audio-to-text), [grabadora](/es/dictaphone), [quitar ruido](/es/denoise-audio), [quitar silencios](/es/remove-silence).

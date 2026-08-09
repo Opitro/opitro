@@ -20,6 +20,10 @@ faq:
     answer: Para eso está [quitar el silencio](/es/remove-silence) — corta las pausas automáticamente y te dice cuánto ha quitado.
   - question: ¿Por qué el botón de descarga está en gris?
     answer: Mientras los dos campos estén a cero no hay nada que añadir y el resultado sería una copia del original. Escribe los segundos y el botón se activa.
+related:
+  - trim-audio
+  - audio-fade
+  - merge-audio
 ---
 
 Sube el archivo, indica cuánto silencio va al principio y al final, escucha y descarga. Debajo de los campos aparece la duración final.
@@ -31,5 +35,3 @@ Sube el archivo, indica cuánto silencio va al principio y al final, escucha y d
 - **Audiolibros y pódcast** — pausas iguales entre capítulos
 - **Preparar un efecto** — [el eco y la reverberación](/es/reverb-echo) pierden su cola al final del archivo, y un margen de silencio lo resuelve
 - **Una pausa antes de empezar** en un mensaje de voz
-
-Cerca: [recortar audio](/es/trim-audio), [entrada y salida graduales](/es/audio-fade), [unir audio](/es/merge-audio).

@@ -20,6 +20,9 @@ faq:
     answer: Not as well as white. Speech lives in the mid and high frequencies, and brown has little of either. If covering conversation through a wall is the actual job, use [white noise](/en/white-noise-generator).
   - question: Why is the download capped at thirty minutes?
     answer: Because more isn't needed — any player will loop a short file, and the join in ours is inaudible. An hour of WAV would run past three hundred megabytes and might fail to build on a phone.
+related:
+  - white-noise-generator
+  - pink-noise-generator
 ---
 
 Press the button and the sound starts straight away. Set the volume, add a sleep timer if you want one.
@@ -37,5 +40,3 @@ Press the button and the sound starts straight away. Set the volume, add a sleep
 Brown noise plays continuously here, with no ads — leave it on all night.
 
 Keep the volume lower than feels right: low frequencies are deceptive — they seem quieter than they are, and it's easy to end up above a safe level, especially on headphones.
-
-Nearby: [white noise](/en/white-noise-generator) and [pink noise](/en/pink-noise-generator).

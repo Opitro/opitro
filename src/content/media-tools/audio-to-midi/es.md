@@ -30,6 +30,12 @@ faq:
     answer: Mover todas las notas arriba o abajo sin cambiar nada más. Sirve cuando la melodía no te entra en la voz o el instrumento está afinado de otra forma. Un semitono es la tecla de al lado; una octava son doce semitonos. El desplazamiento se aplica tanto a lo que descargas como al cifrado de acordes.
   - question: ¿Se sube mi grabación a algún sitio?
     answer: No. Lo único que se descarga es el modelo — de tu dispositivo no sale nada, ni el archivo ni el resultado. Puedes desconectarte de internet en cuanto el modelo haya llegado y todo sigue funcionando.
+related:
+  - detect-key
+  - change-tempo
+  - vocal-range
+  - vocal-remover
+  - audio-pitch
 ---
 
 Sube una grabación y obtén las notas: un piano roll, una lista con el tiempo exacto de cada nota, un cifrado de acordes y un archivo MIDI que se abre en cualquier programa de música.
@@ -45,5 +51,3 @@ Sube una grabación y obtén las notas: un piano roll, una lista con el tiempo e
 Funciona con la grabación de un instrumento o una voz. Una canción completa con batería y voces sale hecha un lío: es un límite del método, no un ajuste pendiente de tocar.
 
 Las notas se alinean a una rejilla de semicorcheas y lo tocado a la vez se escribe como un acorde por pentagrama — un borrador legible, no una edición grabada.
-
-Cerca: [detectar tonalidad](/es/detect-key), [detectar tempo](/es/change-tempo), [registro vocal](/es/vocal-range), [quitar la voz](/es/vocal-remover), [cambiar el tono](/es/audio-pitch).

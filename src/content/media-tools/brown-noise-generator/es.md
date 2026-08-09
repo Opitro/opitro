@@ -20,6 +20,9 @@ faq:
     answer: Peor que el blanco. El habla vive en las frecuencias medias y altas, y el marrón tiene poco de ambas. Si la tarea es tapar una conversación al otro lado de una pared, usa el [ruido blanco](/es/white-noise-generator).
   - question: ¿Por qué la descarga está limitada a treinta minutos?
     answer: Porque más no hace falta — cualquier reproductor repite un archivo corto y la unión del nuestro no se oye. Una hora de WAV pasaría de trescientos megas y en un móvil podría no llegar a construirse.
+related:
+  - white-noise-generator
+  - pink-noise-generator
 ---
 
 Pulsa el botón y el sonido arranca al momento. Ajusta el volumen y pon un temporizador si quieres.
@@ -35,5 +38,3 @@ Pulsa el botón y el sonido arranca al momento. Ajusta el volumen y pon un tempo
 El ruido marrón suena de forma continua y sin anuncios — puedes dejarlo toda la noche.
 
 Mantén el volumen más bajo de lo que te pide el cuerpo: las frecuencias graves engañan, parecen más bajas de lo que son y es fácil pasarse de un nivel seguro, sobre todo con auriculares.
-
-Cerca: [ruido blanco](/es/white-noise-generator) y [ruido rosa](/es/pink-noise-generator).

@@ -20,6 +20,9 @@ faq:
     answer: La multiplicación en sí no tiene pérdidas. La pérdida viene de codificar el resultado, así que elige WAV si el archivo va a una edición; el MP3 aquí se escribe a 192 kbps.
   - question: ¿Puedo escucharlo antes de descargar?
     answer: Sí — el botón de reproducir suena la versión normalizada, no el original, así que la diferencia se nota enseguida.
+related:
+  - audio-volume
+  - remove-silence
 ---
 
 Sube un archivo y dale a reproducir — lo que oyes ya es la versión procesada. No hay nada que ajustar: el factor se calcula a partir de la propia grabación. Después elige formato y descarga.
@@ -32,5 +35,3 @@ Sube un archivo y dale a reproducir — lo que oyes ya es la versión procesada.
 - **Digitalizaciones antiguas** de cinta o vinilo, grabadas a poco nivel
 
 Ten presente la limitación principal: normalizar mueve toda la grabación a la vez. Si en el archivo hay una frase gritada y el resto es un susurro, ese grito llega al techo primero y todo lo demás se queda igual de flojo. Para una grabación así va mejor el [mejorador de sonido](/es/audio-enhancer).
-
-Cerca: [cambiar el volumen a mano](/es/audio-volume), [quitar el silencio](/es/remove-silence).

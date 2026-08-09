@@ -12,6 +12,10 @@ const tools = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/tools' }),
   schema: z.object({
     toolSlug: z.string(),
+    /** Подобранные вручную смежные инструменты, слугами, в порядке важности. Раньше эти связи
+        жили строкой «Рядом: …» в конце текста; когда появились плитки «Попробуйте ещё», строка
+        и плитки стали дублировать друг друга. Связи перенесены сюда, строка убрана. */
+    related: z.array(z.string()).optional(),
     locale: z.string(),
     category: z.string(),
     engine: z.enum(['linear-converter', 'temperature-converter']),
@@ -72,6 +76,10 @@ const mediaTools = defineCollection({
   loader: glob({ pattern: '**/*.md', base: './src/content/media-tools' }),
   schema: z.object({
     toolSlug: z.string(),
+    /** Подобранные вручную смежные инструменты, слугами, в порядке важности. Раньше эти связи
+        жили строкой «Рядом: …» в конце текста; когда появились плитки «Попробуйте ещё», строка
+        и плитки стали дублировать друг друга. Связи перенесены сюда, строка убрана. */
+    related: z.array(z.string()).optional(),
     locale: z.string(),
     category: z.string(),
     tool: z.string(),

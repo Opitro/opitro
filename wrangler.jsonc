@@ -3,6 +3,9 @@
   "compatibility_date": "2026-08-01",
   "assets": {
     "directory": "./dist",
-    "html_handling": "drop-trailing-slash"
+    "html_handling": "drop-trailing-slash",
+    // Без этого Cloudflare на несуществующий адрес отдавал пустое тело с кодом 404 --
+    // человек видел белый экран. Теперь отдаётся собранная страница 404.html.
+    "not_found_handling": "404-page"
   }
 }

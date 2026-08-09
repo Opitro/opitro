@@ -20,6 +20,10 @@ faq:
     answer: Buscar los acordes, casar dos temas en una misma tonalidad, transponer una base a tu voz. Para lo último, [cambiar el tono](/es/audio-pitch) desplaza por semitonos sin tocar el tempo.
   - question: ¿Muestra los acordes?
     answer: No, solo la tonalidad general. El análisis acorde por acorde es un problema distinto y no se puede responder honestamente con este método.
+related:
+  - change-tempo
+  - audio-pitch
+  - vocal-range
 ---
 
 Sube un tema y la herramienta lo mide nota a nota, y luego informa de la tónica, el modo y lo claro que es el resultado.
@@ -30,5 +34,3 @@ Sube un tema y la herramienta lo mide nota a nota, y luego informa de la tónica
 - **Casar dos temas** en una misma tonalidad para una mezcla
 - **Transponer una base** para que encaje con tu registro
 - **Estudiar un arreglo** ajeno
-
-Cerca: [detectar el tempo](/es/change-tempo), [cambiar el tono](/es/audio-pitch), [averiguar tu registro vocal](/es/vocal-range).

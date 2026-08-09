@@ -20,6 +20,10 @@ faq:
     answer: Find the chords, match two tracks in one key, transpose a backing track to suit your voice. For the last one, [change pitch](/en/audio-pitch) shifts by semitones without touching the tempo.
   - question: Does it show the chords?
     answer: No, just the overall key. Chord-by-chord analysis is a fundamentally different problem and can't be answered honestly by this method.
+related:
+  - change-tempo
+  - audio-pitch
+  - vocal-range
 ---
 
 Load a track and the tool measures it note by note, then reports the tonic, the mode, and how clear the match is.
@@ -30,5 +34,3 @@ Load a track and the tool measures it note by note, then reports the tonic, the 
 - **Matching two tracks** in one key for a mix
 - **Transposing a backing track** to fit your range
 - **Studying an arrangement** someone else wrote
-
-Nearby: [detect tempo](/en/change-tempo), [change pitch](/en/audio-pitch), [find your vocal range](/en/vocal-range).

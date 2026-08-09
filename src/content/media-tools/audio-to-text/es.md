@@ -32,6 +32,13 @@ faq:
     answer: "Hasta una hora de una vez. El límite es la memoria del navegador, no el modelo: una hora de audio ya son cientos de megabytes en RAM y un móvil puede no aguantarlo. Lo más largo, córtalo antes — para eso está [cortar audio en partes](/es/split-audio)."
   - question: ¿Sirve con vídeo?
     answer: "Sí, sube el archivo de vídeo y se toma su pista de audio. Si el archivo es grande puede ser más rápido extraer antes el sonido con [vídeo a audio](/es/video-to-audio)."
+related:
+  - speech-to-text
+  - split-audio
+  - video-to-audio
+  - denoise-audio
+  - remove-silence
+  - dictaphone
 ---
 
 Sube una grabación y obtén un texto que puedes copiar, corregir aquí mismo y descargar: como archivo normal o como subtítulos listos.
@@ -48,5 +55,3 @@ Sube una grabación y obtén un texto que puedes copiar, corregir aquí mismo y 
 Funciona en tu dispositivo. El modelo llega una vez y se queda en la caché del navegador; la grabación no se sube a ningún sitio — puedes comprobarlo desconectando internet después de cargar el modelo.
 
 El texto se edita en el propio cuadro: ningún reconocedor es perfecto, y arreglar dos palabras donde están es más fácil que llevárselo todo a otra parte.
-
-Cerca: [dictado por voz](/es/speech-to-text), [cortar audio en partes](/es/split-audio), [vídeo a audio](/es/video-to-audio), [quitar ruido](/es/denoise-audio), [quitar silencios](/es/remove-silence), [grabadora](/es/dictaphone).

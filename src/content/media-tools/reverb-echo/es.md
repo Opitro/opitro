@@ -20,6 +20,10 @@ faq:
     answer: No, la duración se queda igual. Eso significa que la cola final del efecto se corta con el final del archivo — si esa cola importa, añade un poco de silencio al final antes.
   - question: ¿Puedo escucharlo antes de descargar?
     answer: Sí, el botón de reproducir suena la versión procesada. Cambia de estilo, vuelve a pulsar y la diferencia es inmediata.
+related:
+  - audio-equalizer
+  - voice-changer
+  - audio-enhancer
 ---
 
 Sube un archivo, elige un estilo y dale a reproducir. Alterna entre ellos y escucha hasta que uno encaje. Después elige formato y descarga.
@@ -32,5 +36,3 @@ Sube un archivo, elige un estilo y dale a reproducir. Alterna entre ellos y escu
 - **Un efecto rítmico** — el eco con una repetición audible funciona como parte del arreglo
 
 Claro con el método: la reverberación de aquí se construye a partir de una respuesta de sala sintetizada — ruido que decae, el procedimiento estándar cuando no hay grabación de una sala real. Suena como un espacio de verdad, pero no es la huella de una sala concreta.
-
-Cerca: [ecualizador](/es/audio-equalizer), [cambiar la voz](/es/voice-changer), [mejorar el sonido](/es/audio-enhancer).

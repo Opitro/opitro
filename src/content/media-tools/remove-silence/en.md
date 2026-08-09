@@ -20,6 +20,10 @@ faq:
     answer: Usually not, because the joins happen at very low volume. On music with long decays a seam can be audible, which is where this tool suits speech far better than it does music.
   - question: How much smaller does the file get?
     answer: By exactly the proportion the duration shrank. The line under the setting shows both at once — what it was, what it became, and how much came out.
+related:
+  - trim-audio
+  - compress-audio
+  - audio-speed
 ---
 
 Load a recording and press play — you'll hear the processed version, and the line under the setting will tell you how much silence went. If it took out too much or too little, move the slider and listen again.
@@ -33,5 +37,3 @@ Load a recording and press play — you'll hear the processed version, and the l
 - **Shrinking a file without quality loss** — removed silence costs nothing in sound, unlike compression
 
 One tip: if there's a steady background hum in the recording, try the [audio enhancer](/en/audio-enhancer) first — the silence threshold works far more accurately on a clean recording.
-
-Nearby: [trim audio](/en/trim-audio) by hand, [compress the file](/en/compress-audio), [change speed](/en/audio-speed).

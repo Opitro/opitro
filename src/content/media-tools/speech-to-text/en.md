@@ -30,6 +30,11 @@ faq:
     answer: "Yes, in any browser — including on an iPhone, unlike the recognition built into the browser, which only exists in Chrome. But a phone's processor is slower, so the wait after you stop is longer. On a phone the lighter model makes sense."
   - question: How is this different from a voice recorder?
     answer: "The [voice recorder](/en/dictaphone) records sound and hands you an audio file. Here the sound becomes text and the recording itself is not kept — words are the whole point."
+related:
+  - audio-to-text
+  - dictaphone
+  - denoise-audio
+  - remove-silence
 ---
 
 Press the button, say what you need written down, stop — and the text is ready. Not a stream of words but proper text: full stops, commas, question marks and capitals where they belong.
@@ -44,5 +49,3 @@ Press the button, say what you need written down, stop — and the text is ready
 - **Correct it right here** — and copy it in one click
 
 The words appear once you stop rather than as you speak: the model listens to the whole thing. That is exactly why the punctuation makes sense — it sees the sentence finish instead of guessing from a pause.
-
-Nearby: [audio to text](/en/audio-to-text), [voice recorder](/en/dictaphone), [remove noise](/en/denoise-audio), [remove silence](/en/remove-silence).

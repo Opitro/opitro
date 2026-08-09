@@ -6,6 +6,11 @@ export const UI = {
     categoriesAriaLabel: 'Categories',
     // Feedback page. Kept deliberately plain: someone writing here is already annoyed, and
     // corporate phrasing at that moment reads as a brush-off.
+    notFoundTitle: 'Page not found',
+    notFoundH1: 'No such page',
+    notFoundText: 'The address is wrong, or the page has moved. Nothing is broken on your side.',
+    notFoundHome: 'Go to the homepage',
+    notFoundTools: 'Browse all tools',
     tryMoreLabel: 'Try these too',
     contactSlugLabel: 'Write to us',
     contactTitle: 'Write to us — report a problem or suggest an improvement',
@@ -468,6 +473,11 @@ export const UI = {
     categoriesAriaLabel: 'Категории',
     // Страница обратной связи. Нарочно простыми словами: человек, который сюда пишет, уже
     // раздосадован, и казённые формулировки в этот момент читаются как отписка.
+    notFoundTitle: 'Страница не найдена',
+    notFoundH1: 'Такой страницы нет',
+    notFoundText: 'Адрес набран с ошибкой или страница переехала. У вас ничего не сломалось.',
+    notFoundHome: 'На главную',
+    notFoundTools: 'Посмотреть все инструменты',
     tryMoreLabel: 'Попробуйте ещё',
     contactSlugLabel: 'Написать нам',
     contactTitle: 'Написать нам — сообщить о проблеме или предложить улучшение',
@@ -1342,6 +1352,11 @@ export const UI = {
     categoriesAriaLabel: 'Categorías',
     // Página de contacto. A propósito en lenguaje llano: quien escribe aquí ya está molesto,
     // y en ese momento el lenguaje corporativo suena a evasiva.
+    notFoundTitle: 'Página no encontrada',
+    notFoundH1: 'Esta página no existe',
+    notFoundText: 'La dirección tiene un error o la página se ha movido. No es un fallo de tu equipo.',
+    notFoundHome: 'Ir al inicio',
+    notFoundTools: 'Ver todas las herramientas',
     tryMoreLabel: 'Prueba también',
     contactSlugLabel: 'Escríbenos',
     contactTitle: 'Escríbenos — informa de un fallo o propón una mejora',
@@ -1802,6 +1817,11 @@ export const UI = {
     categoriesAriaLabel: 'Категорії',
     // Сторінка зворотного зв'язку. Навмисне простими словами: людина, яка сюди пише, вже
     // роздратована, і казенні формулювання в цей момент читаються як відписка.
+    notFoundTitle: 'Сторінку не знайдено',
+    notFoundH1: 'Такої сторінки немає',
+    notFoundText: 'Адресу набрано з помилкою або сторінка переїхала. У вас нічого не зламалося.',
+    notFoundHome: 'На головну',
+    notFoundTools: 'Переглянути всі інструменти',
     tryMoreLabel: 'Спробуйте ще',
     contactSlugLabel: 'Написати нам',
     contactTitle: 'Написати нам — повідомити про проблему або запропонувати покращення',

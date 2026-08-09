@@ -120,7 +120,12 @@ const siblings = kind === 'tool' ? await getCollection('tools') : await getColle
 const sameLocale = siblings.filter(
   (x) => x.data.locale === entry.data.locale && x.data.toolSlug !== entry.data.toolSlug
 );
-const mentioned = [...(entry.body || '').matchAll(/\]\(\/[a-z]{2}\/([a-z0-9-]+)\)/g)].map((m) => m[1]);
+// Сначала связи из служебной части файла -- это бывшая строка «Рядом: …», перенесённая туда,
+// когда выяснилось, что она дублирует плитки слово в слово. Потом ссылки из самого текста.
+const mentioned = [
+  ...(entry.data.related || []),
+  ...[...(entry.body || '').matchAll(/\]\(\/[a-z]{2}\/([a-z0-9-]+)\)/g)].map((m) => m[1]),
+];
 const pick = [];
 const add = (x) => { if (x && !pick.some((p) => p.data.toolSlug === x.data.toolSlug)) pick.push(x); };
 for (const slug of mentioned) add(sameLocale.find((x) => x.data.toolSlug === slug));

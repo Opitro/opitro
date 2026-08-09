@@ -32,6 +32,13 @@ faq:
     answer: "Up to an hour at a time. The limit is browser memory rather than the model: an hour of audio is already hundreds of megabytes in RAM, and a phone may not survive it. Split anything longer first — there is [split audio](/en/split-audio) for that."
   - question: Does it work with video?
     answer: "Yes, drop a video file in and the audio track is used. For a big file it can be quicker to pull the sound out first with [video to audio](/en/video-to-audio)."
+related:
+  - speech-to-text
+  - split-audio
+  - video-to-audio
+  - denoise-audio
+  - remove-silence
+  - dictaphone
 ---
 
 Upload a recording and get text you can copy, correct right here, and download — as a plain file or as ready-made subtitles.
@@ -48,5 +55,3 @@ Upload a recording and get text you can copy, correct right here, and download �
 It runs on your device. The model comes to you once and stays in your browser's cache; the recording is never uploaded — you can check that by going offline after the model has loaded.
 
 The text is editable in place: no recogniser is perfect, and fixing two words where they are beats moving everything somewhere else to fix it there.
-
-Nearby: [voice typing](/en/speech-to-text), [split audio](/en/split-audio), [video to audio](/en/video-to-audio), [remove noise](/en/denoise-audio), [remove silence](/en/remove-silence), [voice recorder](/en/dictaphone).

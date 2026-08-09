@@ -20,6 +20,10 @@ faq:
     answer: No, the duration stays the same. That means the very tail of the effect is cut off with the end of the file — if the tail matters, add a little silence at the end beforehand.
   - question: Can I hear it before downloading?
     answer: Yes, the play button plays the processed version. Switch styles, press again, and the difference is immediate.
+related:
+  - audio-equalizer
+  - voice-changer
+  - audio-enhancer
 ---
 
 Load a file, pick a style and press play. Switch between them and listen until one fits. Then choose a format and download.
@@ -32,5 +36,3 @@ Load a file, pick a style and press play. Switch between them and listen until o
 - **A rhythmic effect** — echo with an audible repeat works as part of the arrangement
 
 Straight about the method: the reverb here is built from a synthesised room response — decaying noise, the standard approach when there's no recording of a real hall to work from. It sounds like a genuine space, but it isn't a fingerprint of one particular room.
-
-Nearby: [equalizer](/en/audio-equalizer), [voice changer](/en/voice-changer), [enhance audio](/en/audio-enhancer).

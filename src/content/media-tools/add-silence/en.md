@@ -20,6 +20,10 @@ faq:
     answer: That's [remove silence](/en/remove-silence) — it cuts the pauses automatically and tells you how much came out.
   - question: Why is the download button greyed out?
     answer: While both fields sit at zero there's nothing to add and the output would be a copy of the input. Type some seconds and the button turns on.
+related:
+  - trim-audio
+  - audio-fade
+  - merge-audio
 ---
 
 Load a file, say how much silence goes at the start and the end, listen, and download. The resulting length is shown under the fields.
@@ -31,5 +35,3 @@ Load a file, say how much silence goes at the start and the end, listen, and dow
 - **Audiobooks and podcasts** — even gaps between chapters
 - **Prep for effects** — [echo and reverb](/en/reverb-echo) lose their tail at the end of a file, and some spare silence solves that
 - **A run-up before the start** of a voice recording
-
-Nearby: [trim audio](/en/trim-audio), [fade in and out](/en/audio-fade), [merge audio](/en/merge-audio).

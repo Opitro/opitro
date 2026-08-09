@@ -20,6 +20,10 @@ faq:
     answer: The multiplication itself is lossless. Any loss comes from encoding the result, so take the WAV if the file is heading into an editor next; MP3 here is written at 192 kbps.
   - question: Can I hear it before downloading?
     answer: Yes — the play button plays the normalized version rather than the original, so the difference is obvious straight away.
+related:
+  - audio-volume
+  - remove-silence
+  - audio-enhancer
 ---
 
 Load a file and press play — what you hear is already the processed version. There's nothing to set: the factor is worked out from the recording itself. Then pick a format and download.
@@ -32,5 +36,3 @@ Load a file and press play — what you hear is already the processed version. T
 - **Old transfers** from tape and vinyl, where the recording level was set low
 
 Keep the main limitation in mind: normalizing moves the whole recording together. If one sentence in the file was shouted and the rest is a whisper, that shout hits the ceiling first and everything else stays just as quiet. A recording like that is better served by the [audio enhancer](/en/audio-enhancer).
-
-Nearby: [change volume by hand](/en/audio-volume), [remove silence](/en/remove-silence), [enhance audio](/en/audio-enhancer).

@@ -20,6 +20,10 @@ faq:
     answer: Normalmente no, porque las uniones ocurren a un volumen muy bajo. En música con colas largas una costura puede oírse, y ahí esta herramienta encaja mucho mejor con el habla que con la música.
   - question: ¿Cuánto se reduce el archivo?
     answer: Exactamente en la proporción en que se acortó la duración. La línea bajo el ajuste muestra las dos cosas a la vez — lo que era, en qué se quedó y cuánto salió.
+related:
+  - trim-audio
+  - compress-audio
+  - audio-speed
 ---
 
 Sube una grabación y dale a reproducir — oirás la versión procesada, y bajo el ajuste aparecerá cuánto silencio se ha ido. Si se ha quitado demasiado o demasiado poco, mueve el control y escucha otra vez.
@@ -33,5 +37,3 @@ Sube una grabación y dale a reproducir — oirás la versión procesada, y bajo
 - **Reducir un archivo sin perder calidad** — el silencio que se va no cuesta nada en sonido, al contrario que comprimir
 
 Un consejo — si hay un zumbido de fondo constante, prueba antes [mejorar el sonido](/es/audio-enhancer), porque el umbral de silencio funciona mucho mejor sobre una grabación limpia.
-
-Cerca: [recortar audio](/es/trim-audio) a mano, [comprimir el archivo](/es/compress-audio), [cambiar la velocidad](/es/audio-speed).

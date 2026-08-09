@@ -1,0 +1,83 @@
+---
+import Layout from '../layouts/Layout.astro';
+import { UI } from '../lib/ui-strings.js';
+
+// Одна страница на все языки: Cloudflare отдаёт её при любом несуществующем адресе и не знает,
+// на каком языке человек шёл. Поэтому все четыре набора слов уезжают в разметку, а нужный
+// выбирается по первому куску адреса уже в браузере. Без скрипта человек видит английский --
+// это хуже, чем родной язык, но несравнимо лучше пустого экрана, который был до сих пор.
+import { getCollection } from 'astro:content';
+
+const LOCALES = ['en', 'ru', 'es', 'uk'];
+// Меню категорий и подвал рисуются на языке, который известен во время сборки, -- то есть на
+// английском. На русском адресе это выглядело так: текст русский, а меню и подвал английские.
+// Поэтому названия категорий всех четырёх языков едут в разметку и подменяются тем же скриптом.
+const cats = await getCollection('categories');
+const words = Object.fromEntries(
+  LOCALES.map((l) => [l, {
+    h1: UI[l].notFoundH1,
+    text: UI[l].notFoundText,
+    home: UI[l].notFoundHome,
+    tools: UI[l].notFoundTools,
+    title: UI[l].notFoundTitle,
+    contact: UI[l].contactFooterLink,
+    cats: cats.filter((c) => c.data.locale === l).map((c) => ({ slug: c.data.catSlug, name: c.data.name })),
+  }])
+);
+---
+
+<Layout locale="en" title={UI.en.notFoundTitle} description={UI.en.notFoundText}>
+  <div class="main nf">
+    <h1 id="nf-h1">{UI.en.notFoundH1}</h1>
+    <p id="nf-text">{UI.en.notFoundText}</p>
+    <p class="nf-links">
+      <a class="nf-btn" id="nf-home" href="/en">{UI.en.notFoundHome}</a>
+      <a class="nf-link" id="nf-tools" href="/en/tools/audio">{UI.en.notFoundTools}</a>
+    </p>
+  </div>
+</Layout>
+
+<script is:inline define:vars={{ words }}>
+  (() => {
+    const seg = location.pathname.split('/')[1];
+    const w = words[seg];
+    if (!w) return;
+    document.documentElement.lang = seg;
+    document.title = w.title + ' | Opitro';
+    document.getElementById('nf-h1').textContent = w.h1;
+    document.getElementById('nf-text').textContent = w.text;
+    const home = document.getElementById('nf-home');
+    home.textContent = w.home;
+    home.href = '/' + seg;
+    const tools = document.getElementById('nf-tools');
+    tools.textContent = w.tools;
+    tools.href = '/' + seg + '/tools/audio';
+
+    // Логотип, меню категорий и ссылка в подвале -- иначе страница говорит на двух языках сразу.
+    const logo = document.querySelector('nav .logo');
+    if (logo) logo.href = '/' + seg;
+    const menu = document.querySelectorAll('nav .dd-menu .dd-link');
+    w.cats.forEach((c, i) => {
+      const el = menu[i];
+      if (!el) return;
+      el.textContent = c.name;
+      el.href = '/' + seg + '/tools/' + c.slug;
+    });
+    const foot = document.querySelector('footer a[href$="/contact"]');
+    if (foot) { foot.textContent = w.contact; foot.href = '/' + seg + '/contact'; }
+  })();
+</script>
+
+<style>
+  .nf{max-width:620px;text-align:center;padding-top:4rem}
+  .nf h1{margin-bottom:14px}
+  .nf p{font-size:15px;line-height:1.75;color:rgba(216,221,232,0.92)}
+  .nf-links{display:flex;flex-wrap:wrap;align-items:center;justify-content:center;gap:14px;margin-top:26px}
+  .nf-btn{display:inline-flex;align-items:center;height:48px;padding:0 22px;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:12px;color:var(--text);font-size:14px;font-weight:700;
+    text-decoration:none;transition:transform .12s,background .2s,border-color .2s}
+  .nf-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .nf-btn:active{background:rgba(74,222,158,0.16);border-color:rgba(74,222,158,0.5);transform:translateY(0)}
+  .nf-link{color:var(--accent);font-size:14px;text-decoration:underline;text-decoration-color:rgba(74,222,158,0.4)}
+  .nf-link:hover{text-decoration-color:var(--accent)}
+</style>
