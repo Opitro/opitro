@@ -24,7 +24,7 @@ faq:
 
 Sube una grabación cantada y la herramienta la recorre nota a nota, informando de la más grave y la más aguda que cantas y de cuántos semitonos y octavas abarca eso.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Elegir una tonalidad** que le vaya a tu voz en lugar de pelearte con la de otro
 - **Seguir tu progreso** — medir una vez al mes y ver cómo se mueven los límites

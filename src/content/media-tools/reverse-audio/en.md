@@ -24,7 +24,7 @@ faq:
 
 Load a file and press play — you'll hear the reversed version straight away. There's nothing to configure. Then pick a format and download.
 
-What it's good for:
+## What it's good for
 
 - **Sound design** — a reversed cymbal or guitar chord makes the swell that leads into a hit
 - **Music experiments** — reversed samples sound unfamiliar even when the source is not

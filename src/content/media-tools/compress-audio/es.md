@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo y mueve el control — el tamaño resultante aparece debajo mientras lo haces. Los botones preparados fijan un bitrate para un trabajo concreto — correo, mensajería, Discord, archivo. Escucha y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Un adjunto que no sale** — los servicios de correo suelen cortar en 20 o 25 MB
 - **La grabación larga de una clase** que hay que mandar entera

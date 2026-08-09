@@ -24,7 +24,7 @@ faq:
 
 Load a track and press play — you'll hear the result immediately. The method doesn't work on every song, so listening first isn't optional here.
 
-What it's good for:
+## What it's good for
 
 - **A karaoke backing track** from a song you like
 - **Practising along** — singing or playing over it without the original voice

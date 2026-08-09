@@ -34,7 +34,7 @@ faq:
 
 Upload a recording and get the notes: a piano roll, a list with the exact timing of every note, a chord chart, and a MIDI file that opens in any music program.
 
-What people use it for:
+## What people use it for
 
 - **Working a melody out by ear** — hum or play it, then see what the notes actually are
 - **Getting a live take into a sequencer** — play it on a piano, edit it as MIDI afterwards

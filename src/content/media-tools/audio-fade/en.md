@@ -22,7 +22,7 @@ faq:
 
 Load a file, start playback, and dial the length in by ear — with the two sliders or a preset. The fade-in is highlighted on the left of the waveform and the fade-out on the right, so you can see exactly which part of the track ramps up and which one drifts into silence.
 
-What it's for:
+## What it's for
 
 - **Kill an abrupt start** — when a track opens at full volume and hits you in the ears
 - **Smooth out a hard ending** — especially when a file was cut and stops mid-phrase

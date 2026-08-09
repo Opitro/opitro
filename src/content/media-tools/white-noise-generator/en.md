@@ -26,7 +26,7 @@ Press the button and the noise starts immediately, no waiting. Set the volume, a
 
 **Want a file?** Further down the page you can download white noise as MP3 or WAV, at 1, 5, 10 or 30 minutes. You don't have to listen online at all: a downloaded file works with no connection, and any player will loop it with no audible join.
 
-What it's good for:
+## What it's good for
 
 - **Sleeping somewhere noisy** — a hotel, a train, neighbours through the wall
 - **Settling a baby** — white noise resembles what they heard before being born

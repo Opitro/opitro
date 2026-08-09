@@ -24,7 +24,7 @@ faq:
 
 Sube el archivo, elige la velocidad con el control o con un botón preparado, y escucha. El tono se conserva, así que el habla acelerada suena como habla normal, solo que más rápida, sin efecto de ardilla.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Escuchar una clase o un pódcast más rápido** — 1,25x o 1,5x ahorran un tercio del tiempo y el habla se sigue entendiendo
 - **Sacar música de oído** — frenar un pasaje difícil a 0,5x, sacar la parte y volver atrás

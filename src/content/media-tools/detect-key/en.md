@@ -24,7 +24,7 @@ faq:
 
 Load a track and the tool measures it note by note, then reports the tonic, the mode, and how clear the match is.
 
-What it's good for:
+## What it's good for
 
 - **Working a song out by ear** — knowing the key tells you which chords to try
 - **Matching two tracks** in one key for a mix

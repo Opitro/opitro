@@ -24,7 +24,7 @@ faq:
 
 Load a recording, pick a mode and press play — what you hear is already processed. Compare it against the original, then download.
 
-What it's good for:
+## What it's good for
 
 - **Interviews where one person is loud and the other is quiet**
 - **Lecture recordings** where the speaker keeps moving towards and away from the mic

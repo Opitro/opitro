@@ -48,13 +48,3 @@ faq:
 
 Ноты выровнены по сетке шестнадцатых, а сыгранное одновременно записано одним аккордом на нотоносец — это читаемый черновик, а не гравированное издание.
 
-## Попробуйте ещё
-
-<ul class="chips">
-  <li><a href="/ru/detect-key"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="7.5" cy="15.5" r="4.5"/><path d="M10.7 12.3 19 4l2 2-2 2 2 2-2.5 2.5-2-2-1.3 1.3"/></svg><span>Определить тональность</span></a></li>
-  <li><a href="/ru/change-tempo"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><span>Определить темп</span></a></li>
-  <li><a href="/ru/vocal-range"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v4"/></svg><span>Диапазон голоса</span></a></li>
-  <li><a href="/ru/vocal-remover"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h3l2-7 4 14 2.5-9 1.5 4h5"/></svg><span>Убрать вокал</span></a></li>
-  <li><a href="/ru/audio-pitch"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20v-6M12 20V4M20 20v-9"/></svg><span>Изменить тональность</span></a></li>
-  <li><a href="/ru/denoise-audio"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12h2l2-5 3 10 2.5-7 1.5 3h2"/><path d="M18 7l3 3M21 7l-3 3"/></svg><span>Убрать шум</span></a></li>
-</ul>

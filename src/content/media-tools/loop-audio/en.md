@@ -24,7 +24,7 @@ faq:
 
 Load a file and choose how many repeats — the resulting length appears under the slider straight away. Press play to check the seams, then download.
 
-What it's good for:
+## What it's good for
 
 - **Background noise for sleep or focus** — turn a short clip into an hour
 - **A loop for video**, so the music doesn't stop halfway through

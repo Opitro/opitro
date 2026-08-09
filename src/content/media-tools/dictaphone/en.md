@@ -28,7 +28,7 @@ faq:
 
 Press the red button, allow microphone access and talk. Pause whenever you like and carry on from the same place. A second press on the red button finishes the recording — a waveform appears with a handle at each end: drag them inwards, listen to what is between them, and save.
 
-What it's good for:
+## What it's good for
 
 - **Getting a thought down quickly** when all you have to hand is a browser
 - **Recording an interview or a call** on a laptop with nothing installed

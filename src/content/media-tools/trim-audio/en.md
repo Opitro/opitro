@@ -26,7 +26,7 @@ faq:
 
 Load a file, drag the edges of the selection to where you want them, and press the green button next to the timings — you'll hear precisely the section you're about to get. Happy with it? Pick a format and download.
 
-What it's good for:
+## What it's good for
 
 - **Pulling one verse or chorus** out of a song instead of carrying the whole track around
 - **Removing an ad or a dead pause from the middle** — tick "cut out the selection" and the rest joins up

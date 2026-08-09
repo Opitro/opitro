@@ -24,7 +24,7 @@ faq:
 
 Load a recording of singing and the tool works through it note by note, reporting the lowest and highest you sing and how many semitones and octaves that covers.
 
-What it's good for:
+## What it's good for
 
 - **Picking a key** that suits your voice rather than fighting someone else's
 - **Tracking progress** — measure once a month and watch the edges move

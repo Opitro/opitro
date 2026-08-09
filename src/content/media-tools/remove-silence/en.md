@@ -24,7 +24,7 @@ faq:
 
 Load a recording and press play — you'll hear the processed version, and the line under the setting will tell you how much silence went. If it took out too much or too little, move the slider and listen again.
 
-What it's good for:
+## What it's good for
 
 - **A lecture or call recording** where half the time is pauses
 - **Voice memos** with long silences at the start and the end

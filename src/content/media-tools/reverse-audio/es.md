@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo y dale a reproducir — oirás la versión invertida al momento. No hay nada que configurar. Después elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Diseño de sonido** — un platillo o un acorde invertido crea la subida que lleva a un golpe
 - **Experimentos musicales** — un sample invertido suena ajeno aunque la fuente no lo sea

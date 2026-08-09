@@ -24,7 +24,7 @@ faq:
 
 Load a file and press play — what you hear is already the processed version. There's nothing to set: the factor is worked out from the recording itself. Then pick a format and download.
 
-What it's good for:
+## What it's good for
 
 - **Quiet voice recordings** — a lecture or interview captured from too far away
 - **Several clips in a row** at different levels that need to match

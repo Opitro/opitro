@@ -26,7 +26,7 @@ faq:
 
 Load a video — a waveform and a play button appear so you can check the track. Pick a format and press Extract the audio.
 
-What it's good for:
+## What it's good for
 
 - **Pulling a song** out of a music video
 - **A podcast published only as video** — listen in a player without the picture

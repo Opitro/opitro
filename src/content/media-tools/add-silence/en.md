@@ -24,7 +24,7 @@ faq:
 
 Load a file, say how much silence goes at the start and the end, listen, and download. The resulting length is shown under the fields.
 
-What it's good for:
+## What it's good for
 
 - **A ringtone or notification** that cuts off too abruptly
 - **A track for a video edit** that needs shifting in time

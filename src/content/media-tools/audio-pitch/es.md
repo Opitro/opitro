@@ -24,7 +24,7 @@ faq:
 
 Sube un tema y mueve los controles — semitonos para los pasos grandes, centésimas para el ajuste fino — hacia arriba si cantas alto y hacia abajo si cantas grave. La velocidad no cambia: la canción dura lo mismo y va al mismo tempo, solo se desplaza la altura.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Ajustar una pista de acompañamiento a tu voz** cuando el original está escrito para otro registro
 - **Transponer para un instrumento** — por ejemplo, mover una canción para tocarla a la guitarra sin cejilla

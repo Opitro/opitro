@@ -26,7 +26,7 @@ faq:
 
 Visualize your audio file, music, podcast, or voice recording — ten sound visualization styles to choose from. Load a track, tap a style, and a few seconds later you see a slice of the video to come, right on the page. Like it? Start the full render and you get an MP4 with the audio inside.
 
-What it's for:
+## What it's for
 
 - **Putting a track on YouTube** — the platform won't take bare audio, and a moving waveform looks far more alive than a static cover
 - **Making a story or a clip** — a short visualised section set to music

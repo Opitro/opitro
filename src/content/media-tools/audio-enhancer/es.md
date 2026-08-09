@@ -22,7 +22,7 @@ faq:
 
 Sube el archivo y pulsa «✨ Mejorar automáticamente» — ese es el camino principal y los ajustes razonables se eligen solos. Si quieres afinar para una situación concreta, más abajo hay casos para voz, pódcast, música, llamada y grabación antigua. Cuando termine, compara con los botones Original y Resultado, y descarga cuando te convenza.
 
-Qué hace la herramienta:
+## Qué hace la herramienta
 
 - Quita el ruido de fondo constante
 - Nivela el volumen de la grabación

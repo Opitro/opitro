@@ -26,7 +26,7 @@ Press the button and the sound starts straight away. Set the volume, add a sleep
 
 **Want a file?** Below you can download brown noise as MP3 or WAV, at 1, 5, 10 or 30 minutes. A downloaded file plays with no connection, and any player will loop it with no audible join.
 
-What it's good for:
+## What it's good for
 
 - **Focusing on work** — a low steady background distracts less than hiss
 - **Falling asleep** when white and pink feel too sharp

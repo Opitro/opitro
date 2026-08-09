@@ -36,7 +36,7 @@ faq:
 
 Sube una grabación y obtén un texto que puedes copiar, corregir aquí mismo y descargar: como archivo normal o como subtítulos listos.
 
-Para qué se usa:
+## Para qué se usa
 
 - **Transcribir una clase** — grabada con el móvil, la lees en texto en vez de escuchar dos horas
 - **Entrevistas a texto** — para periodistas e investigadores, con marcas de tiempo y separación por voces

@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo y dale a reproducir — lo que oyes ya es la versión procesada. No hay nada que ajustar: el factor se calcula a partir de la propia grabación. Después elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Grabaciones de voz flojas** — una clase o una entrevista captada desde demasiado lejos
 - **Varias grabaciones seguidas** con niveles distintos que deben casar

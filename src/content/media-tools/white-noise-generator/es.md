@@ -24,7 +24,7 @@ faq:
 
 Pulsa el botón y el ruido empieza al momento, sin esperas. Ajusta el volumen y pon un temporizador si quieres. Descargar un archivo es opcional.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Dormir en un sitio ruidoso** — un hotel, un tren, vecinos al otro lado de la pared
 - **Calmar a un bebé** — el ruido blanco se parece a lo que oía antes de nacer

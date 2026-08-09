@@ -24,7 +24,7 @@ faq:
 
 Sube un capítulo y la herramienta mide tres cosas y te dice si pasa. Cada una se marca por separado, así que queda claro qué hay que arreglar.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Narrar un audiolibro** para una plataforma con requisitos técnicos
 - **Comprobar antes de enviar** — sale más barato que un rechazo y volver a hacerlo

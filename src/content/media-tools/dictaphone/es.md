@@ -28,7 +28,7 @@ faq:
 
 Pulsa el botón rojo, permite el acceso al micrófono y habla. Puedes pausar cuando quieras y seguir desde el mismo punto. Una segunda pulsación en el rojo termina la grabación: aparece la onda con un tirador en cada extremo; arrástralos hacia dentro, escucha lo que queda entre ellos y guarda.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Apuntar una idea rápido** cuando lo único que tienes a mano es un navegador
 - **Grabar una entrevista o una llamada** en un portátil sin instalar nada

@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo, elige un estilo y dale a reproducir — el efecto se oye al momento. Alterna entre ellos y descarga el que te guste.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Audio para un juego indie** — una voz o un efecto en estilo consola
 - **Una entradilla retro** para un vídeo o un directo

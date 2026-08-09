@@ -24,7 +24,7 @@ faq:
 
 Sube un tema y dale a reproducir — oirás el resultado al momento. El método no funciona con todas las canciones, así que aquí escuchar antes no es opcional.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Una base de karaoke** de una canción que te gusta
 - **Ensayar encima** — cantar o tocar sin la voz original

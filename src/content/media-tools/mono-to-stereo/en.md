@@ -24,7 +24,7 @@ faq:
 
 Load a file, pick a mode and download. There's only one setting, and for most purposes the default — duplicate — is the one you want.
 
-What it's good for:
+## What it's good for
 
 - **Voice-over for a video project** where the track has to be two-channel
 - **An old mono recording** a player insists on sending to one speaker only

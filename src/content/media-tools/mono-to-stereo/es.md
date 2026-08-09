@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo, elige un modo y descarga. Aquí solo hay un ajuste, y para casi todo el que va bien es el de duplicar, que viene por defecto.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Una locución para un proyecto de vídeo** donde la pista debe ser de dos canales
 - **Una grabación mono antigua** que un reproductor manda a un solo altavoz

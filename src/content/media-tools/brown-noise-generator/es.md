@@ -24,7 +24,7 @@ faq:
 
 Pulsa el botón y el sonido arranca al momento. Ajusta el volumen y pon un temporizador si quieres.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Concentrarte en el trabajo** — un fondo grave y constante distrae menos que un siseo
 - **Dormir** cuando el blanco y el rosa resultan demasiado secos

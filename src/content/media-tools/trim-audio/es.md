@@ -26,7 +26,7 @@ faq:
 
 Sube un archivo, arrastra los bordes de la selección hasta donde quieras y pulsa el botón verde junto a los tiempos — oirás exactamente el fragmento que vas a obtener. Si te convence, elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Sacar una estrofa o un estribillo** de una canción sin arrastrar el tema entero
 - **Quitar un anuncio o un silencio del medio** — marca la casilla y el resto se une

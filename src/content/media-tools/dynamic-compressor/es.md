@@ -24,7 +24,7 @@ faq:
 
 Sube una grabación, elige un modo y dale a reproducir — lo que oyes ya está procesado. Compáralo con el original y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Entrevistas donde uno habla fuerte y el otro flojo**
 - **Grabaciones de clase** donde quien habla se acerca y se aleja del micrófono

@@ -22,7 +22,7 @@ faq:
 
 Load a file, start playback, and move the slider — the volume changes as you go, with nothing to press in between. The value is shown as a percentage and in decibels. There is nothing else on the page, deliberately.
 
-When you need it:
+## When you need it
 
 - **A quiet phone or dictaphone recording** — the conversation is barely audible and needs bringing up
 - **A track that's too loud** — it hurts to listen to and you want it fixed in the file, not in the player

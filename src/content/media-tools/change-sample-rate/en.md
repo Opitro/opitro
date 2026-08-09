@@ -22,7 +22,7 @@ faq:
 
 Load a file and its current rate appears in the info line. Pick the value you need, listen to the result with the play button, and download.
 
-What it's for:
+## What it's for
 
 - **A system that demands a specific rate** — phone systems and voice bots often accept only 8,000 Hz
 - **Matching video** — 48,000 Hz is the editing standard, not 44,100

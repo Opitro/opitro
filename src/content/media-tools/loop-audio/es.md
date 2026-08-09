@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo y elige cuántas repeticiones — la duración final aparece bajo el control al momento. Dale a reproducir para comprobar las uniones y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Ruido de fondo para dormir o concentrarte** — convertir un clip corto en una hora
 - **Un bucle para vídeo**, para que la música no se corte a mitad del montaje

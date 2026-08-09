@@ -24,7 +24,7 @@ faq:
 
 Sube un tema y la herramienta lo mide nota a nota, y luego informa de la tónica, el modo y lo claro que es el resultado.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Sacar una canción de oído** — saber la tonalidad te dice qué acordes probar
 - **Casar dos temas** en una misma tonalidad para una mezcla

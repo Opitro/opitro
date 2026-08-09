@@ -24,7 +24,7 @@ faq:
 
 Load a song, start playback, and move the sliders — the sound changes as you go, with nothing to press in between. You hear the difference immediately rather than after processing, so you can just tune it by ear until it sounds right.
 
-What you can do:
+## What you can do
 
 - **Add bass** — raise the 31-125 Hz bands to make a track fuller and punchier on headphones or speakers
 - **Cut boominess** — pull down 250-500 Hz when a recording sounds muddy, like it was made in a barrel

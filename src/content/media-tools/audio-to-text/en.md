@@ -36,7 +36,7 @@ faq:
 
 Upload a recording and get text you can copy, correct right here, and download — as a plain file or as ready-made subtitles.
 
-What people use it for:
+## What people use it for
 
 - **Transcribing a lecture** — recorded on a phone, read as text instead of sitting through two hours
 - **Interviews into text** — for journalists and researchers, with timestamps and speakers marked

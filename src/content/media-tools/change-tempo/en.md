@@ -24,7 +24,7 @@ faq:
 
 Load a track, press "Detect the tempo" and type in the tempo you want. The line under the fields shows how much the speed changes and what the new length will be. Listen, then download.
 
-What it's good for:
+## What it's good for
 
 - **Matching two tracks** to a common tempo for a mix
 - **Slowing a difficult passage** to learn it, without dropping the key

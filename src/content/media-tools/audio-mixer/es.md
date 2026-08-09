@@ -24,7 +24,7 @@ faq:
 
 Añade los archivos de uno en uno — el primero será el principal y el resto irán debajo. Ajusta el nivel de la base, pulsa «Mezclar y escuchar» y valora el resultado antes de descargarlo.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Una locución con música de fondo** para un vídeo
 - **Un pódcast con una base musical** bajo la entradilla

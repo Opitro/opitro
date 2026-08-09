@@ -24,7 +24,7 @@ faq:
 
 Sube el archivo, indica cuánto silencio va al principio y al final, escucha y descarga. Debajo de los campos aparece la duración final.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Un tono o una notificación** que se corta demasiado bruscamente
 - **Una pista para montaje de vídeo** que hay que desplazar en el tiempo

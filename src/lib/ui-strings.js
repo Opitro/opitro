@@ -6,6 +6,7 @@ export const UI = {
     categoriesAriaLabel: 'Categories',
     // Feedback page. Kept deliberately plain: someone writing here is already annoyed, and
     // corporate phrasing at that moment reads as a brush-off.
+    tryMoreLabel: 'Try these too',
     contactSlugLabel: 'Write to us',
     contactTitle: 'Write to us — report a problem or suggest an improvement',
     contactDescription: 'Something not working, or a tool missing a feature you need? Write to us and we will fix it.',
@@ -467,6 +468,7 @@ export const UI = {
     categoriesAriaLabel: 'Категории',
     // Страница обратной связи. Нарочно простыми словами: человек, который сюда пишет, уже
     // раздосадован, и казённые формулировки в этот момент читаются как отписка.
+    tryMoreLabel: 'Попробуйте ещё',
     contactSlugLabel: 'Написать нам',
     contactTitle: 'Написать нам — сообщить о проблеме или предложить улучшение',
     contactDescription: 'Что-то не работает или инструменту не хватает нужной вам возможности? Напишите нам, и мы это исправим.',
@@ -1340,6 +1342,7 @@ export const UI = {
     categoriesAriaLabel: 'Categorías',
     // Página de contacto. A propósito en lenguaje llano: quien escribe aquí ya está molesto,
     // y en ese momento el lenguaje corporativo suena a evasiva.
+    tryMoreLabel: 'Prueba también',
     contactSlugLabel: 'Escríbenos',
     contactTitle: 'Escríbenos — informa de un fallo o propón una mejora',
     contactDescription: '¿Algo no funciona o a una herramienta le falta lo que necesitas? Escríbenos y lo arreglamos.',
@@ -1799,6 +1802,7 @@ export const UI = {
     categoriesAriaLabel: 'Категорії',
     // Сторінка зворотного зв'язку. Навмисне простими словами: людина, яка сюди пише, вже
     // роздратована, і казенні формулювання в цей момент читаються як відписка.
+    tryMoreLabel: 'Спробуйте ще',
     contactSlugLabel: 'Написати нам',
     contactTitle: 'Написати нам — повідомити про проблему або запропонувати покращення',
     contactDescription: 'Щось не працює або інструменту бракує потрібної вам можливості? Напишіть нам, і ми це виправимо.',

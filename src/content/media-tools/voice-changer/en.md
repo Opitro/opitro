@@ -22,7 +22,7 @@ faq:
 
 Load a voice recording and tap an effect card — the result plays straight away. The intensity slider controls how pronounced it is, from a light touch to full caricature. The Original / Result switch under the player compares before and after.
 
-What's here:
+## What's here
 
 - **🤖 Robot** — ring modulation flattens the natural pitch of speech into a machine monotone
 - **📞 Telephone** — a narrow 300-3400 Hz band, exactly what a real phone line passes

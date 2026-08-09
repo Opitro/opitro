@@ -24,7 +24,7 @@ faq:
 
 Load a file, pick a speed with the slider or a preset button, and listen. Pitch is preserved, so sped-up speech sounds like ordinary speech, just faster — no chipmunk effect.
 
-Who it's for:
+## Who it's for
 
 - **Getting through a lecture or podcast faster** — 1.25x or 1.5x saves a third of the time and stays perfectly clear
 - **Working music out by ear** — slow a tricky run to 0.5x, learn the part, then put it back

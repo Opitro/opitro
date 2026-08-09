@@ -24,7 +24,7 @@ faq:
 
 Sube un tema, pulsa detectar el tempo y escribe el que quieres. La línea bajo los campos muestra cuánto cambia la velocidad y cuál será la nueva duración. Escucha y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Casar dos temas** en un tempo común para una mezcla
 - **Frenar un pasaje difícil** para aprenderlo, sin bajar la tonalidad

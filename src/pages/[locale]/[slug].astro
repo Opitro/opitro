@@ -8,6 +8,7 @@ import AudioToMidi from '../../components/AudioToMidi.astro';
 import SpeechToText from '../../components/SpeechToText.astro';
 import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
+import { iconFor } from '../../lib/tool-icons.js';
 
 export async function getStaticPaths() {
   const locales = ['en', 'ru', 'es', 'uk'];
@@ -108,9 +109,33 @@ if (kind === 'tool') {
 
 const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
 
-// Образец новой вёрстки текста -- пока одна страница, чтобы посмотреть вживую до того, как это
-// разъедется на все 288. Стили лежат в Layout.astro под классом v2.
-const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audio-to-midi';
+// Плитки «Попробуйте ещё». Раньше внизу каждой страницы висели все 39 инструментов категории --
+// стена, которую никто не читает. Шесть штук читаются, но их надо выбрать.
+//
+// Первыми идут инструменты, на которые ссылается сам текст этой страницы: эти связи расставлены
+// осмысленно, когда писался текст, и лучше любого автоматического подбора. Остаток добирается
+// соседями по категории. Так на странице всегда есть куда пойти дальше -- до этой правки 108
+// страниц из 264 не вели вообще никуда.
+const siblings = kind === 'tool' ? await getCollection('tools') : await getCollection('mediaTools');
+const sameLocale = siblings.filter(
+  (x) => x.data.locale === entry.data.locale && x.data.toolSlug !== entry.data.toolSlug
+);
+const mentioned = [...(entry.body || '').matchAll(/\]\(\/[a-z]{2}\/([a-z0-9-]+)\)/g)].map((m) => m[1]);
+const pick = [];
+const add = (x) => { if (x && !pick.some((p) => p.data.toolSlug === x.data.toolSlug)) pick.push(x); };
+for (const slug of mentioned) add(sameLocale.find((x) => x.data.toolSlug === slug));
+for (const x of sameLocale.filter((x) => x.data.category === entry.data.category)) add(x);
+const tiles = pick.slice(0, 6).map((x) => ({
+  href: `/${x.data.locale}/${x.data.toolSlug}`,
+  name: x.data.navName || x.data.h1,
+  icon: iconFor(x.data.toolSlug, x.data.category),
+}));
+const tryMoreLabel = translate(entry.data.locale, 'tryMoreLabel');
+
+// Утверждённая вёрстка текста (вариант Д). Ширину получают только медиастраницы: у калькулятора
+// инструмент узкий, и растянутый под ним текст даёт перекос -- края блоков перестают совпадать.
+// Типографику получают все: крупнее, светлее, с заголовками разделов.
+const wideLayout = kind === 'media';
 ---
 
 <Layout
@@ -121,7 +146,7 @@ const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audi
   path={entry.data.toolSlug}
   breadcrumb={breadcrumb}
 >
-  <div class={`main${kind === 'media' ? ' main-media' : ''}${sampleLayout ? ' main-wide' : ''}`}>
+  <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}`}>
     <h1>{entry.data.h1}</h1>
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
@@ -163,17 +188,33 @@ const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audi
   {/* Строка стоит сразу под инструментом, а не только в подвале: человек, у которого что-то
       не сработало, находится здесь, а до конца статьи доходят единицы. Ссылка несёт название
       страницы, чтобы тема письма подставилась сама и было видно, какой инструмент ломается. */}
-  <p class="report-line">
-    {translate(entry.data.locale, 'contactToolLine')}{' '}
-    <a href={`/${entry.data.locale}/contact?from=${entry.data.toolSlug}`}>
-      {translate(entry.data.locale, 'contactToolLineLink')}
-    </a>
-  </p>
+  <a class="report-tile" href={`/${entry.data.locale}/contact?from=${entry.data.toolSlug}`}>
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+      <path d="M21 11.5a8.4 8.4 0 0 1-9 8.4L3 21l1.1-3.3A8.4 8.4 0 1 1 21 11.5Z"/><path d="M12 8.2v4"/><path d="M12 15.6h.01"/>
+    </svg>
+    <span class="rt-text">{translate(entry.data.locale, 'contactToolLine')}</span>
+    <b class="rt-link">{translate(entry.data.locale, 'contactToolLineLink')}</b>
+  </a>
 
   <AdSlot />
 
-  <section class={`seo${sampleLayout ? ' v2 ve' : ''}`}>
+  <section class="seo v2 ve">
     <Content />
+    {tiles.length > 0 && (
+      <>
+        <h2>{tryMoreLabel}</h2>
+        <ul class="chips">
+          {tiles.map((x) => (
+            <li>
+              <a href={x.href}>
+                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={x.icon} />
+                <span>{x.name}</span>
+              </a>
+            </li>
+          ))}
+        </ul>
+      </>
+    )}
     <h2>{faqLabel}</h2>
     {entry.data.faq.map((item) => (
       <div style="margin-bottom:18px">
@@ -189,7 +230,7 @@ const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audi
      подряд -- стену, которую никто не читает. Перелинковка от этого не страдает: страница
      по-прежнему ведёт в свою категорию через хлебные крошки и в шесть смежных инструментов
      плитками, а полный перечень живёт на странице категории, как и положено. */}
-  {related.length > 0 && !sampleLayout && (
+  {false && related.length > 0 && (
     <section class="all-tools">
       <h2 class="all-tools-title">{relatedLabel}</h2>
       <div class="all-tools-grid">
@@ -207,10 +248,19 @@ const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audi
 
 
 <style>
-  .report-line{max-width:720px;margin:14px auto 0;padding:0 2rem;text-align:center;
-    font-size:13px;color:var(--muted)}
-  .report-line a{color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,0.25)}
-  .report-line a:hover{color:var(--accent);text-decoration-color:var(--accent)}
+  /* Плитка, а не строчка текста: строку под инструментом взгляд проскакивает, а это ровно то
+     место, где человек стоит в момент поломки. Оформлена как остальные плитки на сайте, но
+     приглушённее -- она должна быть заметна, а не спорить с самим инструментом. */
+  .report-tile{display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap;
+    width:fit-content;max-width:calc(100% - 2rem);margin:18px auto 0;padding:13px 20px;
+    background:var(--surface);border:1px solid var(--line);border-radius:13px;
+    color:var(--muted);font-size:13.5px;text-decoration:none;
+    transition:transform .12s,border-color .2s,background .2s,color .2s}
+  .report-tile:hover{transform:translateY(-2px);border-color:rgba(74,222,158,0.4);
+    background:rgba(74,222,158,0.05);color:var(--text)}
+  .report-tile svg{width:18px;height:18px;flex:none;color:var(--accent);opacity:.85}
+  .report-tile .rt-link{color:var(--accent);font-weight:600;white-space:nowrap}
+  @media(max-width:480px){.report-tile{font-size:13px;padding:12px 16px}}
   .universal-link{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:18px auto 0;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s,border-color .15s}
   .universal-link:hover{background:rgba(74,222,158,0.18);border-color:rgba(74,222,158,0.5)}
   /* Audio tools need more room for the waveform + controls than the narrower calculator

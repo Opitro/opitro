@@ -24,7 +24,7 @@ faq:
 
 Load a track and move the sliders — semitones for coarse steps, cents for fine tuning — up if it sits too low for you, down if it sits too high. Speed is untouched: the song stays the same length and the same tempo, only the pitch moves.
 
-Who it's for:
+## Who it's for
 
 - **Fitting a backing track to your voice** — when the original was written for a different range and singing along is a struggle
 - **Transposing for an instrument** — shifting a song to a guitar-friendly key without a capo

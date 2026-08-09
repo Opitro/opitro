@@ -26,7 +26,7 @@ faq:
 
 Sube una grabación y elige una intensidad de limpieza — el proceso empieza al momento y el resultado suena solo. Alterna entre el original y el resultado para valorar la diferencia con honestidad, y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Grabaciones de móvil en interiores** con aire acondicionado o ruido de calle debajo
 - **Entrevistas con un micrófono barato** y estática constante

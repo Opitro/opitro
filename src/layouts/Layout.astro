@@ -167,11 +167,31 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   @media(max-width:640px){section.seo.v2{font-size:14.5px}section.seo.v2 h2{font-size:19px;margin-top:30px}}
 
 
+  /* Плитки «Попробуйте ещё». Раскладка та же, что у карточек на страницах категорий, чтобы на
+     сайте был один язык, а не два. Значок обозначает род действия -- резать, склеивать, слушать;
+     см. src/lib/tool-icons.js, там же объяснено, почему не по значку на каждый инструмент.
+     ВНИМАНИЕ: эти правила однажды были снесены заодно с отвергнутыми набросками оформления,
+     и плитки уехали на боевой сайт без стилей -- гигантский значок вместо ряда плиток. Держать
+     их отдельным блоком и проверять плитки глазами после любой уборки в этом файле. */
+  section.seo.v2 ul.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
+    gap:10px;list-style:none;margin:0 0 8px;padding:0;max-width:none;column-span:all}
+  section.seo.v2 ul.chips li{margin:0;padding:0}
+  section.seo.v2 ul.chips li::before{display:none}
+  section.seo.v2 ul.chips a{display:flex;align-items:center;gap:10px;padding:13px 15px;
+    background:var(--surface);border:1px solid var(--line);border-radius:13px;
+    color:var(--text);font-size:14px;font-weight:600;text-decoration:none;
+    transition:transform .12s,border-color .2s,background .2s}
+  section.seo.v2 ul.chips a:hover{transform:translateY(-2px);border-color:var(--accent);
+    background:rgba(74,222,158,0.06)}
+  section.seo.v2 ul.chips svg{width:19px;height:19px;flex:none;color:var(--accent)}
+
   /* Д. Одна широкая колонка: текст идёт во всю ширину контейнера, подчёркнуты только
      заголовки разделов -- у вопросов ни полос, ни цвета. Кегль поднят до 16px и межстрочное
      Кегль такой же, как везде -- 15px: поднимать его на широкой строке я пробовал, но это
      удлиняет строку в знаках, а не укорачивает. */
-  section.seo.ve{max-width:1000px;width:100%}
+  /* Ширину в 1000px задаёт [slug].astro и только медиастраницам. Здесь -- ширина по умолчанию:
+     на странице калькулятора текст остаётся в колонке инструмента, иначе края разъезжаются. */
+  section.seo.ve{max-width:680px}
   section.seo.ve h2{font-size:22px;color:#fff;font-weight:650;letter-spacing:-.015em;
     margin:46px 0 18px;padding-bottom:11px;border-bottom:2px solid var(--rule,rgba(74,222,158,0.5))}
   section.seo.ve > h2:nth-of-type(1){--rule:rgba(74,222,158,0.5);margin-top:8px}

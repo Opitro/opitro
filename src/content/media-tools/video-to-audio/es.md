@@ -26,7 +26,7 @@ faq:
 
 Sube un vídeo — aparecen una onda y un botón de reproducir para comprobar la pista. Elige un formato y pulsa extraer el audio.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Sacar una canción** de un videoclip
 - **Un pódcast publicado solo en vídeo** — escucharlo en un reproductor sin la imagen

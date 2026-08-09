@@ -26,7 +26,7 @@ faq:
 
 Load a recording and pick a cleaning strength — processing starts immediately and the result plays. Flip between original and result to judge the difference honestly, then download.
 
-What it's good for:
+## What it's good for
 
 - **Phone recordings indoors** with air conditioning or street noise underneath
 - **Interviews on a cheap mic** with constant static

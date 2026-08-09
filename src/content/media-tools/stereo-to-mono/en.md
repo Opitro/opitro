@@ -24,7 +24,7 @@ faq:
 
 Load a file, pick a mode and press play — you'll hear the folded-down version. Then pick a format and download.
 
-What it's good for:
+## What it's good for
 
 - **A podcast recorded on one mic** — the stereo track is just taking up space
 - **Interviews with split channels** — keep only the speaker you need

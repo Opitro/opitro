@@ -24,7 +24,7 @@ faq:
 
 Add your files one at a time — the first becomes the main track and the rest go underneath it. Set the bed level, press "Mix and listen", and judge the result before downloading.
 
-What it's good for:
+## What it's good for
 
 - **Voice-over with background music** for a video
 - **A podcast with a music bed** under the intro

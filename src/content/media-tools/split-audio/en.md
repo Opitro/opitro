@@ -26,7 +26,7 @@ faq:
 
 Load a file, pick how to split it and enter a number. The line under the settings shows how many parts you'll get and how long they'll be. Then choose a format and download the archive.
 
-What it's good for:
+## What it's good for
 
 - **A long lecture or audiobook** — split into chapters by time
 - **A concert or rehearsal recording** — broken out into separate pieces

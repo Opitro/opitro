@@ -34,7 +34,7 @@ faq:
 
 Press the button, say what you need written down, stop — and the text is ready. Not a stream of words but proper text: full stops, commas, question marks and capitals where they belong.
 
-What it does that plain dictation does not:
+## What it does that plain dictation does not
 
 - **Punctuation is placed for you** — by the sense of the sentence, not by where you paused. No saying "comma", "full stop", "new paragraph"
 - **Capitals in the right places** — starting sentences, in names and titles

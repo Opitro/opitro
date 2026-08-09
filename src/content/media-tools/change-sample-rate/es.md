@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo — su frecuencia actual aparece en la línea de información. Elige el valor que necesitas, escucha el resultado con el botón de reproducir y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Requisitos de un sistema** que solo acepta una frecuencia concreta
 - **Audio para telefonía o sistemas de voz**, que suelen pedir 8.000 o 16.000 Hz

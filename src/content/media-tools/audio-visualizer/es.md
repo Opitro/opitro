@@ -26,7 +26,7 @@ faq:
 
 Visualiza tu archivo de audio, música, pódcast o grabación de voz — diez estilos a elegir. Sube un tema, pulsa un estilo y en unos segundos verás un trozo del futuro vídeo en la propia página. Si te gusta, lanza el render completo y obtendrás un MP4 con sonido.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Subir un tema a YouTube** — la plataforma no acepta audio a secas, hace falta imagen, y una onda en movimiento resulta más viva que una portada fija
 - **Hacer una historia o un clip** — un fragmento corto con visualización sobre la música

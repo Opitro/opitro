@@ -22,7 +22,7 @@ faq:
 
 Sube el archivo, dale a reproducir y ajusta la duración de oído, con los dos controles o con un preajuste. A la izquierda de la onda se marca la entrada y a la derecha la salida, así que se ve qué trozo va a crecer y cuál se va a apagar.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Quitar un arranque brusco** — cuando el tema empieza a todo volumen y golpea
 - **Suavizar un corte al final** — sobre todo si el archivo se recortó y acaba a media palabra

@@ -24,7 +24,7 @@ faq:
 
 Sube una grabación y dale a reproducir — oirás la versión procesada, y bajo el ajuste aparecerá cuánto silencio se ha ido. Si se ha quitado demasiado o demasiado poco, mueve el control y escucha otra vez.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Una clase o una llamada grabada** donde la mitad del tiempo son pausas
 - **Notas de voz** con silencios largos al principio y al final

@@ -26,7 +26,7 @@ faq:
 
 Add your files one at a time, put them in order with the arrows, then press "Join and listen" — the finished track's waveform appears and you can play the whole thing. Then pick a format and download.
 
-What it's good for:
+## What it's good for
 
 - **Assembling a podcast recorded in takes** — intro, conversation and outro as one file
 - **Combining voice memos** into a single recording instead of forwarding a dozen

@@ -24,7 +24,7 @@ faq:
 
 Load a chapter and the tool measures three things and tells you whether it passes. Each is flagged separately, so it's clear what needs fixing.
 
-What it's good for:
+## What it's good for
 
 - **Narrating an audiobook** for a platform with technical requirements
 - **Checking before you submit** — cheaper than a rejection and a redo

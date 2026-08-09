@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo, elige un modo y dale a reproducir — oirás la versión reducida a un canal. Después elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Un pódcast grabado con un micrófono** — la pista estéreo solo ocupa sitio
 - **Entrevistas con canales separados** — quedarte solo con el interlocutor que necesitas

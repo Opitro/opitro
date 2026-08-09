@@ -24,7 +24,7 @@ faq:
 
 Sube una canción, dale a reproducir y mueve los controles — el sonido cambia sobre la marcha, sin pulsar nada. Oyes la diferencia al momento en lugar de después de procesar, así que puedes afinar de oído hasta que te guste.
 
-Qué puedes hacer:
+## Qué puedes hacer
 
 - **Añadir graves** — sube las bandas de 31 a 125 Hz y el tema gana cuerpo y pegada en auriculares o altavoces
 - **Quitar el retumbe** — baja de 250 a 500 Hz si la grabación suena apagada, como metida en un barril

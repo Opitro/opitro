@@ -24,7 +24,7 @@ faq:
 
 Load a file, pick a style and press play. Switch between them and listen until one fits. Then choose a format and download.
 
-What it's good for:
+## What it's good for
 
 - **Vocals that sound dry** — room adds the naturalness of not having sung in a closet
 - **Sound design** — hall makes a voice cavernous and distant

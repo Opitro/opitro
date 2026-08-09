@@ -26,7 +26,7 @@ faq:
 
 Sube un archivo, elige cómo dividirlo e introduce un número. La línea bajo los ajustes muestra cuántas partes tendrás y cuánto durarán. Después elige formato y descarga el archivo comprimido.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Una clase larga o un audiolibro** — dividirlos en capítulos por tiempo
 - **La grabación de un concierto o un ensayo** — separarla en piezas

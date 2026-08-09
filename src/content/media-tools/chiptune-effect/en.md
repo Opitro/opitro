@@ -24,7 +24,7 @@ faq:
 
 Load a file, pick a style and press play — the effect is audible immediately. Switch between them and download the one you like.
 
-What it's good for:
+## What it's good for
 
 - **Indie game audio** — a voice or sound effect in console style
 - **A retro intro** for a video or stream

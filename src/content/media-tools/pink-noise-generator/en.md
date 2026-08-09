@@ -26,7 +26,7 @@ Press the button and the sound starts straight away. Set the volume, add a sleep
 
 **Want a file?** Below you can download pink noise as MP3 or WAV, at 1, 5, 10 or 30 minutes. A downloaded file plays with no connection, and any player will loop it with no audible join.
 
-What it's good for:
+## What it's good for
 
 - **Falling asleep to a steady background** when white noise feels too sharp
 - **Working somewhere noisy** — the lower frequencies tire you less over several hours

@@ -24,7 +24,7 @@ faq:
 
 Sube un archivo, elige un estilo y dale a reproducir. Alterna entre ellos y escucha hasta que uno encaje. Después elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Voces que suenan secas** — sala aporta la naturalidad de no haber cantado en un armario
 - **Diseño sonoro** — auditorio deja la voz cavernosa y distante

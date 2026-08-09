@@ -34,7 +34,7 @@ faq:
 
 Pulsa el botón, di lo que quieres dejar por escrito, para — y el texto está listo. No un chorro de palabras, sino texto de verdad: con puntos, comas, signos de interrogación y mayúsculas donde toca.
 
-Lo que hace y un dictado normal no:
+## Lo que hace y un dictado normal no
 
 - **La puntuación se pone sola** — por el sentido de la frase, no por dónde hiciste una pausa. Sin decir «coma», «punto», «párrafo nuevo»
 - **Mayúsculas en su sitio** — al empezar frases, en nombres y títulos

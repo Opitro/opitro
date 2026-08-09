@@ -24,7 +24,7 @@ faq:
 
 Pulsa el botón y el sonido arranca al momento. Ajusta el volumen y pon un temporizador si quieres. Descargar un archivo es opcional.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Dormir con un fondo constante** cuando el ruido blanco resulta demasiado seco
 - **Trabajar en un sitio ruidoso** — las frecuencias graves cansan menos a lo largo de varias horas

@@ -22,7 +22,7 @@ faq:
 
 Sube una grabación de voz y pulsa una tarjeta de efecto — el resultado suena al momento. El control de intensidad regula lo marcado que queda, desde un toque ligero hasta lo grotesco. El interruptor de Original y Resultado bajo el reproductor compara el antes y el después.
 
-Qué hay:
+## Qué hay
 
 - **🤖 Robot** — la modulación en anillo elimina las variaciones vivas de tono y el habla se vuelve mecánica
 - **📞 Teléfono** — banda estrecha de 300 a 3400 Hz, exactamente como una línea telefónica real

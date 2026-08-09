@@ -24,7 +24,7 @@ faq:
 
 Load a file and move the slider — the resulting size appears underneath as you go. The preset buttons set a bitrate for a specific job: email, messengers, Discord, archive. Have a listen, then download.
 
-What it's good for:
+## What it's good for
 
 - **An attachment that won't send** — mail services usually cap out at 20–25 MB
 - **A long lecture recording** that has to go across in one piece

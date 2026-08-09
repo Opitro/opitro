@@ -26,7 +26,7 @@ faq:
 
 Añade los archivos de uno en uno, ponlos en orden con las flechas y pulsa unir y escuchar — aparece la onda de la pista terminada y puedes reproducirla entera. Después elige formato y descarga.
 
-Para qué sirve:
+## Para qué sirve
 
 - **Montar un pódcast grabado por tomas** — entradilla, conversación y cierre en un archivo
 - **Juntar notas de voz** en una sola grabación en lugar de reenviar una docena

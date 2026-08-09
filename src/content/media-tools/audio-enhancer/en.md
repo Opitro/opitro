@@ -22,7 +22,7 @@ faq:
 
 Upload a file and hit "✨ Improve automatically" — that's the main path, sensible settings get picked for you. Want something tuned to a specific situation instead? Scenarios for voice, podcast, music, phone calls, and old recordings are right below it. Once it's done, compare the original and the result with the "Original" / "Result" buttons, and download once you're happy with it.
 
-What this tool does:
+## What this tool does
 
 - Removes constant background noise
 - Balances the recording's loudness

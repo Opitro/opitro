@@ -22,7 +22,7 @@ faq:
 
 Sube el archivo, dale a reproducir y mueve el control — el volumen cambia sobre la marcha, sin pasos intermedios. Al lado se ve el valor en porcentaje y en decibelios. En esta página no hay nada más, y es a propósito.
 
-Cuándo hace falta:
+## Cuándo hace falta
 
 - **Una grabación floja de móvil o grabadora** — la conversación apenas se oye y hay que sacarla
 - **Un tema demasiado fuerte** — molesta, y prefieres bajarlo en el propio archivo y no en el reproductor

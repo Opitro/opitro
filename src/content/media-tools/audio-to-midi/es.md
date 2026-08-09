@@ -34,7 +34,7 @@ faq:
 
 Sube una grabación y obtén las notas: un piano roll, una lista con el tiempo exacto de cada nota, un cifrado de acordes y un archivo MIDI que se abre en cualquier programa de música.
 
-Para qué se usa:
+## Para qué se usa
 
 - **Sacar una melodía de oído** — tarárea o tócala y mira qué notas son en realidad
 - **Llevar una toma en directo al secuenciador** — la tocas al piano y luego la editas como MIDI
