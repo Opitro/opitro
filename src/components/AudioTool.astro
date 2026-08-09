@@ -3335,6 +3335,59 @@ if (config.controls === 'speed1') {
     // source since they have no Web-Audio "effect" to render, and every other tool reuses the
     // same lazily-rendered/cached `renderedBuffer` the Listen button already relies on.
     if (waveShell) {
+      // Протаскивание бегунка: нажал, ведёшь -- звук идёт из-под пальца, отпустил -- играет
+      // дальше с этого места. Без этого искать нужное место на слух приходится отдельными
+      // щелчками, и плеер ощущается ненастоящим.
+      //
+      // Сам щелчок остаётся щелчком: перемотка запускается только после того, как палец
+      // сдвинулся хотя бы на 3 пикселя, иначе обычное нажатие превращалось бы в протаскивание
+      // и мешало кнопкам и ручкам выделения внутри дорожки.
+      if (waveArea) {
+        let scrubbing = false;
+        let startX = 0;
+        const scrubTo = (clientX) => {
+          if (dur <= 0) return;
+          const r = waveArea.getBoundingClientRect();
+          const frac = Math.max(0, Math.min(1, (clientX - r.left) / r.width));
+          setPlayheadFrac(frac);
+          if (transportCurEl) { transportCurEl.textContent = fmtClock(frac * dur); transportCurEl.hidden = false; }
+          return frac * dur;
+        };
+        waveArea.addEventListener('pointerdown', (e) => {
+          if (dur <= 0 || e.button !== 0) return;
+          startX = e.clientX;
+          scrubbing = false;
+          const move = (ev) => {
+            if (!scrubbing && Math.abs(ev.clientX - startX) < 3) return;
+            if (!scrubbing) { scrubbing = true; player.stop(); waveArea.setPointerCapture?.(ev.pointerId); }
+            scrubTo(ev.clientX);
+          };
+          const up = (ev) => {
+            document.removeEventListener('pointermove', move);
+            document.removeEventListener('pointerup', up);
+            if (!scrubbing) return;
+            const t = scrubTo(ev.clientX);
+            const buf = currentAbBuffer();
+            if (buf) playAB(abSelected, buf, t);
+          };
+          document.addEventListener('pointermove', move);
+          document.addEventListener('pointerup', up);
+        });
+      }
+
+      // Пробел -- плей и пауза, как в любой звуковой программе. Игнорируется, когда человек
+      // печатает в поле или выбирает в списке: там пробел значит пробел.
+      document.addEventListener('keydown', (e) => {
+        if (e.code !== 'Space' && e.key !== ' ') return;
+        const el = document.activeElement;
+        if (el && (el.tagName === 'INPUT' || el.tagName === 'TEXTAREA' || el.tagName === 'SELECT'
+          || el.isContentEditable || el.tagName === 'BUTTON' || el.tagName === 'A')) return;
+        const btn = wavePlayBtn;
+        if (!btn || btn.disabled || dur <= 0) return;
+        e.preventDefault();
+        btn.click();
+      });
+
       waveShell.addEventListener('click', async (e) => {
         // composedPath() is fixed when the event is dispatched, so it still names the button even
         // if a handler further down replaced the node that was clicked. target.closest() alone
