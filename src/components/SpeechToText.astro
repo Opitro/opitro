@@ -55,26 +55,45 @@ const ICO = {
   <input type="file" id="st-file">
 
   {isVoice && <div class="voice-lead">{labels.voiceLeadLabel}</div>}
+  {/* Круглая кнопка записи вместо полосы во всю ширину. Знак выбран не на вкус: красный кружок --
+      это «запись» из плёночной традиции, так подписаны диктофоны и запись экрана; квадрат -- это
+      «остановить». Микрофон означает другое -- «говорите», голосовой ввод, -- и для кнопки,
+      которая начинает и заканчивает запись, читается хуже. Узнаваемость даёт форма, а не размер,
+      поэтому полоса и не нужна. */}
   {isVoice && (
   <div class="mic-row" id="st-mic-row">
-    <button type="button" class="act mic-btn" id="st-mic">
-      <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 2a3 3 0 0 0-3 3v7a3 3 0 0 0 6 0V5a3 3 0 0 0-3-3z"/><path d="M19 10v2a7 7 0 0 1-14 0v-2"/><path d="M12 19v3"/></svg>
-      <span id="st-mic-label">{labels.sttRecordLabel}</span>
+    <button type="button" class="mic-btn" id="st-mic" aria-label={labels.sttRecordLabel}>
+      <span class="mic-dot" aria-hidden="true"></span>
     </button>
-    <span class="mic-time" id="st-mic-time"></span>
+    <div class="mic-text">
+      <span id="st-mic-label">{labels.sttRecordLabel}</span>
+      <span class="mic-time" id="st-mic-time"></span>
+    </div>
   </div>
   )}
 
   <div class="panel" id="st-panel">
-    <div class="fileinfo" id="st-fileinfo"></div>
-
+    {/* Панель того же вида, что на остальных аудиоинструментах: имя файла -- верхняя строка,
+        волна, под ней управление. Раньше здесь была отдельная плашка над плеером, кнопка внутри
+        волны и часы прямо в дорожке. */}
     <div class="wave-shell compact" id="st-wave-shell">
-      <button type="button" class="wave-play-btn" id="st-play" disabled aria-label={labels.listenSelectionLabel}>
+      <div class="fileinfo" id="st-fileinfo"></div>
+      <div class="wave-area" id="st-wave-area">
+        <canvas id="st-wave"></canvas>
+        <div class="playhead" id="st-playhead"></div>
+        <div class="wave-guide" id="st-wave-guide"></div>
+        <div class="wave-tip" id="st-wave-tip"></div>
+      </div>
+    </div>
+    <div class="transport" id="st-transport">
+      <button type="button" class="tp-btn tp-play" id="st-play" disabled aria-label={labels.playLabel}>
         <svg class="ico" id="st-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
       </button>
-      <canvas id="st-wave"></canvas>
-      <span class="wave-duration"><b id="st-cur">0:00</b> / <span id="st-total">0:00</span></span>
-      <div class="playhead" id="st-playhead"></div>
+      <button type="button" class="tp-btn tp-stop" id="st-stop" disabled aria-label={labels.stopLabel}>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="7" y="7" width="10" height="10" rx="2"/></svg>
+      </button>
+      <span class="tp-time" id="st-cur" hidden>0:00</span>
+      <span class="tp-total" id="st-total" hidden>0:00</span>
     </div>
 
     <div class="row" id="st-settings">
@@ -245,6 +264,10 @@ const ICO = {
     const curEl = $('st-cur');
     const totalEl = $('st-total');
     const playhead = $('st-playhead');
+    const stopBtn = $('st-stop');
+    const waveArea = $('st-wave-area');
+    const waveGuide = $('st-wave-guide');
+    const waveTip = $('st-wave-tip');
     const langSel = $('st-lang');
     const taskSel = $('st-task');
     const qualitySel = $('st-quality');
@@ -553,6 +576,8 @@ const ICO = {
     function tick() {
       const pos = player.getPosition();
       curEl.textContent = fmtClock(pos);
+      curEl.hidden = false;
+      if (stopBtn) stopBtn.disabled = false;
       if (sourceBuffer) setPlayhead(pos / sourceBuffer.duration);
       if (player.isPlaying()) rafId = requestAnimationFrame(tick);
     }
@@ -562,6 +587,8 @@ const ICO = {
         playIco.innerHTML = ICO_PLAY;
         cancelAnimationFrame(rafId);
         curEl.textContent = fmtClock(0);
+        curEl.hidden = true;
+        if (stopBtn) stopBtn.disabled = true;
         playhead.style.display = 'none';
       }, seekTo);
       playIco.innerHTML = ICO_PAUSE;
@@ -576,6 +603,37 @@ const ICO = {
       if (player.isPlaying()) { player.pause(); playIco.innerHTML = ICO_PLAY; cancelAnimationFrame(rafId); }
       else startPlayback();
     });
+    // Стоп: остановить и вернуть в начало. Выделения на этой странице нет, поэтому начало
+    // выделения и начало файла -- одно и то же.
+    if (stopBtn) {
+      stopBtn.addEventListener('click', () => {
+        player.reset();
+        cancelAnimationFrame(rafId);
+        playIco.innerHTML = ICO_PLAY;
+        playhead.style.display = 'none';
+        curEl.textContent = fmtClock(0);
+        curEl.hidden = true;
+        stopBtn.disabled = true;
+      });
+    }
+    // Подсказка со временем под курсором -- как на остальных инструментах.
+    if (waveArea && waveGuide && waveTip) {
+      waveArea.addEventListener('mousemove', (e) => {
+        if (!sourceBuffer) return;
+        const r = waveArea.getBoundingClientRect();
+        const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+        waveGuide.style.left = x + 'px';
+        waveGuide.style.display = 'block';
+        waveTip.textContent = fmtClock((x / r.width) * sourceBuffer.duration);
+        waveTip.style.display = 'block';
+        const half = waveTip.offsetWidth / 2;
+        waveTip.style.left = Math.max(half + 2, Math.min(r.width - half - 2, x)) + 'px';
+      });
+      waveArea.addEventListener('mouseleave', () => {
+        waveGuide.style.display = 'none';
+        waveTip.style.display = 'none';
+      });
+    }
     waveShell.addEventListener('click', (e) => {
       if (!sourceBuffer) return;
       if (e.composedPath().some((n) => n instanceof Element && n.classList?.contains('wave-play-btn'))) return;

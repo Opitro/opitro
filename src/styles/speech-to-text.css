@@ -9,9 +9,25 @@
   /* The dictation page opens on the microphone, so it gets a line of plain guidance where the
      other page has its drop zone. */
   .stt-tool .voice-lead{font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 16px;text-align:center;max-width:52ch;margin-left:auto;margin-right:auto}
-  .stt-tool .mic-row{display:flex;align-items:center;gap:14px}
-  .stt-tool button.act.mic-btn{flex:1;min-width:auto}
-  .stt-tool .mic-btn.on{border-color:#ff3a5e;background:rgba(255,58,94,0.12);color:#ffb3c0}
+  /* Кнопка по центру, подпись под ней. Сбоку она читалась как строка меню, а не как то,
+     ради чего пришли: на этой странице запись -- единственное действие, и центр в ней
+     единственное место. */
+  .stt-tool .mic-row{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 18px}
+  .stt-tool .mic-btn{flex:none;width:56px;height:56px;border-radius:50%;cursor:pointer;
+    display:flex;align-items:center;justify-content:center;
+    background:rgba(255,58,94,0.08);border:1px solid rgba(255,58,94,0.38);
+    transition:background .18s,border-color .18s,transform .12s}
+  .stt-tool .mic-btn:hover{background:rgba(255,58,94,0.14);border-color:rgba(255,58,94,0.6)}
+  .stt-tool .mic-btn:active{transform:scale(.96)}
+  /* Круг -> квадрат: то же превращение, что в диктофонах и записи экрана. Радиус и размер
+     меняются плавно, поэтому переход читается как одно движение, а не как подмена значка. */
+  .stt-tool .mic-dot{width:20px;height:20px;border-radius:50%;background:#ff3a5e;
+    transition:border-radius .18s,width .18s,height .18s}
+  .stt-tool .mic-btn.on{background:rgba(255,58,94,0.18);border-color:#ff3a5e}
+  .stt-tool .mic-btn.on .mic-dot{width:16px;height:16px;border-radius:4px}
+  .stt-tool .mic-text{display:flex;flex-direction:column;align-items:center;gap:2px;min-width:0;text-align:center}
+  .stt-tool .mic-text #st-mic-label{font-size:14px;font-weight:600;color:var(--text)}
+  .stt-tool .mic-time{font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
   .stt-tool .mic-time{font-size:15px;font-variant-numeric:tabular-nums;color:var(--text);min-width:44px}
   .stt-tool .mic-time:empty{display:none}
 
@@ -137,3 +153,39 @@
 
   .stt-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
   .stt-tool .err.show{display:block}
+
+  /* --- Панель плеера: тот же вид, что в аудиоинструментах ------------------------------------
+     ВНИМАНИЕ: это третья копия одних и тех же правил (аудиоинструменты, аудио-в-миди, речь-в-текст).
+     Именно из-за копий они уже расходились -- кнопка 44 против 38 пикселей, бегунок 2 против 1.5.
+     Сводить в один файл нужно, и это следующая работа. */
+  .stt-tool .wave-shell.compact{display:block;padding:0;background:#0a0b0d;border:1px solid var(--line);
+    border-radius:14px 14px 0 0;border-bottom:none;margin-bottom:0;overflow:hidden}
+  .stt-tool .wave-shell.compact .fileinfo{margin:0;background:none;border:none;
+    border-bottom:1px solid rgba(255,255,255,0.06);border-radius:0;padding:9px 12px;font-size:13px}
+  .stt-tool .wave-shell.compact .fi-row{display:flex;align-items:center;gap:9px}
+  .stt-tool .wave-shell.compact .fi-name{flex:1;min-width:0;font-weight:400;color:var(--text);
+    white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .stt-tool .wave-shell.compact .wave-area{position:relative;display:block}
+  .stt-tool .wave-shell.compact canvas{display:block;width:100%;height:72px}
+  .stt-tool .wave-guide{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,0.28);
+    pointer-events:none;display:none;z-index:1}
+  .stt-tool .wave-tip{position:absolute;top:6px;transform:translateX(-50%);pointer-events:none;
+    display:none;z-index:3;background:rgba(10,11,13,0.92);border:1px solid var(--line);
+    border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:600;color:var(--text);
+    font-variant-numeric:tabular-nums}
+  .stt-tool .transport{display:flex;align-items:center;gap:8px;margin:0 0 14px;
+    padding:8px 10px;background:var(--surface);border:1px solid var(--line);
+    border-top:1px solid rgba(255,255,255,0.06);border-radius:0 0 14px 14px}
+  .stt-tool .tp-btn{flex:none;width:34px;height:34px;border-radius:10px;display:flex;
+    align-items:center;justify-content:center;cursor:pointer;
+    background:rgba(255,255,255,0.035);border:1px solid var(--line);color:var(--text);
+    transition:background .18s,border-color .18s,color .18s,opacity .18s}
+  .stt-tool .tp-btn:hover:not(:disabled){background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.22)}
+  .stt-tool .tp-btn:active:not(:disabled){background:rgba(74,222,158,0.14);border-color:rgba(74,222,158,0.4)}
+  .stt-tool .tp-btn:disabled{opacity:.3;cursor:not-allowed}
+  .stt-tool .tp-btn svg{width:17px;height:17px}
+  .stt-tool .tp-play{color:var(--accent)}
+  .stt-tool .tp-time{margin-left:6px;padding-left:12px;border-left:1px solid var(--line);
+    font-size:13.5px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums;
+    letter-spacing:.02em;line-height:34px}
+  .stt-tool .tp-total{display:none}
