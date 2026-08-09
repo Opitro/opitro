@@ -134,6 +134,58 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   section.seo p{margin-bottom:14px}
   section.seo a{color:var(--accent);text-decoration:underline;text-decoration-color:rgba(74,222,158,0.4)}
   section.seo a:hover{text-decoration-color:var(--accent)}
+  /* --- Образец новой вёрстки текста. Пока включён только на /ru/audio-to-midi (класс v2 ставит
+     [slug].astro). Если понравится -- условие снимается и это становится общим правилом.
+     Смысл правок: инструменту дать ширину, а тексту наоборот оставить узкую колонку, потому что
+     строка длиннее ~75 символов читается заметно хуже. Сам текст был 13px приглушённо-серым --
+     это и есть причина, по которой он "сливался". */
+  section.seo.v2{font-size:15px;line-height:1.75;color:rgba(216,221,232,0.92)}
+  section.seo.v2 h2{font-size:21px;color:var(--text);font-weight:650;letter-spacing:-.01em;margin:38px 0 15px}
+  /* Короткая цветная черта под заголовком: глазу есть за что зацепиться при прокрутке, и разделы
+     отличаются друг от друга не только словами. Цвет задаётся переменной ниже. */
+  section.seo.v2 h2::after{content:"";display:block;width:44px;height:3px;border-radius:2px;margin-top:10px;background:var(--rule,var(--accent))}
+  section.seo.v2 > h2:nth-of-type(1){--rule:#4ade9e;margin-top:0}
+  section.seo.v2 > h2:nth-of-type(2){--rule:#e8b563}
+  section.seo.v2 > h2:nth-of-type(3){--rule:#7fa8f0}
+  section.seo.v2 > h2:nth-of-type(4){--rule:#f08a72}
+  section.seo.v2 p{margin-bottom:15px}
+  section.seo.v2 ul{margin:0 0 15px;padding-left:2px;list-style:none}
+  section.seo.v2 li{position:relative;padding-left:20px;margin-bottom:9px}
+  section.seo.v2 li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.75}
+  section.seo.v2 li strong{color:var(--text);font-weight:600}
+  /* Вопросы. Каждый отделён волосяной линией сверху и своей короткой чертой под текстом -- так
+     двенадцать вопросов подряд перестают быть одной сплошной стеной. */
+  section.seo.v2 > div{margin-bottom:0 !important;padding:18px 0;border-top:1px solid rgba(255,255,255,0.07)}
+  section.seo.v2 > div:first-of-type{border-top:none}
+  section.seo.v2 h3{font-size:16.5px;color:var(--text);font-weight:600;margin-bottom:0;line-height:1.4}
+  section.seo.v2 h3::after{content:"";display:block;width:28px;height:2px;border-radius:2px;margin:8px 0 9px;background:var(--rule,var(--accent))}
+  section.seo.v2 > div:nth-of-type(4n+1) h3{--rule:#4ade9e}
+  section.seo.v2 > div:nth-of-type(4n+2) h3{--rule:#e8b563}
+  section.seo.v2 > div:nth-of-type(4n+3) h3{--rule:#7fa8f0}
+  section.seo.v2 > div:nth-of-type(4n+4) h3{--rule:#f08a72}
+  section.seo.v2 > div p{margin-bottom:0}
+  @media(max-width:640px){section.seo.v2{font-size:14.5px}section.seo.v2 h2{font-size:19px;margin-top:30px}}
+
+
+  /* Д. Одна широкая колонка: текст идёт во всю ширину контейнера, подчёркнуты только
+     заголовки разделов -- у вопросов ни полос, ни цвета. Кегль поднят до 16px и межстрочное
+     Кегль такой же, как везде -- 15px: поднимать его на широкой строке я пробовал, но это
+     удлиняет строку в знаках, а не укорачивает. */
+  section.seo.ve{max-width:1000px;width:100%}
+  section.seo.ve h2{font-size:22px;color:#fff;font-weight:650;letter-spacing:-.015em;
+    margin:46px 0 18px;padding-bottom:11px;border-bottom:2px solid var(--rule,rgba(74,222,158,0.5))}
+  section.seo.ve > h2:nth-of-type(1){--rule:rgba(74,222,158,0.5);margin-top:8px}
+  section.seo.ve > h2:nth-of-type(2){--rule:rgba(232,181,99,0.45)}
+  section.seo.ve > h2:nth-of-type(3){--rule:rgba(127,168,240,0.45)}
+  section.seo.ve > h2:nth-of-type(4){--rule:rgba(240,138,114,0.45)}
+  section.seo.ve h2::after{display:none}
+  section.seo.ve h3{font-size:16.5px;color:#fff;font-weight:600;margin-bottom:8px}
+  section.seo.ve h3::after{display:none}
+  section.seo.ve > div{padding:0 0 22px;border-top:none}
+  section.seo.ve > p:first-of-type{font-size:16.5px;line-height:1.65;color:rgba(226,231,240,0.95);margin-bottom:8px}
+  @media(max-width:640px){section.seo.ve h2{font-size:20px;margin-top:32px}}
+
+
   .all-tools{max-width:900px;margin:50px auto 0;padding:0 2rem}
   .all-tools-title{font-size:18px;font-weight:600;color:rgba(210,215,228,0.85);margin-bottom:18px;text-align:center}
   .all-tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
@@ -148,6 +200,31 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 </style>
 </head>
 <body>
+<script is:inline>
+  // Запоминает сбои в коде страницы, чтобы человек мог приложить их к письму, если сам захочет.
+  // Никуда ничего не отправляется: это sessionStorage, он живёт до закрытия вкладки и виден
+  // только этому браузеру. Молчаливую отправку на сервер здесь делать нельзя -- на каждой
+  // странице обещано, что данные остаются у человека, и отладка не повод это нарушать.
+  (() => {
+    const KEY = 'opitro:errors';
+    const push = (text) => {
+      try {
+        const list = JSON.parse(sessionStorage.getItem(KEY) || '[]');
+        if (list.includes(text) || list.length >= 5) return;
+        list.push(text);
+        sessionStorage.setItem(KEY, JSON.stringify(list));
+      } catch { /* приватный режим -- просто ничего не запоминаем */ }
+    };
+    addEventListener('error', (e) => {
+      const where = e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')' : '';
+      push((e.message || 'error') + where);
+    });
+    addEventListener('unhandledrejection', (e) => {
+      const r = e.reason;
+      push('promise: ' + String(r && r.message ? r.message : r).slice(0, 200));
+    });
+  })();
+</script>
 <nav>
   <a class="logo" href={getRelativeLocaleUrl(locale, '')}>
     <img src="/favicon.svg" alt="" width="22" height="22">
@@ -189,6 +266,7 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 </main>
 <footer>
   © 2026 Opitro
+  <a href={getRelativeLocaleUrl(locale, 'contact')}>{translate(locale, 'contactFooterLink')}</a>
 </footer>
 <script>
   const dropdowns = document.querySelectorAll<HTMLElement>('[data-dropdown]');

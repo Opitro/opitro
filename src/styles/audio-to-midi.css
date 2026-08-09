@@ -48,10 +48,28 @@
   .midi-tool .stage-text:empty{margin:0}
 
   .midi-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
+  /* Кнопка запуска: по содержимому и по центру, а не во всю ширину контейнера --
+     на 1000px она превращалась в полосу в 936px. На узком экране снова во всю ширину. */
+  .midi-tool #mt-run-row{justify-content:center}
+  .midi-tool #mt-run-row button.act{flex:0 0 auto;min-width:260px}
+  @media(max-width:640px){.midi-tool #mt-run-row button.act{flex:1 1 100%;min-width:0}}
   .midi-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .midi-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
   .midi-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
-  .midi-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  /* Главная кнопка. Прежнее правило было записано как `.midi-tool .primary` и не работало ни разу:
+     базовое `.midi-tool button.act` весомее (класс+класс+тег против класса+класса), поэтому главная
+     кнопка выглядела как любая другая -- серой. Проверено замером в браузере: фон был rgb(28,30,36).
+     Здесь та же вескость, что у базового правила, плюс свой класс, поэтому оно применяется.
+     Оттенок мягкий, а не сплошная заливка: кнопка должна быть заметна, но не кричать -- это тот же
+     приём, что у ссылки на категорию внизу страниц, чтобы язык сайта остался одним. */
+  /* Главная кнопка выглядит как обычная. Зелёная заливка пробовалась и отменена: залитая
+     кнопка на тёмной странице читается как уже нажатая, а не как приглашение нажать.
+     Цвет появляется только в момент нажатия -- как отклик на действие, а не как состояние.
+     (Прежнее правило было записано как `.midi-tool .primary` и не срабатывало вовсе: базовое
+     `.midi-tool button.act` весомее. Здесь вескость выровнена, поэтому правило живое.) */
+  .midi-tool button.act.primary{background:var(--surface-2);border-color:var(--line);color:var(--text);font-weight:700}
+  .midi-tool button.act.primary:active:not(:disabled){background:rgba(74,222,158,0.16);
+    border-color:rgba(74,222,158,0.5);transform:translateY(0)}
   .midi-tool .ico{width:16px;height:16px;flex:none}
   .midi-tool .act .i{width:17px;height:17px;flex:none}
 
@@ -67,10 +85,18 @@
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
   .midi-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
 
-  .midi-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
+  .midi-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px;justify-content:center}
   .midi-tool .deck .field{flex:1 1 200px;margin-bottom:0}
   .midi-tool .deck .field-fmt{flex:0 1 190px}
-  .midi-tool button.act.deck-act{flex:1 1 auto;min-width:auto;height:48px;padding:0 18px;border-radius:12px;white-space:nowrap}
+  /* Кнопка по содержимому, а не во всю ширину: flex:1 1 auto растягивал её на весь остаток
+     строки, и на широком контейнере получалась кнопка в 730px. Рекомендация обычная --
+     на десктопе кнопка по тексту, на узком экране во всю ширину. Стоит вплотную к выбору
+     формата, потому что это одно действие: выбрал формат -> скачал. */
+  .midi-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:48px;padding:0 22px;border-radius:12px;white-space:nowrap}
+  @media(max-width:640px){
+    .midi-tool .deck .field-fmt{flex:1 1 100%}
+    .midi-tool button.act.deck-act{flex:1 1 100%}
+  }
   .midi-tool .deck .field select{height:48px;border-radius:12px}
   .midi-tool .fmt-hint{font-size:12.5px;color:var(--muted);line-height:1.5;margin-bottom:4px}
 

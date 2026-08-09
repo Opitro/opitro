@@ -228,7 +228,20 @@
   .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .audio-tool button.act:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
   .audio-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
-  .audio-tool .primary{background:linear-gradient(180deg,var(--accent),var(--accent2));border-color:var(--accent);color:#08130d;font-weight:700}
+  /* Главная кнопка. Прежнее правило было записано как `.audio-tool .primary` и не работало ни разу:
+     базовое `.audio-tool button.act` весомее (класс+класс+тег против класса+класса), поэтому главная
+     кнопка выглядела как любая другая -- серой. Проверено замером в браузере: фон был rgb(28,30,36).
+     Здесь та же вескость, что у базового правила, плюс свой класс, поэтому оно применяется.
+     Оттенок мягкий, а не сплошная заливка: кнопка должна быть заметна, но не кричать -- это тот же
+     приём, что у ссылки на категорию внизу страниц, чтобы язык сайта остался одним. */
+  /* Главная кнопка выглядит как обычная. Зелёная заливка пробовалась и отменена: залитая
+     кнопка на тёмной странице читается как уже нажатая, а не как приглашение нажать.
+     Цвет появляется только в момент нажатия -- как отклик на действие, а не как состояние.
+     (Прежнее правило было записано как `.audio-tool .primary` и не срабатывало вовсе: базовое
+     `.audio-tool button.act` весомее. Здесь вескость выровнена, поэтому правило живое.) */
+  .audio-tool button.act.primary{background:var(--surface-2);border-color:var(--line);color:var(--text);font-weight:700}
+  .audio-tool button.act.primary:active:not(:disabled){background:rgba(74,222,158,0.16);
+    border-color:rgba(74,222,158,0.5);transform:translateY(0)}
   .audio-tool .ico{width:16px;height:16px;flex:none}
 
   /* Always occupies its (tiny) space and only fades in/out -- toggling display made the whole

@@ -43,13 +43,25 @@ const breadcrumb = category
 const faqLabel = translate(entry.data.locale, 'faqLabel');
 const relatedLabel = translate(entry.data.locale, 'relatedLabel');
 
+// FAQ answers are plain strings in the frontmatter and were printed as text, so a markdown link
+// written in one reached the reader verbatim: "сначала попробуйте [убрать вокал](/ru/vocal-remover)".
+// 113 answers across 76 content files do this, on the live site right now. Escape first, then turn
+// the link syntax into a real anchor -- the escaping is what makes set:html safe below.
+const escapeHtml = (s) =>
+  String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+const answerHtml = (s) =>
+  escapeHtml(s).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => `<a href="${href}">${label}</a>`);
+// Google gets the prose without the link syntax -- the markup would otherwise show up in the
+// rich result as literal brackets.
+const answerText = (s) => String(s).replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+
 const faqJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'FAQPage',
   mainEntity: entry.data.faq.map((item) => ({
     '@type': 'Question',
     name: item.question,
-    acceptedAnswer: { '@type': 'Answer', text: item.answer },
+    acceptedAnswer: { '@type': 'Answer', text: answerText(item.answer) },
   })),
 };
 
@@ -95,6 +107,10 @@ if (kind === 'tool') {
 }
 
 const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
+
+// Образец новой вёрстки текста -- пока одна страница, чтобы посмотреть вживую до того, как это
+// разъедется на все 288. Стили лежат в Layout.astro под классом v2.
+const sampleLayout = entry.data.locale === 'ru' && entry.data.toolSlug === 'audio-to-midi';
 ---
 
 <Layout
@@ -105,7 +121,7 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
   path={entry.data.toolSlug}
   breadcrumb={breadcrumb}
 >
-  <div class={`main${kind === 'media' ? ' main-media' : ''}`}>
+  <div class={`main${kind === 'media' ? ' main-media' : ''}${sampleLayout ? ' main-wide' : ''}`}>
     <h1>{entry.data.h1}</h1>
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
@@ -144,22 +160,36 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
     )}
   </div>
 
+  {/* Строка стоит сразу под инструментом, а не только в подвале: человек, у которого что-то
+      не сработало, находится здесь, а до конца статьи доходят единицы. Ссылка несёт название
+      страницы, чтобы тема письма подставилась сама и было видно, какой инструмент ломается. */}
+  <p class="report-line">
+    {translate(entry.data.locale, 'contactToolLine')}{' '}
+    <a href={`/${entry.data.locale}/contact?from=${entry.data.toolSlug}`}>
+      {translate(entry.data.locale, 'contactToolLineLink')}
+    </a>
+  </p>
+
   <AdSlot />
 
-  <section class="seo">
+  <section class={`seo${sampleLayout ? ' v2 ve' : ''}`}>
     <Content />
     <h2>{faqLabel}</h2>
     {entry.data.faq.map((item) => (
       <div style="margin-bottom:18px">
         <h3>{item.question}</h3>
-        <p>{item.answer}</p>
+        <p set:html={answerHtml(item.answer)} />
       </div>
     ))}
   </section>
 
   <AdSlot />
 
-  {related.length > 0 && (
+  {/* Нижний блок со всеми инструментами категории на образце убран: он давал 39 карточек
+     подряд -- стену, которую никто не читает. Перелинковка от этого не страдает: страница
+     по-прежнему ведёт в свою категорию через хлебные крошки и в шесть смежных инструментов
+     плитками, а полный перечень живёт на странице категории, как и положено. */}
+  {related.length > 0 && !sampleLayout && (
     <section class="all-tools">
       <h2 class="all-tools-title">{relatedLabel}</h2>
       <div class="all-tools-grid">
@@ -175,11 +205,31 @@ const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
 
 <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
 
+
 <style>
+  .report-line{max-width:720px;margin:14px auto 0;padding:0 2rem;text-align:center;
+    font-size:13px;color:var(--muted)}
+  .report-line a{color:var(--muted);text-decoration:underline;text-decoration-color:rgba(255,255,255,0.25)}
+  .report-line a:hover{color:var(--accent);text-decoration-color:var(--accent)}
   .universal-link{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:18px auto 0;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s,border-color .15s}
   .universal-link:hover{background:rgba(74,222,158,0.18);border-color:rgba(74,222,158,0.5)}
   /* Audio tools need more room for the waveform + controls than the narrower calculator
      width -- matches LeebTTS's own 760px content width for the same kind of editor UI. */
   .main-media{max-width:760px}
   .main-media ~ section.seo{max-width:760px}
+  /* Образец: инструменту ширина, тексту наоборот узкая колонка. Правила стоят здесь, а не в
+     Layout.astro, потому что там у них ровно та же вескость, что у .main-media выше, и спор
+     решался порядком файлов -- то есть не в нашу пользу. */
+  .main-media.main-wide{max-width:1000px;padding-bottom:1.5rem}
+  .main-media.main-wide ~ section.seo.v2{max-width:720px;margin-top:24px}
+  /* Вариант Г занимает всю ширину контейнера -- строку внутри него ограничивает уже сам текст
+     (max-width в ch), а заголовки, полосы и плитки идут во всю ширину. Правило стоит здесь же,
+     иначе спорит с предыдущей строкой при равной вескости и проигрывает по порядку. */
+  /* width:100% обязателен: <main> -- колоночный флексбокс, а у элемента с margin:auto по бокам
+     растяжение по поперечной оси отключается, и ширина сжимается по содержимому. Ровно та же
+     ловушка описана в AdSlot.astro. Без него max-width:1000px не делал ничего. */
+  .main-media.main-wide ~ section.seo.ve{max-width:1000px;width:100%}
+  /* Зона загрузки идёт во всю ширину контейнера: суженная, она вылезала из общей вертикали --
+     её края не совпадали с краями текста и полос под заголовками, и страница выглядела съехавшей.
+     Ровные края важнее, чем то, что пустая рамка кажется великоватой. */
 </style>

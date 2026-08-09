@@ -1,0 +1,157 @@
+---
+import Layout from '../../layouts/Layout.astro';
+import { t as translate } from '../../lib/ui-strings.js';
+
+// Страница обратной связи. Живёт отдельным файлом маршрута, а не в коллекции: у неё нет
+// инструмента, нет FAQ и нет пары "из чего во что". Статический сегмент "contact" по правилам
+// Astro старше динамического [slug], так что спора маршрутов тут нет.
+export async function getStaticPaths() {
+  return ['en', 'ru', 'es', 'uk'].map((locale) => ({ params: { locale } }));
+}
+
+const { locale } = Astro.params;
+const t = (k) => translate(locale, k);
+const translations = ['en', 'ru', 'es', 'uk'].map((l) => ({ locale: l, slug: 'contact' }));
+---
+
+<Layout
+  locale={locale}
+  title={t('contactTitle')}
+  description={t('contactDescription')}
+  translations={translations}
+  path="contact"
+>
+  <div class="main contact">
+    <h1>{t('contactH1')}</h1>
+    <p class="lead">{t('contactLead')}</p>
+
+    {/* Адрес собирается скриптом. В разметке он лежит в виде, который простые сборщики адресов
+        не понимают, но человек прочитает и без скрипта -- поэтому страница остаётся рабочей,
+        даже если JavaScript отключён. Полной защиты от спама это не даёт, и обещать её нечестно. */}
+    <p class="write-row">
+      <a class="write-btn" id="ct-mail" href="#" data-user="help" data-host="opitro.com">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
+          <rect x="2.5" y="4.5" width="19" height="15" rx="2.5"/><path d="m3 6.5 9 6.5 9-6.5"/>
+        </svg>
+        <span>{t('contactWriteButton')}</span>
+      </a>
+    </p>
+    <p class="addr-note">{t('contactAddressNote')} <b id="ct-addr">help (собака) opitro.com</b></p>
+
+    <h2>{t('contactWhatHeading')}</h2>
+    <ul class="what">
+      <li>{t('contactWhatTool')}</li>
+      <li>{t('contactWhatHappened')}</li>
+      <li>{t('contactWhatFile')}</li>
+    </ul>
+
+    <h2>{t('contactPrivacyHeading')}</h2>
+    <p>{t('contactPrivacyText')}</p>
+
+    <h2>{t('contactTechHeading')}</h2>
+    <p>{t('contactTechExplain')}</p>
+    <div class="tech" id="ct-tech">
+      <pre id="ct-tech-body"></pre>
+      <button type="button" class="drop-btn" id="ct-drop">{t('contactTechDrop')}</button>
+      <p class="dropped" id="ct-dropped" hidden>{t('contactTechDropped')}</p>
+    </div>
+    <p class="answer-note">{t('contactAnswerNote')}</p>
+  </div>
+</Layout>
+
+<script is:inline define:vars={{ strings: {
+  errors: translate(Astro.params.locale, 'contactTechErrors'),
+  noErrors: translate(Astro.params.locale, 'contactTechNoErrors'),
+} }}>
+  (() => {
+    const link = document.getElementById('ct-mail');
+    const addr = link.dataset.user + '@' + link.dataset.host;
+    document.getElementById('ct-addr').textContent = addr;
+
+    // Тема письма подставляется из страницы, откуда пришли: тогда по почте сразу видно, какой
+    // инструмент ломается чаще, без единого вопроса к человеку.
+    const from = new URLSearchParams(location.search).get('from') || '';
+    const subject = 'Opitro' + (from ? ': ' + from : '');
+
+    // Сведения об устройстве -- и только о нём. Про содержимое файла тут нет ничего и быть не может:
+    // файл никогда не покидает устройство, страница его не видела.
+    const facts = [
+      from ? 'Страница: ' + from : null,
+      'Браузер: ' + navigator.userAgent,
+      'Экран: ' + window.screen.width + '×' + window.screen.height,
+      'Язык: ' + navigator.language,
+    ].filter(Boolean);
+
+    let errors = [];
+    try {
+      errors = JSON.parse(sessionStorage.getItem('opitro:errors') || '[]');
+    } catch { errors = []; }
+
+    const techBody = document.getElementById('ct-tech-body');
+    const dropBtn = document.getElementById('ct-drop');
+    let includeTech = true;
+
+    const render = () => {
+      const lines = facts.slice();
+      if (errors.length) lines.push('', strings.errors, ...errors.slice(0, 5));
+      else lines.push('', strings.noErrors);
+      techBody.textContent = lines.join('\n');
+    };
+    render();
+
+    const build = () => {
+      const body = includeTech
+        ? '\n\n\n----\n' + techBody.textContent + '\n'
+        : '';
+      link.href = 'mailto:' + addr
+        + '?subject=' + encodeURIComponent(subject)
+        + (body ? '&body=' + encodeURIComponent(body) : '');
+    };
+    build();
+
+    dropBtn.addEventListener('click', () => {
+      includeTech = false;
+      document.getElementById('ct-tech').classList.add('is-dropped');
+      document.getElementById('ct-dropped').hidden = false;
+      dropBtn.hidden = true;
+      build();
+    });
+  })();
+</script>
+
+<style>
+  .contact{max-width:720px}
+  .contact h1{margin-bottom:14px}
+  .contact .lead{font-size:16.5px;line-height:1.65;color:rgba(226,231,240,0.95);margin-bottom:22px}
+  .contact h2{font-size:19px;color:#fff;font-weight:650;letter-spacing:-.015em;margin:34px 0 14px;
+    padding-bottom:10px;border-bottom:2px solid rgba(74,222,158,0.5)}
+  .contact h2:nth-of-type(2){border-bottom-color:rgba(232,181,99,0.45)}
+  .contact h2:nth-of-type(3){border-bottom-color:rgba(127,168,240,0.45)}
+  .contact p{font-size:15px;line-height:1.75;color:rgba(216,221,232,0.92)}
+  .contact .what{list-style:none;padding:0;margin:0}
+  .contact .what li{position:relative;padding-left:20px;margin-bottom:10px;font-size:15px;
+    line-height:1.7;color:rgba(216,221,232,0.92)}
+  .contact .what li::before{content:"";position:absolute;left:2px;top:10px;width:6px;height:6px;
+    border-radius:50%;background:var(--accent);opacity:.75}
+  .write-row{margin:0 0 10px}
+  /* Та же кнопка, что в инструментах: серая в покое, цвет только в момент нажатия. */
+  .write-btn{display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 22px;
+    background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
+    color:var(--text);font-size:14px;font-weight:700;text-decoration:none;
+    transition:transform .12s,background .2s,border-color .2s}
+  .write-btn:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
+  .write-btn:active{background:rgba(74,222,158,0.16);border-color:rgba(74,222,158,0.5);transform:translateY(0)}
+  .write-btn svg{width:18px;height:18px;flex:none;color:var(--accent)}
+  .addr-note{font-size:13px;color:var(--muted);margin-bottom:6px}
+  .addr-note b{color:var(--text);font-weight:600}
+  .tech{margin-top:12px}
+  .tech pre{background:var(--surface);border:1px solid var(--line);border-radius:12px;
+    padding:14px 16px;font-size:12.5px;line-height:1.6;color:rgba(216,221,232,0.85);
+    white-space:pre-wrap;word-break:break-word;font-family:ui-monospace,SFMono-Regular,Menlo,monospace}
+  .tech.is-dropped pre{opacity:.35}
+  .drop-btn{margin-top:10px;background:none;border:1px solid var(--line);border-radius:10px;
+    color:var(--muted);font-family:inherit;font-size:13px;padding:8px 14px;cursor:pointer}
+  .drop-btn:hover{border-color:rgba(255,255,255,0.2);color:var(--text)}
+  .dropped{font-size:13px;color:var(--accent);margin-top:10px}
+  .answer-note{font-size:13px;color:var(--muted);margin-top:26px}
+</style>
