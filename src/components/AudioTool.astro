@@ -437,11 +437,11 @@ const ICO = {
       <div class="row">
         <div class="field">
           <label for="ctrl-fadein">{labels.fadeInLabel}</label>
-          <input type="number" id="ctrl-fadein" min="0" max="30" value="0">
+          <input type="number" id="ctrl-fadein" min="0" max="30" step="0.5" value="0">
         </div>
         <div class="field">
           <label for="ctrl-fadeout">{labels.fadeOutLabel}</label>
-          <input type="number" id="ctrl-fadeout" min="0" max="30" value="0">
+          <input type="number" id="ctrl-fadeout" min="0" max="30" step="0.5" value="0">
         </div>
       </div>
     )}
@@ -2201,6 +2201,45 @@ const ICO = {
     const wavePlayIco = root.querySelector('#wave-play-ico');
     const waveDurationEl = root.querySelector('#wave-duration');
     const waveStopBtn = root.querySelector('#wave-stop-btn');
+
+    // Плюс и минус к числовым полям. Клавиатурные стрелки у числового поля есть и так, но на
+    // телефоне их нет вовсе, а мышью попасть в стрелку высотой в семь пикселей трудно. Шаг берётся
+    // из самого поля: секунды ходят по 0.5, удары в минуту по одному -- это свойство величины, и
+    // задавать его дважды означало бы дать им разойтись.
+    //
+    // Кнопки добавляются скриптом, а не в разметке: полей шесть в разных инструментах, и
+    // шесть одинаковых кусков разметки -- это шесть мест, где правка ляжет в одно.
+    ['ctrl-silence-start', 'ctrl-silence-end', 'ctrl-bpm-from', 'ctrl-bpm-to', 'ctrl-fadein', 'ctrl-fadeout']
+      .forEach((id) => {
+        const el = root.querySelector('#' + id);
+        if (!el || el.type !== 'number' || el.closest('.stepper')) return;
+        const step = parseFloat(el.step) || 1;
+        const wrap = document.createElement('div');
+        wrap.className = 'stepper';
+        el.parentNode.insertBefore(wrap, el);
+        const mk = (sign, label) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'st-btn';
+          b.textContent = sign > 0 ? '+' : '−';
+          b.setAttribute('aria-label', label);
+          b.addEventListener('click', () => {
+            const min = el.min === '' ? -Infinity : parseFloat(el.min);
+            const max = el.max === '' ? Infinity : parseFloat(el.max);
+            const now = parseFloat(el.value);
+            const base = Number.isFinite(now) ? now : 0;
+            // Округление до шага: иначе после 0.5 + 0.5 получается 0.9999999999999999.
+            const next = Math.min(max, Math.max(min, Math.round((base + sign * step) / step) * step));
+            el.value = String(Number(next.toFixed(6)));
+            el.dispatchEvent(new Event('input', { bubbles: true }));
+            el.dispatchEvent(new Event('change', { bubbles: true }));
+          });
+          return b;
+        };
+        wrap.appendChild(mk(-1, '−' + step));
+        wrap.appendChild(el);
+        wrap.appendChild(mk(1, '+' + step));
+      });
     // Подсказка со временем под курсором. Живёт только на компактной панели -- там волна
     // не рабочая поверхность, и ничто не спорит с ней за движения мыши.
     const waveArea = root.querySelector('#wave-area');

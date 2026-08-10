@@ -224,6 +224,21 @@
   .audio-tool .wave-duration b{color:var(--text)}
 
   .audio-tool .eq-row .field{min-width:110px}
+  /* Числовое поле с плюсом и минусом. Ширина поля -- под пятизначное число: длинная плашка на
+     всю строку ради «0.5» выглядит так, будто туда ждут абзац текста. Кнопки по бокам делают
+     блок компактным и попадаемым пальцем -- родные стрелки числового поля высотой в семь
+     пикселей мышью ловятся плохо, а на телефоне их нет вовсе. */
+  .audio-tool .stepper{display:flex;align-items:stretch;gap:6px}
+  .audio-tool .stepper input[type=number]{flex:0 0 7ch;min-width:0;text-align:center;
+    -moz-appearance:textfield;font-variant-numeric:tabular-nums}
+  .audio-tool .stepper input[type=number]::-webkit-outer-spin-button,
+  .audio-tool .stepper input[type=number]::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .audio-tool .st-btn{flex:0 0 40px;height:46px;border-radius:10px;cursor:pointer;
+    background:rgba(255,255,255,0.035);border:1px solid var(--line);color:var(--text);
+    font-family:inherit;font-size:17px;line-height:1;
+    transition:background .18s,border-color .18s}
+  .audio-tool .st-btn:hover{background:rgba(255,255,255,0.08);border-color:rgba(255,255,255,0.22)}
+  .audio-tool .st-btn:active{background:rgba(74,222,158,0.14);border-color:rgba(74,222,158,0.4)}
   .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
   .audio-tool .row .field{margin-bottom:0}
   /* `.field-cap` is the caption for a group of buttons. It looks exactly like a field label but is
