@@ -9,6 +9,12 @@ interface Props {
   /** Link to the reverse-direction page for this exact pair, e.g. km-to-miles -> miles-to-km. Omit if no reverse page exists. */
   reverseHref?: string;
   reverseAriaLabel?: string;
+  /** Слаг инструмента -- по нему берётся описание составных единиц (футы+дюймы, стоуны+фунты). */
+  toolSlug?: string;
+  /** Подписи: «скопировать», «точно». */
+  copyLabel?: string;
+  copiedLabel?: string;
+  exactLabel?: string;
 }
 
 const {
@@ -20,13 +26,21 @@ const {
   defaultValue = 10,
   reverseHref,
   reverseAriaLabel,
+  toolSlug,
+  copyLabel,
+  copiedLabel,
+  exactLabel,
 } = Astro.props;
 ---
 
-<div class="lc-widget" data-factor={factor}>
+<div class="lc-widget" data-factor={factor} data-slug={toolSlug}>
   <div class="field">
     <label for="lc-input">{fromUnit} ({fromUnitShort})</label>
-    <input type="number" id="lc-input" value={defaultValue} step="any" inputmode="decimal">
+    {/* Поле текстовое, а не числовое. Числовое отвергает всё, что не число, -- а человек пишет
+        «5 футов 9 дюймов», «5'9"», «5 1/2», «5,5». Ради этого пожертвована пара стрелок вверх-вниз
+        у числового поля; цифровая клавиатура на телефоне сохраняется через inputmode. */}
+    <input type="text" id="lc-input" value={defaultValue} inputmode="decimal" autocomplete="off"
+      spellcheck="false" enterkeyhint="done">
   </div>
   {reverseHref && (
     <a class="lc-swap" href={reverseHref} aria-label={reverseAriaLabel}>
@@ -34,28 +48,132 @@ const {
     </a>
   )}
   <div class="result-box">
-    <div class="result-value"><span id="lc-result"></span> {toUnitShort}</div>
-    <div class="result-label">{toUnit}</div>
+    <div class="result-value"><span id="lc-result"></span> <span class="ru-unit">{toUnitShort}</span></div>
+    {/* Точное значение мелким под округлённым: «4.54» -- то, что нужно человеку, «4.53592» -- то,
+        что нужно, когда считают деньги или вес багажа. Прятать второе нечестно, показывать вместо
+        первого -- неряшливо. */}
+    <div class="result-exact" id="lc-exact" data-label={exactLabel} hidden></div>
+    <div class="result-row">
+      <span class="result-label">{toUnit}</span>
+      <button type="button" class="lc-copy" id="lc-copy" data-done={copiedLabel} hidden>{copyLabel}</button>
+    </div>
   </div>
 </div>
 
 
 <script>
-  import { convertLinear, formatNumber } from '../lib/linear-converter.js';
+  import { convertLinear } from '../lib/linear-converter.js';
+  import { parseQuantity, COMPOUND } from '../lib/parse-quantity.js';
 
   const widget = document.querySelector('.lc-widget');
   const factor = parseFloat(widget.dataset.factor);
+  const compound = COMPOUND[widget.dataset.slug] || null;
   const input = document.getElementById('lc-input');
   const result = document.getElementById('lc-result');
+  const exactEl = document.getElementById('lc-exact');
+  const copyBtn = document.getElementById('lc-copy');
+  const unitEl = document.querySelector('.ru-unit');
+
+  // Тысячи разделяются узким пробелом, дробная часть -- точкой. Так же напечатана таблица частых
+  // значений ниже на странице и так же печатает сам движок: два разных вида числа в одном
+  // документе читаются как небрежность.
+  function group(str) {
+    const [int, frac] = String(str).split('.');
+    const g = int.replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
+    return frac ? g + '.' + frac : g;
+  }
+  // Округление по величине: человеку, переводящему 10 фунтов, нужно «4.54», а не «4.53592».
+  // Маленьким значениям знаков даётся больше, иначе они превращаются в ноль.
+  function round(n) {
+    const abs = Math.abs(n);
+    if (abs === 0) return '0';
+    const digits = abs >= 1000 ? 1 : abs >= 100 ? 2 : abs >= 1 ? 2 : abs >= 0.01 ? 4 : 6;
+    return String(Number(n.toFixed(digits)));
+  }
+  function exact(n) {
+    // Шесть знаков после запятой -- предел, за которым число перестаёт быть точным и становится
+    // шумным: «71.6675924286» никому не нужно, а «71.667592» отвечает на любой практический
+    // вопрос. Хвост нулей отбрасывается.
+    return String(Number(n.toFixed(6)));
+  }
 
   function update() {
-    const value = parseFloat(input.value) || 0;
-    result.textContent = formatNumber(convertLinear(value, factor));
+    const value = parseQuantity(input.value, compound);
+    // Пустое или неразобранное поле показывает пустоту, а не ноль: ноль -- это ответ, и человек,
+    // стерший значение, видел бы ответ на незаданный вопрос.
+    if (value == null) {
+      result.textContent = '';
+      if (unitEl) unitEl.hidden = true;
+      exactEl.hidden = true;
+      copyBtn.hidden = true;
+      return;
+    }
+    const out = convertLinear(value, factor);
+    const short = round(out);
+    const full = exact(out);
+    if (unitEl) unitEl.hidden = false;
+    result.textContent = group(short);
+    // Точное значение показывается только когда оно отличается от показанного.
+    if (full !== short) {
+      exactEl.textContent = (exactEl.dataset.label || '') + ' ' + group(full);
+      exactEl.hidden = false;
+    } else {
+      exactEl.hidden = true;
+    }
+    copyBtn.hidden = false;
+    copyBtn.dataset.value = full;
   }
 
   input.addEventListener('input', () => {
     update();
+    writeUrl();
     window.dispatchEvent(new Event('opitro:tool-interaction'));
   });
+
+  // Значение живёт в адресе страницы: ссылку можно отправить, вернуться по ней или положить в
+  // закладки и увидеть тот же ответ. Адрес переписывается без записи в историю -- иначе кнопка
+  // «назад» отматывала бы по одному нажатию клавиши.
+  let urlTimer = 0;
+  function writeUrl() {
+    clearTimeout(urlTimer);
+    urlTimer = window.setTimeout(() => {
+      const u = new URL(location.href);
+      if (input.value.trim()) u.searchParams.set('v', input.value.trim());
+      else u.searchParams.delete('v');
+      history.replaceState(null, '', u);
+    }, 400);
+  }
+  const fromUrl = new URLSearchParams(location.search).get('v');
+  if (fromUrl && parseQuantity(fromUrl, compound) != null) input.value = fromUrl;
+
+  copyBtn.addEventListener('click', async () => {
+    const text = copyBtn.dataset.value || result.textContent;
+    try {
+      await navigator.clipboard.writeText(text);
+    } catch {
+      // Буфер обмена недоступен без защищённого соединения и в старых браузерах -- тогда
+      // выделяем число, чтобы человек мог скопировать привычным способом, а не остался ни с чем.
+      const r = document.createRange();
+      r.selectNodeContents(result);
+      const sel = getSelection();
+      sel.removeAllRanges();
+      sel.addRange(r);
+      return;
+    }
+    const was = copyBtn.textContent;
+    copyBtn.textContent = copyBtn.dataset.done || was;
+    setTimeout(() => { copyBtn.textContent = was; }, 1400);
+  });
+
   update();
 </script>
+
+<style>
+  .result-exact{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
+  .result-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
+  .lc-copy{background:none;border:1px solid var(--line);border-radius:9px;color:var(--muted);
+    font-family:inherit;font-size:12px;padding:4px 10px;cursor:pointer;
+    transition:border-color .18s,color .18s}
+  .lc-copy:hover{border-color:rgba(255,255,255,0.22);color:var(--text)}
+  .lc-copy:active{border-color:rgba(74,222,158,0.5);color:var(--accent)}
+</style>

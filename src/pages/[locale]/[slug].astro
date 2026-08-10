@@ -132,9 +132,15 @@ const tableInputs = entry.data.engine === 'temperature-converter'
 const fmtNum = (n) => {
   const abs = Math.abs(n);
   const digits = abs >= 100 ? 1 : abs >= 10 ? 2 : abs >= 1 ? 3 : 6;
-  return Number(n.toFixed(digits)).toLocaleString(entry.data.locale === 'en' ? 'en-US' : entry.data.locale, {
-    maximumFractionDigits: digits,
-  });
+  // Разделитель дробной части -- точка, а не запятая, даже в русском и украинском. Решает не
+  // грамматика, а сам калькулятор: он печатает «4.53592 кг» через точку, и таблица стоит прямо
+  // под ним. Два разных вида чисел на одной странице читаются как небрежность. По той же причине
+  // так написаны и все тексты сайта: 287 чисел через точку против 34 через запятую.
+  // Тысячи разделяются узким пробелом -- «1 000» читается быстрее, чем «1000».
+  const fixed = Number(n.toFixed(digits)).toString();
+  const [int, frac] = fixed.split('.');
+  const grouped = int.replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+  return frac ? grouped + '.' + frac : grouped;
 };
 const convTable = kind === 'tool' && (ep.factor || ep.scale)
   ? tableInputs.map((x) => ({ from: fmtNum(x), to: fmtNum(convert(x)) }))
@@ -199,6 +205,10 @@ const wideLayout = kind === 'media';
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
         {...entry.data.engineParams}
+        toolSlug={entry.data.toolSlug}
+        copyLabel={translate(entry.data.locale, 'copyLabel')}
+        copiedLabel={translate(entry.data.locale, 'copiedLabel')}
+        exactLabel={translate(entry.data.locale, 'exactLabel')}
         reverseHref={reverseTool ? `/${entry.data.locale}/${reverseTool.data.toolSlug}` : undefined}
         reverseAriaLabel={reverseAriaLabel}
       />
