@@ -109,6 +109,48 @@ if (kind === 'tool') {
 
 const reverseAriaLabel = translate(entry.data.locale, 'swapDirectionAriaLabel');
 
+// Таблица частых значений и формула для страниц калькуляторов.
+//
+// Тексты этих страниц были самыми короткими на сайте -- 359 знаков против 798 у медиастраниц,
+// два абзаца, ни одного заголовка, ни одного списка. При этом запросы там самые конкурентные.
+// Отдельный запрос вроде «сколько кг в 70 фунтах» отвечается не калькулятором, а строкой в
+// таблице -- поэтому таблица и появляется.
+//
+// Числа берутся из тех же параметров, по которым считает сам калькулятор, поэтому они верны по
+// построению и не расходятся с ним. Писать руками ничего не нужно, и это сразу 104 страницы.
+const ep = entry.data.engineParams || {};
+const convert = (x) => entry.data.engine === 'temperature-converter'
+  ? x * (ep.scale ?? 1) + (ep.offset ?? 0)
+  : x * (ep.factor ?? 1);
+// Для температуры ряд другой: 1 или 2 градуса никто не переводит, а вот ноль, комнатная
+// температура, температура тела и точка кипения -- это то, что действительно ищут.
+const tableInputs = entry.data.engine === 'temperature-converter'
+  ? [-40, -10, 0, 10, 20, 25, 30, 37, 100]
+  : [1, 2, 5, 10, 20, 50, 100, 500, 1000];
+// Столько знаков после запятой, чтобы маленькие значения не превращались в ноль, но и хвост из
+// нулей не тянулся: 0.453592 нужен целиком, а 45.3592 уже избыточен.
+const fmtNum = (n) => {
+  const abs = Math.abs(n);
+  const digits = abs >= 100 ? 1 : abs >= 10 ? 2 : abs >= 1 ? 3 : 6;
+  return Number(n.toFixed(digits)).toLocaleString(entry.data.locale === 'en' ? 'en-US' : entry.data.locale, {
+    maximumFractionDigits: digits,
+  });
+};
+const convTable = kind === 'tool' && (ep.factor || ep.scale)
+  ? tableInputs.map((x) => ({ from: fmtNum(x), to: fmtNum(convert(x)) }))
+  : [];
+// Числа в формуле проходят через тот же fmtNum, что и таблица. Иначе на одной странице
+// оказывались «0.453592» через точку в формуле и «0,453592» через запятую в таблице -- ровно та
+// же несостыковка, что была с «0.4 MB» и «366 KB» в плеере.
+// Считается только там, где есть что считать. Без этой проверки формула вычислялась и на
+// медиастраницах, у которых параметров пересчёта нет вовсе, и сборка падала на toFixed от
+// undefined -- раньше это молча давало строку «undefined» и потому не замечалось.
+const convFormula = convTable.length === 0 ? '' : entry.data.engine === 'temperature-converter'
+  ? `${ep.fromUnitShort} × ${fmtNum(ep.scale)} ${ep.offset >= 0 ? '+' : '−'} ${fmtNum(Math.abs(ep.offset))} = ${ep.toUnitShort}`
+  : `1 ${ep.fromUnitShort} = ${fmtNum(ep.factor)} ${ep.toUnitShort}`;
+const convTableHeading = translate(entry.data.locale, 'convTableHeading');
+const convFormulaHeading = translate(entry.data.locale, 'convFormulaHeading');
+
 // Плитки «Попробуйте ещё». Раньше внизу каждой страницы висели все 39 инструментов категории --
 // стена, которую никто не читает. Шесть штук читаются, но их надо выбрать.
 //
@@ -196,6 +238,31 @@ const wideLayout = kind === 'media';
 
   <section class="seo v2 ve">
     <Content />
+    {convTable.length > 0 && (
+      <>
+        <h2>{convFormulaHeading}</h2>
+        <p class="conv-formula">{convFormula}</p>
+        <h2>{convTableHeading}</h2>
+        <div class="conv-wrap">
+          <table class="conv-table">
+            <thead>
+              {/* Только полное название. Пара «Дюйми, дюйм» читалась коряво: множественное число
+                  рядом с единственным. Символ единицы и так стоит в формуле над таблицей. */}
+              <tr><th>{ep.fromUnit}</th><th>{ep.toUnit}</th></tr>
+            </thead>
+            <tbody>
+              {/* В ячейках только числа. Подставлять единицу к каждому значению нельзя: в
+                  русском и украинском она требует падежа, и получалось «2 фунт», «5 фунт».
+                  Единица живёт в шапке столбца -- так устроены обычные таблицы пересчёта, и
+                  это разом снимает вопрос склонения во всех четырёх языках. */}
+              {convTable.map((r) => (
+                <tr><td>{r.from}</td><td>{r.to}</td></tr>
+              ))}
+            </tbody>
+          </table>
+        </div>
+      </>
+    )}
     {tiles.length > 0 && (
       <>
         <h2>{tryMoreLabel}</h2>
@@ -268,6 +335,18 @@ const wideLayout = kind === 'media';
   .report-tile svg{width:18px;height:18px;flex:none;color:var(--accent);opacity:.85}
   .report-tile .rt-link{color:var(--accent);font-weight:600;white-space:nowrap}
   @media(max-width:480px){.report-tile{font-size:13px;padding:12px 16px}}
+  /* Таблица пересчёта. Цифры моноширинные и прижаты вправо -- так столбцы читаются как столбцы,
+     а не как список слов. Обёртка с прокруткой нужна на телефоне: длинные числа вроде
+     «1 000 000» иначе распирают страницу вбок. */
+  .conv-formula{font-size:15px;color:var(--text);font-variant-numeric:tabular-nums;margin-bottom:6px}
+  .conv-wrap{overflow-x:auto;margin-bottom:8px}
+  .conv-table{width:100%;border-collapse:collapse;font-size:14px;font-variant-numeric:tabular-nums}
+  .conv-table th{text-align:right;font-size:10px;letter-spacing:.08em;text-transform:uppercase;
+    color:var(--muted);font-weight:600;padding:0 0 8px;border-bottom:1px solid var(--line)}
+  .conv-table th:first-child{text-align:left}
+  .conv-table td{padding:7px 0;border-bottom:1px solid rgba(255,255,255,0.05);color:var(--text);text-align:right}
+  .conv-table td:first-child{text-align:left;color:var(--muted)}
+  .conv-table tr:last-child td{border-bottom:none}
   .universal-link{display:flex;align-items:center;justify-content:center;gap:6px;width:fit-content;margin:18px auto 0;padding:10px 18px;border-radius:11px;background:rgba(74,222,158,0.1);border:1px solid rgba(74,222,158,0.3);color:var(--accent);font-size:13px;font-weight:600;text-decoration:none;transition:background .15s,border-color .15s}
   .universal-link:hover{background:rgba(74,222,158,0.18);border-color:rgba(74,222,158,0.5)}
   /* Audio tools need more room for the waveform + controls than the narrower calculator
