@@ -351,7 +351,7 @@ export const UI = {
       fileDurationLabel: 'Duration',
       fileSampleRateLabel: 'Sample rate',
       fileChannelsLabel: 'Channels',
-      downloadResultLabel: 'Download result',
+      downloadResultLabel: 'Download',
       silenceSensitivityLabel: 'Sensitivity',
 
       // --- Audio to MIDI ---
@@ -822,7 +822,7 @@ export const UI = {
       fileDurationLabel: 'Длительность',
       fileSampleRateLabel: 'Частота',
       fileChannelsLabel: 'Каналы',
-      downloadResultLabel: 'Скачать результат',
+      downloadResultLabel: 'Скачать',
       silenceSensitivityLabel: 'Чувствительность',
 
       // --- Аудио в MIDI ---
@@ -1240,7 +1240,7 @@ export const UI = {
       fileDurationLabel: 'Duración',
       fileSampleRateLabel: 'Frecuencia',
       fileChannelsLabel: 'Canales',
-      downloadResultLabel: 'Descargar el resultado',
+      downloadResultLabel: 'Descargar',
       silenceSensitivityLabel: 'Sensibilidad',
 
       // --- Audio a MIDI ---
@@ -1711,7 +1711,7 @@ export const UI = {
       fileDurationLabel: 'Тривалість',
       fileSampleRateLabel: 'Частота',
       fileChannelsLabel: 'Канали',
-      downloadResultLabel: 'Завантажити результат',
+      downloadResultLabel: 'Завантажити',
       silenceSensitivityLabel: 'Чутливість',
 
       // --- Аудіо в MIDI ---

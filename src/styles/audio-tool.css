@@ -252,9 +252,22 @@
      ошибка в разных файлах: пока внешний вид описан трижды, так и будет. */
   .audio-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:44px;padding:0 22px;
     border-radius:12px;white-space:nowrap}
+  /* На телефоне формат и скачивание остаются В ОДНОМ РЯДУ. Раньше я разводил их на две строки,
+     рассуждая «на узком экране кнопки во всю ширину -- это правильно». Это было неверно: выбор
+     формата -- два-три символа, ему не нужна вся ширина, а лишняя строка отодвигает кнопку вниз. */
   @media(max-width:640px){
-    .audio-tool .deck .field-fmt{flex:1 1 100%}
-    .audio-tool button.act.deck-act{flex:1 1 100%;min-width:0}
+    .audio-tool .deck{flex-wrap:nowrap;gap:8px}
+    .audio-tool .deck .field-fmt{flex:0 0 108px;min-width:0}
+    .audio-tool button.act.deck-act{flex:1 1 auto;min-width:0;padding:0 12px}
+  }
+  /* Подпись «Сохранить как» скрыта визуально, но остаётся для читалок с экрана: список с «WAV»
+     человеку понятен без объяснения, а незрячему -- нет. */
+  .audio-tool .deck .field-fmt label{position:absolute;width:1px;height:1px;overflow:hidden;
+    clip:rect(0 0 0 0);white-space:nowrap}
+  /* Сведения о файле на телефоне прижаты к правому краю: они справочные, и левый край занят
+     кнопками -- взгляд не должен спотыкаться о них по пути к плею. */
+  @media(max-width:640px){
+    .audio-tool .transport .file-meta{justify-content:flex-end}
   }
   .audio-tool .deck .field select{height:48px;border-radius:12px}
   .audio-tool .act .i{width:17px;height:17px;flex:none}

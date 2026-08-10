@@ -180,7 +180,9 @@
 }
 
 @media (max-width: 640px) {
+  /* Сведения прижаты вправо: они справочные, а левый край занят кнопками воспроизведения --
+     взгляд не должен спотыкаться о них по пути к плею. */
   .audio-tool .transport .file-meta,
   .midi-tool .transport .file-meta,
-  .stt-tool .transport .file-meta { margin-left: 0; width: 100%; justify-content: flex-start; gap: 8px 18px; }
+  .stt-tool .transport .file-meta { margin-left: 0; width: 100%; justify-content: flex-end; gap: 8px 18px; }
 }
