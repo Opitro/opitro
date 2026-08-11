@@ -50,7 +50,13 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // a file that's already loaded, which leaves a "Process" step with no work of its own to do.
 const needsRenderAction = isGenerator || controls === 'multi-file';
 const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
-const showRunBtn = isFfmpeg && !isRingtoneTargets;
+// Формат и действие в один ряд -- то же правило, что у остальных инструментов (див. .deck ниже).
+// Инструменты на ffmpeg с выпадающим списком до сих пор рисовали формат отдельной строкой во всю
+// ширину, а кнопку -- следующей строкой под ней, с подписью "СОХРАНИТЬ КАК" над списком. Обе эти
+// вещи владелец сайта просил убрать, и они были убраны -- но только у инструментов с exportDeck,
+// а сюда правка не доехала: шумоподавление и улучшение звука остались со старым видом.
+const deckFfmpeg = isFfmpeg && controls === 'select' && !!config.formats && !isRingtoneTargets;
+const showRunBtn = isFfmpeg && !isRingtoneTargets && !deckFfmpeg;
 const showAddBtn = controls === 'multi-file' || !!config.allowBatch;
 const showControlsRow = showListenBtn || showRunBtn || showAddBtn;
 
@@ -329,11 +335,19 @@ const ICO = {
         this, and gating it on cards is what kept denoise locked to MP3 -- so a WAV upload came
         back lossy for no reason anyone chose. */}
     {controls === 'select' && config.formats && (
-      <div class="field enhance-format-field">
-        <label for="ctrl-format">{labels.enhanceFormatLabel}</label>
-        <select id="ctrl-format">
-          {config.formats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
-        </select>
+      <div class={deckFfmpeg ? 'deck' : ''}>
+        <div class={deckFfmpeg ? 'field field-fmt enhance-format-field' : 'field enhance-format-field'}>
+          <label for="ctrl-format">{labels.enhanceFormatLabel}</label>
+          <select id="ctrl-format">
+            {config.formats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
+          </select>
+        </div>
+        {deckFfmpeg && (
+          <button type="button" class="act primary deck-act" id="audio-run-btn" disabled={config.abCompare ? true : undefined}>
+            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+            <span>{labels[config.runLabel] || labels.processLabel}</span>
+          </button>
+        )}
       </div>
     )}
 
@@ -840,6 +854,11 @@ const ICO = {
     const targetsEl = root.querySelector('#targets');
     const ringtoneGuide = root.querySelector('#ringtone-guide');
     const runBtn = root.querySelector('#audio-run-btn');
+    // На инструментах с рядом "формат + действие" у кнопки есть значок, и запись подписи через
+    // textContent стёрла бы его вместе с текстом -- поэтому подпись меняется только в <span>,
+    // если он есть. Раньше кнопка была голым текстом, и обращение к ней было прямым.
+    const runBtnLabelEl = runBtn ? (runBtn.querySelector('span') || runBtn) : null;
+    const setRunLabel = (text) => { if (runBtnLabelEl) runBtnLabelEl.textContent = text; };
     const addBtn = root.querySelector('#audio-add-btn');
     const downloadRow = root.querySelector('#download-row');
     const dlMp3Btn = root.querySelector('#dl-mp3-btn');
@@ -1427,6 +1446,20 @@ const ICO = {
               if (transportCurEl) transportCurEl.textContent = '0:00';
             }
             renderFileMeta(f);
+            // Список силы показывает "Лёгкая" с первой секунды -- значит лёгкая и должна быть
+            // сделана. До этого не делалось ничего: событие change бывает только когда значение
+            // МЕНЯЮТ, а показанное изначально его не вызывает. Получалось, что страница называет
+            // силу, которую не применила, "Результат" не нажимается, а кнопка скачивания мертва,
+            // и оживить всё это можно было только потрогав список -- о чём догадаться нельзя.
+            //
+            // Инструментов с карточками это не касается: там ни одна карточка не подсвечена, и
+            // страница честно показывает, что выбор ещё не сделан.
+            //
+            // По времени это дёшево: очистка трёх минут звука занимает около двух секунд, и файл
+            // ffmpeg всё равно уже качается на этом же шаге.
+            if (config.abCompare && !config.presetCards && root.querySelector('#ctrl-select')) {
+              runFfmpegProcess(false, null, { auto: true });
+            }
           } catch (e) {
             // The waveform is a nice-to-have preview, not a requirement -- the Convert tool
             // never needed a successful browser decode to run ffmpeg directly on the raw file,
@@ -2211,6 +2244,10 @@ const ICO = {
         if (abOriginalBtn) abOriginalBtn.classList.add('active');
         abSelected = 'original';
         if (wavePlayBtn) wavePlayBtn.disabled = !currentAbBuffer();
+        // И сразу пересчитать в новом формате. Без этого смена формата возвращала ровно то
+        // состояние, из-за которого всё и чинилось: список называет силу, а кнопка не нажимается.
+        // Карточкам это не нужно -- там выбор виден, и его делают руками.
+        if (file && !config.presetCards) runFfmpegProcess(false, null, { auto: true });
       });
     }
 
@@ -2458,7 +2495,12 @@ if (config.controls === 'speed1') {
           : Math.max(1, Math.round(bytes / 1024)) + ' ' + (labels.unitKB || 'KB')),
       }) || '';
       el.textContent = text;
-      el.style.display = text ? 'block' : 'none';
+      // Место под строку занимается сразу, как только файл прочитан, даже если сказать пока
+      // нечего. Иначе строка возникает в тот момент, когда человек впервые двигает настройку, и
+      // толкает вниз всё, что под ней -- кнопку скачивания в том числе, прямо под курсором.
+      // До загрузки файла строка скрыта совсем: там ничего не сдвинется, панель ещё пустая.
+      el.style.display = (text || sourceBuffer) ? 'block' : 'none';
+      el.classList.toggle('is-empty', !text);
     }
     // Merge has no single decoded source -- its input is the file list -- so "is there anything
     // to work with" can't just be `sourceBuffer`. Keying the export button off sourceBuffer left
@@ -2522,6 +2564,11 @@ if (config.controls === 'speed1') {
         try {
           if (!renderedBuffer) renderedBuffer = await doRender();
           syncResultWave();
+          // И обновить строку под настройками. Она рассказывает о РЕЗУЛЬТАТЕ ("убрано 4,2 с
+          // тишины, было 0:30, стало 0:26"), поэтому до пересчёта ей нечего сказать -- а
+          // пересчёт тут и произошёл. Без этой строки ползунок чувствительности в "удалить
+          // тишину" двигался молча: ни числа, ни отклика, только догадка.
+          syncSourceNote();
         } catch {
           // Не получилось посчитать -- оставляем прежнюю волну. Показать ошибку здесь нечестно:
           // человек ничего не запрашивал, он всего лишь двинул ползунок.
@@ -3667,7 +3714,12 @@ if (config.controls === 'speed1') {
     // `extraParams` is merged over readParams() -- used by the visualizer to render a
     // duration-capped preview through the exact same command as the real export.
     // Returns the produced blob (or undefined) so callers can preview it without re-running.
-    async function runFfmpegProcess(download, extraParams) {
+    // `opts.auto` -- прогон, которого человек не просил: он запускается сам, как только файл
+    // прочитан, чтобы показанная в списке настройка была правдой. Такой прогон готовит результат
+    // молча: не включает звук и не перекидывает переключатель на "Результат". Всё, что он делает
+    // видимого, -- снимает блокировку с "Результата" и с кнопки скачивания.
+    async function runFfmpegProcess(download, extraParams, opts) {
+        const auto = !!(opts && opts.auto);
         if (ffmpegBusy) return;
         if (config.allowBatch ? !files.length : !file) return;
         window.dispatchEvent(new Event('opitro:tool-interaction'));
@@ -3723,7 +3775,7 @@ if (config.controls === 'speed1') {
               downloadFfmpegBlob(zipBlob, 'converted.zip');
             }
             finishProgress(labels.doneLabel);
-            runBtn.textContent = labels[config.runLabel] || labels.processLabel;
+            setRunLabel(labels[config.runLabel] || labels.processLabel);
           } else {
             hideProgress();
           }
@@ -3748,7 +3800,7 @@ if (config.controls === 'speed1') {
           });
           const base = file.name.replace(/\.[^.]+$/, '') || 'audio';
           finishProgress(download ? labels.doneLabel : (labels.previewDoneLabel || labels.doneLabel));
-          runBtn.textContent = labels[config.runLabel] || labels.processLabel;
+          setRunLabel(labels[config.runLabel] || labels.processLabel);
           runBtn.onclick = null;
           if (download) downloadFfmpegBlob(blob, `${base}.${ext}`);
           if (config.abCompare && abCompareEl) {
@@ -3760,15 +3812,20 @@ if (config.controls === 'speed1') {
               abCompareEl.style.display = 'flex';
               if (abResultBtn) abResultBtn.disabled = false;
               if (wavePlayBtn) wavePlayBtn.disabled = false;
-              abSelected = 'result';
-              if (abOriginalBtn) abOriginalBtn.classList.remove('active');
-              if (abResultBtn) abResultBtn.classList.add('active');
-              // Auto-play the result immediately -- previously you had to notice and tap the
-              // "Result" A/B button yourself, which read as "nothing happened" after a click.
-              // Starts from wherever the waveform was last tapped, if anywhere.
-              const seek = waveSeekPos;
-              waveSeekPos = null;
-              playAB('result', lastResultBuffer, seek ?? undefined);
+              // Молчаливый прогон на всё это не претендует: человек только что выбрал файл и
+              // ждёт тишины, а не внезапно заигравшего звука. Он остаётся на "Оригинале" --
+              // просто теперь рядом есть живой "Результат", который и правда посчитан.
+              if (!auto) {
+                abSelected = 'result';
+                if (abOriginalBtn) abOriginalBtn.classList.remove('active');
+                if (abResultBtn) abResultBtn.classList.add('active');
+                // Auto-play the result immediately -- previously you had to notice and tap the
+                // "Result" A/B button yourself, which read as "nothing happened" after a click.
+                // Starts from wherever the waveform was last tapped, if anywhere.
+                const seek = waveSeekPos;
+                waveSeekPos = null;
+                playAB('result', lastResultBuffer, seek ?? undefined);
+              }
             } catch (e) {}
           }
           producedBlob = blob;
