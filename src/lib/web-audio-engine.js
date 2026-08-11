@@ -255,6 +255,80 @@ export function drawWaveform(canvas, buffer) {
   }
 }
 
+// Живая волна во время записи с микрофона.
+//
+// Записанного файла ещё нет -- рисовать нечего, поэтому drawWaveform тут не годится: он берёт
+// готовый буфер. Здесь наоборот: уровень приходит по кадрам, самый свежий встаёт справа, а всё
+// остальное сдвигается влево. Так выглядит любой диктофон, и так сразу видно, что микрофон
+// слышит -- полоска уровня этого не показывает, она говорит только "громко/тихо сейчас".
+//
+// Столбики, зазор, скруглённые концы, ось по центру -- всё то же, что у обычной волны:
+// когда запись остановится и на этом же месте появится волна файла, картинка не должна
+// смениться на другую по стилю.
+export function createLiveWaveform(canvas) {
+  let levels = [];
+  let cols = 0;
+  let raf = 0;
+  let dpr = 1;
+  let bar = 2;
+  let gap = 1;
+
+  function measure() {
+    dpr = window.devicePixelRatio || 1;
+    const rect = canvas.getBoundingClientRect();
+    canvas.width = Math.max(1, rect.width * dpr);
+    canvas.height = Math.max(1, (rect.height || 72) * dpr);
+    bar = Math.max(1, Math.round(2 * dpr));
+    gap = Math.max(1, Math.round(1 * dpr));
+    const next = Math.max(1, Math.floor(canvas.width / (bar + gap)));
+    // Ширина могла измениться (поворот телефона). Старые уровни сохраняем -- лучше показать
+    // историю на новой сетке, чем очистить экран посреди записи.
+    if (next !== cols) { cols = next; levels = levels.slice(-cols); }
+  }
+
+  function draw() {
+    const g = canvas.getContext('2d');
+    const W = canvas.width;
+    const H = canvas.height;
+    const mid = H / 2;
+    g.clearRect(0, 0, W, H);
+    g.fillStyle = 'rgba(255,255,255,.07)';
+    g.fillRect(0, Math.round(mid), W, Math.max(1, Math.round(dpr)));
+    g.fillStyle = 'rgba(74,222,158,.62)';
+    // Прижато к правому краю: пока записи мало, столбики идут справа налево и слева пусто --
+    // это честно показывает, сколько уже записано.
+    const start = cols - levels.length;
+    for (let i = 0; i < levels.length; i++) {
+      const h = Math.max(Math.round(dpr), levels[i] * H);
+      const x = (start + i) * (bar + gap);
+      const y = mid - h / 2;
+      const r = Math.min(bar / 2, h / 2);
+      g.beginPath();
+      if (g.roundRect) g.roundRect(x, y, bar, h, r);
+      else g.rect(x, y, bar, h);
+      g.fill();
+    }
+  }
+
+  return {
+    /** Начать с чистого листа. */
+    start() {
+      levels = [];
+      measure();
+      const tick = () => { draw(); raf = requestAnimationFrame(tick); };
+      cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(tick);
+    },
+    /** Уровень очередного кадра, 0..1. */
+    push(level) {
+      const v = Math.max(0, Math.min(1, Number(level) || 0));
+      levels.push(v);
+      if (levels.length > cols) levels = levels.slice(-cols);
+    },
+    stop() { cancelAnimationFrame(raf); raf = 0; },
+  };
+}
+
 // `render(offlineCtx, sourceNode, params)` returns the final AudioNode to connect to the
 // destination -- one function per tool covers everything expressible as a Web Audio graph
 // (gain, filters, delay/feedback, playbackRate). Some tools (reverse, loop, normalize) need

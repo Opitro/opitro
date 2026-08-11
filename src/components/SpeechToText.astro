@@ -195,7 +195,7 @@ const ICO = {
 </div>
 
 <script>
-  import { decodeFile, drawWaveform, createPlayer } from '../lib/web-audio-engine.js';
+  import { decodeFile, drawWaveform, createLiveWaveform, createPlayer } from '../lib/web-audio-engine.js';
   import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks,
     attachSpeakers, speakerCount, toSpeakerText, toSpeakerTimestamped } from '../lib/transcript-format.js';
 
@@ -534,6 +534,40 @@ const ICO = {
 
     /* --- microphone ---------------------------------------------------------------------- */
     let recorder = null, recChunks = [], recTimer = 0, recStart = 0;
+    // Волна во время диктовки. Здесь она нужнее, чем где-либо: человек говорит в телефон и до
+    // этого не имел ни одного признака, что его слышат, -- только счётчик времени, который
+    // идёт одинаково и при выключенном микрофоне. Та же функция, что у диктофона, чтобы обе
+    // страницы рисовали одно и то же, а не разошлись со временем.
+    const liveWave = waveCanvas ? createLiveWaveform(waveCanvas) : null;
+    let meterCtx = null, meterRaf = 0;
+    function startLiveWave(stream) {
+      stopLiveWave();
+      if (!liveWave) return;
+      waveShell.style.display = '';
+      panel.classList.add('on');
+      liveWave.start();
+      try {
+        meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const an = meterCtx.createAnalyser();
+        an.fftSize = 1024;
+        meterCtx.createMediaStreamSource(stream).connect(an);
+        const buf = new Float32Array(an.fftSize);
+        const tick = () => {
+          an.getFloatTimeDomainData(buf);
+          let peak = 0;
+          for (const v of buf) { const a = Math.abs(v); if (a > peak) peak = a; }
+          liveWave.push(Math.min(1, peak * 1.4));
+          meterRaf = requestAnimationFrame(tick);
+        };
+        tick();
+      } catch (e) { /* волна -- удобство, а не условие записи */ }
+    }
+    function stopLiveWave() {
+      cancelAnimationFrame(meterRaf);
+      meterRaf = 0;
+      if (liveWave) liveWave.stop();
+      if (meterCtx) { try { meterCtx.close(); } catch (e) {} meterCtx = null; }
+    }
     if (micBtn) micBtn.addEventListener('click', async () => {
       if (recorder && recorder.state === 'recording') { recorder.stop(); return; }
       let stream;
@@ -549,6 +583,7 @@ const ICO = {
       recorder.ondataavailable = (e) => { if (e.data.size) recChunks.push(e.data); };
       recorder.onstop = () => {
         clearInterval(recTimer);
+        stopLiveWave();
         stream.getTracks().forEach((t) => t.stop());
         micBtn.classList.remove('on');
         micLabel.textContent = labels.sttRecordLabel;
@@ -561,6 +596,7 @@ const ICO = {
           .then(() => { if (isVoice && sourceBuffer) runBtn.click(); });
       };
       recorder.start();
+      startLiveWave(stream);
       recStart = performance.now();
       micBtn.classList.add('on');
       micLabel.textContent = labels.sttStopLabel;

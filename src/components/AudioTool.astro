@@ -822,7 +822,7 @@ const ICO = {
   import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
+    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
     analyzeVocalRange, detectKey, analyzeAudiobook, detectBpm,
   } from '../lib/web-audio-engine.js';
@@ -1903,7 +1903,24 @@ const ICO = {
         recPauseIco.innerHTML = paused ? ICO_PLAY : ICO_PAUSE_SOLID;
         recPauseBtn.setAttribute('aria-label', paused ? labels.recResumeLabel : labels.recPauseLabel);
         if (meterEl) meterEl.classList.toggle('on', on && !paused);
+        // Инструменты обрезки на этой же панели: ручки выделения и строка "начало / длительность
+        // / конец". Пока запись идёт, обрезать нечего -- длительность ещё не известна, -- и они
+        // показывали ручку прямо на живой волне и три нуля под ней. Прячутся до остановки.
+        panel.classList.toggle('is-recording', on);
       }
+      // Волна во время записи. Пока её не было, единственным признаком, что микрофон слышит,
+      // оставалась тонкая полоска уровня -- по ней не видно ни того, что уже записано, ни где
+      // были паузы. Панель с волной прячется до появления файла, поэтому на время записи её
+      // приходится показать самим; когда запись остановится, pickFile нарисует поверх волну
+      // готового файла на том же месте.
+      const liveWave = waveCanvas ? createLiveWaveform(waveCanvas) : null;
+      function startLiveWave() {
+        if (!liveWave) return;
+        if (waveShell) waveShell.style.display = '';
+        liveWave.start();
+      }
+      function stopLiveWave() { if (liveWave) liveWave.stop(); }
+
       function startMeter(stream) {
         stopMeter();
         try {
@@ -1923,6 +1940,10 @@ const ICO = {
             shown = Math.max(peak, shown * 0.88);
             meterFill.style.width = Math.min(100, shown * 140) + '%';
             meterFill.classList.toggle('hot', shown > 0.92);
+            // Тот же замер идёт и в живую волну. В неё кладётся сырой пик, а не сглаженный:
+            // сглаживание нужно полоске, чтобы она не мигала между слогами, а волне наоборот --
+            // по ней читают, где были слова, а где паузы.
+            if (liveWave) liveWave.push(Math.min(1, peak * 1.4));
             meterRaf = requestAnimationFrame(draw);
           };
           draw();
@@ -1964,6 +1985,7 @@ const ICO = {
         recorder.onstop = async () => {
           stopTimer();
           stopMeter();
+          stopLiveWave();
           segmentStart = 0;
           setRecording(false, false);
           mediaStream.getTracks().forEach((t) => t.stop());
@@ -1989,6 +2011,7 @@ const ICO = {
         recorder.start();
         segmentStart = Date.now();
         setRecording(true, false);
+        startLiveWave();
         if (recPlayBtn) recPlayBtn.disabled = true;
         recTimeEl.textContent = '0:00';
         startMeter(mediaStream);
@@ -2004,11 +2027,16 @@ const ICO = {
           recordedMs += Date.now() - segmentStart;
           segmentStart = 0;
           stopMeter();
+          // Волна замирает на паузе, но не стирается: то, что уже записано, остаётся на экране.
+          stopLiveWave();
           setRecording(true, true);
         } else {
           recorder.resume();
           segmentStart = Date.now();
           startMeter(mediaStream);
+          // Волна оживает снова. start() чистит историю -- на паузе она и так уже замерла, а
+          // склеивать две части в одной картинке было бы враньём: между ними пропуск.
+          startLiveWave();
           setRecording(true, false);
         }
         showTime();

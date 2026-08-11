@@ -36,6 +36,13 @@
   .audio-tool .filelist-move:disabled{opacity:.25;cursor:not-allowed}
   .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
+  /* Пока идёт запись, панель показывает только живую волну: выделять и обрезать ещё нечего,
+     а ручка на движущейся волне и три нуля под ней читаются как поломка. */
+  .audio-tool .panel.is-recording #sel-overlay,
+  .audio-tool .panel.is-recording #h-start,
+  .audio-tool .panel.is-recording #h-end,
+  .audio-tool .panel.is-recording #times{display:none !important}
+
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .audio-tool .filelist-item span{flex:1;min-width:0}
   /* Громкость -- второй строкой той же карточки. В один ряд с именем её ставить нельзя: имя
