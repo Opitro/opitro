@@ -426,10 +426,23 @@
      контур выделяет её среди серых карточек, а заливки нет намеренно -- залитая
      кнопка на тёмном фоне читается как уже нажатая. */
   .audio-tool button.act.primary.hero-btn{display:flex;width:max-content;max-width:100%;
-    margin:22px auto 14px;font-size:14.5px;font-weight:700;height:44px;padding:0 26px;
-    border-color:rgba(74,222,158,0.45);color:var(--accent)}
-  .audio-tool button.act.primary.hero-btn:hover{border-color:var(--accent);
-    background:rgba(74,222,158,0.08)}
+    margin:22px auto 14px;font-size:14.5px;font-weight:700;height:44px;padding:0 26px}
+
+  /* Десктоп: одна строка сразу под плеером -- кнопка ровно по центру страницы,
+     переключатель прижат к правому краю. Обтекание, а не сетка: обернуть их общим
+     блоком нельзя, переключатель общий для нескольких инструментов и стоит выше по
+     разметке. Кнопка при этом остаётся блоком во всю ширину и центрируется по всей
+     панели, а не по остатку -- обтекающий элемент на это не влияет.
+     На телефоне остаётся как было: переключатель сверху, кнопка под ним. */
+  @media(min-width:760px){
+    /* Переключатель вынут из потока -- иначе он сужает место кнопке, и та центруется по
+       остатку, а не по странице (было 461 при центре 543 -- на 82 точки левее).
+       Вертикально он встаёт сам: без указанного top элемент остаётся ровно там, где стоял бы
+       в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: при 25px
+       середины расходились на 10 точек, при 15px совпадают. */
+    .audio-tool .panel.has-presets{position:relative}
+    .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:15px 0 0}
+  }
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
 

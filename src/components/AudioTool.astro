@@ -118,7 +118,11 @@ const ICO = {
     </>
   )}
 
-  <div class="panel" id="audio-panel">
+  {/* Метка нужна разметке: у инструментов со сценариями переключатель "оригинал/результат"
+      и кнопка "улучшить" стоят на десктопе В ОДНОЙ строке -- кнопка по центру страницы,
+      переключатель у правого края. Обернуть их общим блоком нельзя: переключатель общий
+      для нескольких инструментов и живёт выше по разметке. */}
+  <div class={config.presetCards ? "panel has-presets" : "panel"} id="audio-panel">
     {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
     {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
 
