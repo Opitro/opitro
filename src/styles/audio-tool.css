@@ -439,14 +439,22 @@
      разметке. Кнопка при этом остаётся блоком во всю ширину и центрируется по всей
      панели, а не по остатку -- обтекающий элемент на это не влияет.
      На телефоне остаётся как было: переключатель сверху, кнопка под ним. */
+  /* Переключатель вынут из потока -- иначе он сужает место кнопке, и та центруется по
+     остатку, а не по странице (было 461 при центре 543 -- на 82 точки левее).
+     Вертикально он встаёт сам: без указанного top элемент остаётся ровно там, где стоял бы
+     в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: он на 7
+     точек меньше отступа кнопки, тогда середины совпадают. */
+  .audio-tool .panel.has-presets{position:relative}
+  .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:9px 0 0}
+  /* Телефон: кнопка прижата влево, переключатель к правому краю -- одна осмысленная строка
+     вместо двух плашек по центру одна под другой. Подпись кнопки короткая, иначе рядом они
+     не помещаются: 265 + 218 при доступных 414. */
+  @media(max-width:759px){
+    .audio-tool button.act.primary.hero-btn{margin-left:0;margin-right:auto}
+    .audio-tool .hero-long{display:none}
+  }
   @media(min-width:760px){
-    /* Переключатель вынут из потока -- иначе он сужает место кнопке, и та центруется по
-       остатку, а не по странице (было 461 при центре 543 -- на 82 точки левее).
-       Вертикально он встаёт сам: без указанного top элемент остаётся ровно там, где стоял бы
-       в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: он на 7
-       точек меньше отступа кнопки, тогда середины совпадают. */
-    .audio-tool .panel.has-presets{position:relative}
-    .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:9px 0 0}
+    .audio-tool .hero-short{display:none}
   }
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}

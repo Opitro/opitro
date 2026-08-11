@@ -321,7 +321,7 @@ const ICO = {
     {config.note && <div class="rate-note" id="tool-note" style="display:none"></div>}
     {controls === 'select' && config.presetCards && (
       <button type="button" class="act primary hero-btn" id="hero-auto-btn">
-        ✨ {labels.enhanceHeroLabel}
+        ✨ <span class="hero-long">{labels.enhanceHeroLabel}</span><span class="hero-short">{labels.enhanceHeroShortLabel || labels.enhanceHeroLabel}</span>
       </button>
     )}
     {controls === 'select' && config.presetCards && (
