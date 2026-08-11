@@ -36,8 +36,21 @@
   .audio-tool .filelist-move:disabled{opacity:.25;cursor:not-allowed}
   .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
-  .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px}
+  .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .audio-tool .filelist-item span{flex:1;min-width:0}
+  /* Громкость -- второй строкой той же карточки. В один ряд с именем её ставить нельзя: имя
+     файла на телефоне занимает до трёх строк, и ползунку рядом остались бы сорок точек.
+     Отступ слева равен кнопке воспроизведения с зазором -- ползунок встаёт под именем файла,
+     а не под значком. */
+  .audio-tool .filelist-vol{flex:1 0 100%;display:flex;align-items:center;gap:12px;padding:2px 0 4px 36px}
+  /* accent-color обязателен: без него браузер рисует свой синий ползунок, а все остальные на
+     сайте зелёные -- в списке файлов это выглядело как чужой элемент. */
+  .audio-tool .filelist-item .fl-vol{flex:1;min-width:0;margin:0;accent-color:var(--accent)}
+  .audio-tool .filelist-item .fl-vol-val{flex:none;width:46px;text-align:right;font-size:12px;
+    font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
+  /* Пока строка была одна, файлы разделялись сами собой. Со второй строкой они слипаются --
+     нужна черта, иначе не видно, какой ползунок к какому файлу относится. */
+  .audio-tool .filelist-item + .filelist-item{border-top:1px solid rgba(255,255,255,0.06);padding-top:8px}
   .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
   .audio-tool .filelist-play:hover{background:rgba(74,222,158,0.15)}
   .audio-tool .filelist-play .ico{width:16px;height:16px}

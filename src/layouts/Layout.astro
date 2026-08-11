@@ -80,6 +80,13 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
     --bg:#0e0f11;--surface:#181a20;--surface-2:#1c1e24;--line:rgba(255,255,255,0.09);
     --accent:#4ade9e;--accent2:#60efb8;--text:#f0f0f2;--muted:rgba(214,219,230,0.82);
   }
+  /* Подсветка найденного и выделенного текста. Своей нигде задано не было, и браузер рисовал
+     системную -- на тёмном фоне это грязно-синий прямоугольник, в котором ещё и текст плохо
+     читается. Теперь это наш зелёный, приглушённый до подсветки, с тем же цветом текста.
+     ::selection -- выделение пальцем или мышью; ::target-text -- подсветка той фразы, ради
+     которой перешли из поиска Google (браузер подсвечивает её сам). */
+  ::selection{background:rgba(74,222,158,0.30);color:#fff}
+  ::target-text{background:rgba(74,222,158,0.30);color:#fff}
   *{box-sizing:border-box;margin:0;padding:0}
   html{background:var(--bg);overflow-x:hidden;width:100%}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;width:100%}

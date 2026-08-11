@@ -127,7 +127,7 @@ const ICO = {
       </div>
     )}
     {showWaveform && config.compactPreview && (
-      <div class="wave-shell compact" id="wave-shell">
+      <div class={controls === 'multi-file' ? 'wave-shell compact wave-only' : 'wave-shell compact'} id="wave-shell">
         {/* Имя файла -- верхняя строка ТОЙ ЖЕ панели, а не отдельная плашка над ней. Зелёная
             заливка убрана: она была самым громким пятном на странице, хотя несла наименее
             важное. Подтверждением загрузки служит сама волна -- она появилась, значит файл
@@ -153,7 +153,13 @@ const ICO = {
         на телефоне это была половина ширины волны, -- и мешала там, где волна рабочая
         поверхность: ровно на левом крае живёт ручка выделения. Общая длительность не
         дублируется: она уже написана в строке сведений о файле ниже. */}
-    {showWaveform && config.compactPreview && (
+    {/* У микшера и склейки ряда управления нет. Играть до первого нажатия "смешать" нечего --
+        отдельного исходного файла у этих инструментов не существует, файлов несколько, -- поэтому
+        кнопки стояли заблокированными с самого открытия страницы и оставались такими после
+        микса: пустая панель под волной, из которой ничего нельзя нажать. Роль плеера здесь и так
+        играет кнопка "Смешать и прослушать": она же пуск, она же пауза, и бегунок по волне ведёт
+        она. Волна остаётся одна и занимает всю высоту, которую раньше делила с кнопками. */}
+    {showWaveform && config.compactPreview && controls !== 'multi-file' && (
       <div class="transport" id="transport">
         <button type="button" class="tp-btn tp-play" id="wave-play-btn" disabled aria-label={labels.playLabel}>
           <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1100,6 +1106,19 @@ const ICO = {
     // page's own FAQ had to tell people to do. Reorder arrows instead of drag-and-drop because
     // they work identically with a finger, a mouse and a keyboard.
     const canReorder = config.controls === 'multi-file';
+    // Громкость каждого файла в микшере -- своя. Общий ползунок "громкость подложки" делал
+    // одинаково тихими ВСЕ файлы кроме первого, а на деле приглушить нужно обычно один: музыку
+    // под голосом, а не второй голос вместе с ней.
+    //
+    // Ключ -- сам объект File, а не номер в списке. Номера здесь меняются: строки переставляют
+    // стрелками и удаляют крестиком, и при ключе по номеру громкость после перестановки уехала
+    // бы к соседнему файлу.
+    const fileGains = new Map();
+    const gainFor = (f, i) => {
+      if (!fileGains.has(f)) fileGains.set(f, i === 0 ? 100 : 35);
+      return fileGains.get(f);
+    };
+
     function renderFileList() {
       const last = files.length - 1;
       fileList.innerHTML = files.map((f, i) => {
@@ -1110,7 +1129,13 @@ const ICO = {
         return `<div class="filelist-item"><button type="button" class="filelist-play" data-index="${i}" aria-label="${escapeHtml(labels.listenSelectionLabel || 'Listen')}"><svg class="ico" viewBox="0 0 24 24" fill="currentColor">${ICO_PLAY}</svg></button>`
           + `<span>${i + 1}. <b>${escapeHtml(f.name)}</b> · ${(f.size / 1048576).toFixed(1)} MB</span>`
           + move
-          + `<button type="button" class="filelist-remove" data-index="${i}" aria-label="${escapeHtml(labels.removeFileLabel || 'Remove')}" title="${escapeHtml(labels.removeFileLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
+          + `<button type="button" class="filelist-remove" data-index="${i}" aria-label="${escapeHtml(labels.removeFileLabel || 'Remove')}" title="${escapeHtml(labels.removeFileLabel || 'Remove')}">${svgIco(ICO_CLOSE, 'i')}</button>`
+          // Ползунок -- второй строкой той же карточки, а не в один ряд с именем: имя файла на
+          // телефоне и так занимает три строки, и ползунку рядом с ним осталось бы сорок точек.
+          + (config.perFileVolume
+            ? `<div class="filelist-vol"><input type="range" class="fl-vol" data-index="${i}" min="0" max="150" step="5" value="${gainFor(f, i)}" aria-label="${escapeHtml(labels.mixVolumeLabel || 'Volume')}"><span class="fl-vol-val">${gainFor(f, i)}%</span></div>`
+            : '')
+          + `</div>`;
       }).join('');
     }
     // Per-file preview in the multi-file list (merge, batch convert) -- decodes only when
@@ -1121,7 +1146,47 @@ const ICO = {
       const svg = fileList.querySelector(`.filelist-play[data-index="${idx}"] svg`);
       if (svg) svg.innerHTML = playing ? ICO_PAUSE : ICO_PLAY;
     }
+    // Пересчёт микса после того, как палец отпустил ползунок. Без него на экране оставалась бы
+    // волна от прежних громкостей, а цифры на ползунках говорили бы другое -- ровно то
+    // враньё, которое чинилось на этой неделе в шумоподавлении. Четверть секунды -- чтобы не
+    // считать сто раз, пока ползунок едет.
+    let mixReRenderTimer = 0;
+    function scheduleReMix() {
+      clearTimeout(mixReRenderTimer);
+      mixReRenderTimer = window.setTimeout(async () => {
+        if (!files.length || !renderedBuffer) return;
+        const wasPlaying = player.isPlaying();
+        const at = wasPlaying ? player.getPosition() : null;
+        renderedBuffer = null;
+        try {
+          renderedBuffer = await doRender();
+        } catch { return; }
+        // Играло -- продолжаем с того же места, уже с новыми громкостями: так слышно, что
+        // именно изменилось, а не "стоп, нажми снова, послушай сначала".
+        if (wasPlaying) {
+          player.stop();
+          player.play(
+            renderedBuffer,
+            (frac) => setPlayheadTime(renderedBuffer.duration * frac),
+            () => { listenIco.innerHTML = ICO_PLAY; if (playhead) playhead.style.display = 'none'; player.reset(); },
+            at ?? undefined
+          );
+          listenIco.innerHTML = ICO_PAUSE;
+        }
+      }, 250);
+    }
+
     if (fileList) {
+      fileList.addEventListener('input', (e) => {
+        const vol = e.target.closest('.fl-vol');
+        if (!vol) return;
+        const f = files[Number(vol.dataset.index)];
+        if (!f) return;
+        fileGains.set(f, Number(vol.value));
+        const out = vol.parentElement.querySelector('.fl-vol-val');
+        if (out) out.textContent = vol.value + '%';
+        scheduleReMix();
+      });
       fileList.addEventListener('click', async (e) => {
         const moveBtn = e.target.closest('.filelist-move');
         if (moveBtn) {
@@ -3351,15 +3416,14 @@ if (config.controls === 'speed1') {
         // As long as the longest input: a short jingle under a long voice track shouldn't cut
         // the voice off, and a long bed under a short clip shouldn't be truncated either.
         const len = Math.max(...buffers.map((b) => b.length));
-        const bedEl = root.querySelector('#mix-volume');
-        const bed = bedEl ? Number(bedEl.value) / 100 : 0.35;
         const out = new AudioBuffer({ numberOfChannels: ch, length: len, sampleRate: sr });
         let peak = 0;
         for (let c = 0; c < ch; c++) {
           const dst = out.getChannelData(c);
           buffers.forEach((b, idx) => {
             const src = b.getChannelData(Math.min(c, b.numberOfChannels - 1));
-            const g = idx === 0 ? 1 : bed;
+            // Своя громкость у каждого файла -- со своего ползунка в списке.
+            const g = gainFor(files[idx], idx) / 100;
             for (let i = 0; i < src.length; i++) dst[i] += src[i] * g;
           });
           for (let i = 0; i < len; i++) peak = Math.max(peak, Math.abs(dst[i]));

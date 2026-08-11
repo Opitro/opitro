@@ -1301,7 +1301,10 @@ export const AUDIO_TOOLS = {
     transport: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    mixVolume: true,
+    // Громкость -- на каждом файле, своим ползунком прямо в списке. Общий ползунок "громкость
+    // подложки" (mixVolume) убран: он делал одинаково тихими все файлы кроме первого, а
+    // приглушить обычно нужно один -- музыку под голосом, а не второй голос вместе с ней.
+    perFileVolume: true,
     runLabel: 'mixRunLabel',
   },
   'split-audio': {
