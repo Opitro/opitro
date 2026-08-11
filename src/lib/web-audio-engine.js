@@ -433,10 +433,38 @@ export function createPlayer() {
   let pausedAt = 0;
   let rafId = 0;
 
+  // Будим движок из ЛЮБОГО состояния, кроме рабочего, а не только из 'suspended'.
+  //
+  // У Safari есть своё состояние -- 'interrupted'. В него движок попадает, когда вкладку
+  // свернули, пришёл звонок или звук забрала другая программа. Проверка на одно лишь
+  // 'suspended' его не ловит, и движок не просыпался уже никогда: страница на вид живая,
+  // кнопки нажимаются, а звука нет и не будет, пока не обновишь страницу. Владелец сайта
+  // столкнулся с этим на айфоне -- и заметил, что не каждый раз: Safari прерывает звук не
+  // всегда, а по своим соображениям, отсюда и "то работает, то нет".
+  //
+  // Chrome эту беду не воспроизводит: там движок переживает заморозку вкладки живым (проверено).
+  // Поэтому исправление сделано по устройству Safari, а не по повторённой ошибке.
+  function wake() {
+    if (ctx && ctx.state !== 'running') {
+      // resume() возвращает обещание и может быть отклонён (например, вне жеста человека).
+      // Молчим: следующее настоящее нажатие пройдёт этот же путь и разбудит движок наверняка.
+      try { const r = ctx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+    }
+  }
+
   function getCtx() {
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
-    if (ctx.state === 'suspended') ctx.resume();
+    wake();
     return ctx;
+  }
+
+  // Вернулись на вкладку -- пробуем разбудить сразу, не дожидаясь нажатия. Если Safari откажет
+  // (это бывает вне жеста), ничего не сломается: нажатие на пуск сделает то же самое.
+  // pageshow нужен отдельно от visibilitychange -- при возврате "назад" из кеша страниц Safari
+  // события видимости может не прислать вовсе.
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => { if (!document.hidden) wake(); });
+    window.addEventListener('pageshow', wake);
   }
 
   // iOS Safari only allows an AudioContext to be created/resumed synchronously inside a real

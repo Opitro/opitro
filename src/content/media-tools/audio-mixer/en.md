@@ -3,10 +3,10 @@ toolSlug: audio-mixer
 locale: en
 category: audio
 tool: mix
-title: Put Music Behind a Voice Online — Free Audio Mixer
-h1: Layer Audio Tracks Together
+title: Overlay Audio Online — Mix Two Audio Files Free
+h1: Overlay Audio Online
 navName: Mixer
-description: Combine a voice and background music into one track — every file has its own level. Hear it before downloading. Free, no sign-up, nothing gets uploaded.
+description: Overlay one audio file on another right in your browser — every track has its own level. Hear the result before downloading. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: How is this different from merging?
     answer: Merging puts files one after another — first one, then the next. A mixer lays them over each other so they play at the same time. Voice-over with music needs the mixer.
@@ -26,7 +26,13 @@ related:
   - dynamic-compressor
 ---
 
-Add your files one at a time. Each gets its own level slider right in its row: leave the voice as it is, bring the music down, push a third track up. Press "Mix and listen" and judge the result before downloading.
+Add your files one at a time — the combined track appears under the list straight away. Each file gets its own level slider right in its row: leave the voice as it is, bring the music down, push a third track up. The waveform redraws as you go, so you can see and hear what changes. Listen, then download.
+
+## How to put a voice over music
+
+Add the voice first, the music second. Leave the voice at 100% and set the music to 25–35%: speech should sit clearly in front, with the music as a bed you only notice if you listen for it. Press ▶ in a file's row to hear that track alone at its own level, and ▶ under the waveform to hear them together.
+
+The same works for a backing track and vocals: backing track first, voice second, then tune by ear.
 
 ## What it's good for
 

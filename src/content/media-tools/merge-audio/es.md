@@ -3,8 +3,8 @@ toolSlug: merge-audio
 locale: es
 category: audio
 tool: merge
-title: Unir archivos de audio online gratis — juntar pistas en una
-h1: Unir archivos de audio
+title: Unir audios online — combinar varias pistas en una
+h1: Unir audios online
 navName: Unir
 description: Junta varios archivos de audio en uno — reordénalos con las flechas, escucha cualquiera antes de unir, y las uniones se suavizan para que no haya chasquido. Gratis, sin registro, no se sube nada.
 faq:

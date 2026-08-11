@@ -3,8 +3,8 @@ toolSlug: merge-audio
 locale: en
 category: audio
 tool: merge
-title: Merge Audio Files Online, Free — Join Tracks Into One
-h1: Merge Audio Files
+title: Merge Audio Files Online — Combine Several Tracks Into One
+h1: Merge Audio Files Online
 navName: Merge
 description: Join several audio files into one — reorder them with arrows, play any of them before merging, and the seams are smoothed so there's no click. Free, no sign-up, nothing gets uploaded.
 faq:

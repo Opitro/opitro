@@ -3,10 +3,10 @@ toolSlug: audio-mixer
 locale: es
 category: audio
 tool: mix
-title: Poner música detrás de una voz online — mezclador de audio gratis
-h1: Superponer pistas de audio
+title: Superponer audios online — mezclar dos audios gratis
+h1: Superponer audios online
 navName: Mezclador
-description: Junta una voz y una música de fondo en una sola pista, cada archivo tiene su propio volumen. Escúchalo antes de descargar. Gratis, sin registro, los archivos no se suben a ningún sitio.
+description: Superpón un audio sobre otro directamente en el navegador — cada pista tiene su propio volumen. Escucha el resultado antes de descargar. Gratis, sin registro, los archivos no se suben a ningún sitio.
 faq:
   - question: ¿En qué se diferencia de unir archivos?
     answer: Unir pone los archivos uno detrás de otro, primero uno y luego el siguiente. El mezclador los superpone y suenan a la vez. Para una locución con música hace falta el mezclador.
@@ -26,7 +26,13 @@ related:
   - dynamic-compressor
 ---
 
-Añade los archivos de uno en uno. Cada uno lleva su propio control de volumen en su fila: deja la voz como está, baja la música, sube una tercera pista. Pulsa «Mezclar y escuchar» y valora el resultado antes de descargarlo.
+Añade los archivos de uno en uno — la pista combinada aparece bajo la lista al momento. Cada archivo lleva su propio control de volumen en su fila: deja la voz como está, baja la música, sube una tercera pista. La onda se redibuja sobre la marcha, así que ves y oyes lo que cambia. Escucha y descarga.
+
+## Cómo poner una voz sobre música
+
+Añade primero la voz y después la música. Deja la voz al 100 % y pon la música al 25–35 %: el habla debe quedar claramente delante y la música como un fondo que solo se nota si prestas atención. Pulsa ▶ en la fila de un archivo para oír esa pista sola a su volumen, y ▶ bajo la onda para oírlas juntas.
+
+Lo mismo sirve para una pista instrumental con voz: primero el instrumental, después la voz, y luego se ajusta de oído.
 
 ## Para qué sirve
 

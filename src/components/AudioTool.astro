@@ -48,7 +48,10 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // Generator and merge have nothing to export until they've produced something, so they keep an
 // action button even though they now have an export bar. Every other tool renders on demand from
 // a file that's already loaded, which leaves a "Process" step with no work of its own to do.
-const needsRenderAction = isGenerator || controls === 'multi-file';
+// Кнопка "сделай уже" нужна там, где до неё нечего показать и нечего играть. У микшера её
+// больше нет: микс считается сам при загрузке файлов и пересчитывается при каждом движении
+// ползунка громкости, а пуск/пауза/стоп живут в обычном ряду управления под волной.
+const needsRenderAction = isGenerator || (controls === 'multi-file' && !config.perFileVolume);
 const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
 // Формат и действие в один ряд -- то же правило, что у остальных инструментов (див. .deck ниже).
 // Инструменты на ffmpeg с выпадающим списком до сих пор рисовали формат отдельной строкой во всю
@@ -127,7 +130,7 @@ const ICO = {
       </div>
     )}
     {showWaveform && config.compactPreview && (
-      <div class={controls === 'multi-file' ? 'wave-shell compact wave-only' : 'wave-shell compact'} id="wave-shell">
+      <div class="wave-shell compact" id="wave-shell">
         {/* Имя файла -- верхняя строка ТОЙ ЖЕ панели, а не отдельная плашка над ней. Зелёная
             заливка убрана: она была самым громким пятном на странице, хотя несла наименее
             важное. Подтверждением загрузки служит сама волна -- она появилась, значит файл
@@ -153,13 +156,10 @@ const ICO = {
         на телефоне это была половина ширины волны, -- и мешала там, где волна рабочая
         поверхность: ровно на левом крае живёт ручка выделения. Общая длительность не
         дублируется: она уже написана в строке сведений о файле ниже. */}
-    {/* У микшера и склейки ряда управления нет. Играть до первого нажатия "смешать" нечего --
-        отдельного исходного файла у этих инструментов не существует, файлов несколько, -- поэтому
-        кнопки стояли заблокированными с самого открытия страницы и оставались такими после
-        микса: пустая панель под волной, из которой ничего нельзя нажать. Роль плеера здесь и так
-        играет кнопка "Смешать и прослушать": она же пуск, она же пауза, и бегунок по волне ведёт
-        она. Волна остаётся одна и занимает всю высоту, которую раньше делила с кнопками. */}
-    {showWaveform && config.compactPreview && controls !== 'multi-file' && (
+    {/* Ряд управления был убран у микшера, когда играть было нечего: готового микса не
+        существовало до нажатия кнопки, и кнопки стояли заблокированными. Теперь микс считается
+        сразу при загрузке файлов, играть есть что с первой секунды -- и ряд вернулся. */}
+    {showWaveform && config.compactPreview && (
       <div class="transport" id="transport">
         <button type="button" class="tp-btn tp-play" id="wave-play-btn" disabled aria-label={labels.playLabel}>
           <svg class="ico" id="wave-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1142,6 +1142,15 @@ const ICO = {
     // tapped, not up front for every file, since a batch can be up to 20 files at 1GB each.
     const fileBuffers = new Map();
     let filePlayingIndex = -1;
+    // Расшифровка файла с запоминанием. Тот же кеш, что у кнопки прослушивания отдельного
+    // файла: пересчёт микса теперь идёт при каждом движении ползунка громкости, и расшифровывать
+    // те же файлы заново по десять раз подряд было бы чистой тратой -- расшифровка занимает
+    // куда больше времени, чем само сложение дорожек.
+    async function decodeBuffered(f) {
+      let b = fileBuffers.get(f);
+      if (!b) { b = await decodeFile(f); fileBuffers.set(f, b); }
+      return b;
+    }
     function setFilePlayIcon(idx, playing) {
       const svg = fileList.querySelector(`.filelist-play[data-index="${idx}"] svg`);
       if (svg) svg.innerHTML = playing ? ICO_PAUSE : ICO_PLAY;
@@ -1151,29 +1160,28 @@ const ICO = {
     // враньё, которое чинилось на этой неделе в шумоподавлении. Четверть секунды -- чтобы не
     // считать сто раз, пока ползунок едет.
     let mixReRenderTimer = 0;
-    function scheduleReMix() {
+    let mixRendering = false;
+    function scheduleReMix(delay = 250) {
       clearTimeout(mixReRenderTimer);
       mixReRenderTimer = window.setTimeout(async () => {
-        if (!files.length || !renderedBuffer) return;
-        const wasPlaying = player.isPlaying();
+        if (!files.length || mixRendering) return;
+        // Играет ли прямо сейчас сам микс. Если человек слушает ОТДЕЛЬНЫЙ файл (кнопкой в
+        // строке списка), перехватывать воспроизведение нельзя -- он слушает не это.
+        const wasPlaying = player.isPlaying() && filePlayingIndex < 0;
         const at = wasPlaying ? player.getPosition() : null;
+        mixRendering = true;
         renderedBuffer = null;
         try {
           renderedBuffer = await doRender();
-        } catch { return; }
+        } catch (e) {
+          mixRendering = false;
+          return;
+        }
+        mixRendering = false;
         // Играло -- продолжаем с того же места, уже с новыми громкостями: так слышно, что
         // именно изменилось, а не "стоп, нажми снова, послушай сначала".
-        if (wasPlaying) {
-          player.stop();
-          player.play(
-            renderedBuffer,
-            (frac) => setPlayheadTime(renderedBuffer.duration * frac),
-            () => { listenIco.innerHTML = ICO_PLAY; if (playhead) playhead.style.display = 'none'; player.reset(); },
-            at ?? undefined
-          );
-          listenIco.innerHTML = ICO_PAUSE;
-        }
-      }, 250);
+        if (wasPlaying && renderedBuffer) playAB('result', renderedBuffer, at ?? undefined);
+      }, delay);
     }
 
     if (fileList) {
@@ -1199,6 +1207,7 @@ const ICO = {
           filePlayingIndex = -1;
           renderFileList();
           invalidateRender();
+          if (config.perFileVolume) scheduleReMix(0);
           eqSyncState();
           return;
         }
@@ -1207,6 +1216,7 @@ const ICO = {
           files.splice(Number(removeBtn.dataset.index), 1);
           renderFileList();
           invalidateRender();
+          if (config.perFileVolume && files.length) scheduleReMix(0);
           eqSyncState();
           filePlayingIndex = -1;
           if (!files.length) {
@@ -1239,10 +1249,21 @@ const ICO = {
             fileBuffers.set(f, buf);
           }
           if (filePlayingIndex !== idx) return;
+          // Файл звучит на той громкости, которая выставлена его ползунком, а не на исходной.
+          // Иначе прослушивание отдельной дорожки отвечало на вопрос "что это за файл", но не
+          // на вопрос "не задавил ли я его" -- а ползунок стоит ровно ради второго. Громкость
+          // вставляется живым узлом в цепочку, без пересчёта самого буфера.
+          const lvl = config.perFileVolume ? gainFor(f, idx) / 100 : 1;
+          const chain = lvl === 1 ? undefined : (ctx, srcNode) => {
+            const g = ctx.createGain();
+            g.gain.value = lvl;
+            srcNode.connect(g);
+            return g;
+          };
           player.play(buf, () => {}, () => {
             setFilePlayIcon(idx, false);
             if (filePlayingIndex === idx) filePlayingIndex = -1;
-          });
+          }, undefined, chain);
         } catch (err) {
           setFilePlayIcon(idx, false);
           if (filePlayingIndex === idx) filePlayingIndex = -1;
@@ -1419,6 +1440,10 @@ const ICO = {
         files.push(f);
         renderFileList();
         invalidateRender();
+        // Микс считается сразу, а не по кнопке. Иначе под списком файлов пусто, ползунки
+        // громкости двигаются вхолостую (менять нечего -- микса ещё нет), и понять, что вообще
+        // происходит, можно только нажав кнопку, о необходимости которой ничто не говорит.
+        if (config.perFileVolume) scheduleReMix(0);
         eqSyncState();
         panel.classList.add('on');
         if (drop) drop.style.display = 'none';
@@ -3438,7 +3463,7 @@ if (config.controls === 'speed1') {
         return out;
       }
       if (config.engine === 'webaudio-mix') {
-        const buffers = await Promise.all(files.map((f) => decodeFile(f)));
+        const buffers = await Promise.all(files.map((f) => decodeBuffered(f)));
         const sr = buffers[0].sampleRate;
         const ch = Math.max(...buffers.map((b) => b.numberOfChannels));
         // As long as the longest input: a short jingle under a long voice track shouldn't cut
@@ -3469,7 +3494,7 @@ if (config.controls === 'speed1') {
         return out;
       }
       if (config.engine === 'webaudio-merge') {
-        const buffers = await Promise.all(files.map((f) => decodeFile(f)));
+        const buffers = await Promise.all(files.map((f) => decodeBuffered(f)));
         const sr = buffers[0].sampleRate;
         const ch = Math.max(...buffers.map((b) => b.numberOfChannels));
         // 80ms crossfade at each join -- plain back-to-back concatenation (the old behavior)
@@ -3511,6 +3536,12 @@ if (config.controls === 'speed1') {
       dur = buffer.duration;
       waveShell.style.display = '';
       scheduleWaveformDraw(buffer);
+      // Появился результат -- значит есть что играть. Ряд управления под волной включается
+      // здесь, а не в путях загрузки файла: у микшера отдельного исходного файла нет вовсе,
+      // и все те пути его не касаются -- кнопка оставалась заблокированной при готовом миксе.
+      if (wavePlayBtn) wavePlayBtn.disabled = false;
+      if (transportDurEl) transportDurEl.textContent = fmtClock(buffer.duration);
+      if (transportCurEl) transportCurEl.textContent = '0:00';
     }
 
     if (listenBtn) {
