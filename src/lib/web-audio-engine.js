@@ -28,6 +28,31 @@ export function sliceBuffer(buffer, start, end) {
   return out;
 }
 
+/** Самый громкий отсчёт во всём буфере, по всем каналам. */
+export function peakOf(buffer) {
+  let peak = 0;
+  for (let c = 0; c < buffer.numberOfChannels; c++) {
+    const d = buffer.getChannelData(c);
+    for (let i = 0; i < d.length; i++) { const a = Math.abs(d[i]); if (a > peak) peak = a; }
+  }
+  return peak;
+}
+
+// Во сколько раз поднять запись с микрофона, чтобы она звучала как у всех.
+//
+// Микрофон ноутбука отдаёт голос на уровне примерно -25 дБ. Браузер умеет поднимать его сам
+// (autoGainControl), но на iPhone эта настройка не работает вовсе, поэтому полагаться на неё
+// нельзя -- без этого расчёта запись с телефона осталась бы тихой.
+//
+// Считается по пику, а не по средней громкости: пик гарантирует, что после подъёма ничего не
+// упрётся в потолок и не захрипит. Плата -- один резкий звук (стук по столу) не даст поднять
+// остальное. Это осознанный размен: тихо, но чисто, лучше чем громко и с хрипом.
+export function normalizeGain(peak, { target = 0.89, maxGain = 8, floor = 0.01 } = {}) {
+  if (!Number.isFinite(peak) || peak <= floor) return 1;  // тишина -- усиливать нечего
+  if (peak >= target) return 1;                            // уже громко -- не трогаем
+  return Math.min(target / peak, maxGain);
+}
+
 // Flat gain multiply, sample by sample -- no OfflineAudioContext needed for a constant scale.
 // Used to make the ringtone "listen to selection" preview match its volume slider before export.
 export function scaleVolume(buffer, factor) {

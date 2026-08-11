@@ -802,7 +802,7 @@ const ICO = {
   import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, resampleBuffer,
+    decodeFile, drawWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
     analyzeVocalRange, detectKey, analyzeAudiobook, detectBpm,
   } from '../lib/web-audio-engine.js';
@@ -1843,9 +1843,16 @@ const ICO = {
         // Asked for on the click, so the browser attributes the permission prompt to a gesture.
         try {
           mediaStream = await navigator.mediaDevices.getUserMedia({
-            // The browser's own cleanup is tuned for calls, not for a recording you will edit --
-            // it gates quiet passages and pumps the level. The site has dedicated tools for both.
-            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+            // Automatic gain stays ON. It was off here, on the reasoning that the browser's
+            // levelling is tuned for calls and pumps a recording you mean to edit. That reasoning
+            // is right for capturing music and wrong for this tool: a dictaphone records voice --
+            // memos, lectures, interviews -- and every phone recorder levels it. Off, the same
+            // microphone at the same system volume produced a file audibly quieter than other
+            // sites, which is what the owner reported after comparing them side by side.
+            //
+            // Echo cancellation stays off: nothing is playing back, and it costs high frequencies.
+            // Noise suppression stays off: there is a dedicated tool for that, and it can't be undone.
+            audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: true },
           });
         } catch (e) {
           showError(labels.micDeniedLabel);
@@ -1867,6 +1874,18 @@ const ICO = {
           // From here it is just a file: pickFile draws the waveform, fills the info strip and
           // enables the export bar exactly as it would for an upload.
           await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
+          // Second line of defence for the level. autoGainControl above covers desktop, but Safari
+          // on iPhone ignores that constraint entirely, so a phone recording would still arrive
+          // quiet. Here the finished take is measured and lifted to just under the ceiling.
+          // Everything downstream reads sourceBuffer -- playback, the handles, the export -- so
+          // lifting it here is enough; only the drawn waveform has to be told to redraw.
+          if (sourceBuffer) {
+            const gain = normalizeGain(peakOf(sourceBuffer));
+            if (gain > 1.01) {
+              sourceBuffer = scaleVolume(sourceBuffer, gain);
+              scheduleWaveformDraw(sourceBuffer);
+            }
+          }
           if (recPlayBtn) recPlayBtn.disabled = !sourceBuffer;
         };
         recorder.start();
