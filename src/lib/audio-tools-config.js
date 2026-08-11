@@ -1142,6 +1142,7 @@ export const AUDIO_TOOLS = {
       { value: 'music', emoji: '🎵', label: 'enhanceMusicLabel', desc: 'enhanceMusicDesc' },
       { value: 'call', emoji: '📞', label: 'enhanceCallLabel', desc: 'enhanceCallDesc' },
       { value: 'old', emoji: '📼', label: 'enhanceOldLabel', desc: 'enhanceOldDesc' },
+      { value: 'room', emoji: '👥', label: 'enhanceRoomLabel', desc: 'enhanceRoomDesc' },
     ],
     output: (params) => {
       const format = params.format || 'mp3';
@@ -1157,6 +1158,10 @@ export const AUDIO_TOOLS = {
         music: { nr: 4, i: -14, hp: 0, presence: 0 },
         call: { nr: 16, i: -16, hp: 200, presence: 4 },
         old: { nr: 20, i: -16, hp: 90, presence: 1 },
+        // Запись через комнату: тише всех, гулкая и без верха. Отсюда и настройки --
+        // выше срез низа (там гул помещения), больше разборчивости на 3 кГц и сильнее
+        // шумоподавление, потому что вместе с голосом микрофон набрал всю комнату.
+        room: { nr: 14, i: -16, hp: 120, presence: 5 },
       };
       const p = presets[params.value] || presets.auto;
       const filters = [denoiseFilter(p.nr)];
