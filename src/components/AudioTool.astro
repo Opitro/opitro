@@ -1041,6 +1041,12 @@ const ICO = {
 
     function invalidateRender() {
       renderedBuffer = null;
+      // Волна пересчитывается сразу при смене настроек, а не при первом нажатии плей. Иначе
+      // человек ставит восемь секунд тишины, видит прежнюю форму и не понимает, случилось ли
+      // что-нибудь; а бегунок потом едет по звуку, которого уже нет. Пересчёт отложен на
+      // четверть секунды: у ползунков события идут потоком, и считать на каждое движение
+      // означало бы считать сто раз вместо одного.
+      if (config.abWaveform) scheduleWaveSync();
       if (downloadRow) downloadRow.style.display = 'none';
       // Tools that adjust a LIVE graph (EQ, fade) must not have playback interrupted by a
       // settings change -- stopping here silently killed the audio on every slider move (and
@@ -2478,6 +2484,31 @@ if (config.controls === 'speed1') {
     }
     // Renders the processed side if it isn't cached yet, showing progress -- pitch-shifting a
     // long file takes a moment and silently doing nothing would read as a broken button.
+    // Волна должна показывать то, что играет. У инструментов, которые меняют ДЛИТЕЛЬНОСТЬ --
+    // добавить и удалить тишину, зацикливание, скорость, темп -- она показывала исходник, а играл
+    // результат: бегунок ехал по форме, которой в звуке уже нет, и попадал не туда, куда целились.
+    // У инструментов, не меняющих длительность (тональность, эквалайзер, шумоподавление), волна
+    // остаётся исходной намеренно: там разница на глаз незаметна, и мигание читалось бы как сбой.
+    let waveSyncTimer = 0;
+    function scheduleWaveSync() {
+      clearTimeout(waveSyncTimer);
+      waveSyncTimer = window.setTimeout(async () => {
+        if (!sourceBuffer) return;
+        try {
+          if (!renderedBuffer) renderedBuffer = await doRender();
+          syncResultWave();
+        } catch {
+          // Не получилось посчитать -- оставляем прежнюю волну. Показать ошибку здесь нечестно:
+          // человек ничего не запрашивал, он всего лишь двинул ползунок.
+        }
+      }, 250);
+    }
+    function syncResultWave() {
+      if (!config.abWaveform || !waveCanvas) return;
+      const buf = currentAbBuffer();
+      if (buf) drawWaveform(waveCanvas, buf);
+    }
+
     async function ensureAbResult() {
       if (!isRenderedAb || abSelected !== 'result' || renderedBuffer) return true;
       armProgress();
@@ -2485,6 +2516,7 @@ if (config.controls === 'speed1') {
       progressText.textContent = labels.workingLabel;
       try {
         renderedBuffer = await doRender();
+        syncResultWave();
         // A note that reports on the result (how much silence came out) can only be filled in
         // once there IS a result.
         syncSourceNote();
@@ -3333,6 +3365,7 @@ if (config.controls === 'speed1') {
             armProgress();
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
+        syncResultWave();
             hideProgress();
             listenBtn.disabled = false;
             // The old two-button download strip only exists on tools without an export bar.
@@ -3364,6 +3397,7 @@ if (config.controls === 'speed1') {
 
     async function ensureRendered() {
       if (!renderedBuffer) renderedBuffer = await doRender();
+        syncResultWave();
       return renderedBuffer;
     }
 
@@ -3506,6 +3540,7 @@ if (config.controls === 'speed1') {
             armProgress();
             progressText.textContent = labels.workingLabel;
             renderedBuffer = await doRender();
+        syncResultWave();
             hideProgress();
             if (downloadRow) downloadRow.style.display = 'flex';
           }

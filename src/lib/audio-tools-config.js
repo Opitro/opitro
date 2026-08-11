@@ -391,6 +391,9 @@ export const AUDIO_TOOLS = {
   },
 
   speed: {
+    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
+    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+    abWaveform: true,
     renderedAb: true,
     // TEMPO only. Pitch is preserved by default (WSOLA time-stretch) because that's what people
     // actually want when speeding up a lecture or slowing music down to learn a part -- the old
@@ -501,6 +504,9 @@ export const AUDIO_TOOLS = {
   },
 
   loop: {
+    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
+    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+    abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
@@ -559,6 +565,9 @@ export const AUDIO_TOOLS = {
   },
 
   'remove-silence': {
+    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
+    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+    abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
@@ -1225,6 +1234,9 @@ export const AUDIO_TOOLS = {
     },
   },
   tempo: {
+    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
+    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+    abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
@@ -1283,6 +1295,9 @@ export const AUDIO_TOOLS = {
     },
   },
   'add-silence': {
+    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
+    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+    abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
