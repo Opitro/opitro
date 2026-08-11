@@ -363,7 +363,12 @@
   /* Deliberately understated: 2px, semi-transparent, and a slow fade. The slow fade-in is the
      point -- a quick operation now barely registers instead of flashing a bright bar, while a
      genuinely long one still ramps up to clearly visible. */
-  .audio-tool .progress{height:2px;margin:10px 0;opacity:0;transition:opacity .35s ease}
+  /* Полоса прогресса стоит в потоке всегда, даже невидимая: если бы она появлялась при
+     начале работы, страница дёргалась бы ровно в момент нажатия. Но поля по 10px на
+     полоску в 2px давали 22px пустоты под плеером на КАЖДОМ инструменте -- владелец
+     сайта указал на неё как на «хоть палец вставляй». Место по-прежнему занято, просто
+     ровно столько, сколько нужно. */
+  .audio-tool .progress{height:2px;margin:0;opacity:0;transition:opacity .35s ease}
   .audio-tool .progress.on{opacity:.55}
   .audio-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
   .audio-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
@@ -414,7 +419,7 @@
      слушать. Теперь по центру, по ширине содержимого и вдвое ниже.
      Ширину задаём через max-content, а не через display: display ставит скрипт. */
   .audio-tool .ab-pill{display:none;background:var(--surface-2);border:1px solid var(--line);
-    border-radius:10px;padding:3px;margin:14px auto 0;width:max-content;max-width:100%}
+    border-radius:10px;padding:3px;margin:6px auto 0;width:max-content;max-width:100%}
   .audio-tool .ab-pill-seg{flex:0 0 auto;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;color:var(--muted);padding:7px 20px;border-radius:8px;transition:background .15s,color .15s;white-space:nowrap}
   .audio-tool .ab-pill-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
   .audio-tool .ab-pill-seg:not(:disabled):not(.active):hover{color:var(--text)}
@@ -426,7 +431,7 @@
      контур выделяет её среди серых карточек, а заливки нет намеренно -- залитая
      кнопка на тёмном фоне читается как уже нажатая. */
   .audio-tool button.act.primary.hero-btn{display:flex;width:max-content;max-width:100%;
-    margin:22px auto 14px;font-size:14.5px;font-weight:700;height:44px;padding:0 26px}
+    margin:6px auto 14px;font-size:14.5px;font-weight:700;height:44px;padding:0 26px}
 
   /* Десктоп: одна строка сразу под плеером -- кнопка ровно по центру страницы,
      переключатель прижат к правому краю. Обтекание, а не сетка: обернуть их общим
@@ -438,10 +443,10 @@
     /* Переключатель вынут из потока -- иначе он сужает место кнопке, и та центруется по
        остатку, а не по странице (было 461 при центре 543 -- на 82 точки левее).
        Вертикально он встаёт сам: без указанного top элемент остаётся ровно там, где стоял бы
-       в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: при 25px
-       середины расходились на 10 точек, при 15px совпадают. */
+       в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: он на 7
+       точек меньше отступа кнопки, тогда середины совпадают. */
     .audio-tool .panel.has-presets{position:relative}
-    .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:15px 0 0}
+    .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:9px 0 0}
   }
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
