@@ -228,6 +228,10 @@
      всю строку ради «0.5» выглядит так, будто туда ждут абзац текста. Кнопки по бокам делают
      блок компактным и попадаемым пальцем -- родные стрелки числового поля высотой в семь
      пикселей мышью ловятся плохо, а на телефоне их нет вовсе. */
+  /* Блоки с плюсом и минусом выравниваются по нижнему краю, а не по верхнему: подписи над ними
+     бывают в одну и в две строки в зависимости от ширины экрана, и при выравнивании по верху
+     кнопки съезжали друг относительно друга. */
+  .audio-tool .row.has-stepper{align-items:flex-end}
   .audio-tool .stepper{display:flex;align-items:stretch;gap:6px}
   .audio-tool .stepper input[type=number]{flex:0 0 7ch;min-width:0;text-align:center;
     -moz-appearance:textfield;font-variant-numeric:tabular-nums}
