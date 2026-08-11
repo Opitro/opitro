@@ -302,6 +302,10 @@ const ICO = {
     const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     const player = createPlayer();
+    // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
+    // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница
+    // говорит, что случилось, вместо того чтобы молча притворяться рабочей.
+    player.onStuck(() => showError(labels.audioStuckLabel));
     let file = null;
     let sourceBuffer = null;
     let asr = null;

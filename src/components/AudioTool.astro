@@ -924,6 +924,10 @@ const ICO = {
     let selStart = 0;
     let selEnd = 0;
     const player = createPlayer();
+    // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
+    // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница
+    // говорит, что случилось, вместо того чтобы молча притворяться рабочей.
+    player.onStuck(() => showError(labels.audioStuckLabel));
     // Solid glyphs -- these two live inside the filled green disc (see the ICO note in the
     // component frontmatter for why the outlined set stops there).
     const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';

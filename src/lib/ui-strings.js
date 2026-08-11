@@ -103,6 +103,7 @@ export const UI = {
       downloadWavLabel: 'Download WAV',
       playLabel: 'Play',
       stopLabel: 'Stop',
+      audioStuckLabel: 'The browser interrupted playback — press play again.',
       listenSelectionLabel: 'Listen to selection',
       targetsTitle: 'Where is this ringtone for? Pick a tile:',
       targetNames: {
@@ -576,6 +577,7 @@ export const UI = {
       downloadWavLabel: 'Скачать WAV',
       playLabel: 'Слушать',
       stopLabel: 'Стоп',
+      audioStuckLabel: 'Браузер прервал воспроизведение — нажмите ещё раз.',
       listenSelectionLabel: 'Прослушать фрагмент',
       targetsTitle: 'Куда сделать рингтон — нажмите плашку:',
       targetNames: {
@@ -994,6 +996,7 @@ export const UI = {
       downloadWavLabel: 'Descargar WAV',
       playLabel: 'Reproducir',
       stopLabel: 'Detener',
+      audioStuckLabel: 'El navegador interrumpió la reproducción — pulsa de nuevo.',
       listenSelectionLabel: 'Escuchar la selección',
       targetsTitle: '¿Para dónde es el tono? Elige una opción:',
       targetNames: {
@@ -1465,6 +1468,7 @@ export const UI = {
       downloadWavLabel: 'Завантажити WAV',
       playLabel: 'Слухати',
       stopLabel: 'Стоп',
+      audioStuckLabel: 'Браузер перервав відтворення — натисніть ще раз.',
       listenSelectionLabel: 'Прослухати фрагмент',
       targetsTitle: 'Куди зробити рингтон — натисніть плитку:',
       targetNames: {

@@ -432,6 +432,7 @@ export function createPlayer() {
   let startedAt = 0;
   let pausedAt = 0;
   let rafId = 0;
+  let stuckHandler = null;
 
   // Будим движок из ЛЮБОГО состояния, кроме рабочего, а не только из 'suspended'.
   //
@@ -508,6 +509,15 @@ export function createPlayer() {
     if (options.loop) source.loop = true;
     const chainOut = buildChain ? buildChain(c, source, pausedAt) : source;
     chainOut.connect(c.destination);
+    // Сторож: движок должен успеть проснуться. Не успел -- значит браузер отказал, и молчать
+    // об этом нельзя.
+    if (stuckHandler) {
+      setTimeout(() => {
+        if (ctx && ctx.state !== 'running') {
+          try { stuckHandler(ctx.state); } catch (e) {}
+        }
+      }, 500);
+    }
     // Clear internal state BEFORE handing control to onEnded -- reaching the end of a track is
     // just as much "not playing anymore" as an explicit stop, but this used to leave `source`
     // set, so isPlaying() kept returning true forever after a track finished on its own. Every
@@ -561,7 +571,18 @@ export function createPlayer() {
     return ctx.currentTime - startedAt;
   }
 
-  return { play, pause, stop, reset, unlock, isPlaying: () => !!source, getPosition };
+  return {
+    play, pause, stop, reset, unlock, isPlaying: () => !!source, getPosition,
+    // Сторож молчания. Кто-то один раз передаёт сюда способ показать сообщение, и дальше плеер
+    // сам проверяет через полсекунды после каждого пуска: если движок так и не заработал --
+    // зовёт. Полсекунды -- потому что resume() отвечает не мгновенно, и спрашивать сразу
+    // значило бы ругаться на нормальный запуск.
+    //
+    // Нужен он вот зачем: когда Safari прерывает звук, страница МОЛЧИТ. Нажимаешь -- ничего.
+    // Ни ошибки, ни объяснения. Человек решает, что сайт сломан, и уходит, а мы даже не узнаём.
+    // Само сообщение причину не лечит, но превращает "всё сломалось" в понятное действие.
+    onStuck(fn) { stuckHandler = fn; },
+  };
 }
 
 // ---- Noise ---------------------------------------------------------------------------------

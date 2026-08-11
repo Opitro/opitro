@@ -280,7 +280,9 @@
   /* One height and one radius across every cell. The two dropdowns each hold their own share
      of the space (the rate strings are the longest), the action takes the rest, and the whole
      row folds by flex-basis when it genuinely runs out of room. */
-  .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin-bottom:14px}
+  /* Отступ сверху обязателен: ряд с кнопкой «добавить ещё файл» стоит прямо над этим, и
+     между ними было ровно ноль точек -- измерено. Кнопки слипались в одну плашку. */
+  .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:14px 0}
   .audio-tool .deck .field{flex:1 1 200px;margin-bottom:0}
   .audio-tool .deck .field-fmt{flex:0 1 130px}
   /* No min-width:0 here on purpose: the automatic min-content floor is what stops the button
@@ -317,7 +319,9 @@
   @media(max-width:640px){
     .audio-tool .transport .file-meta{justify-content:flex-end}
   }
-  .audio-tool .deck .field select{height:48px;border-radius:12px}
+  /* Ровно та же высота, что у кнопки рядом (44px). Было 48 -- список выпирал на четыре
+     точки вверх над кнопкой, и ряд читался как две разные вещи, а не как один блок. */
+  .audio-tool .deck .field select{height:44px;border-radius:12px}
   .audio-tool .act .i{width:17px;height:17px;flex:none}
   .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
   /* Пустая строка держит ровно свою высоту -- одну строку текста. Так надпись вроде "итоговая
