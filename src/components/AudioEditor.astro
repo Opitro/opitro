@@ -432,6 +432,11 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const ICO_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
     function startFrom(sec) {
       if (!workBuffer) return;
+      // Обязательно остановить прежний узел. `play()` в движке создаёт новый и ПЕРЕЗАПИСЫВАЕТ
+      // ссылку, не трогая старый -- тот продолжает звучать, а остановить его уже нечем.
+      // Отсюда и «перемотал кликом, нажал паузу, а оно играет»: играли сразу двое, пауза
+      // глушила только последнего.
+      player.stop();
       const until = selEnd * workBuffer.duration;
       $('ed-play-ico').innerHTML = ICO_PAUSE;
       setPlayhead(sec / workBuffer.duration);
