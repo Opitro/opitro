@@ -66,6 +66,28 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
   .stt-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
+  /* См. подробное пояснение в audio-tool.css: где браузер умеет `base-select`, он рисует
+     открытый список сам и не строит под него отдельный документ. Здесь это особенно заметно --
+     в списке языков около сотни пунктов. */
+  @supports (appearance: base-select) {
+    /* nowrap обязателен: в этом режиме <select> становится флекс-контейнером и длинная
+       подпись вроде «Auto (keep original)» переносилась на вторую строку, отчего коробка
+       росла в высоту. Обычный список так никогда не делает -- он просто обрезает. */
+    .stt-tool .field select{appearance:base-select;display:flex;align-items:center;
+      white-space:nowrap;overflow:hidden}
+    .stt-tool .field select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);
+      border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;
+      position-try-fallbacks:none}
+    /* Стрелку рисуем своей картинкой, как и до правки, -- браузерная ::picker-icon
+       это сплошной треугольник, он выбивался из нашего набора значков. */
+    .stt-tool .field select::picker-icon{display:none}
+    .stt-tool .field option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
+    .stt-tool .field option:hover,
+    .stt-tool .field option:focus,
+    .stt-tool .field option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
+    .stt-tool .field option:checked{color:var(--accent)}
+    .stt-tool .field option::checkmark{display:none}
+  }
   .stt-tool .check-row{display:flex;align-items:flex-start;gap:10px;cursor:pointer;margin:2px 0 4px;padding:10px 12px;
     border:1px solid var(--line);border-radius:12px;background:var(--surface);transition:border-color .15s}
   .stt-tool .check-row:hover{border-color:rgba(74,222,158,0.4)}

@@ -337,6 +337,37 @@
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px;
   }
 
+  /* Второй слой поверх рисунка выше. Где браузер умеет `base-select` (Chrome 135+, Safari 27+,
+     Chrome на Android 143+), он рисует и сам открытый список средствами CSS. Тогда ему не нужно
+     строить под список ОТДЕЛЬНЫЙ документ -- а это измеренные 254мс разбора HTML и 152мс
+     компиляции его скрипта при каждом открытии (шестикратное замедление, трейс от 14.08.2026).
+     Где не умеет (Firefox) -- всё остаётся ровно как было: закрытый список наш, открытый
+     системный. Разметка не меняется: `<button><selectedcontent>` не нужен, браузер делает
+     кнопку сам, а лишний узел внутри <select> ломал бы обход детей в JS.
+     Внешний вид повторяет конвертеры величин из Layout.astro -- один список на весь сайт. */
+  @supports (appearance: base-select) {
+    /* Стрелку теперь рисует ::picker-icon, поэтому фоновая картинка снимается, а вместе с ней
+       и место под неё: padding-right возвращается к обычным 12px. */
+    /* nowrap обязателен: в этом режиме <select> становится флекс-контейнером и длинная
+       подпись вроде «Auto (keep original)» переносилась на вторую строку, отчего коробка
+       росла в высоту. Обычный список так никогда не делает -- он просто обрезает. */
+    .audio-tool .field select{appearance:base-select;display:flex;align-items:center;
+      white-space:nowrap;overflow:hidden}
+    .audio-tool .field select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);
+      border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;
+      position-try-fallbacks:none}
+    /* Стрелку рисуем своей картинкой, как и до правки, -- браузерная ::picker-icon
+       это сплошной треугольник, он выбивался из нашего набора значков. */
+    .audio-tool .field select::picker-icon{display:none}
+    .audio-tool .field option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
+    .audio-tool .field option:hover,
+    .audio-tool .field option:focus,
+    .audio-tool .field option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
+    .audio-tool .field option:checked{color:var(--accent)}
+    /* Галочка слева сдвигала бы текст пунктов; выбранный пункт и так виден по цвету. */
+    .audio-tool .field option::checkmark{display:none}
+  }
+
   .audio-tool .controls{display:flex;gap:12px;flex-wrap:wrap;margin-top:6px}
   .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .audio-tool button.act:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
