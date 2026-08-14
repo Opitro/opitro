@@ -126,18 +126,30 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   .uc-row .field{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:0}
   .uc-row input,.uc-row select{height:46px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;width:100%}
   .uc-row input#uc-output{color:var(--accent);font-weight:700}
+  /* Та же стрелка, что во всех аудиоинструментах: своя тонкая галочка вместо браузерной,
+     которая на каждой платформе рисуется по-своему и не совпадает ни с одним нашим значком.
+     Отдельным правилом, а не в строке выше, потому что поле ввода рядом стрелки не имеет. */
+  .uc-row select{appearance:none;-webkit-appearance:none;padding-right:38px;
+    background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+    background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
   .uc-swap{flex:none;width:38px;height:38px;margin-top:26px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center}
   .uc-swap:hover{border-color:var(--accent)}
   .uc-swap svg{width:17px;height:17px}
   @media(max-width:480px){.uc-row{flex-direction:column;align-items:stretch}.uc-swap{align-self:center;margin-top:0;transform:rotate(90deg)}}
   @supports (appearance: base-select) {
-    .uc-row select{appearance:base-select;cursor:pointer;display:flex;align-items:center}
+    /* nowrap: в этом режиме <select> становится флекс-контейнером, и длинные подписи вроде
+       «Морские мили» переносились бы на вторую строку, раздувая коробку. */
+    .uc-row select{appearance:base-select;cursor:pointer;display:flex;align-items:center;
+      white-space:nowrap;overflow:hidden}
     .uc-row select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;position-try-fallbacks:none}
-    .uc-row select::picker-icon{color:var(--muted)}
+    /* Стрелку рисует наша картинка выше; браузерная ::picker-icon -- сплошной треугольник. */
+    .uc-row select::picker-icon{display:none}
     .uc-row option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
     .uc-row option:hover,.uc-row option:focus,.uc-row option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
     .uc-row option:checked{color:var(--accent)}
-    .uc-row select::checkmark{display:none}
+    /* Псевдоэлемент живёт на option, а не на select. Прежняя запись `select::checkmark`
+       не срабатывала ни разу: галочка слева оставалась и сдвигала текст всех пунктов. */
+    .uc-row option::checkmark{display:none}
   }
   section.seo{max-width:680px;margin:40px auto 0;padding:0 2rem;color:var(--muted);font-size:13px;line-height:1.7}
   section.seo h2{font-size:18px;color:rgba(210,215,228,0.85);font-weight:600;margin-bottom:14px}
