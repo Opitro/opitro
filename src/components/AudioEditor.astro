@@ -267,6 +267,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // Узлы пересоздаются на каждое воспроизведение, но ссылки держим здесь, чтобы менять
     // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
     let chainNodes = null, liveSource = null;
+    const peakCache = {};   // огибающая волны: считается один раз, переиспользуется
     function buildChain(ctx, source) {
       liveSource = source;
       if (source.detune) source.detune.value = live.pitch * 100;   // 100 центов = одна ступень
@@ -301,7 +302,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // --- отрисовка -------------------------------------------------------------------------
     function redraw() {
       if (!workBuffer) return;
-      drawWaveform(canvas, workBuffer, fileName, { rich: true, gain: live.gain });
+      drawWaveform(canvas, workBuffer, fileName, { rich: true, gain: live.gain, peaks: peakCache });
       dimOutside();
       drawFades();
       placeSelection();
@@ -568,8 +569,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         live.gain = 1 + (+e.target.value) / 100;
         $('ed-vol-v').textContent = pctLabel(live.gain);
         if (chainNodes) chainNodes.gain.gain.value = live.gain;
-        // Перерисовываем волну под новую громкость: слышно и видно одновременно.
-        redraw();
+        // Не чаще одного кадра: ползунок шлёт события пачками, и рисовать на каждое --
+        // значит соревноваться с самим собой.
+        if (!volFrame) volFrame = requestAnimationFrame(() => { volFrame = 0; redraw(); });
       });
 
       // компрессор: живой, включается первым же движением
@@ -709,7 +711,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     let drag = null, dragFrom = 0, dragSpan = 0, downAt = 0, moved = false;
     // Пока идёт пересчёт, звук остановлен, и кнопка воспроизведения без этого замка считала,
     // что играть нечего, и ЗАПУСКАЛА вместо остановки. Отсюда «нажал паузу -- заиграло».
-    let busy = false;
+    let busy = false, volFrame = 0;
     $('ed-wave').addEventListener('pointerdown', (e) => {
       if (!workBuffer || busy) return;
       const r = $('ed-wave').getBoundingClientRect();

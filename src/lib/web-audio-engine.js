@@ -310,18 +310,33 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
     g.fillStyle = grad;
 
     const n = Math.max(1, Math.floor(W));
-    const per = Math.max(1, Math.floor(data.length / n));
+    // Огибающая считается ОДИН раз на буфер и ширину, дальше берётся готовой. Без этого
+    // ползунок громкости пересчитывал весь файл на каждое движение -- звук при этом
+    // спотыкался, и это читалось как «идёт обработка», хотя обрабатывать нечего.
+    // `opts.peaks` -- ссылка на объект-хранилище, куда кладётся посчитанное.
+    const store = opts.peaks;
+    let pk = store && store.n === n && store.src === data ? store : null;
+    if (!pk) {
+      const per = Math.max(1, Math.floor(data.length / n));
+      const lo = new Float32Array(n), hi = new Float32Array(n);
+      for (let c = 0; c < n; c++) {
+        let min = 1, max = -1;
+        const from = c * per;
+        for (let j = 0; j < per; j++) {
+          const d = data[from + j] || 0;
+          if (d < min) min = d;
+          if (d > max) max = d;
+        }
+        if (max < min) { min = 0; max = 0; }
+        lo[c] = min; hi[c] = max;
+      }
+      pk = { n, src: data, lo, hi };
+      if (store) { store.n = n; store.src = data; store.lo = lo; store.hi = hi; }
+    }
     const top = new Float32Array(n);
     const bot = new Float32Array(n);
     for (let c = 0; c < n; c++) {
-      let min = 1, max = -1;
-      const from = c * per;
-      for (let j = 0; j < per; j++) {
-        const d = data[from + j] || 0;
-        if (d < min) min = d;
-        if (d > max) max = d;
-      }
-      if (max < min) { min = 0; max = 0; }
+      let min = pk.lo[c], max = pk.hi[c];
       // Ползунок громкости МАСШТАБИРУЕТ рисунок, а не пересчитывает звук: волна толстеет
       // и худеет вместе с ним мгновенно, потому что тут нет никакой обработки -- только
       // умножение при отрисовке. Именно так это и выглядит у конкурента.
