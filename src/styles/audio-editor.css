@@ -1,0 +1,252 @@
+/* Единый аудиоредактор: семь инструментов над одним звуком, одна точка входа на страницу.
+   Вид согласован владельцем по макету 14.08.2026 за семь заходов правок -- решения ниже
+   не косметические, каждое обсуждалось. Подробности в памяти project-audio-editor.
+
+   Живут на этом файле только 7 страниц (trim, equalizer, volume, normalize, speed, pitch,
+   compress). Остальные 33 аудиоинструмента остаются на audio-tool.css нетронутыми -- это
+   сознательное ограничение риска, а не половинчатость. */
+
+/* --- зона загрузки: то же, что у остальных инструментов, но своими правилами ----------- */
+/* Выше, чем у остальных инструментов, и намеренно: здесь это не «выберите файл», а вход
+   в редактор -- главное действие страницы, и оно должно занимать место соответственно. */
+.audio-ed-drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;
+  cursor:pointer;transition:.2s;background:var(--surface)}
+.audio-ed-drop:hover,.audio-ed-drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
+.audio-ed-drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
+.audio-ed-drop .big{font-size:17px;font-weight:600;margin-bottom:4px}
+.audio-ed-drop .small{font-size:12px;color:var(--muted)}
+/* Третья строка -- не для красоты: без неё коробка на 20 точек ниже, чем у остальных
+   инструментов, и на одном сайте оказываются две разные зоны загрузки. */
+.audio-ed-drop .formats{margin-top:6px;font-size:11px;color:var(--muted);opacity:.75;
+  max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
+.audio-ed-wrap input[type=file]{display:none}
+.audio-ed-err{margin-top:12px;font-size:13px;color:#ff7a90;line-height:1.5}
+.audio-ed-err:empty{display:none}
+
+.audio-editor{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:none}
+.audio-editor.on{display:block}
+
+/* --- верхняя строка: переключатель слева, «Сбросить» и крестик справа ------------------ */
+.audio-editor .ed-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
+.audio-editor .ed-top-right{margin-left:auto;flex:none;display:flex;align-items:center;gap:6px}
+
+/* nowrap + overflow -- не ради обрезки, а ради замера: так scrollWidth показывает, сколько
+   ряду НУЖНО места, и скрипт решает по факту, показывать ряд или список. По ширине экрана
+   решать нельзя: подписи на испанском и украинском длиннее русских, и любая жёсткая
+   граница для них соврала бы. */
+/* overflow:hidden здесь стоять НЕ должен: он обрезал всплывающую подсказку, которая
+   выходит за нижний край ряда. Поэтому ширину считаем сложением самих кнопок, а не
+   через scrollWidth -- он требует обрезки, чтобы что-то показать. */
+.audio-editor .ed-tools{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1}
+
+.audio-editor .ed-tool{display:flex;align-items:center;gap:6px;flex:none;cursor:pointer;
+  background:transparent;border:1px solid transparent;color:var(--muted);white-space:nowrap;
+  font-family:inherit;font-size:13.5px;font-weight:600;padding:0 9px;height:38px;border-radius:10px;
+  transition:background .15s,color .15s,border-color .15s}
+.audio-editor .ed-tool:hover{background:var(--surface-2);color:var(--text)}
+/* Заливка читается как «уже нажал, и ничего не произошло» -- выбранное отмечаем чёткой
+   обводкой и цветом текста, а не зелёным пятном. */
+.audio-editor .ed-tool.on{background:transparent;border-color:rgba(74,222,158,0.7);
+  color:var(--accent);padding:0 12px}
+.audio-editor .ed-tool.on:hover{background:transparent}
+.audio-editor .ed-tool svg{width:17px;height:17px;flex:none}
+/* Подпись только у выбранного: шесть значков и одно слово вместо семи слов. Ряд от этого
+   вдвое короче, а название остальных всплывает в title и произносится в aria-label. */
+.audio-editor .ed-tool .lbl{display:none}
+.audio-editor .ed-tool.on .lbl{display:inline}
+
+/* --- тот же переключатель списком, когда ряд не помещается --------------------------- */
+.audio-editor .ed-tools-list{display:none}
+.audio-editor .ed-tools-list select{appearance:none;-webkit-appearance:none;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);
+  font-family:inherit;font-size:14px;font-weight:600;height:40px;padding:0 34px 0 12px;cursor:pointer;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:16px 16px}
+
+/* «Сбросить» -- лёгкая надпись, а не кнопка: это отход назад, а не действие, ради которого
+   пришли. Стоит рядом с крестиком и подальше от «Скачать», чтобы не нажать по ошибке. */
+.audio-editor .ed-ghost{display:flex;align-items:center;gap:6px;background:none;border:none;
+  cursor:pointer;color:rgba(214,219,230,0.62);font-family:inherit;font-size:12px;font-weight:400;
+  padding:7px 9px;border-radius:9px}
+.audio-editor .ed-ghost:hover{color:var(--text);background:var(--surface-2)}
+.audio-editor .ed-ghost svg{width:13px;height:13px}
+
+.audio-editor .ed-close{flex:none;display:flex;align-items:center;justify-content:center;
+  width:34px;height:34px;border-radius:50%;background:var(--surface-2);border:1px solid var(--line);
+  color:var(--muted);cursor:pointer}
+.audio-editor .ed-close:hover{color:#ff3a5e;border-color:rgba(255,58,94,0.45);background:rgba(255,58,94,0.10)}
+.audio-editor .ed-close svg{width:15px;height:15px}
+
+/* --- волна ---------------------------------------------------------------------------- */
+.audio-editor .ed-wave{position:relative;background:#0a0b0d;border:1px solid var(--line);
+  border-radius:12px;overflow:hidden;user-select:none;cursor:pointer}
+.audio-editor .ed-wave canvas{display:block;width:100%;height:150px}
+/* Имя файла НЕ отдельным слоем: оно рисуется на холсте до столбиков, у верхнего края, где
+   их почти нет. Так оно читается, остаётся позади волны и не занимает ни одной строки. */
+.audio-editor .ed-sel{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.10);
+  border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab}
+.audio-editor .ed-sel:active{cursor:grabbing}
+/* Ручка обрезки -- рабочий инструмент, а не черта на картинке. Широкая область захвата
+   (16 точек, под палец), свой курсор, заметная накладка с насечкой и отклик при наведении.
+   Тонкая полоска в три точки не читалась как «за это тянут» -- владелец сказал прямо. */
+.audio-editor .ed-handle{position:absolute;top:0;bottom:0;width:16px;cursor:ew-resize;
+  display:flex;align-items:center;justify-content:center;touch-action:none}
+.audio-editor .ed-handle-l{left:-9px}
+.audio-editor .ed-handle-r{right:-9px}
+.audio-editor .ed-handle span{display:block;width:9px;height:44px;border-radius:5px;
+  background:#f0f0f2;box-shadow:0 2px 8px rgba(0,0,0,.7);
+  transition:height .15s,background .15s;position:relative}
+/* Насечка: две тёмные полоски внутри накладки -- тот же язык, что у ручек громкости
+   в звуковых программах, и именно он читается как «тянуть». */
+.audio-editor .ed-handle span::before,
+.audio-editor .ed-handle span::after{content:'';position:absolute;top:50%;width:1.5px;height:14px;
+  transform:translateY(-50%);background:rgba(10,11,13,.45);border-radius:1px}
+.audio-editor .ed-handle span::before{left:2.5px}
+.audio-editor .ed-handle span::after{right:2.5px}
+.audio-editor .ed-handle:hover span{height:56px;background:#fff}
+.audio-editor .ed-handle:active span{background:#fff}
+.audio-editor .ed-playhead{position:absolute;top:0;bottom:0;width:1px;background:rgba(255,255,255,.75)}
+
+.audio-editor .ed-times{display:flex;justify-content:space-between;font-size:11.5px;
+  color:var(--muted);font-variant-numeric:tabular-nums;padding:5px 2px 0}
+
+/* --- постоянная строка: воспроизведение, формат, скачивание --------------------------- */
+.audio-editor .ed-deck{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
+.audio-editor .ed-btn{display:flex;align-items:center;justify-content:center;gap:4px;flex:none;
+  background:var(--surface-2);border:1px solid var(--line);border-radius:11px;color:var(--text);
+  height:42px;padding:0 13px;cursor:pointer;transition:border-color .15s}
+.audio-editor .ed-btn:hover{border-color:rgba(255,255,255,.22)}
+.audio-editor .ed-btn svg{width:19px;height:19px}
+.audio-editor .ed-play{width:52px}
+/* Зелёная обводка -- признак нажатия, а не постоянное состояние. Пока она висела всегда,
+   по кнопке было не понять, нажал ты уже или нет. */
+.audio-editor .ed-play:active,.audio-editor .ed-save:active{border-color:rgba(74,222,158,0.75);
+  color:var(--accent);background:rgba(74,222,158,0.08)}
+
+.audio-editor .ed-stamps{display:flex;align-items:center;gap:8px;background:var(--surface-2);
+  border:1px solid var(--line);border-radius:11px;height:42px;padding:0 12px;
+  font-variant-numeric:tabular-nums;font-size:14px;font-weight:600}
+.audio-editor .ed-stamps span{color:var(--muted);font-weight:400}
+
+.audio-editor .ed-deck-right{margin-left:auto;display:flex;align-items:center;gap:10px}
+.audio-editor .ed-fmt{background:var(--surface-2);border:1px solid var(--line);border-radius:11px;
+  color:var(--text);height:42px;padding:0 32px 0 12px;font-family:inherit;font-size:14px;
+  font-weight:600;cursor:pointer;appearance:none;-webkit-appearance:none;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
+  background-repeat:no-repeat;background-position:right 10px center;background-size:16px 16px}
+.audio-editor .ed-save{background:var(--surface-2);border:1px solid var(--line);color:var(--text);
+  border-radius:11px;height:42px;padding:0 20px;font-family:inherit;font-size:14px;font-weight:700;
+  cursor:pointer;display:flex;align-items:center;gap:8px}
+.audio-editor .ed-save:hover{border-color:rgba(255,255,255,0.22)}
+.audio-editor .ed-save svg{width:16px;height:16px}
+
+/* --- панель выбранного инструмента ---------------------------------------------------- */
+/* Заголовка у панели нет намеренно: название инструмента уже стоит в переключателе прямо
+   над ней. Выбрал сверху -- получил снизу, без повторов и пояснений. */
+.audio-editor .ed-panel{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+
+.audio-editor .ed-row{display:flex;align-items:center;gap:14px;margin:10px 0}
+.audio-editor .ed-row label{flex:0 0 108px;font-size:12.5px;color:var(--muted)}
+.audio-editor .ed-row label:empty{display:none}
+.audio-editor .ed-row input[type=range]{flex:1;min-width:0;accent-color:var(--accent);margin:0}
+.audio-editor .ed-row .val{flex:0 0 62px;text-align:right;font-size:13px;font-weight:700;
+  color:var(--accent);font-variant-numeric:tabular-nums}
+
+.audio-editor .ed-eq{display:flex;gap:4px;align-items:flex-end;justify-content:space-between}
+.audio-editor .ed-band{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
+/* Вертикальный ползунок через writing-mode -- современный путь. `-webkit-appearance:
+   slider-vertical` сюда не добавлять ни в каком виде: см. предупреждение в audio-tool.css. */
+.audio-editor .ed-band input{writing-mode:vertical-lr;direction:rtl;width:22px;height:110px;
+  accent-color:var(--accent);margin:0}
+.audio-editor .ed-band .hz{font-size:10.5px;color:var(--muted);white-space:nowrap}
+
+.audio-editor .ed-chips{display:flex;gap:7px;flex-wrap:wrap;margin-bottom:14px}
+.audio-editor .ed-chip{background:var(--surface-2);border:1px solid var(--line);border-radius:9px;
+  color:var(--muted);font-family:inherit;font-size:12.5px;font-weight:600;padding:7px 12px;cursor:pointer}
+.audio-editor .ed-chip:hover{border-color:rgba(255,255,255,.22);color:var(--text)}
+.audio-editor .ed-chip.on{border-color:rgba(74,222,158,0.7);color:var(--accent);background:transparent}
+
+/* Живая строка, а не подпись: цифра меняется, пока тянут ползунок. */
+.audio-editor .ed-live{font-size:12.5px;color:var(--muted);line-height:1.55;margin:10px 0 0}
+
+@media(max-width:759px){
+  .audio-editor{padding:14px}
+  .audio-editor .ed-deck-right{margin-left:0;width:100%}
+  .audio-editor .ed-fmt{flex:0 0 auto}
+  .audio-editor .ed-save{flex:1;justify-content:center}
+  .audio-editor .ed-stamps{flex:1 1 100%;justify-content:center}
+  .audio-editor .ed-band input{height:88px}
+  .audio-editor .ed-row label{flex:0 0 84px}
+  .audio-editor .ed-panel{margin-top:12px;padding-top:12px}
+}
+
+/* Тот же список, что и во всех остальных инструментах: рисуется внутри страницы, без
+   отдельного документа под него. Блок обязан стоять ПОСЛЕ базового правила выше --
+   при равной весомости побеждает последний, и порядок здесь уже дважды всё ломал. */
+@supports (appearance: base-select) {
+  .audio-editor .ed-tools-list select{appearance:base-select;display:flex;align-items:center;
+    gap:8px;white-space:nowrap;overflow:hidden}
+  .audio-editor .ed-tools-list select::picker(select){appearance:base-select;
+    border:1px solid var(--line);border-radius:12px;background:var(--surface-2);
+    box-shadow:0 14px 40px rgba(0,0,0,.55);padding:6px;margin-top:6px;
+    position-try-fallbacks:none;min-width:220px}
+  .audio-editor .ed-tools-list select::picker-icon{display:none}
+  .audio-editor .ed-tools-list option{display:flex;align-items:center;gap:10px;padding:11px 12px;
+    border-radius:9px;color:var(--text);background:transparent;font-size:14.5px;font-weight:600}
+  .audio-editor .ed-tools-list option svg{width:18px;height:18px;flex:none;color:var(--muted)}
+  .audio-editor .ed-tools-list option:checked{color:var(--accent)}
+  .audio-editor .ed-tools-list option:checked svg{color:var(--accent)}
+  .audio-editor .ed-tools-list option:hover{background:rgba(255,255,255,0.06)}
+  .audio-editor .ed-tools-list option::checkmark{display:none}
+  .audio-editor .ed-fmt{appearance:base-select;display:flex;align-items:center;
+    white-space:nowrap;overflow:hidden}
+  .audio-editor .ed-fmt::picker(select){appearance:base-select;border:1px solid var(--line);
+    border-radius:12px;background:var(--surface-2);box-shadow:0 12px 36px rgba(0,0,0,.5);
+    padding:6px;margin-top:6px;position-try-fallbacks:none}
+  .audio-editor .ed-fmt::picker-icon{display:none}
+  .audio-editor .ed-fmt option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
+  .audio-editor .ed-fmt option:checked{color:var(--accent)}
+  .audio-editor .ed-fmt option::checkmark{display:none}
+}
+
+/* Нажатая кнопка фейда остаётся нажатой: спад -- это состояние, а не разовое действие,
+   и по волне видно, где он начинается. */
+.audio-editor .ed-btn.ed-on{border-color:rgba(74,222,158,0.7);color:var(--accent)}
+
+/* Своя подсказка вместо браузерной: родная появляется через секунду с лишним и на
+   значках без подписи её попросту не дожидаются. */
+.audio-editor .ed-tool{position:relative}
+.audio-editor .ed-tool:not(.on):hover::after{content:attr(data-tip);position:absolute;
+  left:50%;top:calc(100% + 7px);transform:translateX(-50%);white-space:nowrap;z-index:5;
+  background:#0a0b0d;border:1px solid var(--line);border-radius:8px;padding:5px 9px;
+  font-size:12px;font-weight:500;color:var(--text);pointer-events:none;
+  box-shadow:0 8px 20px rgba(0,0,0,.5)}
+.audio-editor .ed-wave{cursor:default}
+
+/* Стрелка «тянется вправо-влево» в середине выделения -- тот же знак, что в обрезке.
+   Без неё не видно, что область можно двигать целиком. */
+.audio-editor .ed-sel{display:flex;align-items:center;justify-content:center}
+.audio-editor .ed-move{width:20px;height:20px;color:#f0f0f2;opacity:.5;pointer-events:none;
+  filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
+
+/* Полоса за курсором и часы над ней -- те же значения, что у #wave-guide/#wave-tip в
+   player.css. Копия намеренная: два разных вида одной и той же подсказки на одном сайте
+   читаются как небрежность. */
+.audio-editor .ed-guide{position:absolute;top:0;bottom:0;width:1px;z-index:1;
+  background:rgba(255,255,255,.28);pointer-events:none;display:none}
+.audio-editor .ed-tip{position:absolute;top:6px;transform:translateX(-50%);z-index:3;
+  pointer-events:none;display:none;background:rgba(10,11,13,.92);border:1px solid var(--line);
+  border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:600;color:var(--text);
+  font-variant-numeric:tabular-nums}
+
+/* Ход пересчёта прямо на волне. Показывается только пока идёт работа. */
+.audio-editor .ed-busy{position:absolute;left:0;right:0;bottom:0;height:3px;display:none;z-index:4;
+  background:rgba(255,255,255,.08)}
+.audio-editor .ed-busy i{display:block;height:100%;width:0;background:var(--accent);
+  transition:width .12s linear}
+
+/* На время пересчёта органы управления гаснут и не нажимаются: пока звук пересобирается,
+   любое нажатие относилось бы к тому, чего уже нет. */
+.audio-editor.is-busy .ed-deck,
+.audio-editor.is-busy .ed-panel{opacity:.45;pointer-events:none}
+.audio-editor.is-busy .ed-wave{cursor:progress}

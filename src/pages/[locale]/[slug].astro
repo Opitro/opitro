@@ -6,6 +6,11 @@ import TemperatureConverter from '../../components/TemperatureConverter.astro';
 import AudioTool from '../../components/AudioTool.astro';
 import AudioToMidi from '../../components/AudioToMidi.astro';
 import SpeechToText from '../../components/SpeechToText.astro';
+import AudioEditor from '../../components/AudioEditor.astro';
+
+// Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
+// каждый следующий -- только после того, как предыдущий проверен живьём.
+const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch', 'compress'];
 import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 import { iconFor } from '../../lib/tool-icons.js';
@@ -238,7 +243,14 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'speech-to-text' && (
       <SpeechToText locale={entry.data.locale} labels={audioLabels} mode="voice" />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool) && (
+    {/* Единый редактор. Пока стоит на одном инструменте, а не на всех семи: он новый, а
+        остальные 33 живут на AudioTool и не должны пострадать, если здесь что-то не так.
+        Список расширяется по мере проверки -- см. память project-audio-editor. */}
+    {kind === 'media' && EDITOR_TOOLS.includes(entry.data.tool) && (
+      <AudioEditor tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool)
+      && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
   </div>

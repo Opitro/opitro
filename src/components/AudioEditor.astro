@@ -1,0 +1,786 @@
+---
+import css from '../styles/audio-editor.css?inline';
+import { AUDIO_TOOLS } from '../lib/audio-tools-config.js';
+import AdSlot from './AdSlot.astro';
+
+/*
+  Один редактор -- семь точек входа.
+
+  Страница остаётся собой: свой адрес, свой заголовок, свой текст. Меняется только то, какой
+  инструмент открыт при заходе. Адрес при переключении НЕ меняется -- это решение владельца,
+  обсуждалось отдельно. Тексты страниц про соседние инструменты не пишут: иначе семь страниц
+  станут дублями друг друга.
+
+  Живут здесь только семь инструментов из EDITOR_TOOLS. Остальные 33 остаются на AudioTool.astro
+  нетронутыми -- ограничение риска, а не половинчатость: они все на одном компоненте, и поломка
+  редактора не должна задеть диктофон, конвертер или разделение файла.
+
+  Полный список согласованных решений -- в памяти project-audio-editor.
+*/
+
+interface Props {
+  tool: string;
+  locale: string;
+  labels: Record<string, string>;
+}
+
+const { tool, labels } = Astro.props;
+
+// Порядок ряда. Обрезка первой: это самый частый вход, и без неё на /trim-audio не была бы
+// подсвечена ни одна вкладка. Реверс сюда не входит -- владелец: «это другая потребность».
+// Тональность выведена из редактора по решению владельца и живёт отдельной страницей на
+// прежнем компоненте: её пересчёт синхронный и на длинной записи замораживает страницу.
+// Скорость страдает тем же и остаётся здесь до тех пор, пока расчёт не уедет в отдельный
+// поток -- см. project-audio-editor.
+const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch', 'compress'];
+
+const ICONS: Record<string, string> = {
+  trim: '<circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="18" r="2.6"/><path d="M7.8 16.2L20 4M16.2 16.2L4 4"/>',
+  equalizer: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>',
+  volume: '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.5 8.5a5 5 0 0 1 0 7"/><path d="M19 5a9 9 0 0 1 0 14"/>',
+  normalize: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
+  speed: '<path d="M13 2L4.1 12.8a1 1 0 0 0 .8 1.6H11l-1 7.6 8.9-10.8a1 1 0 0 0-.8-1.6H12z"/>',
+  pitch: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
+  compress: '<path d="M4 6h16M4 18h16"/><path d="M8 10l4-3 4 3M8 14l4 3 4-3"/>',
+};
+
+const NAMES: Record<string, string> = {
+  trim: labels.edTrim || 'Обрезка',
+  equalizer: labels.edEqualizer || 'Эквалайзер',
+  volume: labels.edVolume || 'Громкость',
+  normalize: labels.edNormalize || 'Нормализация',
+  speed: labels.edSpeed || 'Скорость',
+  pitch: labels.edPitch || 'Высота тона',
+  compress: labels.edCompress || 'Компрессор',
+};
+
+const config = AUDIO_TOOLS[tool] || {};
+const accept = config.accept || 'audio/*';
+const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id] }));
+---
+
+<style set:html={css}></style>
+
+<div class="audio-ed-wrap" data-active={tool} data-tools={JSON.stringify(toolsData)}>
+  <div class="audio-ed-drop" id="ed-drop" role="button" tabindex="0">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+    <div class="big">{labels.dropTitle || 'Загрузите аудиофайл'}</div>
+    <div class="small">{labels.dropHint || 'Перетащите сюда или нажмите, чтобы выбрать'}</div>
+    <div class="formats">{labels.dropFormats || 'MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, WMA, AIFF'}</div>
+  </div>
+  <input type="file" id="ed-file" accept={accept} />
+  <div class="audio-ed-err" id="ed-err"></div>
+
+  <div class="audio-editor" id="ed-root">
+    <div class="ed-top">
+      <div class="ed-tools" id="ed-tools"></div>
+      <div class="ed-tools-list" id="ed-tools-list"><select id="ed-select"></select></div>
+      <div class="ed-top-right">
+        <button type="button" class="ed-ghost" id="ed-reset">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5a7 7 0 1 1-6.6 4.6"/><path d="M12 1.9 8.6 5 12 8.1"/></svg>
+          {labels.edReset || 'Сбросить'}
+        </button>
+        <button type="button" class="ed-close" id="ed-close" title={labels.edClose || 'Убрать файл'} aria-label={labels.edClose || 'Убрать файл'}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round"><path d="M18 6L6 18M6 6l12 12"/></svg>
+        </button>
+      </div>
+    </div>
+
+    <div class="ed-wave" id="ed-wave">
+      <canvas id="ed-canvas"></canvas>
+      <div class="ed-sel" id="ed-sel">
+        <svg class="ed-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8L22 12L18 16"/><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
+        <div class="ed-handle ed-handle-l"><span></span></div>
+        <div class="ed-handle ed-handle-r"><span></span></div>
+      </div>
+      <div class="ed-playhead" id="ed-playhead" style="display:none"></div>
+      <div class="ed-busy" id="ed-busy"><i></i></div>
+      <div class="ed-guide" id="ed-guide"></div>
+      <div class="ed-tip" id="ed-tip"></div>
+    </div>
+    <div class="ed-times"><span id="ed-t0">00:00.0</span><span id="ed-t1">00:00.0</span></div>
+
+    <div class="ed-deck">
+      <button type="button" class="ed-btn ed-play" id="ed-play" aria-label={labels.playLabel || 'Воспроизвести'}>
+        <svg id="ed-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+      </button>
+      <button type="button" class="ed-btn ed-stop" id="ed-stop" aria-label={labels.stopLabel || 'Стоп'}>
+        <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
+      </button>
+      <div class="ed-deck-right">
+        <select class="ed-fmt" id="ed-fmt">
+          <option value="wav">wav</option>
+          <option value="mp3" selected>mp3</option>
+        </select>
+        <button type="button" class="ed-save" id="ed-save">
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+          <span id="ed-save-label">{labels.downloadLabel || 'Скачать'}</span>
+        </button>
+      </div>
+    </div>
+
+    <div class="ed-panel" id="ed-panel"></div>
+  </div>
+</div>
+
+<AdSlot />
+
+<script>
+  import {
+    decodeFile, drawWaveform, sliceBuffer, scaleVolume, applyFade,
+    wsolaStretchChunked, pitchShiftChunked, peakOf, normalizeGain,
+    encodeWAV, encodeMP3, downloadBlob, createPlayer,
+  } from '../lib/web-audio-engine.js';
+
+  const wrap = document.querySelector('.audio-ed-wrap');
+  if (wrap) {
+    const $ = (id) => document.getElementById(id);
+    const TOOLS = JSON.parse(wrap.dataset.tools);
+    const svg = (d) => `<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${d}</svg>`;
+
+    const root = $('ed-root'), canvas = $('ed-canvas'), selEl = $('ed-sel');
+    const panel = $('ed-panel'), toolsEl = $('ed-tools'), listEl = $('ed-tools-list');
+    const pick = $('ed-select'), err = $('ed-err');
+
+    let active = wrap.dataset.active;
+    let originalBuffer = null;   // исходник, не трогаем никогда
+    let baseBuffer = null;       // после необратимых правок (обрезка, нормализация)
+    let workBuffer = null;       // base + тональность и скорость; это слышно и скачается
+    let fileName = '';
+    let selStart = 0, selEnd = 1;   // доли от длительности
+
+    // Живая цепочка: эти три ничего не пересчитывают, они висят на звуке настройками.
+    // Комбинируются свободно и качество не портят -- в этом главная разница с конкурентом,
+    // у которого каждый шаг пересобирает файл.
+    // fadeIn/fadeOut -- НЕ разовое действие, а состояние: кнопка остаётся нажатой, спад
+    // отсчитывается от ручки обрезки (не от нуля) и виден прямо на волне. Пока не нажали
+    // «Обрезать» или «Скачать», звук не тронут -- это по-прежнему настройка, а не правка.
+    const live = {
+      gain: 1, eq: new Array(10).fill(0),
+      comp: { threshold: -24, ratio: 4, release: 0.25 }, compOn: false,
+      fadeIn: 0, fadeOut: 0,
+      // Тональность и скорость -- НАСТРОЙКИ, а не разовые правки. Хранятся числом и каждый
+      // раз пересчитываются от baseBuffer, а не поверх уже пересчитанного. Иначе сдвиг
+      // накапливается: −3, потом ещё −3 даёт −6, хотя на ползунке стоит −3.
+      pitch: 0, speed: 1,
+    };
+    const fadeLen = () => {
+      if (!workBuffer) return 0;
+      const selSec = (selEnd - selStart) * workBuffer.duration;
+      return Math.max(0.2, Math.min(3, selSec / 4));
+    };
+    const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
+
+    const player = createPlayer();
+    player.onStuck(() => showError(window.__opitroLabels?.audioStuckLabel || 'Браузер приостановил звук. Нажмите ещё раз.'));
+
+    function showError(msg) { err.textContent = msg || ''; }
+    // Округляем ДО деления на минуты, а не после: при 59.97 с обе части считались отдельно
+    // и получалось «00:60.0» вместо «01:00.0».
+    const fmtTime = (s) => {
+      const tenths = Math.round(Math.max(0, s) * 10);
+      const m = Math.floor(tenths / 600);
+      const r = (tenths - m * 600) / 10;
+      return `${String(m).padStart(2, '0')}:${r.toFixed(1).padStart(4, '0')}`;
+    };
+
+    // --- переключатель: ряд или список, решаем ЗАМЕРОМ -----------------------------------
+    // Не по ширине экрана: подписи на испанском и украинском длиннее русских, и любая
+    // жёсткая граница для них соврала бы.
+    function fitTools() {
+      toolsEl.style.display = 'flex';
+      listEl.style.display = 'none';
+      const kids = [...toolsEl.children];
+      if (!kids.length) return;
+      const gap = 4;
+      const need = kids.reduce((a, k) => a + k.offsetWidth, 0) + gap * (kids.length - 1);
+      if (need > toolsEl.clientWidth + 1) {
+        toolsEl.style.display = 'none';
+        listEl.style.display = 'block';
+      }
+    }
+
+    function renderTools() {
+      toolsEl.innerHTML = TOOLS.map((t) =>
+        `<button type="button" class="ed-tool${t.id === active ? ' on' : ''}" data-id="${t.id}" data-tip="${t.name}" aria-label="${t.name}">${svg(t.ico)}<span class="lbl">${t.name}</span></button>`).join('');
+      pick.innerHTML = TOOLS.map((t) =>
+        `<option value="${t.id}"${t.id === active ? ' selected' : ''}>${svg(t.ico)}${t.name}</option>`).join('');
+      fitTools();
+    }
+
+    // --- панели инструментов --------------------------------------------------------------
+    // Заголовков у панелей нет намеренно: название стоит в переключателе прямо над ней.
+    const row = (label, min, max, step, val, id, unit) =>
+      `<div class="ed-row"><label for="${id}">${label}</label>
+        <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">
+        <div class="val" id="${id}-v">${unit}</div></div>`;
+
+    const PANELS = {
+      trim: () => `
+        <div class="ed-deck" style="margin-top:0">
+          <button type="button" class="ed-btn" id="ed-fadein" title="${lbl('edFadeIn', 'Плавное начало')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20C10 20 12 5 20 5L20 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 20C10 20 12 5 20 5"/></svg></button>
+          <button type="button" class="ed-btn" id="ed-fadeout" title="${lbl('edFadeOut', 'Плавный конец')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5C12 5 14 20 20 20L4 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 5C12 5 14 20 20 20"/></svg></button>
+          <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16" opacity=".4"/><path d="M3 12h6M21 12h-6"/><path d="M6.5 9l2.5 3-2.5 3M17.5 9L15 12l2.5 3"/></svg></button>
+          <div class="ed-stamps"><span id="ed-s0">00:00.0</span><span>—</span><span id="ed-s1">00:00.0</span></div>
+          <button type="button" class="ed-btn" id="ed-apply-trim">${lbl('edApplyTrim', 'Обрезать')}</button>
+        </div>`,
+      equalizer: () => `
+        <div class="ed-chips" id="ed-eq-presets">
+          ${['flat', 'voice', 'bass', 'bright', 'radio'].map((k, i) =>
+            `<button type="button" class="ed-chip${i === 0 ? ' on' : ''}" data-p="${k}">${lbl('edEq_' + k, ['Ровно', 'Голос', 'Бас', 'Ярче', 'Радио'][i])}</button>`).join('')}
+        </div>
+        <div class="ed-eq" id="ed-eq">${EQ_HZ.map((hz, i) =>
+          `<div class="ed-band"><input type="range" min="-12" max="12" step="1" value="${live.eq[i]}" data-b="${i}"><div class="hz">${hz >= 1000 ? (hz / 1000) + 'k' : hz}</div></div>`).join('')}</div>`,
+      volume: () => row('', -100, 100, 1, Math.round((live.gain - 1) * 100), 'ed-vol', pctLabel(live.gain)),
+      normalize: () => row(lbl('edTarget', 'Целевой уровень'), -30, 0, 1, -14, 'ed-norm', '−14 dB')
+        + `<div class="ed-deck" style="margin-top:10px"><button type="button" class="ed-btn" id="ed-apply-norm">${lbl('edApply', 'Применить')}</button></div>`,
+      // Ни кнопки «Применить», ни подписи: отпустил ползунок -- пересчиталось. Кнопка
+      // читалась как «ничего не произошло», а слово «полутонов» владелец назвал непонятным.
+      speed: () => row('', 50, 200, 1, Math.round(live.speed * 100), 'ed-speed', live.speed.toFixed(2) + '×')
+        + `<div class="ed-live" id="ed-speed-live"></div>`,
+      pitch: () => row('', -12, 12, 1, live.pitch, 'ed-pitch', live.pitch > 0 ? '+' + live.pitch : String(live.pitch))
+        + `<div class="ed-live" id="ed-pitch-live"></div>`,
+      compress: () => row(lbl('edThreshold', 'Порог'), -60, 0, 1, live.comp.threshold, 'ed-th', live.comp.threshold + ' dB')
+        + row(lbl('edRatio', 'Сжатие'), 1, 20, 1, live.comp.ratio, 'ed-ra', live.comp.ratio + ':1')
+        + row(lbl('edRelease', 'Отпускание'), 50, 1000, 10, live.comp.release * 1000, 'ed-re', (live.comp.release * 1000) + ' мс'),
+    };
+
+    function lbl(key, fallback) { return (window.__opitroLabels && window.__opitroLabels[key]) || fallback; }
+    function pctLabel(g) { const p = Math.round((g - 1) * 100); return (p > 0 ? '+' : '') + p + ' %'; }
+
+    const EQ_PRESETS = {
+      flat:   [0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
+      voice:  [-4, -3, -1, 2, 4, 4, 3, 2, 0, -1],
+      bass:   [6, 5, 4, 2, 0, 0, 0, 0, 0, 0],
+      bright: [0, 0, 0, 0, 0, 1, 3, 5, 6, 5],
+      radio:  [-8, -6, -2, 3, 5, 4, 2, -2, -6, -8],
+    };
+
+    function renderPanel() {
+      panel.innerHTML = PANELS[active] ? PANELS[active]() : '';
+      wirePanel();
+      fitTools();
+      syncStamps();
+    }
+
+    // --- живая цепочка ---------------------------------------------------------------------
+    // Узлы пересоздаются на каждое воспроизведение, но ссылки держим здесь, чтобы менять
+    // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
+    let chainNodes = null, liveSource = null;
+    function buildChain(ctx, source) {
+      liveSource = source;
+      if (source.detune) source.detune.value = live.pitch * 100;   // 100 центов = одна ступень
+      const g = ctx.createGain();
+      g.gain.value = live.gain;
+      let node = source;
+      node.connect(g);
+      node = g;
+      const filters = EQ_HZ.map((hz, i) => {
+        const f = ctx.createBiquadFilter();
+        f.type = i === 0 ? 'lowshelf' : i === EQ_HZ.length - 1 ? 'highshelf' : 'peaking';
+        f.frequency.value = hz;
+        f.Q.value = 1.1;
+        f.gain.value = live.eq[i];
+        node.connect(f);
+        node = f;
+        return f;
+      });
+      let comp = null;
+      if (live.compOn) {
+        comp = ctx.createDynamicsCompressor();
+        comp.threshold.value = live.comp.threshold;
+        comp.ratio.value = live.comp.ratio;
+        comp.release.value = live.comp.release;
+        node.connect(comp);
+        node = comp;
+      }
+      chainNodes = { gain: g, filters, comp };
+      return node;
+    }
+
+    // --- отрисовка -------------------------------------------------------------------------
+    function redraw() {
+      if (!workBuffer) return;
+      drawWaveform(canvas, workBuffer, fileName, { rich: true, gain: live.gain });
+      dimOutside();
+      drawFades();
+      placeSelection();
+      $('ed-t0').textContent = '00:00.0';
+      $('ed-t1').textContent = fmtTime(workBuffer.duration);
+      syncStamps();
+    }
+
+    // За ручками волна приглушена, между ними обычная. Так с одного взгляда видно, что
+    // останется, а что уйдёт -- без единой подписи. Гасим прозрачность самих столбиков
+    // (destination-out), а не кладём сверху плёнку: плёнка притушила бы и имя файла.
+    function dimOutside() {
+      if (selStart <= 0 && selEnd >= 1) return;
+      const g = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height;
+      g.save();
+      g.globalCompositeOperation = 'destination-out';
+      g.fillStyle = 'rgba(0,0,0,0.62)';
+      if (selStart > 0) g.fillRect(0, 0, W * selStart, H);
+      if (selEnd < 1) g.fillRect(W * selEnd, 0, W * (1 - selEnd), H);
+      g.restore();
+    }
+
+    // Спад показываем формой самой дорожки: она поднимается с нуля, как у конкурента.
+    // Раньше здесь была плёнка с прозрачностью -- она гасила столбики целиком и читалась
+    // как «поверх наложили», а не «звук нарастает». Стираем всё, что ВЫШЕ огибающей.
+    function drawFades() {
+      if (!live.fadeIn && !live.fadeOut) return;
+      const g = canvas.getContext('2d');
+      const W = canvas.width, H = canvas.height, mid = H / 2;
+      const d = workBuffer.duration;
+      const px = (t) => (t / d) * W;
+      const carve = (x0, x1, rising) => {
+        const steps = 48;
+        g.beginPath();
+        g.moveTo(x0, 0);
+        for (let i = 0; i <= steps; i++) {
+          const k = i / steps;
+          const e = rising ? k : 1 - k;
+          g.lineTo(x0 + (x1 - x0) * k, mid - mid * e);
+        }
+        g.lineTo(x1, 0);
+        g.closePath();
+        g.fill();
+        g.beginPath();
+        g.moveTo(x0, H);
+        for (let i = 0; i <= steps; i++) {
+          const k = i / steps;
+          const e = rising ? k : 1 - k;
+          g.lineTo(x0 + (x1 - x0) * k, mid + mid * e);
+        }
+        g.lineTo(x1, H);
+        g.closePath();
+        g.fill();
+      };
+      g.save();
+      g.globalCompositeOperation = 'destination-out';
+      g.fillStyle = '#000';
+      if (live.fadeIn) carve(px(selStart * d), px(selStart * d + live.fadeIn), true);
+      if (live.fadeOut) carve(px(selEnd * d - live.fadeOut), px(selEnd * d), false);
+      g.restore();
+    }
+
+    // Считаем от холста, а не от обёртки -- ровно так это сделано в обрезке, которая
+    // работает. Обёртка и холст сейчас совпадают, но полагаться на совпадение нельзя.
+    function setPlayhead(frac) {
+      const ph = $('ed-playhead');
+      if (!ph) return;
+      ph.style.display = 'block';
+      ph.style.left = Math.round(canvas.offsetLeft + frac * canvas.clientWidth) + 'px';
+    }
+
+    function placeSelection() {
+      const w = $('ed-wave').clientWidth;
+      selEl.style.left = Math.round(w * selStart) + 'px';
+      selEl.style.width = Math.round(w * (selEnd - selStart)) + 'px';
+    }
+
+    function syncStamps() {
+      if (!workBuffer) return;
+      const a = $('ed-s0'), b = $('ed-s1');
+      if (a) a.textContent = fmtTime(selStart * workBuffer.duration);
+      if (b) b.textContent = fmtTime(selEnd * workBuffer.duration);
+    }
+
+    // --- загрузка файла ---------------------------------------------------------------------
+    async function loadFile(file) {
+      showError('');
+      try {
+        const buf = await decodeFile(file);
+        originalBuffer = buf;
+        baseBuffer = buf;
+        workBuffer = buf;
+        fileName = file.name;
+        selStart = 0; selEnd = 1;
+        $('ed-drop').style.display = 'none';
+        root.classList.add('on');
+        renderTools();
+        renderPanel();
+        requestAnimationFrame(redraw);
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+      } catch (e) {
+        showError(lbl('decodeError', 'Не удалось прочитать файл. Попробуйте другой формат.'));
+      }
+    }
+
+    $('ed-drop').addEventListener('click', () => $('ed-file').click());
+    $('ed-drop').addEventListener('keydown', (e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); $('ed-file').click(); } });
+    $('ed-file').addEventListener('change', (e) => { if (e.target.files[0]) loadFile(e.target.files[0]); });
+    ['dragover', 'dragenter'].forEach((n) => $('ed-drop').addEventListener(n, (e) => { e.preventDefault(); $('ed-drop').classList.add('over'); }));
+    ['dragleave', 'drop'].forEach((n) => $('ed-drop').addEventListener(n, () => $('ed-drop').classList.remove('over')));
+    $('ed-drop').addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
+
+    // --- переключение вкладок ---------------------------------------------------------------
+    toolsEl.addEventListener('click', (e) => {
+      const b = e.target.closest('.ed-tool');
+      if (!b || busy) return;
+      active = b.dataset.id;
+      renderTools();
+      renderPanel();
+    });
+    pick.addEventListener('change', () => { active = pick.value; renderTools(); renderPanel(); });
+    new ResizeObserver(fitTools).observe(wrap);
+
+    // --- воспроизведение --------------------------------------------------------------------
+    const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
+    const ICO_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
+    function startFrom(sec) {
+      if (!workBuffer) return;
+      const until = selEnd * workBuffer.duration;
+      $('ed-play-ico').innerHTML = ICO_PAUSE;
+      setPlayhead(sec / workBuffer.duration);
+      player.play(
+        workBuffer,
+        // ВНИМАНИЕ: движок передаёт сюда ДОЛЮ от длительности (played / duration), а не
+        // секунды. Делить её на длительность ещё раз -- ровно та ошибка, из-за которой
+        // бегунок полз в восемь раз медленнее и не останавливался на конце выделения.
+        (frac) => {
+          setPlayhead(frac);
+          if (frac * workBuffer.duration >= until - 0.02) stopPlayback();
+        },
+        () => stopPlayback(),
+        sec,
+        buildChain
+      );
+    }
+
+    function stopPlayback() {
+      player.stop();
+      $('ed-play-ico').innerHTML = ICO_PLAY;
+      $('ed-playhead').style.display = 'none';
+      player.reset();
+    }
+
+    $('ed-play').addEventListener('click', () => {
+      if (busy) return;
+      player.unlock();
+      if (!workBuffer) return;
+      if (player.isPlaying()) {
+        player.pause();
+        $('ed-play-ico').innerHTML = ICO_PLAY;
+        return;
+      }
+      // Пауза продолжает с того места, где остановились; с нуля начинаем только если
+      // играть ещё не начинали.
+      const pos = player.getPosition();
+      startFrom(pos > 0 ? pos : selStart * workBuffer.duration);
+    });
+
+    // Стоп -- не то же, что пауза: возвращает к началу выделения. Без него человек
+    // вынужден перематывать вручную, чтобы переслушать то же место ещё раз.
+    $('ed-stop').addEventListener('click', () => { if (!busy) stopPlayback(); });
+
+    // --- «Сбросить» и крестик ----------------------------------------------------------------
+    $('ed-reset').addEventListener('click', () => {
+      if (!originalBuffer) return;
+      player.stop();
+      $('ed-play-ico').innerHTML = ICO_PLAY;
+      baseBuffer = originalBuffer;
+      workBuffer = originalBuffer;
+      selStart = 0; selEnd = 1;
+      live.speed = 1; live.pitch = 0;
+      live.gain = 1; live.eq = new Array(10).fill(0); live.compOn = false;
+      live.fadeIn = 0; live.fadeOut = 0;
+      renderPanel();
+      redraw();
+    });
+
+    $('ed-close').addEventListener('click', () => {
+      player.stop();
+      originalBuffer = null; baseBuffer = null; workBuffer = null; fileName = '';
+      root.classList.remove('on');
+      $('ed-drop').style.display = '';
+      $('ed-file').value = '';
+      showError('');
+    });
+
+    // --- скачивание ---------------------------------------------------------------------------
+    $('ed-save').addEventListener('click', async () => {
+      if (!workBuffer) return;
+      const fmt = $('ed-fmt').value;
+      const btn = $('ed-save-label');
+      const was = btn.textContent;
+      btn.textContent = lbl('edPreparing', 'Готовим…');
+      try {
+        const baked = await bakeLive(workBuffer);
+        const blob = fmt === 'mp3' ? await encodeMP3(baked, 192) : encodeWAV(baked);
+        const base = (fileName || 'audio').replace(/\.[^.]+$/, '');
+        downloadBlob(blob, `${base}-opitro.${fmt}`);
+      } catch (e) {
+        showError(lbl('edSaveError', 'Не удалось сохранить. Попробуйте ещё раз.'));
+      } finally {
+        btn.textContent = was;
+      }
+    });
+
+    // Живые настройки сводим в звук ОДИН раз, при скачивании. До этого момента файл не
+    // пересчитывался ни разу -- поэтому сколько бы вкладок ни трогали, качество то же.
+    async function bakeLive(buf) {
+      let b = buf;
+      if (live.fadeIn || live.fadeOut) b = await applyFade(b, live.fadeIn, live.fadeOut);
+      const noEq = live.eq.every((v) => v === 0);
+      if (Math.abs(live.gain - 1) < 0.001 && noEq && !live.compOn && !live.pitch) return b;
+      buf = b;
+      const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      // При сдвиге высоты запись становится короче или длиннее -- отводим под неё
+      // соответствующую длину, иначе конец обрежется молча.
+      const rate = Math.pow(2, live.pitch / 12);
+      const off = new OC(buf.numberOfChannels, Math.max(1, Math.ceil(buf.length / rate)), buf.sampleRate);
+      const src = off.createBufferSource();
+      src.buffer = buf;
+      const out = buildChain(off, src);
+      out.connect(off.destination);
+      src.start();
+      return off.startRendering();
+    }
+
+    // --- органы управления панелей -------------------------------------------------------------
+    function wirePanel() {
+      const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
+
+      // эквалайзер: слышно сразу, звук не пересчитывается
+      const eq = $('ed-eq');
+      if (eq) eq.addEventListener('input', (e) => {
+        const i = +e.target.dataset.b;
+        live.eq[i] = +e.target.value;
+        if (chainNodes && chainNodes.filters[i]) chainNodes.filters[i].gain.value = live.eq[i];
+        const chips = $('ed-eq-presets');
+        if (chips) chips.querySelectorAll('.ed-chip').forEach((c) => c.classList.remove('on'));
+      });
+      const presets = $('ed-eq-presets');
+      if (presets) presets.addEventListener('click', (e) => {
+        const c = e.target.closest('.ed-chip');
+        if (!c) return;
+        presets.querySelectorAll('.ed-chip').forEach((x) => x.classList.remove('on'));
+        c.classList.add('on');
+        live.eq = EQ_PRESETS[c.dataset.p].slice();
+        eq.querySelectorAll('input').forEach((inp, i) => { inp.value = live.eq[i]; });
+        if (chainNodes) chainNodes.filters.forEach((f, i) => { f.gain.value = live.eq[i]; });
+      });
+
+      // громкость: тоже живая
+      on('ed-vol', 'input', (e) => {
+        live.gain = 1 + (+e.target.value) / 100;
+        $('ed-vol-v').textContent = pctLabel(live.gain);
+        if (chainNodes) chainNodes.gain.gain.value = live.gain;
+        // Перерисовываем волну под новую громкость: слышно и видно одновременно.
+        redraw();
+      });
+
+      // компрессор: живой, включается первым же движением
+      [['ed-th', 'threshold', (v) => v + ' dB'], ['ed-ra', 'ratio', (v) => v + ':1'], ['ed-re', 'release', (v) => v + ' мс']]
+        .forEach(([id, key, fmt]) => on(id, 'input', (e) => {
+          const v = +e.target.value;
+          live.compOn = true;
+          live.comp[key] = key === 'release' ? v / 1000 : v;
+          $(id + '-v').textContent = fmt(v);
+        }));
+
+      // скорость: пересчитывает, поэтому отдельная кнопка «Применить»
+      on('ed-speed', 'input', (e) => {
+        const k = (+e.target.value) / 100;
+        $('ed-speed-v').textContent = k.toFixed(2) + '×';
+        const el = $('ed-speed-live');
+        if (el && workBuffer) el.textContent = `${fmtTime(workBuffer.duration)} → ${fmtTime(workBuffer.duration / k)}`;
+      });
+      on('ed-speed', 'change', async () => {
+        live.speed = (+$('ed-speed').value) / 100;
+        await withBusy(async () => { await rebuild(); });
+      });
+
+      on('ed-pitch', 'input', (e) => {
+        const v = +e.target.value;
+        $('ed-pitch-v').textContent = v > 0 ? '+' + v : String(v);
+        live.pitch = v;
+        // Меняем прямо у звучащего узла: слышно сразу, воспроизведение не прерывается.
+        if (liveSource && liveSource.detune) liveSource.detune.value = v * 100;
+        const el = $('ed-pitch-live');
+        if (el && workBuffer) el.textContent = fmtTime(workBuffer.duration) + ' -> ' + fmtTime(workBuffer.duration / Math.pow(2, v / 12));
+      });
+
+
+      on('ed-norm', 'input', (e) => { $('ed-norm-v').textContent = '−' + Math.abs(+e.target.value) + ' dB'; });
+      on('ed-apply-norm', 'click', async () => {
+        await withBusy(async () => {
+          const target = Math.pow(10, (+$('ed-norm').value) / 20);
+          const g = normalizeGain(peakOf(workBuffer), { target });
+          if (g !== 1) { baseBuffer = scaleVolume(baseBuffer, g); await rebuild(); }
+        });
+      });
+
+      // обрезка
+      on('ed-apply-trim', 'click', async () => {
+        if (selStart === 0 && selEnd === 1) return;
+        await withBusy(async () => {
+          baseBuffer = sliceBuffer(workBuffer, selStart * workBuffer.duration, selEnd * workBuffer.duration);
+          // Спад отсчитывался от ручек -- после обрезки ручки стали краями файла, поэтому
+          // накладываем его здесь же и снимаем переключатели: своё дело они сделали.
+          if (live.fadeIn || live.fadeOut) {
+            baseBuffer = await applyFade(baseBuffer, live.fadeIn, live.fadeOut);
+            live.fadeIn = 0; live.fadeOut = 0;
+          }
+          selStart = 0; selEnd = 1;
+          live.speed = 1; live.pitch = 0;
+          workBuffer = baseBuffer;
+        });
+      });
+      on('ed-cutmid', 'click', async () => {
+        if (selStart === 0 && selEnd === 1) return;
+        await withBusy(async () => {
+          const d = workBuffer.duration;
+          const head = sliceBuffer(workBuffer, 0, selStart * d);
+          const tail = sliceBuffer(workBuffer, selEnd * d, d);
+          baseBuffer = concat(head, tail);
+          workBuffer = baseBuffer;
+          selStart = 0; selEnd = 1;
+          live.speed = 1; live.pitch = 0;
+        });
+      });
+      // Переключатели, а не разовые действия: нажал -- кнопка осталась нажатой, спад
+      // нарисовался на волне от ручки обрезки. Нажал ещё раз -- снялся.
+      on('ed-fadein', 'click', () => { live.fadeIn = live.fadeIn ? 0 : fadeLen(); redraw(); renderPanel(); });
+      on('ed-fadeout', 'click', () => { live.fadeOut = live.fadeOut ? 0 : fadeLen(); redraw(); renderPanel(); });
+      const fi = $('ed-fadein'), fo = $('ed-fadeout');
+      if (fi && live.fadeIn) fi.classList.add('ed-on');
+      if (fo && live.fadeOut) fo.classList.add('ed-on');
+    }
+
+    function concat(a, b) {
+      const ch = Math.max(a.numberOfChannels, b.numberOfChannels);
+      const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      const out = new OC(ch, a.length + b.length, a.sampleRate).createBuffer(ch, a.length + b.length, a.sampleRate);
+      for (let c = 0; c < ch; c++) {
+        const d = out.getChannelData(c);
+        d.set(a.getChannelData(Math.min(c, a.numberOfChannels - 1)), 0);
+        d.set(b.getChannelData(Math.min(c, b.numberOfChannels - 1)), a.length);
+      }
+      return out;
+    }
+
+    // Пересобираем слышимое из базы. Порядок важен: сначала растяжение по времени, потом
+    // сдвиг высоты -- обратный порядок даёт другой результат при тех же цифрах на ползунках.
+    // Высоты тона здесь НЕТ намеренно. Она меняется как на пластинке -- средствами самого
+    // браузера (detune на узле воспроизведения), без единого расчёта: крутится мгновенно и
+    // прямо во время звучания, запись не прерывается. Плата -- длительность едет вместе с
+    // высотой, ровно как у конкурента. Скорость осталась пересчётом, потому что она наоборот
+    // сохраняет высоту -- иначе оба ползунка делали бы одно и то же.
+    async function rebuild() {
+      let b = baseBuffer;
+      if (Math.abs(live.speed - 1) > 0.001) b = await wsolaStretchChunked(b, 1 / live.speed, showBusy);
+      workBuffer = b;
+      showBusy(null);
+    }
+
+    // Полоса поверх волны: пока идёт пересчёт, видно, что работа идёт и сколько осталось.
+    // Без неё пауза читается как поломка -- ровно то, на что владелец и пожаловался.
+    function showBusy(frac) {
+      const el = $('ed-busy');
+      if (!el) return;
+      if (frac == null) { el.style.display = 'none'; return; }
+      el.style.display = 'flex';
+      el.querySelector('i').style.width = Math.round(Math.max(0, Math.min(1, frac)) * 100) + '%';
+    }
+
+    async function withBusy(fn) {
+      if (busy) return;
+      busy = true;
+      root.classList.add('is-busy');
+      player.stop();
+      $('ed-play-ico').innerHTML = ICO_PLAY;
+      $('ed-playhead').style.display = 'none';
+      try { await fn(); redraw(); renderPanel(); }
+      catch (e) { showError(lbl('edOpError', 'Не получилось применить. Попробуйте ещё раз.')); }
+      finally {
+        // Звук после пересчёта -- уже другой буфер. Что бы ни оставалось играть, оно играет
+        // старое; останавливаем и приводим кнопку в согласие с тем, что слышно.
+        busy = false;
+        root.classList.remove('is-busy');
+        showBusy(null);
+        stopPlayback();
+      }
+    }
+
+    // --- ручки обрезки на волне ------------------------------------------------------------------
+    let drag = null, dragFrom = 0, dragSpan = 0, downAt = 0, moved = false;
+    // Пока идёт пересчёт, звук остановлен, и кнопка воспроизведения без этого замка считала,
+    // что играть нечего, и ЗАПУСКАЛА вместо остановки. Отсюда «нажал паузу -- заиграло».
+    let busy = false;
+    $('ed-wave').addEventListener('pointerdown', (e) => {
+      if (!workBuffer || busy) return;
+      const r = $('ed-wave').getBoundingClientRect();
+      const x = (e.clientX - r.left) / r.width;
+      // Порог в ТОЧКАХ, а не в долях длительности: доля 0.05 на часовой лекции -- это три
+      // минуты, и ручка ловилась бы за полэкрана до себя.
+      const grab = 16 / r.width;
+      const dl = Math.abs(x - selStart), dr = Math.abs(x - selEnd);
+      if (Math.min(dl, dr) <= grab) {
+        drag = dl < dr ? 'start' : 'end';
+      } else if (x > selStart && x < selEnd) {
+        // Тот же приём, что в обрезке: тянем всё выделение целиком, не трогая его длину.
+        drag = 'move';
+        dragFrom = x;
+        dragSpan = selEnd - selStart;
+      } else {
+        drag = 'move';
+        dragFrom = x;
+        dragSpan = selEnd - selStart;
+      }
+      // Клик и перетаскивание различаем по пройденному пути, а не по месту нажатия.
+      // Раньше при выделении на весь файл (а это состояние по умолчанию) любая точка
+      // считалась «внутри», клик уходил в перетаскивание, и перемотка не работала никогда.
+      downAt = x;
+      moved = false;
+      // Захват указателя -- удобство (палец может уехать за пределы волны), а не необходимость.
+      // Браузер отказывает, если указателя с таким номером уже нет; падать из-за этого нельзя.
+      try { $('ed-wave').setPointerCapture(e.pointerId); } catch (err) {}
+    });
+    $('ed-wave').addEventListener('pointermove', (e) => {
+      if (!drag) return;
+      const r = $('ed-wave').getBoundingClientRect();
+      const x = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+      if (Math.abs(x - downAt) > 0.004) moved = true;
+      if (drag === 'move' && !moved) return;
+      if (drag === 'move') {
+        const s0 = Math.max(0, Math.min(1 - dragSpan, selStart + (x - dragFrom)));
+        selStart = s0; selEnd = s0 + dragSpan;
+        dragFrom = x;
+      } else if (drag === 'start') selStart = Math.min(x, selEnd - 0.01);
+      else selEnd = Math.max(x, selStart + 0.01);
+      redraw();
+    });
+    // Полоса за курсором и часы над ней. Не изобретено здесь заново: ровно тот же приём,
+    // что в компактной панели плеера (AudioTool.astro, #wave-guide/#wave-tip) -- включая
+    // прижатие подсказки к краям, иначе у начала и конца дорожки её срезает рамкой.
+    $('ed-wave').addEventListener('mousemove', (e) => {
+      if (!workBuffer) return;
+      const r = $('ed-wave').getBoundingClientRect();
+      const x = Math.max(0, Math.min(r.width, e.clientX - r.left));
+      const guide = $('ed-guide'), tip = $('ed-tip');
+      guide.style.left = x + 'px';
+      guide.style.display = 'block';
+      tip.textContent = fmtTime((x / r.width) * workBuffer.duration);
+      tip.style.display = 'block';
+      const half = tip.offsetWidth / 2;
+      tip.style.left = Math.max(half + 2, Math.min(r.width - half - 2, x)) + 'px';
+    });
+    $('ed-wave').addEventListener('mouseleave', () => {
+      $('ed-guide').style.display = 'none';
+      $('ed-tip').style.display = 'none';
+    });
+
+    $('ed-wave').addEventListener('pointerup', () => {
+      if (drag && !moved && workBuffer && !busy) {
+        player.unlock();
+        startFrom(downAt * workBuffer.duration);
+      }
+      drag = null;
+    });
+
+    addEventListener('resize', () => { if (workBuffer) redraw(); });
+  }
+</script>

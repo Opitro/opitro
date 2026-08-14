@@ -118,7 +118,16 @@ export async function resampleBuffer(buffer, targetRate) {
 // what's already been synthesized, then overlap-add with a Hann window. Parameters are tuned
 // conservatively (small search radius, capped comparison length) since this runs synchronously
 // on the main thread and a multi-minute file needs to stay well under a few seconds.
-export function wsolaStretch(buffer, stretchFactor) {
+//
+// Внутри -- генератор, а не обычная функция. Из него сделаны ДВА входа с одной и той же
+// математикой: обычный `wsolaStretch` (как было, 33 инструмента ничего не заметили) и
+// `wsolaStretchChunked`, который уступает браузеру между порциями кадров.
+//
+// Зачем уступать: расчёт занимает ~770 мс на минуту записи (замерено 14.08.2026). Пока он
+// идёт одним куском, страница не отвечает вообще -- на песне это три секунды мёртвого
+// экрана, на лекции тридцать. Разбиение на порции не делает расчёт быстрее (наоборот, чуть
+// медленнее), но между порциями браузер успевает нарисовать кадр, и страница остаётся живой.
+function* wsolaCore(buffer, stretchFactor) {
   if (!isFinite(stretchFactor) || stretchFactor <= 0 || Math.abs(stretchFactor - 1) < 0.001) return buffer;
   const sr = buffer.sampleRate;
   const frameSize = Math.max(64, Math.round(sr * 0.03));
@@ -137,6 +146,7 @@ export function wsolaStretch(buffer, stretchFactor) {
   const win = new Float32Array(frameSize);
   for (let i = 0; i < frameSize; i++) win[i] = 0.5 - 0.5 * Math.cos((2 * Math.PI * i) / (frameSize - 1));
 
+  let frames = 0;
   for (let c = 0; c < ch; c++) {
     const src = buffer.getChannelData(c);
     const dst = out.getChannelData(c);
@@ -165,10 +175,38 @@ export function wsolaStretch(buffer, stretchFactor) {
       }
       inPos += analysisHop;
       outPos += synthHop;
+      // Точка передышки. Раз в 200 кадров сообщаем, сколько сделано, и отдаём управление --
+      // синхронный вход это место просто пробегает, ничего не теряя.
+      if ((++frames % 200) === 0) yield (c + outPos / outLen) / ch;
     }
     for (let i = 0; i < outLen; i++) if (weight[i] > 0.0001) dst[i] /= weight[i];
   }
   return out;
+}
+
+/** Как было: считает целиком и возвращает результат. Для 33 инструментов ничего не изменилось. */
+export function wsolaStretch(buffer, stretchFactor) {
+  const it = wsolaCore(buffer, stretchFactor);
+  let r = it.next();
+  while (!r.done) r = it.next();
+  return r.value;
+}
+
+/**
+ * То же самое, но с передышками: страница остаётся отзывчивой, а `onProgress(доля)`
+ * позволяет показать ход работы. Ждать результат обязательно через await.
+ */
+export async function wsolaStretchChunked(buffer, stretchFactor, onProgress) {
+  const it = wsolaCore(buffer, stretchFactor);
+  let r = it.next();
+  while (!r.done) {
+    if (onProgress) onProgress(r.value);
+    // Уступаем именно кадру отрисовки, а не таймеру: так браузер успевает перерисовать
+    // страницу до следующей порции, и полоса выполнения двигается плавно.
+    await new Promise((res) => requestAnimationFrame(() => res()));
+    r = it.next();
+  }
+  return r.value;
 }
 
 // Resample (linear interpolation) without preserving duration -- the "naive" transform that
@@ -195,6 +233,13 @@ export function resampleLinear(buffer, rateFactor) {
 // Pitch-shift by `semitones` while keeping the original duration: resample to shift pitch
 // (which also changes length), then WSOLA-stretch back to the original length so only the
 // pitch actually changed, not the tempo.
+/** Сдвиг высоты с передышками -- та же математика, что у `pitchShift`, но страница живая. */
+export async function pitchShiftChunked(buffer, semitones, onProgress) {
+  if (!semitones) return buffer;
+  const rate = Math.pow(2, semitones / 12);
+  return wsolaStretchChunked(resampleLinear(buffer, rate), rate, onProgress);
+}
+
 export function pitchShift(buffer, semitones) {
   if (!semitones) return buffer;
   const resampled = resampleLinear(buffer, Math.pow(2, semitones / 12));
@@ -204,7 +249,12 @@ export function pitchShift(buffer, semitones) {
 // Reads its own CSS height (falls back to the classic 130px) rather than hardcoding one size,
 // so a smaller waveform (e.g. the compact inline preview) just needs a shorter CSS height and
 // draws correctly at that size -- no separate drawing code path needed.
-export function drawWaveform(canvas, buffer) {
+// `label`, когда передан, пишет имя файла ПОД столбиками, у верхнего края холста. Именно
+// под, а не над: надпись поверх волны читается как наклейка, а отдельной строкой над плеером
+// съедает место. У верхнего края столбиков почти нет, поэтому там она видна и не мешает.
+// Довод необязательный -- 33 инструмента, которые его не передают, рисуются как прежде.
+export function drawWaveform(canvas, buffer, label, opts = {}) {
+  const gain = opts.gain || 1;
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
   const cssHeight = rect.height || 130;
@@ -214,6 +264,15 @@ export function drawWaveform(canvas, buffer) {
   const W = canvas.width;
   const H = canvas.height;
   g.clearRect(0, 0, W, H);
+  if (label) {
+    g.save();
+    g.font = `600 ${Math.round(13 * dpr)}px -apple-system,BlinkMacSystemFont,"Segoe UI",Roboto,sans-serif`;
+    g.textAlign = 'center';
+    g.textBaseline = 'top';
+    g.fillStyle = 'rgba(240,240,242,0.62)';
+    g.fillText(label, W / 2, Math.round(7 * dpr));
+    g.restore();
+  }
   const data = buffer.getChannelData(0);
 
   // Столбики с зазором, а не сплошная заливка по пикселю. Сплошная заливка на длинном файле
@@ -229,6 +288,61 @@ export function drawWaveform(canvas, buffer) {
   // Ось по центру: в звуковых редакторах она есть всегда, и именно она читается как «прибор».
   g.fillStyle = 'rgba(255,255,255,.07)';
   g.fillRect(0, Math.round(mid), W, Math.max(1, Math.round(dpr)));
+
+  // Плоская заливка читается как схема. Переливом по высоте волна получает объём: ярче у
+  // оси, мягче к краям -- глаз видит форму звука, а не набор палочек. Довод необязательный:
+  // 33 инструмента, которые его не просят, рисуются ровно как прежде.
+  if (opts.rich) {
+    // Сплошной силуэт вместо палочек.
+    //
+    // Прежняя отрисовка -- столбик 2 точки, промежуток 1 -- давала гребёнку: на экране видны
+    // отдельные палочки, и волна читается как пиксельная. Здесь берём ОДНУ точку экрана на
+    // столбец и обводим огибающую единым контуром: сверху слева направо по максимумам,
+    // снизу справа налево по минимумам. Край получается линией, а не забором.
+    //
+    // Старое предупреждение «сплошная заливка сливается в мутное пятно» относилось к заливке
+    // ПО ПИКСЕЛЮ одним плоским цветом. Здесь спасают две вещи: тональный переход по высоте
+    // и то, что контур строится по настоящим минимуму и максимуму, а не по среднему.
+    const grad = g.createLinearGradient(0, 0, 0, H);
+    grad.addColorStop(0, '#1f6b4a');
+    grad.addColorStop(0.5, '#3aa771');
+    grad.addColorStop(1, '#1f6b4a');
+    g.fillStyle = grad;
+
+    const n = Math.max(1, Math.floor(W));
+    const per = Math.max(1, Math.floor(data.length / n));
+    const top = new Float32Array(n);
+    const bot = new Float32Array(n);
+    for (let c = 0; c < n; c++) {
+      let min = 1, max = -1;
+      const from = c * per;
+      for (let j = 0; j < per; j++) {
+        const d = data[from + j] || 0;
+        if (d < min) min = d;
+        if (d > max) max = d;
+      }
+      if (max < min) { min = 0; max = 0; }
+      // Ползунок громкости МАСШТАБИРУЕТ рисунок, а не пересчитывает звук: волна толстеет
+      // и худеет вместе с ним мгновенно, потому что тут нет никакой обработки -- только
+      // умножение при отрисовке. Именно так это и выглядит у конкурента.
+      min *= gain; max *= gain;
+      if (min < -1) min = -1;
+      if (max > 1) max = 1;
+      // Пол в одну точку: на полной тишине контур не должен схлопнуться в невидимую нить --
+      // тогда пропадает сама дорожка, и кажется, что файл не загрузился.
+      const half = Math.max(dpr * 0.5, 0);
+      top[c] = Math.min(mid - half, mid - max * mid);
+      bot[c] = Math.max(mid + half, mid - min * mid);
+    }
+
+    g.beginPath();
+    g.moveTo(0, top[0]);
+    for (let c = 1; c < n; c++) g.lineTo(c, top[c]);
+    for (let c = n - 1; c >= 0; c--) g.lineTo(c, bot[c]);
+    g.closePath();
+    g.fill();
+    return;
+  }
 
   g.fillStyle = 'rgba(74,222,158,.62)';
   for (let c = 0; c < cols; c++) {
