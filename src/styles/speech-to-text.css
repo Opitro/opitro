@@ -1,7 +1,10 @@
-.stt-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+/* Размер зоны загрузки одинаков на всех аудиостраницах: 52px отступы, значок 42,
+     заголовок 17. Утверждён владельцем на редакторе -- это вход в инструмент, главное
+     действие страницы, и оно должно занимать место соответственно. */
+  .stt-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
   .stt-tool .drop:hover,.stt-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
-  .stt-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
-  .stt-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .stt-tool .drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
+  .stt-tool .drop .big{font-size:17px;font-weight:600;margin-bottom:4px}
   .stt-tool .drop .small{font-size:12px;color:var(--muted)}
   .stt-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
   .stt-tool input[type=file]{display:none}

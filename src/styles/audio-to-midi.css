@@ -2,10 +2,13 @@
      audio tools -- same measurements, same radii, same hover colours. Copied rather than shared
      because Astro only ships a component's styles when that component is on the page, and this
      tool never renders AudioTool. */
-  .midi-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:32px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
+  /* Размер зоны загрузки одинаков на всех аудиостраницах: 52px отступы, значок 42,
+     заголовок 17. Утверждён владельцем на редакторе -- это вход в инструмент, главное
+     действие страницы, и оно должно занимать место соответственно. */
+  .midi-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
   .midi-tool .drop:hover,.midi-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
-  .midi-tool .drop svg{width:34px;height:34px;color:var(--accent);margin-bottom:10px}
-  .midi-tool .drop .big{font-size:15px;font-weight:600;margin-bottom:4px}
+  .midi-tool .drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
+  .midi-tool .drop .big{font-size:17px;font-weight:600;margin-bottom:4px}
   .midi-tool .drop .small{font-size:12px;color:var(--muted)}
   .midi-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
   .midi-tool input[type=file]{display:none}
