@@ -347,6 +347,8 @@ ok('черта нуля совпадает с ручкой', midOff != null && m
 
 // Область захвата ползунка -- не меньше 44 точек: столько нужно пальцу. Раньше она
 // совпадала с шириной дорожки, и по вертикальной полосе приходилось попадать точно.
+await q(`document.querySelector('.ed-tool[data-id="equalizer"]')?.click()`);
+await sleep(600);
 const grab = await q(`(()=>{const i=document.querySelector('#ed-eq input');
   if(!i) return null; const r=i.getBoundingClientRect();
   return {w:Math.round(r.width), h:Math.round(r.height)}})()`);
