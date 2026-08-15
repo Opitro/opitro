@@ -78,12 +78,15 @@
 .audio-editor .ed-close svg{width:15px;height:15px}
 
 /* --- волна ---------------------------------------------------------------------------- */
-.audio-editor .ed-wave{position:relative;background:#0a0b0d;border:1px solid var(--line);
+.audio-editor .ed-wave{position:relative;background:#000;border:1px solid var(--line);
   border-radius:12px;overflow:hidden;user-select:none;cursor:pointer}
 .audio-editor .ed-wave canvas{display:block;width:100%;height:150px}
 /* Имя файла НЕ отдельным слоем: оно рисуется на холсте до столбиков, у верхнего края, где
    их почти нет. Так оно читается, остаётся позади волны и не занимает ни одной строки. */
-.audio-editor .ed-sel{position:absolute;top:0;bottom:0;background:rgba(74,222,158,0.10);
+/* Без заливки: зелёная плёнка поверх выделения давала фоновое свечение и мешала читать
+   саму волну. Что выбрано, и так видно -- за ручками волна приглушена, между ними полная.
+   Границы и ручки остаются, они и очерчивают область. */
+.audio-editor .ed-sel{position:absolute;top:0;bottom:0;background:transparent;
   border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab}
 .audio-editor .ed-sel:active{cursor:grabbing}
 /* Ручка обрезки -- рабочий инструмент, а не черта на картинке. Широкая область захвата
