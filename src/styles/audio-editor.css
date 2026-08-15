@@ -374,3 +374,33 @@
   .audio-editor .ed-band{flex:0 0 19%}
   .audio-editor .ed-band input[type=range]{height:76px}
 }
+
+/* --- Отклик ползунка: заливка, цвет ручки, подсказка -----------------------------------
+   Пока движок стоит в нуле, он белый и дорожка тёмная -- «ничего не меняем». Как только
+   отклонился, дорожка от середины до ручки заливается зелёным, а сама ручка зеленеет:
+   видно и КУДА крутили, и НА СКОЛЬКО, не читая цифр. Вернули в ноль -- всё гаснет.
+   Заливка рисуется на дорожке из переменной --fill, которую ставит скрипт: у системного
+   ползунка нет способа покрасить только часть хода в обе стороны от середины. */
+.audio-editor input[type=range]{--fill:none}
+.audio-editor input[type=range]::-webkit-slider-runnable-track{background-image:var(--fill)}
+.audio-editor input[type=range]::-moz-range-track{background-image:var(--fill)}
+
+.audio-editor input[type=range].is-moved::-webkit-slider-thumb{
+  background:linear-gradient(180deg,#8ff0c4,var(--accent));border-color:rgba(0,0,0,.5)}
+.audio-editor input[type=range].is-moved::-moz-range-thumb{
+  background:linear-gradient(180deg,#8ff0c4,var(--accent));border-color:rgba(0,0,0,.5)}
+
+/* Подсказка со значением -- только пока тянут. Постоянная цифра рядом с каждым из десяти
+   движков превратила бы панель в таблицу. */
+.audio-editor .ed-fader{--tip:''}
+.audio-editor .ed-fader::after{content:var(--tip);position:absolute;left:50%;top:-4px;
+  transform:translate(-50%,-100%);white-space:nowrap;pointer-events:none;opacity:0;
+  transition:opacity .12s;background:#0a0b0d;border:1px solid var(--line);border-radius:7px;
+  padding:2px 7px;font-size:11.5px;font-weight:700;color:var(--accent);
+  font-variant-numeric:tabular-nums;z-index:4}
+.audio-editor .ed-fader.is-dragging::after{opacity:1}
+
+/* Дорожка выше: тянуть длинный ход точнее, и палец не проскакивает мимо. */
+@media(max-width:759px){
+  .audio-editor .ed-band input[type=range]{height:108px}
+}

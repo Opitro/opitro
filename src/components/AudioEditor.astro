@@ -271,9 +271,38 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       radio:  [-8, -6, -2, 3, 5, 4, 2, -2, -6, -8],
     };
 
+    // Заливка дорожки и подсказка. Считаются от СЕРЕДИНЫ, а не от края: у эквалайзера,
+    // громкости и высоты тона ноль посередине, и заливка «слева направо» врала бы.
+    function paintSlider(el, centerVal, fmt) {
+      const min = +el.min, max = +el.max, v = +el.value;
+      const c = centerVal == null ? min : centerVal;
+      const pos = (x) => ((x - min) / (max - min)) * 100;
+      const a = Math.min(pos(c), pos(v)), b = Math.max(pos(c), pos(v));
+      const vertical = el.closest('.ed-fader');
+      // У вертикальных полос ноль внизу шкалы соответствует НИЗУ дорожки, поэтому
+      // направление заливки обратное.
+      const dir = vertical ? 'to top' : 'to right';
+      el.style.setProperty('--fill', Math.abs(b - a) < 0.5 ? 'none'
+        : `linear-gradient(${dir},transparent ${a}%,var(--accent) ${a}%,var(--accent) ${b}%,transparent ${b}%)`);
+      el.classList.toggle('is-moved', Math.abs(v - c) > 0.001);
+      const holder = vertical || el.closest('.ed-row');
+      if (holder && fmt) holder.style.setProperty('--tip', JSON.stringify(fmt(v)));
+    }
+
+    // Подсказка живёт только пока тянут -- постоянные цифры у десяти движков превратили бы
+    // панель в таблицу.
+    panel.addEventListener('pointerdown', (e) => {
+      const h = e.target.closest && e.target.closest('.ed-fader, .ed-row');
+      if (h && e.target.tagName === 'INPUT') h.classList.add('is-dragging');
+    });
+    ['pointerup', 'pointercancel'].forEach((ev) => panel.addEventListener(ev, () => {
+      panel.querySelectorAll('.is-dragging').forEach((h) => h.classList.remove('is-dragging'));
+    }));
+
     function renderPanel() {
       panel.innerHTML = PANELS[active] ? PANELS[active]() : '';
       wirePanel();
+      repaintAll();
       fitTools();
       syncStamps();
     }
@@ -648,6 +677,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     }
 
     // --- органы управления панелей -------------------------------------------------------------
+    function repaintAll() {
+      panel.querySelectorAll('#ed-eq input').forEach((el) => paintSlider(el, 0, (v) => (v > 0 ? '+' : '') + v + ' dB'));
+      const vol = $('ed-vol'); if (vol) paintSlider(vol, 0, (v) => (v > 0 ? '+' : '') + v + ' %');
+      const pit = $('ed-pitch'); if (pit) paintSlider(pit, 0, (v) => (v > 0 ? '+' : '') + v);
+      const spd = $('ed-speed'); if (spd) paintSlider(spd, 100, (v) => (v / 100).toFixed(2) + '×');
+    }
+
     function wirePanel() {
       const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
 
@@ -656,6 +692,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       if (eq) eq.addEventListener('input', (e) => {
         const i = +e.target.dataset.b;
         live.eq[i] = +e.target.value;
+        paintSlider(e.target, 0, (v) => (v > 0 ? '+' : '') + v + ' dB');
         if (chainNodes && chainNodes.filters[i]) chainNodes.filters[i].gain.value = live.eq[i];
         const chips = $('ed-eq-presets');
         if (chips) chips.querySelectorAll('.ed-chip').forEach((c) => c.classList.remove('on'));
@@ -675,6 +712,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       on('ed-vol', 'input', (e) => {
         live.gain = 1 + (+e.target.value) / 100;
         $('ed-vol-v').textContent = pctLabel(live.gain);
+        paintSlider(e.target, 0, (v) => (v > 0 ? '+' : '') + v + ' %');
         if (chainNodes) chainNodes.gain.gain.value = live.gain;
         // Не чаще одного кадра: ползунок шлёт события пачками, и рисовать на каждое --
         // значит соревноваться с самим собой.
@@ -697,6 +735,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         // файл остаётся прежней длины -- и человек об этом узнаёт уже дома.
         live.speed = k;
         $('ed-speed-v').textContent = k.toFixed(2) + '×';
+        paintSlider(e.target, 100, (v) => (v / 100).toFixed(2) + '×');
         if (node) node.parameters.get('speed').value = k;
         // Огибающая была расписана под прежнюю скорость -- переписываем от текущего места.
         if (playing) scheduleFades(lastPos);
@@ -708,6 +747,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       on('ed-pitch', 'input', (e) => {
         const v = +e.target.value;
         $('ed-pitch-v').textContent = v > 0 ? '+' + v : String(v);
+        paintSlider(e.target, 0, (x) => (x > 0 ? '+' : '') + x);
         live.pitch = v;
         // Меняем прямо у звучащего узла: слышно сразу, воспроизведение не прерывается.
         if (node) node.parameters.get('pitchRatio').value = Math.pow(2, v / 12);
