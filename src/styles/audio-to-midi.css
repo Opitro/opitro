@@ -209,3 +209,21 @@
     .midi-tool .score-paper { padding: 0; overflow: visible; }
     .midi-tool .score-actions, .midi-tool #mt-view-score .roll-hint { display: none; }
   }
+
+/* Ползунки на телефоне: область захвата больше, чем видимая полоска.
+   Две причины, по которым палец «не цеплялся»:
+   1. `touch-action` -- первое касание уходило в ПРОКРУТКУ страницы, а не в ползунок:
+      браузер ждал, потянут вниз или вбок, и первое движение съедалось. `none` отдаёт
+      касание ползунку сразу.
+   2. Область нажатия совпадала с полоской в несколько точек. Высота (у вертикальных --
+      ширина) увеличена до 44 точек: браузер рисует дорожку прежней толщины и центрирует
+      её, а нажимается вся коробка. Видимый размер НЕ меняется, меняется только то,
+      куда можно попасть. 44 точки -- общепринятая наименьшая цель для пальца. */
+  .midi-tool input[type=range]{touch-action:none}
+@media(max-width:759px){
+    .midi-tool input[type=range]{height:44px}
+    .midi-tool input[type=range][style*="vertical"],
+    .midi-tool .ed-band input[type=range],
+    .midi-tool .eq-band input[type=range]{height:auto;width:44px}
+}
+

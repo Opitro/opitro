@@ -178,7 +178,7 @@
   .audio-editor .ed-fmt{flex:0 0 auto}
   .audio-editor .ed-save{flex:1;justify-content:center}
   .audio-editor .ed-stamps{flex:1 1 100%;justify-content:center}
-  .audio-editor .ed-band input{height:88px}
+  .audio-editor .ed-band input{height:88px;width:44px}
   .audio-editor .ed-row label{flex:0 0 84px}
   .audio-editor .ed-panel{margin-top:12px;padding-top:12px}
 }
@@ -253,3 +253,63 @@
 .audio-editor.is-busy .ed-deck,
 .audio-editor.is-busy .ed-panel{opacity:.45;pointer-events:none}
 .audio-editor.is-busy .ed-wave{cursor:progress}
+
+/* Ползунки на телефоне: область захвата больше, чем видимая полоска.
+   Две причины, по которым палец «не цеплялся»:
+   1. `touch-action` -- первое касание уходило в ПРОКРУТКУ страницы, а не в ползунок:
+      браузер ждал, потянут вниз или вбок, и первое движение съедалось. `none` отдаёт
+      касание ползунку сразу.
+   2. Область нажатия совпадала с полоской в несколько точек. Высота (у вертикальных --
+      ширина) увеличена до 44 точек: браузер рисует дорожку прежней толщины и центрирует
+      её, а нажимается вся коробка. Видимый размер НЕ меняется, меняется только то,
+      куда можно попасть. 44 точки -- общепринятая наименьшая цель для пальца. */
+.audio-editor input[type=range]{touch-action:none}
+@media(max-width:759px){
+  .audio-editor input[type=range]{height:44px}
+  .audio-editor input[type=range][style*="vertical"],
+  .audio-editor .ed-band input[type=range],
+  .audio-editor .eq-band input[type=range]{height:auto;width:44px}
+}
+
+/* --- Вид ползунков: как у настоящих фейдеров -----------------------------------------
+   Системный вид у всех браузеров свой и всегда выглядит «как в форме», а не как прибор.
+   Здесь: тонкая утопленная дорожка и плотная ручка со светом сверху и тенью снизу --
+   так рисуют движки в звуковых программах, и палец сразу понимает, за что браться.
+   Область захвата при этом остаётся большой (см. правило выше) -- ручка маленькая,
+   нажимается вся коробка. */
+.audio-editor input[type=range]{-webkit-appearance:none;appearance:none;background:transparent}
+
+.audio-editor input[type=range]::-webkit-slider-runnable-track{
+  height:4px;border-radius:3px;
+  background:linear-gradient(180deg,#0a0b0d,#15171c);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.04)}
+.audio-editor input[type=range]::-moz-range-track{
+  height:4px;border-radius:3px;background:#0f1114;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
+.audio-editor input[type=range]::-moz-range-progress{
+  height:4px;border-radius:3px;background:var(--accent)}
+
+.audio-editor input[type=range]::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+  margin-top:-7px;cursor:grab;
+  background:linear-gradient(180deg,#fdfdfe,#c9cfd8);
+  border:1px solid rgba(0,0,0,.55);
+  box-shadow:0 1px 3px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.9)}
+.audio-editor input[type=range]::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;cursor:grab;
+  background:linear-gradient(180deg,#fdfdfe,#c9cfd8);
+  border:1px solid rgba(0,0,0,.55);
+  box-shadow:0 1px 3px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.9)}
+.audio-editor input[type=range]:hover::-webkit-slider-thumb{border-color:var(--accent)}
+.audio-editor input[type=range]:active::-webkit-slider-thumb{cursor:grabbing;
+  box-shadow:0 0 0 4px rgba(74,222,158,.22),0 1px 3px rgba(0,0,0,.7)}
+.audio-editor input[type=range]:hover::-moz-range-thumb{border-color:var(--accent)}
+.audio-editor input[type=range]:active::-moz-range-thumb{cursor:grabbing;
+  box-shadow:0 0 0 4px rgba(74,222,158,.22),0 1px 3px rgba(0,0,0,.7)}
+
+/* Полосы эквалайзера -- вертикальные фейдеры: дорожка тоньше, ручка чуть вытянута,
+   как настоящий движок на пульте. */
+.audio-editor .ed-band input[type=range]::-webkit-slider-runnable-track{width:4px;height:auto}
+.audio-editor .ed-band input[type=range]::-webkit-slider-thumb{
+  width:22px;height:13px;border-radius:4px;margin-top:0;margin-left:-9px}
+.audio-editor .ed-band input[type=range]::-moz-range-thumb{width:22px;height:13px;border-radius:4px}
