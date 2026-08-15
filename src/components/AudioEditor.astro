@@ -268,16 +268,21 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
     let chainNodes = null, fadeGain = null;
     const peakCache = {};   // огибающая волны: считается один раз, переиспользуется
-    function buildChain(ctx, source) {
+    // `live` -- строим ли цепочку для ЗВУЧАЩЕГО тракта. При сведении для скачивания
+    // цепочка строится заново в отдельном движке, и её узлы НЕ должны подменять живые:
+    // иначе после скачивания регулировки уходят в мёртвые узлы, а живой узел фейда
+    // остаётся на нуле после спада -- и звука больше нет вообще.
+    function buildChain(ctx, source, isLive = true) {
       // Отдельный узел под фейды, первым в цепочке. Раньше спад накладывался ТОЛЬКО при
       // скачивании: на волне он рисовался, в файл попадал, а на слух его не было -- живая
       // цепочка про него просто не знала.
-      fadeGain = ctx.createGain();
-      fadeGain.gain.value = 1;
-      source.connect(fadeGain);
+      const fg = ctx.createGain();
+      fg.gain.value = 1;   // при сведении спад уже наложен applyFade, узел просто пропускает
+      if (isLive) fadeGain = fg;
+      source.connect(fg);
       const g = ctx.createGain();
       g.gain.value = live.gain;
-      fadeGain.connect(g);
+      fg.connect(g);
       let node = g;
       const filters = EQ_HZ.map((hz, i) => {
         const f = ctx.createBiquadFilter();
@@ -298,7 +303,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         node.connect(comp);
         node = comp;
       }
-      chainNodes = { gain: g, filters, comp };
+      if (isLive) chainNodes = { gain: g, filters, comp };
       return node;
     }
 
@@ -523,7 +528,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       }
       // Всегда от ручки обрезки; с места паузы -- только если оно внутри выделения.
       const from = selStart * workBuffer.duration, until = selEnd * workBuffer.duration;
-      await startFrom(pausedAt > from && pausedAt < until ? pausedAt : from);
+      await startFrom(pausedAt >= from && pausedAt < until ? pausedAt : from);
     });
 
     $('ed-stop').addEventListener('click', () => { if (!busy) stopPlayback(); });
@@ -599,7 +604,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const off = new OC(buf.numberOfChannels, buf.length, buf.sampleRate);
       const src = off.createBufferSource();
       src.buffer = buf;
-      const out = buildChain(off, src);
+      const out = buildChain(off, src, false);
       out.connect(off.destination);
       src.start();
       return off.startRendering();
@@ -846,8 +851,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     $('ed-wave').addEventListener('pointerup', () => {
       if (drag && !moved && workBuffer && !busy) {
-        player.unlock();
-        startFrom(downAt * workBuffer.duration);
+        // Клик только СТАВИТ бегунок. Играть начинает кнопка -- иначе случайное касание
+        // дорожки включает звук, а человек этого не просил.
+        pausedAt = downAt * workBuffer.duration;
+        lastPos = pausedAt;
+        setPlayhead(downAt);
+        if (playing) { node.port.postMessage({ type: 'seek', seconds: pausedAt }); scheduleFades(pausedAt); }
       }
       drag = null;
     });
