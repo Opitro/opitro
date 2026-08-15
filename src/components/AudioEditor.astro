@@ -471,10 +471,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         $('ed-play-ico').innerHTML = ICO_PLAY;
         return;
       }
-      // Пауза продолжает с того места, где остановились; с нуля начинаем только если
-      // играть ещё не начинали.
+      // Начинаем всегда ОТ РУЧКИ ОБРЕЗКИ, а не от начала файла. Пауза при этом продолжает
+      // с того места, где остановились -- но только если оно внутри выделения: ручку могли
+      // подвинуть, пока стояли на паузе, и тогда прежняя позиция уже вне того, что слушаем.
+      const from = selStart * workBuffer.duration;
+      const until = selEnd * workBuffer.duration;
       const pos = player.getPosition();
-      startFrom(pos > 0 ? pos : selStart * workBuffer.duration);
+      startFrom(pos > from && pos < until ? pos : from);
     });
 
     // Стоп -- не то же, что пауза: возвращает к началу выделения. Без него человек
