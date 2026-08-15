@@ -494,18 +494,21 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const k = Math.max(0.01, live.speed);
       const inEnd = selStart * workBuffer.duration + live.fadeIn;
       const outStart = selEnd * workBuffer.duration - live.fadeOut;
+      // Кривая ТА ЖЕ, что в applyFade при сведении: экспоненциальная, от 0.0001.
+      // Раньше здесь была прямая -- числа совпадали, а на слух спад в скачанном файле
+      // казался длиннее: экспонента дольше держится тихой. Владелец это и услышал.
       if (live.fadeIn && sec < inEnd) {
         // Начинаем не с нуля, если запуск попал в середину подъёма.
-        const from = Math.max(0, (sec - selStart * workBuffer.duration) / live.fadeIn);
+        const from = Math.max(0.0001, (sec - selStart * workBuffer.duration) / live.fadeIn);
         gp.setValueAtTime(from, t0);
-        gp.linearRampToValueAtTime(1, t0 + (inEnd - sec) / k);
+        gp.exponentialRampToValueAtTime(1, t0 + (inEnd - sec) / k);
       } else {
         gp.setValueAtTime(1, t0);
       }
       if (live.fadeOut) {
         const startAt = t0 + Math.max(0, (outStart - sec) / k);
         gp.setValueAtTime(1, startAt);
-        gp.linearRampToValueAtTime(0.0001, startAt + live.fadeOut / k);
+        gp.exponentialRampToValueAtTime(0.0001, startAt + live.fadeOut / k);
       }
     }
 
