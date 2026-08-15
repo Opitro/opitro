@@ -256,8 +256,8 @@ export function pitchShift(buffer, semitones) {
 // Мягкий предел высоты волны: линейно до порога, дальше плавный подход к потолку.
 // Вынесено из цикла отрисовки -- вызывается на каждый столбец, дважды.
 function softCap(v) {
-  const a = Math.abs(v) * 0.78;
-  const knee = 0.62, ceil = 0.95;
+  const a = Math.abs(v) * 0.64;
+  const knee = 0.52, ceil = 0.88;
   if (a <= knee) return v < 0 ? -a : a;
   const room = ceil - knee;
   const out = knee + room * (1 - Math.exp(-(a - knee) / room));
@@ -265,7 +265,9 @@ function softCap(v) {
 }
 
 export function drawWaveform(canvas, buffer, label, opts = {}) {
-  const gain = opts.gain || 1;
+  // НЕ `opts.gain || 1`: ноль в JavaScript считается «пусто», и на нулевой громкости
+  // подставлялась единица -- звук пропадал, а волна рисовалась как при обычной.
+  const gain = opts.gain == null ? 1 : opts.gain;
   const fade = opts.fade || null;
   const dpr = window.devicePixelRatio || 1;
   const rect = canvas.getBoundingClientRect();
