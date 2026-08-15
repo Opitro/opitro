@@ -510,3 +510,7 @@
      (enhance) has nothing to drag -- tap-to-seek only -- so it doesn't need the inset and can
      use the full width. */
   @media(max-width:640px){.audio-tool .wave-shell:not(.compact){margin-left:20px;margin-right:20px}}
+
+/* Поле только для показа: выглядит как значение, а не как то, что можно править. */
+.audio-tool .field input[type=number][readonly]{cursor:default;color:var(--accent);
+  background:var(--surface);border-color:rgba(255,255,255,0.06)}
