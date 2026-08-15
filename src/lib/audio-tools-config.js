@@ -661,7 +661,10 @@ export const AUDIO_TOOLS = {
     fadeRegions: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
-    readyNote: true,
+    // Строка «Эффекты готовы к сохранению» убрана по просьбе владельца: она лишняя.
+    // Человек и так видит, что фейд включён -- кнопка нажата, спад нарисован на волне.
+    // Флаг readyNote больше не выставляет НИКТО; сама разметка и её обработчик в
+    // AudioTool.astro оставлены нетронутыми, чтобы ничего не задеть.
     fadeMax: 15,
     fadePresets: [
       { key: 'soft', emoji: '🎵', label: 'fadeSoftStartLabel', fadeIn: 2, fadeOut: 0 },
