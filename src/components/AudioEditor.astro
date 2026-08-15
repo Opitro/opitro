@@ -266,14 +266,19 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // --- живая цепочка ---------------------------------------------------------------------
     // Узлы пересоздаются на каждое воспроизведение, но ссылки держим здесь, чтобы менять
     // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
-    let chainNodes = null;
+    let chainNodes = null, fadeGain = null;
     const peakCache = {};   // огибающая волны: считается один раз, переиспользуется
     function buildChain(ctx, source) {
+      // Отдельный узел под фейды, первым в цепочке. Раньше спад накладывался ТОЛЬКО при
+      // скачивании: на волне он рисовался, в файл попадал, а на слух его не было -- живая
+      // цепочка про него просто не знала.
+      fadeGain = ctx.createGain();
+      fadeGain.gain.value = 1;
+      source.connect(fadeGain);
       const g = ctx.createGain();
       g.gain.value = live.gain;
-      let node = source;
-      node.connect(g);
-      node = g;
+      fadeGain.connect(g);
+      let node = g;
       const filters = EQ_HZ.map((hz, i) => {
         const f = ctx.createBiquadFilter();
         f.type = i === 0 ? 'lowshelf' : i === EQ_HZ.length - 1 ? 'highshelf' : 'peaking';
@@ -466,11 +471,37 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       await ensureNode();
       node.parameters.get('speed').value = live.speed;
       node.parameters.get('pitchRatio').value = Math.pow(2, live.pitch / 12);
+      scheduleFades(sec);
       node.port.postMessage({ type: 'seek', seconds: sec });
       node.port.postMessage({ type: 'play' });
       playing = true;
       $('ed-play-ico').innerHTML = ICO_PAUSE;
       setPlayhead(sec / workBuffer.duration);
+    }
+
+    // Огибающая спада в секундах звукового движка, считая от момента запуска. Делим на
+    // скорость: при ускорении вдвое участок в две секунды звучит одну.
+    function scheduleFades(sec) {
+      if (!fadeGain || !actx) return;
+      const t0 = actx.currentTime;
+      const gp = fadeGain.gain;
+      gp.cancelScheduledValues(t0);
+      const k = Math.max(0.01, live.speed);
+      const inEnd = selStart * workBuffer.duration + live.fadeIn;
+      const outStart = selEnd * workBuffer.duration - live.fadeOut;
+      if (live.fadeIn && sec < inEnd) {
+        // Начинаем не с нуля, если запуск попал в середину подъёма.
+        const from = Math.max(0, (sec - selStart * workBuffer.duration) / live.fadeIn);
+        gp.setValueAtTime(from, t0);
+        gp.linearRampToValueAtTime(1, t0 + (inEnd - sec) / k);
+      } else {
+        gp.setValueAtTime(1, t0);
+      }
+      if (live.fadeOut) {
+        const startAt = t0 + Math.max(0, (outStart - sec) / k);
+        gp.setValueAtTime(1, startAt);
+        gp.linearRampToValueAtTime(0.0001, startAt + live.fadeOut / k);
+      }
     }
 
     function stopPlayback() {
@@ -617,6 +648,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         live.speed = k;
         $('ed-speed-v').textContent = k.toFixed(2) + '×';
         if (node) node.parameters.get('speed').value = k;
+        // Огибающая была расписана под прежнюю скорость -- переписываем от текущего места.
+        if (playing) scheduleFades(lastPos);
         const el = $('ed-speed-live');
         if (el && workBuffer) el.textContent = fmtTime(workBuffer.duration) + ' -> ' + fmtTime(workBuffer.duration / k);
       });
@@ -672,8 +705,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       });
       // Переключатели, а не разовые действия: нажал -- кнопка осталась нажатой, спад
       // нарисовался на волне от ручки обрезки. Нажал ещё раз -- снялся.
-      on('ed-fadein', 'click', () => { live.fadeIn = live.fadeIn ? 0 : fadeLen(); redraw(); renderPanel(); });
-      on('ed-fadeout', 'click', () => { live.fadeOut = live.fadeOut ? 0 : fadeLen(); redraw(); renderPanel(); });
+      const toggleFade = (key) => {
+        live[key] = live[key] ? 0 : fadeLen();
+        if (playing) scheduleFades(lastPos);
+        redraw(); renderPanel();
+      };
+      on('ed-fadein', 'click', () => toggleFade('fadeIn'));
+      on('ed-fadeout', 'click', () => toggleFade('fadeOut'));
       const fi = $('ed-fadein'), fo = $('ed-fadeout');
       if (fi && live.fadeIn) fi.classList.add('ed-on');
       if (fo && live.fadeOut) fo.classList.add('ed-on');
