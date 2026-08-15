@@ -486,6 +486,14 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // при этом не прерывается: меняется лишь число в уже работающем обработчике.
     let actx = null, node = null, loadedFor = null, chain = null;
 
+    // Возврат на вкладку и разблокировка экрана: будим контекст сразу, не дожидаясь плея.
+    // Без этого первое нажатие уходило в мёртвый контекст и выглядело как отсутствие отклика.
+    document.addEventListener('visibilitychange', () => {
+      if (!document.hidden && actx && actx.state !== 'running') {
+        try { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+      }
+    });
+
     async function ensureNode() {
       // Разряд звуковой сессии -- до создания контекста: иначе на iPhone с включённым
       // беззвучным режимом воспроизведение идёт, бегунок ползёт, а слышно ничего.
@@ -494,7 +502,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         actx = new (window.AudioContext || window.webkitAudioContext)();
         await actx.audioWorklet.addModule('/audio-stretch-worklet.js');
       }
-      if (actx.state !== 'running') { try { await actx.resume(); } catch (e) {} }
+      // НЕ ждать пробуждения. На iPhone после блокировки экрана или ухода со вкладки
+      // контекст переходит в состояние 'interrupted', и обещание от resume() там может не
+      // выполниться НИКОГДА. С `await` мы навсегда застревали здесь -- отсюда жалоба
+      // «нажимаю плей, ничего не происходит» на уже загруженном файле. Будим без ожидания
+      // и идём дальше: к моменту запуска источника контекст обычно уже жив.
+      if (actx.state !== 'running') { try { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
       if (!node) {
         node = new AudioWorkletNode(actx, 'audio-stretch', { outputChannelCount: [2] });
         node.port.onmessage = (e) => {

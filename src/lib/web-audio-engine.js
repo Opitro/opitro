@@ -638,6 +638,10 @@ export function createPlayer() {
   }
 
   function getCtx() {
+    // Разряд сессии и на самом воспроизведении: через decodeFile проходит не всякое
+    // проигрывание -- диктофон играет свою запись, а инструмент может пересоздать
+    // проигрыватель после пересчёта.
+    openAudioSession();
     if (!ctx) ctx = new (window.AudioContext || window.webkitAudioContext)();
     wake();
     return ctx;
