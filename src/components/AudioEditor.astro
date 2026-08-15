@@ -219,10 +219,17 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     // --- панели инструментов --------------------------------------------------------------
     // Заголовков у панелей нет намеренно: название стоит в переключателе прямо над ней.
-    const row = (label, min, max, step, val, id, unit) =>
-      `<div class="ed-row"><label for="${id}">${label}</label>
+    // `center` -- значение, на котором «ничего не меняется». Если оно попадает внутрь хода,
+    // на дорожке рисуется тонкая черта: без неё вернуть ползунок точно в ноль на глаз
+    // почти невозможно. Там, где ноль совпадает с краем (скорость, порог), черта не нужна.
+    const row = (label, min, max, step, val, id, unit, center) => {
+      const hasC = center != null && center > +min && center < +max;
+      const pct = hasC ? ((center - min) / (max - min)) * 100 : 0;
+      return `<div class="ed-row${hasC ? ' has-center' : ''}"><label for="${id}">${label}</label>
+        ${hasC ? `<span class="ed-mid" style="left:calc(${pct}% + ${8 - pct * 0.16}px)"></span>` : ''}
         <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">
         <div class="val" id="${id}-v">${unit}</div></div>`;
+    };
 
     const PANELS = {
       trim: () => `
@@ -239,14 +246,14 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         </div>
         <div class="ed-eq" id="ed-eq">${EQ_HZ.map((hz, i) =>
           `<div class="ed-band"><input type="range" min="-12" max="12" step="1" value="${live.eq[i]}" data-b="${i}"><div class="hz">${hz >= 1000 ? (hz / 1000) + 'k' : hz}</div></div>`).join('')}</div>`,
-      volume: () => row('', -100, 100, 1, Math.round((live.gain - 1) * 100), 'ed-vol', pctLabel(live.gain)),
+      volume: () => row('', -100, 100, 1, Math.round((live.gain - 1) * 100), 'ed-vol', pctLabel(live.gain), 0),
       normalize: () => row(lbl('edTarget', 'Целевой уровень'), -30, 0, 1, -14, 'ed-norm', '−14 dB')
         + `<div class="ed-deck" style="margin-top:10px"><button type="button" class="ed-btn" id="ed-apply-norm">${lbl('edApply', 'Применить')}</button></div>`,
       // Ни кнопки «Применить», ни подписи: отпустил ползунок -- пересчиталось. Кнопка
       // читалась как «ничего не произошло», а слово «полутонов» владелец назвал непонятным.
-      speed: () => row('', 50, 200, 1, Math.round(live.speed * 100), 'ed-speed', live.speed.toFixed(2) + '×')
+      speed: () => row('', 50, 200, 1, Math.round(live.speed * 100), 'ed-speed', live.speed.toFixed(2) + '×', 100)
         + `<div class="ed-live" id="ed-speed-live"></div>`,
-      pitch: () => row('', -12, 12, 1, live.pitch, 'ed-pitch', live.pitch > 0 ? '+' + live.pitch : String(live.pitch))
+      pitch: () => row('', -12, 12, 1, live.pitch, 'ed-pitch', live.pitch > 0 ? '+' + live.pitch : String(live.pitch), 0)
         + `<div class="ed-live" id="ed-pitch-live"></div>`,
       compress: () => row(lbl('edThreshold', 'Порог'), -60, 0, 1, live.comp.threshold, 'ed-th', live.comp.threshold + ' dB')
         + row(lbl('edRatio', 'Сжатие'), 1, 20, 1, live.comp.ratio, 'ed-ra', live.comp.ratio + ':1')

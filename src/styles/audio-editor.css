@@ -313,3 +313,24 @@
 .audio-editor .ed-band input[type=range]::-webkit-slider-thumb{
   width:22px;height:13px;border-radius:4px;margin-top:0;margin-left:-9px}
 .audio-editor .ed-band input[type=range]::-moz-range-thumb{width:22px;height:13px;border-radius:4px}
+
+/* --- Отметка нуля ---------------------------------------------------------------------
+   У ползунков, которые ходят в обе стороны (полосы эквалайзера, громкость, тональность,
+   порог компрессора), «ничего не меняем» -- это середина, а не край. Без отметки её
+   приходится угадывать: вернуть ползунок точно в ноль на глаз почти невозможно.
+   Черта рисуется на самой дорожке и лежит ПОД ручкой, поэтому не мешает. */
+.audio-editor .ed-band,
+.audio-editor .ed-row{position:relative}
+
+/* Вертикальные полосы эквалайзера: черта поперёк, ровно посередине хода. */
+.audio-editor .ed-band::before{content:'';position:absolute;left:50%;top:50%;
+  width:38px;height:1px;transform:translate(-50%,-50%);
+  background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
+.audio-editor .ed-band input[type=range]{position:relative;z-index:1}
+
+/* Горизонтальные ползунки с серединой -- громкость и тональность. У нормализации,
+   скорости и полей компрессора ноль не посередине, там черта соврала бы. */
+.audio-editor .ed-row.has-center .ed-mid{position:absolute;left:0;top:50%;
+  width:1px;height:22px;transform:translateY(-50%);
+  background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
+.audio-editor .ed-row input[type=range]{position:relative;z-index:1}
