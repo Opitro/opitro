@@ -190,6 +190,18 @@ ok('клик по дорожке НЕ запускает звук',
    !(await q(`document.getElementById('ed-play-ico').innerHTML.includes('M6 5h4')`)));
 ok('клик по дорожке ставит бегунок', (await q(`parseInt(document.getElementById('ed-playhead').style.left)||0`)) > 0);
 
+// Логика старых плееров: клик во время звучания ОСТАНАВЛИВАЕТ его, а не перематывает.
+await click('ed-play');
+await sleep(600);
+await q(`(()=>{const w=document.getElementById('ed-wave');const r=w.getBoundingClientRect();
+  const o={clientY:r.top+40,bubbles:true,pointerId:33,pointerType:'mouse',clientX:r.left+r.width*0.35};
+  w.dispatchEvent(new PointerEvent('pointerdown',o));w.dispatchEvent(new PointerEvent('pointerup',o));return 1})()`);
+await sleep(500);
+ok('клик во время звучания останавливает',
+   !(await q(`document.getElementById('ed-play-ico').innerHTML.includes('M6 5h4')`)));
+ok('черточка после остановки кликом остаётся видимой',
+   (await q(`document.getElementById('ed-playhead').style.display`)) !== 'none');
+
 // --- громкость ------------------------------------------------------------------------------
 await q(`document.querySelector('.ed-tool[data-id="volume"]').click()`);
 await sleep(400);

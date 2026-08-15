@@ -861,12 +861,19 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     $('ed-wave').addEventListener('pointerup', () => {
       if (drag && !moved && workBuffer && !busy) {
-        // Клик только СТАВИТ бегунок. Играть начинает кнопка -- иначе случайное касание
-        // дорожки включает звук, а человек этого не просил.
+        // Логика как в остальных плеерах сайта: клик только СТАВИТ черточку, и она стоит,
+        // пока не нажмут плей. Если звук шёл -- клик его ОСТАНАВЛИВАЕТ, а не перематывает
+        // на ходу. Так человек всегда управляет воспроизведением кнопкой, а дорожкой --
+        // только выбором места.
         pausedAt = downAt * workBuffer.duration;
         lastPos = pausedAt;
+        if (playing) {
+          node.port.postMessage({ type: 'stop' });
+          playing = false;
+          $('ed-play-ico').innerHTML = ICO_PLAY;
+        }
+        // Черточка остаётся видимой на выбранном месте -- в отличие от «Стоп», который её убирает.
         setPlayhead(downAt);
-        if (playing) { node.port.postMessage({ type: 'seek', seconds: pausedAt }); scheduleFades(pausedAt); }
       }
       drag = null;
     });
