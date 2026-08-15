@@ -160,6 +160,10 @@ await sleep(3200);
 
 // ============================ проверки =====================================================
 ok('редактор есть на странице', await q(`!!document.querySelector('.audio-ed-wrap')`));
+// На айфоне `accept="audio/*"` сводит выбор к музыкальной библиотеке: файлы из «Файлов»
+// и iCloud становятся недоступны. Владелец нашёл это сравнением с работающими страницами.
+ok('у выбора файла нет ограничения accept',
+   !(await q(`document.getElementById('ed-file').hasAttribute('accept')`)));
 await putFile(WAV_A);
 ok('панель открылась после загрузки', await q(`document.getElementById('ed-root').classList.contains('on')`));
 ok('семь вкладок', (await q(`document.querySelectorAll('.ed-tool').length`)) === 7);

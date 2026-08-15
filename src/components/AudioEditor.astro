@@ -55,7 +55,7 @@ const NAMES: Record<string, string> = {
 };
 
 const config = AUDIO_TOOLS[tool] || {};
-const accept = config.accept || 'audio/*';
+
 const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id] }));
 ---
 
@@ -68,7 +68,11 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     <div class="small">{labels.dropHint || 'Перетащите сюда или нажмите, чтобы выбрать'}</div>
     <div class="formats">{labels.dropFormats || 'MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, WMA, AIFF'}</div>
   </div>
-  <input type="file" id="ed-file" accept={accept} />
+  {/* БЕЗ accept намеренно. На айфоне `accept="audio/*"` сводит выбор к музыкальной
+      библиотеке, и файлы из «Файлов» и iCloud выбрать нельзя вовсе. Страницы, где выбор
+      работает (конвертер, темп), атрибута не имеют -- владелец сравнил и нашёл разницу.
+      Значение из настроек инструмента здесь НЕ берём: у обрезки там как раз 'audio/*'. */}
+  <input type="file" id="ed-file" />
   <div class="audio-ed-err" id="ed-err"></div>
 
   <div class="audio-editor" id="ed-root">

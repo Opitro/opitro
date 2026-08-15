@@ -2688,6 +2688,14 @@ if (config.controls === 'speed1') {
       return (f > 0 && t2 > 0) ? t2 / f : 1;
     }
     function makeTempoSource(ctx, buffer, offset) {
+      // Прежний обработчик обязательно выключить. Иначе при перемотке рядом остаётся
+      // работающий: он продолжает звучать и слать СВОЁ положение, отчего бегунок мечется
+      // между двумя источниками, а звук не останавливается. На телефоне это особенно
+      // заметно -- там перемотка пальцем даёт поток событий.
+      if (tempoNode) {
+        try { tempoNode.port.onmessage = null; tempoNode.port.postMessage({ type: 'stop' }); tempoNode.disconnect(); } catch (e) {}
+        tempoNode = null;
+      }
       if (!tempoCtxLoaded) {
         // Обработчик ещё не загрузился -- играем обычным узлом. Лучше звук без живой смены
         // темпа, чем тишина.
