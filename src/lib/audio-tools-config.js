@@ -1094,10 +1094,16 @@ export const AUDIO_TOOLS = {
     // Original/Result switch, so noise reduction can be judged by ear before committing. It used
     // to hand back a file you had not heard, from a filter you could not compare.
     compactPreview: true,
-    abCompare: true,
+    // Переключателя «было / стало» здесь нет по решению владельца 15.08.2026: сила выбирается
+    // тремя кнопками, и сравнение с исходником только добавляло органов управления.
+    abCompare: false,
     // Was locked to MP3, so cleaning up a WAV always came back lossy.
     formats: ['mp3', 'wav', 'm4a'],
     runLabel: 'denoiseRunLabel',
+    // Три силы -- ряд кнопок, а не выпадающий список: ради трёх пунктов человек делает
+    // нажатие, ждёт открытия и выбирает. Заодно уходит ещё одно место, где Chrome строит
+    // отдельное окошко списка (см. project-select-inp). На телефоне три кнопки в ряд встают.
+    selectAsChips: true,
     selectLabel: 'denoiseStrengthLabel',
     selectOptions: [
       { value: 'light', label: 'strengthLightLabel' },

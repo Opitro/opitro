@@ -308,10 +308,26 @@ const ICO = {
       </div>
     )}
 
-    {controls === 'select' && !config.presetCards && (
+    {controls === 'select' && !config.presetCards && !config.selectAsChips && (
       <div class="field">
         <label for="ctrl-select">{labels[config.selectLabel]}</label>
         <select id="ctrl-select">
+          {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
+        </select>
+      </div>
+    )}
+    {/* Тот же выбор рядом кнопок. Список при этом ОСТАЁТСЯ, только спрятан: всё, что читает
+        ctrl-select, продолжает работать без единой правки, а кнопки лишь ставят ему значение
+        и подают change. Так переделка вида не задевает работу инструмента. */}
+    {controls === 'select' && !config.presetCards && config.selectAsChips && (
+      <div class="field">
+        <label>{labels[config.selectLabel]}</label>
+        <div class="presets" id="chip-row">
+          {config.selectOptions.map((o, i) => (
+            <button type="button" class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
+          ))}
+        </div>
+        <select id="ctrl-select" hidden>
           {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
         </select>
       </div>
@@ -4233,6 +4249,24 @@ if (config.controls === 'speed1') {
     document.addEventListener('DOMContentLoaded', всё);
     всё();
     new MutationObserver(всё).observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+
+<script>
+  // Ряд кнопок вместо выпадающего списка. Спрятанный список остаётся хранилищем значения --
+  // его читает вся остальная работа инструмента, поэтому здесь только ставим value и подаём
+  // change, ровно как сделал бы человек мышью.
+  (() => {
+    const row = document.getElementById('chip-row');
+    const sel = document.getElementById('ctrl-select');
+    if (!row || !sel) return;
+    row.addEventListener('click', (e) => {
+      const b = e.target.closest('.preset-btn');
+      if (!b) return;
+      row.querySelectorAll('.preset-btn').forEach((x) => x.classList.toggle('active', x === b));
+      sel.value = b.dataset.chip;
+      sel.dispatchEvent(new Event('change', { bubbles: true }));
+    });
   })();
 </script>
 
