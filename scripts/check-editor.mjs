@@ -332,6 +332,19 @@ const eqFit = await q(`(()=>{const eq=document.querySelector('.ed-eq');
 ok('эквалайзер помещается на телефоне', eqFit && eqFit.need <= eqFit.have + 2,
    eqFit ? ('нужно ' + eqFit.need + ' при ' + eqFit.have) : 'панель не найдена');
 
+// Черта нуля обязана совпадать с положением ручки при нулевом значении. Дважды не
+// совпадала: отмерялась от всей строки вместе с подписью, а не от самой дорожки.
+await send('Emulation.setDeviceMetricsOverride', { width: 1180, height: 950, deviceScaleFactor: 2, mobile: false }, S);
+await sleep(500);
+await q(`document.querySelector('.ed-tool[data-id="volume"]')?.click()`);
+await sleep(600);
+const midOff = await q(`(()=>{const el=document.getElementById('ed-vol');
+  const m=document.querySelector('.ed-slot .ed-mid');
+  if(!el||!m) return null;
+  const t=el.getBoundingClientRect(), r=m.getBoundingClientRect();
+  return Math.round(Math.abs(r.left+r.width/2 - (t.left+t.width/2)))})()`);
+ok('черта нуля совпадает с ручкой', midOff != null && midOff <= 3, 'расхождение ' + midOff + ' точек');
+
 ok('в консоли нет исключений', errors.length === 0, errors.join(' | '));
 
 // ============================ итог ==================================================================

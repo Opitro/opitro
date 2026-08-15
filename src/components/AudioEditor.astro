@@ -225,9 +225,14 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const row = (label, min, max, step, val, id, unit, center) => {
       const hasC = center != null && center > +min && center < +max;
       const pct = hasC ? ((center - min) / (max - min)) * 100 : 0;
-      return `<div class="ed-row${hasC ? ' has-center' : ''}"><label for="${id}">${label}</label>
-        ${hasC ? `<span class="ed-mid" style="left:calc(${pct}% + ${8 - pct * 0.16}px)"></span>` : ''}
-        <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">
+      // Черта лежит в обёртке вокруг САМОЙ дорожки. Раньше она отмерялась от всей строки --
+      // вместе с подписью слева и цифрой справа, -- и на громкости ноль оказывался не по
+      // центру дорожки. Та же ошибка была на эквалайзере и лечится так же.
+      return `<div class="ed-row"><label for="${id}">${label}</label>
+        <span class="ed-slot${hasC ? ' has-center' : ''}">
+          ${hasC ? `<span class="ed-mid" style="left:${pct}%"></span>` : ''}
+          <input type="range" id="${id}" min="${min}" max="${max}" step="${step}" value="${val}">
+        </span>
         <div class="val" id="${id}-v">${unit}</div></div>`;
     };
 
@@ -278,21 +283,21 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const c = centerVal == null ? min : centerVal;
       const pos = (x) => ((x - min) / (max - min)) * 100;
       const a = Math.min(pos(c), pos(v)), b = Math.max(pos(c), pos(v));
-      const vertical = el.closest('.ed-fader');
+      const vertical = el.closest('.ed-band') ? el.closest('.ed-fader') : null;
       // У вертикальных полос ноль внизу шкалы соответствует НИЗУ дорожки, поэтому
       // направление заливки обратное.
       const dir = vertical ? 'to top' : 'to right';
       el.style.setProperty('--fill', Math.abs(b - a) < 0.5 ? 'none'
         : `linear-gradient(${dir},transparent ${a}%,var(--accent) ${a}%,var(--accent) ${b}%,transparent ${b}%)`);
       el.classList.toggle('is-moved', Math.abs(v - c) > 0.001);
-      const holder = vertical || el.closest('.ed-row');
+      const holder = vertical || el.closest('.ed-slot') || el.closest('.ed-row');
       if (holder && fmt) holder.style.setProperty('--tip', JSON.stringify(fmt(v)));
     }
 
     // Подсказка живёт только пока тянут -- постоянные цифры у десяти движков превратили бы
     // панель в таблицу.
     panel.addEventListener('pointerdown', (e) => {
-      const h = e.target.closest && e.target.closest('.ed-fader, .ed-row');
+      const h = e.target.closest && e.target.closest('.ed-fader, .ed-slot');
       if (h && e.target.tagName === 'INPUT') h.classList.add('is-dragging');
     });
     ['pointerup', 'pointercancel'].forEach((ev) => panel.addEventListener(ev, () => {
