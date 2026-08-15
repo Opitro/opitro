@@ -321,6 +321,17 @@ await sleep(400);
 ok('новый файл: громкость сброшена', (await q(`document.getElementById('ed-vol').value`)) === '0');
 ok('новый файл: своя длительность', (await q(`document.getElementById('ed-t1').textContent`)) === '00:12.0');
 
+// Десять полос эквалайзера обязаны помещаться на телефоне без обрезки. Замерено: на
+// экране 412 ряду нужно было 598 точек при 320 доступных -- половина полос уезжала.
+await send('Emulation.setDeviceMetricsOverride', { width: 412, height: 900, deviceScaleFactor: 2, mobile: true }, S);
+await sleep(600);
+await q(`document.querySelector('.ed-tools-list select') ? (()=>{const s=document.querySelector('.ed-tools-list select');s.value='equalizer';s.dispatchEvent(new Event('change'))})() : document.querySelector('.ed-tool[data-id="equalizer"]').click()`);
+await sleep(700);
+const eqFit = await q(`(()=>{const eq=document.querySelector('.ed-eq');
+  return eq ? { need: Math.round(eq.scrollWidth), have: Math.round(eq.clientWidth) } : null})()`);
+ok('эквалайзер помещается на телефоне', eqFit && eqFit.need <= eqFit.have + 2,
+   eqFit ? ('нужно ' + eqFit.need + ' при ' + eqFit.have) : 'панель не найдена');
+
 ok('в консоли нет исключений', errors.length === 0, errors.join(' | '));
 
 // ============================ итог ==================================================================

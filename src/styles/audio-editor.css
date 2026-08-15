@@ -330,14 +330,14 @@
 .audio-editor .ed-fader{position:relative;display:flex;align-items:center;justify-content:center}
 .audio-editor .ed-fader::before{content:'';position:absolute;left:50%;top:50%;
   width:16px;height:1px;transform:translate(-50%,-50%);
-  background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
+  background:rgba(255,255,255,.42);pointer-events:none;z-index:0}
 .audio-editor .ed-fader input[type=range]{position:relative;z-index:1}
 
 /* Горизонтальные ползунки с серединой -- громкость и тональность. У нормализации,
    скорости и полей компрессора ноль не посередине, там черта соврала бы. */
 .audio-editor .ed-row.has-center .ed-mid{position:absolute;left:0;top:50%;
   width:1px;height:12px;transform:translateY(-50%);
-  background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
+  background:rgba(255,255,255,.42);pointer-events:none;z-index:0}
 .audio-editor .ed-row input[type=range]{position:relative;z-index:1}
 
 /* --- Подложка под органы управления ----------------------------------------------------
@@ -359,3 +359,18 @@
 .audio-editor .ed-fader{padding:8px 7px 8px;border-radius:9px;
   background:rgba(255,255,255,.03);transition:background .15s}
 .audio-editor .ed-fader:hover{background:rgba(255,255,255,.07)}
+
+/* --- Эквалайзер на телефоне: две строки по пять ----------------------------------------
+   Замерено: десяти полосам нужно 598 точек, а на экране 412 их всего 320 -- не помещаются
+   почти вдвое.
+   Прокрутка вбок отпадает: мы намеренно отдали касание ползункам (touch-action:none),
+   чтобы палец цеплял их сразу. Смахивание по ряду попало бы на фейдер и потянуло его
+   вместо прокрутки -- одно решение сломало бы другое. Прятать половину полос за
+   невидимой границей тоже плохо: человек не догадается, что там ещё пять.
+   Поэтому перенос в две строки: всё на виду, ничего не спрятано, размер под палец
+   сохраняется. Так делают и мобильные эквалайзеры в проигрывателях. */
+@media(max-width:759px){
+  .audio-editor .ed-eq{flex-wrap:wrap;gap:6px 2px;justify-content:center}
+  .audio-editor .ed-band{flex:0 0 19%}
+  .audio-editor .ed-band input[type=range]{height:76px}
+}
