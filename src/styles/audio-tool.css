@@ -538,3 +538,30 @@
     .audio-tool .eq-band input[type=range]{height:auto;width:44px}
 }
 
+/* Закраска дорожки -- НАША, а не браузерная.
+   Браузер обрывает цвет на ЦЕНТРЕ кружка, а дорожку рисует до конца, поэтому в крайнем
+   правом положении за кружком оставался серый хвост: значение уже предельное, а на вид
+   ползунок не доехал. Замеры этого не ловят -- они мерят число; поймал снимком экрана.
+   Укоротить дорожку нельзя: ход кружка считается от неё же, и кружок уезжает вместе с ней
+   (проверено -- хвост стал длиннее). Лечится только своей закраской: доля берётся из --fill,
+   цвет идёт до самого края независимо от того, где стоит центр кружка.
+   Вертикальные полосы эквалайзера сюда НЕ входят -- у них своя разметка и своё поведение. */
+.audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"]){
+  -webkit-appearance:none;appearance:none;background:transparent;height:22px;
+}
+.audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"])::-webkit-slider-runnable-track{
+  height:6px;border-radius:999px;
+  background:linear-gradient(to right,var(--accent) 0 var(--fill,50%),rgba(255,255,255,.16) var(--fill,50%) 100%);
+}
+.audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"])::-moz-range-track{
+  height:6px;border-radius:999px;
+  background:linear-gradient(to right,var(--accent) 0 var(--fill,50%),rgba(255,255,255,.16) var(--fill,50%) 100%);
+}
+.audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"])::-webkit-slider-thumb{
+  -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
+  background:var(--accent);border:none;margin-top:-6px;cursor:pointer;
+}
+.audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"])::-moz-range-thumb{
+  width:18px;height:18px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;
+}
+

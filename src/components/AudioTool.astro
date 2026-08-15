@@ -4214,3 +4214,25 @@ if (config.controls === 'speed1') {
   }
 </script>
 
+<script>
+  // Доля закраски дорожки. Держим её в --fill, а рисует её CSS (см. audio-tool.css).
+  // Слушаем на документе, потому что ползунки создаются и пересоздаются по ходу работы
+  // инструментов -- вешать обработчик на каждый пришлось бы в трёх десятках мест.
+  (() => {
+    const красить = (i) => {
+      if (!i || i.type !== 'range' || i.classList.contains('eq-slider')) return;
+      if ((i.getAttribute('style') || '').includes('vertical')) return;
+      const min = Number(i.min || 0), max = Number(i.max || 100);
+      const d = max - min;
+      i.style.setProperty('--fill', (d > 0 ? ((Number(i.value) - min) / d) * 100 : 0) + '%');
+    };
+    const всё = () => document.querySelectorAll('.audio-tool input[type=range]').forEach(красить);
+    document.addEventListener('input', (e) => красить(e.target), true);
+    document.addEventListener('change', (e) => красить(e.target), true);
+    // Первая покраска и повторная после появления новых ползунков.
+    document.addEventListener('DOMContentLoaded', всё);
+    всё();
+    new MutationObserver(всё).observe(document.documentElement, { childList: true, subtree: true });
+  })();
+</script>
+
