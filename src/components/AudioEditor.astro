@@ -560,7 +560,15 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const was = btn.textContent;
       btn.textContent = lbl('edPreparing', 'Готовим…');
       try {
-        const baked = await bakeLive(workBuffer);
+        // Скачиваем ТО, ЧТО ВЫДЕЛЕНО. Раньше в файл уходил весь звук целиком: ручки
+        // двигали, на волне видели выбранный кусок, а получали исходник. Отсюда же
+        // ехали и фейды -- спад ложился по краям файла вместо краёв выделения.
+        // Нажимать «Обрезать» ради скачивания не должно быть обязательно.
+        const d = workBuffer.duration;
+        const src = (selStart > 0 || selEnd < 1)
+          ? sliceBuffer(workBuffer, selStart * d, selEnd * d)
+          : workBuffer;
+        const baked = await bakeLive(src);
         const blob = fmt === 'mp3' ? await encodeMP3(baked, 192) : encodeWAV(baked);
         const base = (fileName || 'audio').replace(/\.[^.]+$/, '');
         downloadBlob(blob, `${base}-opitro.${fmt}`);
