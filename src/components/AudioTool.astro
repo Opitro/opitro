@@ -2681,7 +2681,7 @@ if (config.controls === 'speed1') {
       // и смена ударов в минуту -- одно число в нём, а не пересборка файла. Вид не меняется.
       tempo: () => null };
 
-    let tempoNode = null, tempoCtxLoaded = false;
+    let tempoNode = null, tempoCtxLoaded = false, tempoPos = 0;
     function tempoRatio() {
       const f = Number((root.querySelector('#ctrl-bpm-from') || {}).value) || 0;
       const t2 = Number((root.querySelector('#ctrl-bpm-to') || {}).value) || 0;
@@ -2700,6 +2700,13 @@ if (config.controls === 'speed1') {
       for (let c = 0; c < Math.max(1, buffer.numberOfChannels); c++) {
         chans.push(buffer.getChannelData(Math.min(c, buffer.numberOfChannels - 1)).slice().buffer);
       }
+      tempoPos = offset || 0;
+      // Обработчик сообщает СВОЁ положение в исходнике. Считать его по прошедшему времени
+      // нельзя: при смене темпа на ходу пришлось бы умножать на новый темп и то время,
+      // которое отыграло на старом -- бегунок прыгал вперёд и добегал до конца раньше звука.
+      node.port.onmessage = (e) => {
+        if (e.data && e.data.type === 'pos') tempoPos = e.data.seconds;
+      };
       node.port.postMessage({ type: 'load', channels: chans, offset: offset || 0 }, chans);
       node.port.postMessage({ type: 'play' });
       node.parameters.get('speed').value = tempoRatio();
@@ -2830,9 +2837,12 @@ if (config.controls === 'speed1') {
           // При смене темпа звук идёт быстрее или медленнее исходника, а движок считает
           // положение по ИСХОДНОЙ длительности. Без поправки на темп музыка кончалась, а
           // бегунок ещё полз -- владелец это и увидел. Умножаем на отношение темпов.
-          const f = config.controls === 'tempo' ? Math.min(1, frac * tempoRatio()) : frac;
+          // У темпа положение берём у обработчика: он один знает, сколько исходника уже
+          // проглотил. Часы при этом показывают время в НОВОЙ длительности.
+          const isTempo = config.controls === 'tempo';
+          const f = isTempo ? Math.min(1, buf.duration ? tempoPos / buf.duration : 0) : frac;
           if (transportCurEl) {
-            transportCurEl.textContent = fmtClock(f * (buf.duration / (config.controls === 'tempo' ? tempoRatio() : 1)));
+            transportCurEl.textContent = fmtClock(isTempo ? (tempoPos / tempoRatio()) : f * buf.duration);
             transportCurEl.hidden = false;
           }
           if (waveStopBtn) waveStopBtn.disabled = false;
