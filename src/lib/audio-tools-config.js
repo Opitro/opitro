@@ -1493,3 +1493,12 @@ export const AUDIO_TOOLS = {
     downloadFormats: ['mp3', 'wav'],
   },
 };
+
+
+// Семь инструментов единого редактора -- ЕДИНСТВЕННЫЙ список. Он был продублирован в
+// [slug].astro и в AudioEditor.astro, я исправил одну копию, а решала другая: страница
+// «сжать аудиофайл» так и осталась редактором. Один источник, чтобы это не повторилось.
+//
+// 'compress' -- сжатие ВЕСА файла (битрейт, размер, кнопки «почта/Discord»), отдельная
+// страница со своим устройством. Компрессор ДИНАМИКИ здесь называется 'dynamic-compressor'.
+export const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch', 'dynamic-compressor'];

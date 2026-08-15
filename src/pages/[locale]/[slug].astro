@@ -10,7 +10,7 @@ import AudioEditor from '../../components/AudioEditor.astro';
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
 // каждый следующий -- только после того, как предыдущий проверен живьём.
-const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch', 'compress'];
+import { EDITOR_TOOLS } from '../../lib/audio-tools-config.js';
 import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 import { iconFor } from '../../lib/tool-icons.js';
