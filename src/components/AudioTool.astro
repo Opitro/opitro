@@ -1819,6 +1819,10 @@ const ICO = {
 
     // ---- Tempo -----------------------------------------------------------------------------
     if (config.controls === 'tempo') {
+      // Обработчик регистрируется в ТОМ ЖЕ движке, где играет плеер: в чужом он не считается.
+      player.unlock();
+      player.context().audioWorklet.addModule('/audio-stretch-worklet.js')
+        .then(() => { tempoCtxLoaded = true; }).catch(() => {});
       const fromEl = root.querySelector('#ctrl-bpm-from');
       const toEl = root.querySelector('#ctrl-bpm-to');
       // Пересчёт не на каждое нажатие плюсика, а когда человек перестал тыкать. Раньше
@@ -1826,6 +1830,8 @@ const ICO = {
       // ощущение, что инструмент думает после каждого нажатия.
       let bpmTimer = 0;
       const onChange = () => {
+        // Звучащий обработчик подхватывает новое значение сразу -- звук не рвётся.
+        if (tempoNode) { try { tempoNode.parameters.get('speed').value = tempoRatio(); } catch (e) {} }
         clearTimeout(bpmTimer);
         bpmTimer = setTimeout(() => { invalidateRender(); syncSourceNote(); eqSyncState(); }, 350);
       };
@@ -2670,7 +2676,37 @@ if (config.controls === 'speed1') {
     //    (pitch-shifting rewrites every sample), so the processed side is an offline render,
     //    computed on demand and cached by settings so re-selecting it is instant.
     //  - everything else (ffmpeg enhance): a separately decoded processed buffer.
-    const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder, volume1: () => volumeChainBuilder };
+    const LIVE_CHAIN_TOOLS = { eq10: () => eqChainBuilder, fade2: () => fadeChainBuilder, volume1: () => volumeChainBuilder,
+      // Темп меняется ПРЯМО ВО ВРЕМЯ ЗВУЧАНИЯ: звук идёт через обработчик в звуковом потоке,
+      // и смена ударов в минуту -- одно число в нём, а не пересборка файла. Вид не меняется.
+      tempo: () => null };
+
+    let tempoNode = null, tempoCtxLoaded = false;
+    function tempoRatio() {
+      const f = Number((root.querySelector('#ctrl-bpm-from') || {}).value) || 0;
+      const t2 = Number((root.querySelector('#ctrl-bpm-to') || {}).value) || 0;
+      return (f > 0 && t2 > 0) ? t2 / f : 1;
+    }
+    function makeTempoSource(ctx, buffer, offset) {
+      if (!tempoCtxLoaded) {
+        // Обработчик ещё не загрузился -- играем обычным узлом. Лучше звук без живой смены
+        // темпа, чем тишина.
+        const s2 = ctx.createBufferSource();
+        s2.buffer = buffer;
+        return s2;
+      }
+      const node = new AudioWorkletNode(ctx, 'audio-stretch', { outputChannelCount: [2] });
+      const chans = [];
+      for (let c = 0; c < Math.max(1, buffer.numberOfChannels); c++) {
+        chans.push(buffer.getChannelData(Math.min(c, buffer.numberOfChannels - 1)).slice().buffer);
+      }
+      node.port.postMessage({ type: 'load', channels: chans, offset: offset || 0 }, chans);
+      node.port.postMessage({ type: 'play' });
+      node.parameters.get('speed').value = tempoRatio();
+      node.parameters.get('pitchRatio').value = 1;
+      tempoNode = node;
+      return node;
+    }
     // Declared per tool rather than by control type. A hardcoded list of `controls` names can't
     // express this any more: six different tools share controls:'select', and only some of them
     // want the play button to play the processed result.
@@ -2806,7 +2842,8 @@ if (config.controls === 'speed1') {
           eqLiveFilters = [];
         },
         resumeAt,
-        currentAbChain()
+        currentAbChain(),
+        config.controls === 'tempo' ? { makeSource: makeTempoSource } : {}
       );
     }
     function selectAbSide(which) {

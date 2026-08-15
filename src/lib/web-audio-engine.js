@@ -653,7 +653,7 @@ export function createPlayer() {
   // fires and clobbers state for the new playback. Detaching onended before stopping prevents
   // that stale callback from firing at all. Confirmed live: intermittent "pause doesn't work".
   function stop() {
-    if (source) { source.onended = null; try { source.stop(); } catch (e) {} }
+    if (source) { source.onended = null; try { if (source.stop) source.stop(); else source.disconnect(); } catch (e) {} }
     source = null;
     pausedAt = 0;
     cancelAnimationFrame(rafId);
@@ -673,9 +673,16 @@ export function createPlayer() {
     buffer = buf;
     if (seekTo != null) pausedAt = Math.max(0, Math.min(seekTo, buffer.duration));
     const c = getCtx();
-    source = c.createBufferSource();
-    source.buffer = buffer;
-    if (options.loop) source.loop = true;
+    // `options.makeSource(ctx, buffer, offset)` -- свой источник вместо узла буфера. Нужен
+    // там, где звук должен меняться ПРЯМО ВО ВРЕМЯ ЗВУЧАНИЯ: обработчик в звуковом потоке
+    // меняет темп на ходу, а узел буфера так не умеет -- его пришлось бы останавливать и
+    // пересобирать файл. Пауза, положение, сторож и завершение остаются общими.
+    source = options.makeSource ? options.makeSource(c, buffer, pausedAt) : (() => {
+      const s2 = c.createBufferSource();
+      s2.buffer = buffer;
+      return s2;
+    })();
+    if (options.loop && 'loop' in source) source.loop = true;
     const chainOut = buildChain ? buildChain(c, source, pausedAt) : source;
     chainOut.connect(c.destination);
     // Сторож: движок должен успеть проснуться. Не успел -- значит браузер отказал, и молчать
@@ -706,7 +713,7 @@ export function createPlayer() {
       }
       if (onEnded) onEnded();
     };
-    source.start(0, pausedAt);
+    if (source.start) source.start(0, pausedAt);
     startedAt = c.currentTime - pausedAt;
     const tick = () => {
       if (!source) return;
@@ -722,7 +729,7 @@ export function createPlayer() {
     const c = getCtx();
     pausedAt = Math.min(buffer.duration, c.currentTime - startedAt);
     source.onended = null;
-    try { source.stop(); } catch (e) {}
+    try { if (source.stop) source.stop(); else source.disconnect(); } catch (e) {}
     source = null;
     cancelAnimationFrame(rafId);
   }
@@ -735,6 +742,10 @@ export function createPlayer() {
   // Current elapsed position (seconds), whether actively playing or paused -- lets a caller
   // switch to a *different* buffer (e.g. A/B original vs. result) starting from the same
   // point, instead of losing the position on every switch.
+  /** Тот самый движок, в котором играет плеер: обработчик регистрируется в КОНКРЕТНОМ
+   *  движке, и загрузка в чужой ничего не даёт -- узел потом не создаётся вовсе. */
+  function context() { return getCtx(); }
+
   function getPosition() {
     if (!source) return pausedAt;
     return ctx.currentTime - startedAt;
@@ -751,6 +762,7 @@ export function createPlayer() {
     // Ни ошибки, ни объяснения. Человек решает, что сайт сломан, и уходит, а мы даже не узнаём.
     // Само сообщение причину не лечит, но превращает "всё сломалось" в понятное действие.
     onStuck(fn) { stuckHandler = fn; },
+    context,
   };
 }
 
