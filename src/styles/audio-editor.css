@@ -322,15 +322,36 @@
 .audio-editor .ed-band,
 .audio-editor .ed-row{position:relative}
 
-/* Вертикальные полосы эквалайзера: черта поперёк, ровно посередине хода. */
-.audio-editor .ed-band::before{content:'';position:absolute;left:50%;top:50%;
-  width:38px;height:1px;transform:translate(-50%,-50%);
+/* Черта середины -- у САМОГО фейдера, а не у колонки. Раньше отмерялась середина всей
+   колонки вместе с подписью частоты, и черта уезжала ниже: ручки в нуле оказывались над
+   ней, хотя стояли ровно посередине хода.
+   Ширина -- уже ручки: в нуле черта под ней и не видна, а это и есть её смысл. Она нужна
+   как ориентир, КУДА ВЕРНУТЬ ползунок, и должна показываться только когда он сдвинут. */
+.audio-editor .ed-fader{position:relative;display:flex;align-items:center;justify-content:center}
+.audio-editor .ed-fader::before{content:'';position:absolute;left:50%;top:50%;
+  width:16px;height:1px;transform:translate(-50%,-50%);
   background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
-.audio-editor .ed-band input[type=range]{position:relative;z-index:1}
+.audio-editor .ed-fader input[type=range]{position:relative;z-index:1}
 
 /* Горизонтальные ползунки с серединой -- громкость и тональность. У нормализации,
    скорости и полей компрессора ноль не посередине, там черта соврала бы. */
 .audio-editor .ed-row.has-center .ed-mid{position:absolute;left:0;top:50%;
-  width:1px;height:22px;transform:translateY(-50%);
+  width:1px;height:12px;transform:translateY(-50%);
   background:rgba(255,255,255,.22);pointer-events:none;z-index:0}
 .audio-editor .ed-row input[type=range]{position:relative;z-index:1}
+
+/* --- Подложка под органы управления ----------------------------------------------------
+   Ползунки лежали прямо на фоне панели и читались как «просто элементы формы». Лёгкая
+   серая подложка собирает их в один блок: видно, что это прибор, а не набор строчек.
+   Цвет взят на полтона светлее фона панели -- ровно столько, чтобы отделиться, и не
+   настолько, чтобы спорить с волной, которая на странице главная. */
+.audio-editor .ed-panel{background:rgba(255,255,255,.028);
+  border:1px solid rgba(255,255,255,.05);border-radius:12px;
+  padding:14px;margin-top:14px;border-top:1px solid rgba(255,255,255,.05)}
+
+/* Полосы эквалайзера -- каждая в своей ячейке: так их не путаешь пальцем и видно, что
+   это набор одинаковых движков, а не десять разных вещей. */
+.audio-editor .ed-eq{gap:2px}
+.audio-editor .ed-band{padding:8px 0 6px;border-radius:8px;
+  background:rgba(255,255,255,.025);transition:background .15s}
+.audio-editor .ed-band:hover{background:rgba(255,255,255,.055)}

@@ -245,7 +245,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
             `<button type="button" class="ed-chip${i === 0 ? ' on' : ''}" data-p="${k}">${lbl('edEq_' + k, ['Ровно', 'Голос', 'Бас', 'Ярче', 'Радио'][i])}</button>`).join('')}
         </div>
         <div class="ed-eq" id="ed-eq">${EQ_HZ.map((hz, i) =>
-          `<div class="ed-band"><input type="range" min="-12" max="12" step="1" value="${live.eq[i]}" data-b="${i}"><div class="hz">${hz >= 1000 ? (hz / 1000) + 'k' : hz}</div></div>`).join('')}</div>`,
+          `<div class="ed-band"><span class="ed-fader"><input type="range" min="-12" max="12" step="1" value="${live.eq[i]}" data-b="${i}"></span><div class="hz">${hz >= 1000 ? (hz / 1000) + 'k' : hz}</div></div>`).join('')}</div>`,
       volume: () => row('', -100, 100, 1, Math.round((live.gain - 1) * 100), 'ed-vol', pctLabel(live.gain), 0),
       normalize: () => row(lbl('edTarget', 'Целевой уровень'), -30, 0, 1, -14, 'ed-norm', '−14 dB')
         + `<div class="ed-deck" style="margin-top:10px"><button type="button" class="ed-btn" id="ed-apply-norm">${lbl('edApply', 'Применить')}</button></div>`,
