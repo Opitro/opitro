@@ -2827,12 +2827,16 @@ if (config.controls === 'speed1') {
       player.play(
         buf,
         (frac) => {
+          // При смене темпа звук идёт быстрее или медленнее исходника, а движок считает
+          // положение по ИСХОДНОЙ длительности. Без поправки на темп музыка кончалась, а
+          // бегунок ещё полз -- владелец это и увидел. Умножаем на отношение темпов.
+          const f = config.controls === 'tempo' ? Math.min(1, frac * tempoRatio()) : frac;
           if (transportCurEl) {
-            transportCurEl.textContent = fmtClock(frac * buf.duration);
+            transportCurEl.textContent = fmtClock(f * (buf.duration / (config.controls === 'tempo' ? tempoRatio() : 1)));
             transportCurEl.hidden = false;
           }
           if (waveStopBtn) waveStopBtn.disabled = false;
-          setPlayheadFrac(frac);
+          setPlayheadFrac(f);
         },
         () => {
           if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
