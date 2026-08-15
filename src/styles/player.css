@@ -124,9 +124,15 @@
   background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); color: var(--text);
   transition: background .18s, border-color .18s, color .18s, opacity .18s;
 }
-.audio-tool .tp-btn:hover:not(:disabled),
-.midi-tool .tp-btn:hover:not(:disabled),
-.stt-tool .tp-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); }
+/* Подсветка по наведению -- только настоящей мыши.
+   На телефоне наведения нет, но браузер оставляет кнопку «под курсором» после касания, и
+   подсветка не уходит, пока не тронешь другое место. Со стороны это выглядит как застрявшая
+   кнопка: звук доиграл, значок вернулся на треугольник, а кнопка всё ещё подсвечена. */
+@media (hover: hover) and (pointer: fine) {
+  .audio-tool .tp-btn:hover:not(:disabled),
+  .midi-tool .tp-btn:hover:not(:disabled),
+  .stt-tool .tp-btn:hover:not(:disabled) { background: rgba(255, 255, 255, 0.08); border-color: rgba(255, 255, 255, 0.22); }
+}
 .audio-tool .tp-btn:active:not(:disabled),
 .midi-tool .tp-btn:active:not(:disabled),
 .stt-tool .tp-btn:active:not(:disabled) { background: rgba(74, 222, 158, 0.14); border-color: rgba(74, 222, 158, 0.4); }
