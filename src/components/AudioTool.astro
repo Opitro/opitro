@@ -323,7 +323,7 @@ const ICO = {
         Для читалок это группа переключателей: role=radiogroup + role=radio + aria-checked. */}
     {controls === 'select' && !config.presetCards && config.selectAsChips && (
       <div class="field">
-        <span class="field-label" id="ctrl-select-label">{labels[config.selectLabel]}</span>
+        <label id="ctrl-select-label">{labels[config.selectLabel]}</label>
         <div class="presets" id="ctrl-select" role="radiogroup" aria-labelledby="ctrl-select-label">
           {config.selectOptions.map((o, i) => (
             <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'}
