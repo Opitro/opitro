@@ -315,9 +315,17 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // --- отрисовка -------------------------------------------------------------------------
     function redraw() {
       if (!workBuffer) return;
-      drawWaveform(canvas, workBuffer, fileName, { rich: true, gain: live.gain, peaks: peakCache });
+      drawWaveform(canvas, workBuffer, fileName, {
+        rich: true, gain: live.gain, peaks: peakCache,
+        // Доли от всей дорожки: спад отсчитывается от ручек обрезки, а не от краёв файла.
+        fade: (live.fadeIn || live.fadeOut) ? {
+          inStart: selStart,
+          inEnd: live.fadeIn ? selStart + fiSec() / workBuffer.duration : selStart,
+          outStart: live.fadeOut ? selEnd - foSec() / workBuffer.duration : selEnd,
+          outEnd: selEnd,
+        } : null,
+      });
       dimOutside();
-      drawFades();
       placeSelection();
       $('ed-t0').textContent = '00:00.0';
       $('ed-t1').textContent = fmtTime(workBuffer.duration);
@@ -339,45 +347,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       g.restore();
     }
 
-    // Спад показываем формой самой дорожки: она поднимается с нуля, как у конкурента.
-    // Раньше здесь была плёнка с прозрачностью -- она гасила столбики целиком и читалась
-    // как «поверх наложили», а не «звук нарастает». Стираем всё, что ВЫШЕ огибающей.
-    function drawFades() {
-      if (!live.fadeIn && !live.fadeOut) return;
-      const g = canvas.getContext('2d');
-      const W = canvas.width, H = canvas.height, mid = H / 2;
-      const d = workBuffer.duration;
-      const px = (t) => (t / d) * W;
-      const carve = (x0, x1, rising) => {
-        const steps = 48;
-        g.beginPath();
-        g.moveTo(x0, 0);
-        for (let i = 0; i <= steps; i++) {
-          const k = i / steps;
-          const e = rising ? k : 1 - k;
-          g.lineTo(x0 + (x1 - x0) * k, mid - mid * e);
-        }
-        g.lineTo(x1, 0);
-        g.closePath();
-        g.fill();
-        g.beginPath();
-        g.moveTo(x0, H);
-        for (let i = 0; i <= steps; i++) {
-          const k = i / steps;
-          const e = rising ? k : 1 - k;
-          g.lineTo(x0 + (x1 - x0) * k, mid + mid * e);
-        }
-        g.lineTo(x1, H);
-        g.closePath();
-        g.fill();
-      };
-      g.save();
-      g.globalCompositeOperation = 'destination-out';
-      g.fillStyle = '#000';
-      if (live.fadeIn) carve(px(selStart * d), px(selStart * d + fiSec()), true);
-      if (live.fadeOut) carve(px(selEnd * d - foSec()), px(selEnd * d), false);
-      g.restore();
-    }
 
     // Считаем от холста, а не от обёртки -- ровно так это сделано в обрезке, которая
     // работает. Обёртка и холст сейчас совпадают, но полагаться на совпадение нельзя.
