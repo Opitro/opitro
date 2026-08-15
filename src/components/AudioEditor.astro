@@ -371,6 +371,29 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     }
 
     // --- загрузка файла ---------------------------------------------------------------------
+    // Один сброс на всех: и крестик, и «Сбросить», и загрузка нового файла. Раньше каждый
+    // из них обнулял своё, и новый файл открывался с настройками прошлого -- громкость,
+    // полосы эквалайзера, фейды, скорость и высота оставались от предыдущего.
+    function resetSettings() {
+      live.gain = 1;
+      live.eq = new Array(10).fill(0);
+      live.comp = { threshold: -24, ratio: 4, release: 0.25 };
+      live.compOn = false;
+      live.fadeIn = 0; live.fadeOut = 0;
+      live.pitch = 0; live.speed = 1;
+      selStart = 0; selEnd = 1;
+      pausedAt = 0; lastPos = 0;
+      if (node) {
+        node.parameters.get('speed').value = 1;
+        node.parameters.get('pitchRatio').value = 1;
+      }
+      if (chainNodes) {
+        chainNodes.gain.gain.value = 1;
+        chainNodes.filters.forEach((f) => { f.gain.value = 0; });
+      }
+      if (fadeGain) { fadeGain.gain.cancelScheduledValues(0); fadeGain.gain.value = 1; }
+    }
+
     async function loadFile(file) {
       showError('');
       try {
@@ -379,7 +402,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         baseBuffer = buf;
         workBuffer = buf;
         fileName = file.name;
-        selStart = 0; selEnd = 1;
+        resetSettings();
+        loadedFor = null;
         $('ed-drop').style.display = 'none';
         root.classList.add('on');
         renderTools();
@@ -517,18 +541,19 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       player.stop();
       $('ed-play-ico').innerHTML = ICO_PLAY;
       baseBuffer = originalBuffer;
+      baseBuffer = originalBuffer;
       workBuffer = originalBuffer;
-      selStart = 0; selEnd = 1;
-      live.speed = 1; live.pitch = 0;
-      live.gain = 1; live.eq = new Array(10).fill(0); live.compOn = false;
-      live.fadeIn = 0; live.fadeOut = 0;
+      resetSettings();
+      loadedFor = null;
       renderPanel();
       redraw();
     });
 
     $('ed-close').addEventListener('click', () => {
       player.stop();
+      resetSettings();
       originalBuffer = null; baseBuffer = null; workBuffer = null; fileName = '';
+      loadedFor = null;
       root.classList.remove('on');
       $('ed-drop').style.display = '';
       $('ed-file').value = '';
