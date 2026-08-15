@@ -133,7 +133,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
   import {
     decodeFile, drawWaveform, sliceBuffer, scaleVolume, applyFade,
     peakOf, normalizeGain, wsolaStretchChunked, pitchShiftChunked,
-    encodeWAV, encodeMP3, downloadBlob, createPlayer,
+    encodeWAV, encodeMP3, downloadBlob, createPlayer, openAudioSession,
   } from '../lib/web-audio-engine.js';
 
   const wrap = document.querySelector('.audio-ed-wrap');
@@ -487,6 +487,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     let actx = null, node = null, loadedFor = null, chain = null;
 
     async function ensureNode() {
+      // Разряд звуковой сессии -- до создания контекста: иначе на iPhone с включённым
+      // беззвучным режимом воспроизведение идёт, бегунок ползёт, а слышно ничего.
+      openAudioSession();
       if (!actx) {
         actx = new (window.AudioContext || window.webkitAudioContext)();
         await actx.audioWorklet.addModule('/audio-stretch-worklet.js');

@@ -7,7 +7,22 @@
 // MP3 export uses @breezystack/lamejs (npm, not a CDN script) since Web Audio has no native
 // MP3 encoder; WAV export is a plain manual RIFF/WAVE writer, no library needed.
 
+// iPhone: без этой строки звука НЕТ, когда сбоку включён беззвучный режим.
+// Safari по умолчанию относит Web Audio к «фоновому» разряду (ambient) -- тому же, что у
+// звуков интерфейса, и переключатель на боку телефона его глушит. Обычный проигрыватель
+// (<audio>, ютуб) звучит, а наш -- нет; со стороны выглядит как поломка у нас.
+// `playback` объявляет системе, что звук и есть цель страницы, и переключатель его больше
+// не касается. Работает с Safari 16.4; где свойства нет, строка молча ничего не делает.
+export function openAudioSession() {
+  try {
+    if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+      navigator.audioSession.type = 'playback';
+    }
+  } catch (e) {}
+}
+
 export async function decodeFile(file) {
+  openAudioSession();
   const ctx = new (window.AudioContext || window.webkitAudioContext)();
   const arrayBuffer = await file.arrayBuffer();
   const audioBuffer = await ctx.decodeAudioData(arrayBuffer);
