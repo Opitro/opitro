@@ -351,7 +351,11 @@
 
 /* Полосы эквалайзера -- каждая в своей ячейке: так их не путаешь пальцем и видно, что
    это набор одинаковых движков, а не десять разных вещей. */
+/* Подложка по ширине САМОГО ползунка с небольшим запасом, а не во всю долю колонки:
+   широкие плашки читались как кнопки и спорили с фейдерами. Ячейка растягивается
+   по-прежнему (чтобы полосы стояли на равных расстояниях), а подложка рисуется только
+   под движком -- отсюда отдельный слой вокруг фейдера, а не фон всей ячейки. */
 .audio-editor .ed-eq{gap:2px}
-.audio-editor .ed-band{padding:8px 0 6px;border-radius:8px;
-  background:rgba(255,255,255,.025);transition:background .15s}
-.audio-editor .ed-band:hover{background:rgba(255,255,255,.055)}
+.audio-editor .ed-fader{padding:8px 7px 8px;border-radius:9px;
+  background:rgba(255,255,255,.03);transition:background .15s}
+.audio-editor .ed-fader:hover{background:rgba(255,255,255,.07)}
