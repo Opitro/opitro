@@ -511,6 +511,12 @@
      use the full width. */
   @media(max-width:640px){.audio-tool .wave-shell:not(.compact){margin-left:20px;margin-right:20px}}
 
+/* Удары в минуту -- всегда три цифры, не больше. Поле во всю ширину колонки выглядело
+   так, будто туда просят вписать что-то длинное. Ширина по содержимому: 4 знака с запасом. */
+.audio-tool #ctrl-bpm-from,.audio-tool #ctrl-bpm-to{width:auto;flex:0 0 auto;
+  min-width:0;max-width:7ch;text-align:center}
+.audio-tool #ctrl-bpm-to{padding-left:8px;padding-right:8px}
+
 /* Поле только для показа: выглядит как значение, а не как то, что можно править. */
 .audio-tool .field input[type=number][readonly]{cursor:default;color:var(--accent);
   background:var(--surface);border-color:rgba(255,255,255,0.06)}
