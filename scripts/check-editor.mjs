@@ -345,6 +345,14 @@ const midOff = await q(`(()=>{const el=document.getElementById('ed-vol');
   return Math.round(Math.abs(r.left+r.width/2 - (t.left+t.width/2)))})()`);
 ok('черта нуля совпадает с ручкой', midOff != null && midOff <= 3, 'расхождение ' + midOff + ' точек');
 
+// Область захвата ползунка -- не меньше 44 точек: столько нужно пальцу. Раньше она
+// совпадала с шириной дорожки, и по вертикальной полосе приходилось попадать точно.
+const grab = await q(`(()=>{const i=document.querySelector('#ed-eq input');
+  if(!i) return null; const r=i.getBoundingClientRect();
+  return {w:Math.round(r.width), h:Math.round(r.height)}})()`);
+ok('область захвата фейдера под палец', grab && grab.w >= 40,
+   grab ? (grab.w + ' x ' + grab.h + ' точек') : 'полосы не найдены');
+
 ok('в консоли нет исключений', errors.length === 0, errors.join(' | '));
 
 // ============================ итог ==================================================================

@@ -418,3 +418,23 @@
 @media(max-width:759px){
   .audio-editor .ed-band input[type=range]{height:108px}
 }
+
+/* --- Невидимая область захвата -------------------------------------------------------
+   Палец попадает не в дорожку, а в ПРЯМОУГОЛЬНИК вокруг неё. Сам ползунок остаётся
+   системным -- клавиатура, программы для незрячих и фокус работают как работали, и ни
+   одной строки на это не потрачено. Меняется только то, куда можно ткнуть.
+
+   Раньше по вертикальной полосе приходилось попадать точно: её ширина -- ширина дорожки.
+   Теперь захват растянут на всю ячейку и на всю высоту фейдера, а видимая дорожка
+   осталась тонкой. Прозрачный фон обязателен: без него элемент не ловит касания вовсе. */
+.audio-editor .ed-fader input[type=range],
+.audio-editor .ed-slot input[type=range]{background:transparent}
+
+.audio-editor .ed-fader input[type=range]{width:100%;min-width:44px}
+.audio-editor .ed-slot input[type=range]{height:44px}
+
+/* Дорожку рисуем по центру расширенной области, а не по её краю. */
+.audio-editor .ed-fader input[type=range]::-webkit-slider-runnable-track{
+  margin:0 auto;width:6px}
+.audio-editor .ed-slot input[type=range]::-webkit-slider-runnable-track{margin:19px 0}
+.audio-editor .ed-slot input[type=range]::-webkit-slider-thumb{margin-top:-6px}
