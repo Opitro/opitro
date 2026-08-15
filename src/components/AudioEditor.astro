@@ -164,11 +164,16 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       // накапливается: −3, потом ещё −3 даёт −6, хотя на ползунке стоит −3.
       pitch: 0, speed: 1,
     };
+    // Длина спада НЕ запоминается в момент нажатия: иначе включил один фейд, подвинул
+    // ручки, включил второй -- и они разной длины. На волне это видно сразу, левый спад
+    // сильнее правого. Считается всегда от текущего выделения, поэтому они равны.
     const fadeLen = () => {
       if (!workBuffer) return 0;
       const selSec = (selEnd - selStart) * workBuffer.duration;
       return Math.max(0.2, Math.min(3, selSec / 4));
     };
+    const fiSec = () => (live.fadeIn ? fadeLen() : 0);
+    const foSec = () => (live.fadeOut ? fadeLen() : 0);
     const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
     const player = createPlayer();
@@ -369,8 +374,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       g.save();
       g.globalCompositeOperation = 'destination-out';
       g.fillStyle = '#000';
-      if (live.fadeIn) carve(px(selStart * d), px(selStart * d + live.fadeIn), true);
-      if (live.fadeOut) carve(px(selEnd * d - live.fadeOut), px(selEnd * d), false);
+      if (live.fadeIn) carve(px(selStart * d), px(selStart * d + fiSec()), true);
+      if (live.fadeOut) carve(px(selEnd * d - foSec()), px(selEnd * d), false);
       g.restore();
     }
 
@@ -492,23 +497,24 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const gp = fadeGain.gain;
       gp.cancelScheduledValues(t0);
       const k = Math.max(0.01, live.speed);
-      const inEnd = selStart * workBuffer.duration + live.fadeIn;
-      const outStart = selEnd * workBuffer.duration - live.fadeOut;
-      // Кривая ТА ЖЕ, что в applyFade при сведении: экспоненциальная, от 0.0001.
-      // Раньше здесь была прямая -- числа совпадали, а на слух спад в скачанном файле
-      // казался длиннее: экспонента дольше держится тихой. Владелец это и услышал.
+      const fi = fiSec(), fo = foSec();
+      const inEnd = selStart * workBuffer.duration + fi;
+      const outStart = selEnd * workBuffer.duration - fo;
+      // Прямая, а не экспонента. Экспонента почти весь путь держится у нуля и взлетает
+      // в конце -- на слух это «сначала тишина, потом звук вдруг», и на глаз не совпадает
+      // с тем, что нарисовано на волне. Прямая совпадает и с картинкой, и с ощущением.
       if (live.fadeIn && sec < inEnd) {
         // Начинаем не с нуля, если запуск попал в середину подъёма.
-        const from = Math.max(0.0001, (sec - selStart * workBuffer.duration) / live.fadeIn);
+        const from = Math.max(0, (sec - selStart * workBuffer.duration) / fi);
         gp.setValueAtTime(from, t0);
-        gp.exponentialRampToValueAtTime(1, t0 + (inEnd - sec) / k);
+        gp.linearRampToValueAtTime(1, t0 + (inEnd - sec) / k);
       } else {
         gp.setValueAtTime(1, t0);
       }
       if (live.fadeOut) {
         const startAt = t0 + Math.max(0, (outStart - sec) / k);
         gp.setValueAtTime(1, startAt);
-        gp.exponentialRampToValueAtTime(0.0001, startAt + live.fadeOut / k);
+        gp.linearRampToValueAtTime(0, startAt + fo / k);
       }
     }
 
@@ -589,6 +595,29 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     // Живые настройки сводим в звук ОДИН раз, при скачивании. До этого момента файл не
     // пересчитывался ни разу -- поэтому сколько бы вкладок ни трогали, качество то же.
+    // Свой спад вместо общего applyFade: тот ведёт громкость по экспоненте, а нам нужна
+    // ровно та же прямая, что звучит при прослушивании и нарисована на волне. Общий
+    // applyFade не трогаем -- на нём живут остальные инструменты.
+    async function linearFade(buf, fi, fo) {
+      if (!fi && !fo) return buf;
+      const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
+      const off = new OC(buf.numberOfChannels, buf.length, buf.sampleRate);
+      const src = off.createBufferSource();
+      src.buffer = buf;
+      const g = off.createGain();
+      const dur = buf.duration;
+      const a = Math.min(fi || 0, dur / 2);
+      const b2 = Math.min(fo || 0, dur / 2);
+      g.gain.setValueAtTime(a > 0 ? 0 : 1, 0);
+      if (a > 0) g.gain.linearRampToValueAtTime(1, a);
+      if (b2 > 0) {
+        g.gain.setValueAtTime(1, Math.max(a, dur - b2));
+        g.gain.linearRampToValueAtTime(0, dur);
+      }
+      src.connect(g); g.connect(off.destination); src.start(0);
+      return off.startRendering();
+    }
+
     async function bakeLive(buf) {
       let b = buf;
       // Обработчик звукового потока меняет звук ТОЛЬКО пока он играет -- в файл так ничего
@@ -597,7 +626,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       if (Math.abs(live.speed - 1) > 0.001) b = await wsolaStretchChunked(b, 1 / live.speed, showBusy);
       if (live.pitch) b = await pitchShiftChunked(b, live.pitch, showBusy);
       showBusy(null);
-      if (live.fadeIn || live.fadeOut) b = await applyFade(b, live.fadeIn, live.fadeOut);
+      if (live.fadeIn || live.fadeOut) b = await linearFade(b, fiSec(), foSec());
       const noEq = live.eq.every((v) => v === 0);
       if (Math.abs(live.gain - 1) < 0.001 && noEq && !live.compOn && !live.pitch) return b;
       buf = b;
@@ -699,7 +728,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           // Спад отсчитывался от ручек -- после обрезки ручки стали краями файла, поэтому
           // накладываем его здесь же и снимаем переключатели: своё дело они сделали.
           if (live.fadeIn || live.fadeOut) {
-            baseBuffer = await applyFade(baseBuffer, live.fadeIn, live.fadeOut);
+            baseBuffer = await linearFade(baseBuffer, fiSec(), foSec());
             live.fadeIn = 0; live.fadeOut = 0;
           }
           selStart = 0; selEnd = 1;
@@ -722,7 +751,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       // Переключатели, а не разовые действия: нажал -- кнопка осталась нажатой, спад
       // нарисовался на волне от ручки обрезки. Нажал ещё раз -- снялся.
       const toggleFade = (key) => {
-        live[key] = live[key] ? 0 : fadeLen();
+        live[key] = live[key] ? 0 : 1;
         if (playing) scheduleFades(lastPos);
         redraw(); renderPanel();
       };
