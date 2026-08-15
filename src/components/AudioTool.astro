@@ -1110,7 +1110,7 @@ const ICO = {
       // glyph sitting there, so it read as "something is loading" -- you wait for an icon that
       // is never going to change. abPlayingWhich has to go too, or the next press pauses
       // nothing instead of playing.
-      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
+      if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
       abPlayingWhich = null;
       if (listenLabel) listenLabel.textContent = isGeneratorLabel();
       if (playhead) playhead.style.display = 'none';
@@ -2815,7 +2815,7 @@ if (config.controls === 'speed1') {
     }
     function stopAB() {
       player.stop();
-      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
+      if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
       if (playhead) playhead.style.display = 'none';
       abPlayingWhich = null;
     }
@@ -2824,7 +2824,7 @@ if (config.controls === 'speed1') {
     function playAB(which, buf, seekTo) {
       if (seekTo == null && abPlayingWhich === which && player.isPlaying()) {
         player.pause();
-        if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
+        if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
         abPlayingWhich = null;
         return;
       }
@@ -2851,7 +2851,7 @@ if (config.controls === 'speed1') {
         if (held > 0.05 && held < buf.duration - 0.05) resumeAt = held;
       }
       player.stop();
-      if (wavePlayIco) wavePlayIco.innerHTML = ICO_PAUSE;
+      if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
       abPlayingWhich = which;
       abPlayingBuffer = buf;
       if (transportDurEl) transportDurEl.textContent = fmtClock(buf.duration);
@@ -2873,7 +2873,7 @@ if (config.controls === 'speed1') {
           setPlayheadFrac(f);
         },
         () => {
-          if (wavePlayIco) wavePlayIco.innerHTML = ICO_PLAY;
+          if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
           if (playhead) playhead.style.display = 'none';
           if (transportCurEl) transportCurEl.textContent = '0:00';
           abPlayingWhich = null;
