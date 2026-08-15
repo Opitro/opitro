@@ -327,7 +327,7 @@ const ICO = {
             <button type="button" class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
           ))}
         </div>
-        <select id="ctrl-select" hidden>
+        <select id="ctrl-select" style="display:none">
           {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
         </select>
       </div>
@@ -4257,16 +4257,22 @@ if (config.controls === 'speed1') {
   // его читает вся остальная работа инструмента, поэтому здесь только ставим value и подаём
   // change, ровно как сделал бы человек мышью.
   (() => {
-    const row = document.getElementById('chip-row');
-    const sel = document.getElementById('ctrl-select');
-    if (!row || !sel) return;
-    row.addEventListener('click', (e) => {
-      const b = e.target.closest('.preset-btn');
-      if (!b) return;
-      row.querySelectorAll('.preset-btn').forEach((x) => x.classList.toggle('active', x === b));
-      sel.value = b.dataset.chip;
-      sel.dispatchEvent(new Event('change', { bubbles: true }));
-    });
+    const связать = (rowId, selId, снимаемый) => {
+      const row = document.getElementById(rowId);
+      const sel = document.getElementById(selId);
+      if (!row || !sel) return;
+      row.addEventListener('click', (e) => {
+        const b = e.target.closest('.preset-btn');
+        if (!b) return;
+        // Повторное нажатие на уже выбранную кнопку СНИМАЕТ выбор -- так просил владелец.
+        // Для формата это не годится: файл всегда куда-то сохраняется, пустого формата нет.
+        const снять = снимаемый && b.classList.contains('active');
+        row.querySelectorAll('.preset-btn').forEach((x) => x.classList.toggle('active', !снять && x === b));
+        sel.value = снять ? '' : b.dataset.chip;
+        sel.dispatchEvent(new Event('change', { bubbles: true }));
+      });
+    };
+    связать('chip-row', 'ctrl-select', true);
   })();
 </script>
 

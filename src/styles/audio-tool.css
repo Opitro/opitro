@@ -565,3 +565,8 @@
   width:18px;height:18px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;
 }
 
+/* Ряд кнопок вместо выпадающего списка силы.
+   Прятать список атрибутом hidden НЕЛЬЗЯ -- наши же правила задают ему display, и он
+   побеждает: на снимке список остался виден под кнопками. Прячем через display в разметке. */
+.audio-tool #chip-row{display:flex;gap:8px;flex-wrap:wrap}
+
