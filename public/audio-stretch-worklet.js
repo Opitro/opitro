@@ -65,7 +65,7 @@ class StretchProcessor extends AudioWorkletProcessor {
       if (m.type === 'load') {
         this.channels = m.channels.map((b) => new Float32Array(b));
         this.length = this.channels[0] ? this.channels[0].length : 0;
-        this.acc = this.channels.map(() => new Float32Array(this.grain * 4));
+        this.acc = this.channels.map(() => new Float32Array(this.grain * 8));
         this.readPos = m.offset ? Math.round(m.offset * sr) : 0;
         this.accFill = 0;
         this.accOut = 0;
@@ -117,13 +117,29 @@ class StretchProcessor extends AudioWorkletProcessor {
     // Пока готового звука в копилке меньше, чем просят, домешиваем зёрна.
     while (this.accFill - this.accOut < n && !this.finished) {
       // Сдвигаем копилку влево, если она подошла к концу -- вместо бесконечного роста.
-      if (this.accFill + this.grain > this.acc[0].length) {
+      // Освобождаем место, сдвигая уже отданное в начало. Две тонкости, каждая стоила
+      // проверки:
+      //   * обнулять надо ТОЛЬКО хвост, оставшийся копией самого себя. Прежнее
+      //     `fill(0, accFill - accOut)` затирало перекрытие уже подмешанного, но ещё не
+      //     доигранного зерна -- отсюда треск даже на нетронутом файле;
+      //   * сдвигать имеет смысл только когда есть что сдвигать. При accOut == 0 сдвиг
+      //     ничего не освобождает, и зерно уходит за край массива -- звук пропадает совсем.
+      if (this.accOut > 0 && this.accFill + this.grain > this.acc[0].length) {
+        const kept = this.acc[0].length - this.accOut;
         for (let c = 0; c < this.acc.length; c++) {
           this.acc[c].copyWithin(0, this.accOut);
-          this.acc[c].fill(0, this.accFill - this.accOut);
+          this.acc[c].fill(0, kept);
         }
         this.accFill -= this.accOut;
         this.accOut = 0;
+      }
+      // Если места всё равно нет -- копилка мала для такого зерна; растим её, а не теряем звук.
+      if (this.accFill + this.grain > this.acc[0].length) {
+        for (let c = 0; c < this.acc.length; c++) {
+          const bigger = new Float32Array(this.acc[c].length * 2);
+          bigger.set(this.acc[c]);
+          this.acc[c] = bigger;
+        }
       }
       this.addGrain(pitchRatio);
       // Готовым считается только то, что уже перекрыто полностью, -- то есть половина зерна.
