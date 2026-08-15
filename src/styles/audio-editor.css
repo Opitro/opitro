@@ -279,19 +279,23 @@
    нажимается вся коробка. */
 .audio-editor input[type=range]{-webkit-appearance:none;appearance:none;background:transparent}
 
+/* Дорожка должна быть ВИДНА. Раньше она была почти чёрной на почти чёрном фоне -- и
+   ползунок не читался как ползунок вовсе. Именно поэтому хотелось обложить его подложками:
+   лечили следствие. Теперь дорожка светлее фона, с тёмной прорезью внутри и тонким бликом
+   по нижнему краю -- она сама выглядит как желобок, и никакие панели вокруг не нужны. */
 .audio-editor input[type=range]::-webkit-slider-runnable-track{
-  height:4px;border-radius:3px;
-  background:linear-gradient(180deg,#0a0b0d,#15171c);
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.9),0 1px 0 rgba(255,255,255,.04)}
+  height:6px;border-radius:4px;
+  background:linear-gradient(180deg,#2b3038,#3a4049);
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.75),0 1px 0 rgba(255,255,255,.07)}
 .audio-editor input[type=range]::-moz-range-track{
-  height:4px;border-radius:3px;background:#0f1114;
-  box-shadow:inset 0 1px 2px rgba(0,0,0,.9)}
+  height:6px;border-radius:4px;background:#333941;
+  box-shadow:inset 0 1px 2px rgba(0,0,0,.75)}
 .audio-editor input[type=range]::-moz-range-progress{
   height:4px;border-radius:3px;background:var(--accent)}
 
 .audio-editor input[type=range]::-webkit-slider-thumb{
   -webkit-appearance:none;appearance:none;width:18px;height:18px;border-radius:50%;
-  margin-top:-7px;cursor:grab;
+  margin-top:-6px;cursor:grab;
   background:linear-gradient(180deg,#fdfdfe,#c9cfd8);
   border:1px solid rgba(0,0,0,.55);
   box-shadow:0 1px 3px rgba(0,0,0,.7),inset 0 1px 0 rgba(255,255,255,.9)}
@@ -309,7 +313,7 @@
 
 /* Полосы эквалайзера -- вертикальные фейдеры: дорожка тоньше, ручка чуть вытянута,
    как настоящий движок на пульте. */
-.audio-editor .ed-band input[type=range]::-webkit-slider-runnable-track{width:4px;height:auto}
+.audio-editor .ed-band input[type=range]::-webkit-slider-runnable-track{width:6px;height:auto}
 .audio-editor .ed-band input[type=range]::-webkit-slider-thumb{
   width:22px;height:13px;border-radius:4px;margin-top:0;margin-left:-9px}
 .audio-editor .ed-band input[type=range]::-moz-range-thumb{width:22px;height:13px;border-radius:4px}
@@ -351,9 +355,9 @@
    тень по верхнему краю и тонкий блик по нижнему -- так читается углубление. Светло-серая
    плашка выглядела наклейкой; настоящие приборы прячут ручки в нишу, чтобы не цеплялись.
    Та же логика, что у самой дорожки ползунка -- она тоже утоплена, и теперь они заодно. */
-.audio-editor .ed-panel{background:rgba(0,0,0,.28);border:none;border-radius:12px;
+.audio-editor .ed-panel{background:rgba(0,0,0,.18);border:none;border-radius:12px;
   padding:14px;margin-top:14px;
-  box-shadow:inset 0 2px 5px rgba(0,0,0,.55),inset 0 -1px 0 rgba(255,255,255,.045)}
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.4),inset 0 -1px 0 rgba(255,255,255,.035)}
 
 /* Полосы эквалайзера -- каждая в своей ячейке: так их не путаешь пальцем и видно, что
    это набор одинаковых движков, а не десять разных вещей. */
