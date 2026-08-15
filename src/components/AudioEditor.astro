@@ -227,7 +227,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           <button type="button" class="ed-btn" id="ed-fadeout" title="${lbl('edFadeOut', 'Плавный конец')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5C12 5 14 20 20 20L4 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 5C12 5 14 20 20 20"/></svg></button>
           <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16" opacity=".4"/><path d="M3 12h6M21 12h-6"/><path d="M6.5 9l2.5 3-2.5 3M17.5 9L15 12l2.5 3"/></svg></button>
           <div class="ed-stamps"><span id="ed-s0">00:00.0</span><span>—</span><span id="ed-s1">00:00.0</span></div>
-          <button type="button" class="ed-btn" id="ed-apply-trim">${lbl('edApplyTrim', 'Обрезать')}</button>
         </div>`,
       equalizer: () => `
         <div class="ed-chips" id="ed-eq-presets">
@@ -319,6 +318,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         rich: true, gain: live.gain, peaks: peakCache,
         // Доли от всей дорожки: спад отсчитывается от ручек обрезки, а не от краёв файла.
         fade: (live.fadeIn || live.fadeOut) ? {
+          selStart, selEnd,
           inStart: selStart,
           inEnd: live.fadeIn ? selStart + fiSec() / workBuffer.duration : selStart,
           outStart: live.fadeOut ? selEnd - foSec() / workBuffer.duration : selEnd,
@@ -689,22 +689,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         });
       });
 
-      // обрезка
-      on('ed-apply-trim', 'click', async () => {
-        if (selStart === 0 && selEnd === 1) return;
-        await withBusy(async () => {
-          baseBuffer = sliceBuffer(workBuffer, selStart * workBuffer.duration, selEnd * workBuffer.duration);
-          // Спад отсчитывался от ручек -- после обрезки ручки стали краями файла, поэтому
-          // накладываем его здесь же и снимаем переключатели: своё дело они сделали.
-          if (live.fadeIn || live.fadeOut) {
-            baseBuffer = await linearFade(baseBuffer, fiSec(), foSec());
-            live.fadeIn = 0; live.fadeOut = 0;
-          }
-          selStart = 0; selEnd = 1;
-          live.speed = 1; live.pitch = 0;
-          workBuffer = baseBuffer;
-        });
-      });
       on('ed-cutmid', 'click', async () => {
         if (selStart === 0 && selEnd === 1) return;
         await withBusy(async () => {

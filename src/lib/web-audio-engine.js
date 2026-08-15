@@ -349,14 +349,20 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
       // именно так и выглядит настоящее затухание.
       if (fade) {
         const t = c / n;
-        let e = 1;
-        if (fade.inEnd > fade.inStart && t < fade.inEnd) {
-          e = Math.min(e, Math.max(0, (t - fade.inStart) / (fade.inEnd - fade.inStart)));
+        // Только ВНУТРИ выделения. Раньше огибающая считалась по всей дорожке, и слева от
+        // левой ручки выражение уходило в минус, обрезалось до нуля -- волна за ручками
+        // пропадала целиком. За ручками своё дело делает приглушение, трогать её нельзя.
+        if (t >= fade.selStart && t <= fade.selEnd) {
+          let e = 1;
+          if (fade.inEnd > fade.inStart && t < fade.inEnd) {
+            e = Math.min(e, (t - fade.inStart) / (fade.inEnd - fade.inStart));
+          }
+          if (fade.outEnd > fade.outStart && t > fade.outStart) {
+            e = Math.min(e, (fade.outEnd - t) / (fade.outEnd - fade.outStart));
+          }
+          e = Math.max(0, Math.min(1, e));
+          min *= e; max *= e;
         }
-        if (fade.outEnd > fade.outStart && t > fade.outStart) {
-          e = Math.min(e, Math.max(0, (fade.outEnd - t) / (fade.outEnd - fade.outStart)));
-        }
-        min *= e; max *= e;
       }
       // Поля сверху и снизу. Волна во всю высоту упирается в края коробки: выглядит тесно
       // и налезает на имя файла, которое стоит у верхнего края. 0.78 -- самые громкие места
