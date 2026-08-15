@@ -316,20 +316,20 @@ const ICO = {
         </select>
       </div>
     )}
-    {/* Тот же выбор рядом кнопок. Список при этом ОСТАЁТСЯ, только спрятан: всё, что читает
-        ctrl-select, продолжает работать без единой правки, а кнопки лишь ставят ему значение
-        и подают change. Так переделка вида не задевает работу инструмента. */}
+    {/* Тот же выбор рядом кнопок -- и БЕЗ спрятанного списка рядом. Скрытый дубль убран по
+        требованию владельца: невидимого в странице быть не должно, его видят читалки экрана
+        и сканеры. Ряд кнопок САМ носит имя ctrl-select и сам отдаёт значение (в коде ниже ему
+        заведено свойство value), поэтому все восемь мест, где сила читается, не менялись.
+        Для читалок это группа переключателей: role=radiogroup + role=radio + aria-checked. */}
     {controls === 'select' && !config.presetCards && config.selectAsChips && (
       <div class="field">
-        <label>{labels[config.selectLabel]}</label>
-        <div class="presets" id="chip-row">
+        <span class="field-label" id="ctrl-select-label">{labels[config.selectLabel]}</span>
+        <div class="presets" id="ctrl-select" role="radiogroup" aria-labelledby="ctrl-select-label">
           {config.selectOptions.map((o, i) => (
-            <button type="button" class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
+            <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'}
+              class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
           ))}
         </div>
-        <select id="ctrl-select" style="display:none">
-          {config.selectOptions.map((o) => <option value={o.value}>{labels[o.label] || o.label}</option>)}
-        </select>
       </div>
     )}
     {/* A tool that wants to say something about the file it was actually given -- "this is
@@ -4257,22 +4257,36 @@ if (config.controls === 'speed1') {
   // его читает вся остальная работа инструмента, поэтому здесь только ставим value и подаём
   // change, ровно как сделал бы человек мышью.
   (() => {
-    const связать = (rowId, selId, снимаемый) => {
-      const row = document.getElementById(rowId);
-      const sel = document.getElementById(selId);
-      if (!row || !sel) return;
-      row.addEventListener('click', (e) => {
-        const b = e.target.closest('.preset-btn');
-        if (!b) return;
-        // Повторное нажатие на уже выбранную кнопку СНИМАЕТ выбор -- так просил владелец.
-        // Для формата это не годится: файл всегда куда-то сохраняется, пустого формата нет.
-        const снять = снимаемый && b.classList.contains('active');
-        row.querySelectorAll('.preset-btn').forEach((x) => x.classList.toggle('active', !снять && x === b));
-        sel.value = снять ? '' : b.dataset.chip;
-        sel.dispatchEvent(new Event('change', { bubbles: true }));
+    const row = document.getElementById('ctrl-select');
+    if (!row || !row.classList.contains('presets')) return;
+    const кнопки = () => [...row.querySelectorAll('.preset-btn')];
+    const отметить = (знач) => kнопкиОтметить(знач);
+    function kнопкиОтметить(знач) {
+      кнопки().forEach((x) => {
+        const он = x.dataset.chip === знач;
+        x.classList.toggle('active', он);
+        x.setAttribute('aria-checked', он ? 'true' : 'false');
       });
-    };
-    связать('chip-row', 'ctrl-select', true);
+    }
+    // Ряд кнопок ОТДАЁТ значение сам, как это делал список. Благодаря этому все места, где
+    // сила читается (их восемь), остались нетронутыми -- они по-прежнему берут .value у
+    // элемента с именем ctrl-select. Скрытого дубля в странице при этом нет.
+    let выбрано = (кнопки()[0] || {}).dataset ? кнопки()[0].dataset.chip : '';
+    Object.defineProperty(row, 'value', {
+      get: () => выбрано,
+      set: (v) => { выбрано = v == null ? '' : String(v); отметить(выбрано); },
+      configurable: true,
+    });
+    row.addEventListener('click', (e) => {
+      const b = e.target.closest('.preset-btn');
+      if (!b) return;
+      // Повторное нажатие на выбранную кнопку СНИМАЕТ выбор -- так просил владелец.
+      выбрано = b.classList.contains('active') ? '' : b.dataset.chip;
+      отметить(выбрано);
+      // Оба события: одни места слушают input, другие change -- как у настоящего списка.
+      row.dispatchEvent(new Event('input', { bubbles: true }));
+      row.dispatchEvent(new Event('change', { bubbles: true }));
+    });
   })();
 </script>
 
