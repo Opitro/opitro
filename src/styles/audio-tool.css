@@ -710,3 +710,9 @@
    короче или длиннее. */
 .audio-tool.is-recorder .rec-state{min-height:22px;line-height:22px;white-space:nowrap}
 
+/* Готовая запись: время и подпись под кнопкой больше ни о чём не говорят -- запись сделана,
+   дальше человек имеет дело с плеером. Прячем их ВИДИМОСТЬЮ, место остаётся занятым,
+   поэтому переход не двигает страницу. Владелец: «кнопка пропала, а это осталось». */
+.audio-tool.is-recorder .rec-stage.is-done .rec-time,
+.audio-tool.is-recorder .rec-stage.is-done .rec-state{visibility:hidden}
+
