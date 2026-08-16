@@ -331,8 +331,10 @@ const ICO = {
         <label id="ctrl-select-label">{labels[config.selectLabel]}</label>
         <div class="presets" id="ctrl-select" role="radiogroup" aria-labelledby="ctrl-select-label">
           {config.selectOptions.map((o, i) => (
-            <button type="button" role="radio" aria-checked={i === 0 ? 'true' : 'false'}
-              class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
+            <button type="button" role="radio"
+              aria-checked={o.value === (config.chipDefault || config.selectOptions[0].value) ? 'true' : 'false'}
+              class={o.value === (config.chipDefault || config.selectOptions[0].value) ? 'preset-btn active' : 'preset-btn'}
+              data-chip={o.value}>{labels[o.label] || o.label}</button>
           ))}
         </div>
         {config.chipHints && (
@@ -4368,7 +4370,11 @@ if (config.controls === 'speed1') {
     // Ряд кнопок ОТДАЁТ значение сам, как это делал список. Благодаря этому все места, где
     // сила читается (их восемь), остались нетронутыми -- они по-прежнему берут .value у
     // элемента с именем ctrl-select. Скрытого дубля в странице при этом нет.
-    let выбрано = (кнопки()[0] || {}).dataset ? кнопки()[0].dataset.chip : '';
+    // Выбранной по умолчанию может быть НЕ первая кнопка: на «моно в стерео» порядок
+    // кнопок повторяет расположение (левый -- оба -- правый), а по умолчанию нужен средний.
+    // Берём ту, что помечена разметкой, и только если такой нет -- первую.
+    const поумолч = кнопки().find((x) => x.classList.contains('active')) || кнопки()[0];
+    let выбрано = поумолч && поумолч.dataset ? поумолч.dataset.chip : '';
     kнопкиОтметить(выбрано); // подсветить выбранное СРАЗУ, не дожидаясь первого нажатия
     Object.defineProperty(row, 'value', {
       get: () => выбрано,

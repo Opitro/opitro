@@ -776,10 +776,14 @@ export const AUDIO_TOOLS = {
     controls: 'select',
     accept: 'audio/*',
     outputChannels: 2,
+    // Кнопки вместо списка, и ПОРЯДОК повторяет смысл: левый слева, оба посередине,
+    // правый справа. Не нужно читать подписи, чтобы понять, куда пойдёт звук.
+    selectAsChips: true,
+    chipDefault: 'duplicate',
     selectLabel: 'channelModeLabel',
     selectOptions: [
-      { value: 'duplicate', label: 'channelDuplicateLabel' },
       { value: 'panleft', label: 'channelPanLeftLabel' },
+      { value: 'duplicate', label: 'channelDuplicateLabel' },
       { value: 'panright', label: 'channelPanRightLabel' },
     ],
     directRender: (buffer, { value }) => {
