@@ -330,6 +330,16 @@ const ICO = {
               class={i === 0 ? 'preset-btn active' : 'preset-btn'} data-chip={o.value}>{labels[o.label] || o.label}</button>
           ))}
         </div>
+        {config.chipHints && (
+          <dl class="chip-hints">
+            {config.chipHints.map((h) => (
+              <div class="chip-hint" data-hint={h.value}>
+                <dt>{labels[h.label] || h.value}</dt>
+                <dd>{labels[h.hint] || ''}</dd>
+              </div>
+            ))}
+          </dl>
+        )}
       </div>
     )}
     {/* A tool that wants to say something about the file it was actually given -- "this is
@@ -4267,11 +4277,16 @@ if (config.controls === 'speed1') {
         x.classList.toggle('active', он);
         x.setAttribute('aria-checked', он ? 'true' : 'false');
       });
+      // Расшифровка под кнопками: выбранная строка ярче остальных.
+      document.querySelectorAll('.chip-hint').forEach((h) => {
+        h.classList.toggle('is-on', h.dataset.hint === знач);
+      });
     }
     // Ряд кнопок ОТДАЁТ значение сам, как это делал список. Благодаря этому все места, где
     // сила читается (их восемь), остались нетронутыми -- они по-прежнему берут .value у
     // элемента с именем ctrl-select. Скрытого дубля в странице при этом нет.
     let выбрано = (кнопки()[0] || {}).dataset ? кнопки()[0].dataset.chip : '';
+    kнопкиОтметить(выбрано); // подсветить выбранное СРАЗУ, не дожидаясь первого нажатия
     Object.defineProperty(row, 'value', {
       get: () => выбрано,
       set: (v) => { выбрано = v == null ? '' : String(v); отметить(выбрано); },

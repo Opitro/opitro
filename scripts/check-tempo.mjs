@@ -35,6 +35,12 @@ fs.writeFileSync(DIR+'/ritm100.wav',b);
 try { execSync("lsof -ti tcp:4398 | xargs kill -9", { stdio: 'ignore' }); } catch (e) {}
 const раздатчик = spawn('npx',['--yes','serve@14','dist','-l','4398'],{stdio:'ignore'});
 process.on('exit', () => { try { раздатчик.kill(); } catch (e) {} });
+// Ждать ГОТОВНОСТИ, а не отмеренные секунды. С фиксированным ожиданием проверка падала,
+// когда раздатчик поднимался медленнее обычного, -- и это выглядело как поломка сайта.
+// Дважды из-за такого падения я зря искал беду в рабочем коде.
+for (let i = 0; i < 100; i++) {
+  try { await fetch('http://127.0.0.1:4398/'); break; } catch { await sleep(300); }
+}
 await sleep(3000);
 spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',[`--remote-debugging-port=${PORT}`,
  `--user-data-dir=${DIR}/tp-prof`,'--no-first-run','--no-default-browser-check',

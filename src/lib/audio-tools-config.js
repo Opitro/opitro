@@ -1388,6 +1388,15 @@ export const AUDIO_TOOLS = {
     // Заготовки рядом кнопок, а не выпадающим списком -- как в шумоподавлении: четыре
     // варианта, ради каждого делать нажатие и ждать открытия списка незачем.
     selectAsChips: true,
+    // Расшифровка режимов стоит СРАЗУ под кнопками, до всякого текста страницы.
+    // Владелец 16.08.2026: выбирая режим, человек должен видеть, что тот делает, а не
+    // искать это в середине статьи.
+    chipHints: [
+      { value: 'voice', label: 'compressorVoiceLabel', hint: 'compressorVoiceHint' },
+      { value: 'podcast', label: 'compressorPodcastLabel', hint: 'compressorPodcastHint' },
+      { value: 'music', label: 'compressorMusicLabel', hint: 'compressorMusicHint' },
+      { value: 'hard', label: 'compressorHardLabel', hint: 'compressorHardHint' },
+    ],
     selectLabel: 'compressorPresetLabel',
     selectOptions: [
       { value: 'voice', label: 'compressorVoiceLabel' },

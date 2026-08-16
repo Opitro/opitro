@@ -606,3 +606,15 @@
   .audio-tool .presets#ctrl-select .preset-btn{flex:1 1 calc(50% - 4px);min-width:0}
 }
 
+/* Расшифровка режимов -- сразу под кнопками, до текста страницы.
+   Выбранный режим выделен, остальные приглушены: видно и что выбрано, и чем оно отличается
+   от соседнего, без единого нажатия. */
+.audio-tool .chip-hints{margin:12px 0 0;display:grid;gap:6px}
+.audio-tool .chip-hint{display:flex;gap:8px;align-items:baseline;font-size:13px;line-height:1.45;opacity:.62}
+.audio-tool .chip-hint.is-on{opacity:1}
+.audio-tool .chip-hint dt{flex:0 0 auto;font-weight:650;color:var(--text)}
+.audio-tool .chip-hint.is-on dt{color:var(--accent)}
+.audio-tool .chip-hint dd{margin:0;color:var(--muted,rgba(255,255,255,.62))}
+.audio-tool .chip-hint dt::after{content:' —'}
+@media(max-width:759px){.audio-tool .chip-hint{display:block}.audio-tool .chip-hint dt{display:inline}}
+
