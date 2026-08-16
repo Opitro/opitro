@@ -336,7 +336,7 @@ export const UI = {
       fadeSmoothEndLabel: 'Smooth ending',
       fadeMovieLabel: 'Movie',
       fadeMusicLabel: 'Music',
-      fadeNoneLabel: 'No effects',
+      fadeNoneLabel: 'Reset',
       // One word per band, so it's obvious what a slider actually changes without needing to
       // know what "250 Hz" sounds like. The title attribute carries the same text on hover.
       eqBandRoles: {
@@ -817,7 +817,7 @@ export const UI = {
       fadeSmoothEndLabel: 'Плавное завершение',
       fadeMovieLabel: 'Кино',
       fadeMusicLabel: 'Музыка',
-      fadeNoneLabel: 'Без эффектов',
+      fadeNoneLabel: 'Сбросить',
       eqBandRoles: {
         b31: 'Суббас', b62: 'Бас', b125: 'Низ', b250: 'Тело', b500: 'Мутность',
         b1k: 'Голос', b2k: 'Чёткость', b4k: 'Атака', b8k: 'Яркость', b16k: 'Воздух',
@@ -1243,7 +1243,7 @@ export const UI = {
       fadeSmoothEndLabel: 'Final suave',
       fadeMovieLabel: 'Cine',
       fadeMusicLabel: 'Música',
-      fadeNoneLabel: 'Sin efectos',
+      fadeNoneLabel: 'Restablecer',
       eqBandRoles: {
         b31: 'Subgraves', b62: 'Graves', b125: 'Bajos', b250: 'Cuerpo', b500: 'Turbidez',
         b1k: 'Voz', b2k: 'Definición', b4k: 'Ataque', b8k: 'Brillo', b16k: 'Aire',
@@ -1722,7 +1722,7 @@ export const UI = {
       fadeSmoothEndLabel: 'Плавне завершення',
       fadeMovieLabel: 'Кіно',
       fadeMusicLabel: 'Музика',
-      fadeNoneLabel: 'Без ефектів',
+      fadeNoneLabel: 'Скинути',
       eqBandRoles: {
         b31: 'Суббас', b62: 'Бас', b125: 'Низ', b250: 'Тіло', b500: 'Каламутність',
         b1k: 'Голос', b2k: 'Чіткість', b4k: 'Атака', b8k: 'Яскравість', b16k: 'Повітря',
