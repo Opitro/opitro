@@ -592,3 +592,17 @@
   padding:0 30px 0 12px;height:44px;line-height:1;box-sizing:border-box}
 @media(max-width:759px){.audio-tool .deck .field-fmt{flex:0 0 auto;width:auto;max-width:none}}
 
+/* Кнопки-заготовки: опрятный ряд, а не разнобой.
+   Владелец 16.08.2026: «эти кнопки выглядят непрофессионально». Причин было две -- подписи
+   разной длины (у одной стояло целое предложение) и разная ширина кнопок. Подписи укорочены
+   до одного слова, ширина у всех одинаковая по самой длинной, высота 38 -- как у прочих
+   мелких органов управления. */
+.audio-tool .presets#ctrl-select .preset-btn{flex:0 0 auto;min-width:108px;height:38px;
+  padding:0 16px;font-size:13.5px;letter-spacing:.01em;display:inline-flex;
+  align-items:center;justify-content:center;border-radius:10px;
+  transition:border-color .16s,background .16s,color .16s}
+@media(max-width:759px){
+  .audio-tool .presets#ctrl-select{gap:8px}
+  .audio-tool .presets#ctrl-select .preset-btn{flex:1 1 calc(50% - 4px);min-width:0}
+}
+
