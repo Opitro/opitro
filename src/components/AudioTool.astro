@@ -2127,6 +2127,8 @@ const ICO = {
           // From here it is just a file: pickFile draws the waveform, fills the info strip and
           // enables the export bar exactly as it would for an upload.
           await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
+          // Ту же запись отдаём обычному проигрывателю -- он и будет её играть.
+          try { window.__opitroДатьЗапись && window.__opitroДатьЗапись(blob); } catch (e) {}
           // Запись готова: место плеера перестаёт быть пустым, появляются формат и «Скачать»,
           // красная кнопка уходит, её сменяют плей и пауза. Высота при этом та же -- меняется
           // только видимость, поэтому страница не дёргается.
@@ -2192,8 +2194,48 @@ const ICO = {
       });
 
       // Plays the part between the handles, so what you hear is what will be saved.
+      // ОБЫЧНЫЙ ПРОИГРЫВАТЕЛЬ для готовой записи (первый шаг перевода, диктофон).
+      // Зачем: звуковой движок после долгого сна телефона умирает молча -- человек жмёт плей
+      // и слышит тишину, и лечит только обновление страницы. Обычный <audio> это переживает:
+      // им пользуется весь интернет, и браузеры чинят его в первую очередь. Обработки для
+      // готовой записи не нужно -- её надо просто проиграть, поэтому движок здесь лишний.
+      // Вид не меняется: кнопки, волна и бегунок остаются наши, элемент невидим.
+      let элемент = null, ссылкаНаЗапись = null;
+      function проигрыватель() {
+        if (!элемент) {
+          элемент = new Audio();
+          элемент.preload = 'auto';
+          элемент.addEventListener('timeupdate', () => {
+            if (!sourceBuffer || !элемент.duration) return;
+            setPlayheadTime(элемент.currentTime);
+          });
+          элемент.addEventListener('ended', () => {
+            recPlayIco.innerHTML = ICO_PLAY;
+            if (playhead) playhead.style.display = 'none';
+          });
+        }
+        return элемент;
+      }
+      // Ссылку на запись держим одну и освобождаем прежнюю -- иначе память растёт с каждой
+      // новой записью.
+      function датьЗапись(blob) {
+        if (ссылкаНаЗапись) { try { URL.revokeObjectURL(ссылкаНаЗапись); } catch (e) {} }
+        ссылкаНаЗапись = URL.createObjectURL(blob);
+        проигрыватель().src = ссылкаНаЗапись;
+        window.__opitroЗаписьВПроигрывателе = true; // для проверки: запись отдана обычному проигрывателю
+      }
+      window.__opitroДатьЗапись = датьЗапись;
+
       recPlayBtn.addEventListener('click', () => {
         if (!sourceBuffer) return;
+        // Если запись лежит в обычном проигрывателе -- играем ею, движок не трогаем.
+        if (элемент && элемент.src) {
+          if (!элемент.paused) { элемент.pause(); recPlayIco.innerHTML = ICO_PLAY; return; }
+          recPlayIco.innerHTML = ICO_PAUSE_SOLID;
+          const обещание = элемент.play();
+          if (обещание && обещание.catch) обещание.catch(() => { recPlayIco.innerHTML = ICO_PLAY; });
+          return;
+        }
         player.unlock();
         if (player.isPlaying()) {
           player.pause();

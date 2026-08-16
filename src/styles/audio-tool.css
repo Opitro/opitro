@@ -819,8 +819,9 @@
    50 точек, из-за которого кнопка записи подпрыгивала. Теперь высота постоянная. */
 .audio-tool .times{min-height:26px}
 .audio-tool #t-len-wrap{display:none}
-.audio-tool.is-recorder .times{display:flex !important;justify-content:space-between;
-  min-height:26px;visibility:visible}
+/* У диктофона строки под плеером НЕТ: владелец выбрал время на ручках. Она же была
+   виновницей сдвига -- в покое занимала место, а с началом записи схлопывалась. */
+.audio-tool.is-recorder .times{display:none !important}
 
 /* Время НА ручках обрезки: ярлычок едет вместе с ручкой -- владелец выбрал этот вид.
    position ручке НЕ задаём: она уже absolute и сама служит опорой; прежняя попытка задать
