@@ -777,6 +777,9 @@ export const AUDIO_TOOLS = {
     // Feeding a real stereo file to this discards the right channel entirely -- channel 0 is
     // read and copied to both sides. Silently losing half a recording is the kind of thing
     // people only notice later, so it gets said up front.
+    // Одна короткая строка на все случаи: она сообщает ФАКТ о файле, а не объясняет, что
+    // будет сделано, -- объяснение всё равно зависело бы от выбранной кнопки, а кнопки и так
+    // видны рядом. Владелец 16.08.2026: «можно просто надпись — этот файл уже стерео».
     note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels >= 2 ? labels.noteAlreadyStereo : ''),
     engine: 'webaudio',
     controls: 'select',
@@ -790,9 +793,9 @@ export const AUDIO_TOOLS = {
     // них. Понятно без чтения и на любом языке. Слова никуда не делись, они остались в коде
     // для озвучки экрана (aria-label) -- человек с плохим зрением услышит «Левый».
     chipIcons: {
-      panleft: '<svg class="chip-ico" viewBox="0 0 22 24" aria-hidden="true"><g class="sp on" transform="translate(22 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
-      duplicate: '<svg class="chip-ico" viewBox="0 0 48 24" aria-hidden="true"><g class="sp on" transform="translate(22 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><g class="sp on" transform="translate(26 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
-      panright: '<svg class="chip-ico" viewBox="0 0 22 24" aria-hidden="true"><g class="sp on"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+      panleft: '<svg class="chip-ico" viewBox="0 0 21 24" aria-hidden="true"><g class="sp on" transform="translate(21 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+      duplicate: '<svg class="chip-ico" viewBox="0 0 48 24" aria-hidden="true"><g class="sp on" transform="translate(21 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><g class="sp on" transform="translate(27 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+      panright: '<svg class="chip-ico" viewBox="0 0 21 24" aria-hidden="true"><g class="sp on"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
     },
     selectLabel: 'channelModeLabel',
     selectOptions: [
