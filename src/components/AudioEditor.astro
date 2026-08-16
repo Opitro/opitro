@@ -41,7 +41,11 @@ const ICONS: Record<string, string> = {
   normalize: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   speed: '<path d="M13 2L4.1 12.8a1 1 0 0 0 .8 1.6H11l-1 7.6 8.9-10.8a1 1 0 0 0-.8-1.6H12z"/>',
   pitch: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-  compress: '<path d="M4 6h16M4 18h16"/><path d="M8 10l4-3 4 3M8 14l4 3 4-3"/>',
+  // Ключ = имя инструмента из EDITOR_TOOLS. Переименовал инструмент в 'dynamic-compressor'
+  // (чтобы не путать со сжатием ВЕСА файла), а здесь ключ оставил старым -- вкладка вышла
+  // с названием «undefined» и без значка. Имена должны совпадать во всех трёх местах:
+  // список инструментов, значки, названия, панель.
+  'dynamic-compressor': '<path d="M4 6h16M4 18h16"/><path d="M8 10l4-3 4 3M8 14l4 3 4-3"/>',
 };
 
 const NAMES: Record<string, string> = {
@@ -51,7 +55,7 @@ const NAMES: Record<string, string> = {
   normalize: labels.edNormalize || 'Нормализация',
   speed: labels.edSpeed || 'Скорость',
   pitch: labels.edPitch || 'Высота тона',
-  compress: labels.edCompress || 'Компрессор',
+  'dynamic-compressor': labels.edCompress || 'Компрессор',
 };
 
 const config = AUDIO_TOOLS[tool] || {};
@@ -260,7 +264,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         + `<div class="ed-live" id="ed-speed-live"></div>`,
       pitch: () => row('', -12, 12, 1, live.pitch, 'ed-pitch', live.pitch > 0 ? '+' + live.pitch : String(live.pitch), 0)
         + `<div class="ed-live" id="ed-pitch-live"></div>`,
-      compress: () => row(lbl('edThreshold', 'Порог'), -60, 0, 1, live.comp.threshold, 'ed-th', live.comp.threshold + ' dB')
+      'dynamic-compressor': () => row(lbl('edThreshold', 'Порог'), -60, 0, 1, live.comp.threshold, 'ed-th', live.comp.threshold + ' dB')
         + row(lbl('edRatio', 'Сжатие'), 1, 20, 1, live.comp.ratio, 'ed-ra', live.comp.ratio + ':1')
         + row(lbl('edRelease', 'Отпускание'), 50, 1000, 10, live.comp.release * 1000, 'ed-re', (live.comp.release * 1000) + ' мс'),
     };

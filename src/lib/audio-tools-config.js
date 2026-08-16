@@ -1507,4 +1507,7 @@ export const AUDIO_TOOLS = {
 //
 // 'compress' -- сжатие ВЕСА файла (битрейт, размер, кнопки «почта/Discord»), отдельная
 // страница со своим устройством. Компрессор ДИНАМИКИ здесь называется 'dynamic-compressor'.
-export const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch', 'dynamic-compressor'];
+// ШЕСТЬ инструментов, компрессора здесь НЕТ -- владелец 16.08.2026: «мы обговорили только
+// 6 значков в инструменте и компрессор туда не входил». Я ошибочно держал его седьмым, и в
+// памяти у меня было записано неверно. Компрессор динамики живёт на своей странице.
+export const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch'];

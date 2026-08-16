@@ -166,7 +166,8 @@ ok('у выбора файла нет ограничения accept',
    !(await q(`document.getElementById('ed-file').hasAttribute('accept')`)));
 await putFile(WAV_A);
 ok('панель открылась после загрузки', await q(`document.getElementById('ed-root').classList.contains('on')`));
-ok('семь вкладок', (await q(`document.querySelectorAll('.ed-tool').length`)) === 7);
+// ШЕСТЬ -- утверждённый вид плеера. Компрессора среди них нет, он на своей странице.
+ok('шесть вкладок', (await q(`document.querySelectorAll('.ed-tool').length`)) === 6);
 ok('на /trim-audio активна обрезка', (await q(`document.querySelector('.ed-tool.on')?.dataset.id`)) === 'trim');
 ok('длительность показана', (await q(`document.getElementById('ed-t1').textContent`)) === '01:00.0');
 
