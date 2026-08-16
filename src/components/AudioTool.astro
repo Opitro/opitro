@@ -2211,6 +2211,13 @@ const ICO = {
           элемент.preload = 'auto';
           элемент.addEventListener('timeupdate', () => {
             if (!sourceBuffer || !элемент.duration) return;
+            // Дошли до правой ручки -- останавливаемся, как и положено выделению.
+            if (элемент.__до && элемент.currentTime >= элемент.__до) {
+              элемент.pause();
+              recPlayIco.innerHTML = ICO_PLAY;
+              if (playhead) playhead.style.display = 'none';
+              return;
+            }
             setPlayheadTime(элемент.currentTime);
           });
           элемент.addEventListener('ended', () => {
@@ -2236,6 +2243,13 @@ const ICO = {
         if (элемент && элемент.src) {
           if (!элемент.paused) { элемент.pause(); recPlayIco.innerHTML = ICO_PLAY; return; }
           recPlayIco.innerHTML = ICO_PAUSE_SOLID;
+          // Играем ТОЛЬКО выделенное: обычный проигрыватель сам про ручки не знает, поэтому
+          // ставим начало и останавливаем на конце. Владелец увидел, что бегунок уезжал за
+          // правую ручку и звук шёл дальше.
+          const от = Math.max(0, selStart);
+          const до = selEnd > от + 0.05 ? selEnd : (элемент.duration || 0);
+          if (Math.abs(элемент.currentTime - от) > 0.2 || элемент.currentTime >= до) элемент.currentTime = от;
+          элемент.__до = до;
           const обещание = элемент.play();
           if (обещание && обещание.catch) обещание.catch(() => { recPlayIco.innerHTML = ICO_PLAY; });
           return;
@@ -3002,6 +3016,20 @@ if (config.controls === 'speed1') {
       const p = player.getPosition();
       return (dur > 0 && p >= dur - 0.1) ? 0 : p;
     }
+    // Страховка от «залипшей» кнопки. Владелец увидел это на странице темпа: звук кончился,
+    // а кнопка осталась в нажатом виде. Причина -- у некоторых способов воспроизведения
+    // (обработчик потока) окончание приходит не тем путём, и обратный вызов не срабатывает.
+    // Раз в полсекунды сверяем вид кнопки с тем, играет ли звук на самом деле.
+    setInterval(() => {
+      if (!wavePlayIco) return;
+      const кнопка = wavePlayIco.closest('.tp-btn');
+      const выглядитИграющей = !!кнопка && кнопка.classList.contains('is-playing');
+      if (выглядитИграющей && !player.isPlaying()) {
+        wavePlayIco.innerHTML = ICO_PLAY;
+        кнопка.classList.remove('is-playing');
+      }
+    }, 500);
+
     function stopAB() {
       player.stop();
       if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
