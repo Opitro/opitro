@@ -193,6 +193,11 @@ const ICO = {
         {showTrimHandles && <div class="handle" id="h-start"></div>}
         {showTrimHandles && <div class="handle" id="h-end"></div>}
         <div class="playhead" id="playhead"></div>
+        {/* Черта за мышью и время под курсором. У этого вида волны их не было вовсе -- поэтому
+            на склейке не работали ни подсказка, ни нажатие по дорожке: обработчики цепляются
+            за область волны, а её здесь не существовало. Владелец говорил об этом трижды. */}
+        <div class="wave-guide" id="wave-guide"></div>
+        <div class="wave-tip" id="wave-tip"></div>
       </div>
     )}
     {/* Progress sits directly under the waveform, where the thing it reports on is happening.
@@ -2477,7 +2482,9 @@ const ICO = {
       });
     // Подсказка со временем под курсором. Живёт только на компактной панели -- там волна
     // не рабочая поверхность, и ничто не спорит с ней за движения мыши.
-    const waveArea = root.querySelector('#wave-area');
+    // У широкой волны (склейка, генераторы) отдельной области нет -- считаем от самой волны.
+    // Иначе вся логика бегунка и подсказки молча не включалась: querySelector отдавал null.
+    const waveArea = root.querySelector('#wave-area') || root.querySelector('#wave-shell');
     const waveGuide = root.querySelector('#wave-guide');
     const waveTip = root.querySelector('#wave-tip');
     if (waveArea && waveGuide && waveTip) {
