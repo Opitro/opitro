@@ -868,7 +868,7 @@ const ICO = {
   import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, openRecordSession, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
+    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, openRecordSession, openAudioSession, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
     analyzeVocalRange, detectKey, analyzeAudiobook, detectBpm,
   } from '../lib/web-audio-engine.js';
@@ -2116,6 +2116,10 @@ const ICO = {
         recorder = new MediaRecorder(mediaStream);
         recorder.ondataavailable = (e) => { if (e.data && e.data.size) chunks.push(e.data); };
         recorder.onstop = async () => {
+          // Разряд сессии ВЕРНУТЬ к воспроизведению. Пока стоит «воспроизведение и запись»,
+          // iPhone уводит звук в разговорный динамик и он звучит еле слышно -- и остаётся так
+          // на всём сайте, пока страницу не обновят. Владелец: «и нет звука на сайте».
+          openAudioSession();
           stopTimer();
           stopMeter();
           stopLiveWave();

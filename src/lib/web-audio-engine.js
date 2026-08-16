@@ -765,22 +765,11 @@ export function createPlayer() {
   // the context is captured while iOS still considers it gesture-triggered; everything else
   // (rendering, fades) can safely happen after.
   function unlock() {
-    const c = getCtx();
-    // ПОСЛЕ УХОДА ТЕЛЕФОНА В ПОКОЙ узел звука бывает жив только на вид: состояние пишет
-    // running или interrupted, пробуждение проходит без ошибки, а выход мёртвый -- кнопка
-    // играет, бегунок едет, звука нет. Это давняя особенность iOS, и лечится она ТОЛЬКО
-    // пересозданием узла: resume такой узел не воскрешает.
-    // Признак: страница побывала скрытой (экран потух, ушли на другую вкладку) -- или
-    // состояние прямо говорит interrupted/closed.
-    const умер = !c || c.state === 'closed' || c.state === 'interrupted' || былаСкрыта;
-    if (умер) {
-      былаСкрыта = false;
-      try { if (c && c.state !== 'closed') c.close(); } catch (e) {}
-      ctx = null;
-      return getCtx();
-    }
-    if (c.state !== 'running') { try { const r = c.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
-    return c;
+    // ПРОСТО и НАДЁЖНО. Пересоздание узла после сна отсюда УБРАНО: на телефоне оно
+    // срабатывало не вовремя, закрывало живой узел, и звук пропадал на всём сайте --
+    // владелец сообщил об этом сразу, и это стоило доверия. От сна телефона теперь спасает
+    // обычный проигрыватель на диктофоне (см. AudioTool.astro), а не хирургия над движком.
+    getCtx();
   }
 
   // Calling .stop() on a source fires its 'ended' event too, same as a natural finish -- if a
