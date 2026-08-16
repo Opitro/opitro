@@ -865,7 +865,7 @@ const ICO = {
   import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
+    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, openRecordSession, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
     analyzeVocalRange, detectKey, analyzeAudiobook, detectBpm,
   } from '../lib/web-audio-engine.js';
@@ -2080,6 +2080,9 @@ const ICO = {
         if (recorder && recorder.state !== 'inactive') { recorder.stop(); return; }
         clearError();
         // Asked for on the click, so the browser attributes the permission prompt to a gesture.
+        // Разряд сессии ДО запроса микрофона: иначе на iPhone доступ не дадут, потому что
+        // страница до этого объявила себя «только воспроизведением».
+        openRecordSession();
         try {
           mediaStream = await navigator.mediaDevices.getUserMedia({
             // Automatic gain stays ON. It was off here, on the reasoning that the browser's
@@ -2118,6 +2121,15 @@ const ICO = {
           // красная кнопка уходит, её сменяют плей и пауза. Высота при этом та же -- меняется
           // только видимость, поэтому страница не дёргается.
           waveShell?.classList.remove('is-empty');
+          // Запускаем раскрытие: волна расправляется из средней линии, поле на миг светлеет
+          // по краю. Метку снимаем по окончании, чтобы движение было ровно один раз, а не
+          // повторялось при каждой перерисовке.
+          if (waveShell) {
+            waveShell.classList.remove('is-appearing');
+            void waveShell.offsetWidth; // перезапуск движения
+            waveShell.classList.add('is-appearing');
+            setTimeout(() => waveShell.classList.remove('is-appearing'), 1000);
+          }
           root.querySelector('#audio-panel')?.classList.remove('rec-empty');
           const сцена2 = root.querySelector('.rec-stage');
           if (сцена2) { сцена2.classList.remove('is-idle', 'is-rec'); сцена2.classList.add('is-done'); }

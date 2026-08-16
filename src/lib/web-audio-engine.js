@@ -13,6 +13,17 @@
 // (<audio>, ютуб) звучит, а наш -- нет; со стороны выглядит как поломка у нас.
 // `playback` объявляет системе, что звук и есть цель страницы, и переключатель его больше
 // не касается. Работает с Safari 16.4; где свойства нет, строка молча ничего не делает.
+// Разряд для ЗАПИСИ. 'playback' означает «только воспроизведение», и на iPhone он закрывает
+// доступ к микрофону -- диктофон стал писать «нет доступа к микрофону» ровно после того, как
+// я добавил openAudioSession. Для записи нужен 'play-and-record': и слышно, и слышит.
+export function openRecordSession() {
+  try {
+    if (navigator.audioSession && navigator.audioSession.type !== 'play-and-record') {
+      navigator.audioSession.type = 'play-and-record';
+    }
+  } catch (e) {}
+}
+
 export function openAudioSession() {
   try {
     if (navigator.audioSession && navigator.audioSession.type !== 'playback') {

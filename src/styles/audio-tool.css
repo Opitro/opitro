@@ -738,3 +738,49 @@
   transform:translate(-50%,-50%);visibility:visible;width:88px;height:88px}
 .audio-tool.is-recorder .rec-stage.is-done #rec-play .ico{width:26px;height:26px}
 .audio-tool.is-recorder .rec-stage.is-done #rec-pause{visibility:hidden}
+
+/* Холст волны занимает поле РОВНО и не растёт. Живая волна задаёт ему размер в точках
+   устройства (на телефоне это вдвое больше), и без закреплённой высоты холст раздувался --
+   кнопка записи подпрыгивала вверх ровно в тот миг, когда «ничего не появляется». */
+/* Высота поля ЗАКРЕПЛЕНА наглухо. Иначе её задаёт холст: живая волна и готовая запись
+   ставят ему размер в точках устройства, и поле раздувалось со 132 до 469 -- отсюда и
+   подпрыгивание кнопки, и общий разъезд. Замер трёх состояний это и показал. */
+.audio-tool.is-recorder .wave-shell{overflow:hidden;height:132px;min-height:132px;max-height:132px}
+.audio-tool.is-recorder .wave-shell canvas{display:block;width:100%;height:132px}
+
+/* Плей не летит по диагонали: он просто ПРОЯВЛЯЕТСЯ на месте красной кнопки.
+   Перелёт получался из-за плавного перехода, оставшегося от его прежнего места справа. */
+.audio-tool.is-recorder .rec-stage.is-done #rec-play{transition:opacity .3s ease;animation:none}
+.audio-tool.is-recorder .rec-side{transition:none}
+
+/* МАГИЯ появления записи.
+   Волна не возникает готовой -- она РАСКРЫВАЕТСЯ из средней линии наружу за полсекунды,
+   как будто звук расправляется. Одновременно чёрное поле на миг светлеет по краю, а плей
+   мягко вырастает на месте красной кнопки. Ничего не летает и не съезжает: движение только
+   по высоте внутри поля, макет неподвижен. */
+@keyframes раскрытие{
+  from{transform:scaleY(.06);opacity:.15}
+  60%{opacity:1}
+  to{transform:scaleY(1);opacity:1}
+}
+@keyframes подсветка{
+  from{border-color:rgba(74,222,158,.55);box-shadow:0 0 0 0 rgba(74,222,158,.18)}
+  to{border-color:transparent;box-shadow:0 0 0 10px rgba(74,222,158,0)}
+}
+@keyframes проявление{
+  from{transform:translate(-50%,-50%) scale(.82);opacity:0}
+  to{transform:translate(-50%,-50%) scale(1);opacity:1}
+}
+.audio-tool.is-recorder .wave-shell.is-appearing canvas{
+  transform-origin:50% 50%;
+  animation:раскрытие .52s cubic-bezier(.22,.9,.28,1) both;
+}
+.audio-tool.is-recorder .wave-shell.is-appearing{animation:подсветка .9s ease-out both}
+.audio-tool.is-recorder .rec-stage.is-done #rec-play{animation:проявление .38s cubic-bezier(.22,.9,.28,1) .12s both}
+
+@media (prefers-reduced-motion: reduce){
+  .audio-tool.is-recorder .wave-shell.is-appearing canvas,
+  .audio-tool.is-recorder .wave-shell.is-appearing,
+  .audio-tool.is-recorder .rec-stage.is-done #rec-play{animation:none}
+}
+
