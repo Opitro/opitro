@@ -3805,7 +3805,7 @@ if (config.controls === 'speed1') {
               // Ручки обрезки и кнопки внутри дорожки не трогаем -- у них свои обработчики,
               // и нажатие по ним сюда не должно приводить.
               const цель = e.target;
-              if (цель && цель.closest && цель.closest('.sel-handle, .move-ico, .sel-overlay, button')) return;
+              if (цель && цель.closest && цель.closest('.sel-handle, .move-ico, .sel-overlay, button, .tp-btn, .handle')) return;
               const сек = scrubTo(ev.clientX);
               if (сек != null) waveSeekPos = сек; // играть дальше ОТСЮДА, а не с начала
               player.stop();
@@ -3843,7 +3843,13 @@ if (config.controls === 'speed1') {
         // silently stops answering once that happens -- see the note on the play button.
         const from = (sel) => (e.composedPath ? e.composedPath().some((n) => n.matches && n.matches(sel)) : false)
           || !!(e.target.closest && e.target.closest(sel));
-        if (from('.handle') || from('.sel-overlay') || from('.wave-play-btn')) return;
+        // Кнопки плеера перечислены ПО ВСЕМ приметам, какие у них есть. Раньше здесь стоял
+        // только класс .wave-play-btn, а у кнопки в компактном плеере это ИМЯ (id), классы же
+        // у неё tp-btn tp-play. Нажатие по «играть» всплывало сюда, и обработчик глушил звук
+        // сразу после запуска -- владелец видел красное «браузер прервал воспроизведение,
+        // нажмите ещё раз». На телефоне это ловилось особенно охотно.
+        if (from('.handle') || from('.sel-overlay') || from('.wave-play-btn')
+            || from('#wave-play-btn') || from('.tp-btn') || from('button')) return;
         if (dur <= 0) return;
         const t = px2t(e.clientX);
         player.unlock();
