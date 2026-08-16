@@ -230,9 +230,12 @@ const ICO = {
             <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
         )}
-        <span>{labels.startLabel}: <b id="t-start">0:00.0</b></span>
-        <span id="t-len-wrap">{labels.durationLabel}: <b id="t-len">0:00.0</b></span>
-        <span>{labels.endLabel}: <b id="t-end">0:00.0</b></span>
+        {/* Только ЧИСЛА, без слов: «Начало», «Длительность (секунд)», «Конец» загромождали
+            строку, а что есть что -- видно по месту: слева начало, посередине длительность,
+            справа конец. Слова остались для читалок экрана в aria-label. */}
+        <span aria-label={labels.startLabel}><b id="t-start">0:00.0</b></span>
+        <span id="t-len-wrap" aria-label={labels.durationLabel}><b id="t-len">0:00.0</b></span>
+        <span aria-label={labels.endLabel}><b id="t-end">0:00.0</b></span>
       </div>
     )}
     {showTrimHandles && controls !== 'recorder' && (

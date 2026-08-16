@@ -529,7 +529,10 @@ export function createLiveWaveform(canvas, opts = {}) {
         const от = Math.floor(c * шаг), до = Math.min(отсчёты.length, Math.floor((c + 1) * шаг));
         for (let i = от; i < до; i++) { const a = Math.abs(отсчёты[i]); if (a > пик) пик = a; }
         // Небольшое поднятие корнем: тихая речь видна, громкая не упирается в край.
-        const h = Math.max(Math.round(dpr), Math.pow(пик, 0.65) * H * 0.9);
+        // Разговорная речь даёт отклонение около 0.05-0.15. При мягком поднятии волна едва
+        // шевелилась -- владелец сказал «слабо реагирует». Корень покруче плюс усиление
+        // делают тихий голос заметным, предел не даёт громкому упереться в край поля.
+        const h = Math.max(Math.round(dpr), Math.min(1, Math.pow(пик, 0.45) * 1.9) * H * 0.9);
         const x = c * (bar + gap);
         const y = mid - h / 2;
         const r = Math.min(bar / 2, h / 2);

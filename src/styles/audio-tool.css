@@ -677,7 +677,10 @@
    ещё и пустой от имени файла, выглядит ужасно») и её появление ничего не сдвигает --
    сдвигать нечего, высота у неё нулевая. */
 .audio-tool.is-recorder{position:relative}
-.audio-tool.is-recorder .fileinfo{position:absolute;top:8px;right:10px;z-index:4;min-height:0;
+.audio-tool.is-recorder .wave-shell{position:relative}
+/* Отступы считаются от всей панели, а поле внутри неё отступает своим полем: замер
+   показал, что крестик вылезал за правый край поля на 8 точек. Прибавлено с запасом. */
+.audio-tool.is-recorder .fileinfo{position:absolute;top:24px;right:30px;z-index:4;min-height:0;
   margin:0;padding:0;background:transparent;border:0;pointer-events:none}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end;gap:6px;pointer-events:auto}
 .audio-tool.is-recorder .fileinfo .fi-act{background:rgba(0,0,0,.45)}
@@ -696,8 +699,11 @@
 .audio-tool .wave-shell.is-empty .playhead,
 .audio-tool .wave-shell.is-empty .wave-guide,
 .audio-tool .wave-shell.is-empty .wave-tip{visibility:hidden}
-.audio-tool .panel.rec-empty .times,
-.audio-tool #audio-panel.rec-empty .times{visibility:hidden}
+/* У диктофона строки «Начало / Длительность / Конец» нет ВООБЩЕ. Она была видна в покое
+   (34 точки), а с началом записи схлопывалась в ноль -- вот и сдвиг на 50 точек с отступами,
+   который владелец видел трижды, а я не мог поймать: мой замер переключал состояния сам, без
+   настоящего хода записи. Поймано поддельным микрофоном. Резать запись тут нечего. */
+.audio-tool.is-recorder .times{display:none !important}
 
 /* Диктофон, три состояния. Всё прячется ВИДИМОСТЬЮ, а не удалением: высота ряда кнопок и
    всей панели остаётся одинаковой, поэтому переходы не двигают страницу.
@@ -796,4 +802,15 @@
 @media(max-width:759px){
   .audio-tool.is-recorder .fileinfo{top:10px;right:12px}
 }
+
+/* Подписи «Начало», «Длительность (секунд)», «Конец» убраны -- числа и так стоят на ручках
+   обрезки, а слова только загромождали строку. Владелец 16.08.2026. */
+.audio-tool .times .times-label,
+.audio-tool .times label,
+.audio-tool .times .t-label{display:none}
+
+/* Крестик: отступы считаются от всей панели, а поле внутри неё отступает своим полем --
+   замер показал вылет на 8 точек за правый край. Прибавлено с запасом, проверено числами. */
+.audio-tool.is-recorder .fileinfo{top:26px;right:34px}
+@media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:22px;right:28px}}
 
