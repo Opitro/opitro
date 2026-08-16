@@ -740,10 +740,16 @@ export const AUDIO_TOOLS = {
     controls: 'select',
     accept: 'audio/*',
     outputChannels: 1,
+    // Кнопки СЛОВАМИ, без значков. Динамики здесь соврали бы: на «моно в стерео» они
+    // отвечают на вопрос «куда пойдёт звук», а тут вопрос другой -- какой канал взять и
+    // смешивать ли их в один. Два ярких динамика читались бы как «звучат оба», хотя на
+    // деле каналы СЛИВАЮТСЯ в один. Значки там, где честны; слова там, где рисунок соврёт.
+    selectAsChips: true,
+    chipDefault: 'mix',
     selectLabel: 'channelModeLabel',
     selectOptions: [
-      { value: 'mix', label: 'channelMixLabel' },
       { value: 'left', label: 'channelLeftLabel' },
+      { value: 'mix', label: 'channelMixLabel' },
       { value: 'right', label: 'channelRightLabel' },
     ],
     directRender: (buffer, { value }) => {
@@ -784,9 +790,9 @@ export const AUDIO_TOOLS = {
     // них. Понятно без чтения и на любом языке. Слова никуда не делись, они остались в коде
     // для озвучки экрана (aria-label) -- человек с плохим зрением услышит «Левый».
     chipIcons: {
-      panleft: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp on" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g><g class="sp off"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/></g></svg>',
-      duplicate: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp on" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g><g class="sp on"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
-      panright: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp off" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/></g><g class="sp on"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
+      panleft: '<svg class="chip-ico" viewBox="0 0 52 24" aria-hidden="true"><g class="sp on" transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+      duplicate: '<svg class="chip-ico" viewBox="0 0 52 24" aria-hidden="true"><g class="sp on" transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><g class="sp on" transform="translate(28 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+      panright: '<svg class="chip-ico" viewBox="0 0 52 24" aria-hidden="true"><g class="sp on" transform="translate(28 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
     },
     selectLabel: 'channelModeLabel',
     selectOptions: [
