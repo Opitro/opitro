@@ -1385,9 +1385,6 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
-    // Заготовки рядом кнопок, а не выпадающим списком -- как в шумоподавлении: четыре
-    // варианта, ради каждого делать нажатие и ждать открытия списка незачем.
-    selectAsChips: true,
     selectLabel: 'compressorPresetLabel',
     selectOptions: [
       { value: 'voice', label: 'compressorVoiceLabel' },
