@@ -3689,7 +3689,10 @@ if (config.controls === 'speed1') {
               const range = trimmed ? (selEnd - selStart) : renderedBuffer.duration;
               setPlayheadTime(base + range * frac);
             },
-            () => { listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); }
+            () => { listenIco.innerHTML = ICO_PLAY; playhead.style.display = 'none'; player.reset(); },
+            // Играть ОТ БЕГУНКА. Здесь место не передавалось вовсе, поэтому склейка всегда
+            // начинала сначала, даже когда бегунок стоял в середине.
+            (() => { const p = waveSeekPos; waveSeekPos = null; return p == null ? undefined : p; })()
           );
         } catch (e) {
           showError(e && e.message ? e.message : String(e));
@@ -3752,12 +3755,14 @@ if (config.controls === 'speed1') {
               // и нажатие по ним сюда не должно приводить.
               const цель = e.target;
               if (цель && цель.closest && цель.closest('.sel-handle, .move-ico, .sel-overlay, button')) return;
-              scrubTo(ev.clientX);
+              const сек = scrubTo(ev.clientX);
+              if (сек != null) waveSeekPos = сек; // играть дальше ОТСЮДА, а не с начала
               player.stop();
               if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
               return;
             }
-            scrubTo(ev.clientX);
+            const сек2 = scrubTo(ev.clientX);
+            if (сек2 != null) waveSeekPos = сек2; // играть дальше ОТСЮДА, а не с начала
             // НЕ возобновляем: положение выставлено, звук стоит. Дальше человек сам решает,
             // слушать ли отсюда, -- кнопкой.
             player.stop();
@@ -3799,6 +3804,8 @@ if (config.controls === 'speed1') {
         // остановку из обработчика протаскивания: бегунок прыгал куда надо, а музыка ехала
         // дальше. Владелец видел именно это. Слушать или нет -- решает кнопка, не дорожка.
         if (dur > 0) {
+          // ЗАПОМНИТЬ положение: следующее «играть» идёт отсюда, а не с начала файла.
+          waveSeekPos = t;
           setPlayheadFrac(Math.max(0, Math.min(1, t / dur)));
           if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
           if (typeof listenIco !== 'undefined' && listenIco) listenIco.innerHTML = ICO_PLAY;
