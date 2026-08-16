@@ -11,7 +11,7 @@
 
   Запуск:  node scripts/check-tempo.mjs   (нужен npm run build)
 */
-import { spawn } from 'node:child_process'; import fs from 'node:fs';
+import { spawn, execSync } from 'node:child_process'; import fs from 'node:fs';
 const DIR='/private/tmp/claude-501/-Users-privetulybnis-calc-catalog/5e295ec4-7887-4446-8778-83bab1fbd49c/scratchpad';
 const PORT=9262; const sleep=ms=>new Promise(r=>setTimeout(r,ms));
 // файл с ЧЁТКИМ ритмом 100 ударов в минуту -- чтобы проверить не «что-то подставилось»,
@@ -28,7 +28,13 @@ for(let i=0;i<n;i++){const t=i%beat;
   const v=(Math.sin(2*Math.PI*60*i/sr)*0.9+Math.sin(2*Math.PI*2500*i/sr)*0.25)*env;
   const s=Math.max(-1,Math.min(1,v))*30000; b.writeInt16LE(s,44+i*4); b.writeInt16LE(s,44+i*4+2)}
 fs.writeFileSync(DIR+'/ritm100.wav',b);
-spawn('npx',['--yes','serve@14','dist','-l','4398'],{stdio:'ignore'});
+// Освободить порт ПЕРЕД запуском. Раздатчики от прошлых прогонов не умирали и висели
+// десятками; порт держал самый первый, и он отдавал СТАРУЮ сборку -- проверка месяцами
+// смотрела бы на вчерашние файлы и падала на давно исправленном. Так и вышло: владелец
+// сказал «темп работает», и был прав, а падала проверка на устаревшем снимке сайта.
+try { execSync("lsof -ti tcp:4398 | xargs kill -9", { stdio: 'ignore' }); } catch (e) {}
+const раздатчик = spawn('npx',['--yes','serve@14','dist','-l','4398'],{stdio:'ignore'});
+process.on('exit', () => { try { раздатчик.kill(); } catch (e) {} });
 await sleep(3000);
 spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',[`--remote-debugging-port=${PORT}`,
  `--user-data-dir=${DIR}/tp-prof`,'--no-first-run','--no-default-browser-check',
