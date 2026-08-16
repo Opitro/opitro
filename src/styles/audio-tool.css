@@ -822,7 +822,9 @@
 /* Время НА ручках обрезки: ярлычок едет вместе с ручкой. Ряд чисел под волной больше не
    нужен -- длительность владелец просил не показывать, а начало и конец теперь на месте
    действия. Ярлычки смотрят ВНУТРЬ выделения, поэтому у самых краёв дорожки не срезаются. */
-.audio-tool .handle{position:relative}
+/* НЕ трогаем position у ручки: она уже absolute и сама служит опорой для ярлычка.
+   Прежнее position:relative перебило её положение, и ручки съехали вниз -- владелец увидел
+   это сразу. Правило про положение чужого узла -- всегда проверять, не задано ли оно уже. */
 .audio-tool .handle-time{position:absolute;top:-2px;font-size:11px;line-height:16px;
   font-variant-numeric:tabular-nums;color:var(--text);background:rgba(0,0,0,.62);
   border-radius:5px;padding:1px 5px;white-space:nowrap;pointer-events:none}
