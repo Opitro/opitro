@@ -3706,9 +3706,10 @@ if (config.controls === 'speed1') {
     // source since they have no Web-Audio "effect" to render, and every other tool reuses the
     // same lazily-rendered/cached `renderedBuffer` the Listen button already relies on.
     if (waveShell) {
-      // Протаскивание бегунка: нажал, ведёшь -- звук идёт из-под пальца, отпустил -- играет
-      // дальше с этого места. Без этого искать нужное место на слух приходится отдельными
-      // щелчками, и плеер ощущается ненастоящим.
+      // Протаскивание бегунка: нажал, ведёшь -- бегунок идёт за мышью, отпустил -- плеер
+      // ВСТАЛ НА ПАУЗУ на этом месте. Так во всём редакторе, и владелец просил единой логики
+      // (16.08.2026): «черточка идёт за мышкой, переместил ползунок -- плеер стал на паузу».
+      // Раньше здесь звук возобновлялся с нового места, и склейка вела себя иначе редактора.
       //
       // Сам щелчок остаётся щелчком: перемотка запускается только после того, как палец
       // сдвинулся хотя бы на 3 пикселя, иначе обычное нажатие превращалось бы в протаскивание
@@ -3737,9 +3738,11 @@ if (config.controls === 'speed1') {
             document.removeEventListener('pointermove', move);
             document.removeEventListener('pointerup', up);
             if (!scrubbing) return;
-            const t = scrubTo(ev.clientX);
-            const buf = currentAbBuffer();
-            if (buf) playAB(abSelected, buf, t);
+            scrubTo(ev.clientX);
+            // НЕ возобновляем: положение выставлено, звук стоит. Дальше человек сам решает,
+            // слушать ли отсюда, -- кнопкой.
+            player.stop();
+            if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
           };
           document.addEventListener('pointermove', move);
           document.addEventListener('pointerup', up);
