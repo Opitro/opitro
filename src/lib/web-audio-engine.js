@@ -626,6 +626,12 @@ export function downloadBlob(blob, filename) {
 // callback for animating a cursor over the waveform.
 export function createPlayer() {
   let ctx = null;
+  // Отметка «страница побывала скрытой». Ставится, когда телефон гаснет или уходят на другую
+  // вкладку; снимается при следующем запуске звука -- см. unlock().
+  let былаСкрыта = false;
+  if (typeof document !== 'undefined') {
+    document.addEventListener('visibilitychange', () => { if (document.hidden) былаСкрыта = true; });
+  }
   let source = null;
   let buffer = null;
   let startedAt = 0;
@@ -678,7 +684,22 @@ export function createPlayer() {
   // the context is captured while iOS still considers it gesture-triggered; everything else
   // (rendering, fades) can safely happen after.
   function unlock() {
-    getCtx();
+    const c = getCtx();
+    // ПОСЛЕ УХОДА ТЕЛЕФОНА В ПОКОЙ узел звука бывает жив только на вид: состояние пишет
+    // running или interrupted, пробуждение проходит без ошибки, а выход мёртвый -- кнопка
+    // играет, бегунок едет, звука нет. Это давняя особенность iOS, и лечится она ТОЛЬКО
+    // пересозданием узла: resume такой узел не воскрешает.
+    // Признак: страница побывала скрытой (экран потух, ушли на другую вкладку) -- или
+    // состояние прямо говорит interrupted/closed.
+    const умер = !c || c.state === 'closed' || c.state === 'interrupted' || былаСкрыта;
+    if (умер) {
+      былаСкрыта = false;
+      try { if (c && c.state !== 'closed') c.close(); } catch (e) {}
+      ctx = null;
+      return getCtx();
+    }
+    if (c.state !== 'running') { try { const r = c.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+    return c;
   }
 
   // Calling .stop() on a source fires its 'ended' event too, same as a natural finish -- if a
