@@ -2131,8 +2131,6 @@ const ICO = {
           // From here it is just a file: pickFile draws the waveform, fills the info strip and
           // enables the export bar exactly as it would for an upload.
           await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
-          // Ту же запись отдаём обычному проигрывателю -- он и будет её играть.
-          try { window.__opitroДатьЗапись && window.__opitroДатьЗапись(blob); } catch (e) {}
           // Запись готова: место плеера перестаёт быть пустым, появляются формат и «Скачать»,
           // красная кнопка уходит, её сменяют плей и пауза. Высота при этом та же -- меняется
           // только видимость, поэтому страница не дёргается.
@@ -2154,12 +2152,23 @@ const ICO = {
           // quiet. Here the finished take is measured and lifted to just under the ceiling.
           // Everything downstream reads sourceBuffer -- playback, the handles, the export -- so
           // lifting it here is enough; only the drawn waveform has to be told to redraw.
+          // Подъём уровня ОСТАЁТСЯ: запись с iPhone приходит тихой, и без него файл выходит
+          // еле слышным. Но теперь поднятый звук отдаётся И проигрывателю -- владелец
+          // 16.08.2026: «пусть уровень остаётся, главное, чтоб он был и на скачанном файле».
+          // Раньше на сайте играла исходная запись, а поднималась только скачиваемая, и
+          // человек слышал одно, а получал другое.
           if (sourceBuffer) {
             const gain = normalizeGain(peakOf(sourceBuffer));
             if (gain > 1.01) {
               sourceBuffer = scaleVolume(sourceBuffer, gain);
               scheduleWaveformDraw(sourceBuffer);
             }
+            // Тот же поднятый звук -- обычному проигрывателю. Пересобираем его в WAV: это
+            // ровно те отсчёты, что уйдут в скачивание, поэтому слышно будет скачанное.
+            try {
+              window.__opitroДатьЗапись && window.__opitroДатьЗапись(
+                new Blob([encodeWAV(sourceBuffer)], { type: 'audio/wav' }));
+            } catch (e) {}
           }
           if (recPlayBtn) recPlayBtn.disabled = !sourceBuffer;
         };
