@@ -425,6 +425,21 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
       if (d > max) max = d;
     }
     if (max < min) { min = 0; max = 0; }
+    // Огибающая фейда -- и в СТОЛБИКАХ тоже. Раньше она работала только в сплошном рисунке
+    // волны, а страницы со столбиками (плавное появление/затухание) её не получали: зелёные
+    // зоны были, а сама волна оставалась ровной. Владелец видел именно это, а я трижды искал
+    // причину не там -- в вызове, в буфере, в порядке отрисовки. Причина была здесь.
+    min *= gain; max *= gain;
+    if (fade) {
+      const t = c / cols;
+      if (t >= fade.selStart && t <= fade.selEnd) {
+        let e = 1;
+        if (fade.inEnd > fade.inStart && t < fade.inEnd) e = Math.min(e, (t - fade.inStart) / (fade.inEnd - fade.inStart));
+        if (fade.outEnd > fade.outStart && t > fade.outStart) e = Math.min(e, (fade.outEnd - t) / (fade.outEnd - fade.outStart));
+        e = Math.max(0, Math.min(1, e));
+        min *= e; max *= e;
+      }
+    }
     const y1 = ((1 + min) * H) / 2;
     const y2 = ((1 + max) * H) / 2;
     const h = Math.max(Math.round(dpr), y2 - y1);

@@ -1014,12 +1014,12 @@ const ICO = {
           if (attempt < 20) scheduleWaveformDraw(buffer, attempt + 1);
           return;
         }
-        drawWaveform(waveCanvas, buffer);
+        drawWaveform(waveCanvas, buffer, undefined, fadeDrawOpts());
         updateSel();
         if (!waveObserver && typeof ResizeObserver !== 'undefined') {
           waveObserver = new ResizeObserver(() => {
             if (waveDrawBuffer && waveCanvas.getBoundingClientRect().width >= 1) {
-              drawWaveform(waveCanvas, waveDrawBuffer);
+              drawWaveform(waveCanvas, waveDrawBuffer, undefined, fadeDrawOpts());
               updateSel();
             }
           });
@@ -2585,6 +2585,26 @@ const ICO = {
     // Green gradient bands drawn over the start/end of the waveform, sized to the fade lengths.
     // Positioned against the canvas (not the shell) because the compact player puts a play
     // button before it, so the shell's left edge isn't where the waveform starts.
+    let fadeDrawTimer = null;
+    // Огибающая фейдов для рисования волны. Живёт ОДНОЙ функцией и подмешивается в каждую
+    // отрисовку -- иначе любая перерисовка (изменение размера окна, пересчёт, переключение
+    // «было/стало») стирала прогиб, и оставалась только зелёная заливка. Владелец видел
+    // ровные столбики именно поэтому: я рисовал прогиб поверх, а не внутри.
+    function fadeDrawOpts() {
+      if (!config.fadeRegions || dur <= 0) return undefined;
+      const { fadeIn, fadeOut } = fadeValues();
+      if (!fadeIn && !fadeOut) return undefined;
+      // ДОЛИ дорожки, не секунды: движок сравнивает с c/n, то есть с положением столбика
+      // от 0 до 1. С секундами условие никогда не выполнялось, и волна оставалась ровной --
+      // ровно та ловушка, что уже записана в памяти, и я в неё наступил снова.
+      return {
+        fade: {
+          selStart: 0, selEnd: 1,
+          inStart: 0, inEnd: Math.min(fadeIn, dur) / dur,
+          outStart: Math.max(0, dur - Math.min(fadeOut, dur)) / dur, outEnd: 1,
+        },
+      };
+    }
     function updateFadeRegions() {
       const inEl = root.querySelector('#fade-region-in');
       const outEl = root.querySelector('#fade-region-out');
@@ -2604,13 +2624,24 @@ const ICO = {
       // Сама ВОЛНА тоже прогибается в зонах фейда -- как на обрезке. Одной зелёной заливки
       // мало: она показывает, ГДЕ фейд, но не показывает, ЧТО он делает со звуком.
       // Опора уже есть в движке: drawWaveform умеет пригибать столбики по огибающей.
-      if (sourceBuffer && waveCanvas && dur > 0) {
-        drawWaveform(waveCanvas, sourceBuffer, undefined, {
-          fade: {
-            selStart: 0, selEnd: dur,
-            inStart: 0, inEnd: Math.min(fadeIn, dur),
-            outStart: Math.max(0, dur - Math.min(fadeOut, dur)), outEnd: dur,
-          },
+      //
+      // Рисуем в СЛЕДУЮЩЕМ кадре: в этом же кадре следом идут syncResultWave и пересчёт,
+      // и они перерисовывают волну без огибающей -- моя отрисовка ложилась первой и
+      // затиралась. Владелец видел зелёные зоны при ровных столбиках именно поэтому.
+      // Берём ТОТ ЖЕ буфер, что рисует основная отрисовка (waveDrawBuffer). sourceBuffer
+      // на этой странице может быть пуст, и тогда мой вызов молча не срабатывал -- замер
+      // показывал одинаковую высоту столбиков при фейде 0 и 3 секунды.
+      const буф = (typeof waveDrawBuffer !== 'undefined' && waveDrawBuffer) || sourceBuffer;
+      if (буф && waveCanvas && dur > 0) {
+        const огиб = {
+          selStart: 0, selEnd: 1,
+          inStart: 0, inEnd: Math.min(fadeIn, dur) / dur,
+          outStart: Math.max(0, dur - Math.min(fadeOut, dur)) / dur, outEnd: 1,
+        };
+        if (fadeDrawTimer) cancelAnimationFrame(fadeDrawTimer);
+        fadeDrawTimer = requestAnimationFrame(() => {
+          fadeDrawTimer = null;
+          drawWaveform(waveCanvas, буф, undefined, { fade: огиб });
         });
       }
     }
@@ -2809,7 +2840,7 @@ if (config.controls === 'speed1') {
     function syncResultWave() {
       if (!config.abWaveform || !waveCanvas) return;
       const buf = currentAbBuffer();
-      if (buf) drawWaveform(waveCanvas, buf);
+      if (buf) drawWaveform(waveCanvas, buf, undefined, fadeDrawOpts());
     }
 
     async function ensureAbResult() {
