@@ -622,3 +622,7 @@
 .audio-tool .chip-hint dt::after{content:' —'}
 @media(max-width:759px){.audio-tool .chip-hint{display:block}.audio-tool .chip-hint dt{display:inline}}
 
+/* Зазор между «было / стало» и ползунками фейдов: они стояли впритык и читались как один
+   орган управления. Владелец 16.08.2026 -- «приклеены, дай небольшой зазор». */
+.audio-tool .ab-pill{margin-bottom:14px}
+

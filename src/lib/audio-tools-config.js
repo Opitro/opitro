@@ -655,7 +655,10 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'fade2',
     accept: 'audio/*',
-    abCompare: true,
+    // «Было / стало» здесь не нужно (владелец 16.08.2026): фейд слышно и видно сразу,
+    // сравнивать с исходником нечего -- это не чистка и не выравнивание, где на слух
+    // разница спорная.
+    abCompare: false,
     compactPreview: true,
     transport: true,
     fadeRegions: true,

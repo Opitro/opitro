@@ -2601,6 +2601,18 @@ const ICO = {
       outEl.style.display = outW > 0 ? 'block' : 'none';
       outEl.style.left = (base + W - outW) + 'px';
       outEl.style.width = outW + 'px';
+      // Сама ВОЛНА тоже прогибается в зонах фейда -- как на обрезке. Одной зелёной заливки
+      // мало: она показывает, ГДЕ фейд, но не показывает, ЧТО он делает со звуком.
+      // Опора уже есть в движке: drawWaveform умеет пригибать столбики по огибающей.
+      if (sourceBuffer && waveCanvas && dur > 0) {
+        drawWaveform(waveCanvas, sourceBuffer, undefined, {
+          fade: {
+            selStart: 0, selEnd: dur,
+            inStart: 0, inEnd: Math.min(fadeIn, dur),
+            outStart: Math.max(0, dur - Math.min(fadeOut, dur)), outEnd: dur,
+          },
+        });
+      }
     }
 
     // Whether the user has actually changed anything -- drives the shared Download button.
