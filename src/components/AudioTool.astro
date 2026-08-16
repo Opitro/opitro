@@ -3737,7 +3737,19 @@ if (config.controls === 'speed1') {
           const up = (ev) => {
             document.removeEventListener('pointermove', move);
             document.removeEventListener('pointerup', up);
-            if (!scrubbing) return;
+            if (!scrubbing) {
+              // ОБЫЧНОЕ НАЖАТИЕ тоже перемещает бегунок и ставит на паузу -- как в редакторе.
+              // Раньше нажатие не делало ничего: перемотка включалась только после сдвига на
+              // 3 точки, и человек, ткнув в волну, не получал отклика. Владелец это и увидел.
+              // Ручки обрезки и кнопки внутри дорожки не трогаем -- у них свои обработчики,
+              // и нажатие по ним сюда не должно приводить.
+              const цель = e.target;
+              if (цель && цель.closest && цель.closest('.sel-handle, .move-ico, .sel-overlay, button')) return;
+              scrubTo(ev.clientX);
+              player.stop();
+              if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
+              return;
+            }
             scrubTo(ev.clientX);
             // НЕ возобновляем: положение выставлено, звук стоит. Дальше человек сам решает,
             // слушать ли отсюда, -- кнопкой.
