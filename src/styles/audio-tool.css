@@ -576,3 +576,16 @@
 .audio-tool .deck .field-fmt select{width:100%;padding:9px 28px 9px 11px;font-size:13px;height:auto;min-height:0}
 @media(max-width:759px){.audio-tool .deck .field-fmt{flex:0 0 92px;width:92px;max-width:92px}}
 
+/* ЕДИНЫЙ размер поля формата на всём сайте.
+   Владелец 16.08.2026: «значок формата на всём сайте подгоняем под один общий размер,
+   чуть длиннее надписи формата плюс стрелка открывания», и по высоте вровень с «Скачать».
+   Раньше ширина задавалась числом и в каждом инструменте своим: 130, 104, 92, 190, 116.
+   Отсюда и расхождение, которое я не мог объяснить: у поля стояло 104, а выглядело шире --
+   ширину держал сам список, у которого своя мера по самому длинному варианту.
+   Теперь ширины НЕТ вовсе: список меряется по своей надписи, а отступ справа оставляет
+   место стрелке. Один набор чисел на все инструменты. */
+.audio-tool .deck .field-fmt{flex:0 0 auto;width:auto;max-width:none;min-width:0}
+.audio-tool .deck .field-fmt select{width:auto;min-width:0;font-size:13px;
+  padding:0 30px 0 12px;height:44px;line-height:1;box-sizing:border-box}
+@media(max-width:759px){.audio-tool .deck .field-fmt{flex:0 0 auto;width:auto;max-width:none}}
+
