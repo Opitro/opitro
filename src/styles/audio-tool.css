@@ -662,9 +662,14 @@
    строка с именем файла над волной -- из-за неё контейнер уезжал вниз после остановки.
    Уровень и так виден по самой волне, а имя файла человек знает: он его только что записал. */
 .audio-tool .rec-stage .rec-meter{display:none}
-.audio-tool #audio-panel .rec-stage ~ * .fileinfo,
-.audio-tool.is-recorder .fileinfo,
-.audio-tool.is-recorder #audio-fileinfo{display:none}
+/* У диктофона прячем ИМЯ файла и значок волны, но НЕ всю строку: в ней живёт крестик,
+   которым человек убирает запись и начинает заново. Спрятав строку целиком, я забрал у
+   владельца единственный способ вернуться в начало -- он это сразу заметил.
+   Строка при этом занимает своё место всегда, поэтому появление записи её не сдвигает. */
+.audio-tool.is-recorder .fileinfo .fi-name,
+.audio-tool.is-recorder .fileinfo .fi-ico{display:none}
+.audio-tool.is-recorder .fileinfo{min-height:34px}
+.audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end}
 
 /* МАГИЯ: записанная волна появляется плавно, а не выскакивает.
    Полсекунды мягкого проявления -- достаточно, чтобы движение читалось как появление,
@@ -693,4 +698,15 @@
 /* Формат и «Скачать» появляются вместе с плеером -- место под них занято заранее. */
 .audio-tool #audio-panel.rec-empty .deck,
 .audio-tool #audio-panel.rec-empty .download-row{visibility:hidden}
+
+/* Кнопка записи ближе к чёрному полю: между ними было воздуха больше, чем нужно, и они
+   читались как две разные части, а не как один прибор. Просьба владельца 16.08.2026. */
+.audio-tool.is-recorder .rec-stage{margin-top:-14px}
+.audio-tool.is-recorder .rec-row{margin-top:6px}
+
+/* Подпись под кнопкой -- одно слово и ПОСТОЯННАЯ высота строки. Раньше там было целое
+   предложение, и при переходе к записи оно занимало другое число строк: макет ехал.
+   Теперь «Старт», «Стоп», «Пауза» -- и место под строку закреплено, даже если слово
+   короче или длиннее. */
+.audio-tool.is-recorder .rec-state{min-height:22px;line-height:22px;white-space:nowrap}
 

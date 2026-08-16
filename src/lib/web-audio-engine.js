@@ -464,7 +464,13 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
 // Столбики, зазор, скруглённые концы, ось по центру -- всё то же, что у обычной волны:
 // когда запись остановится и на этом же месте появится волна файла, картинка не должна
 // смениться на другую по стилю.
-export function createLiveWaveform(canvas) {
+// `opts.mode`:
+//   'run'  -- бегущая лента (как было): столбики копятся справа налево, видно, сколько записано;
+//   'bars' -- СТОЛБИКИ НА МЕСТЕ: ряд полос по всей ширине дышит от середины, громче голос --
+//             выше полосы. Выбрано владельцем для диктофона: сразу читается «меня слышно»,
+//             красиво на чёрном и не выглядит вяло на тихой речи.
+export function createLiveWaveform(canvas, opts = {}) {
+  const режим = opts.mode === 'bars' ? 'bars' : 'run';
   let levels = [];
   let cols = 0;
   let raf = 0;
@@ -496,6 +502,25 @@ export function createLiveWaveform(canvas) {
     g.fillStyle = 'rgba(74,222,158,.62)';
     // Прижато к правому краю: пока записи мало, столбики идут справа налево и слева пусто --
     // это честно показывает, сколько уже записано.
+    if (режим === 'bars') {
+      // Полосы стоят на своих местах и дышат. Каждая берёт свой уровень из недавней истории,
+      // поэтому ряд шевелится волной, а не хлопает целиком: так голос выглядит живым.
+      // Скруглённые концы и пол в одну точку -- чтобы в тишине оставалась тонкая линия,
+      // а не пустое поле, иначе кажется, что микрофон не слышит.
+      for (let c = 0; c < cols; c++) {
+        const св = levels.length ? levels[levels.length - 1 - (c % Math.min(levels.length, 24))] : 0;
+        const мягко = св * (0.55 + 0.45 * Math.sin((c / cols) * Math.PI));
+        const h = Math.max(Math.round(dpr), мягко * H * 0.92);
+        const x = c * (bar + gap);
+        const y = mid - h / 2;
+        const r = Math.min(bar / 2, h / 2);
+        g.beginPath();
+        if (g.roundRect) g.roundRect(x, y, bar, h, r);
+        else g.rect(x, y, bar, h);
+        g.fill();
+      }
+      return;
+    }
     const start = cols - levels.length;
     for (let i = 0; i < levels.length; i++) {
       const h = Math.max(Math.round(dpr), levels[i] * H);

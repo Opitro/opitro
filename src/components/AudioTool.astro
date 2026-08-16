@@ -2031,7 +2031,7 @@ const ICO = {
       // были паузы. Панель с волной прячется до появления файла, поэтому на время записи её
       // приходится показать самим; когда запись остановится, pickFile нарисует поверх волну
       // готового файла на том же месте.
-      const liveWave = waveCanvas ? createLiveWaveform(waveCanvas) : null;
+      const liveWave = waveCanvas ? createLiveWaveform(waveCanvas, { mode: 'bars' }) : null;
       function startLiveWave() {
         if (!liveWave) return;
         // Место уже занято и видно -- снимаем только «пустой» вид, ничего не показываем
