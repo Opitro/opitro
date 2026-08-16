@@ -819,3 +819,14 @@
 .audio-tool.is-recorder .fileinfo{top:14px;right:12px}
 @media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:12px;right:28px}}
 
+/* Время НА ручках обрезки: ярлычок едет вместе с ручкой. Ряд чисел под волной больше не
+   нужен -- длительность владелец просил не показывать, а начало и конец теперь на месте
+   действия. Ярлычки смотрят ВНУТРЬ выделения, поэтому у самых краёв дорожки не срезаются. */
+.audio-tool .handle{position:relative}
+.audio-tool .handle-time{position:absolute;top:-2px;font-size:11px;line-height:16px;
+  font-variant-numeric:tabular-nums;color:var(--text);background:rgba(0,0,0,.62);
+  border-radius:5px;padding:1px 5px;white-space:nowrap;pointer-events:none}
+.audio-tool #h-start .handle-time{left:calc(100% + 5px)}
+.audio-tool #h-end .handle-time{right:calc(100% + 5px)}
+.audio-tool .times{display:none}
+

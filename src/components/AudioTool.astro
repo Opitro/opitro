@@ -190,8 +190,8 @@ const ICO = {
             <svg class="move-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8L22 12L18 16"/><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
           </div>
         )}
-        {showTrimHandles && <div class="handle" id="h-start"></div>}
-        {showTrimHandles && <div class="handle" id="h-end"></div>}
+        {showTrimHandles && <div class="handle" id="h-start"><span class="handle-time" id="h-start-t">0:00.0</span></div>}
+        {showTrimHandles && <div class="handle" id="h-end"><span class="handle-time" id="h-end-t">0:00.0</span></div>}
         <div class="playhead" id="playhead"></div>
         {/* Черта за мышью и время под курсором. У этого вида волны их не было вовсе -- поэтому
             на склейке не работали ни подсказка, ни нажатие по дорожке: обработчики цепляются
@@ -1343,6 +1343,11 @@ const ICO = {
       if (hEnd) hEnd.style.left = clamp(x2) + 'px';
       if (tStart) tStart.textContent = fmtTime(selStart);
       if (tEnd) tEnd.textContent = fmtTime(selEnd);
+      // Те же числа -- НА самих ручках: глаз не бегает вниз, время там же, где палец.
+      const ярлН = root.querySelector('#h-start-t');
+      const ярлК = root.querySelector('#h-end-t');
+      if (ярлН) ярлН.textContent = fmtTime(selStart);
+      if (ярлК) ярлК.textContent = fmtTime(selEnd);
       if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
       if (inStart) inStart.value = selStart.toFixed(1);
       if (inEnd) inEnd.value = selEnd.toFixed(1);
@@ -2844,7 +2849,20 @@ if (config.controls === 'speed1') {
         s2.buffer = buffer;
         return s2;
       }
-      const node = new AudioWorkletNode(ctx, 'audio-stretch', { outputChannelCount: [2] });
+      // Узел мог быть ПЕРЕСОЗДАН после сна телефона, и обработчик на нём подключается не
+      // мгновенно. Если он ещё не встал -- играем обычным узлом и просим движок вернуть
+      // модуль; следующее нажатие уже пойдёт через обработчик. Без этой защиты в консоль
+      // падало «AudioWorkletNode cannot be created», а звука не было вовсе.
+      let node;
+      try {
+        node = new AudioWorkletNode(ctx, 'audio-stretch', { outputChannelCount: [2] });
+      } catch (e) {
+        tempoCtxLoaded = false;
+        player.context().audioWorklet.addModule('/audio-stretch-worklet.js').then(() => { tempoCtxLoaded = true; }).catch(() => {});
+        const s3 = ctx.createBufferSource();
+        s3.buffer = buffer;
+        return s3;
+      }
       const chans = [];
       for (let c = 0; c < Math.max(1, buffer.numberOfChannels); c++) {
         chans.push(buffer.getChannelData(Math.min(c, buffer.numberOfChannels - 1)).slice().buffer);
@@ -2988,7 +3006,10 @@ if (config.controls === 'speed1') {
           // бегунок ещё полз -- владелец это и увидел. Умножаем на отношение темпов.
           // У темпа положение берём у обработчика: он один знает, сколько исходника уже
           // проглотил. Часы при этом показывают время в НОВОЙ длительности.
-          const isTempo = config.controls === 'tempo';
+          // ...и только если обработчик действительно работает. Когда узел пересоздан после
+          // сна и обработчик ещё не встал, играет обычный источник -- у него нет tempoPos,
+          // и бегунок стоял бы на месте. Тогда берём обычную долю воспроизведения.
+          const isTempo = config.controls === 'tempo' && tempoCtxLoaded;
           const f = isTempo ? Math.min(1, buf.duration ? tempoPos / buf.duration : 0) : frac;
           if (transportCurEl) {
             transportCurEl.textContent = fmtClock(isTempo ? (tempoPos / tempoRatio()) : f * buf.duration);
