@@ -1401,11 +1401,19 @@ const ICO = {
         const recState = root.querySelector('#rec-state');
         if (recTime) recTime.textContent = '0:00';
         if (recState) recState.textContent = labels.recIdleLabel;
+        // Крестик = возврат в начало: место плеера снова пустует, формат и «Скачать» уходят,
+        // красная кнопка возвращается. Место при этом НЕ освобождается -- высота та же.
+        waveShell?.classList.add('is-empty');
+        panel.classList.add('rec-empty');
+        const сцена3 = root.querySelector('.rec-stage');
+        if (сцена3) { сцена3.classList.remove('is-done', 'is-rec'); сцена3.classList.add('is-idle'); }
       } else {
         panel.classList.remove('on');
       }
       if (drop) drop.style.display = '';
-      if (waveShell) waveShell.style.display = 'none';
+      // У диктофона место плеера НЕ выключаем: оно остаётся занятым и пустым, иначе кнопка
+      // записи прыгнет вверх, а именно это владелец и просил убрать.
+      if (waveShell && config.controls !== 'recorder') waveShell.style.display = 'none';
       const fileMetaEl = root.querySelector('#file-meta');
       if (fileMetaEl) fileMetaEl.style.display = 'none';
       if (abCompareEl) abCompareEl.style.display = 'none';
@@ -1822,8 +1830,20 @@ const ICO = {
     }
     // No result yet to show a waveform of -- revealResultWaveform() un-hides this once
     // generate/merge actually produces a buffer.
-    if ((config.controls === 'generator' || config.controls === 'multi-file' || config.controls === 'recorder') && waveShell) {
+    if ((config.controls === 'generator' || config.controls === 'multi-file') && waveShell) {
       waveShell.style.display = 'none';
+    }
+    // ДИКТОФОН: место плеера занято С САМОГО НАЧАЛА и пустует, а не выключается из разметки.
+    // Раньше здесь стоял display:none, и появление плеера расталкивало всё вокруг -- владелец
+    // 16.08.2026: «у нас в плеере всё прыгает, смещается, просто ужас». Высота остаётся
+    // постоянной на всех трёх состояниях: пусто -> волна во время записи -> запись готова.
+    if (config.controls === 'recorder' && waveShell) {
+      waveShell.classList.add('is-empty');
+      root.querySelector('.rec-stage')?.classList.add('is-idle');
+      // Строка «Начало / Длительность / Конец» лежит не рядом с волной, соседним правилом её
+      // не достать -- помечаем саму панель. Прячем ВИДИМОСТЬЮ: место остаётся занятым,
+      // высота не меняется, ничего не сдвинется, когда строка появится.
+      root.querySelector('#audio-panel')?.classList.add('rec-empty');
     }
 
     // ---- Report-only tools -------------------------------------------------------------------
@@ -1981,6 +2001,16 @@ const ICO = {
         recTimeEl.textContent = `${Math.floor(secs / 60)}:${String(secs % 60).padStart(2, '0')}`;
       }
       function setRecording(on, paused) {
+        // Три состояния диктофона, и в каждом свой набор кнопок. Прячем ВИДИМОСТЬЮ:
+        // высота ряда и всей панели одна и та же, ничего не сдвигается (правило владельца).
+        //   покой  -- только красная;
+        //   запись -- красная (теперь «стоп») и пауза;
+        //   готово -- красной нет, есть плей и пауза плеера, формат и «Скачать».
+        const сцена = root.querySelector('.rec-stage');
+        if (сцена) {
+          сцена.classList.toggle('is-rec', !!on);
+          if (on) сцена.classList.remove('is-done');
+        }
         recBtn.classList.toggle('recording', on);
         recStateEl.textContent = on
           ? (paused ? labels.recPausedLabel : labels.recRecordingLabel)
@@ -2003,7 +2033,9 @@ const ICO = {
       const liveWave = waveCanvas ? createLiveWaveform(waveCanvas) : null;
       function startLiveWave() {
         if (!liveWave) return;
-        if (waveShell) waveShell.style.display = '';
+        // Место уже занято и видно -- снимаем только «пустой» вид, ничего не показываем
+        // заново. Именно поэтому при начале записи ничего не сдвигается.
+        if (waveShell) { waveShell.style.display = ''; waveShell.classList.remove('is-empty'); }
         liveWave.start();
       }
       function stopLiveWave() { if (liveWave) liveWave.stop(); }
@@ -2081,6 +2113,13 @@ const ICO = {
           // From here it is just a file: pickFile draws the waveform, fills the info strip and
           // enables the export bar exactly as it would for an upload.
           await pickFile(new File([blob], `recording.${ext}`, { type: blob.type }));
+          // Запись готова: место плеера перестаёт быть пустым, появляются формат и «Скачать»,
+          // красная кнопка уходит, её сменяют плей и пауза. Высота при этом та же -- меняется
+          // только видимость, поэтому страница не дёргается.
+          waveShell?.classList.remove('is-empty');
+          root.querySelector('#audio-panel')?.classList.remove('rec-empty');
+          const сцена2 = root.querySelector('.rec-stage');
+          if (сцена2) { сцена2.classList.remove('is-idle', 'is-rec'); сцена2.classList.add('is-done'); }
           // Second line of defence for the level. autoGainControl above covers desktop, but Safari
           // on iPhone ignores that constraint entirely, so a phone recording would still arrive
           // quiet. Here the finished take is measured and lifted to just under the ceiling.

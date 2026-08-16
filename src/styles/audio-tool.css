@@ -648,3 +648,31 @@
 .audio-tool .preset-btn:has(.chip-ico){padding:0 12px;min-width:104px}
 @media(max-width:759px){.audio-tool .preset-btn:has(.chip-ico){min-width:0;padding:0 6px}}
 
+/* Диктофон: место под плеер зарезервировано с первой секунды.
+   Пустое оно или в нём волна -- высота одна и та же, поэтому ничего не сдвигается.
+   Ради этого место НЕ выключается из разметки, а получает пустой вид. */
+.audio-tool .wave-shell.is-empty{background:rgba(255,255,255,.02);border:1px dashed var(--line)}
+.audio-tool .wave-shell.is-empty canvas{opacity:0}
+/* В пустом месте нечего резать и не о чем сообщать: ручки обрезки и строка со временем
+   спрятаны. Спрятаны ВИДИМОСТЬЮ, а не удалением, -- иначе высота поедет, а мы её и бережём.
+   Строка времени лежит вне волны, поэтому ей отдельное правило по соседству. */
+.audio-tool .wave-shell.is-empty .handle,
+.audio-tool .wave-shell.is-empty .sel-overlay,
+.audio-tool .wave-shell.is-empty .playhead,
+.audio-tool .wave-shell.is-empty .wave-guide,
+.audio-tool .wave-shell.is-empty .wave-tip{visibility:hidden}
+.audio-tool .panel.rec-empty .times,
+.audio-tool #audio-panel.rec-empty .times{visibility:hidden}
+
+/* Диктофон, три состояния. Всё прячется ВИДИМОСТЬЮ, а не удалением: высота ряда кнопок и
+   всей панели остаётся одинаковой, поэтому переходы не двигают страницу.
+   Покой: только красная кнопка. Запись: красная и пауза. Готово: плей, пауза, формат,
+   «Скачать» -- красной нет. */
+.audio-tool .rec-stage .rec-side{visibility:hidden}
+.audio-tool .rec-stage.is-rec #rec-pause{visibility:visible}
+.audio-tool .rec-stage.is-done .rec-side{visibility:visible}
+.audio-tool .rec-stage.is-done .rec-btn{visibility:hidden}
+/* Формат и «Скачать» появляются вместе с плеером -- место под них занято заранее. */
+.audio-tool #audio-panel.rec-empty .deck,
+.audio-tool #audio-panel.rec-empty .download-row{visibility:hidden}
+
