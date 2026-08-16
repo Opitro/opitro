@@ -635,3 +635,14 @@
   .audio-tool .presets#ctrl-select .preset-btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13px}
 }
 
+/* Кнопки со значками динамиков: звучащая сторона яркая и с дужками звука, молчащая тусклая.
+   Разница нарочно крупная -- на телефоне два одинаково серых значка не различить. */
+.audio-tool .preset-btn .chip-ico{width:58px;height:24px;display:block}
+.audio-tool .preset-btn .chip-ico .sp.on{fill:currentColor;color:var(--text);opacity:1}
+/* Молчащий динамик приглушён, но ОТЧЁТЛИВО виден: при 0.22 его почти не было видно на
+   тёмном фоне телефона. 0.45 -- разница со звучащим читается, а сам значок не пропадает. */
+.audio-tool .preset-btn .chip-ico .sp.off{fill:currentColor;color:var(--text);opacity:.45}
+.audio-tool .preset-btn.active .chip-ico .sp.on{color:var(--accent)}
+.audio-tool .preset-btn:has(.chip-ico){padding:0 12px;min-width:104px}
+@media(max-width:759px){.audio-tool .preset-btn:has(.chip-ico){min-width:0;padding:0 6px}}
+

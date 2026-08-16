@@ -334,7 +334,13 @@ const ICO = {
             <button type="button" role="radio"
               aria-checked={o.value === (config.chipDefault || config.selectOptions[0].value) ? 'true' : 'false'}
               class={o.value === (config.chipDefault || config.selectOptions[0].value) ? 'preset-btn active' : 'preset-btn'}
-              data-chip={o.value}>{labels[o.label] || o.label}</button>
+              data-chip={o.value}
+              aria-label={config.chipIcons ? (labels[o.label] || o.label) : undefined}
+              title={config.chipIcons ? (labels[o.label] || o.label) : undefined}>
+              {config.chipIcons && config.chipIcons[o.value]
+                ? <Fragment set:html={config.chipIcons[o.value]} />
+                : (labels[o.label] || o.label)}
+            </button>
           ))}
         </div>
         {config.chipHints && (

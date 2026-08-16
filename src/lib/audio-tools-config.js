@@ -780,6 +780,14 @@ export const AUDIO_TOOLS = {
     // правый справа. Не нужно читать подписи, чтобы понять, куда пойдёт звук.
     selectAsChips: true,
     chipDefault: 'duplicate',
+    // Вместо слов -- два динамика: звучащий яркий и с дужками звука, молчащий тусклый и без
+    // них. Понятно без чтения и на любом языке. Слова никуда не делись, они остались в коде
+    // для озвучки экрана (aria-label) -- человек с плохим зрением услышит «Левый».
+    chipIcons: {
+      panleft: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp on" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g><g class="sp off"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/></g></svg>',
+      duplicate: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp on" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g><g class="sp on"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
+      panright: '<svg class="chip-ico" viewBox="0 0 58 24" aria-hidden="true"><g class="sp off" transform="matrix(-1 0 0 1 58 0)"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/></g><g class="sp on"><path d="M32 9.5v5h3.5L40 18V6l-4.5 3.5H32z"/><path d="M42.6 8.4a5 5 0 0 1 0 7.2" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/><path d="M46 6.2a9 9 0 0 1 0 11.6" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round"/></g></svg>',
+    },
     selectLabel: 'channelModeLabel',
     selectOptions: [
       { value: 'panleft', label: 'channelPanLeftLabel' },
