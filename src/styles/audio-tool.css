@@ -654,7 +654,11 @@
 /* Пустое место под плеер: чёрное поле с тихой рамкой, БЕЗ пунктира. Оно должно быть
    спокойным фоном, а не заготовкой с пометкой «сюда что-то придёт». В нём же потом
    рисуется звук во время записи -- на чёрном это выглядит правильнее всего. */
-.audio-tool .wave-shell.is-empty{background:#000;border:1px solid rgba(255,255,255,.08)}
+/* Рамка есть ВСЕГДА, меняется только её цвет. Раньше она была только у пустого поля, и
+   при начале записи, когда «пустой» вид снимался, высота менялась на две точки -- владелец
+   видел сдвиг там, где «ничего не появляется». Это и была рамка. */
+.audio-tool.is-recorder .wave-shell{border:1px solid transparent}
+.audio-tool .wave-shell.is-empty{background:#000;border-color:rgba(255,255,255,.08)}
 .audio-tool .wave-shell.is-empty canvas{opacity:0}
 
 /* Диктофон: убраны две части, которые сдвигали макет и мешали чистоте.
@@ -668,7 +672,15 @@
    Строка при этом занимает своё место всегда, поэтому появление записи её не сдвигает. */
 .audio-tool.is-recorder .fileinfo .fi-name,
 .audio-tool.is-recorder .fileinfo .fi-ico{display:none}
-.audio-tool.is-recorder .fileinfo{min-height:34px}
+/* Крестик ЛЕЖИТ ПОВЕРХ чёрного поля, в правом верхнем углу, и не занимает места в потоке.
+   Так решаются обе беды разом: пустая строка не маячит на виду (владелец: «контейнер, да
+   ещё и пустой от имени файла, выглядит ужасно») и её появление ничего не сдвигает --
+   сдвигать нечего, высота у неё нулевая. */
+.audio-tool.is-recorder{position:relative}
+.audio-tool.is-recorder .fileinfo{position:absolute;top:8px;right:10px;z-index:4;min-height:0;
+  margin:0;padding:0;background:transparent;border:0;pointer-events:none}
+.audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end;gap:6px;pointer-events:auto}
+.audio-tool.is-recorder .fileinfo .fi-act{background:rgba(0,0,0,.45)}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end}
 
 /* МАГИЯ: записанная волна появляется плавно, а не выскакивает.
@@ -716,3 +728,13 @@
 .audio-tool.is-recorder .rec-stage.is-done .rec-time,
 .audio-tool.is-recorder .rec-stage.is-done .rec-state{visibility:hidden}
 
+/* Готовая запись: плей встаёт РОВНО НА МЕСТО красной кнопки, а не появляется сбоку.
+   Владелец: «сделай, чтоб кнопка записи исчезала, а на её месте появлялась только кнопка
+   плей». Ряд остаётся той же высоты, красная прячется видимостью, плей переносится в
+   середину поверх её места -- поэтому ничего не сдвигается и не перестраивается. */
+.audio-tool.is-recorder .rec-row{position:relative}
+.audio-tool.is-recorder .rec-stage.is-done .rec-btn{visibility:hidden}
+.audio-tool.is-recorder .rec-stage.is-done #rec-play{position:absolute;left:50%;top:50%;
+  transform:translate(-50%,-50%);visibility:visible;width:88px;height:88px}
+.audio-tool.is-recorder .rec-stage.is-done #rec-play .ico{width:26px;height:26px}
+.audio-tool.is-recorder .rec-stage.is-done #rec-pause{visibility:hidden}
