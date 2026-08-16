@@ -2031,7 +2031,7 @@ const ICO = {
       // были паузы. Панель с волной прячется до появления файла, поэтому на время записи её
       // приходится показать самим; когда запись остановится, pickFile нарисует поверх волну
       // готового файла на том же месте.
-      const liveWave = waveCanvas ? createLiveWaveform(waveCanvas, { mode: 'bars' }) : null;
+      const liveWave = waveCanvas ? createLiveWaveform(waveCanvas, { mode: 'wave' }) : null;
       function startLiveWave() {
         if (!liveWave) return;
         // Место уже занято и видно -- снимаем только «пустой» вид, ничего не показываем
@@ -2053,6 +2053,8 @@ const ICO = {
           let shown = 0;
           const draw = () => {
             an.getFloatTimeDomainData(buf);
+            // Отдаём живой волне САМУ форму звука -- она рисует след, а не столбик уровня.
+            if (liveWave && liveWave.feed) liveWave.feed(buf);
             let peak = 0;
             for (const v of buf) { const a = Math.abs(v); if (a > peak) peak = a; }
             // Falls back gently rather than snapping to zero between syllables, so the bar reads
