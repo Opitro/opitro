@@ -1839,6 +1839,7 @@ const ICO = {
     // постоянной на всех трёх состояниях: пусто -> волна во время записи -> запись готова.
     if (config.controls === 'recorder' && waveShell) {
       waveShell.classList.add('is-empty');
+      root.classList.add('is-recorder');
       root.querySelector('.rec-stage')?.classList.add('is-idle');
       // Строка «Начало / Длительность / Конец» лежит не рядом с волной, соседним правилом её
       // не достать -- помечаем саму панель. Прячем ВИДИМОСТЬЮ: место остаётся занятым,
