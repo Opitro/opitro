@@ -699,11 +699,6 @@
 .audio-tool .wave-shell.is-empty .playhead,
 .audio-tool .wave-shell.is-empty .wave-guide,
 .audio-tool .wave-shell.is-empty .wave-tip{visibility:hidden}
-/* У диктофона строки «Начало / Длительность / Конец» нет ВООБЩЕ. Она была видна в покое
-   (34 точки), а с началом записи схлопывалась в ноль -- вот и сдвиг на 50 точек с отступами,
-   который владелец видел трижды, а я не мог поймать: мой замер переключал состояния сам, без
-   настоящего хода записи. Поймано поддельным микрофоном. Резать запись тут нечего. */
-.audio-tool.is-recorder .times{display:none !important}
 
 /* Диктофон, три состояния. Всё прячется ВИДИМОСТЬЮ, а не удалением: высота ряда кнопок и
    всей панели остаётся одинаковой, поэтому переходы не двигают страницу.
@@ -819,16 +814,21 @@
 .audio-tool.is-recorder .fileinfo{top:14px;right:12px}
 @media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:12px;right:28px}}
 
-/* Время НА ручках обрезки: ярлычок едет вместе с ручкой. Ряд чисел под волной больше не
-   нужен -- длительность владелец просил не показывать, а начало и конец теперь на месте
-   действия. Ярлычки смотрят ВНУТРЬ выделения, поэтому у самых краёв дорожки не срезаются. */
-/* НЕ трогаем position у ручки: она уже absolute и сама служит опорой для ярлычка.
-   Прежнее position:relative перебило её положение, и ручки съехали вниз -- владелец увидел
-   это сразу. Правило про положение чужого узла -- всегда проверять, не задано ли оно уже. */
-.audio-tool .handle-time{position:absolute;top:-2px;font-size:11px;line-height:16px;
-  font-variant-numeric:tabular-nums;color:var(--text);background:rgba(0,0,0,.62);
-  border-radius:5px;padding:1px 5px;white-space:nowrap;pointer-events:none}
+/* Время ПОД плеером: начало и конец, без подписей и без длительности.
+   Строка занимает своё место ВСЕГДА -- именно её появление и схлопывание давало сдвиг на
+   50 точек, из-за которого кнопка записи подпрыгивала. Теперь высота постоянная. */
+.audio-tool .times{min-height:26px}
+.audio-tool #t-len-wrap{display:none}
+.audio-tool.is-recorder .times{display:flex !important;justify-content:space-between;
+  min-height:26px;visibility:visible}
+
+/* Время НА ручках обрезки: ярлычок едет вместе с ручкой -- владелец выбрал этот вид.
+   position ручке НЕ задаём: она уже absolute и сама служит опорой; прежняя попытка задать
+   relative опрокинула её вниз. Ярлычки смотрят ВНУТРЬ выделения, поэтому у краёв дорожки
+   не срезаются. Ряд чисел под волной при этом остаётся -- он не мешает и держит высоту. */
+.audio-tool .handle-time{position:absolute;top:-1px;font-size:11px;line-height:16px;
+  font-variant-numeric:tabular-nums;color:#fff;background:rgba(0,0,0,.66);
+  border-radius:5px;padding:1px 5px;white-space:nowrap;pointer-events:none;z-index:5}
 .audio-tool #h-start .handle-time{left:calc(100% + 5px)}
 .audio-tool #h-end .handle-time{right:calc(100% + 5px)}
-.audio-tool .times{display:none}
 

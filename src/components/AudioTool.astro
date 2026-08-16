@@ -1343,7 +1343,7 @@ const ICO = {
       if (hEnd) hEnd.style.left = clamp(x2) + 'px';
       if (tStart) tStart.textContent = fmtTime(selStart);
       if (tEnd) tEnd.textContent = fmtTime(selEnd);
-      // Те же числа -- НА самих ручках: глаз не бегает вниз, время там же, где палец.
+      // Те же числа -- НА самих ручках: время там же, где палец. Владелец выбрал этот вид.
       const ярлН = root.querySelector('#h-start-t');
       const ярлК = root.querySelector('#h-end-t');
       if (ярлН) ярлН.textContent = fmtTime(selStart);
