@@ -3794,6 +3794,17 @@ if (config.controls === 'speed1') {
         player.stop();
         window.dispatchEvent(new Event('opitro:tool-interaction'));
 
+        // ОБЩЕЕ ПРАВИЛО: нажатие по волне ставит бегунок и оставляет звук СТОЯТЬ.
+        // Раньше отсюда воспроизведение запускалось заново с этого места -- и это перебивало
+        // остановку из обработчика протаскивания: бегунок прыгал куда надо, а музыка ехала
+        // дальше. Владелец видел именно это. Слушать или нет -- решает кнопка, не дорожка.
+        if (dur > 0) {
+          setPlayheadFrac(Math.max(0, Math.min(1, t / dur)));
+          if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
+          if (typeof listenIco !== 'undefined' && listenIco) listenIco.innerHTML = ICO_PLAY;
+          return;
+        }
+
         if (config.controls === 'ringtone-targets') {
           if (!sourceBuffer || selEnd - selStart < 0.05) return;
           const seekTo = Math.max(selStart, Math.min(selEnd, t)) - selStart;
