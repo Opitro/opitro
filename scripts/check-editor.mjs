@@ -76,7 +76,9 @@ const chrome = spawn(chromeBin, [
 ], { stdio: 'ignore' });
 
 function done(code) {
-  try { chrome.kill(); } catch (e) {}
+  // НЕ убивать процесс браузера: на маке приложение общее, и вместе со своим окном уходят
+  // рабочие вкладки владельца. Он ловил это дважды -- закрывать только своё окно.
+  try { chrome.kill('SIGTERM'); } catch (e) {}
   try { server.kill(); } catch (e) {}
   try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {}
   process.exit(code);

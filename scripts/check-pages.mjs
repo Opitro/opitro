@@ -20,7 +20,32 @@ const PAGES = process.argv.slice(3).length ? process.argv.slice(3) : [
   '/ru/speech-to-text',      // own component, microphone
 ];
 
-const targets = await (await fetch(BASE.includes('localhost') ? 'http://127.0.0.1:9222/json/list' : 'http://127.0.0.1:9222/json/list')).json();
+// СВОЁ окно браузера, своя папка, свой порт. Раньше сценарий подключался к порту 9222 и
+// хозяйничал во вкладках того окна, что уже открыто, -- то есть в рабочем браузере владельца.
+// Он дважды терял из-за этого свою работу. Ничего чужого не трогаем.
+import { spawn } from 'node:child_process';
+import os from 'node:os';
+import path from 'node:path';
+const ПОРТ = 9351;
+const ПАПКА = path.join(os.tmpdir(), 'opitro-check-pages-prof');
+const сон = (ms) => new Promise((r) => setTimeout(r, ms));
+let своё = null;
+try {
+  await fetch(`http://127.0.0.1:${ПОРТ}/json/version`);
+} catch {
+  своё = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [
+    `--remote-debugging-port=${ПОРТ}`, `--user-data-dir=${ПАПКА}`,
+    '--no-first-run', '--no-default-browser-check', '--disable-extensions',
+    '--disable-backgrounding-occluded-windows', '--window-size=1300,900', 'about:blank',
+  ], { stdio: 'ignore', detached: true });
+  for (let i = 0; i < 60; i++) {
+    try { await fetch(`http://127.0.0.1:${ПОРТ}/json/version`); break; } catch { await сон(400); }
+  }
+}
+process.on('exit', () => { if (своё) { try { процессУбить(); } catch (e) {} } });
+function процессУбить() { своё.kill('SIGTERM'); }
+
+const targets = await (await fetch(BASE.includes('localhost') ? 'http://127.0.0.1:9351/json/list' : 'http://127.0.0.1:9351/json/list')).json();
 const ws = new WebSocket(targets.find((t) => t.type === 'page').webSocketDebuggerUrl);
 let id = 0; const pending = new Map();
 let issues = [];
