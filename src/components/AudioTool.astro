@@ -361,6 +361,17 @@ const ICO = {
         )}
       </div>
     )}
+    {/* Кнопка прослушивания стоит СРАЗУ ПОД ВОЛНОЙ и слева -- как плей на всех остальных
+        страницах. Раньше она была широкой полосой НАД списком устройств, и её не находили:
+        владелец сказал, что теряется даже он сам на своём сайте. */}
+    {isRingtoneTargets && (
+      <div class="rt-listen">
+        <button type="button" class="tp-btn tp-play" id="listen-sel-btn" aria-label={labels.listenSelectionLabel}>
+          <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <span class="rt-listen-hint" id="listen-sel-label">{labels.listenSelectionLabel}</span>
+      </div>
+    )}
     {/* A tool that wants to say something about the file it was actually given -- "this is
         already mono", "this will throw away your right channel". Filled in after decode. */}
     {config.note && <div class="rate-note" id="tool-note" style="display:none"></div>}
@@ -780,14 +791,6 @@ const ICO = {
       <div class="checks">
         <label class="check"><input type="checkbox" id="chk-fadein"> {labels.fadeInCheckLabel}</label>
         <label class="check"><input type="checkbox" id="chk-fadeout"> {labels.fadeOutCheckLabel}</label>
-      </div>
-    )}
-    {isRingtoneTargets && (
-      <div class="controls" style="margin-bottom:16px">
-        <button class="act" id="listen-sel-btn">
-          <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          <span id="listen-sel-label">{labels.listenSelectionLabel}</span>
-        </button>
       </div>
     )}
     {/* Рекламное место ВНУТРИ инструмента убрано. Оно стояло между настройками и кнопкой

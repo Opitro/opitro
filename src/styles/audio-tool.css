@@ -848,3 +848,8 @@
 .audio-tool .wave-shell{overflow:hidden}
 .audio-tool .sel-overlay{box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
 
+/* Ряд прослушивания рингтона: круглая кнопка слева под волной и тихая подпись рядом.
+   Прежняя широкая полоса над списком устройств не читалась как «играть». */
+.audio-tool .rt-listen{display:flex;align-items:center;gap:10px;margin:10px 0 16px}
+.audio-tool .rt-listen-hint{font-size:13px;color:var(--muted,rgba(255,255,255,.6))}
+
