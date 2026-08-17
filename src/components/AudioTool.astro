@@ -2548,7 +2548,14 @@ const ICO = {
           // стоять. Сами никогда не начинаем. Раньше у трёх страниц было три разных
           // поведения: одна продолжала, другая начинала сначала, третья требовала ещё раз
           // нажать «играть», -- владелец это и заметил.
-          продолжитьПослеПересчёта = player.isPlaying() ? player.getPosition() : null;
+          // Место запоминаем ВСЕГДА -- и когда звучало, и когда стояло на паузе. Иначе
+          // после пересчёта плеер сброшен в ноль, и следующее «играть» начинает сначала:
+          // владелец описал оба случая. waveSeekPos -- та самая метка, откуда играет кнопка.
+          {
+            const поз = player.getPosition();
+            продолжитьПослеПересчёта = player.isPlaying() ? поз : null;
+            if (поз > 0.05) waveSeekPos = поз;
+          }
           // Прежний звук глушим сразу: иначе он доигрывает старое, пока считается новое.
           stopAB();
           if (file) runFfmpegProcess(false);
@@ -2564,7 +2571,11 @@ const ICO = {
       if (abSelect) {
         abSelect.addEventListener('change', () => {
           // То же правило и для заготовок-кнопок (они говорят через скрытый список).
-          продолжитьПослеПересчёта = player.isPlaying() ? player.getPosition() : null;
+          {
+            const поз = player.getPosition();
+            продолжитьПослеПересчёта = player.isPlaying() ? поз : null;
+            if (поз > 0.05) waveSeekPos = поз;
+          }
           stopAB();
           if (file) runFfmpegProcess(false);
         });
@@ -4505,11 +4516,18 @@ function элПлеер() {
                 // ЕДИНОЕ ПРАВИЛО. Звучало до пересчёта -- продолжаем с того же места уже
                 // новой обработкой. Стояло -- НЕ начинаем сами: раньше здесь запускалось
                 // воспроизведение всегда, и страница вела себя не так, как соседние.
-                const seek = waveSeekPos != null ? waveSeekPos : продолжитьПослеПересчёта;
-                const былоЗвучание = продолжитьПослеПересчёта != null || waveSeekPos != null;
-                waveSeekPos = null;
+                const seek = продолжитьПослеПересчёта != null ? продолжитьПослеПересчёта : waveSeekPos;
+                const звучало = продолжитьПослеПересчёта != null;
                 продолжитьПослеПересчёта = null;
-                if (былоЗвучание) playAB('result', lastResultBuffer, seek ?? undefined);
+                if (звучало) {
+                  waveSeekPos = null;
+                  playAB('result', lastResultBuffer, seek ?? undefined);
+                } else if (seek != null) {
+                  // Стояло -- НЕ начинаем, но метку оставляем: следующее «играть» пойдёт
+                  // отсюда, а не с начала. Раньше я её обнулял, и звук начинался сначала.
+                  waveSeekPos = seek;
+                  if (lastResultBuffer && lastResultBuffer.duration > 0) setPlayheadTime(seek);
+                }
               }
             } catch (e) {}
           }
