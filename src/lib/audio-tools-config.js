@@ -862,6 +862,14 @@ export const AUDIO_TOOLS = {
     // нажатие, ждать открытия списка и выбирать -- лишняя работа. Значки здесь не годятся:
     // «комнату» и «зал» без подписи различит только тот, кто уже знает разницу.
     selectAsChips: true,
+    // Расшифровка под кнопками: что именно делает каждая заготовка. Без неё «комната» и
+    // «зал» ничего не говорят человеку, который не занимается звуком.
+    chipHints: [
+      { value: 'echo', label: 'reverbPresetEchoLabel', hint: 'reverbHintEcho' },
+      { value: 'slapback', label: 'reverbPresetSlapbackLabel', hint: 'reverbHintSlapback' },
+      { value: 'room', label: 'reverbPresetRoomLabel', hint: 'reverbHintRoom' },
+      { value: 'hall', label: 'reverbPresetHallLabel', hint: 'reverbHintHall' },
+    ],
     compactPreview: true,
     transport: true,
     renderedAb: true,
