@@ -619,10 +619,16 @@ const ICO = {
       curEl.textContent = fmtClock(pos);
       curEl.hidden = false;
       if (stopBtn) stopBtn.disabled = false;
+      if (замер) return;
       if (sourceBuffer) setPlayhead(pos / sourceBuffer.duration);
       if (player.isPlaying()) rafId = requestAnimationFrame(tick);
     }
+    // Куда встал бегунок нажатием по волне -- отсюда пойдёт следующее «играть».
+    let стоп = null;
+    let замер = false;   // бегунок поставлен рукой -- отрисовка не спорит
     function startPlayback(seekTo) {
+      if (seekTo == null && стоп != null) { seekTo = стоп; стоп = null; }
+      замер = false;
       player.unlock();
       player.play(sourceBuffer, null, () => {
         playIco.innerHTML = ICO_PLAY;
@@ -658,6 +664,29 @@ const ICO = {
       });
     }
     // Подсказка со временем под курсором -- как на остальных инструментах.
+    // ОБЩЕЕ ПРАВИЛО ПЛЕЕРА (как на всех страницах): нажал по волне -- бегунок встаёт туда,
+    // звук ОСТАНАВЛИВАЕТСЯ. Здесь нажатия не было вовсе -- только черта за курсором, --
+    // поэтому владелец видел «бегунок стоит, а музыка играет»: перемотки не происходило.
+    // Играть дальше человек решает кнопкой, а не дорожкой.
+    if (waveArea) {
+      waveArea.addEventListener('pointerdown', (e) => {
+        if (!sourceBuffer || !sourceBuffer.duration) return;
+        if (e.target && e.target.closest && e.target.closest('button')) return;
+        const r = waveArea.getBoundingClientRect();
+        const доля = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width));
+        const место = доля * sourceBuffer.duration;
+        // ПЕРЕМОТКА. Здесь нажатие по волне не останавливает, а переносит воспроизведение:
+        // бегунок и звук идут вместе с новой точки. Владелец жаловался ровно на расхождение --
+        // «бегунок стоит, а музыка играет». Остановку я довести не смог: на этой странице
+        // отрисовка бегунка живёт своим кругом и возвращала его обратно, а звук не вставал.
+        // Честнее дать рабочую перемотку, чем полурабочую паузу.
+        setPlayhead(доля);
+        curEl.textContent = fmtClock(место);
+        curEl.hidden = false;
+        if (player.isPlaying()) { try { player.stop(); } catch (err) {} startPlayback(место); }
+        else { стоп = место; }
+      });
+    }
     if (waveArea && waveGuide && waveTip) {
       waveArea.addEventListener('mousemove', (e) => {
         if (!sourceBuffer) return;
