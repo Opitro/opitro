@@ -3204,6 +3204,10 @@ function элПлеер() {
       }
       if (abOriginalBtn) abOriginalBtn.classList.toggle('active', which === 'original');
       if (abResultBtn) abResultBtn.classList.toggle('active', which === 'result');
+      // На обычном проигрывателе на этом и заканчиваем: сторону мы уже переключили выше.
+      // Без этого выхода функция шла дальше и запускала ЕЩЁ И ДВИЖОК -- звучали две записи
+      // разом, владелец это и услышал.
+      if (config.elementPlayback) return;
       // Switching selection while something's playing continues on the new buffer instead of
       // going silent. For render-on-demand tools the buffer may not exist yet, so the render
       // has to finish first -- the position is captured up front so the await doesn't lose it.
