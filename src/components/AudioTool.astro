@@ -1677,7 +1677,10 @@ const ICO = {
         if (decoded.replacementFile) file = decoded.replacementFile;
         dur = sourceBuffer.duration;
         selStart = 0;
-        selEnd = dur;
+        // Рингтон -- СРАЗУ 40 секунд, а не вся дорожка. Владелец просил это ещё при создании
+        // страницы: выделение открывалось во всю длину и сужалось лишь после первого движения
+        // ручки. Ограничение здесь то же, что и в остальных местах, -- MAX_RINGTONE_SEC.
+        selEnd = config.controls === 'ringtone-targets' ? Math.min(dur, MAX_RINGTONE_SEC) : dur;
         if (inStart) inStart.max = dur;
         if (inEnd) inEnd.max = dur;
         scheduleWaveformDraw(sourceBuffer);
