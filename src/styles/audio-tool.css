@@ -683,7 +683,12 @@
 .audio-tool.is-recorder .fileinfo{position:absolute;top:24px;right:30px;z-index:4;min-height:0;
   margin:0;padding:0;background:transparent;border:0;pointer-events:none}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end;gap:6px;pointer-events:auto}
-.audio-tool.is-recorder .fileinfo .fi-act{background:rgba(0,0,0,.45)}
+/* Кружок крестика СЕРЫЙ, а не чёрный: поле чёрное, и на нём чёрный кружок пропадал --
+   особенно когда к нему подъезжает выделение обрезки. Серый виден на любом фоне, а обводка
+   отделяет его от волны. */
+.audio-tool.is-recorder .fileinfo .fi-act{background:rgba(120,124,132,.72);
+  border:1px solid rgba(255,255,255,.22);color:#fff}
+.audio-tool.is-recorder .fileinfo .fi-act:hover{background:rgba(150,154,162,.85)}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end}
 
 /* МАГИЯ: записанная волна появляется плавно, а не выскакивает.
@@ -811,7 +816,11 @@
    телефоне, и на широком экране. Замер: от верха поля должно быть около 10 точек. */
 /* На широком экране поле совпадает с краем панели, поэтому число берётся как есть;
    на телефоне панель отступает своим полем, и там нужно больше. Замерено обоими прогонами. */
-.audio-tool.is-recorder .fileinfo{top:14px;right:12px}
+/* Крестик у НИЖНЕГО края поля -- одинаково на всех ширинах. Правил я только мобильное
+   правило, а это, десктопное, стояло ниже по файлу и побеждало: на телефоне крестик уехал
+   вниз, на широком экране остался вверху. Правил про него в файле несколько -- решает
+   последнее. */
+.audio-tool.is-recorder .fileinfo{top:92px;right:12px;bottom:auto}
 @media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:92px;right:28px;bottom:auto}}
 
 /* Время ПОД плеером: начало и конец, без подписей и без длительности.
