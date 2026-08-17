@@ -842,3 +842,9 @@
 .audio-tool #h-start .handle-time{left:calc(100% + 5px)}
 .audio-tool #h-end .handle-time{right:calc(100% + 5px)}
 
+/* Дорожка ЗА выделением темнее -- глаз сразу видит, что попадёт в рингтон, а что нет.
+   Сделано огромной тенью вокруг выделения: она заливает всё вокруг и обрезается границами
+   волны. Это дешевле двух дополнительных полосок и не мешает ни ручкам, ни бегунку. */
+.audio-tool .wave-shell{overflow:hidden}
+.audio-tool .sel-overlay{box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
+
