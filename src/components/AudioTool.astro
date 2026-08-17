@@ -3381,7 +3381,15 @@ function элПлеер() {
           e.stopPropagation();
           player.unlock();
           if (!(await ensureAbResult())) return;
-          const буф = currentAbBuffer();
+          // Рингтону играть НЕЧЕГО из пересчитанного -- он ничего не пересчитывает заранее.
+          // Играем ВЫДЕЛЕННЫЙ кусок: ровно то, что станет рингтоном. Без этого обычная
+          // кнопка «играть» молчала, и человеку оставалась невнятная «Прослушать фрагмент».
+          let буф = currentAbBuffer();
+          if (!буф && sourceBuffer && config.controls === 'ringtone-targets') {
+            const от = Math.max(0, selStart);
+            const до = selEnd > от + 0.05 ? selEnd : sourceBuffer.duration;
+            буф = sliceBuffer(sourceBuffer, от, до);
+          }
           if (буф && (!эл || !эл.src)) отдатьВПроигрыватель(буф);
           const пл = элПлеер();
           if (пл.src) {
