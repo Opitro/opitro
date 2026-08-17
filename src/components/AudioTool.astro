@@ -1121,9 +1121,12 @@ const ICO = {
       // разницы после обработки не слышно. Владелец описал ровно это. Сбрасываем и звук, и
       // ссылку -- следующий запуск получит свежий результат.
       if (эл) {
+        // ПРАВИЛО: звучало -- продолжим с того же места уже новой обработкой; стояло --
+        // останемся стоять. Поэтому перед сбросом запоминаем и то, и другое.
+        продолжитьПослеПересчёта = (эл.src && !эл.paused) ? эл.currentTime : null;
         try { эл.pause(); эл.removeAttribute('src'); эл.load(); } catch (e) {}
         if (ссылка) { try { URL.revokeObjectURL(ссылка); } catch (e) {} ссылка = null; }
-        сброситьВид(true);
+        сброситьВид(продолжитьПослеПересчёта == null);
       }
       // Волна пересчитывается сразу при смене настроек, а не при первом нажатии плей. Иначе
       // человек ставит восемь секунд тишины, видит прежнюю форму и не понимает, случилось ли
@@ -2535,11 +2538,14 @@ const ICO = {
           card.classList.add('active');
           if (hiddenSelect) hiddenSelect.value = card.dataset.value;
           updatePresetDesc(card.dataset.value);
-          // Stop whatever's currently playing right away -- switching presets used to leave
-          // stale audio playing until the new result was ready, seconds later.
+          // ЕДИНОЕ ПРАВИЛО для всех страниц с заготовками (решение владельца 17.08.2026):
+          // звучало -- продолжаем с ТОГО ЖЕ места уже новой обработкой; стояло -- остаёмся
+          // стоять. Сами никогда не начинаем. Раньше у трёх страниц было три разных
+          // поведения: одна продолжала, другая начинала сначала, третья требовала ещё раз
+          // нажать «играть», -- владелец это и заметил.
+          продолжитьПослеПересчёта = player.isPlaying() ? player.getPosition() : null;
+          // Прежний звук глушим сразу: иначе он доигрывает старое, пока считается новое.
           stopAB();
-          // Tapping a card previews it immediately (processes + auto-plays, no download) --
-          // picking a scenario and hearing nothing happen was the exact complaint this fixes.
           if (file) runFfmpegProcess(false);
         });
       });
@@ -2552,6 +2558,8 @@ const ICO = {
       const abSelect = root.querySelector('#ctrl-select');
       if (abSelect) {
         abSelect.addEventListener('change', () => {
+          // То же правило и для заготовок-кнопок (они говорят через скрытый список).
+          продолжитьПослеПересчёта = player.isPlaying() ? player.getPosition() : null;
           stopAB();
           if (file) runFfmpegProcess(false);
         });
@@ -2911,6 +2919,9 @@ if (config.controls === 'speed1') {
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
     let waveSeekPos = null;
+    // Куда вернуться после пересчёта, если в момент смены заготовки звук ЗВУЧАЛ. null --
+    // значит стоял, и начинать сами мы не будем.
+    let продолжитьПослеПересчёта = null;
     // Обычный проигрыватель для страниц без живой обработки. Держим в ОБЩЕЙ области: им
     // пользуются и кнопка «играть», и «стоп», и нажатие по волне -- они в разных блоках.
     let эл = null, ссылка = null;
@@ -2948,7 +2959,22 @@ function элПлеер() {
       try {
         if (ссылка) { try { URL.revokeObjectURL(ссылка); } catch (e) {} }
         ссылка = URL.createObjectURL(new Blob([encodeWAV(buf)], { type: 'audio/wav' }));
-        элПлеер().src = ссылка;
+        const пл = элПлеер();
+        пл.src = ссылка;
+        // Новый звук готов -- и если до пересчёта играло, продолжаем с ТОГО ЖЕ места.
+        // Это и есть единое правило: смена настроек не должна рвать прослушивание.
+        if (продолжитьПослеПересчёта != null) {
+          const место = продолжитьПослеПересчёта;
+          продолжитьПослеПересчёта = null;
+          const пуск = () => {
+            try { пл.currentTime = Math.max(0, Math.min((buf.duration || 0) - 0.05, место)); } catch (e) {}
+            if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
+            if (waveStopBtn) waveStopBtn.disabled = false;
+            const о = пл.play(); if (о && о.catch) о.catch(() => сброситьВид(false));
+          };
+          if (пл.readyState >= 1) пуск();
+          else пл.addEventListener('loadedmetadata', пуск, { once: true });
+        }
       } catch (e) {}
     }
     window.__opitroОтдать = отдатьВПроигрыватель;
@@ -3060,6 +3086,10 @@ function элПлеер() {
       }, 250);
     }
     function syncResultWave() {
+      // Пересчёт закончен -- сразу отдаём свежий звук обычному проигрывателю. Без этого он
+      // получал его только при нажатии «играть», и правило «продолжить с того же места»
+      // не срабатывало: звук просто замолкал до следующего нажатия.
+      if (config.elementPlayback) отдатьВПроигрыватель(currentAbBuffer());
       if (!config.abWaveform || !waveCanvas) return;
       const buf = currentAbBuffer();
       if (buf) drawWaveform(waveCanvas, buf, undefined, fadeDrawOpts());
