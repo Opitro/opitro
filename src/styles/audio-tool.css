@@ -850,6 +850,10 @@
 
 /* Ряд прослушивания рингтона: круглая кнопка слева под волной и тихая подпись рядом.
    Прежняя широкая полоса над списком устройств не читалась как «играть». */
-.audio-tool .rt-listen{display:flex;align-items:center;gap:10px;margin:10px 0 16px}
-.audio-tool .rt-listen-hint{font-size:13px;color:var(--muted,rgba(255,255,255,.6))}
+/* Ряд прослушивания рингтона: сразу под волной, ДО полей «Начало/Конец». Кнопка крупнее
+   обычной и с зелёной обводкой -- её ищут глазами, а не находят случайно. */
+.audio-tool .rt-listen{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
+.audio-tool .rt-listen .tp-btn{width:52px;height:52px;border-color:rgba(74,222,158,.45)}
+.audio-tool .rt-listen .tp-btn .ico{width:22px;height:22px;color:var(--accent)}
+.audio-tool .rt-listen-hint{font-size:13.5px;color:var(--text);opacity:.85}
 

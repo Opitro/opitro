@@ -241,6 +241,17 @@ const ICO = {
         <span aria-label={labels.endLabel}><b id="t-end">0:00.0</b></span>
       </div>
     )}
+    {/* Кнопка прослушивания стоит СРАЗУ ПОД ВОЛНОЙ и слева -- как плей на всех остальных
+        страницах. Раньше она была широкой полосой НАД списком устройств, и её не находили:
+        владелец сказал, что теряется даже он сам на своём сайте. */}
+    {isRingtoneTargets && (
+      <div class="rt-listen">
+        <button type="button" class="tp-btn tp-play" id="listen-sel-btn" aria-label={labels.listenSelectionLabel}>
+          <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+        </button>
+        <span class="rt-listen-hint" id="listen-sel-label">{labels.listenSelectionLabel}</span>
+      </div>
+    )}
     {showTrimHandles && controls !== 'recorder' && (
       <div class="row">
         <div class="field">
@@ -359,17 +370,6 @@ const ICO = {
             ))}
           </dl>
         )}
-      </div>
-    )}
-    {/* Кнопка прослушивания стоит СРАЗУ ПОД ВОЛНОЙ и слева -- как плей на всех остальных
-        страницах. Раньше она была широкой полосой НАД списком устройств, и её не находили:
-        владелец сказал, что теряется даже он сам на своём сайте. */}
-    {isRingtoneTargets && (
-      <div class="rt-listen">
-        <button type="button" class="tp-btn tp-play" id="listen-sel-btn" aria-label={labels.listenSelectionLabel}>
-          <svg class="ico" id="listen-sel-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-        </button>
-        <span class="rt-listen-hint" id="listen-sel-label">{labels.listenSelectionLabel}</span>
       </div>
     )}
     {/* A tool that wants to say something about the file it was actually given -- "this is
@@ -2473,6 +2473,20 @@ const ICO = {
     if (listenSelBtn) {
       listenSelBtn.addEventListener('click', async () => {
         window.dispatchEvent(new Event('opitro:tool-interaction'));
+        // РИНГТОН играет обычным проигрывателем -- тогда работает и громкость, вшитая в звук.
+        // Пока кнопка ходила через движок, ползунок громкости был бесполезен.
+        if (config.elementPlayback && sourceBuffer) {
+          const пл = элПлеер();
+          if (пл.src && !пл.paused) { пл.pause(); listenSelIco.innerHTML = ICO_PLAY; return; }
+          const от = Math.max(0, selStart);
+          const до = selEnd > от + 0.05 ? selEnd : sourceBuffer.duration;
+          if (!пл.src) отдатьВПроигрыватель(sliceBuffer(sourceBuffer, от, до));
+          listenSelIco.innerHTML = ICO_PAUSE;
+          const о = пл.play();
+          if (о && о.catch) о.catch(() => { listenSelIco.innerHTML = ICO_PLAY; });
+          пл.onended = () => { listenSelIco.innerHTML = ICO_PLAY; };
+          return;
+        }
         if (player.isPlaying()) {
           player.pause();
           listenSelIco.innerHTML = ICO_PLAY;
