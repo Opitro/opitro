@@ -3044,7 +3044,11 @@ if (config.controls === 'speed1') {
       if (!wavePlayIco) return;
       const кнопка = wavePlayIco.closest('.tp-btn');
       const выглядитИграющей = !!кнопка && кнопка.classList.contains('is-playing');
-      if (выглядитИграющей && !player.isPlaying()) {
+      // ...но только если играет ДВИЖОК. На страницах с обычным проигрывателем звук идёт
+      // мимо движка, и страховка сбрасывала кнопку сразу после запуска -- владелец увидел
+      // это на шумоподавлении: «нажимаешь, она опять переключается в плей, а звук идёт».
+      const элИграет = !!(эл && эл.src && !эл.paused);
+      if (выглядитИграющей && !player.isPlaying() && !элИграет) {
         wavePlayIco.innerHTML = ICO_PLAY;
         кнопка.classList.remove('is-playing');
       }
@@ -3178,12 +3182,19 @@ if (config.controls === 'speed1') {
         if (!эл) {
           эл = new Audio();
           эл.preload = 'auto';
-          эл.addEventListener('timeupdate', () => {
-            if (!эл.duration) return;
-            if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(); return; }
+          // Бегунок ведём КАДРАМИ, а не сообщениями проигрывателя: он сообщает время всего
+          // несколько раз в секунду, и бегунок дёргался рывками. Кадр -- шестьдесят раз в
+          // секунду, движение плавное.
+          let кадр = 0;
+          const вести = () => {
+            if (!эл || эл.paused) { кадр = 0; return; }
+            if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(); кадр = 0; return; }
             setPlayheadTime(эл.currentTime);
             if (transportCurEl) { transportCurEl.textContent = fmtClock(эл.currentTime); transportCurEl.hidden = false; }
-          });
+            кадр = requestAnimationFrame(вести);
+          };
+          эл.addEventListener('play', () => { cancelAnimationFrame(кадр); кадр = requestAnimationFrame(вести); });
+          эл.addEventListener('pause', () => { cancelAnimationFrame(кадр); кадр = 0; });
           эл.addEventListener('ended', сброситьВид);
         }
         return эл;
