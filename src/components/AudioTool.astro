@@ -2053,6 +2053,17 @@ const ICO = {
         stopMeter();
         try {
           meterCtx = new (window.AudioContext || window.webkitAudioContext)();
+          // ПОСЛЕ СНА ТЕЛЕФОНА новый узел рождается спящим: запись при этом идёт нормально,
+          // а измеритель отдаёт тишину -- волна стоит ровной полоской. Владелец описал это
+          // точно: «он записывает, просто волна не реагирует на звук». Будим сразу и ещё раз
+          // с задержкой: на iPhone первое пробуждение иногда проходит вхолостую.
+          const разбудить = () => {
+            if (!meterCtx || meterCtx.state === 'running' || meterCtx.state === 'closed') return;
+            try { const r = meterCtx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+          };
+          разбудить();
+          setTimeout(разбудить, 300);
+          setTimeout(разбудить, 1200);
           const src = meterCtx.createMediaStreamSource(stream);
           const an = meterCtx.createAnalyser();
           an.fftSize = 1024;
