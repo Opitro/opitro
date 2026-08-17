@@ -686,6 +686,10 @@ export const AUDIO_TOOLS = {
   },
 
   compress: {
+    // Проигрывание обычным проигрывателем: живой обработки здесь нет, звук считается один
+    // раз и дальше просто играется. Переживает сон телефона, в отличие от движка.
+    // Список из девяти пунктов для таких страниц -- в памяти (project-element-playback).
+    elementPlayback: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
@@ -1405,6 +1409,10 @@ export const AUDIO_TOOLS = {
     },
   },
   'dynamic-compressor': {
+    // Проигрывание обычным проигрывателем: живой обработки здесь нет, звук считается один
+    // раз и дальше просто играется. Переживает сон телефона, в отличие от движка.
+    // Список из девяти пунктов для таких страниц -- в памяти (project-element-playback).
+    elementPlayback: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
