@@ -3113,6 +3113,18 @@ function элПлеер() {
     // `seekTo` present (waveform click) always seeks+plays from that point -- toggle/pause
     // only applies to a plain play-button press (no seek position) on the playing side.
     function playAB(which, buf, seekTo) {
+      // ЕДИНЫЙ ЗАСЛОН. На страницах с обычным проигрывателем движок не играет НИКОГДА:
+      // иначе к его голосу добавляется голос проигрывателя, и звучат две записи разом.
+      // Владелец слышал это при переключении «было / стало» И при выборе любой заготовки --
+      // путей, которые сюда приводят, оказалось несколько, поэтому затыкаем не каждый из
+      // них, а само место, где движок начинает звучать.
+      if (config.elementPlayback) {
+        if (эл && эл.src) {
+          if (seekTo != null) { try { эл.currentTime = seekTo; } catch (e) {} }
+          if (эл.paused) { const о = эл.play(); if (о && о.catch) о.catch(() => сброситьВид()); }
+        }
+        return;
+      }
       if (seekTo == null && abPlayingWhich === which && player.isPlaying()) {
         player.pause();
         if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
