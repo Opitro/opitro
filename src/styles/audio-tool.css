@@ -812,7 +812,7 @@
 /* На широком экране поле совпадает с краем панели, поэтому число берётся как есть;
    на телефоне панель отступает своим полем, и там нужно больше. Замерено обоими прогонами. */
 .audio-tool.is-recorder .fileinfo{top:14px;right:12px}
-@media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:12px;right:28px}}
+@media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:92px;right:28px;bottom:auto}}
 
 /* Время ПОД плеером: начало и конец, без подписей и без длительности.
    Строка занимает своё место ВСЕГДА -- именно её появление и схлопывание давало сдвиг на

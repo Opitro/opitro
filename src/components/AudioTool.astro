@@ -2229,17 +2229,24 @@ const ICO = {
         if (!элемент) {
           элемент = new Audio();
           элемент.preload = 'auto';
-          элемент.addEventListener('timeupdate', () => {
-            if (!sourceBuffer || !элемент.duration) return;
+          // Бегунок ведём КАДРАМИ, а не сообщениями проигрывателя: тот сообщает время всего
+          // несколько раз в секунду, и бегунок прыгал. Кадр -- шестьдесят раз в секунду.
+          let кадрЗ = 0;
+          const вестиЗ = () => {
+            if (!элемент || элемент.paused || !sourceBuffer) { кадрЗ = 0; return; }
             // Дошли до правой ручки -- останавливаемся, как и положено выделению.
             if (элемент.__до && элемент.currentTime >= элемент.__до) {
               элемент.pause();
               recPlayIco.innerHTML = ICO_PLAY;
               if (playhead) playhead.style.display = 'none';
+              кадрЗ = 0;
               return;
             }
             setPlayheadTime(элемент.currentTime);
-          });
+            кадрЗ = requestAnimationFrame(вестиЗ);
+          };
+          элемент.addEventListener('play', () => { cancelAnimationFrame(кадрЗ); кадрЗ = requestAnimationFrame(вестиЗ); });
+          элемент.addEventListener('pause', () => { cancelAnimationFrame(кадрЗ); кадрЗ = 0; });
           элемент.addEventListener('ended', () => {
             recPlayIco.innerHTML = ICO_PLAY;
             if (playhead) playhead.style.display = 'none';
