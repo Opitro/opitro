@@ -2915,20 +2915,23 @@ function элПлеер() {
         let кадр = 0;
         const вести = () => {
           if (!эл || эл.paused) { кадр = 0; return; }
-          if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(); кадр = 0; return; }
+          if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(true); кадр = 0; return; }
           setPlayheadTime(эл.currentTime);
           if (transportCurEl) { transportCurEl.textContent = fmtClock(эл.currentTime); transportCurEl.hidden = false; }
           кадр = requestAnimationFrame(вести);
         };
         эл.addEventListener('play', () => { cancelAnimationFrame(кадр); кадр = requestAnimationFrame(вести); });
         эл.addEventListener('pause', () => { cancelAnimationFrame(кадр); кадр = 0; });
-        эл.addEventListener('ended', сброситьВид);
+        эл.addEventListener('ended', () => сброситьВид(true));
       }
       return эл;
     }
-    function сброситьВид() {
+    // `скрытьБегунок` -- только для ОСТАНОВКИ и конца дорожки. При ПАУЗЕ бегунок обязан
+    // остаться на месте: человек видит, где встал, и продолжает оттуда. Раньше он пропадал
+    // при каждой паузе -- владелец это и заметил.
+    function сброситьВид(скрытьБегунок) {
       if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
-      if (playhead) playhead.style.display = 'none';
+      if (скрытьБегунок && playhead) playhead.style.display = 'none';
     }
     // Отдаём проигрывателю ТОТ ЖЕ звук, что уйдёт в скачивание: слышно = скачано.
     function отдатьВПроигрыватель(buf) {
