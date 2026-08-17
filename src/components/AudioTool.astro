@@ -3184,9 +3184,24 @@ function элПлеер() {
       // treated it as a play/pause toggle, so tapping the lit-up half of the pill paused the
       // audio. The pill selects; the round play button transports.
       if (abSelected === which) return;
-      const wasPlaying = player.isPlaying();
-      const resumeFrom = wasPlaying ? player.getPosition() : null;
+      const wasPlaying = player.isPlaying() || !!(эл && эл.src && !эл.paused);
+      const resumeFrom = wasPlaying ? (эл && эл.src && !эл.paused ? эл.currentTime : player.getPosition()) : null;
       abSelected = which;
+      // «Было / стало» на обычном проигрывателе: он играет ОДИН файл и про вторую сторону не
+      // знает. Значит при переключении отдаём ему другую сторону целиком, с того же места.
+      if (config.elementPlayback) {
+        const былоИграет = !!(эл && эл.src && !эл.paused);
+        if (эл) { try { эл.pause(); } catch (e) {} }
+        setTimeout(() => {
+          const буф = currentAbBuffer();
+          if (!буф) return;
+          отдатьВПроигрыватель(буф);
+          if (эл) {
+            эл.currentTime = Math.max(0, Math.min(буф.duration - 0.05, resumeFrom || 0));
+            if (былоИграет) { const о = эл.play(); if (о && о.catch) о.catch(() => сброситьВид()); }
+          }
+        }, 0);
+      }
       if (abOriginalBtn) abOriginalBtn.classList.toggle('active', which === 'original');
       if (abResultBtn) abResultBtn.classList.toggle('active', which === 'result');
       // Switching selection while something's playing continues on the new buffer instead of

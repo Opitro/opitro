@@ -1162,6 +1162,9 @@ export const AUDIO_TOOLS = {
   },
 
   enhance: {
+    // Обычный проигрыватель: живой обработки нет, звук считается один раз. Есть «было /
+    // стало» -- при переключении сторон проигрывателю отдаётся другая сторона с того же места.
+    elementPlayback: true,
     // One-click positioning per the redesign: preset CARDS (not a bare dropdown) with an
     // Auto default, a single big "Enhance" action, and A/B compare (original vs result) --
     // the settings themselves (afftdn strength, a rumble-cutting highpass, a presence EQ bump,
