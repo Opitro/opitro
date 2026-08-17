@@ -1162,9 +1162,11 @@ export const AUDIO_TOOLS = {
   },
 
   enhance: {
-    // Обычный проигрыватель: живой обработки нет, звук считается один раз. Есть «было /
-    // стало» -- при переключении сторон проигрывателю отдаётся другая сторона с того же места.
-    elementPlayback: true,
+    // ВОЗВРАЩЕНО НА ДВИЖОК по решению владельца 17.08.2026. Перевод этой страницы потребовал
+    // шести доделок подряд, и почти все находил он, а не я: залипшая кнопка, дёрганый бегунок,
+    // неработающий «стоп», два голоса разом, устаревший файл после смены заготовки. Движок
+    // этих болезней не имел -- он обкатан месяцами. Лечим корень (пробуждение после сна),
+    // а не переписываем пульт на каждой странице.
     // One-click positioning per the redesign: preset CARDS (not a bare dropdown) with an
     // Auto default, a single big "Enhance" action, and A/B compare (original vs result) --
     // the settings themselves (afftdn strength, a rumble-cutting highpass, a presence EQ bump,
