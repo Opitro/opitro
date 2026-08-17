@@ -2902,6 +2902,46 @@ if (config.controls === 'speed1') {
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
     let waveSeekPos = null;
+    // Обычный проигрыватель для страниц без живой обработки. Держим в ОБЩЕЙ области: им
+    // пользуются и кнопка «играть», и «стоп», и нажатие по волне -- они в разных блоках.
+    let эл = null, ссылка = null;
+function элПлеер() {
+      if (!эл) {
+        эл = new Audio();
+        эл.preload = 'auto';
+        // Бегунок ведём КАДРАМИ, а не сообщениями проигрывателя: он сообщает время всего
+        // несколько раз в секунду, и бегунок дёргался рывками. Кадр -- шестьдесят раз в
+        // секунду, движение плавное.
+        let кадр = 0;
+        const вести = () => {
+          if (!эл || эл.paused) { кадр = 0; return; }
+          if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(); кадр = 0; return; }
+          setPlayheadTime(эл.currentTime);
+          if (transportCurEl) { transportCurEl.textContent = fmtClock(эл.currentTime); transportCurEl.hidden = false; }
+          кадр = requestAnimationFrame(вести);
+        };
+        эл.addEventListener('play', () => { cancelAnimationFrame(кадр); кадр = requestAnimationFrame(вести); });
+        эл.addEventListener('pause', () => { cancelAnimationFrame(кадр); кадр = 0; });
+        эл.addEventListener('ended', сброситьВид);
+      }
+      return эл;
+    }
+    function сброситьВид() {
+      if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
+      if (playhead) playhead.style.display = 'none';
+    }
+    // Отдаём проигрывателю ТОТ ЖЕ звук, что уйдёт в скачивание: слышно = скачано.
+    function отдатьВПроигрыватель(buf) {
+      if (!config.elementPlayback || !buf) return;
+      try {
+        if (ссылка) { try { URL.revokeObjectURL(ссылка); } catch (e) {} }
+        ссылка = URL.createObjectURL(new Blob([encodeWAV(buf)], { type: 'audio/wav' }));
+        элПлеер().src = ссылка;
+      } catch (e) {}
+    }
+    window.__opitroОтдать = отдатьВПроигрыватель;
+    // Для проверок: элемент не лежит в разметке, иначе его не найти со стороны.
+    window.__opitroЭлемент = () => эл;
     // Three different ways a tool can produce its "processed" side:
     //  - LIVE_CHAIN_TOOLS (EQ, fade): same buffer, a processing graph inserted while it plays.
     //    Nothing rendered up front, so A/B and sliders are instant.
@@ -3187,42 +3227,10 @@ if (config.controls === 'speed1') {
       // Тот же приём, что уже работает на диктофоне: посчитали один раз -- дальше просто
       // играем. Движок после долгого сна телефона умирает молча, обычный <audio> это
       // переживает. Вид не меняется: кнопки, волна и бегунок наши, элемент невидим.
-      let эл = null, ссылка = null;
-      function элПлеер() {
-        if (!эл) {
-          эл = new Audio();
-          эл.preload = 'auto';
-          // Бегунок ведём КАДРАМИ, а не сообщениями проигрывателя: он сообщает время всего
-          // несколько раз в секунду, и бегунок дёргался рывками. Кадр -- шестьдесят раз в
-          // секунду, движение плавное.
-          let кадр = 0;
-          const вести = () => {
-            if (!эл || эл.paused) { кадр = 0; return; }
-            if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(); кадр = 0; return; }
-            setPlayheadTime(эл.currentTime);
-            if (transportCurEl) { transportCurEl.textContent = fmtClock(эл.currentTime); transportCurEl.hidden = false; }
-            кадр = requestAnimationFrame(вести);
-          };
-          эл.addEventListener('play', () => { cancelAnimationFrame(кадр); кадр = requestAnimationFrame(вести); });
-          эл.addEventListener('pause', () => { cancelAnimationFrame(кадр); кадр = 0; });
-          эл.addEventListener('ended', сброситьВид);
-        }
-        return эл;
-      }
-      function сброситьВид() {
-        if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PLAY; wavePlayIco.closest('.tp-btn')?.classList.remove('is-playing'); }
-        if (playhead) playhead.style.display = 'none';
-      }
-      // Отдаём проигрывателю ТОТ ЖЕ звук, что уйдёт в скачивание: слышно = скачано.
-      function отдатьВПроигрыватель(buf) {
-        if (!config.elementPlayback || !buf) return;
-        try {
-          if (ссылка) { try { URL.revokeObjectURL(ссылка); } catch (e) {} }
-          ссылка = URL.createObjectURL(new Blob([encodeWAV(buf)], { type: 'audio/wav' }));
-          элПлеер().src = ссылка;
-        } catch (e) {}
-      }
-      window.__opitroОтдать = отдатьВПроигрыватель;
+      // ОБЪЯВЛЕНЫ ВЫШЕ, в общей области: «стоп» и нажатие по волне живут в других блоках, и
+      // пока проигрыватель был объявлен здесь, оба обработчика падали с «эл не определён» --
+      // целиком, вместе со всей своей работой. Владелец: «ничего не работает».
+      // Функции проигрывателя объявлены ВЫШЕ, в общей области.
 
       wavePlayBtn.addEventListener('click', async (e) => {
         // Страницы без живой обработки играют обычным проигрывателем.
@@ -3236,6 +3244,11 @@ if (config.controls === 'speed1') {
           if (пл.src) {
             if (!пл.paused) { пл.pause(); сброситьВид(); return; }
             if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
+            // Кнопку «стоп» включаем ЗДЕСЬ. Раньше её включал только движок, из своего
+            // отчёта о ходе воспроизведения, -- а на этой странице движок молчит, и кнопка
+            // оставалась выключенной: нажатия она попросту не принимала. Владелец говорил
+            // «стоп не работает», а я трижды чинил её обработчик, который и не вызывался.
+            if (waveStopBtn) waveStopBtn.disabled = false;
             if (waveSeekPos != null) { пл.currentTime = waveSeekPos; waveSeekPos = null; }
             const об = пл.play();
             if (об && об.catch) об.catch(() => сброситьВид());
