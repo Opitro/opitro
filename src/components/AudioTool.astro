@@ -4481,9 +4481,14 @@ function элПлеер() {
                 // Auto-play the result immediately -- previously you had to notice and tap the
                 // "Result" A/B button yourself, which read as "nothing happened" after a click.
                 // Starts from wherever the waveform was last tapped, if anywhere.
-                const seek = waveSeekPos;
+                // ЕДИНОЕ ПРАВИЛО. Звучало до пересчёта -- продолжаем с того же места уже
+                // новой обработкой. Стояло -- НЕ начинаем сами: раньше здесь запускалось
+                // воспроизведение всегда, и страница вела себя не так, как соседние.
+                const seek = waveSeekPos != null ? waveSeekPos : продолжитьПослеПересчёта;
+                const былоЗвучание = продолжитьПослеПересчёта != null || waveSeekPos != null;
                 waveSeekPos = null;
-                playAB('result', lastResultBuffer, seek ?? undefined);
+                продолжитьПослеПересчёта = null;
+                if (былоЗвучание) playAB('result', lastResultBuffer, seek ?? undefined);
               }
             } catch (e) {}
           }
