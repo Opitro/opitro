@@ -209,8 +209,11 @@ const ICO = {
     </div>
     {config.abCompare && (
       <div class="ab-pill" id="ab-compare" style="display:none">
-        <button type="button" class="ab-pill-seg active" id="ab-original-btn" data-which="original">{labels.abOriginalLabel}</button>
-        <button type="button" class="ab-pill-seg" id="ab-result-btn" data-which="result" disabled>{labels.abResultLabel}</button>
+        {/* Какая сторона подсвечена ИЗНАЧАЛЬНО -- задаётся здесь, в разметке. Я правил это в
+            коде в четырёх местах и всё равно видел «было»: подсветку ставил не код, а класс
+            прямо тут. Для реверса человек пришёл за результатом -- открываем «стало». */}
+        <button type="button" class={config.abResultFirst ? 'ab-pill-seg' : 'ab-pill-seg active'} id="ab-original-btn" data-which="original">{labels.abOriginalLabel}</button>
+        <button type="button" class={config.abResultFirst ? 'ab-pill-seg active' : 'ab-pill-seg'} id="ab-result-btn" data-which="result" disabled>{labels.abResultLabel}</button>
       </div>
     )}
     {/* Gated on the compact player rather than on abCompare -- the file-info strip belongs to
@@ -1444,7 +1447,8 @@ const ICO = {
       if (abCompareEl) abCompareEl.style.display = 'none';
       const vizPlayer = root.querySelector('#viz-player');
       if (vizPlayer) vizPlayer.style.display = 'none';
-      if (abOriginalBtn) abOriginalBtn.classList.add('active');
+      if (abOriginalBtn) abOriginalBtn.classList.toggle('active', сторонаПоУмолчанию() === 'original');
+      if (abResultBtn) abResultBtn.classList.toggle('active', сторонаПоУмолчанию() === 'result');
       if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
       if (wavePlayBtn) wavePlayBtn.disabled = true;
       if (waveDurationEl) waveDurationEl.textContent = '0:00';
@@ -1469,11 +1473,9 @@ const ICO = {
       dur = 0;
       if (wavePlayBtn) wavePlayBtn.disabled = true;
       if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
-      if (abOriginalBtn) abOriginalBtn.classList.add('active');
-      // По умолчанию сравнение открывается на «было». Но там, где человек пришёл ЗА
-      // результатом (реверс), сразу показываем «стало»: иначе он слышит то, что и так у него
-      // есть, и должен догадаться нажать вторую половину переключателя.
-      abSelected = config.abCompare ? (config.abResultFirst ? 'result' : 'original') : abSelected;
+      if (abOriginalBtn) abOriginalBtn.classList.toggle('active', сторонаПоУмолчанию() === 'original');
+      if (abResultBtn) abResultBtn.classList.toggle('active', сторонаПоУмолчанию() === 'result');
+      abSelected = config.abCompare ? сторонаПоУмолчанию() : abSelected;
       if (transportCurEl) transportCurEl.textContent = '0:00';
       if (transportDurEl) transportDurEl.textContent = '0:00';
       // A rendered preview belongs to the file it was made from -- keeping it on screen after a
@@ -1597,13 +1599,14 @@ const ICO = {
             if (config.abCompare && abCompareEl) {
               abCompareEl.style.display = 'flex';
               if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
-              if (abOriginalBtn) abOriginalBtn.classList.add('active');
+              if (abOriginalBtn) abOriginalBtn.classList.toggle('active', сторонаПоУмолчанию() === 'original');
+      if (abResultBtn) abResultBtn.classList.toggle('active', сторонаПоУмолчанию() === 'result');
               if (wavePlayBtn) wavePlayBtn.disabled = false;
               if (waveDurationEl) waveDurationEl.textContent = fmtTime(dur).split('.')[0];
               if (runBtn) runBtn.disabled = true;
               if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
               if (presetDescEl) presetDescEl.style.display = 'none';
-              abSelected = config.abResultFirst ? 'result' : 'original';
+              abSelected = сторонаПоУмолчанию();
               lastResultBuffer = null;
               lastResultBlob = null;
               lastResultPreset = null;
@@ -2606,8 +2609,9 @@ const ICO = {
         lastResultPreset = null;
         if (runBtn) runBtn.disabled = true;
         if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
-        if (abOriginalBtn) abOriginalBtn.classList.add('active');
-        abSelected = 'original';
+        if (abOriginalBtn) abOriginalBtn.classList.toggle('active', сторонаПоУмолчанию() === 'original');
+      if (abResultBtn) abResultBtn.classList.toggle('active', сторонаПоУмолчанию() === 'result');
+        abSelected = сторонаПоУмолчанию();
         if (wavePlayBtn) wavePlayBtn.disabled = !currentAbBuffer();
         // И сразу пересчитать в новом формате. Без этого смена формата возвращала ровно то
         // состояние, из-за которого всё и чинилось: список называет силу, а кнопка не нажимается.
@@ -2938,6 +2942,12 @@ if (config.controls === 'speed1') {
     // then cleared so later presses go back to normal toggle/resume behavior instead of
     // jumping back to this spot forever.
     let waveSeekPos = null;
+    // Какой стороной открывается сравнение «было / стало». Обычно «было»; но там, где человек
+    // пришёл ЗА результатом (реверс), сразу показываем «стало» -- иначе он слышит то, что и
+    // так у него есть, и должен догадаться нажать вторую половину переключателя.
+    // Решение ОДНО на все четыре места, где сторона задавалась: раньше я правил одно, а
+    // остальные три продолжали ставить «было».
+    function сторонаПоУмолчанию() { return config.abResultFirst ? 'result' : 'original'; }
     // Куда вернуться после пересчёта, если в момент смены заготовки звук ЗВУЧАЛ. null --
     // значит стоял, и начинать сами мы не будем.
     let продолжитьПослеПересчёта = null;
