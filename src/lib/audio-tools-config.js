@@ -939,6 +939,10 @@ export const AUDIO_TOOLS = {
   },
 
   ringtone: {
+    // Обычный проигрыватель: живой обработки нет, кусок вырезается один раз. Заодно уходят
+    // три беды разом -- невнятная кнопка «прослушать фрагмент», нерабочая громкость и
+    // непохожий на остальные вид. Владелец 17.08.2026.
+    elementPlayback: true,
     // mp3/wav targets are pure Web Audio, no ffmpeg. Telegram/WhatsApp (ogg) touch ffmpeg only
     // for the final encode, on a small already-trimmed clip -- never the original file. Opus
     // doesn't support 44.1kHz, so ffmpeg's libopus wrapper resamples to 48kHz internally before

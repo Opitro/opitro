@@ -2991,6 +2991,14 @@ function элПлеер() {
     function отдатьВПроигрыватель(buf) {
       if (!config.elementPlayback || !buf) return;
       try {
+        // Рингтон: громкость подмешиваем В САМ ЗВУК, а не в узел. Тогда слышно ровно то, что
+        // скачается, -- в том числе усиление больше ста процентов, которого обычный
+        // проигрыватель сам по себе дать не может (его громкость только приглушает).
+        if (config.controls === 'ringtone-targets') {
+          const рег = root.querySelector('#rt-volume');
+          const кратно = рег ? Number(рег.value) / 100 : 1;
+          if (кратно && Math.abs(кратно - 1) > 0.01) buf = scaleVolume(buf, кратно);
+        }
         if (ссылка) { try { URL.revokeObjectURL(ссылка); } catch (e) {} }
         ссылка = URL.createObjectURL(new Blob([encodeWAV(buf)], { type: 'audio/wav' }));
         const пл = элПлеер();
@@ -3818,10 +3826,22 @@ function элПлеер() {
     const rtVolumeEl = root.querySelector('#rt-volume');
     const rtVolumeVal = root.querySelector('#rt-volume-val');
     if (rtVolumeEl && rtVolumeVal) {
+      let громкостьТаймер = 0;
       rtVolumeEl.addEventListener('input', () => {
         rtVolumeVal.textContent = rtVolumeEl.value + '%';
-        // ...и сразу в звук, если он идёт. Ноль пересчёта: меняется одно число в узле.
         if (rtGainNode) { try { rtGainNode.gain.value = Number(rtVolumeEl.value) / 100; } catch (e) {} }
+        // На обычном проигрывателе громкость вшита в сам звук, поэтому его надо пересобрать.
+        // Ждём, пока человек перестанет двигать: у ползунка события идут потоком, и собирать
+        // на каждое движение означало бы собирать сто раз вместо одного.
+        if (!config.elementPlayback) return;
+        clearTimeout(громкостьТаймер);
+        громкостьТаймер = setTimeout(() => {
+          const буф = currentAbBuffer();
+          if (!буф) return;
+          продолжитьПослеПересчёта = (эл && эл.src && !эл.paused) ? эл.currentTime : null;
+          местоДоПересчёта = эл && эл.src ? эл.currentTime : null;
+          отдатьВПроигрыватель(буф);
+        }, 220);
       });
     }
     if (config.controls === 'fade2') {
