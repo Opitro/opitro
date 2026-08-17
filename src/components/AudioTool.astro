@@ -3159,7 +3159,21 @@ function элПлеер() {
         return false;
       }
     }
+    // Живая громкость рингтона. Ползунок раньше менял ТОЛЬКО надпись -- до звука он не
+    // доходил вовсе, и человек двигал его без всякого действия. Теперь между звуком и
+    // выходом стоит узел усиления, а ползунок меняет его значение прямо во время
+    // воспроизведения: слышно сразу, пересчитывать ничего не надо.
+    let rtGainNode = null;
+    function rtChainBuilder(ctx, source) {
+      const g = ctx.createGain();
+      const эл = root.querySelector('#rt-volume');
+      g.gain.value = эл ? Number(эл.value) / 100 : 1;
+      source.connect(g);
+      rtGainNode = g;
+      return g;
+    }
     function currentAbChain() {
+      if (config.controls === 'ringtone-targets') return rtChainBuilder;
       const get = LIVE_CHAIN_TOOLS[config.controls];
       return get && abSelected === 'result' ? get() : null;
     }
@@ -3801,7 +3815,11 @@ function элПлеер() {
     const rtVolumeEl = root.querySelector('#rt-volume');
     const rtVolumeVal = root.querySelector('#rt-volume-val');
     if (rtVolumeEl && rtVolumeVal) {
-      rtVolumeEl.addEventListener('input', () => { rtVolumeVal.textContent = rtVolumeEl.value + '%'; });
+      rtVolumeEl.addEventListener('input', () => {
+        rtVolumeVal.textContent = rtVolumeEl.value + '%';
+        // ...и сразу в звук, если он идёт. Ноль пересчёта: меняется одно число в узле.
+        if (rtGainNode) { try { rtGainNode.gain.value = Number(rtVolumeEl.value) / 100; } catch (e) {} }
+      });
     }
     if (config.controls === 'fade2') {
       const sec = labels.secShortLabel || 'sec';
