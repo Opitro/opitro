@@ -501,6 +501,9 @@ export const AUDIO_TOOLS = {
   },
 
   reverse: {
+    // Человек пришёл СЛУШАТЬ ПЕРЕВЁРНУТОЕ -- значит и показываем сразу его, а «было» пусть
+    // включает тот, кому нужно сравнить. Владелец 17.08.2026.
+    abResultFirst: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,

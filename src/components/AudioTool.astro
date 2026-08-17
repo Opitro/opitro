@@ -1470,7 +1470,10 @@ const ICO = {
       if (wavePlayBtn) wavePlayBtn.disabled = true;
       if (abResultBtn) { abResultBtn.disabled = true; abResultBtn.classList.remove('active'); }
       if (abOriginalBtn) abOriginalBtn.classList.add('active');
-      abSelected = config.abCompare ? 'original' : abSelected;
+      // По умолчанию сравнение открывается на «было». Но там, где человек пришёл ЗА
+      // результатом (реверс), сразу показываем «стало»: иначе он слышит то, что и так у него
+      // есть, и должен догадаться нажать вторую половину переключателя.
+      abSelected = config.abCompare ? (config.abResultFirst ? 'result' : 'original') : abSelected;
       if (transportCurEl) transportCurEl.textContent = '0:00';
       if (transportDurEl) transportDurEl.textContent = '0:00';
       // A rendered preview belongs to the file it was made from -- keeping it on screen after a
@@ -1600,7 +1603,7 @@ const ICO = {
               if (runBtn) runBtn.disabled = true;
               if (presetCardsEl) presetCardsEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
               if (presetDescEl) presetDescEl.style.display = 'none';
-              abSelected = 'original';
+              abSelected = config.abResultFirst ? 'result' : 'original';
               lastResultBuffer = null;
               lastResultBlob = null;
               lastResultPreset = null;
