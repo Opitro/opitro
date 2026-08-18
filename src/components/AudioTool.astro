@@ -27,6 +27,9 @@ const isNoise = controls === 'noise';
 // Тест звука тоже без файла: звук рождается прямо здесь, грузить нечего -- значит ни поля
 // для файла, ни волны, ни строки с названием файла на этой странице быть не должно.
 const isSoundTest = controls === 'sound-test';
+const isMicTest = controls === 'mic-test';
+// Обе проверки живут без файла: ни поля загрузки, ни волны дорожки, ни кнопки «Обработать».
+const безФайла = isSoundTest || isMicTest;
 // Значки для теста звука: те же динамики, что на «моно в стерео», -- один слева, два
 // посередине, один справа. Рисуются здесь, потому что страница не берёт их из настройки.
 const SOUND_TEST_ICONS = {
@@ -44,7 +47,7 @@ const isRecorder = controls === 'recorder';
 // the first render (see the client script), instead of never existing at all.
 // Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
 // doesn't map cleanly onto "several files queued for conversion".
-const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise && !isSoundTest;
+const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise && !безФайла;
 // Trimming is a capability, not a kind of tool: the recorder wants the handles too, so it asks
 // for them by config instead of being added to a growing list of control names here.
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets' || !!config.trimSelection;
@@ -63,7 +66,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // больше нет: микс считается сам при загрузке файлов и пересчитывается при каждом движении
 // ползунка громкости, а пуск/пауза/стоп живут в обычном ряду управления под волной.
 const needsRenderAction = isGenerator || (controls === 'multi-file' && !config.perFileVolume);
-const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && !isSoundTest && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && !безФайла && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
 // Формат и действие в один ряд -- то же правило, что у остальных инструментов (див. .deck ниже).
 // Инструменты на ffmpeg с выпадающим списком до сих пор рисовали формат отдельной строкой во всю
 // ширину, а кнопку -- следующей строкой под ней, с подписью "СОХРАНИТЬ КАК" над списком. Обе эти
@@ -99,7 +102,7 @@ const ICO = {
 <style is:inline set:html={playerCss + css}></style>
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
-  {!isGenerator && !isNoise && !isRecorder && !isSoundTest && (
+  {!isGenerator && !isNoise && !isRecorder && !безФайла && (
     <>
       <div class="drop" id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
@@ -135,7 +138,7 @@ const ICO = {
       для нескольких инструментов и живёт выше по разметке. */}
   <div class={config.presetCards ? "panel has-presets" : "panel"} id="audio-panel">
     {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
-    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !isSoundTest && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
+    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !безФайла && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
 
     {showWaveform && config.simplePreview && (
       <div class="wave-shell simple-preview" id="wave-shell">
@@ -743,6 +746,27 @@ const ICO = {
 
     {/* Noise: play is the primary action and starts instantly, because what people come here for
         is to listen -- for hours, usually. Downloading a file is secondary and lives below. */}
+    {/* Тест микрофона. Поле волны и строка состояния стоят всегда -- пустыми до начала,
+        чтобы страница не прыгала, когда микрофон включится. Кнопки устройств рисует код:
+        их число и названия известны только после разрешения на микрофон. */}
+    {isMicTest && (
+      <div class="mt">
+        <div class="mt-wave"><canvas id="mt-canvas"></canvas></div>
+        <div class="mt-state" id="mt-state">{labels.micTestIdleLabel}</div>
+        <div class="mt-devices" id="mt-devices"></div>
+        <div class="mt-row">
+          <button type="button" class="act primary" id="mt-start">{labels.micTestStartLabel}</button>
+          <button type="button" class="act" id="mt-rec" disabled>{labels.micTestRecLabel}</button>
+        </div>
+        <div class="mt-play" id="mt-play">
+          <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
+            <svg class="ico" id="mt-listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <audio id="mt-audio"></audio>
+        </div>
+      </div>
+    )}
+
     {/* Тест звука: три кнопки-динамика. Подписи не нужны -- динамик слева и динамик справа
         понятны без слов, а на четырёх языках надписи ещё и разной длины. Название остаётся
         в aria-label: для чтения с экрана и для всплывающей подсказки. */}
@@ -1939,6 +1963,145 @@ const ICO = {
             + (report.hint ? `<div class="an-hint">${escapeHtml(report.hint)}</div>` : '');
         });
       };
+    }
+
+    // ---- Тест микрофона --------------------------------------------------------------------
+    // Три вещи, и всё: видно, что микрофон слышит; можно выбрать не тот микрофон на другой
+    // (частая причина «не работает» -- система взяла камеру вместо гарнитуры); можно записать
+    // пять секунд и услышать себя. Ничего не считаем и никуда не отправляем.
+    if (config.controls === 'mic-test') {
+      panel.classList.add('on');
+      const холст = root.querySelector('#mt-canvas');
+      const строка = root.querySelector('#mt-state');
+      const рядУстройств = root.querySelector('#mt-devices');
+      const кнСтарт = root.querySelector('#mt-start');
+      const кнЗапись = root.querySelector('#mt-rec');
+      const местоПлеера = root.querySelector('#mt-play');
+      const плеер = root.querySelector('#mt-audio');
+      let поток = null, ctx = null, анализ = null, живая = null, кадр = 0, буферКадра = null;
+      let выбранное = '', писатель = null, куски = [], таймерЗаписи = 0, последнийЗвук = 0;
+
+      function рисовать() {
+        анализ.getFloatTimeDomainData(буферКадра);
+        живая.feed(буферКадра);
+        let пик = 0;
+        for (let i = 0; i < буферКадра.length; i++) { const a = Math.abs(буферКадра[i]); if (a > пик) пик = a; }
+        живая.push(Math.min(1, пик * 2));
+        // Порог низкий: шёпот и дыхание -- это уже «слышу». Но подпись держится ещё полторы
+        // секунды после последнего звука: между слогами микрофон честно отдаёт ноль, и без
+        // задержки строка мигала бы «слышу / тишина» на каждой паузе в речи.
+        if (пик > 0.02) последнийЗвук = performance.now();
+        if (!писатель) {
+          строка.textContent = performance.now() - последнийЗвук < 1500
+            ? labels.micTestHearLabel : labels.micTestSilentLabel;
+        }
+        кадр = requestAnimationFrame(рисовать);
+      }
+
+      async function устройства() {
+        if (!navigator.mediaDevices.enumerateDevices) return;
+        const все = await navigator.mediaDevices.enumerateDevices();
+        const микрофоны = все.filter((у) => у.kind === 'audioinput' && у.deviceId);
+        рядУстройств.replaceChildren();
+        // Один микрофон -- выбирать не из чего, ряд не показываем.
+        if (микрофоны.length < 2) return;
+        микрофоны.forEach((у, i) => {
+          const b = document.createElement('button');
+          b.type = 'button';
+          b.className = 'mt-dev' + ((у.deviceId === выбранное || (!выбранное && i === 0)) ? ' is-on' : '');
+          b.textContent = у.label || `${labels.micTestDeviceLabel} ${i + 1}`;
+          b.addEventListener('click', () => { выбранное = у.deviceId; пуск(); });
+          рядУстройств.appendChild(b);
+        });
+      }
+
+      function стоп() {
+        cancelAnimationFrame(кадр); кадр = 0;
+        if (живая) { живая.stop(); живая = null; }
+        if (поток) { поток.getTracks().forEach((t) => t.stop()); поток = null; }
+        if (ctx) { try { ctx.close(); } catch (e) {} ctx = null; }
+        openAudioSession();   // вернуть разряд воспроизведения, иначе на iPhone звук уйдёт в разговорный динамик
+        кнСтарт.textContent = labels.micTestStartLabel;
+        кнЗапись.disabled = true;
+        строка.textContent = labels.micTestIdleLabel;
+      }
+
+      async function пуск() {
+        if (поток) { cancelAnimationFrame(кадр); поток.getTracks().forEach((t) => t.stop()); }
+        clearError();
+        openRecordSession();   // до запроса микрофона, иначе на iPhone доступа не дадут
+        try {
+          поток = await navigator.mediaDevices.getUserMedia({
+            // Всё выключено: проверка должна показать микрофон как есть, а не то, что из него
+            // сделал браузер. Иначе шумодав съест тихий фон и «тишина» окажется неправдой.
+            audio: выбранное
+              ? { deviceId: { exact: выбранное }, echoCancellation: false, noiseSuppression: false, autoGainControl: false }
+              : { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
+          });
+        } catch (e) {
+          openAudioSession();
+          showError(labels.micDeniedLabel);
+          return;
+        }
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        ctx = new (window.AudioContext || window.webkitAudioContext)();
+        // Новый узел рождается спящим -- особенно после сна телефона. Тогда микрофон слышит,
+        // а измеритель отдаёт тишину, и волна стоит ровной полоской. Будим сразу и ещё дважды:
+        // на iPhone первое пробуждение иногда проходит вхолостую (то же лечение в диктофоне).
+        const разбудить = () => {
+          if (!ctx || ctx.state === 'running' || ctx.state === 'closed') return;
+          try { const r = ctx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
+        };
+        разбудить(); setTimeout(разбудить, 300); setTimeout(разбудить, 1200);
+        анализ = ctx.createAnalyser();
+        анализ.fftSize = 2048;
+        буферКадра = new Float32Array(анализ.fftSize);
+        ctx.createMediaStreamSource(поток).connect(анализ);
+        живая = createLiveWaveform(холст, { mode: 'wave' });
+        живая.start();
+        cancelAnimationFrame(кадр);
+        кадр = requestAnimationFrame(рисовать);
+        кнСтарт.textContent = labels.micTestStopLabel;
+        кнЗапись.disabled = false;
+        устройства();
+      }
+
+      кнСтарт.addEventListener('click', () => { поток ? стоп() : пуск(); });
+
+      кнЗапись.addEventListener('click', () => {
+        if (!поток || писатель) return;
+        куски = [];
+        писатель = new MediaRecorder(поток);
+        писатель.ondataavailable = (e) => { if (e.data && e.data.size) куски.push(e.data); };
+        писатель.onstop = () => {
+          писатель = null;
+          кнЗапись.disabled = false;
+          кнЗапись.textContent = labels.micTestRecLabel;
+          const blob = new Blob(куски, { type: 'audio/webm' });
+          if (плеер.src) URL.revokeObjectURL(плеер.src);
+          плеер.src = URL.createObjectURL(blob);
+          местоПлеера.classList.add('is-on');
+        };
+        писатель.start();
+        кнЗапись.disabled = true;
+        строка.textContent = labels.micTestRecordingLabel;
+        таймерЗаписи = setTimeout(() => { if (писатель) писатель.stop(); }, 5000);
+      });
+
+      // Прослушивание записи: одна круглая кнопка, как везде на сайте. Полоса перемотки для
+      // пяти секунд лишняя -- слушают целиком.
+      const кнСлушать = root.querySelector('#mt-listen');
+      const значок = root.querySelector('#mt-listen-ico');
+      кнСлушать.addEventListener('click', () => {
+        if (плеер.paused) { плеер.currentTime = 0; плеер.play().catch(() => {}); } else { плеер.pause(); }
+      });
+      плеер.addEventListener('play', () => { значок.innerHTML = ICO_PAUSE_SOLID; кнСлушать.classList.add('is-playing'); });
+      const вернуть = () => { значок.innerHTML = ICO_PLAY; кнСлушать.classList.remove('is-playing'); };
+      плеер.addEventListener('pause', вернуть);
+      плеер.addEventListener('ended', вернуть);
+
+      // Уходя со страницы, отпускаем микрофон: иначе индикатор записи горит и после ухода.
+      window.addEventListener('pagehide', () => { clearTimeout(таймерЗаписи); стоп(); });
     }
 
     // ---- Тест звука ------------------------------------------------------------------------

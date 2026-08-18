@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-test
 locale: es
-category: audio
+category: tests
 tool: sound-test
 title: Test de sonido — probar altavoz izquierdo y derecho en línea
 h1: Test de sonido

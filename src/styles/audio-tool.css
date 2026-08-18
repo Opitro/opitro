@@ -891,3 +891,26 @@
   .audio-tool .st-side.is-on .st-w2{animation:none}}
 @media(max-width:600px){.audio-tool .st-side{padding:16px 8px;font-size:13px}}
 
+/* Тест микрофона. Поле волны, строка состояния и место плеера стоят всегда -- пустыми до
+   начала, поэтому при включении микрофона страница не прыгает. */
+.audio-tool .mt-wave{height:110px;background:var(--surface);border:1px solid var(--line);
+  border-radius:12px;overflow:hidden}
+.audio-tool .mt-wave canvas{width:100%;height:100%;display:block}
+.audio-tool .mt-state{min-height:20px;margin:8px 0 4px;text-align:center;font-size:14px;color:var(--text);opacity:.8}
+/* Ряд устройств и плеер занимают своё место с самого начала, пустыми: их содержимое
+   появляется только после разрешения на микрофон, и без запаса страница дёргалась бы. */
+.audio-tool .mt-devices{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
+  min-height:32px;margin-bottom:6px}
+.audio-tool .mt-dev{padding:7px 13px;border-radius:999px;border:1px solid var(--line);
+  background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;cursor:pointer;
+  max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.audio-tool .mt-dev.is-on{border-color:var(--accent);color:var(--accent)}
+.audio-tool .mt-row{display:flex;gap:10px;justify-content:center;flex-wrap:wrap}
+.audio-tool .mt-play{height:62px;padding-top:12px;display:flex;justify-content:center;visibility:hidden}
+/* Круглая и крупная, как кнопка прослушивания в рингтоне: это главное действие после записи. */
+.audio-tool .mt-play .tp-btn{width:52px;height:52px;border-radius:50%;
+  background:linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.03));border-color:rgba(255,255,255,.16);
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 5px rgba(0,0,0,.45)}
+.audio-tool .mt-play .tp-btn .ico{width:22px;height:22px}
+.audio-tool .mt-play.is-on{visibility:visible}
+
