@@ -101,18 +101,55 @@ const t = {
     }
     accordion.hidden = true;
     results.hidden = false;
-    const matches = index.filter((item) => item.title.toLowerCase().includes(q)).slice(0, 20);
+    // Ищем и по названию, и по разделу: человек пишет «видео» и ждёт увидеть всё звуковое
+    // из видео, а не только то, где это слово стоит в заголовке.
+    const попал = (item) =>
+      item.title.toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q);
+    // Сначала те, у кого совпадение в НАЧАЛЕ названия: «моно» должно давать «Моно в стерео»
+    // первым, а не где-то в середине списка.
+    const matches = index
+      .filter(попал)
+      .sort((a, b) => {
+        const ai = a.title.toLowerCase().indexOf(q), bi = b.title.toLowerCase().indexOf(q);
+        return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.title.localeCompare(b.title);
+      })
+      .slice(0, 12);
+    // Подсвечиваем совпавшую часть -- глаз сразу видит, ПОЧЕМУ строка здесь.
+    const экран = (t) => t.replace(/[&<>"]/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;' }[c]));
+    const подсветить = (t) => {
+      const i = t.toLowerCase().indexOf(q);
+      if (i < 0) return экран(t);
+      return экран(t.slice(0, i)) + '<mark>' + экран(t.slice(i, i + q.length)) + '</mark>' + экран(t.slice(i + q.length));
+    };
     results.innerHTML = matches.length
       ? matches
           .map(
-            (item) =>
-              `<a class="sr-link" href="${item.href}"><span class="sr-title">${item.title}</span><span class="sr-cat">${item.category}</span></a>`
+            (item, n) =>
+              `<a class="sr-link${n === 0 ? ' is-cur' : ''}" href="${item.href}"><span class="sr-title">${подсветить(item.title)}</span><span class="sr-cat">${экран(item.category)}</span></a>`
           )
           .join('')
       : `<div class="sr-empty">${noResultsText}</div>`;
   }
 
   input.addEventListener('input', () => render(input.value));
+
+  // Стрелки и Enter: искать и уходить на страницу, не снимая рук с клавиатуры. Первая строка
+  // отмечена сразу, поэтому Enter без стрелок открывает самое подходящее.
+  input.addEventListener('keydown', (e) => {
+    const строки = [...results.querySelectorAll('.sr-link')];
+    if (!строки.length) return;
+    const тек = строки.findIndex((a) => a.classList.contains('is-cur'));
+    if (e.key === 'ArrowDown' || e.key === 'ArrowUp') {
+      e.preventDefault();
+      const шаг = e.key === 'ArrowDown' ? 1 : -1;
+      const след = (tек => (tек + шаг + строки.length) % строки.length)(тек < 0 ? 0 : тек);
+      строки.forEach((a, i) => a.classList.toggle('is-cur', i === след));
+      строки[след].scrollIntoView({ block: 'nearest' });
+    } else if (e.key === 'Enter') {
+      const цель = строки[тек < 0 ? 0 : тек];
+      if (цель) { e.preventDefault(); window.location.href = цель.getAttribute('href'); }
+    }
+  });
 </script>
 
 <style>
@@ -125,11 +162,26 @@ const t = {
   #tool-search:focus{outline:none;border-color:rgba(74,222,158,.5)}
   #tool-search::-webkit-search-cancel-button{filter:invert(.6)}
   .search-results{display:flex;flex-direction:column;gap:6px;margin-top:10px;text-align:left}
-  .sr-link{display:flex;align-items:center;justify-content:space-between;gap:10px;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;text-decoration:none;transition:border-color .15s,background .15s}
-  .sr-link:hover{border-color:var(--accent);background:rgba(74,222,158,.05)}
-  .sr-title{font-size:13.5px;color:var(--text);font-weight:600}
-  .sr-cat{font-size:11px;color:var(--muted)}
-  .sr-empty{color:var(--muted);font-size:13px;text-align:center;padding:14px 0}
+  /* ВАЖНО: :global. Astro привязывает стили к элементам ШАБЛОНА, помечая их особым признаком.
+     Строки результатов создаёт код -- признака у них нет, и обычное правило до них не доходит:
+     ссылки оставались синими по умолчанию браузера. Замер показал color: rgb(0,0,238).
+     Цвет ссылке задан ЯВНО. Без него браузер подставляет свой -- тёмно-синий для непосещённых
+     и лиловый для посещённых, -- и список выглядел чужеродным. Подсветку касания тоже гасим:
+     на телефоне она давала синюю вспышку на всю строку. */
+  .search-results{max-height:min(60vh,420px);overflow-y:auto;padding-right:2px}
+  :global(.sr-link){display:flex;align-items:center;justify-content:space-between;gap:12px;
+    background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;
+    text-decoration:none;color:var(--text);-webkit-tap-highlight-color:transparent;
+    transition:border-color .15s,background .15s}
+  :global(.sr-link:hover),:global(.sr-link.is-cur){border-color:rgba(74,222,158,.55);background:rgba(74,222,158,.06)}
+  :global(.sr-link:active){background:rgba(74,222,158,.12)}
+  :global(.sr-title){font-size:13.5px;color:var(--text);font-weight:600;min-width:0}
+  /* Совпавшая часть -- зелёным по прозрачному, без жёлтой заливки браузера. */
+  :global(.sr-title mark){background:transparent;color:var(--accent);font-weight:700}
+  /* Раздел -- тихой плашкой справа: он подсказывает, но не спорит с названием. */
+  :global(.sr-cat){font-size:11px;color:var(--muted);background:var(--surface-2);border-radius:20px;
+    padding:3px 9px;white-space:nowrap;flex:0 0 auto}
+  :global(.sr-empty){color:var(--muted);font-size:13px;text-align:center;padding:14px 0}
   .accordion{display:flex;flex-direction:column;gap:10px;margin-top:8px}
   .acc-item{background:var(--surface);border:1px solid var(--line);border-radius:14px;overflow:hidden}
   .acc-item summary{list-style:none;cursor:pointer;padding:16px 18px;display:flex;align-items:center;justify-content:space-between;font-weight:600;font-size:15px}
