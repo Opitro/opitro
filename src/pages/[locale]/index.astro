@@ -25,10 +25,23 @@ const toolsByCategory = Object.fromEntries(
   ])
 );
 
+// Скрытые ключи для поиска: помимо названия в меню -- заголовок страницы, её title,
+// английский адрес И то же самое на остальных языках. Человек набирает «fade», «плавное
+// появление» или «fundido» -- и попадает на одну и ту же страницу. В самом списке это не
+// показывается, только участвует в поиске.
+const всеПереводы = [...allTools, ...allMedia];
+function ключиДля(t) {
+  const свои = всеПереводы.filter((x) => x.data.toolSlug === t.data.toolSlug);
+  const слова = свои.flatMap((x) => [x.data.navName, x.data.h1, x.data.title]);
+  слова.push(t.data.toolSlug.replace(/-/g, ' '));
+  return слова.filter(Boolean).join(' ').toLowerCase();
+}
+
 const searchIndex = categories.flatMap((c) => {
   const items = toolsByCategory[c.data.catSlug].map((t) => ({
     title: t.data.navName || t.data.h1,
     category: c.data.name,
+    ключи: ключиДля(t),
     href: `/${locale}/${t.data.toolSlug}`,
   }));
   // The category page itself may double as a working calculator (see tools/[category].astro) --
@@ -104,12 +117,18 @@ const t = {
     // Ищем и по названию, и по разделу: человек пишет «видео» и ждёт увидеть всё звуковое
     // из видео, а не только то, где это слово стоит в заголовке.
     const попал = (item) =>
-      item.title.toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q);
+      item.title.toLowerCase().includes(q) || (item.category || '').toLowerCase().includes(q)
+      || (item.ключи || '').includes(q);
     // Сначала те, у кого совпадение в НАЧАЛЕ названия: «моно» должно давать «Моно в стерео»
     // первым, а не где-то в середине списка.
     const matches = index
       .filter(попал)
       .sort((a, b) => {
+        // Совпало в видимом названии -- выше того, что нашлось только по скрытым ключам:
+        // иначе на «звук» первым лезет страница, где это слово спрятано в описании.
+        const va = a.title.toLowerCase().includes(q) ? 0 : 1;
+        const vb = b.title.toLowerCase().includes(q) ? 0 : 1;
+        if (va !== vb) return va - vb;
         const ai = a.title.toLowerCase().indexOf(q), bi = b.title.toLowerCase().indexOf(q);
         return (ai < 0 ? 99 : ai) - (bi < 0 ? 99 : bi) || a.title.localeCompare(b.title);
       })
