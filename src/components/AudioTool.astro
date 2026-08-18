@@ -759,7 +759,17 @@ const ICO = {
     {isMicTest && (
       <div class="mt">
         <div class="mt-wave"><canvas id="mt-canvas"></canvas></div>
-        <div class="mt-state" id="mt-state">{labels.micTestIdleLabel}</div>
+        {/* Прибор: шкала громкости в децибелах, максимум числом и одно из четырёх состояний.
+            Порядок и названия состояний -- по утверждённому ТЗ. */}
+        <div class="mt-meter">
+          <div class="mt-meter-head">
+            <span>{labels.micLevelLabel}</span>
+            <span class="mt-peak"><span class="mt-peak-name">{labels.micPeakLabel}</span> <b id="mt-peak">—</b></span>
+          </div>
+          <div class="mt-bar"><i class="mt-bar-fill" id="mt-bar"></i></div>
+          <div class="mt-scale"><span>−60 dB</span><span>0 dB</span></div>
+        </div>
+        <div class="mt-state" id="mt-state"><i class="mt-dot" id="mt-dot"></i><span id="mt-state-text">{labels.micTestIdleLabel}</span></div>
         {/* Одно главное действие на экран -- у него наибольший контраст и значок микрофона,
             чтобы кнопку было видно с первого взгляда. Запись рядом -- второстепенная, контуром.
             Когда микрофон включён, роли меняются местами: главным становится «записать». */}
@@ -773,9 +783,11 @@ const ICO = {
             <span>{labels.micTestRecLabel}</span>
           </button>
         </div>
+        <div class="mt-hint">{labels.micSayLabel}</div>
         {/* Выбор микрофона -- уточнение, а не первое действие: стоит после кнопок, ближе к
             месту, где его вспоминают («слышу не то»). Место держится всегда. */}
         <div class="mt-devices" id="mt-devices"></div>
+        <div class="mt-privacy">🔒 {labels.micPrivacyLabel}</div>
         <div class="mt-play" id="mt-play">
           <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
             <svg class="ico" id="mt-listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1993,7 +2005,6 @@ const ICO = {
     if (config.controls === 'mic-test') {
       panel.classList.add('on');
       const холст = root.querySelector('#mt-canvas');
-      const строка = root.querySelector('#mt-state');
       const рядУстройств = root.querySelector('#mt-devices');
       const кнСтарт = root.querySelector('#mt-start');
       const подписьСтарт = root.querySelector('#mt-start-label');
@@ -2008,7 +2019,16 @@ const ICO = {
       const местоПлеера = root.querySelector('#mt-play');
       const плеер = root.querySelector('#mt-audio');
       let поток = null, ctx = null, анализ = null, живая = null, кадр = 0, буферКадра = null;
-      let выбранное = '', писатель = null, куски = [], таймерЗаписи = 0, последнийЗвук = 0;
+      let выбранное = '', писатель = null, куски = [], таймерЗаписи = 0;
+      let показ = -60, максДб = -100, времяМакс = 0, окно = [], текущееСост = '';
+      const полоса = root.querySelector('#mt-bar');
+      const числоМакс = root.querySelector('#mt-peak');
+      const точка = root.querySelector('#mt-dot');
+      const подписьСост = root.querySelector('#mt-state-text');
+
+      // Децибелы: 0 dB -- предел, дальше идёт срез. Тишина в цифрах -- минус бесконечность,
+      // поэтому ниже -60 просто считаем, что сигнала нет.
+      const вДб = (x) => (x > 0.000001 ? 20 * Math.log10(x) : -100);
 
       function рисовать() {
         анализ.getFloatTimeDomainData(буферКадра);
@@ -2016,15 +2036,44 @@ const ICO = {
         let пик = 0;
         for (let i = 0; i < буферКадра.length; i++) { const a = Math.abs(буферКадра[i]); if (a > пик) пик = a; }
         живая.push(Math.min(1, пик * 2));
-        // Порог низкий: шёпот и дыхание -- это уже «слышу». Но подпись держится ещё полторы
-        // секунды после последнего звука: между слогами микрофон честно отдаёт ноль, и без
-        // задержки строка мигала бы «слышу / тишина» на каждой паузе в речи.
-        if (пик > 0.02) последнийЗвук = performance.now();
-        if (!писатель) {
-          строка.textContent = performance.now() - последнийЗвук < 1500
-            ? labels.micTestHearLabel : labels.micTestSilentLabel;
-        }
+
+        const дб = вДб(пик);
+        // Полоса падает плавно: мгновенная стрелка мельтешит и по ней ничего не прочитать.
+        показ = Math.max(дб, показ - 0.9);
+        полоса.style.width = Math.max(0, Math.min(100, ((показ + 60) / 60) * 100)) + '%';
+
+        // Максимум держим полторы секунды, потом отпускаем -- так делают настоящие приборы.
+        const сейчас = performance.now();
+        if (дб > максДб || сейчас - времяМакс > 1500) { максДб = дб; времяМакс = сейчас; }
+        // Выше нуля показывать нечего: это уже срез. Так и говорим -- ровно 0.0 dB.
+        числоМакс.textContent = максДб > -60 ? Math.min(0, максДб).toFixed(1) + ' dB' : '—';
+
+        // Состояние -- по громкому за последние две секунды, а не по текущему кадру: иначе
+        // на каждой паузе между словами прибор говорил бы «нет сигнала».
+        окно.push({ t: сейчас, дб });
+        while (окно.length && сейчас - окно[0].t > 2000) окно.shift();
+        let лучший = -100;
+        for (const з of окно) if (з.дб > лучший) лучший = з.дб;
+        let состояние = 'none';
+        if (лучший > -6) состояние = 'loud';
+        else if (лучший > -30) состояние = 'good';
+        else if (лучший > -60) состояние = 'low';
+        if (!писатель) поставитьСостояние(состояние);
         кадр = requestAnimationFrame(рисовать);
+      }
+
+      // Четыре состояния и только они: без сигнала, тихо, хорошо, громко.
+      const СОСТОЯНИЯ = {
+        none: labels.micStateNoneLabel,
+        low: labels.micStateLowLabel,
+        good: labels.micStateGoodLabel,
+        loud: labels.micStateLoudLabel,
+      };
+      function поставитьСостояние(имя) {
+        if (текущееСост === имя) return;
+        текущееСост = имя;
+        точка.className = 'mt-dot is-' + имя;
+        подписьСост.textContent = СОСТОЯНИЯ[имя] || имя;
       }
 
       async function устройства() {
@@ -2051,15 +2100,20 @@ const ICO = {
         if (ctx) { try { ctx.close(); } catch (e) {} ctx = null; }
         openAudioSession();   // вернуть разряд воспроизведения, иначе на iPhone звук уйдёт в разговорный динамик
         подписьСтарт.textContent = labels.micTestStartLabel;
-        значокСтарт.innerHTML = MIC_ICONS_КЛИЕНТ.mic;
         корпус.classList.remove('is-live');
         кнЗапись.disabled = true;
-        строка.textContent = labels.micTestIdleLabel;
+        показ = -60; максДб = -100; окно = []; текущееСост = '';
+        полоса.style.width = '0%';
+        числоМакс.textContent = '—';
+        точка.className = 'mt-dot';
+        подписьСост.textContent = labels.micTestIdleLabel;
       }
 
       async function пуск() {
         if (поток) { cancelAnimationFrame(кадр); поток.getTracks().forEach((t) => t.stop()); }
         clearError();
+        подписьСост.textContent = labels.micAskingLabel;
+        точка.className = 'mt-dot';
         openRecordSession();   // до запроса микрофона, иначе на iPhone доступа не дадут
         try {
           поток = await navigator.mediaDevices.getUserMedia({
@@ -2071,7 +2125,13 @@ const ICO = {
           });
         } catch (e) {
           openAudioSession();
-          showError(labels.micDeniedLabel);
+          // Два разных исхода, и человеку они говорят разное: «запретили» лечится настройками
+          // браузера, «не найден» -- проводом. Кнопка в обоих случаях зовёт попробовать снова.
+          const нет = e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError');
+          подписьСост.textContent = нет ? labels.micNotFoundLabel : labels.micDeniedLabel;
+          точка.className = 'mt-dot is-loud';
+          подписьСтарт.textContent = labels.micRetryLabel;
+          поток = null;
           return;
         }
         window.dispatchEvent(new Event('opitro:tool-interaction'));
@@ -2093,7 +2153,6 @@ const ICO = {
         cancelAnimationFrame(кадр);
         кадр = requestAnimationFrame(рисовать);
         подписьСтарт.textContent = labels.micTestStopLabel;
-        значокСтарт.innerHTML = MIC_ICONS_КЛИЕНТ.stop;
         корпус.classList.add('is-live');
         кнЗапись.disabled = false;
         устройства();
@@ -2110,6 +2169,7 @@ const ICO = {
           писатель = null;
           кнЗапись.disabled = false;
           кнЗапись.classList.remove('is-busy');
+          текущееСост = '';   // подпись занял «идёт запись» -- вернуть измерение на следующем кадре
           const blob = new Blob(куски, { type: 'audio/webm' });
           if (плеер.src) URL.revokeObjectURL(плеер.src);
           плеер.src = URL.createObjectURL(blob);
@@ -2118,7 +2178,7 @@ const ICO = {
         писатель.start();
         кнЗапись.disabled = true;
         кнЗапись.classList.add('is-busy');
-        строка.textContent = labels.micTestRecordingLabel;
+        подписьСост.textContent = labels.micTestRecordingLabel;
         таймерЗаписи = setTimeout(() => { if (писатель) писатель.stop(); }, 5000);
       });
 
