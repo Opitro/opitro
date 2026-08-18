@@ -1566,6 +1566,14 @@ export const AUDIO_TOOLS = {
       return out;
     },
   },
+  // ТЕСТ ЗВУКА. Ничего не грузим и не считаем: браузер сам умеет направить тон в нужный
+  // канал. Человек нажимает «левый», «оба» или «правый» и слышит, откуда идёт звук, --
+  // так проверяются наушники и колонки: подключены ли и не перепутаны ли местами.
+  'sound-test': {
+    engine: 'tone',
+    controls: 'sound-test',
+  },
+
   'white-noise': {
     // A player first: a short seamless loop plays on repeat for as long as you like, so listening
     // for eight hours costs the same few megabytes as listening for one minute. Downloading a

@@ -866,3 +866,29 @@
 .audio-tool .rt-listen .tp-btn .ico{width:22px;height:22px}
 .audio-tool .rt-listen-hint{font-size:13.5px;color:var(--text);opacity:.85}
 
+/* Тест звука: три крупные кнопки в ряд, каждая со своим динамиком. Звучащая подсвечивается,
+   чтобы человек видел, какую сторону слушает прямо сейчас. */
+.audio-tool .st-test{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px}
+.audio-tool .st-side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;
+  gap:10px;padding:26px 12px;background:var(--surface);border:1px solid var(--line);
+  border-radius:14px;color:var(--text);font-family:inherit;font-size:14px;font-weight:600;
+  cursor:pointer;-webkit-tap-highlight-color:transparent;
+  box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .15s,background .15s}
+.audio-tool .st-side:hover{border-color:rgba(255,255,255,.3)}
+.audio-tool .st-side.is-on{border-color:var(--accent);background:rgba(74,222,158,.08);color:var(--accent)}
+.audio-tool .st-side-ico{display:block;line-height:0;opacity:.85}
+/* Динамик -- единственное, что есть на кнопке, поэтому он крупный: его видно с расстояния
+   вытянутой руки, когда телефон лежит на столе, а вы слушаете в наушниках. */
+.audio-tool .st-side-ico svg{width:auto;height:64px;display:block}
+@media(max-width:600px){.audio-tool .st-side-ico svg{height:48px}}
+.audio-tool .st-side.is-on .st-side-ico{opacity:1}
+/* Пока играет -- волны у динамика вспыхивают по очереди: сначала ближняя, потом дальняя.
+   Это видно краем глаза и подтверждает, что звук идёт именно из этой кнопки. Стоит только
+   на звучащей кнопке, в покое значок неподвижен. */
+.audio-tool .st-side.is-on .st-w1{animation:st-волна 1s ease-in-out infinite}
+.audio-tool .st-side.is-on .st-w2{animation:st-волна 1s ease-in-out .3s infinite}
+@keyframes st-волна{0%,70%,100%{opacity:.18}25%{opacity:1}}
+@media(prefers-reduced-motion:reduce){.audio-tool .st-side.is-on .st-w1,
+  .audio-tool .st-side.is-on .st-w2{animation:none}}
+@media(max-width:600px){.audio-tool .st-side{padding:16px 8px;font-size:13px}}
+

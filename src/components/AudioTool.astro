@@ -24,6 +24,17 @@ const isGenerator = controls === 'generator';
 // Noise has no input file at all: no drop zone, no file chip, nothing to swap -- and no waveform,
 // because what plays is a short loop repeating, not a track with a position in it.
 const isNoise = controls === 'noise';
+// Тест звука тоже без файла: звук рождается прямо здесь, грузить нечего -- значит ни поля
+// для файла, ни волны, ни строки с названием файла на этой странице быть не должно.
+const isSoundTest = controls === 'sound-test';
+// Значки для теста звука: те же динамики, что на «моно в стерео», -- один слева, два
+// посередине, один справа. Рисуются здесь, потому что страница не берёт их из настройки.
+const SOUND_TEST_ICONS = {
+  left: '<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><g transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path class="st-w1" d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="st-w2" d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+  both: '<svg viewBox="0 0 52 24" width="60" height="30" fill="currentColor"><g transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path class="st-w1" d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="st-w2" d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><g transform="translate(28 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path class="st-w1" d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="st-w2" d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
+  right: '<svg viewBox="0 0 24 24" width="30" height="30" fill="currentColor"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path class="st-w1" d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path class="st-w2" d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></svg>',
+};
+
 // The dictaphone has no file to drop either -- its input is the microphone. Everything after the
 // recording exists (waveform, info strip, export bar) is identical to a loaded file, so it reuses
 // the same path rather than growing a parallel one.
@@ -33,7 +44,7 @@ const isRecorder = controls === 'recorder';
 // the first render (see the client script), instead of never existing at all.
 // Batch mode (multiple files at once) has a file list instead -- a single preview bar/waveform
 // doesn't map cleanly onto "several files queued for conversion".
-const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise;
+const showWaveform = !config.allowBatch && !config.noWaveform && !isNoise && !isSoundTest;
 // Trimming is a capability, not a kind of tool: the recorder wants the handles too, so it asks
 // for them by config instead of being added to a growing list of control names here.
 const showTrimHandles = controls === 'trim' || controls === 'ringtone-targets' || !!config.trimSelection;
@@ -52,7 +63,7 @@ const targetNames = isRingtoneTargets ? labels.targetNames || {} : {};
 // больше нет: микс считается сам при загрузке файлов и пересчитывается при каждом движении
 // ползунка громкости, а пуск/пауза/стоп живут в обычном ряду управления под волной.
 const needsRenderAction = isGenerator || (controls === 'multi-file' && !config.perFileVolume);
-const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
+const showListenBtn = !isFfmpeg && !isRingtoneTargets && !config.report && !isSoundTest && ((!config.downloadFormats && !config.splitFormats) || needsRenderAction);
 // Формат и действие в один ряд -- то же правило, что у остальных инструментов (див. .deck ниже).
 // Инструменты на ffmpeg с выпадающим списком до сих пор рисовали формат отдельной строкой во всю
 // ширину, а кнопку -- следующей строкой под ней, с подписью "СОХРАНИТЬ КАК" над списком. Обе эти
@@ -88,7 +99,7 @@ const ICO = {
 <style is:inline set:html={playerCss + css}></style>
 
 <div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
-  {!isGenerator && !isNoise && !isRecorder && (
+  {!isGenerator && !isNoise && !isRecorder && !isSoundTest && (
     <>
       <div class="drop" id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
@@ -124,7 +135,7 @@ const ICO = {
       для нескольких инструментов и живёт выше по разметке. */}
   <div class={config.presetCards ? "panel has-presets" : "panel"} id="audio-panel">
     {(controls === 'multi-file' || config.allowBatch) && <div class="filelist" id="audio-filelist"></div>}
-    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
+    {controls !== 'multi-file' && controls !== 'generator' && !isNoise && !isSoundTest && !config.allowBatch && !config.compactPreview && <div class="fileinfo" id="audio-fileinfo"></div>}
 
     {showWaveform && config.simplePreview && (
       <div class="wave-shell simple-preview" id="wave-shell">
@@ -732,6 +743,22 @@ const ICO = {
 
     {/* Noise: play is the primary action and starts instantly, because what people come here for
         is to listen -- for hours, usually. Downloading a file is secondary and lives below. */}
+    {/* Тест звука: три кнопки-динамика. Подписи не нужны -- динамик слева и динамик справа
+        понятны без слов, а на четырёх языках надписи ещё и разной длины. Название остаётся
+        в aria-label: для чтения с экрана и для всплывающей подсказки. */}
+    {controls === 'sound-test' && (
+      <div class="st-test">
+        {[
+          { к: 'left', подпись: labels.channelLeftLabel },
+          { к: 'both', подпись: labels.bothChannelsLabel },
+          { к: 'right', подпись: labels.channelRightLabel },
+        ].map((в) => (
+          <button type="button" class="st-side" data-side={в.к} aria-label={в.подпись} title={в.подпись}>
+            <span class="st-side-ico" set:html={SOUND_TEST_ICONS[в.к]} />
+          </button>
+        ))}
+      </div>
+    )}
     {controls === 'noise' && (
       <>
         <div class="noise-stage">
@@ -1912,6 +1939,68 @@ const ICO = {
             + (report.hint ? `<div class="an-hint">${escapeHtml(report.hint)}</div>` : '');
         });
       };
+    }
+
+    // ---- Тест звука ------------------------------------------------------------------------
+    // Короткая фраза из шести нот, отрывисто: нота -- пауза -- нота. Так и слышно лучше (в паузе
+    // ухо отдыхает и легче понять, с какой стороны пришёл звук), и не раздражает. Играет ОДИН
+    // раз и сама замолкает -- зациклённый звук в наушниках быстро надоедает и его забывают
+    // выключить. Нужно ещё -- нажмите кнопку снова.
+    if (config.controls === 'sound-test') {
+      panel.classList.add('on');   // грузить нечего -- показываем кнопки сразу
+      let тctx = null, идёт = null;
+      const кнопки = [...root.querySelectorAll('.st-side')];
+      // До-мажорная фраза. Ноты в герцах -- просто числа, которые приятно звучат вместе.
+      const МЕЛОДИЯ = [523.25, 659.25, 783.99, 1046.5, 783.99, 659.25];
+      const НОТА = 0.2;    // сколько звучит
+      const ПАУЗА = 0.16;  // и сколько тишины после неё
+
+      function стоп() {
+        if (идёт) {
+          clearTimeout(идёт.таймер);
+          try { идёт.выход.gain.setTargetAtTime(0, тctx.currentTime, 0.02); } catch (e) {}
+          const у = идёт.выход;
+          setTimeout(() => { try { у.disconnect(); } catch (e) {} }, 300);
+          идёт = null;
+        }
+        кнопки.forEach((b) => b.classList.remove('is-on'));
+      }
+
+      кнопки.forEach((кн) => {
+        кн.addEventListener('click', () => {
+          window.dispatchEvent(new Event('opitro:tool-interaction'));
+          const шёл = кн.classList.contains('is-on');
+          стоп();
+          if (шёл) return;   // нажали на звучащую -- просто выключаем
+          if (!тctx) тctx = new (window.AudioContext || window.webkitAudioContext)();
+          if (тctx.state !== 'running') { try { const r = тctx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
+          // Разводка по каналам: -1 -- только левый, 1 -- только правый, 0 -- оба.
+          const выход = тctx.createGain();
+          if (тctx.createStereoPanner) {
+            const пан = тctx.createStereoPanner();
+            пан.pan.value = кн.dataset.side === 'left' ? -1 : кн.dataset.side === 'right' ? 1 : 0;
+            выход.connect(пан); пан.connect(тctx.destination);
+          } else {
+            выход.connect(тctx.destination);
+          }
+          const t0 = тctx.currentTime + 0.03;
+          МЕЛОДИЯ.forEach((гц, i) => {
+            const t = t0 + i * (НОТА + ПАУЗА);
+            const osc = тctx.createOscillator();
+            osc.type = 'triangle';   // мягче синуса, но не резкий
+            osc.frequency.value = гц;
+            const g = тctx.createGain();
+            g.gain.setValueAtTime(0, t);
+            g.gain.linearRampToValueAtTime(0.22, t + 0.02);                 // мягкое начало
+            g.gain.exponentialRampToValueAtTime(0.001, t + НОТА);           // и спад, без щелчка
+            osc.connect(g); g.connect(выход);
+            osc.start(t); osc.stop(t + НОТА + 0.02);
+          });
+          const всего = (МЕЛОДИЯ.length * (НОТА + ПАУЗА) + 0.1) * 1000;
+          идёт = { выход, таймер: setTimeout(стоп, всего) };
+          кн.classList.add('is-on');
+        });
+      });
     }
 
     // ---- Tempo -----------------------------------------------------------------------------
