@@ -2663,6 +2663,7 @@ const ICO = {
     function onDrag(e) {
       if (!dragging) return;
       const cx = e.touches ? e.touches[0].clientX : e.clientX;
+      жестСдвиг = Math.max(жестСдвиг, Math.abs(cx - жестX));
       const t = px2t(cx);
       const maxLen = maxSelLen();
       if (dragging === 'move') {
@@ -2686,16 +2687,43 @@ const ICO = {
       invalidateRender();
     }
     function endDrag() {
+      const былоТягой = dragging;
       dragging = null;
+      // Тап внутри выделения: ставим звук на это место. Играло до тапа -- играет дальше
+      // отсюда же; стояло -- остаётся стоять, только бегунок переезжает. Это то же правило,
+      // что и у заготовок: сами ничего не запускаем и ничего не обрываем.
+      if (былоТягой === 'move' && жестСдвиг < 6 && Date.now() - жестT < 500 && dur > 0) {
+        const t = Math.max(selStart, Math.min(selEnd, px2t(жестX)));
+        waveSeekPos = t;
+        setPlayheadTime(t);
+        if (эл && эл.src) {
+          const внутри = config.controls === 'ringtone-targets' ? t - selStart : t;
+          try { эл.currentTime = Math.max(0, Math.min((эл.duration || 0) - 0.05, внутри)); } catch (e) {}
+          if (игралоДоЖеста) {
+            const о = эл.play();
+            if (о && о.catch) о.catch(() => {});
+            if (listenSelIco) listenSelIco.innerHTML = ICO_PAUSE;
+            if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
+          }
+        }
+      }
       document.removeEventListener('mousemove', onDrag);
       document.removeEventListener('touchmove', onDrag);
       document.removeEventListener('mouseup', endDrag);
       document.removeEventListener('touchend', endDrag);
     }
+    // Тап по выделению -- это перемотка, а не перенос. Отличаем по тому, сдвинулся ли палец:
+    // не сдвинулся и отпустил быстро -- значит хотел перемотать, а не тащить. Одно другому не
+    // мешает: тащат медленно и с движением (владелец 18.08.2026).
+    let жестX = 0, жестT = 0, жестСдвиг = 0, игралоДоЖеста = false;
     function startDrag(which) {
       return (e) => {
         e.preventDefault();
         dragging = which;
+        жестX = e.touches ? e.touches[0].clientX : e.clientX;
+        жестT = Date.now();
+        жестСдвиг = 0;
+        игралоДоЖеста = !!(эл && эл.src && !эл.paused);
         // Тянем границу -- прослушивание обрывается. Значок обязан вернуться в «плей»:
         // иначе кнопка показывает паузу при полной тишине (владелец 18.08.2026).
         if (config.elementPlayback) {
