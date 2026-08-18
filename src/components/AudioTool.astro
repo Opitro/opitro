@@ -3736,7 +3736,14 @@ function элПлеер() {
         exportedClean = false;
         eqSyncState();
         if (!sourceBuffer || !toolIsDirty()) return;
-        if (abSelected !== 'result') { selectAbSide('result'); return; }
+        // Переключаем сторону и ИДЁМ ДАЛЬШЕ. Раньше здесь стоял выход -- и на первом нажатии
+        // заготовки работа обрывалась, не дойдя до передачи звука проигрывателю: звук вставал,
+        // кнопка гасла. Таких выходов было ТРИ, я правил по одному и каждый раз видел прежнее.
+        if (abSelected !== 'result') {
+          abSelected = 'result';
+          if (abOriginalBtn) abOriginalBtn.classList.remove('active');
+          if (abResultBtn) { abResultBtn.disabled = false; abResultBtn.classList.add('active'); }
+        }
         if (!(await ensureAbResult())) return;
         const buf = currentAbBuffer();
         if (buf) playAB('result', buf, posFrac * buf.duration);
@@ -3787,16 +3794,34 @@ function элПлеер() {
         // Capture the position BEFORE stopping -- stopAB() resets it to zero, which is why
         // switching effects used to jump back to the start of the track instead of carrying on
         // from where you were listening.
-        const resumeAt = resumePosition();
+        // Место берём у ТОГО, кто играет. На обычном проигрывателе движок молчит, и
+        // resumePosition() всегда отдавал бы ноль -- поэтому спрашиваем сам проигрыватель.
+        const игралоЭл = !!(эл && эл.src && !эл.paused);
+        const resumeAt = игралоЭл ? эл.currentTime : resumePosition();
+        if (config.elementPlayback) {
+          продолжитьПослеПересчёта = игралоЭл ? resumeAt : null;
+          местоДоПересчёта = эл && эл.src ? эл.currentTime : null;
+        }
         stopAB();
         renderedBuffer = null;      // cached render belongs to the previous effect/intensity
         exportedClean = false;
         eqSyncState();
         if (!sourceBuffer) return;
-        if (abSelected !== 'result') { selectAbSide('result'); return; }
+        // Переключаем сторону и ИДЁМ ДАЛЬШЕ. Раньше здесь стоял выход -- и на первом нажатии
+        // заготовки работа обрывалась, не дойдя до передачи звука проигрывателю: звук вставал,
+        // кнопка гасла. Таких выходов было ТРИ, я правил по одному и каждый раз видел прежнее.
+        if (abSelected !== 'result') {
+          abSelected = 'result';
+          if (abOriginalBtn) abOriginalBtn.classList.remove('active');
+          if (abResultBtn) { abResultBtn.disabled = false; abResultBtn.classList.add('active'); }
+        }
         if (!(await ensureAbResult())) return;
         const buf = currentAbBuffer();
-        if (buf) playAB('result', buf, resumeAt);
+        if (!buf) return;
+        // Новый эффект -- НОВЫЙ звук проигрывателю. Без этой передачи у него внутри оставался
+        // прежний, и заготовка обрывала прослушивание.
+        if (config.elementPlayback) { отдатьВПроигрыватель(buf); return; }
+        playAB('result', buf, resumeAt);
       }
       voiceFxEl.querySelectorAll('.preset-card').forEach((card) => {
         card.addEventListener('click', () => {
@@ -3850,7 +3875,14 @@ function элПлеер() {
         clearTimeout(pitchTimer);
         pitchTimer = window.setTimeout(async () => {
           if (!sourceBuffer || !toolIsDirty()) return;
-          if (abSelected !== 'result') { selectAbSide('result'); return; }
+          // Переключаем сторону и ИДЁМ ДАЛЬШЕ. Раньше здесь стоял выход -- и на первом нажатии
+        // заготовки работа обрывалась, не дойдя до передачи звука проигрывателю: звук вставал,
+        // кнопка гасла. Таких выходов было ТРИ, я правил по одному и каждый раз видел прежнее.
+        if (abSelected !== 'result') {
+          abSelected = 'result';
+          if (abOriginalBtn) abOriginalBtn.classList.remove('active');
+          if (abResultBtn) { abResultBtn.disabled = false; abResultBtn.classList.add('active'); }
+        }
           if (!(await ensureAbResult())) return;
           const buf = currentAbBuffer();
           if (buf) playAB('result', buf, resumeAt);
