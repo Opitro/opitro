@@ -6,12 +6,12 @@ tool: sound-test
 title: Sound Test — Check Left and Right Speakers Online
 h1: Sound test
 navName: Sound test
-description: Test your speakers and headphones in half a minute — a short melody plays in the left channel, the right channel, or both. Online, free, no sign-up.
+description: Test your speakers and headphones in half a minute — a short signal plays in the left channel, the right channel, or both. Online, free, no sign-up.
 faq:
   - question: How do I test headphones for left and right channels?
-    answer: Put both earpieces on and press "Left". The melody should come from the left ear only. Then press "Right" — right ear only. If the sides are swapped, the headphones are on backwards or the cable is wired the other way. Silence on one side means that channel is dead.
-  - question: What is the melody that plays?
-    answer: "A short six-note phrase, played in bursts: note — pause — note. It plays once and stops by itself; press again if you want to hear it a second time. A steady, continuous beep is worse for testing — it gets tiring fast and the ear stops noticing it, while a melody with gaps registers even when you are half listening."
+    answer: Put both earpieces on and press "Left". The sound should come from the left ear only. Then press "Right" — right ear only. If the sides are swapped, the headphones are on backwards or the cable is wired the other way. Silence on one side means that channel is dead.
+  - question: What is the sound that plays?
+    answer: "Two short bursts of pink noise — the same even hiss studios use to check a signal path. A steady tone is worse for this in two ways. The ear localises a pure tone poorly: it has no attack and no spectrum to grab onto. And one frequency only tests one part of the driver — a blown tweeter passes a 440 Hz test unnoticed. Noise carries energy across the whole range, so the whole driver sounds and the side is obvious instantly."
   - question: I hear nothing at all — what should I check?
     answer: Start with the volume on the device itself and in the system, which may be muted for the browser specifically. Then check where the sound is being sent — the system often picks the wrong output device after you plug in headphones or an HDMI monitor. Also make sure another tab or app has not taken over the audio.
   - question: Only one channel works — is it the speaker or the file?
@@ -22,7 +22,7 @@ faq:
     answer: Most phones have one speaker, or two placed very close together, so the difference between channels is barely audible. Test stereo with headphones.
 ---
 
-Press a button and a short melody plays — a few notes with pauses between them. **Left** plays in the left channel only, **Right** in the right channel only, **Both** in the two together. It plays once and stops on its own; press again to hear it another time.
+Press a button and you hear two short bursts — "shh-shh". **Left** plays in the left channel only, **Right** in the right channel only, **Both** in the two together. It plays once and stops on its own; press again to hear it another time.
 
 The check takes half a minute and answers the main question straight away: are the speakers fine, or is it the recording?
 

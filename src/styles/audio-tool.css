@@ -884,8 +884,8 @@
 /* Пока играет -- волны у динамика вспыхивают по очереди: сначала ближняя, потом дальняя.
    Это видно краем глаза и подтверждает, что звук идёт именно из этой кнопки. Стоит только
    на звучащей кнопке, в покое значок неподвижен. */
-.audio-tool .st-side.is-on .st-w1{animation:st-волна 1s ease-in-out infinite}
-.audio-tool .st-side.is-on .st-w2{animation:st-волна 1s ease-in-out .3s infinite}
+.audio-tool .st-side.is-on .st-w1{animation:st-волна .36s ease-in-out infinite}
+.audio-tool .st-side.is-on .st-w2{animation:st-волна .36s ease-in-out .09s infinite}
 @keyframes st-волна{0%,70%,100%{opacity:.18}25%{opacity:1}}
 @media(prefers-reduced-motion:reduce){.audio-tool .st-side.is-on .st-w1,
   .audio-tool .st-side.is-on .st-w2{animation:none}}
