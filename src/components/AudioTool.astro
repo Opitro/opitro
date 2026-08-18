@@ -1423,8 +1423,11 @@ const ICO = {
       if (ярлН) ярлН.textContent = fmtTime(selStart);
       if (ярлК) ярлК.textContent = fmtTime(selEnd);
       if (tLen) tLen.textContent = fmtTime(selEnd - selStart);
-      if (inStart) inStart.value = selStart.toFixed(1);
-      if (inEnd) inEnd.value = selEnd.toFixed(1);
+      // Поле, в котором сейчас печатают, НЕ трогаем: иначе после каждой цифры значение
+      // переписывается на округлённое, курсор прыгает в конец, и на телефоне ввести число
+      // просто невозможно -- «графы есть, а не вводится» (владелец 18.08.2026).
+      if (inStart && document.activeElement !== inStart) inStart.value = selStart.toFixed(1);
+      if (inEnd && document.activeElement !== inEnd) inEnd.value = selEnd.toFixed(1);
       // Every selection change -- drag, handle, typed number -- lands here, so this is the one
       // place that has to tell the export button whether there's anything to export yet.
       eqSyncState();
@@ -2693,6 +2696,16 @@ const ICO = {
       return (e) => {
         e.preventDefault();
         dragging = which;
+        // Тянем границу -- прослушивание обрывается. Значок обязан вернуться в «плей»:
+        // иначе кнопка показывает паузу при полной тишине (владелец 18.08.2026).
+        if (config.elementPlayback) {
+          const пл = эл;
+          if (пл && !пл.paused) пл.pause();
+          сброситьВид(false);
+        } else if (player && player.isPlaying && player.isPlaying()) {
+          player.pause();
+        }
+        if (listenSelIco) listenSelIco.innerHTML = ICO_PLAY;
         if (which === 'move') {
           const cx = e.touches ? e.touches[0].clientX : e.clientX;
           moveStartT = px2t(cx);
@@ -2751,7 +2764,33 @@ const ICO = {
           if (пл.src && !пл.paused) { пл.pause(); listenSelIco.innerHTML = ICO_PLAY; return; }
           const от = Math.max(0, selStart);
           const до = selEnd > от + 0.05 ? selEnd : sourceBuffer.duration;
-          if (!пл.src) отдатьВПроигрыватель(sliceBuffer(sourceBuffer, от, до));
+          const влк = root.querySelector('#chk-fadein');
+          const вык = root.querySelector('#chk-fadeout');
+          const рег = root.querySelector('#rt-volume');
+          // Метка настроек: пока она та же, звук в проигрывателе годится. Изменилось хоть
+          // что-то -- границы, громкость, галочки появления и затухания -- собираем заново.
+          // Раньше кусок собирался ОДИН раз, поэтому галочки фейдов на слух ничего не меняли,
+          // а после перетаскивания ручек играл прежний отрезок.
+          const метка = [от.toFixed(2), до.toFixed(2), рег ? рег.value : '', влк && влк.checked ? 1 : 0, вык && вык.checked ? 1 : 0].join('|');
+          if (!пл.src || метка !== рингтонМетка) {
+            рингтонМетка = метка;
+            let кусок = sliceBuffer(sourceBuffer, от, до);
+            if ((влк && влк.checked) || (вык && вык.checked)) {
+              кусок = await applyFade(кусок, влк && влк.checked ? 1 : 0, вык && вык.checked ? 2 : 0);
+            }
+            отдатьВПроигрыватель(кусок);
+            // Ждём, пока новый звук будет готов. Просить играть сразу после подмены нельзя:
+            // браузер отменяет такой запрос («play() interrupted by a new load request»), и
+            // первое нажатие оставалось без звука вообще.
+            if (пл.readyState < 2) {
+              await new Promise((готово) => {
+                let разрешено = false;
+                const ок = () => { if (!разрешено) { разрешено = true; готово(); } };
+                пл.addEventListener('loadeddata', ок, { once: true });
+                setTimeout(ок, 1500);   // подстраховка: не зависать, если событие не придёт
+              });
+            }
+          }
           listenSelIco.innerHTML = ICO_PAUSE;
           const о = пл.play();
           if (о && о.catch) о.catch(() => { listenSelIco.innerHTML = ICO_PLAY; });
@@ -3246,7 +3285,7 @@ if (config.controls === 'speed1') {
     let местоДоПересчёта = null;
     // Обычный проигрыватель для страниц без живой обработки. Держим в ОБЩЕЙ области: им
     // пользуются и кнопка «играть», и «стоп», и нажатие по волне -- они в разных блоках.
-    let эл = null, ссылка = null;
+    let эл = null, ссылка = null, рингтонМетка = '';
 function элПлеер() {
       if (!эл) {
         эл = new Audio();
