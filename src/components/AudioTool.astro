@@ -30,7 +30,8 @@ const isSoundTest = controls === 'sound-test';
 // Замер шума живёт на той же разметке, что и тест микрофона: волна, шкала, одна кнопка.
 // Отличия -- в поведении, а не в устройстве страницы.
 const isNoiseTest = controls === 'mic-noise';
-const isMicTest = controls === 'mic-test' || isNoiseTest;
+const isMeter = controls === 'sound-meter';
+const isMicTest = controls === 'mic-test' || isNoiseTest || isMeter;
 // Значки для теста микрофона: микрофон, квадрат остановки и точка записи. Рисуются здесь --
 // значок в главной кнопке нужен, чтобы её узнавали до чтения надписи.
 const MIC_ICONS = {
@@ -764,35 +765,42 @@ const ICO = {
         <div class="mt-wave"><canvas id="mt-canvas"></canvas></div>
         {/* Прибор: шкала громкости в децибелах, максимум числом и одно из четырёх состояний.
             Порядок и названия состояний -- по утверждённому ТЗ. */}
+        {isMeter && (
+          <div class="sm-big">
+            <b id="sm-now">—</b><span class="sm-unit">dB</span>
+            <span class="sm-max">{labels.meterMaxLabel} <b id="sm-max">—</b></span>
+          </div>
+        )}
         <div class="mt-meter">
-          <div class="mt-meter-head">
+          <div class="mt-meter-head" hidden={isMeter}>
             <span>{labels.micLevelLabel}</span>
             <span class="mt-peak"><span class="mt-peak-name">{isNoiseTest ? labels.noiseResultLabel : labels.micPeakLabel}</span> <b id="mt-peak">—</b></span>
           </div>
           <div class="mt-bar"><i class="mt-bar-fill" id="mt-bar"></i></div>
-          <div class="mt-scale"><span>−60 dB</span><span>0 dB</span></div>
+          <div class="mt-scale">{isMeter ? (<><span>30 dB</span><span>100 dB</span></>) : (<><span>−60 dB</span><span>0 dB</span></>)}</div>
         </div>
-        <div class="mt-state" id="mt-state"><span class="mt-dot" id="mt-dot">⚪</span><span id="mt-state-text">{isNoiseTest ? labels.noiseTestIdleLabel : labels.micTestIdleLabel}</span></div>
+        <div class="mt-state" id="mt-state"><span class="mt-dot" id="mt-dot">⚪</span><span id="mt-state-text">{isMeter ? labels.meterIdleLabel : isNoiseTest ? labels.noiseTestIdleLabel : labels.micTestIdleLabel}</span></div>
         {/* Одно главное действие на экран -- у него наибольший контраст и значок микрофона,
             чтобы кнопку было видно с первого взгляда. Запись рядом -- второстепенная, контуром.
             Когда микрофон включён, роли меняются местами: главным становится «записать». */}
-        <div class={isNoiseTest ? 'mt-row is-single' : 'mt-row'}>
+        <div class={isNoiseTest || isMeter ? 'mt-row is-single' : 'mt-row'}>
           <button type="button" class="mt-main" id="mt-start">
             <span class="mt-ico" id="mt-start-ico" set:html={MIC_ICONS.mic} />
-            <span id="mt-start-label">{isNoiseTest ? labels.noiseStartLabel : labels.micTestStartLabel}</span>
+            <span id="mt-start-label">{isMeter ? labels.meterStartLabel : isNoiseTest ? labels.noiseStartLabel : labels.micTestStartLabel}</span>
           </button>
-          {!isNoiseTest && (
+          {!isNoiseTest && !isMeter && (
             <button type="button" class="mt-second" id="mt-rec" disabled>
               <span class="mt-ico" set:html={MIC_ICONS.rec} />
               <span>{labels.micTestRecLabel}</span>
             </button>
           )}
         </div>
-        <div class="mt-hint">{isNoiseTest ? labels.noiseHushHintLabel : labels.micSayLabel}</div>
+        {!isMeter && <div class="mt-hint">{isNoiseTest ? labels.noiseHushHintLabel : labels.micSayLabel}</div>}
         {/* Выбор микрофона -- уточнение, а не первое действие: стоит после кнопок, ближе к
             месту, где его вспоминают («слышу не то»). Место держится всегда. */}
         <div class="mt-devices" id="mt-devices"></div>
         {isNoiseTest && <div class="mt-note">{labels.noiseHonestLabel}</div>}
+        {isMeter && <div class="mt-note">{labels.meterHonestLabel}</div>}
         <div class="mt-privacy">🔒 {labels.micPrivacyLabel}</div>
         <div class="mt-play" id="mt-play">
           <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
@@ -2008,8 +2016,9 @@ const ICO = {
     // Три вещи, и всё: видно, что микрофон слышит; можно выбрать не тот микрофон на другой
     // (частая причина «не работает» -- система взяла камеру вместо гарнитуры); можно записать
     // пять секунд и услышать себя. Ничего не считаем и никуда не отправляем.
-    if (config.controls === 'mic-test' || config.controls === 'mic-noise') {
+    if (config.controls === 'mic-test' || config.controls === 'mic-noise' || config.controls === 'sound-meter') {
       const замерШума = config.controls === 'mic-noise';
+      const шумомер = config.controls === 'sound-meter';
       panel.classList.add('on');
       const холст = root.querySelector('#mt-canvas');
       const рядУстройств = root.querySelector('#mt-devices');
@@ -2028,6 +2037,14 @@ const ICO = {
       let поток = null, ctx = null, анализ = null, живая = null, кадр = 0, буферКадра = null;
       let выбранное = '', писатель = null, куски = [], таймерЗаписи = 0;
       let показ = -60, максДб = -100, времяМакс = 0, окно = [], текущееСост = '';
+      // Шумомер. Браузер отдаёт уровень относительно предела (0 dBFS), а человеку нужна привычная
+      // громкость воздуха. Перевод -- одной поправкой: у обычного микрофона предел приходится
+      // примерно на 100 дБ. Отсюда и честная оговорка ±10 дБ: у конкретного микрофона поправка
+      // своя, и узнать её из браузера нельзя.
+      const ПОПРАВКА = 100;
+      const числоСейчас = root.querySelector('#sm-now');
+      const числоМаксШ = root.querySelector('#sm-max');
+      let сглажСпл = 0, максСпл = 0;
       // Замер шума: копим уровни десять секунд, потом берём типичный -- не самый громкий.
       // Самый громкий испортит один скрип стула, а типичный и есть фон комнаты.
       const ДЛИНА_ЗАМЕРА = 10000;
@@ -2071,7 +2088,31 @@ const ICO = {
         if (лучший > -6) состояние = 'loud';
         else if (лучший > -30) состояние = 'good';
         else if (лучший > -60) состояние = 'low';
-        if (замерШума) {
+        if (шумомер) {
+          // Считаем по среднеквадратичному, а не по пику: ухо слышит энергию, а не отдельный щелчок.
+          let сумма = 0;
+          for (let i = 0; i < буферКадра.length; i++) сумма += буферКадра[i] * буферКадра[i];
+          const скз = Math.sqrt(сумма / буферКадра.length);
+          // Ниже тридцати не показываем: тише в жилой комнате не бывает, а наша оценка на таких
+          // уровнях всё равно ничего не различает -- честнее упереться в край шкалы, чем писать «5».
+          const спл = Math.min(120, Math.max(30, вДб(скз) + ПОПРАВКА));
+          // Стрелка как у приборов: быстро вверх, медленно вниз. Иначе громкий звук проскакивает
+          // незамеченным, а число мельтешит.
+          const скорость = спл > сглажСпл ? 0.5 : 0.08;
+          сглажСпл = сглажСпл ? сглажСпл + (спл - сглажСпл) * скорость : спл;
+          if (сглажСпл > максСпл) { максСпл = сглажСпл; числоМаксШ.textContent = Math.round(максСпл); }
+          числоСейчас.textContent = Math.round(сглажСпл);
+          полоса.style.width = Math.max(0, Math.min(100, ((сглажСпл - 30) / 70) * 100)) + '%';
+          // Сравнение словами: голое число мало кому что говорит.
+          let кружок = '🟢', словами = labels.meterQuietLabel;
+          if (сглажСпл >= 85) { кружок = '🔴'; словами = labels.meterHarmLabel; }
+          else if (сглажСпл >= 75) { кружок = '🔴'; словами = labels.meterLoudLabel; }
+          else if (сглажСпл >= 65) { кружок = '🟡'; словами = labels.meterStreetLabel; }
+          else if (сглажСпл >= 50) { кружок = '🟢'; словами = labels.meterTalkLabel; }
+          else if (сглажСпл >= 35) { кружок = '🟢'; словами = labels.meterRoomLabel; }
+          точка.textContent = кружок;
+          подписьСост.textContent = словами;
+        } else if (замерШума) {
           if (замерДо) {
             уровниЗамера.push(дб);
             const осталось = Math.ceil((замерДо - сейчас) / 1000);
@@ -2147,16 +2188,23 @@ const ICO = {
         показ = -60; максДб = -100; окно = []; текущееСост = '';
         полоса.style.width = '0%';
         числоМакс.textContent = '—';
-        if (!замерШума) {
+        if (шумомер) {
+          точка.textContent = '⚪';
+          подписьСост.textContent = labels.meterIdleLabel;
+          сглажСпл = 0;
+          числоСейчас.textContent = '—';
+        } else if (!замерШума) {
           точка.textContent = '⚪';
           подписьСост.textContent = labels.micTestIdleLabel;
         } else if (итогШума == null) {
           точка.textContent = '⚪';
           подписьСост.textContent = labels.noiseTestIdleLabel;
         }
-        подписьСтарт.textContent = замерШума
-          ? (итогШума == null ? labels.noiseStartLabel : labels.noiseAgainLabel)
-          : labels.micTestStartLabel;
+        подписьСтарт.textContent = шумомер
+          ? labels.meterStartLabel
+          : замерШума
+            ? (итогШума == null ? labels.noiseStartLabel : labels.noiseAgainLabel)
+            : labels.micTestStartLabel;
       }
 
       async function пуск() {
@@ -2204,6 +2252,7 @@ const ICO = {
         кадр = requestAnimationFrame(рисовать);
         подписьСтарт.textContent = labels.micTestStopLabel;
         корпус.classList.add('is-live');
+        if (шумомер) { максСпл = 0; числоМаксШ.textContent = '—'; }
         if (замерШума) {
           уровниЗамера = [];
           замерДо = performance.now() + ДЛИНА_ЗАМЕРА;

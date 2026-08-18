@@ -960,6 +960,8 @@
 .audio-tool .mt-meter{margin:14px 0 10px}
 .audio-tool .mt-meter-head{display:flex;justify-content:space-between;align-items:baseline;
   font-size:13px;color:var(--muted);margin-bottom:6px}
+/* Атрибут hidden сам по себе слабее display:flex -- без этой строки скрытая строка остаётся видимой. */
+.audio-tool .mt-meter-head[hidden]{display:none}
 .audio-tool .mt-peak b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:700;margin-left:4px}
 .audio-tool .mt-bar{height:10px;border-radius:6px;background:var(--surface-2);
   border:1px solid var(--line);overflow:hidden}
@@ -978,4 +980,14 @@
 /* Честная приписка: почему здесь нет децибелов шумомера. Тон тихий -- это сноска, а не заголовок. */
 .audio-tool .mt-note{max-width:60ch;margin:16px auto 0;text-align:center;font-size:12.5px;
   line-height:1.55;color:var(--muted)}
+
+/* Шумомер: главное на экране -- крупное число, всё остальное вокруг него. */
+.audio-tool .sm-big{display:flex;align-items:baseline;justify-content:center;gap:8px;
+  margin:18px 0 6px;flex-wrap:wrap}
+.audio-tool .sm-big > b{font-size:64px;line-height:1;font-weight:700;letter-spacing:-.02em;
+  color:var(--text);font-variant-numeric:tabular-nums}
+.audio-tool .sm-unit{font-size:20px;color:var(--muted);font-weight:600}
+.audio-tool .sm-max{margin-left:14px;font-size:13px;color:var(--muted);white-space:nowrap}
+.audio-tool .sm-max b{color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
+@media(max-width:520px){.audio-tool .sm-big > b{font-size:52px}}
 
