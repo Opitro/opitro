@@ -769,7 +769,7 @@ const ICO = {
           <div class="mt-bar"><i class="mt-bar-fill" id="mt-bar"></i></div>
           <div class="mt-scale"><span>−60 dB</span><span>0 dB</span></div>
         </div>
-        <div class="mt-state" id="mt-state"><i class="mt-dot" id="mt-dot"></i><span id="mt-state-text">{labels.micTestIdleLabel}</span></div>
+        <div class="mt-state" id="mt-state"><span class="mt-dot" id="mt-dot">⚪</span><span id="mt-state-text">{labels.micTestIdleLabel}</span></div>
         {/* Одно главное действие на экран -- у него наибольший контраст и значок микрофона,
             чтобы кнопку было видно с первого взгляда. Запись рядом -- второстепенная, контуром.
             Когда микрофон включён, роли меняются местами: главным становится «записать». */}
@@ -2069,10 +2069,12 @@ const ICO = {
         good: labels.micStateGoodLabel,
         loud: labels.micStateLoudLabel,
       };
+      // Кружки -- обычные смайлики: они яркие и одинаково понятны на любом устройстве.
+      const КРУЖКИ = { none: '⚪', low: '🟡', good: '🟢', loud: '🔴' };
       function поставитьСостояние(имя) {
         if (текущееСост === имя) return;
         текущееСост = имя;
-        точка.className = 'mt-dot is-' + имя;
+        точка.textContent = КРУЖКИ[имя] || '⚪';
         подписьСост.textContent = СОСТОЯНИЯ[имя] || имя;
       }
 
@@ -2105,7 +2107,7 @@ const ICO = {
         показ = -60; максДб = -100; окно = []; текущееСост = '';
         полоса.style.width = '0%';
         числоМакс.textContent = '—';
-        точка.className = 'mt-dot';
+        точка.textContent = '⚪';
         подписьСост.textContent = labels.micTestIdleLabel;
       }
 
@@ -2113,7 +2115,7 @@ const ICO = {
         if (поток) { cancelAnimationFrame(кадр); поток.getTracks().forEach((t) => t.stop()); }
         clearError();
         подписьСост.textContent = labels.micAskingLabel;
-        точка.className = 'mt-dot';
+        точка.textContent = '⚪';
         openRecordSession();   // до запроса микрофона, иначе на iPhone доступа не дадут
         try {
           поток = await navigator.mediaDevices.getUserMedia({
@@ -2129,7 +2131,7 @@ const ICO = {
           // браузера, «не найден» -- проводом. Кнопка в обоих случаях зовёт попробовать снова.
           const нет = e && (e.name === 'NotFoundError' || e.name === 'OverconstrainedError');
           подписьСост.textContent = нет ? labels.micNotFoundLabel : labels.micDeniedLabel;
-          точка.className = 'mt-dot is-loud';
+          точка.textContent = '🔴';
           подписьСтарт.textContent = labels.micRetryLabel;
           поток = null;
           return;
