@@ -3251,7 +3251,14 @@ function элПлеер() {
       if (config.elementPlayback) {
         if (эл && эл.src) {
           if (seekTo != null) { try { эл.currentTime = seekTo; } catch (e) {} }
-          if (эл.paused) { const о = эл.play(); if (о && о.catch) о.catch(() => сброситьВид()); }
+          if (эл.paused) {
+            const о = эл.play();
+            // ...и показать это на кнопке. Раньше здесь звук шёл, а кнопка оставалась в виде
+            // «играть» -- владелец увидел это, запуская заготовки: играет, а кнопка выключена.
+            if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
+            if (waveStopBtn) waveStopBtn.disabled = false;
+            if (о && о.catch) о.catch(() => сброситьВид());
+          }
         }
         return;
       }
