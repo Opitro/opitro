@@ -472,6 +472,10 @@ export const AUDIO_TOOLS = {
   },
 
   voice: {
+    // Обычный проигрыватель: живой обработки нет (voicefx не входит в живые цепочки), эффект
+    // считается один раз. Вместе с переводом приходит и правило «звучало -- продолжаем с того
+    // же места», и переключение «было / стало» без двойного звука.
+    elementPlayback: true,
     renderedAb: true,
     // VOICE EFFECTS, deliberately not "voice conversion". With Web Audio alone (no AI, no
     // server) you cannot convincingly turn one person's voice into another's -- pitch shifting
