@@ -28,6 +28,13 @@ const isNoise = controls === 'noise';
 // для файла, ни волны, ни строки с названием файла на этой странице быть не должно.
 const isSoundTest = controls === 'sound-test';
 const isMicTest = controls === 'mic-test';
+// Значки для теста микрофона: микрофон, квадрат остановки и точка записи. Рисуются здесь --
+// значок в главной кнопке нужен, чтобы её узнавали до чтения надписи.
+const MIC_ICONS = {
+  mic: '<svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2.5" width="6" height="11" rx="3"/><path d="M5.5 11a6.5 6.5 0 0 0 13 0"/><path d="M12 17.5V21"/></svg>',
+  stop: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>',
+  rec: '<svg viewBox="0 0 24 24" width="18" height="18" fill="currentColor"><circle cx="12" cy="12" r="6"/></svg>',
+};
 // Обе проверки живут без файла: ни поля загрузки, ни волны дорожки, ни кнопки «Обработать».
 const безФайла = isSoundTest || isMicTest;
 // Значки для теста звука: те же динамики, что на «моно в стерео», -- один слева, два
@@ -753,11 +760,22 @@ const ICO = {
       <div class="mt">
         <div class="mt-wave"><canvas id="mt-canvas"></canvas></div>
         <div class="mt-state" id="mt-state">{labels.micTestIdleLabel}</div>
-        <div class="mt-devices" id="mt-devices"></div>
+        {/* Одно главное действие на экран -- у него наибольший контраст и значок микрофона,
+            чтобы кнопку было видно с первого взгляда. Запись рядом -- второстепенная, контуром.
+            Когда микрофон включён, роли меняются местами: главным становится «записать». */}
         <div class="mt-row">
-          <button type="button" class="act primary" id="mt-start">{labels.micTestStartLabel}</button>
-          <button type="button" class="act" id="mt-rec" disabled>{labels.micTestRecLabel}</button>
+          <button type="button" class="mt-main" id="mt-start">
+            <span class="mt-ico" id="mt-start-ico" set:html={MIC_ICONS.mic} />
+            <span id="mt-start-label">{labels.micTestStartLabel}</span>
+          </button>
+          <button type="button" class="mt-second" id="mt-rec" disabled>
+            <span class="mt-ico" set:html={MIC_ICONS.rec} />
+            <span>{labels.micTestRecLabel}</span>
+          </button>
         </div>
+        {/* Выбор микрофона -- уточнение, а не первое действие: стоит после кнопок, ближе к
+            месту, где его вспоминают («слышу не то»). Место держится всегда. */}
+        <div class="mt-devices" id="mt-devices"></div>
         <div class="mt-play" id="mt-play">
           <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
             <svg class="ico" id="mt-listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
@@ -1978,6 +1996,14 @@ const ICO = {
       const строка = root.querySelector('#mt-state');
       const рядУстройств = root.querySelector('#mt-devices');
       const кнСтарт = root.querySelector('#mt-start');
+      const подписьСтарт = root.querySelector('#mt-start-label');
+      const значокСтарт = root.querySelector('#mt-start-ico');
+      const корпус = root.querySelector('.mt');
+      // Те же значки, что в разметке: код меняет микрофон на квадрат остановки и обратно.
+      const MIC_ICONS_КЛИЕНТ = {
+        mic: значокСтарт.innerHTML,
+        stop: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>',
+      };
       const кнЗапись = root.querySelector('#mt-rec');
       const местоПлеера = root.querySelector('#mt-play');
       const плеер = root.querySelector('#mt-audio');
@@ -2024,7 +2050,9 @@ const ICO = {
         if (поток) { поток.getTracks().forEach((t) => t.stop()); поток = null; }
         if (ctx) { try { ctx.close(); } catch (e) {} ctx = null; }
         openAudioSession();   // вернуть разряд воспроизведения, иначе на iPhone звук уйдёт в разговорный динамик
-        кнСтарт.textContent = labels.micTestStartLabel;
+        подписьСтарт.textContent = labels.micTestStartLabel;
+        значокСтарт.innerHTML = MIC_ICONS_КЛИЕНТ.mic;
+        корпус.classList.remove('is-live');
         кнЗапись.disabled = true;
         строка.textContent = labels.micTestIdleLabel;
       }
@@ -2064,7 +2092,9 @@ const ICO = {
         живая.start();
         cancelAnimationFrame(кадр);
         кадр = requestAnimationFrame(рисовать);
-        кнСтарт.textContent = labels.micTestStopLabel;
+        подписьСтарт.textContent = labels.micTestStopLabel;
+        значокСтарт.innerHTML = MIC_ICONS_КЛИЕНТ.stop;
+        корпус.classList.add('is-live');
         кнЗапись.disabled = false;
         устройства();
       }
@@ -2079,7 +2109,7 @@ const ICO = {
         писатель.onstop = () => {
           писатель = null;
           кнЗапись.disabled = false;
-          кнЗапись.textContent = labels.micTestRecLabel;
+          кнЗапись.classList.remove('is-busy');
           const blob = new Blob(куски, { type: 'audio/webm' });
           if (плеер.src) URL.revokeObjectURL(плеер.src);
           плеер.src = URL.createObjectURL(blob);
@@ -2087,6 +2117,7 @@ const ICO = {
         };
         писатель.start();
         кнЗапись.disabled = true;
+        кнЗапись.classList.add('is-busy');
         строка.textContent = labels.micTestRecordingLabel;
         таймерЗаписи = setTimeout(() => { if (писатель) писатель.stop(); }, 5000);
       });
