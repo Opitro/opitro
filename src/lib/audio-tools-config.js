@@ -1506,6 +1506,14 @@ export const AUDIO_TOOLS = {
     },
   },
   'vocal-remover': {
+    // Кнопки вместо выпадающего списка. Слово «рекомендуется» в кнопку не влезает, поэтому
+    // выносим его подписью ПОД кнопкой -- владелец 17.08.2026: «где текст, если не влезет,
+    // то рекомендуется прямо под кнопкой напиши».
+    selectAsChips: true,
+    chipHints: [
+      { value: 'keepbass', label: 'vocalKeepBassLabel', hint: 'vocalKeepBassHint' },
+      { value: 'full', label: 'vocalFullLabel', hint: 'vocalFullHint' },
+    ],
     compactPreview: true,
     transport: true,
     renderedAb: true,

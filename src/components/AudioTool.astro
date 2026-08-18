@@ -2987,8 +2987,12 @@ function элПлеер() {
         const вести = () => {
           if (!эл || эл.paused) { кадр = 0; return; }
           if (эл.__до && эл.currentTime >= эл.__до) { эл.pause(); сброситьВид(true); кадр = 0; return; }
-          setPlayheadTime(эл.currentTime);
-          if (transportCurEl) { transportCurEl.textContent = fmtClock(эл.currentTime); transportCurEl.hidden = false; }
+          // Рингтону отдан ВЫРЕЗАННЫЙ кусок, у него свой отсчёт с нуля -- а бегунок ходит по
+          // всей дорожке. Прибавляем начало выделения, иначе бегунок прыгает в начало трека,
+          // хотя звучит середина. Владелец это и увидел.
+          const смещение = config.controls === 'ringtone-targets' ? Math.max(0, selStart) : 0;
+          setPlayheadTime(смещение + эл.currentTime);
+          if (transportCurEl) { transportCurEl.textContent = fmtClock(смещение + эл.currentTime); transportCurEl.hidden = false; }
           кадр = requestAnimationFrame(вести);
         };
         эл.addEventListener('play', () => { cancelAnimationFrame(кадр); кадр = requestAnimationFrame(вести); });
