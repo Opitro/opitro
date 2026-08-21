@@ -195,7 +195,7 @@ const ICO = {
 </div>
 
 <script>
-  import { decodeFile, drawWaveform, createLiveWaveform, createPlayer } from '../lib/web-audio-engine.js';
+  import { decodeFile, drawWaveform, createLiveWaveform, createPlayer, startKeeper } from '../lib/web-audio-engine.js';
   import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks,
     attachSpeakers, speakerCount, toSpeakerText, toSpeakerTimestamped } from '../lib/transcript-format.js';
 
@@ -301,6 +301,7 @@ const ICO = {
     const svgIco = (p, c) => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
     const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
+    startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
     const player = createPlayer();
     // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
     // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница

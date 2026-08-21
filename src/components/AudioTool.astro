@@ -971,7 +971,7 @@ const ICO = {
   import { AUDIO_TOOLS, splitPlan } from '../lib/audio-tools-config.js';
   import { execFFmpeg, downloadBlob as downloadFfmpegBlob, loadFFmpeg, resetFFmpeg } from '../lib/audio-engine.js';
   import {
-    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, openRecordSession, openAudioSession, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
+    decodeFile, drawWaveform, createLiveWaveform, renderEffect, encodeWAV, encodeMP3, downloadBlob, createPlayer, openRecordSession, openAudioSession, startKeeper, sliceBuffer, applyFade, scaleVolume, peakOf, normalizeGain, resampleBuffer,
     makeNoiseLoop, encodeLoopedWAV, encodeLoopedMP3,
     analyzeVocalRange, detectKey, analyzeAudiobook, detectBpm,
   } from '../lib/web-audio-engine.js';
@@ -1072,6 +1072,9 @@ const ICO = {
     let dur = 0;
     let selStart = 0;
     let selEnd = 0;
+    // Держатель тишины для iOS -- с самого открытия страницы: он ловит ПЕРВОЕ касание, а оно
+    // случается задолго до нажатия на «играть». Вне iOS не делает ничего.
+    startKeeper();
     const player = createPlayer();
     // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
     // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница

@@ -16,7 +16,17 @@
 // Разряд для ЗАПИСИ. 'playback' означает «только воспроизведение», и на iPhone он закрывает
 // доступ к микрофону -- диктофон стал писать «нет доступа к микрофону» ровно после того, как
 // я добавил openAudioSession. Для записи нужен 'play-and-record': и слышно, и слышит.
+// Держатель тишины (iOS) и разряды сессии -- одно хозяйство: сессия на странице ОДНА, и её
+// режим общий. Держателю нужен 'playback', микрофону 'play-and-record'. Столкнутся -- либо не
+// дадут микрофон, либо весь звук уйдёт в разговорный динамик. Поэтому держатель умолкает
+// ровно на время записи и возвращается сразу после неё.
+import { startKeeper, pauseKeeper, resumeKeeper } from './ios-keeper.js';
+// Наружу -- чтобы страницы заводили держателя сразу при открытии, не дожидаясь первого звука:
+// поймать надо ПЕРВОЕ касание по странице, а оно случается задолго до нажатия на «играть».
+export { startKeeper } from './ios-keeper.js';
+
 export function openRecordSession() {
+  pauseKeeper();
   try {
     if (navigator.audioSession && navigator.audioSession.type !== 'play-and-record') {
       navigator.audioSession.type = 'play-and-record';
@@ -30,6 +40,8 @@ export function openAudioSession() {
       navigator.audioSession.type = 'playback';
     }
   } catch (e) {}
+  startKeeper();    // первое же касание по странице заведёт тишину
+  resumeKeeper();
 }
 
 export async function decodeFile(file) {
@@ -343,10 +355,13 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
     // Старое предупреждение «сплошная заливка сливается в мутное пятно» относилось к заливке
     // ПО ПИКСЕЛЮ одним плоским цветом. Здесь спасают две вещи: тональный переход по высоте
     // и то, что контур строится по настоящим минимуму и максимуму, а не по среднему.
+    // Заливка ПОЛУПРОЗРАЧНАЯ: под ней проходит центральная ось, и при плотном цвете она
+    // исчезала -- волна теряла тот самый «приборный» вид, ради которого ось и рисуется.
+    // Прозрачность та же, что у столбиков (.62), поэтому обе отрисовки выглядят родными.
     const grad = g.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, '#1f6b4a');
-    grad.addColorStop(0.5, '#3aa771');
-    grad.addColorStop(1, '#1f6b4a');
+    grad.addColorStop(0, 'rgba(31,107,74,.62)');
+    grad.addColorStop(0.5, 'rgba(58,167,113,.62)');
+    grad.addColorStop(1, 'rgba(31,107,74,.62)');
     g.fillStyle = grad;
 
     const n = Math.max(1, Math.floor(W));

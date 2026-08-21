@@ -137,7 +137,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
   import {
     decodeFile, drawWaveform, sliceBuffer, scaleVolume, applyFade,
     peakOf, normalizeGain, wsolaStretchChunked, pitchShiftChunked,
-    encodeWAV, encodeMP3, downloadBlob, createPlayer, openAudioSession,
+    encodeWAV, encodeMP3, downloadBlob, createPlayer, openAudioSession, startKeeper,
   } from '../lib/web-audio-engine.js';
 
   const wrap = document.querySelector('.audio-ed-wrap');
@@ -184,6 +184,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const foSec = () => (live.fadeOut ? fadeLen() : 0);
     const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
+    startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
     const player = createPlayer();
     player.onStuck(() => showError(window.__opitroLabels?.audioStuckLabel || 'Браузер приостановил звук. Нажмите ещё раз.'));
 
