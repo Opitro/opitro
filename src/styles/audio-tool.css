@@ -1048,3 +1048,42 @@
 .audio-tool .drop.is-compact .small{font-size:12px}
 .audio-tool .drop.is-compact .formats{display:none}
 
+/* ---- Первый экран «изменить голос» ------------------------------------------------------- */
+/* Два равных пути: записать или принести файл. Плашки одинаковые -- ни один путь не главнее. */
+.audio-tool .vx-start{display:grid;gap:12px;grid-template-columns:1fr}
+.audio-tool .vx-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;
+  gap:10px;min-height:132px;padding:20px 16px;border-radius:16px;cursor:pointer;
+  background:var(--surface);border:1px solid var(--line);color:var(--text);font-family:inherit;
+  transition:border-color .18s,background .18s,transform .12s;-webkit-tap-highlight-color:transparent}
+.audio-tool .vx-tile:hover{border-color:rgba(255,255,255,.26);transform:translateY(-2px)}
+.audio-tool .vx-tile:active{transform:translateY(0)}
+.audio-tool .vx-ring{display:grid;place-items:center;width:52px;height:52px;border-radius:50%;
+  background:rgba(255,255,255,.05);border:1px solid var(--line);color:var(--text);
+  transition:background .18s,border-color .18s,color .18s,box-shadow .18s}
+.audio-tool .vx-ico{display:flex;line-height:0}
+.audio-tool .vx-name{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
+/* Место под таймер держится всегда: появление отсчёта не должно двигать плашку. */
+.audio-tool .vx-time{min-height:17px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
+/* ИДЁТ ЗАПИСЬ: плашка краснеет, кольцо вокруг микрофона дышит в такт голосу -- масштаб кольца
+   ведёт код по уровню сигнала (--ур), поэтому это не украшение, а показание. */
+.audio-tool .vx-tile.is-rec{background:rgba(217,45,32,.10);border-color:#d92d20;color:#fff}
+.audio-tool .vx-tile.is-rec .vx-ring{background:#d92d20;border-color:#d92d20;color:#fff;
+  transform:scale(calc(1 + var(--ур, 0) * .35));
+  box-shadow:0 0 0 calc(var(--ур, 0) * 14px) rgba(217,45,32,.18),0 0 18px rgba(217,45,32,.5)}
+.audio-tool .vx-tile.is-rec .vx-time{color:#ffb4ae}
+@media(prefers-reduced-motion:reduce){.audio-tool .vx-tile.is-rec .vx-ring{transform:none}}
+.audio-tool .vx-note{margin:14px auto 0;max-width:60ch;text-align:center;font-size:13.5px;
+  line-height:1.55;color:var(--muted)}
+.audio-tool .vx-formats{display:block;margin-top:6px;font-size:12.5px;opacity:.8}
+.audio-tool .drop-hidden{display:none !important}
+
+/* ---- Второй экран: плеер и эффекты -- ОДИН прибор ----------------------------------------- */
+/* Раньше это читалось как два отдельных блока подряд. Теперь общая рамка, а внутри -- полосы,
+   разделённые линиями: дорожка, эффекты, сила. Так выглядит панель прибора, а не список. */
+.audio-tool.voice-tool .panel.on{background:var(--surface);border:1px solid var(--line);
+  border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
+.audio-tool.voice-tool .panel.on > .preset-cards{margin:14px 0 0;padding-top:14px;
+  border-top:1px solid var(--line)}
+.audio-tool.voice-tool .voice-knob{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.audio-tool.voice-tool .preset-desc{margin-top:10px}
+

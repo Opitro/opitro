@@ -606,7 +606,7 @@ export const AUDIO_TOOLS = {
     // направление -- четыре разных способа изменить голос, а не восемь оттенков одного.
     voiceEffects: [
       { key: 'robot', emoji: '🤖', label: 'voiceRobotLabel', desc: 'voiceRobotDesc' },
-      { key: 'deep', emoji: '🐻', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
+      { key: 'deep', emoji: '🔉', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
       { key: 'high', emoji: '🐿', label: 'voiceHighLabel', desc: 'voiceHighDesc' },
       { key: 'monster', emoji: '👹', label: 'voiceMonsterLabel', desc: 'voiceMonsterDesc' },
       { key: 'alien', emoji: '👽', label: 'voiceAlienLabel', desc: 'voiceAlienDesc' },

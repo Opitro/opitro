@@ -115,19 +115,34 @@ const ICO = {
 <div class={controls === 'voicefx' ? 'audio-tool voice-tool' : 'audio-tool'} data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
   {!isGenerator && !isNoise && !isRecorder && !безФайла && (
     <>
-      {/* ЗАПИСЬ -- главное действие страницы, поэтому стоит ПЕРВОЙ: сюда приходят говорить своим
-          голосом, а не приносить файлы. Загрузка файла -- второй путь, плашкой ниже. Место под
-          строку состояния держится всегда, поэтому отсчёт ничего не сдвигает. */}
-      {config.allowMicInput && (
-        <div class="mic-in">
-          <button type="button" class="mt-main mic-in-btn" id="mic-in-btn">
-            <span class="mt-ico" set:html={MIC_ICONS.mic} />
-            <span id="mic-in-label">{labels.micRecordLabel}</span>
-          </button>
-          <div class="mic-in-state" id="mic-in-state"></div>
-        </div>
-      )}
-      <div class={config.allowMicInput ? 'drop is-compact' : 'drop'} id="audio-drop">
+      {/* Первый экран: два равных пути -- записать голос или принести файл. Обе плашки
+          одинаковые по весу и размеру: ни один путь не главнее, человек выбирает свой.
+          Во время записи левая краснеет, а микрофон в ней дышит в такт голосу -- это и есть
+          признак «идёт запись», понятный без слов. */}
+      {config.allowMicInput ? (
+        <>
+          <div class="vx-start">
+            <button type="button" class="vx-tile" id="mic-in-btn">
+              <span class="vx-ring" id="vx-ring"><span class="vx-ico" set:html={MIC_ICONS.mic} /></span>
+              <span class="vx-name" id="mic-in-label">{labels.micRecordLabel}</span>
+              <span class="vx-time" id="mic-in-state"></span>
+            </button>
+            <button type="button" class="vx-tile" id="vx-file-btn">
+              <span class="vx-ring">
+                <span class="vx-ico"><svg viewBox="0 0 24 24" width="24" height="24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg></span>
+              </span>
+              <span class="vx-name">{labels.dropLabel}</span>
+              <span class="vx-time"></span>
+            </button>
+          </div>
+          <div class="vx-note">
+            {labels.vxHintLabel}
+            <span class="vx-formats">{labels.dropFormatsLabel}</span>
+          </div>
+          <div class="drop drop-hidden" id="audio-drop"></div>
+        </>
+      ) : (
+      <div class="drop" id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
         <div class="big">{labels.dropLabel}</div>
         <div class="small">{accept.startsWith('video') ? labels.dropHintVideo : labels.dropHint}</div>
@@ -142,6 +157,7 @@ const ICO = {
             list is the same everywhere and video files work too -- their audio track is used. */}
         {!accept.startsWith('video') && <div class="small formats">{labels.dropFormatsLabel}</div>}
       </div>
+      )}
       {accept.startsWith('video') ? (
         <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file' || config.allowBatch}>
       ) : (
@@ -1002,8 +1018,12 @@ const ICO = {
     const drop = root.querySelector('#audio-drop');
     // Запись и загрузка -- это ПЕРВЫЙ экран. Как только файл есть, обоим тут делать нечего.
     function скрытьЗапись(прятать) {
-      const блок = root.querySelector('.mic-in');
-      if (блок) блок.style.display = прятать ? 'none' : '';
+      // Первый экран целиком: обе плашки и подпись под ними. Как только файл есть, им тут
+      // делать нечего -- дальше человек работает с прибором, а не выбирает путь.
+      ['.mic-in', '.vx-start', '.vx-note'].forEach((имя) => {
+        const блок = root.querySelector(имя);
+        if (блок) блок.style.display = прятать ? 'none' : '';
+      });
     }
     const fileInput = root.querySelector('#audio-file-input');
     const panel = root.querySelector('#audio-panel');
@@ -2054,19 +2074,54 @@ const ICO = {
       let потокЗ = null, писательЗ = null, кускиЗ = [], тикЗ = 0, началоЗ = 0, стопЗ = 0;
 
       function видЗаписи(идёт) {
-        кнЗап.classList.toggle('is-busy', идёт);
+        кнЗап.classList.toggle('is-rec', идёт);
         подпЗап.textContent = идёт ? labels.micRecordStopLabel : labels.micRecordLabel;
       }
       function часы() {
         const с = Math.floor((Date.now() - началоЗ) / 1000);
-        состЗап.textContent = `${labels.micRecordingNowLabel} · ${Math.floor(с / 60)}:${String(с % 60).padStart(2, '0')}`;
+        состЗап.textContent = `${Math.floor(с / 60)}:${String(с % 60).padStart(2, '0')}`;
       }
       function отпустить() {
+        броситьУровень();
         clearInterval(тикЗ); тикЗ = 0;
         clearTimeout(стопЗ); стопЗ = 0;
         if (потокЗ) { потокЗ.getTracks().forEach((t) => t.stop()); потокЗ = null; }
         openAudioSession();   // разряд обратно и держатель тишины на место
         видЗаписи(false);
+      }
+
+      const кнФайл = root.querySelector('#vx-file-btn');
+      if (кнФайл && fileInput) кнФайл.addEventListener('click', () => fileInput.click());
+      // Кольцо вокруг микрофона дышит в такт голосу: это не украшение, а показание уровня.
+      // Уровень идёт в CSS-переменную, поэтому вся отрисовка -- на стороне браузера.
+      let ctxУр = null, анализУр = null, кадрУр = 0, буфУр = null;
+      function вестиУровень(поток) {
+        try {
+          ctxУр = new (window.AudioContext || window.webkitAudioContext)();
+          const разбудить = () => { if (ctxУр && ctxУр.state !== 'running' && ctxУр.state !== 'closed') { try { const r = ctxУр.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} } };
+          разбудить(); setTimeout(разбудить, 300); setTimeout(разбудить, 1200);
+          анализУр = ctxУр.createAnalyser();
+          анализУр.fftSize = 1024;
+          буфУр = new Float32Array(анализУр.fftSize);
+          ctxУр.createMediaStreamSource(поток).connect(анализУр);
+          let сглаж = 0;
+          const шаг = () => {
+            if (!анализУр) { кадрУр = 0; return; }
+            анализУр.getFloatTimeDomainData(буфУр);
+            let пик = 0;
+            for (let i = 0; i < буфУр.length; i++) { const a = Math.abs(буфУр[i]); if (a > пик) пик = a; }
+            сглаж = Math.max(пик, сглаж * 0.86);
+            кнЗап.style.setProperty('--ур', Math.min(1, сглаж * 1.8).toFixed(3));
+            кадрУр = requestAnimationFrame(шаг);
+          };
+          кадрУр = requestAnimationFrame(шаг);
+        } catch (e) {}
+      }
+      function броситьУровень() {
+        cancelAnimationFrame(кадрУр); кадрУр = 0;
+        анализУр = null;
+        if (ctxУр) { try { ctxУр.close(); } catch (e) {} ctxУр = null; }
+        кнЗап.style.setProperty('--ур', '0');
       }
 
       кнЗап.addEventListener('click', async () => {
@@ -2103,6 +2158,7 @@ const ICO = {
         писательЗ.start();
         началоЗ = Date.now();
         видЗаписи(true);
+        вестиУровень(потокЗ);
         часы();
         тикЗ = setInterval(часы, 1000);
         стопЗ = setTimeout(() => { if (писательЗ) { try { писательЗ.stop(); } catch (e) {} } }, ПРЕДЕЛ * 1000);
@@ -4489,7 +4545,9 @@ function элПлеер() {
         const resumeAt = игралоЭл ? эл.currentTime : resumePosition();
         if (config.elementPlayback) {
           // Играло -- продолжаем с того же места; не играло, но нажали плашку -- играем с начала.
-          продолжитьПослеПересчёта = игралоЭл ? resumeAt : (игратьПослеПересчёта ? 0 : null);
+          // Нажал плашку -- слушаем с начала, даже если что-то уже играло: сравнивать эффекты
+          // удобно с одного и того же места, а не с середины (владелец 21.08.2026).
+          продолжитьПослеПересчёта = игратьПослеПересчёта ? 0 : (игралоЭл ? resumeAt : null);
           местоДоПересчёта = эл && эл.src ? эл.currentTime : null;
           игратьПослеПересчёта = false;
         }

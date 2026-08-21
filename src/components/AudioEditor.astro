@@ -172,7 +172,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const live = {
       gain: 1, eq: new Array(10).fill(0),
       comp: { threshold: -24, ratio: 4, release: 0.25 }, compOn: false,
-      fadeIn: 0, fadeOut: 0, fadeInSec: 0, fadeOutSec: 0,
+      fadeIn: 0, fadeOut: 0, fadeInSec: 0, fadeOutSec: 0, fadeInManual: false, fadeOutManual: false,
       // Тональность и скорость -- НАСТРОЙКИ, а не разовые правки. Хранятся числом и каждый
       // раз пересчитываются от baseBuffer, а не поверх уже пересчитанного. Иначе сдвиг
       // накапливается: −3, потом ещё −3 даёт −6, хотя на ползунке стоит −3.
@@ -192,8 +192,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       if (!workBuffer) return 3;
       return Math.max(0.3, Math.min(10, (selEnd - selStart) * workBuffer.duration / 2));
     };
-    const fiSec = () => (live.fadeIn ? Math.min(live.fadeInSec || fadeLen(), пределСпада()) : 0);
-    const foSec = () => (live.fadeOut ? Math.min(live.fadeOutSec || fadeLen(), пределСпада()) : 0);
+    // Пока ползунок не трогали, длина считается САМА от выделения -- и оба спада остаются
+    // одинаковыми, даже если подвинуть ручки. Как только длину задали руками, она держится
+    // ровно такой, какую поставили. Замораживать её в момент включения нельзя: тогда включил
+    // один фейд, подвинул ручки, включил второй -- и они разной длины (поймано проверкой).
+    const fiSec = () => (live.fadeIn ? Math.min(live.fadeInManual ? live.fadeInSec : fadeLen(), пределСпада()) : 0);
+    const foSec = () => (live.fadeOut ? Math.min(live.fadeOutManual ? live.fadeOutSec : fadeLen(), пределСпада()) : 0);
     const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
     startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
@@ -442,6 +446,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       live.comp = { threshold: -24, ratio: 4, release: 0.25 };
       live.compOn = false;
       live.fadeIn = 0; live.fadeOut = 0;
+      live.fadeInManual = false; live.fadeOutManual = false;
+      live.fadeInSec = 0; live.fadeOutSec = 0;
       live.pitch = 0; live.speed = 1;
       selStart = 0; selEnd = 1;
       pausedAt = 0; lastPos = 0;
@@ -847,7 +853,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const toggleFade = (key) => {
         const кнопка = $(key === 'fadeIn' ? 'ed-fadein' : 'ed-fadeout');
         live[key] = live[key] ? 0 : 1;
-        if (!live[key]) { закрытьПоп(); } else { live[key + 'Sec'] = live[key + 'Sec'] || fadeLen(); }
+        if (!live[key]) { закрытьПоп(); } else if (!live[key + 'Manual']) { live[key + 'Sec'] = fadeLen(); }
         if (playing) scheduleFades(lastPos);
         redraw(); renderPanel();
         if (live[key]) показатьПоп(key, $(key === 'fadeIn' ? 'ed-fadein' : 'ed-fadeout') || кнопка);
@@ -861,6 +867,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         ползунок.addEventListener('input', () => {
           const key = поп.dataset.key === 'fadeIn' ? 'fadeIn' : 'fadeOut';
           live[key + 'Sec'] = +ползунок.value;
+          live[key + 'Manual'] = true;   // тронули руками -- дальше держим заданное
           поп.querySelector('.ed-pop-val').textContent = (+ползунок.value).toFixed(1) + ' ' + lbl('secShort', 'с');
           redraw();
           // Слышно СРАЗУ: расписание переписывается от текущего места, без перезапуска.
