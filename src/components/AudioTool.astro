@@ -2273,9 +2273,14 @@ const ICO = {
       if (кнЗапись) кнЗапись.addEventListener('click', () => {
         if (!поток || писатель) return;
         куски = [];
-        писатель = new MediaRecorder(поток);
+        // Формат выбираем заранее и только из тех, что браузер правда умеет. Safari пишет в
+        // mp4 и webm не играет; при этом mimeType у него бывает пустым -- тогда прежний запасной
+        // «audio/webm» подписывал mp4 чужим типом, и воспроизведение отваливалось.
+        const умеет = (t) => { try { return window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t); } catch (e) { return false; } };
+        const желаемый = ['audio/mp4', 'audio/webm'].find(умеет) || '';
+        писатель = желаемый ? new MediaRecorder(поток, { mimeType: желаемый }) : new MediaRecorder(поток);
         писатель.ondataavailable = (e) => { if (e.data && e.data.size) куски.push(e.data); };
-        const типЗаписи = писатель.mimeType || '';
+        const типЗаписи = писатель.mimeType || желаемый;
         писатель.onstop = () => {
           писатель = null;
           clearInterval(счётчик); счётчик = 0;
@@ -2284,7 +2289,7 @@ const ICO = {
           // Тип берём у самого писателя. Раньше здесь было жёсткое «audio/webm»: Chrome такое
           // играет, а Safari нет -- на телефоне кнопка нажималась и ничего не происходило.
           // Телефон пишет в mp4, и с чужой подписью браузер отказывается его читать.
-          const blob = new Blob(куски, { type: типЗаписи || 'audio/webm' });
+          const blob = new Blob(куски, { type: типЗаписи || '' });
           if (плеер.src) URL.revokeObjectURL(плеер.src);
           плеер.src = URL.createObjectURL(blob);
           местоПлеера.classList.add('is-on');
@@ -2315,14 +2320,24 @@ const ICO = {
       const значок = root.querySelector('#mt-listen-ico');
       кнСлушать.addEventListener('click', () => {
         if (!плеер.paused) { плеер.pause(); return; }
-        плеер.currentTime = 0;
+        // Позицию ДО старта не трогаем: на iPhone запись ещё может дочитываться, и перевод
+        // позиции в этот момент обрывает сам запуск. К началу возвращаемся по окончании.
         const о = плеер.play();
-        // Если браузер отказал -- сказать об этом, а не молчать. Немая кнопка выглядит
-        // сломанной, и человек жмёт её снова и снова (владелец так и описал: «не нажимается»).
-        if (о && о.catch) о.catch(() => showError(labels.audioStuckLabel));
+        // Если браузер отказал -- сказать об этом, а не молчать, и назвать его ответ: по нему
+        // видно, отказ это в доступе, в формате или в чём-то ещё.
+        if (о && о.catch) {
+          о.catch((e) => {
+            const код = e && e.name ? ' (' + e.name + ')' : '';
+            showError(labels.audioStuckLabel + код);
+          });
+        }
       });
       плеер.addEventListener('play', () => { значок.innerHTML = ICO_PAUSE_SOLID; кнСлушать.classList.add('is-playing'); });
-      const вернуть = () => { значок.innerHTML = ICO_PLAY; кнСлушать.classList.remove('is-playing'); };
+      const вернуть = () => {
+        значок.innerHTML = ICO_PLAY;
+        кнСлушать.classList.remove('is-playing');
+        try { плеер.currentTime = 0; } catch (e) {}
+      };
       плеер.addEventListener('pause', вернуть);
       плеер.addEventListener('ended', вернуть);
 
