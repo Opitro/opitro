@@ -465,8 +465,21 @@
 .audio-editor{position:relative}
 /* Без плашки: только сама дорожка ползунка и число секунд. Коробка вокруг занимала пол-экрана
    и закрывала собой всё, ради чего её открывали. */
-.audio-editor .ed-pop{position:absolute;z-index:30;display:flex;align-items:center;gap:10px;
-  min-width:190px;padding:0;background:none;border:none;box-shadow:none}
+/* Аккуратная подложка ровно под ползунок: без неё чёрная дорожка ложилась на тёмные кнопки
+   воспроизведения и просто терялась. Не плашка во всю ширину -- только то, что нужно. */
+.audio-editor .ed-pop{position:absolute;z-index:30;display:flex;align-items:center;gap:8px;
+  min-width:176px;padding:6px 10px;border-radius:999px;background:rgba(16,18,22,.94);
+  border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.5)}
+.audio-editor .ed-pop input[type=range]{flex:1;min-width:0;height:26px;background:none;
+  accent-color:var(--accent);margin:0}
+/* Длину задали руками -- цвет меняет САМА ДОРОЖКА, а не всё поле ползунка: заливка на весь
+   элемент давала зелёный прямоугольник поверх кнопок. */
+.audio-editor .ed-pop.is-manual input[type=range]{accent-color:#7ef0b8}
+.audio-editor .ed-pop.is-manual input[type=range]::-webkit-slider-runnable-track{
+  background:rgba(74,222,158,.45);border-radius:999px}
+.audio-editor .ed-pop.is-manual input[type=range]::-moz-range-track{
+  background:rgba(74,222,158,.45);border-radius:999px}
+.audio-editor .ed-pop.is-manual .ed-pop-val{color:var(--accent)}
 .audio-editor .ed-pop input[type=range]{flex:1;min-width:120px}
 .audio-editor .ed-pop-val{font-size:12.5px;font-weight:700;color:var(--accent);
   min-width:48px;text-align:right;font-variant-numeric:tabular-nums;
@@ -510,7 +523,11 @@
 .audio-editor .ed-row-bottom{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
 .audio-editor .ed-row-bottom .ed-panel{flex:1 1 auto;min-width:0}
 .audio-editor .ed-bottom{margin-top:12px;flex-wrap:nowrap;justify-content:flex-end;
-  flex:0 0 auto;width:auto}
+  flex:0 0 auto;width:auto;align-items:stretch}
+/* Обе кнопки одной высоты и по одной линии: раньше выпадающий список и «скачать» брали
+   высоту от своего содержимого и стояли со сдвигом в несколько пикселей. */
+.audio-editor .ed-bottom .ed-fmt,
+.audio-editor .ed-bottom .ed-save{height:44px;align-self:center}
 .audio-editor .ed-bottom .ed-save{flex:0 0 auto}
 /* На узком экране слова не хватает места -- остаётся только значок, но крупнее. */
 @media(max-width:560px){
