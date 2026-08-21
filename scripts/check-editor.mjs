@@ -300,7 +300,11 @@ if (got.length) {
   const peak = (a, z) => { let m = 0; for (let i = a; i < z; i++) { const x = Math.abs(b.readInt16LE(44 + i * ch * 2)); if (x > m) m = x; } return m / 32768; };
   const dur = n / sr;
   ok('скачивается ВЫДЕЛЕННОЕ, а не весь файл', Math.abs(dur - 30) < 2, `${dur.toFixed(1)} с вместо 30`);
-  const edge = Math.floor(n / 20);
+  // Окно замера берём УЖЕ спада (0,4 с при спаде 1,5 с) и у самого края: там оба спада почти
+  // в нуле, и сравнение говорит именно о них. Раньше окно было в полторы секунды -- ровно
+  // длина спада, -- и в него попадало содержимое записи, из-за чего края «расходились» на
+  // ровном месте.
+  const edge = Math.max(1, Math.floor(sr * 0.4));
   const pl = peak(0, edge), pm = peak(Math.floor(n * 0.45), Math.floor(n * 0.55)), pr = peak(n - edge, n);
   ok('фейд попал в файл слева', pl < pm * 0.7, `край ${pl.toFixed(3)} против середины ${pm.toFixed(3)}`);
   ok('фейд попал в файл справа', pr < pm * 0.7, `край ${pr.toFixed(3)} против середины ${pm.toFixed(3)}`);
