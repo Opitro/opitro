@@ -795,6 +795,14 @@ const ICO = {
             </button>
           )}
         </div>
+        {/* Прослушивание стоит СРАЗУ под кнопками: это следующий шаг после записи, и искать
+            его под подсказками и припиской о приватности человеку незачем. */}
+        <div class="mt-play" id="mt-play">
+          <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
+            <svg class="ico" id="mt-listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
+          </button>
+          <audio id="mt-audio"></audio>
+        </div>
         {!isMeter && <div class="mt-hint">{isNoiseTest ? labels.noiseHushHintLabel : labels.micSayLabel}</div>}
         {/* Выбор микрофона -- уточнение, а не первое действие: стоит после кнопок, ближе к
             месту, где его вспоминают («слышу не то»). Место держится всегда. */}
@@ -802,12 +810,6 @@ const ICO = {
         {isNoiseTest && <div class="mt-note">{labels.noiseHonestLabel}</div>}
         {isMeter && <div class="mt-note">{labels.meterHonestLabel}</div>}
         <div class="mt-privacy">🔒 {labels.micPrivacyLabel}</div>
-        <div class="mt-play" id="mt-play">
-          <button type="button" class="tp-btn" id="mt-listen" aria-label={labels.playLabel}>
-            <svg class="ico" id="mt-listen-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
-          </button>
-          <audio id="mt-audio"></audio>
-        </div>
       </div>
     )}
 
@@ -2268,16 +2270,24 @@ const ICO = {
         куски = [];
         писатель = new MediaRecorder(поток);
         писатель.ondataavailable = (e) => { if (e.data && e.data.size) куски.push(e.data); };
+        const типЗаписи = писатель.mimeType || '';
         писатель.onstop = () => {
           писатель = null;
           кнЗапись.disabled = false;
           кнЗапись.classList.remove('is-busy');
           текущееСост = '';   // подпись занял «идёт запись» -- вернуть измерение на следующем кадре
-          const blob = new Blob(куски, { type: 'audio/webm' });
+          // Разряд ВОСПРОИЗВЕДЕНИЯ обратно: пока стоит «запись», iPhone уводит звук в
+          // разговорный динамик, и своя же запись звучит еле слышно.
+          openAudioSession();
+          // Тип берём у самого писателя. Раньше здесь было жёсткое «audio/webm»: Chrome такое
+          // играет, а Safari нет -- на телефоне кнопка нажималась и ничего не происходило.
+          // Телефон пишет в mp4, и с чужой подписью браузер отказывается его читать.
+          const blob = new Blob(куски, { type: типЗаписи || 'audio/webm' });
           if (плеер.src) URL.revokeObjectURL(плеер.src);
           плеер.src = URL.createObjectURL(blob);
           местоПлеера.classList.add('is-on');
         };
+        openRecordSession();   // разряд записи на время съёмки, дальше он вернётся в onstop
         писатель.start();
         кнЗапись.disabled = true;
         кнЗапись.classList.add('is-busy');
