@@ -302,6 +302,29 @@ function softCap(v) {
   return v < 0 ? -out : out;
 }
 
+// ПИКИ СЧИТАЮТСЯ ОДИН РАЗ на файл и ширину. Проход по восьми миллионам отсчётов (три минуты
+// на 44,1 кГц) стоит около 80 мс на компьютере и втрое больше на телефоне; пока он висел на
+// каждой перерисовке, движение ползунка давало длинную задачу и проваливало отклик. Ключ --
+// сами данные канала и число столбцов: сменился файл или ширина холста -- пересчитаем, иначе
+// берём готовое. Хранилище слабое: буфер уходит из памяти вместе со страницей инструмента.
+const кэшПиков = new WeakMap();
+function пикиПоСтолбцам(data, cols) {
+  const было = кэшПиков.get(data);
+  if (было && было.cols === cols) return было;
+  const step = Math.max(1, Math.floor(data.length / cols));
+  const lo = new Float32Array(cols), hi = new Float32Array(cols);
+  for (let c = 0; c < cols; c++) {
+    let min = 1, max = -1;
+    const from = c * step, to = Math.min(data.length, from + step);
+    for (let i = from; i < to; i++) { const d = data[i]; if (d < min) min = d; if (d > max) max = d; }
+    if (max < min) { min = 0; max = 0; }   // пустой хвост рисуем нулём, а не мусором
+    lo[c] = min; hi[c] = max;
+  }
+  const свежее = { cols, lo, hi };
+  кэшПиков.set(data, свежее);
+  return свежее;
+}
+
 export function drawWaveform(canvas, buffer, label, opts = {}) {
   // НЕ `opts.gain || 1`: ноль в JavaScript считается «пусто», и на нулевой громкости
   // подставлялась единица -- звук пропадал, а волна рисовалась как при обычной.
@@ -355,13 +378,10 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
     // Старое предупреждение «сплошная заливка сливается в мутное пятно» относилось к заливке
     // ПО ПИКСЕЛЮ одним плоским цветом. Здесь спасают две вещи: тональный переход по высоте
     // и то, что контур строится по настоящим минимуму и максимуму, а не по среднему.
-    // Заливка ПОЛУПРОЗРАЧНАЯ: под ней проходит центральная ось, и при плотном цвете она
-    // исчезала -- волна теряла тот самый «приборный» вид, ради которого ось и рисуется.
-    // Прозрачность та же, что у столбиков (.62), поэтому обе отрисовки выглядят родными.
     const grad = g.createLinearGradient(0, 0, 0, H);
-    grad.addColorStop(0, 'rgba(31,107,74,.62)');
-    grad.addColorStop(0.5, 'rgba(58,167,113,.62)');
-    grad.addColorStop(1, 'rgba(31,107,74,.62)');
+    grad.addColorStop(0, '#1f6b4a');
+    grad.addColorStop(0.5, '#3aa771');
+    grad.addColorStop(1, '#1f6b4a');
     g.fillStyle = grad;
 
     const n = Math.max(1, Math.floor(W));
@@ -441,16 +461,10 @@ export function drawWaveform(canvas, buffer, label, opts = {}) {
   }
 
   g.fillStyle = 'rgba(74,222,158,.62)';
+  const готовые = пикиПоСтолбцам(data, cols);
   for (let c = 0; c < cols; c++) {
-    let min = 1;
-    let max = -1;
-    const from = c * step;
-    for (let j = 0; j < step; j++) {
-      const d = data[from + j] || 0;
-      if (d < min) min = d;
-      if (d > max) max = d;
-    }
-    if (max < min) { min = 0; max = 0; }
+    let min = готовые.lo[c];
+    let max = готовые.hi[c];
     // Огибающая фейда -- и в СТОЛБИКАХ тоже. Раньше она работала только в сплошном рисунке
     // волны, а страницы со столбиками (плавное появление/затухание) её не получали: зелёные
     // зоны были, а сама волна оставалась ровной. Владелец видел именно это, а я трижды искал

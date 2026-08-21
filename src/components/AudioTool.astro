@@ -1135,6 +1135,7 @@ const ICO = {
         updateSel();
         if (!waveObserver && typeof ResizeObserver !== 'undefined') {
           waveObserver = new ResizeObserver(() => {
+            обновитьГео();
             if (waveDrawBuffer && waveCanvas.getBoundingClientRect().width >= 1) {
               drawWaveform(waveCanvas, waveDrawBuffer, undefined, fadeDrawOpts());
               updateSel();
@@ -2174,14 +2175,18 @@ const ICO = {
         рядУстройств.replaceChildren();
         // Один микрофон -- выбирать не из чего, ряд не показываем.
         if (микрофоны.length < 2) return;
+        // Собираем во фрагменте и вставляем ОДИН раз: пять вставок подряд -- пять поводов
+        // пересчитать раскладку.
+        const пачка = document.createDocumentFragment();
         микрофоны.forEach((у, i) => {
           const b = document.createElement('button');
           b.type = 'button';
           b.className = 'mt-dev' + ((у.deviceId === выбранное || (!выбранное && i === 0)) ? ' is-on' : '');
           b.textContent = у.label || `${labels.micTestDeviceLabel} ${i + 1}`;
           b.addEventListener('click', () => { выбранное = у.deviceId; пуск(); });
-          рядУстройств.appendChild(b);
+          пачка.appendChild(b);
         });
+        рядУстройств.appendChild(пачка);
       }
 
       function стоп() {
@@ -3401,13 +3406,22 @@ const ICO = {
         },
       };
     }
+    // Размеры холста держим готовыми и обновляем только когда они правда меняются. Читать
+    // offsetLeft/clientWidth прямо в обработчике нельзя: чтение сразу после правки разметки
+    // заставляет браузер пересчитать раскладку немедленно, и это ложится в отклик.
+    let гео = null;
+    function обновитьГео() {
+      if (!waveCanvas) { гео = null; return; }
+      гео = { base: waveCanvas.offsetLeft, W: waveCanvas.clientWidth };
+    }
     function updateFadeRegions() {
       const inEl = root.querySelector('#fade-region-in');
       const outEl = root.querySelector('#fade-region-out');
       if (!inEl || !outEl || !waveCanvas) return;
       const { fadeIn, fadeOut } = fadeValues();
-      const base = waveCanvas.offsetLeft;
-      const W = waveCanvas.clientWidth;
+      if (!гео) обновитьГео();
+      const base = гео.base;
+      const W = гео.W;
       if (dur <= 0 || W < 1) { inEl.style.display = 'none'; outEl.style.display = 'none'; return; }
       const inW = Math.min(W, (Math.min(fadeIn, dur) / dur) * W);
       const outW = Math.min(W - inW, (Math.min(fadeOut, dur) / dur) * W);
