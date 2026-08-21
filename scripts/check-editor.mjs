@@ -263,7 +263,8 @@ await sleep(400);
 await dragHandle(0.0, 0.25, 41);
 await dragHandle(1.0, 0.75, 42);
 await sleep(500);
-ok('ручки двигаются', (await q(`document.getElementById('ed-s0').textContent`)) === '00:15.0');
+// Начало выделения читаем с самой ручки: в ряду кнопок теперь стоит ДЛИНА куска, а не границы.
+ok('ручки двигаются', (await q(`document.getElementById('ed-h0').textContent`)) === '00:15.0');
 ok('кнопки «Обрезать» нет', !(await q(`!!document.getElementById('ed-apply-trim')`)));
 await click('ed-fadein');
 await click('ed-fadeout');

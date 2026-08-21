@@ -115,9 +115,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <button type="button" class="ed-btn ed-stop" id="ed-stop" aria-label={labels.stopLabel || 'Стоп'}>
         <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       </button>
-      {/* Границы выделения -- ЗДЕСЬ, рядом с кнопками, а не отдельной плашкой в конце панели:
-          на телефоне она уезжала в самый низ, далеко от дорожки, к которой относится. */}
-      <div class="ed-stamps"><span id="ed-s0">00:00.0</span><i>—</i><span id="ed-s1">00:00.0</span></div>
+      {/* ОДНО число: сколько длится выбранный кусок. Границы и так написаны на самих ручках,
+          а здесь важно другое -- что получится после обрезки (владелец 21.08.2026). */}
+      <div class="ed-stamps" id="ed-len">00:00.0</div>
     </div>
 
     <div class="ed-row-bottom">
@@ -352,6 +352,17 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     // --- живая цепочка ---------------------------------------------------------------------
     // Узлы пересоздаются на каждое воспроизведение, но ссылки держим здесь, чтобы менять
     // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
+    // Таймер автозакрытия ползунка спада живёт ЗДЕСЬ, в общей области. Пока он объявлялся
+    // внутри отрисовки панели, обработчик ползунка (привязывается один раз) сбрасывал таймер
+    // из СТАРОЙ отрисовки, а свежий тикал сам по себе -- окно закрывалось прямо во время
+    // перетаскивания. Владелец: «ему всё равно, что я его тяну».
+    let таймерПопа = 0;
+    const спрятатьПоп = () => { const p = $('ed-fade-pop'); if (p) p.style.display = 'none'; };
+    const закрытьПоп = () => { clearTimeout(таймерПопа); таймерПопа = 0; спрятатьПоп(); };
+    const отложитьЗакрытие = () => {
+      clearTimeout(таймерПопа);
+      таймерПопа = window.setTimeout(спрятатьПоп, 2000);
+    };
     let chainNodes = null, fadeGain = null;
     const peakCache = {};   // огибающая волны: считается один раз, переиспользуется
     // `live` -- строим ли цепочку для ЗВУЧАЩЕГО тракта. При сведении для скачивания
@@ -448,10 +459,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     function syncStamps() {
       if (!workBuffer) return;
-      const a = $('ed-s0'), b = $('ed-s1');
       const н = fmtTime(selStart * workBuffer.duration), к = fmtTime(selEnd * workBuffer.duration);
-      if (a) a.textContent = н;
-      if (b) b.textContent = к;
+      const длина = $('ed-len');
+      if (длина) длина.textContent = fmtTime((selEnd - selStart) * workBuffer.duration);
       // Те же числа -- на самих ручках.
       const рН = $('ed-h0'), рК = $('ed-h1');
       if (рН) рН.textContent = н;
@@ -848,17 +858,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       // Всплывающий ползунок длины спада. Нажал кнопку -- спад включился и тут же появился
       // ползунок; тянешь -- длина меняется и СРАЗУ слышна, если звук идёт. Нажал ту же
       // кнопку ещё раз -- спад снят, ползунок убран (владелец 21.08.2026).
-      let таймерПопа = 0;
-      const закрытьПоп = () => {
-        clearTimeout(таймерПопа); таймерПопа = 0;
-        const p = $('ed-fade-pop'); if (p) p.style.display = 'none';
-      };
-      // Сам прячется через две секунды после последней правки: держать его на экране незачем,
-      // он висит поверх кнопок воспроизведения (владелец 21.08.2026).
-      const отложитьЗакрытие = () => {
-        clearTimeout(таймерПопа);
-        таймерПопа = window.setTimeout(() => { const p = $('ed-fade-pop'); if (p) p.style.display = 'none'; }, 2000);
-      };
+
       const показатьПоп = (key, кнопка) => {
         const поп = $('ed-fade-pop');
         if (!поп || !кнопка) return;
