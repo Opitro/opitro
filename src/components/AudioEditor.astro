@@ -128,6 +128,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     </div>
 
     <div class="ed-panel" id="ed-panel"></div>
+    {/* Ползунок длины спада: всплывает под нажатой кнопкой фейда и исчезает вместе с ним.
+        Лежит в общем поле инструмента, чтобы не вылезать за его края. */}
+    <div class="ed-pop" id="ed-fade-pop" style="display:none">
+      <input type="range" min="0.1" max="3" step="0.1" value="1" aria-label={labels.edFadeLen || 'Длина спада'}>
+      <span class="ed-pop-val">1.0 с</span>
+    </div>
   </div>
 </div>
 
@@ -166,7 +172,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const live = {
       gain: 1, eq: new Array(10).fill(0),
       comp: { threshold: -24, ratio: 4, release: 0.25 }, compOn: false,
-      fadeIn: 0, fadeOut: 0,
+      fadeIn: 0, fadeOut: 0, fadeInSec: 0, fadeOutSec: 0,
       // Тональность и скорость -- НАСТРОЙКИ, а не разовые правки. Хранятся числом и каждый
       // раз пересчитываются от baseBuffer, а не поверх уже пересчитанного. Иначе сдвиг
       // накапливается: −3, потом ещё −3 даёт −6, хотя на ползунке стоит −3.
@@ -180,8 +186,14 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const selSec = (selEnd - selStart) * workBuffer.duration;
       return Math.max(0.2, Math.min(3, selSec / 4));
     };
-    const fiSec = () => (live.fadeIn ? fadeLen() : 0);
-    const foSec = () => (live.fadeOut ? fadeLen() : 0);
+    // Длину можно задать руками ползунком; пока не трогали -- она считается сама от выделения.
+    // Верхний предел -- половина выделения: длиннее спад просто съест весь кусок.
+    const пределСпада = () => {
+      if (!workBuffer) return 3;
+      return Math.max(0.3, Math.min(10, (selEnd - selStart) * workBuffer.duration / 2));
+    };
+    const fiSec = () => (live.fadeIn ? Math.min(live.fadeInSec || fadeLen(), пределСпада()) : 0);
+    const foSec = () => (live.fadeOut ? Math.min(live.fadeOutSec || fadeLen(), пределСпада()) : 0);
     const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
     startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
@@ -805,13 +817,63 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       });
       // Переключатели, а не разовые действия: нажал -- кнопка осталась нажатой, спад
       // нарисовался на волне от ручки обрезки. Нажал ещё раз -- снялся.
+      // Всплывающий ползунок длины спада. Нажал кнопку -- спад включился и тут же появился
+      // ползунок; тянешь -- длина меняется и СРАЗУ слышна, если звук идёт. Нажал ту же
+      // кнопку ещё раз -- спад снят, ползунок убран (владелец 21.08.2026).
+      const закрытьПоп = () => { const p = $('ed-fade-pop'); if (p) p.style.display = 'none'; };
+      const показатьПоп = (key, кнопка) => {
+        const поп = $('ed-fade-pop');
+        if (!поп || !кнопка) return;
+        const ползунок = поп.querySelector('input');
+        const число = поп.querySelector('.ed-pop-val');
+        const предел = пределСпада();
+        const текущая = Math.min(key === 'fadeIn' ? fiSec() : foSec(), предел);
+        ползунок.min = '0.1';
+        ползунок.max = String(Math.round(предел * 10) / 10);
+        ползунок.step = '0.1';
+        ползунок.value = String(Math.round(текущая * 10) / 10);
+        число.textContent = (+ползунок.value).toFixed(1) + ' ' + lbl('secShort', 'с');
+        поп.dataset.key = key;
+        поп.style.display = 'flex';
+        // Ставим под кнопкой, но не даём вылезти за край поля инструмента.
+        const рк = кнопка.getBoundingClientRect();
+        const рп = поп.offsetParent ? поп.offsetParent.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth };
+        const ширина = поп.offsetWidth || 220;
+        let x = рк.left - рп.left + рк.width / 2 - ширина / 2;
+        x = Math.max(6, Math.min(рп.width - ширина - 6, x));
+        поп.style.left = x + 'px';
+        поп.style.top = (рк.bottom - рп.top + 8) + 'px';
+      };
       const toggleFade = (key) => {
+        const кнопка = $(key === 'fadeIn' ? 'ed-fadein' : 'ed-fadeout');
         live[key] = live[key] ? 0 : 1;
+        if (!live[key]) { закрытьПоп(); } else { live[key + 'Sec'] = live[key + 'Sec'] || fadeLen(); }
         if (playing) scheduleFades(lastPos);
         redraw(); renderPanel();
+        if (live[key]) показатьПоп(key, $(key === 'fadeIn' ? 'ed-fadein' : 'ed-fadeout') || кнопка);
       };
       on('ed-fadein', 'click', () => toggleFade('fadeIn'));
       on('ed-fadeout', 'click', () => toggleFade('fadeOut'));
+      const поп = $('ed-fade-pop');
+      if (поп && !поп.dataset.готов) {
+        поп.dataset.готов = '1';
+        const ползунок = поп.querySelector('input');
+        ползунок.addEventListener('input', () => {
+          const key = поп.dataset.key === 'fadeIn' ? 'fadeIn' : 'fadeOut';
+          live[key + 'Sec'] = +ползунок.value;
+          поп.querySelector('.ed-pop-val').textContent = (+ползунок.value).toFixed(1) + ' ' + lbl('secShort', 'с');
+          redraw();
+          // Слышно СРАЗУ: расписание переписывается от текущего места, без перезапуска.
+          if (playing) scheduleFades(lastPos);
+        });
+        // Нажали мимо -- ползунок убираем, но сам спад остаётся включённым.
+        document.addEventListener('pointerdown', (e) => {
+          if (поп.style.display === 'none') return;
+          if (поп.contains(e.target)) return;
+          if (e.target.closest && e.target.closest('#ed-fadein, #ed-fadeout')) return;
+          поп.style.display = 'none';
+        }, true);
+      }
       const fi = $('ed-fadein'), fo = $('ed-fadeout');
       if (fi && live.fadeIn) fi.classList.add('ed-on');
       if (fo && live.fadeOut) fo.classList.add('ed-on');
@@ -915,6 +977,10 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       } else if (drag === 'start') selStart = Math.min(x, selEnd - 0.01);
       else selEnd = Math.max(x, selStart + 0.01);
       redraw();
+      // Спад отсчитывается ОТ РУЧКИ обрезки, значит сдвинули ручку -- сдвинулся и спад.
+      // Без этой строки расписание оставалось от прежних границ, и услышать новый спад можно
+      // было только перезапустив звук. Владелец описал ровно это (21.08.2026).
+      if (playing) scheduleFades(lastPos);
     });
     // Полоса за курсором и часы над ней. Не изобретено здесь заново: ровно тот же приём,
     // что в компактной панели плеера (AudioTool.astro, #wave-guide/#wave-tip) -- включая

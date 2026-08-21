@@ -458,3 +458,15 @@
   .audio-editor .ed-band .hz{min-width:0;overflow:hidden}
   .audio-editor .ed-band{padding:8px 0 6px;min-width:0}
 }
+
+/* Всплывающий ползунок длины спада. Появляется под нажатой кнопкой фейда, живёт внутри поля
+   инструмента (поэтому у .audio-editor position:relative) и не влияет на раскладку -- значит
+   ничего не сдвигает, когда появляется и исчезает. */
+.audio-editor{position:relative}
+.audio-editor .ed-pop{position:absolute;z-index:30;display:flex;align-items:center;gap:10px;
+  min-width:210px;padding:10px 12px;border-radius:12px;background:var(--surface-2);
+  border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.55)}
+.audio-editor .ed-pop input[type=range]{flex:1;min-width:120px}
+.audio-editor .ed-pop-val{font-size:12.5px;font-weight:700;color:var(--accent);
+  min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+
