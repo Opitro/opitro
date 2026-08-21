@@ -120,7 +120,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <div class="ed-stamps"><span id="ed-s0">00:00.0</span><i>—</i><span id="ed-s1">00:00.0</span></div>
     </div>
 
-    <div class="ed-panel" id="ed-panel"></div>
+    <div class="ed-row-bottom">
+      <div class="ed-panel" id="ed-panel"></div>
     {/* Формат и скачивание -- ПОСЛЕДНЕЕ действие, поэтому стоят в самом низу, под всеми
         настройками. Раньше они сидели в одном ряду с кнопкой воспроизведения, то есть
         предлагались раньше, чем человек что-либо настроил. */}
@@ -133,6 +134,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
         <span id="ed-save-label">{labels.downloadLabel || 'Скачать'}</span>
       </button>
+    </div>
     </div>
     {/* Ползунок длины спада: всплывает под нажатой кнопкой фейда и исчезает вместе с ним.
         Лежит в общем поле инструмента, чтобы не вылезать за его края. */}
@@ -268,12 +270,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         <div class="ed-deck" style="margin-top:0">
           <button type="button" class="ed-btn" id="ed-fadein" title="${lbl('edFadeIn', 'Плавное начало')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20C10 20 12 5 20 5L20 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 20C10 20 12 5 20 5"/></svg></button>
           <button type="button" class="ed-btn" id="ed-fadeout" title="${lbl('edFadeOut', 'Плавный конец')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5C12 5 14 20 20 20L4 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 5C12 5 14 20 20 20"/></svg></button>
-          <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
-            <!-- Два куска дорожки остаются и СХОДЯТСЯ навстречу, середина между ними выброшена.
-                 Крупно и без мелких деталей: на кнопке 36 px мелочь всё равно не читается. -->
-            <rect x="1.5" y="6" width="7" height="12" rx="2" fill="currentColor" fill-opacity=".3"/>
-            <rect x="15.5" y="6" width="7" height="12" rx="2" fill="currentColor" fill-opacity=".3"/>
-            <path d="M11.6 8.6 9.6 12l2 3.4M12.4 8.6l2 3.4-2 3.4" opacity=".9"/>
+          <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
+            <!-- Края дорожки остаются -- они сплошные. Середина заштрихована: это то, что уйдёт.
+                 Так видно, ЧТО именно вырезается, без слов. -->
+            <rect x="2" y="5.5" width="6" height="13" rx="1.6" fill="currentColor" stroke="none"/>
+            <rect x="16" y="5.5" width="6" height="13" rx="1.6" fill="currentColor" stroke="none"/>
+            <path d="M9.5 15.6 11.6 8.4M11.9 15.6 14 8.4M14.3 15.6 15.6 11.5" opacity=".5"/>
           </svg></button>
         </div>`,
       equalizer: () => `

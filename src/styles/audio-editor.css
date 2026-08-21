@@ -463,12 +463,15 @@
    инструмента (поэтому у .audio-editor position:relative) и не влияет на раскладку -- значит
    ничего не сдвигает, когда появляется и исчезает. */
 .audio-editor{position:relative}
+/* Без плашки: только сама дорожка ползунка и число секунд. Коробка вокруг занимала пол-экрана
+   и закрывала собой всё, ради чего её открывали. */
 .audio-editor .ed-pop{position:absolute;z-index:30;display:flex;align-items:center;gap:10px;
-  min-width:210px;padding:10px 12px;border-radius:12px;background:var(--surface-2);
-  border:1px solid var(--line);box-shadow:0 10px 26px rgba(0,0,0,.55)}
+  min-width:190px;padding:0;background:none;border:none;box-shadow:none}
 .audio-editor .ed-pop input[type=range]{flex:1;min-width:120px}
 .audio-editor .ed-pop-val{font-size:12.5px;font-weight:700;color:var(--accent);
-  min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
+  min-width:48px;text-align:right;font-variant-numeric:tabular-nums;
+  /* Число висит без подложки, поэтому ему нужна собственная читаемость на волне. */
+  text-shadow:0 1px 3px rgba(0,0,0,.9)}
 
 /* Границы выделения -- компактной строкой прямо в ряду с плей и стоп. Раньше это была
    отдельная плашка в конце панели, и на телефоне она уезжала в самый низ, далеко от дорожки. */
@@ -502,10 +505,18 @@
    действие на этом шаге, и промахнуться по нему пальцем нельзя. */
 /* Прижаты ВПРАВО, по правому краю дорожки, и по ширине -- ровно под свой текст: кнопка во всю
    строку выглядит как главное действие страницы, а это последний шаг, а не единственный. */
-.audio-editor .ed-bottom{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
-  flex-wrap:nowrap;justify-content:flex-end}
+/* Панель инструмента и строка скачивания стоят в ОДНОМ ряду, если помещаются: у обрезки это
+   три кнопки слева и «формат + скачать» справа. Не поместились -- строка уходит вниз сама. */
+.audio-editor .ed-row-bottom{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+.audio-editor .ed-row-bottom .ed-panel{flex:1 1 auto;min-width:0}
+.audio-editor .ed-bottom{margin-top:12px;flex-wrap:nowrap;justify-content:flex-end;
+  flex:0 0 auto;width:auto}
 .audio-editor .ed-bottom .ed-save{flex:0 0 auto}
-@media(max-width:520px){
-  .audio-editor .ed-bottom .ed-save span{display:inline}
+/* На узком экране слова не хватает места -- остаётся только значок, но крупнее. */
+@media(max-width:560px){
+  .audio-editor .ed-bottom .ed-save span{display:none}
+  .audio-editor .ed-bottom .ed-save{padding:0 14px}
+  .audio-editor .ed-bottom .ed-save svg{width:22px;height:22px}
 }
+
 
