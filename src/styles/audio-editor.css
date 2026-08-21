@@ -520,10 +520,16 @@
    строку выглядит как главное действие страницы, а это последний шаг, а не единственный. */
 /* Панель инструмента и строка скачивания стоят в ОДНОМ ряду, если помещаются: у обрезки это
    три кнопки слева и «формат + скачать» справа. Не поместились -- строка уходит вниз сама. */
-.audio-editor .ed-row-bottom{display:flex;align-items:flex-start;gap:12px;flex-wrap:wrap}
+/* Обе группы -- кнопки инструмента слева и «формат + скачать» справа -- стоят по ОДНОЙ
+   средней линии. Линия-разделитель и отступ над ней переехали с самой панели на этот ряд:
+   пока они висели на панели, её содержимое начиналось на 15 px ниже, и скачивание оказывалось
+   выше кнопок. Теперь разделитель общий для обеих групп, и они выравниваются честно. */
+.audio-editor .ed-row-bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
+  margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
+.audio-editor .ed-row-bottom .ed-panel{margin-top:0;padding-top:0;border-top:none}
 .audio-editor .ed-row-bottom .ed-panel{flex:1 1 auto;min-width:0}
-.audio-editor .ed-bottom{margin-top:12px;flex-wrap:nowrap;justify-content:flex-end;
-  flex:0 0 auto;width:auto;align-items:stretch}
+.audio-editor .ed-bottom{margin-top:0;flex-wrap:nowrap;justify-content:flex-end;
+  flex:0 0 auto;width:auto;align-items:center}
 /* Обе кнопки одной высоты и по одной линии: раньше выпадающий список и «скачать» брали
    высоту от своего содержимого и стояли со сдвигом в несколько пикселей. */
 .audio-editor .ed-bottom .ed-fmt,
