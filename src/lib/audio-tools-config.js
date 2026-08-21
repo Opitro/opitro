@@ -271,20 +271,58 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
     }
     return wet;
   } else if (effect === 'phone') {
+    // Телефон -- это не «чуть глуше». Узкая полоса 400-3000 (в трубке нет ни низа, ни верха),
+    // резкий провал под ней и над ней, горб около 1,8 кГц -- он и даёт ту самую «жестянку»,
+    // плюс сильное сжатие: телефонная линия равняет громкость до плоского. Подмешивания нет:
+    // с половиной исходного эффект читался как «почти без изменений» (владелец 21.08.2026).
     wet = await renderGraph(buffer, (oc, src) => {
-      const bp = bandPass(oc, src, 300, 3400);
+      const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 400; hp.Q.value = 0.9;
+      const hp2 = oc.createBiquadFilter(); hp2.type = 'highpass'; hp2.frequency.value = 400; hp2.Q.value = 0.9;
+      const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 3000; lp.Q.value = 0.9;
+      const lp2 = oc.createBiquadFilter(); lp2.type = 'lowpass'; lp2.frequency.value = 3000; lp2.Q.value = 0.9;
+      const горб = oc.createBiquadFilter();
+      горб.type = 'peaking'; горб.frequency.value = 1800; горб.Q.value = 1.6; горб.gain.value = 9;
+      const жм = oc.createDynamicsCompressor();
+      жм.threshold.value = -30; жм.ratio.value = 12; жм.attack.value = 0.004; жм.release.value = 0.12;
+      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(1.2 + amount * 1.2); sh.oversample = '2x';
       const g = oc.createGain(); g.gain.value = 1.5;
-      bp.connect(g);
+      src.connect(hp); hp.connect(hp2); hp2.connect(lp); lp.connect(lp2);
+      lp2.connect(горб); горб.connect(жм); жм.connect(sh); sh.connect(g);
       return g;
     });
+    return wet;
   } else if (effect === 'radio') {
+    // Радио отличается от телефона тем, что там есть ЭФИР: несущий шип на фоне и лёгкая
+    // качка громкости, будто станцию слегка ведёт. Раньше это был просто фильтр с перегрузом,
+    // и на слух он почти не отличался от исходного.
+    const шип = new AudioBuffer({ numberOfChannels: 1, length: buffer.length, sampleRate: sr });
+    const ш = шип.getChannelData(0);
+    let b0 = 0;
+    for (let i = 0; i < ш.length; i++) {
+      const бел = Math.random() * 2 - 1;
+      b0 = 0.94 * b0 + 0.06 * бел;      // шип, а не белый треск
+      ш[i] = b0 * (0.05 + amount * 0.07);
+    }
     wet = await renderGraph(buffer, (oc, src) => {
-      const bp = bandPass(oc, src, 200, 5000);
-      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(1.6); sh.oversample = '2x';
-      const g = oc.createGain(); g.gain.value = 1.3;
-      bp.connect(sh); sh.connect(g);
+      const bp = bandPass(oc, src, 450, 4200);
+      const горб = oc.createBiquadFilter();
+      горб.type = 'peaking'; горб.frequency.value = 2400; горб.Q.value = 1.3; горб.gain.value = 7;
+      const жм = oc.createDynamicsCompressor();
+      жм.threshold.value = -28; жм.ratio.value = 10; жм.attack.value = 0.005; жм.release.value = 0.15;
+      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(2 + amount * 2); sh.oversample = '4x';
+      const g = oc.createGain(); g.gain.value = 1.4;
+      // Качка громкости: станцию слегка «ведёт».
+      const кач = oc.createOscillator(); кач.frequency.value = 0.35;
+      const глуб = oc.createGain(); глуб.gain.value = 0.12;
+      кач.connect(глуб); глуб.connect(g.gain); кач.start();
+      // Эфирный шип поверх голоса.
+      const шумИст = oc.createBufferSource(); шумИст.buffer = шип; шумИст.start();
+      const шумГр = oc.createGain(); шумГр.gain.value = 1;
+      шумИст.connect(шумГр); шумГр.connect(g);
+      bp.connect(горб); горб.connect(жм); жм.connect(sh); sh.connect(g);
       return g;
     });
+    return wet;
   } else if (effect === 'megaphone') {
     wet = await renderGraph(buffer, (oc, src) => {
       const bp = bandPass(oc, src, 500, 4000);
