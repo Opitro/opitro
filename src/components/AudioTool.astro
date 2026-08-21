@@ -791,7 +791,7 @@ const ICO = {
           {!isNoiseTest && !isMeter && (
             <button type="button" class="mt-second" id="mt-rec" disabled>
               <span class="mt-ico" set:html={MIC_ICONS.rec} />
-              <span>{labels.micTestRecLabel}</span>
+              <span id="mt-rec-label">{labels.micTestRecLabel}</span>
             </button>
           )}
         </div>
@@ -2034,10 +2034,13 @@ const ICO = {
         stop: '<svg viewBox="0 0 24 24" width="20" height="20" fill="currentColor"><rect x="6.5" y="6.5" width="11" height="11" rx="2.5"/></svg>',
       };
       const кнЗапись = root.querySelector('#mt-rec');   // на замере шума её нет
+      const подписьЗаписи = root.querySelector('#mt-rec-label');
       const местоПлеера = root.querySelector('#mt-play');
       const плеер = root.querySelector('#mt-audio');
       let поток = null, ctx = null, анализ = null, живая = null, кадр = 0, буферКадра = null;
       let выбранное = '', писатель = null, куски = [], таймерЗаписи = 0;
+      // Обратный отсчёт во время записи: видно, сколько осталось, и не приходится гадать.
+      let счётчик = 0;
       let показ = -60, максДб = -100, времяМакс = 0, окно = [], текущееСост = '';
       // Шумомер. Браузер отдаёт уровень относительно предела (0 dBFS), а человеку нужна привычная
       // громкость воздуха. Перевод -- одной поправкой: у обычного микрофона предел приходится
@@ -2180,6 +2183,7 @@ const ICO = {
 
       function стоп() {
         замерДо = 0;
+        if (счётчик) { clearInterval(счётчик); счётчик = 0; }
         cancelAnimationFrame(кадр); кадр = 0;
         if (живая) { живая.stop(); живая = null; }
         if (поток) { поток.getTracks().forEach((t) => t.stop()); поток = null; }
@@ -2265,6 +2269,7 @@ const ICO = {
 
       кнСтарт.addEventListener('click', () => { поток ? стоп() : пуск(); });
 
+      const ДЛИНА_ЗАПИСИ = 5;
       if (кнЗапись) кнЗапись.addEventListener('click', () => {
         if (!поток || писатель) return;
         куски = [];
@@ -2273,12 +2278,9 @@ const ICO = {
         const типЗаписи = писатель.mimeType || '';
         писатель.onstop = () => {
           писатель = null;
-          кнЗапись.disabled = false;
+          clearInterval(счётчик); счётчик = 0;
           кнЗапись.classList.remove('is-busy');
-          текущееСост = '';   // подпись занял «идёт запись» -- вернуть измерение на следующем кадре
-          // Разряд ВОСПРОИЗВЕДЕНИЯ обратно: пока стоит «запись», iPhone уводит звук в
-          // разговорный динамик, и своя же запись звучит еле слышно.
-          openAudioSession();
+          подписьЗаписи.textContent = labels.micTestRecLabel;
           // Тип берём у самого писателя. Раньше здесь было жёсткое «audio/webm»: Chrome такое
           // играет, а Safari нет -- на телефоне кнопка нажималась и ничего не происходило.
           // Телефон пишет в mp4, и с чужой подписью браузер отказывается его читать.
@@ -2286,13 +2288,25 @@ const ICO = {
           if (плеер.src) URL.revokeObjectURL(плеер.src);
           плеер.src = URL.createObjectURL(blob);
           местоПлеера.classList.add('is-on');
+          // ЗАПИСЬ КОНЧИЛАСЬ -- микрофон выключаем. Так логичнее (человек уже записал, слушать
+          // себя можно и без включённого микрофона), и это же лечит немую кнопку на телефоне:
+          // пока идёт съём, телефон держит звук на разговорном тракте, и своя запись не играет.
+          стоп();
         };
-        openRecordSession();   // разряд записи на время съёмки, дальше он вернётся в onstop
+        openRecordSession();   // разряд записи на время съёмки
         писатель.start();
-        кнЗапись.disabled = true;
+        // Кнопку НЕ выключаем: выключенная тускнеет и выглядит сломанной. Достаточно того,
+        // что повторное нажатие ничего не делает (проверка на «писатель» выше).
         кнЗапись.classList.add('is-busy');
+        let осталось = ДЛИНА_ЗАПИСИ;
+        подписьЗаписи.textContent = labels.micTestRecordingLabel + ' ' + осталось;
         подписьСост.textContent = labels.micTestRecordingLabel;
-        таймерЗаписи = setTimeout(() => { if (писатель) писатель.stop(); }, 5000);
+        clearInterval(счётчик);
+        счётчик = setInterval(() => {
+          осталось -= 1;
+          if (осталось > 0) подписьЗаписи.textContent = labels.micTestRecordingLabel + ' ' + осталось;
+        }, 1000);
+        таймерЗаписи = setTimeout(() => { if (писатель) писатель.stop(); }, ДЛИНА_ЗАПИСИ * 1000);
       });
 
       // Прослушивание записи: одна круглая кнопка, как везде на сайте. Полоса перемотки для
@@ -2300,7 +2314,12 @@ const ICO = {
       const кнСлушать = root.querySelector('#mt-listen');
       const значок = root.querySelector('#mt-listen-ico');
       кнСлушать.addEventListener('click', () => {
-        if (плеер.paused) { плеер.currentTime = 0; плеер.play().catch(() => {}); } else { плеер.pause(); }
+        if (!плеер.paused) { плеер.pause(); return; }
+        плеер.currentTime = 0;
+        const о = плеер.play();
+        // Если браузер отказал -- сказать об этом, а не молчать. Немая кнопка выглядит
+        // сломанной, и человек жмёт её снова и снова (владелец так и описал: «не нажимается»).
+        if (о && о.catch) о.catch(() => showError(labels.audioStuckLabel));
       });
       плеер.addEventListener('play', () => { значок.innerHTML = ICO_PAUSE_SOLID; кнСлушать.classList.add('is-playing'); });
       const вернуть = () => { значок.innerHTML = ICO_PLAY; кнСлушать.classList.remove('is-playing'); };
