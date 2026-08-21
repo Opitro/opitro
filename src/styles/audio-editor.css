@@ -470,3 +470,42 @@
 .audio-editor .ed-pop-val{font-size:12.5px;font-weight:700;color:var(--accent);
   min-width:52px;text-align:right;font-variant-numeric:tabular-nums}
 
+/* Границы выделения -- компактной строкой прямо в ряду с плей и стоп. Раньше это была
+   отдельная плашка в конце панели, и на телефоне она уезжала в самый низ, далеко от дорожки. */
+.audio-editor .ed-deck{flex-wrap:nowrap}
+.audio-editor .ed-deck .ed-deck-right{margin-left:auto;flex-wrap:nowrap}
+.audio-editor .ed-deck .ed-stamps{display:flex;align-items:center;gap:6px;margin-left:8px;flex:0 1 auto;overflow:hidden;
+  padding:0 10px;height:36px;border-radius:9px;background:var(--surface-2);
+  border:1px solid var(--line);font-size:12.5px;color:var(--text);
+  font-variant-numeric:tabular-nums;white-space:nowrap}
+.audio-editor .ed-deck .ed-stamps i{font-style:normal;color:var(--muted);opacity:.7}
+@media(max-width:520px){
+  .audio-editor .ed-deck{gap:6px}
+  .audio-editor .ed-deck .ed-stamps{margin-left:4px;padding:0 7px;font-size:11px;height:34px;gap:3px}
+  /* На узком экране правая часть отдаёт место: скачивание может ужаться, время -- нет,
+     оно должно стоять рядом с дорожкой, ради чего всё и затевалось. */
+  .audio-editor .ed-deck .ed-deck-right{min-width:0}
+  .audio-editor .ed-deck .ed-save span{display:none}
+}
+
+/* Время на самих ручках обрезки: смотришь туда, где палец. Подпись не ловит нажатия,
+   чтобы не мешать тянуть ручку, и прижимается к краю, если упирается в границу дорожки. */
+/* Подпись висит ВНУТРИ дорожки, у нижнего края: над дорожкой её срезал бы край поля
+   (у .ed-wave стоит overflow:hidden ради скруглённых углов). */
+.audio-editor .ed-handle b{position:absolute;bottom:6px;padding:2px 6px;border-radius:6px;
+  font-size:11px;font-weight:700;background:rgba(12,14,18,.92);border:1px solid var(--line);
+  color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
+.audio-editor .ed-handle-l b{left:9px}
+.audio-editor .ed-handle-r b{right:9px}
+
+/* Нижняя строка: формат и скачивание. Кнопка занимает всю оставшуюся ширину -- это главное
+   действие на этом шаге, и промахнуться по нему пальцем нельзя. */
+/* Прижаты ВПРАВО, по правому краю дорожки, и по ширине -- ровно под свой текст: кнопка во всю
+   строку выглядит как главное действие страницы, а это последний шаг, а не единственный. */
+.audio-editor .ed-bottom{margin-top:14px;padding-top:14px;border-top:1px solid var(--line);
+  flex-wrap:nowrap;justify-content:flex-end}
+.audio-editor .ed-bottom .ed-save{flex:0 0 auto}
+@media(max-width:520px){
+  .audio-editor .ed-bottom .ed-save span{display:inline}
+}
+

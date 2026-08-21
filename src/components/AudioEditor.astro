@@ -98,15 +98,15 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <canvas id="ed-canvas"></canvas>
       <div class="ed-sel" id="ed-sel">
         <svg class="ed-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8L22 12L18 16"/><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
-        <div class="ed-handle ed-handle-l"><span></span></div>
-        <div class="ed-handle ed-handle-r"><span></span></div>
+        {/* Время прямо на ручке: смотришь туда, где палец, а не вниз на строку. */}
+        <div class="ed-handle ed-handle-l"><span></span><b id="ed-h0">00:00.0</b></div>
+        <div class="ed-handle ed-handle-r"><span></span><b id="ed-h1">00:00.0</b></div>
       </div>
       <div class="ed-playhead" id="ed-playhead" style="display:none"></div>
       <div class="ed-busy" id="ed-busy"><i></i></div>
       <div class="ed-guide" id="ed-guide"></div>
       <div class="ed-tip" id="ed-tip"></div>
     </div>
-    <div class="ed-times"><span id="ed-t0">00:00.0</span><span id="ed-t1">00:00.0</span></div>
 
     <div class="ed-deck">
       <button type="button" class="ed-btn ed-play" id="ed-play" aria-label={labels.playLabel || 'Воспроизвести'}>
@@ -115,19 +115,25 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <button type="button" class="ed-btn ed-stop" id="ed-stop" aria-label={labels.stopLabel || 'Стоп'}>
         <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       </button>
-      <div class="ed-deck-right">
-        <select class="ed-fmt" id="ed-fmt">
-          <option value="wav">wav</option>
-          <option value="mp3" selected>mp3</option>
-        </select>
-        <button type="button" class="ed-save" id="ed-save">
-          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
-          <span id="ed-save-label">{labels.downloadLabel || 'Скачать'}</span>
-        </button>
-      </div>
+      {/* Границы выделения -- ЗДЕСЬ, рядом с кнопками, а не отдельной плашкой в конце панели:
+          на телефоне она уезжала в самый низ, далеко от дорожки, к которой относится. */}
+      <div class="ed-stamps"><span id="ed-s0">00:00.0</span><i>—</i><span id="ed-s1">00:00.0</span></div>
     </div>
 
     <div class="ed-panel" id="ed-panel"></div>
+    {/* Формат и скачивание -- ПОСЛЕДНЕЕ действие, поэтому стоят в самом низу, под всеми
+        настройками. Раньше они сидели в одном ряду с кнопкой воспроизведения, то есть
+        предлагались раньше, чем человек что-либо настроил. */}
+    <div class="ed-deck ed-bottom">
+      <select class="ed-fmt" id="ed-fmt">
+        <option value="wav">wav</option>
+        <option value="mp3" selected>mp3</option>
+      </select>
+      <button type="button" class="ed-save" id="ed-save">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
+        <span id="ed-save-label">{labels.downloadLabel || 'Скачать'}</span>
+      </button>
+    </div>
     {/* Ползунок длины спада: всплывает под нажатой кнопкой фейда и исчезает вместе с ним.
         Лежит в общем поле инструмента, чтобы не вылезать за его края. */}
     <div class="ed-pop" id="ed-fade-pop" style="display:none">
@@ -262,8 +268,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         <div class="ed-deck" style="margin-top:0">
           <button type="button" class="ed-btn" id="ed-fadein" title="${lbl('edFadeIn', 'Плавное начало')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20C10 20 12 5 20 5L20 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 20C10 20 12 5 20 5"/></svg></button>
           <button type="button" class="ed-btn" id="ed-fadeout" title="${lbl('edFadeOut', 'Плавный конец')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5C12 5 14 20 20 20L4 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 5C12 5 14 20 20 20"/></svg></button>
-          <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M12 4v16" opacity=".4"/><path d="M3 12h6M21 12h-6"/><path d="M6.5 9l2.5 3-2.5 3M17.5 9L15 12l2.5 3"/></svg></button>
-          <div class="ed-stamps"><span id="ed-s0">00:00.0</span><span>—</span><span id="ed-s1">00:00.0</span></div>
+          <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round">
+            <!-- Два куска дорожки остаются и СХОДЯТСЯ навстречу, середина между ними выброшена.
+                 Крупно и без мелких деталей: на кнопке 36 px мелочь всё равно не читается. -->
+            <rect x="1.5" y="6" width="7" height="12" rx="2" fill="currentColor" fill-opacity=".3"/>
+            <rect x="15.5" y="6" width="7" height="12" rx="2" fill="currentColor" fill-opacity=".3"/>
+            <path d="M11.6 8.6 9.6 12l2 3.4M12.4 8.6l2 3.4-2 3.4" opacity=".9"/>
+          </svg></button>
         </div>`,
       equalizer: () => `
         <div class="ed-chips" id="ed-eq-presets">
@@ -393,8 +404,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       });
       dimOutside();
       placeSelection();
-      $('ed-t0').textContent = '00:00.0';
-      $('ed-t1').textContent = fmtTime(workBuffer.duration);
+      // Строки времени под дорожкой больше нет: время висит на самих ручках и в ряду кнопок.
+      const т0 = $('ed-t0'); if (т0) т0.textContent = '00:00.0';
+      const т1 = $('ed-t1'); if (т1) т1.textContent = fmtTime(workBuffer.duration);
       syncStamps();
     }
 
@@ -432,8 +444,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     function syncStamps() {
       if (!workBuffer) return;
       const a = $('ed-s0'), b = $('ed-s1');
-      if (a) a.textContent = fmtTime(selStart * workBuffer.duration);
-      if (b) b.textContent = fmtTime(selEnd * workBuffer.duration);
+      const н = fmtTime(selStart * workBuffer.duration), к = fmtTime(selEnd * workBuffer.duration);
+      if (a) a.textContent = н;
+      if (b) b.textContent = к;
+      // Те же числа -- на самих ручках.
+      const рН = $('ed-h0'), рК = $('ed-h1');
+      if (рН) рН.textContent = н;
+      if (рК) рК.textContent = к;
     }
 
     // --- загрузка файла ---------------------------------------------------------------------
@@ -848,7 +865,10 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         let x = рк.left - рп.left + рк.width / 2 - ширина / 2;
         x = Math.max(6, Math.min(рп.width - ширина - 6, x));
         поп.style.left = x + 'px';
-        поп.style.top = (рк.bottom - рп.top + 8) + 'px';
+        // ВЫШЕ кнопки: снизу он попадал под палец и закрывал собой соседние кнопки.
+        const высота = поп.offsetHeight || 44;
+        const сверху = рк.top - рп.top - высота - 8;
+        поп.style.top = (сверху >= 0 ? сверху : рк.bottom - рп.top + 8) + 'px';
       };
       const toggleFade = (key) => {
         const кнопка = $(key === 'fadeIn' ? 'ed-fadein' : 'ed-fadeout');

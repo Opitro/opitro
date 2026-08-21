@@ -171,7 +171,9 @@ ok('панель открылась после загрузки', await q(`docum
 // ШЕСТЬ -- утверждённый вид плеера. Компрессора среди них нет, он на своей странице.
 ok('шесть вкладок', (await q(`document.querySelectorAll('.ed-tool').length`)) === 6);
 ok('на /trim-audio активна обрезка', (await q(`document.querySelector('.ed-tool.on')?.dataset.id`)) === 'trim');
-ok('длительность показана', (await q(`document.getElementById('ed-t1').textContent`)) === '01:00.0');
+// Строки времени под дорожкой больше нет: конец показан НА ПРАВОЙ РУЧКЕ и в плашке рядом
+// с кнопками. Проверяем там же, где это видит человек.
+ok('длительность показана', (await q(`document.getElementById('ed-h1').textContent`)) === '01:00.0');
 
 // --- бегунок -------------------------------------------------------------------------------
 await click('ed-play');
@@ -322,7 +324,7 @@ ok('новый файл: фейды сброшены',
 await q(`document.querySelector('.ed-tool[data-id="volume"]').click()`);
 await sleep(400);
 ok('новый файл: громкость сброшена', (await q(`document.getElementById('ed-vol').value`)) === '0');
-ok('новый файл: своя длительность', (await q(`document.getElementById('ed-t1').textContent`)) === '00:12.0');
+ok('новый файл: своя длительность', (await q(`document.getElementById('ed-h1').textContent`)) === '00:12.0');
 
 // Десять полос эквалайзера обязаны помещаться на телефоне без обрезки. Замерено: на
 // экране 412 ряду нужно было 598 точек при 320 доступных -- половина полос уезжала.
