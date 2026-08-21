@@ -154,16 +154,122 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
   let wet;
 
   if (effect === 'robot') {
-    // Ring modulation: multiply by a steady low-frequency sine. That single operation is what
-    // strips the natural pitch variation out of speech and makes it sound machine-generated.
-    const carrier = 45 + amount * 35;
+    // Робот -- это ПЛОСКАЯ высота плюс металлический призвук. Кольцевая модуляция даёт призвук,
+    // но одной её мало: раньше несущая была 45-80 Гц и результат подмешивался к исходному
+    // наполовину, поэтому голос оставался почти собой. Владелец так и сказал: «вообще не похож
+    // на робота». Теперь: несущая выше (110-150 Гц -- слышимый металл), сигнал предварительно
+    // ограничивается по громкости (речь становится ровной, без живых перепадов), и подмешивания
+    // нет вовсе -- эффект идёт целиком.
+    const carrier = 110 + amount * 40;
+    const ровный = await renderGraph(buffer, (oc, src) => {
+      const cp = oc.createDynamicsCompressor();
+      cp.threshold.value = -34; cp.ratio.value = 14; cp.attack.value = 0.003; cp.release.value = 0.08;
+      src.connect(cp);
+      const g = oc.createGain(); g.gain.value = 1.6;
+      cp.connect(g);
+      return g;
+    });
+    wet = new AudioBuffer({ numberOfChannels: ровный.numberOfChannels, length: ровный.length, sampleRate: sr });
+    for (let c = 0; c < ровный.numberOfChannels; c++) {
+      const d = ровный.getChannelData(c);
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < d.length; i++) o[i] = d[i] * Math.sin((2 * Math.PI * carrier * i) / sr);
+    }
+    wet = await renderGraph(wet, (oc, src) => bandPass(oc, src, 300, 3800));
+    return wet;   // без подмешивания: полумеры здесь читаются как «ничего не изменилось»
+  } else if (effect === 'reverse') {
+    // Задом наперёд -- самый узнаваемый эффект и ни на что не похож.
     wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: sr });
     for (let c = 0; c < buffer.numberOfChannels; c++) {
       const d = buffer.getChannelData(c);
       const o = wet.getChannelData(c);
-      for (let i = 0; i < d.length; i++) o[i] = d[i] * Math.sin((2 * Math.PI * carrier * i) / sr);
+      const n = d.length;
+      for (let i = 0; i < n; i++) o[i] = d[n - 1 - i];
     }
-    wet = await renderGraph(wet, (oc, src) => bandPass(oc, src, 200, 4000));
+    return wet;   // подмешивать исходное нельзя: получится каша из двух направлений
+  } else if (effect === 'echo') {
+    // Эхо: три отражения через треть секунды, каждое тише предыдущего.
+    const задержка = 0.28;
+    const хвост = Math.ceil(задержка * 3 * sr);
+    wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length + хвост, sampleRate: sr });
+    const шаг = Math.round(задержка * sr);
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const d = buffer.getChannelData(c);
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < d.length; i++) o[i] = d[i];
+      for (let повтор = 1; повтор <= 3; повтор++) {
+        const сила = Math.pow(0.45 + amount * 0.2, повтор);
+        const сдвиг = шаг * повтор;
+        for (let i = 0; i < d.length; i++) o[i + сдвиг] += d[i] * сила;
+      }
+      for (let i = 0; i < o.length; i++) o[i] = Math.max(-1, Math.min(1, o[i]));
+    }
+    return wet;   // длина выросла -- подмешивание к исходному здесь неприменимо
+  } else if (effect === 'hall') {
+    // Зал: густой хвост из множества близких отражений, а не одно эхо.
+    const длина = 1.2 + amount * 1.3;
+    const хвост = Math.ceil(длина * sr);
+    wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length + хвост, sampleRate: sr });
+    const отражения = [];
+    for (let i = 0; i < 24; i++) отражения.push({ сдвиг: Math.round((0.02 + i * 0.045) * sr), сила: Math.pow(0.72, i) * 0.6 });
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const d = buffer.getChannelData(c);
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < d.length; i++) o[i] = d[i];
+      отражения.forEach((отр) => {
+        for (let i = 0; i < d.length; i++) o[i + отр.сдвиг] += d[i] * отр.сила;
+      });
+      for (let i = 0; i < o.length; i++) o[i] = Math.max(-1, Math.min(1, o[i] * 0.7));
+    }
+    return wet;
+  } else if (effect === 'monster') {
+    // Чудовище: вниз по высоте и рычащее насыщение -- не просто «низкий голос».
+    const shifted = pitchShift(buffer, -(7 + amount * 3));
+    wet = await renderGraph(shifted, (oc, src) => {
+      const sh = oc.createWaveShaper(); sh.curve = distortionCurve(2.2); sh.oversample = '4x';
+      const low = oc.createBiquadFilter(); low.type = 'lowshelf'; low.frequency.value = 200; low.gain.value = 7;
+      const cut = oc.createBiquadFilter(); cut.type = 'lowpass'; cut.frequency.value = 3200;
+      src.connect(sh); sh.connect(low); low.connect(cut);
+      return cut;
+    });
+  } else if (effect === 'alien') {
+    // Пришелец: высокая кольцевая модуляция даёт неземной призвук, плюс сдвиг вверх.
+    const shifted = pitchShift(buffer, 4 + amount * 3);
+    const carrier = 400 + amount * 500;
+    wet = new AudioBuffer({ numberOfChannels: shifted.numberOfChannels, length: shifted.length, sampleRate: sr });
+    for (let c = 0; c < shifted.numberOfChannels; c++) {
+      const d = shifted.getChannelData(c);
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < d.length; i++) o[i] = d[i] * (0.6 + 0.4 * Math.sin((2 * Math.PI * carrier * i) / sr));
+    }
+  } else if (effect === 'underwater') {
+    // Под водой: глухо и с медленным колыханием.
+    wet = await renderGraph(buffer, (oc, src) => {
+      const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 3;
+      const кач = oc.createOscillator(); кач.frequency.value = 0.7;
+      const глубина = oc.createGain(); глубина.gain.value = 260;
+      кач.connect(глубина); глубина.connect(lp.frequency); кач.start();
+      src.connect(lp);
+      return lp;
+    });
+  } else if (effect === 'chorus') {
+    // Хор: две копии с небольшой расстройкой и сдвигом -- голос звучит как несколько.
+    const вверх = pitchShift(buffer, 0.3);
+    const вниз = pitchShift(buffer, -0.3);
+    const сдвиг = Math.round(0.018 * sr);
+    wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length + сдвиг, sampleRate: sr });
+    for (let c = 0; c < buffer.numberOfChannels; c++) {
+      const a1 = buffer.getChannelData(c);
+      const a2 = вверх.getChannelData(Math.min(c, вверх.numberOfChannels - 1));
+      const a3 = вниз.getChannelData(Math.min(c, вниз.numberOfChannels - 1));
+      const o = wet.getChannelData(c);
+      for (let i = 0; i < a1.length; i++) {
+        const б = a2[Math.min(a2.length - 1, i)] || 0;
+        const в = a3[Math.max(0, Math.min(a3.length - 1, i - сдвиг))] || 0;
+        o[i] = Math.max(-1, Math.min(1, a1[i] * 0.6 + б * 0.35 + в * 0.35));
+      }
+    }
+    return wet;
   } else if (effect === 'phone') {
     wet = await renderGraph(buffer, (oc, src) => {
       const bp = bandPass(oc, src, 300, 3400);
@@ -489,19 +595,30 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'voicefx',
     accept: 'audio/*',
-    abCompare: true,
+    // Переключателя «было / стало» здесь нет: его работу делает сама плашка -- нажал эффект,
+    // нажал ещё раз и слышишь оригинал. Два способа сравнить одно и то же только путают.
+    abCompare: false,
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
+    // Эффекты подобраны так, чтобы КАЖДЫЙ был слышно другим: высота, тембр, время и
+    // направление -- четыре разных способа изменить голос, а не восемь оттенков одного.
     voiceEffects: [
       { key: 'robot', emoji: '🤖', label: 'voiceRobotLabel', desc: 'voiceRobotDesc' },
+      { key: 'deep', emoji: '🐻', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
+      { key: 'high', emoji: '🐿', label: 'voiceHighLabel', desc: 'voiceHighDesc' },
+      { key: 'monster', emoji: '👹', label: 'voiceMonsterLabel', desc: 'voiceMonsterDesc' },
+      { key: 'alien', emoji: '👽', label: 'voiceAlienLabel', desc: 'voiceAlienDesc' },
+      { key: 'reverse', emoji: '🔁', label: 'voiceReverseLabel', desc: 'voiceReverseDesc' },
+      { key: 'echo', emoji: '🔊', label: 'voiceEchoLabel', desc: 'voiceEchoDesc' },
+      { key: 'hall', emoji: '⛪', label: 'voiceHallLabel', desc: 'voiceHallDesc' },
       { key: 'phone', emoji: '📞', label: 'voicePhoneLabel', desc: 'voicePhoneDesc' },
       { key: 'radio', emoji: '📻', label: 'voiceRadioLabel', desc: 'voiceRadioDesc' },
       { key: 'megaphone', emoji: '📢', label: 'voiceMegaphoneLabel', desc: 'voiceMegaphoneDesc' },
+      { key: 'underwater', emoji: '🌊', label: 'voiceUnderwaterLabel', desc: 'voiceUnderwaterDesc' },
+      { key: 'chorus', emoji: '👥', label: 'voiceChorusLabel', desc: 'voiceChorusDesc' },
       { key: 'retro', emoji: '👾', label: 'voiceRetroLabel', desc: 'voiceRetroDesc' },
-      { key: 'deep', emoji: '🎙', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
-      { key: 'high', emoji: '🐿', label: 'voiceHighLabel', desc: 'voiceHighDesc' },
       { key: 'cartoon', emoji: '🎭', label: 'voiceCartoonLabel', desc: 'voiceCartoonDesc' },
     ],
     directRender: (buffer, params) => applyVoiceEffect(buffer, params.effect, params.intensity),

@@ -112,10 +112,22 @@ const ICO = {
     nothing is ever painted unstyled. */}
 <style is:inline set:html={playerCss + css}></style>
 
-<div class="audio-tool" data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
+<div class={controls === 'voicefx' ? 'audio-tool voice-tool' : 'audio-tool'} data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
   {!isGenerator && !isNoise && !isRecorder && !безФайла && (
     <>
-      <div class="drop" id="audio-drop">
+      {/* ЗАПИСЬ -- главное действие страницы, поэтому стоит ПЕРВОЙ: сюда приходят говорить своим
+          голосом, а не приносить файлы. Загрузка файла -- второй путь, плашкой ниже. Место под
+          строку состояния держится всегда, поэтому отсчёт ничего не сдвигает. */}
+      {config.allowMicInput && (
+        <div class="mic-in">
+          <button type="button" class="mt-main mic-in-btn" id="mic-in-btn">
+            <span class="mt-ico" set:html={MIC_ICONS.mic} />
+            <span id="mic-in-label">{labels.micRecordLabel}</span>
+          </button>
+          <div class="mic-in-state" id="mic-in-state"></div>
+        </div>
+      )}
+      <div class={config.allowMicInput ? 'drop is-compact' : 'drop'} id="audio-drop">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
         <div class="big">{labels.dropLabel}</div>
         <div class="small">{accept.startsWith('video') ? labels.dropHintVideo : labels.dropHint}</div>
@@ -130,17 +142,6 @@ const ICO = {
             list is the same everywhere and video files work too -- their audio track is used. */}
         {!accept.startsWith('video') && <div class="small formats">{labels.dropFormatsLabel}</div>}
       </div>
-      {/* Второй путь на первом экране: записать голос прямо здесь. Место под строку состояния
-          держится всегда, поэтому появление отсчёта ничего не сдвигает. */}
-      {config.allowMicInput && (
-        <div class="mic-in">
-          <button type="button" class="mt-second mic-in-btn" id="mic-in-btn">
-            <span class="mt-ico" set:html={MIC_ICONS.mic} />
-            <span id="mic-in-label">{labels.micRecordLabel}</span>
-          </button>
-          <div class="mic-in-state" id="mic-in-state"></div>
-        </div>
-      )}
       {accept.startsWith('video') ? (
         <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file' || config.allowBatch}>
       ) : (
@@ -642,11 +643,13 @@ const ICO = {
             </button>
           ))}
         </div>
-        <div class="preset-desc" id="voice-desc" style="display:none"></div>
-        <div class="fade-card pitch-card" id="voice-intensity-wrap" style="display:none">
-          <label class="fade-card-title" for="voice-intensity">{labels.voiceIntensityLabel}</label>
+        <div class="preset-desc" id="voice-desc"></div>
+        {/* Ползунок силы стоит внизу и ВСЕГДА занимает своё место: пока эффект не выбран, он
+            просто невидим. Появление на пустом месте сдвигало бы всё под ним. */}
+        <div class="voice-knob" id="voice-intensity-wrap">
+          <label for="voice-intensity" id="voice-intensity-name">{labels.voiceIntensityLabel}</label>
           <input type="range" id="voice-intensity" min="0" max="100" step="5" value="60">
-          <span class="fade-card-val" id="voice-intensity-val">60%</span>
+          <span class="voice-knob-val" id="voice-intensity-val">60%</span>
         </div>
       </>
     )}
@@ -997,6 +1000,11 @@ const ICO = {
     const labels = JSON.parse(root.dataset.labels);
 
     const drop = root.querySelector('#audio-drop');
+    // Запись и загрузка -- это ПЕРВЫЙ экран. Как только файл есть, обоим тут делать нечего.
+    function скрытьЗапись(прятать) {
+      const блок = root.querySelector('.mic-in');
+      if (блок) блок.style.display = прятать ? 'none' : '';
+    }
     const fileInput = root.querySelector('#audio-file-input');
     const panel = root.querySelector('#audio-panel');
     const fileInfo = root.querySelector('#audio-fileinfo');
@@ -1407,6 +1415,7 @@ const ICO = {
           if (!files.length) {
             panel.classList.remove('on');
             if (drop) drop.style.display = '';
+            скрытьЗапись(false);
             if (listenBtn) listenBtn.disabled = true;
           }
           return;
@@ -1557,6 +1566,7 @@ const ICO = {
         panel.classList.remove('on');
       }
       if (drop) drop.style.display = '';
+      скрытьЗапись(false);
       // У диктофона место плеера НЕ выключаем: оно остаётся занятым и пустым, иначе кнопка
       // записи прыгнет вверх, а именно это владелец и просил убрать.
       if (waveShell && config.controls !== 'recorder') waveShell.style.display = 'none';
@@ -1650,6 +1660,7 @@ const ICO = {
         eqSyncState();
         panel.classList.add('on');
         if (drop) drop.style.display = 'none';
+        скрытьЗапись(true);
         if (files.length >= 1 && listenBtn) listenBtn.disabled = false;
         return;
       }
@@ -1673,6 +1684,7 @@ const ICO = {
       if (fiSwapBtn && fileInput) fiSwapBtn.addEventListener('click', () => fileInput.click());
       panel.classList.add('on');
       if (drop) drop.style.display = 'none';
+      скрытьЗапись(true);
       // resetFile() hides the player; nothing ever brought it back, so removing a file and then
       // loading another one left a tool with no waveform, no play button and no seek bar until
       // the page was reloaded. Confirmed in a real browser over CDP: after remove-then-add the
@@ -4464,6 +4476,9 @@ function элПлеер() {
       const voiceIntensity = root.querySelector('#voice-intensity');
       const voiceIntensityVal = root.querySelector('#voice-intensity-val');
       let voiceTimer = 0;
+      // Нажатие по плашке должно ЗАЗВУЧАТЬ, а не молча пересчитать: владелец 21.08.2026.
+      // Флаг ставится перед вызовом и живёт до передачи звука проигрывателю.
+      let игратьПослеПересчёта = false;
       async function applyVoiceSelection() {
         // Capture the position BEFORE stopping -- stopAB() resets it to zero, which is why
         // switching effects used to jump back to the start of the track instead of carrying on
@@ -4473,8 +4488,10 @@ function элПлеер() {
         const игралоЭл = !!(эл && эл.src && !эл.paused);
         const resumeAt = игралоЭл ? эл.currentTime : resumePosition();
         if (config.elementPlayback) {
-          продолжитьПослеПересчёта = игралоЭл ? resumeAt : null;
+          // Играло -- продолжаем с того же места; не играло, но нажали плашку -- играем с начала.
+          продолжитьПослеПересчёта = игралоЭл ? resumeAt : (игратьПослеПересчёта ? 0 : null);
           местоДоПересчёта = эл && эл.src ? эл.currentTime : null;
+          игратьПослеПересчёта = false;
         }
         stopAB();
         renderedBuffer = null;      // cached render belongs to the previous effect/intensity
@@ -4497,17 +4514,40 @@ function элПлеер() {
         if (config.elementPlayback) { отдатьВПроигрыватель(buf); return; }
         playAB('result', buf, resumeAt);
       }
+      // Голос без эффекта -- это исходная запись. Возврат к ней нужен как отдельное действие,
+      // потому что переключателя «было / стало» здесь больше нет: его работу делает повторное
+      // нажатие по той же плашке (владелец 21.08.2026).
+      function вернутьОригинал() {
+        voiceFxEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
+        if (voiceDescEl) voiceDescEl.textContent = '';
+        if (voiceIntensityWrap) voiceIntensityWrap.classList.remove('on');
+        renderedBuffer = null;
+        exportedClean = false;
+        eqSyncState();
+        if (!sourceBuffer) return;
+        abSelected = 'original';
+        if (config.elementPlayback) {
+          продолжитьПослеПересчёта = 0;   // нажали -- значит хотим слышать
+          местоДоПересчёта = null;
+          отдатьВПроигрыватель(sourceBuffer);
+        } else {
+          playAB('original', sourceBuffer, 0);
+        }
+      }
       voiceFxEl.querySelectorAll('.preset-card').forEach((card) => {
         card.addEventListener('click', () => {
+          // Повторное нажатие по той же плашке возвращает оригинал.
+          if (card.classList.contains('active')) { вернутьОригинал(); return; }
           voiceFxEl.querySelectorAll('.preset-card').forEach((c) => c.classList.remove('active'));
           card.classList.add('active');
-          if (voiceDescEl) {
-            voiceDescEl.textContent = card.dataset.desc || '';
-            voiceDescEl.style.display = card.dataset.desc ? 'block' : 'none';
+          if (voiceDescEl) voiceDescEl.textContent = card.dataset.desc || '';
+          // Ползунок силы у каждого эффекта свой: подпись берём с плашки.
+          if (voiceIntensityWrap) {
+            voiceIntensityWrap.classList.add('on');
+            const имя = root.querySelector('#voice-intensity-name');
+            if (имя) имя.textContent = card.querySelector('.pc-label')?.textContent || labels.voiceIntensityLabel;
           }
-          // The intensity slider only makes sense once there's an effect to scale, so it stays
-          // hidden until one is picked rather than sitting there doing nothing.
-          if (voiceIntensityWrap) voiceIntensityWrap.style.display = 'flex';
+          игратьПослеПересчёта = true;   // нажал плашку -- значит хочет услышать
           applyVoiceSelection();
         });
       });

@@ -1011,3 +1011,40 @@
 .audio-tool .mic-in-state{min-height:20px;margin-top:8px;font-size:13px;color:var(--muted);
   font-variant-numeric:tabular-nums}
 
+/* ---- Изменить голос ---------------------------------------------------------------------- */
+/* Плашки эффектов -- ровная квадратная сетка, как на приборе: одинаковые ячейки, спокойная
+   рамка, значок сверху, подпись под ним. Разнокалиберные прямоугольники читались как список
+   кнопок, а не как набор режимов. */
+.audio-tool.voice-tool .preset-cards{display:grid;gap:10px;
+  grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
+.audio-tool.voice-tool .preset-card{aspect-ratio:1/1;flex:none;min-width:0;width:auto;
+  display:flex;flex-direction:column;align-items:center;justify-content:center;gap:8px;
+  padding:10px 6px;border-radius:12px;background:var(--surface);border:1px solid var(--line);
+  text-align:center}
+.audio-tool.voice-tool .preset-card .pc-emoji{font-size:26px;line-height:1}
+.audio-tool.voice-tool .preset-card .pc-label{font-size:12.5px;font-weight:600;line-height:1.25}
+.audio-tool.voice-tool .preset-card.active{border-color:var(--accent);color:var(--accent);
+  background:rgba(74,222,158,.07)}
+@media(max-width:520px){
+  .audio-tool.voice-tool .preset-cards{grid-template-columns:repeat(auto-fill,minmax(92px,1fr));gap:8px}
+  .audio-tool.voice-tool .preset-card .pc-emoji{font-size:23px}
+}
+
+/* Ползунок силы внизу: место держим всегда, иначе выбор эффекта сдвигал бы страницу. */
+.audio-tool .voice-knob{display:flex;align-items:center;gap:14px;margin-top:16px;visibility:hidden}
+.audio-tool .voice-knob.on{visibility:visible}
+.audio-tool .voice-knob label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
+  color:var(--muted);white-space:nowrap;max-width:40%;overflow:hidden;text-overflow:ellipsis}
+.audio-tool .voice-knob input[type=range]{flex:1}
+.audio-tool .voice-knob-val{font-size:12.5px;color:var(--accent);font-weight:700;
+  min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
+.audio-tool .preset-desc{min-height:20px;margin-top:10px;font-size:13px;color:var(--muted);text-align:center}
+
+/* Файл -- второй путь: плашка вдвое ниже обычного поля, без крупного значка и списка форматов
+   во весь экран. Главное действие рядом не должно с ней спорить. */
+.audio-tool .drop.is-compact{padding:16px 14px;min-height:0}
+.audio-tool .drop.is-compact svg{width:22px;height:22px}
+.audio-tool .drop.is-compact .big{font-size:15px}
+.audio-tool .drop.is-compact .small{font-size:12px}
+.audio-tool .drop.is-compact .formats{display:none}
+
