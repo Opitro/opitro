@@ -1004,3 +1004,10 @@
 .audio-tool .sm-max b{color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
 @media(max-width:520px){.audio-tool .sm-big > b{font-size:52px}}
 
+/* Микрофон на первом экране: второй путь рядом с загрузкой файла, поэтому вид тише поля
+   загрузки -- не спорит с ним, но виден сразу. Место под строку состояния держится всегда. */
+.audio-tool .mic-in{display:flex;flex-direction:column;align-items:center;margin-top:12px}
+.audio-tool .mic-in-btn{max-width:280px}
+.audio-tool .mic-in-state{min-height:20px;margin-top:8px;font-size:13px;color:var(--muted);
+  font-variant-numeric:tabular-nums}
+

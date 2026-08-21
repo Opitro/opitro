@@ -130,6 +130,17 @@ const ICO = {
             list is the same everywhere and video files work too -- their audio track is used. */}
         {!accept.startsWith('video') && <div class="small formats">{labels.dropFormatsLabel}</div>}
       </div>
+      {/* Второй путь на первом экране: записать голос прямо здесь. Место под строку состояния
+          держится всегда, поэтому появление отсчёта ничего не сдвигает. */}
+      {config.allowMicInput && (
+        <div class="mic-in">
+          <button type="button" class="mt-second mic-in-btn" id="mic-in-btn">
+            <span class="mt-ico" set:html={MIC_ICONS.mic} />
+            <span id="mic-in-label">{labels.micRecordLabel}</span>
+          </button>
+          <div class="mic-in-state" id="mic-in-state"></div>
+        </div>
+      )}
       {accept.startsWith('video') ? (
         <input type="file" id="audio-file-input" accept={accept} multiple={controls === 'multi-file' || config.allowBatch}>
       ) : (
@@ -2016,6 +2027,76 @@ const ICO = {
             + (report.hint ? `<div class="an-hint">${escapeHtml(report.hint)}</div>` : '');
         });
       };
+    }
+
+    // ---- Микрофон на первом экране (изменить голос) ------------------------------------------
+    // Записал -- и файл сразу лёг в инструмент, как будто его перетащили. Дальше всё общее:
+    // волна, эффекты, скачивание. Правила записи те же, что на тесте микрофона: формат
+    // выбираем из поддерживаемых (Safari webm не играет), разряд сессии просим до getUserMedia
+    // и возвращаем после, микрофон отпускаем сразу же.
+    if (config.allowMicInput) {
+      const кнЗап = root.querySelector('#mic-in-btn');
+      const подпЗап = root.querySelector('#mic-in-label');
+      const состЗап = root.querySelector('#mic-in-state');
+      const ПРЕДЕЛ = 120;   // секунды: дальше запись обрывается сама, чтобы не съесть память
+      let потокЗ = null, писательЗ = null, кускиЗ = [], тикЗ = 0, началоЗ = 0, стопЗ = 0;
+
+      function видЗаписи(идёт) {
+        кнЗап.classList.toggle('is-busy', идёт);
+        подпЗап.textContent = идёт ? labels.micRecordStopLabel : labels.micRecordLabel;
+      }
+      function часы() {
+        const с = Math.floor((Date.now() - началоЗ) / 1000);
+        состЗап.textContent = `${labels.micRecordingNowLabel} · ${Math.floor(с / 60)}:${String(с % 60).padStart(2, '0')}`;
+      }
+      function отпустить() {
+        clearInterval(тикЗ); тикЗ = 0;
+        clearTimeout(стопЗ); стопЗ = 0;
+        if (потокЗ) { потокЗ.getTracks().forEach((t) => t.stop()); потокЗ = null; }
+        openAudioSession();   // разряд обратно и держатель тишины на место
+        видЗаписи(false);
+      }
+
+      кнЗап.addEventListener('click', async () => {
+        if (писательЗ) { try { писательЗ.stop(); } catch (e) {} return; }
+        clearError();
+        openRecordSession();
+        try {
+          потокЗ = await navigator.mediaDevices.getUserMedia({
+            // Обработку не выключаем: сюда приходят с голосом, и подавление эха с шумом
+            // делают запись чище -- в отличие от теста микрофона, где нужен сырой сигнал.
+            audio: true,
+          });
+        } catch (e) {
+          openAudioSession();
+          showError(labels.micDeniedLabel);
+          return;
+        }
+        window.dispatchEvent(new Event('opitro:tool-interaction'));
+        const умеет = (t) => { try { return window.MediaRecorder && MediaRecorder.isTypeSupported && MediaRecorder.isTypeSupported(t); } catch (e) { return false; } };
+        const желаемый = ['audio/mp4', 'audio/webm'].find(умеет) || '';
+        кускиЗ = [];
+        писательЗ = желаемый ? new MediaRecorder(потокЗ, { mimeType: желаемый }) : new MediaRecorder(потокЗ);
+        const типЗ = писательЗ.mimeType || желаемый;
+        писательЗ.ondataavailable = (e) => { if (e.data && e.data.size) кускиЗ.push(e.data); };
+        писательЗ.onstop = async () => {
+          писательЗ = null;
+          отпустить();
+          состЗап.textContent = '';
+          const blob = new Blob(кускиЗ, { type: типЗ || '' });
+          const рас = (типЗ || '').includes('mp4') ? 'm4a' : (типЗ || '').includes('ogg') ? 'ogg' : 'webm';
+          // Дальше запись идёт общим путём -- ровно как перетащенный файл.
+          await pickFile(new File([blob], `zapis.${рас}`, { type: blob.type }));
+        };
+        писательЗ.start();
+        началоЗ = Date.now();
+        видЗаписи(true);
+        часы();
+        тикЗ = setInterval(часы, 1000);
+        стопЗ = setTimeout(() => { if (писательЗ) { try { писательЗ.stop(); } catch (e) {} } }, ПРЕДЕЛ * 1000);
+      });
+
+      window.addEventListener('pagehide', () => { if (писательЗ) { try { писательЗ.stop(); } catch (e) {} } отпустить(); });
     }
 
     // ---- Тест микрофона --------------------------------------------------------------------
