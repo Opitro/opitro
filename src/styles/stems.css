@@ -1,0 +1,63 @@
+/* СТИЛИ ДВУХ СТРАНИЦ РАЗДЕЛЕНИЯ ДОРОЖЕК -- «убрать голос» и «убрать музыку».
+ *
+ * Отдельный файл, а не кусок общего audio-tool.css, и подключается он только этими двумя
+ * страницами. Смысл ровно тот, ради которого выбран Astro: новая страница не трогает соседнюю.
+ * Общий файл читают все тридцать восемь звуковых инструментов, и любая правка в нём -- повод
+ * перепроверять чужие страницы; однажды удаление в общем стиле уже унесло плитки на главной.
+ * Здесь править можно свободно: кроме этих двух страниц, файл никуда не попадает.
+ */
+
+.audio-tool .st-tool{margin-top:14px}
+.audio-tool .st-label{font-size:13px;color:var(--muted);margin-bottom:7px}
+/* Три способа одним рядом-переключателем: видно, что это выбор из трёх, а не три отдельных
+   действия. Тот же приём, что на LeebTTS -- он там прижился. */
+/* Блок из трёх кнопок, а не три надписи подряд: утопленная тёмная подложка, внутри три
+   ЯВНЫЕ кнопки со своей рамкой. Так сразу видно, что это выбор одного из трёх. */
+/* Заголовок слева, подсказка справа -- одной строкой над кнопками. Место под подсказку
+   держится всегда: она появляется и пропадает, и кнопки от этого не должны прыгать. */
+.audio-tool .st-head{display:flex;align-items:baseline;gap:10px;min-height:20px}
+.audio-tool .st-head .st-label{margin:0;white-space:nowrap}
+.audio-tool .st-hint{margin-left:auto;font-size:12px;color:var(--muted);text-align:right;
+  line-height:1.3}
+.audio-tool .st-hint.is-warn{color:#f2b8b5;font-weight:600}
+@media(max-width:480px){.audio-tool .st-hint{font-size:11.5px}}
+.audio-tool .st-ways{display:flex;gap:4px;margin-top:7px;padding:4px;border-radius:12px;
+  background:rgba(0,0,0,.34);border:1px solid var(--line);
+  box-shadow:inset 0 1px 3px rgba(0,0,0,.5)}
+.audio-tool .st-way{flex:1;min-width:0;height:44px;border-radius:9px;
+  border:1px solid var(--line);background:var(--surface-2);color:var(--text);
+  font:600 13.5px/1 inherit;cursor:pointer;padding:0 6px;-webkit-tap-highlight-color:transparent;
+  overflow:hidden;text-overflow:ellipsis;white-space:nowrap;
+  transition:background .15s,border-color .15s,color .15s}
+.audio-tool .st-way:hover{border-color:rgba(255,255,255,.26)}
+.audio-tool .st-way.is-on{background:#eef1f4;color:#10141a;border-color:#eef1f4;
+  box-shadow:0 2px 8px rgba(0,0,0,.45)}
+@media(max-width:520px){.audio-tool .st-way{font-size:12.5px;padding:0 4px}}
+/* Ход работы СРАЗУ под способами: ниже его на телефоне не видно. Место держится всегда. */
+.audio-tool .st-run{min-height:22px;margin-top:8px}
+/* По центру, а не по левому краю: строка стоит под полосой во всю ширину, и прижатая влево
+   надпись читается как подпись к первой кнопке, а не как общий ход работы. */
+.audio-tool .st-run-text{font-size:12.5px;color:var(--muted);min-height:18px;line-height:1.4;
+  text-align:center}
+.audio-tool .st-bar{height:4px;margin-top:4px;border-radius:99px;background:var(--surface-2);overflow:hidden}
+.audio-tool .st-bar i{display:block;height:100%;width:0;background:var(--accent);transition:width .2s}
+/* Сила -- только у «Браузера»; место под неё держится, чтобы ничего не прыгало. */
+.audio-tool .st-power{display:flex;align-items:center;gap:12px;margin-top:8px;min-height:32px;visibility:hidden}
+.audio-tool .st-power.on{visibility:visible}
+.audio-tool .st-power-name{font-size:11px;letter-spacing:.14em;text-transform:uppercase;color:var(--muted)}
+.audio-tool .st-power input[type=range]{flex:1;min-width:0}
+.audio-tool .st-power-val{font-size:12.5px;font-weight:700;color:var(--accent);min-width:46px;
+  text-align:right;font-variant-numeric:tabular-nums}
+/* Переход на соседнюю страницу: обычная кнопка слева в ряду скачивания. Скачивание при этом
+   остаётся главным действием ряда -- оно светлое, эта кнопка обычная. */
+.audio-tool .deck .st-go-btn{flex:0 0 auto;min-width:0;margin-right:auto}
+
+/* Скачивание на этих страницах -- ГЛАВНОЕ действие: светлая заливка, как в чертеже.
+   Общее правило «primary выглядит как обычная» тут не годится: в ряду три органа, и без
+   выделения непонятно, какой из них итоговый. */
+.audio-tool.stems-tool button.act.primary.deck-act{background:#eef1f4;color:#10141a;
+  border-color:#eef1f4;font-weight:700}
+.audio-tool.stems-tool button.act.primary.deck-act:hover:not(:disabled){background:#dfe4ea;
+  border-color:#dfe4ea}
+.audio-tool.stems-tool button.act.primary.deck-act:disabled{opacity:.4}
+

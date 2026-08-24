@@ -28,7 +28,7 @@ Upload a song and pick a method. The result plays straight away, and pressing th
 
 - **Browser** — instant, nothing to download. Pulls out the middle of the stereo image, where the voice usually sits. With a strength slider.
 - **Neural** — real separation. A 38 MB model downloads once and stays in your browser.
-- **Neural Pro** — the same, noticeably cleaner on dense mixes. Runs on a computer only.
+- **Neural Pro** — the best result there is. Runs on a computer only.
 
 ## Worth knowing
 

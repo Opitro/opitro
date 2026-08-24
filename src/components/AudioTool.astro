@@ -1,6 +1,8 @@
 ---
 import playerCss from '../styles/player.css?inline';
 import css from '../styles/audio-tool.css?inline';
+// Стили разделения дорожек живут отдельно и едут только на свои две страницы -- см. шапку файла.
+import stemsCss from '../styles/stems.css?inline';
 // One component drives every audio tool. `AUDIO_TOOLS[tool].engine` picks the processing path:
 // 'webaudio' (native Web Audio API, waveform + live preview, no ffmpeg download at all),
 // 'webaudio-merge' / 'webaudio-generator' (variants without a single decoded source buffer),
@@ -110,7 +112,7 @@ const ICO = {
     everywhere, of which a calculator page used almost none. As a plain string it lands
     only on the page that renders this component. It goes first, before any markup, so
     nothing is ever painted unstyled. */}
-<style is:inline set:html={playerCss + css}></style>
+<style is:inline set:html={playerCss + css + (controls === 'stems' ? stemsCss : '')}></style>
 
 <div class={`audio-tool${controls === 'voicefx' ? ' voice-tool' : ''}${controls === 'stems' ? ' stems-tool' : ''}`} data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
   {!isGenerator && !isNoise && !isRecorder && !безФайла && (
@@ -228,11 +230,10 @@ const ICO = {
         <span class="tp-time" id="transport-cur" hidden>0:00</span>
         <span class="tp-total" id="transport-dur" hidden>0:00</span>
         <span class="wave-duration" id="wave-duration" hidden>0:00</span>
-        {/* Сведения о файле переехали в тот же ряд: на десктопе там свободно 848px при нужных
-            620, и панель становится одним предметом вместо панели и отдельной строки под ней.
-            На узком экране свободно 270px -- туда они не помещаются и переносятся на вторую
-            строку ВНУТРИ той же панели, так что предмет остаётся один. */}
-        <div class="file-meta" id="file-meta" style="display:none"></div>
+        {/* Столбик FORMAT / SIZE / RATE / CHAN отсюда убран: он утолщал панель и на телефоне
+            занимал вторую строку. Единственное число, за которым следят, -- длительность, и
+            она теперь стоит рядом с часами. Освободившееся место отдано предупреждениям. */}
+        <span class="tp-note" id="tp-note"></span>
       </div>
     )}
     {showWaveform && !config.simplePreview && !config.compactPreview && (
@@ -796,7 +797,7 @@ const ICO = {
             «только на ПК» относятся к кнопкам, а строка хода работы идёт ниже -- туда
             предупреждение не годится, его там ищут глазами уже после нажатия. */}
         <div class="st-head">
-          <div class="st-label">{config.stemKeep === 'music' ? labels.stemsRemoveVocalLabel : labels.stemsRemoveMusicLabel}</div>
+          <div class="st-label">{labels.stemsMethodLabel}</div>
           <div class="st-hint" id="st-hint"></div>
         </div>
         <div class="st-ways" id="st-ways" role="group">
@@ -1660,8 +1661,8 @@ const ICO = {
       if (abOriginalBtn) abOriginalBtn.classList.toggle('active', сторонаПоУмолчанию() === 'original');
       if (abResultBtn) abResultBtn.classList.toggle('active', сторонаПоУмолчанию() === 'result');
       abSelected = config.abCompare ? сторонаПоУмолчанию() : abSelected;
-      if (transportCurEl) transportCurEl.textContent = '0:00';
-      if (transportDurEl) transportDurEl.textContent = '0:00';
+      if (transportCurEl) { transportCurEl.textContent = '0:00'; transportCurEl.hidden = true; }
+      if (transportDurEl) { transportDurEl.textContent = '0:00'; transportDurEl.hidden = true; }
       // A rendered preview belongs to the file it was made from -- keeping it on screen after a
       // new upload would show one file's video next to another file's name.
       const vizVid = root.querySelector('#viz-video');
@@ -1804,8 +1805,8 @@ const ICO = {
             // the A/B branch above.
             if (config.compactPreview && !config.abCompare) {
               if (wavePlayBtn) wavePlayBtn.disabled = false;
-              if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
-              if (transportCurEl) transportCurEl.textContent = '0:00';
+              if (transportDurEl) { transportDurEl.textContent = fmtClock(dur); transportDurEl.hidden = false; }
+              if (transportCurEl) { transportCurEl.textContent = '0:00'; transportCurEl.hidden = false; }
             }
             renderFileMeta(f);
             // Список силы показывает "Лёгкая" с первой секунды -- значит лёгкая и должна быть
@@ -1887,8 +1888,8 @@ const ICO = {
         // drawing a play button that could never be pressed and a duration stuck at 0:00.
         if (config.compactPreview) {
           if (wavePlayBtn) wavePlayBtn.disabled = false;
-          if (transportDurEl) transportDurEl.textContent = fmtClock(dur);
-          if (transportCurEl) transportCurEl.textContent = '0:00';
+          if (transportDurEl) { transportDurEl.textContent = fmtClock(dur); transportDurEl.hidden = false; }
+          if (transportCurEl) { transportCurEl.textContent = '0:00'; transportCurEl.hidden = false; }
         }
         if (rateStateSync) rateStateSync();
         if (LIVE_CHAIN_TOOLS[config.controls] || isRenderedAb) {
@@ -2107,6 +2108,9 @@ const ICO = {
       const полосаХода = root.querySelector('#st-bar-fill');
       const рамкаПолосы = root.querySelector('#st-bar');
       const полеПодсказки = root.querySelector('#st-hint');
+      // Предупреждения живут в ряду управления, на месте бывшего столбика сведений: там их
+      // видно сразу, рядом с кнопкой воспроизведения (владелец 24.08.2026).
+      const полеПредупреждения = root.querySelector('#tp-note');
       const блокСилы = root.querySelector('#st-power');
       const ползунокСилы = root.querySelector('#st-power-slider');
       const числоСилы = root.querySelector('#st-power-val');
@@ -2135,9 +2139,21 @@ const ICO = {
         полосаХода.style.width = доля == null ? '0%' : Math.round(доля * 100) + '%';
       }
       const готово = () => (config.stemKeep === 'music' ? labels.stemsDoneVocalLabel : labels.stemsDoneMusicLabel);
-      function подсказка(текст, тревога) {
+      function подсказка(текст) {
         полеПодсказки.textContent = текст || '';
-        полеПодсказки.classList.toggle('is-warn', !!тревога);
+      }
+      function предупредить(текст, тревога) {
+        if (!полеПредупреждения) return;
+        полеПредупреждения.textContent = текст || '';
+        полеПредупреждения.classList.toggle('is-warn', !!тревога);
+      }
+      // Про отсутствие видеокарты говорим ЗАРАНЕЕ, а не после нажатия: человек не должен
+      // узнавать о запрете, уже нажав. Владелец просил об этом дважды.
+      const естьГпу = typeof navigator !== 'undefined' && !!navigator.gpu;
+      function предупредитьПроПК() {
+        // Всегда СТАВИТ или СНИМАЕТ: иначе предупреждение про моно остаётся висеть после
+        // перехода на нейросеть, где оно уже неправда.
+        предупредить(естьГпу ? '' : labels.stemsPcOnlyNoteLabel, !естьГпу);
       }
       function видСпособа() {
         кнопки.forEach((к) => к.classList.toggle('is-on', к.dataset.way === способ));
@@ -2170,7 +2186,7 @@ const ICO = {
       function место() {
         try { return эл && эл.src ? эл.currentTime : 0; } catch (e) { return 0; }
       }
-      function отдать(буфер, откуда) {
+      function отдать(буфер, откуда, играть) {
         renderedBuffer = буфер === sourceBuffer ? null : буфер;
         exportedClean = false;
         dur = буфер.duration;
@@ -2178,18 +2194,32 @@ const ICO = {
         eqSyncState();
         // Продолжаем С ТОГО ЖЕ МЕСТА: переключение способа -- это сравнение, а сравнивать
         // с начала трека каждый раз невозможно (владелец 24.08.2026).
-        продолжитьПослеПересчёта = Math.max(0, Math.min(буфер.duration - 0.05, откуда || 0));
+        const где = Math.max(0, Math.min(буфер.duration - 0.05, откуда || 0));
+        // `играть === false` -- звук стоял до расчёта, значит и после расчёта стоит: бегунок
+        // просто возвращается на место. Общее правило проигрывателя, не наше исключение.
+        if (играть === false) { местоДоПересчёта = где; продолжитьПослеПересчёта = null; }
+        else { продолжитьПослеПересчёта = где; местоДоПересчёта = null; }
         отдатьВПроигрыватель(буфер);
       }
-      function показать(пара) {
+      // Остановить на время расчёта и сказать, играло ли до этого.
+      function остановитьНаВремяРасчёта() {
+        try {
+          if (!эл || !эл.src || эл.paused) return false;
+          эл.pause();
+          сброситьВид(false);
+          return true;
+        } catch (e) { return false; }
+      }
+      function показать(пара, откуда, играть) {
         дорожки = пара;
-        подсказка(labels.stemsAgainHintLabel, false);
-        отдать(config.stemKeep === 'music' ? пара.музыка : пара.голос, место());
+        подсказка(labels.stemsAgainHintLabel);
+        const где = откуда == null ? место() : откуда;
+        отдать(config.stemKeep === 'music' ? пара.музыка : пара.голос, где, играть);
       }
       function вернутьИсходник() {
         const где = место();
         способ = null; дорожки = null; видСпособа();
-        ход('', null); подсказка('', false);
+        ход('', null); подсказка('');
         if (!sourceBuffer) return;
         отдать(sourceBuffer, где);
       }
@@ -2198,6 +2228,7 @@ const ICO = {
         if (!sourceBuffer) return;
         const мойСчёт = ++счёт;
         способ = выбор; видСпособа(); clearError();
+        предупредитьПроПК();
         // Уже считали этим способом -- показываем готовое мгновенно, без повторного счёта.
         if (посчитано[выбор]) {
           ход(готово(), null);
@@ -2208,18 +2239,28 @@ const ICO = {
           if (выбор === 'browser') {
             // Каналы одинаковые -- вычитать нечего, на полной силе выйдет тишина. Говорим об
             // этом сразу, а не даём человеку слушать пустоту и думать, что сломалось.
-            ход(моноФайл() ? labels.vocalMonoNote : готово(), null);
+            if (моноФайл()) предупредить(labels.vocalMonoNote, true);
+            ход(готово(), null);
             показать(браузером(sourceBuffer, Number(ползунокСилы.value) || 100));
             return;
           }
-          const { разделить, МОДЕЛИ, естьВидеокарта } = await import('../lib/stem-split.js');
+          const { разделить, МОДЕЛИ, естьВидеокарта, модельУжеСкачана } = await import('../lib/stem-split.js');
           if (выбор === 'heavy' && !естьВидеокарта()) {
-            подсказка(labels.stemsPcOnlyShortLabel, true);
+            предупредить(labels.stemsPcOnlyNoteLabel, true);
             ход(labels.stemsPcOnlyLabel, null);
             способ = null; видСпособа();
             return;
           }
-          ход((labels.stemsFirstTimeLabel || '').replace('{mb}', МОДЕЛИ[выбор].мб), 0);
+          // Нейросеть считает не мгновенно. Пока идёт расчёт -- звук СТОИТ: слушать старое,
+          // ожидая новое, незачем, а на телефоне это ещё и отнимает силы у расчёта.
+          // По готовности продолжаем ровно с того места, где остановились. Как на LeebTTS.
+          const былоМесто = место();
+          const игралоДо = остановитьНаВремяРасчёта();
+          // Модель уже лежит в браузере -- не пугаем человека мегабайтами и словом «скачиваем»:
+          // на деле она только готовится к работе (владелец 24.08.2026).
+          const ужеЕсть = await модельУжеСкачана(выбор);
+          ход(ужеЕсть ? labels.stemsPreparingLabel
+            : (labels.stemsFirstTimeLabel || '').replace('{mb}', МОДЕЛИ[выбор].мб), 0);
           const пара = await разделить(sourceBuffer, выбор, {
             onЗагрузка: (p) => ход(labels.stemsDownloadingLabel + ' · ' + Math.round(p * 100) + '%', p),
             onСчёт: (p) => ход(labels.stemsWorkingLabel + ' · ' + Math.round(p * 100) + '%', p),
@@ -2228,10 +2269,10 @@ const ICO = {
           if (мойСчёт !== счёт || !пара) return;
           посчитано[выбор] = пара;
           ход(готово(), null);
-          показать(пара);
+          показать(пара, былоМесто, игралоДо);
         } catch (e) {
           if (мойСчёт !== счёт) return;
-          способ = null; видСпособа(); ход('', null); подсказка('', false);
+          способ = null; видСпособа(); ход('', null); подсказка('');
           const код = (e && e.message) || '';
           showError(код.startsWith('НУЖЕН_КОМПЬЮТЕР') ? labels.stemsPcOnlyLabel : labels.stemsFailedLabel);
         }
@@ -2292,12 +2333,13 @@ const ICO = {
           const пара = { музыка: м, голос: г };
           if (способ) посчитано[способ] = пара;
           ход(готово(), null);
-          показать(пара);
+          показать(пара, 0, false);
         }
       })();
 
       числоСилы.textContent = ползунокСилы.value + '%';
       видСпособа();
+      предупредитьПроПК();
     }
 
     // ---- Микрофон на первом экране (изменить голос) ------------------------------------------
@@ -4275,7 +4317,7 @@ function элПлеер() {
       if (wavePlayIco) { wavePlayIco.innerHTML = ICO_PAUSE; wavePlayIco.closest('.tp-btn')?.classList.add('is-playing'); }
       abPlayingWhich = which;
       abPlayingBuffer = buf;
-      if (transportDurEl) transportDurEl.textContent = fmtClock(buf.duration);
+      if (transportDurEl) { transportDurEl.textContent = fmtClock(buf.duration); transportDurEl.hidden = false; }
       player.play(
         buf,
         (frac) => {
@@ -5195,8 +5237,8 @@ function элПлеер() {
       // здесь, а не в путях загрузки файла: у микшера отдельного исходного файла нет вовсе,
       // и все те пути его не касаются -- кнопка оставалась заблокированной при готовом миксе.
       if (wavePlayBtn) wavePlayBtn.disabled = false;
-      if (transportDurEl) transportDurEl.textContent = fmtClock(buffer.duration);
-      if (transportCurEl) transportCurEl.textContent = '0:00';
+      if (transportDurEl) { transportDurEl.textContent = fmtClock(buffer.duration); transportDurEl.hidden = false; }
+      if (transportCurEl) { transportCurEl.textContent = '0:00'; transportCurEl.hidden = false; }
     }
 
     if (listenBtn) {

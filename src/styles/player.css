@@ -38,16 +38,18 @@
 .midi-tool .wave-shell.compact .fileinfo,
 .stt-tool .wave-shell.compact .fileinfo {
   margin: 0;
-  padding: 9px 12px;
+  /* Высота строки = высота имени плюс волосок воздуха. Раньше она была вдвое толще самого
+     имени и утяжеляла всю панель сверху. */
+  padding: 4px 10px;
   background: none;
   border: none;
   border-bottom: 1px solid rgba(255, 255, 255, 0.06);
   border-radius: 0;
-  font-size: 13px;
+  font-size: 12.5px;
 }
 .audio-tool .wave-shell.compact .fi-row,
 .midi-tool .wave-shell.compact .fi-row,
-.stt-tool .wave-shell.compact .fi-row { display: flex; align-items: center; gap: 9px; }
+.stt-tool .wave-shell.compact .fi-row { display: flex; align-items: center; gap: 8px; line-height: 1.5; }
 .audio-tool .wave-shell.compact .fi-ico,
 .midi-tool .wave-shell.compact .fi-ico,
 .stt-tool .wave-shell.compact .fi-ico { flex: none; color: var(--accent); opacity: .8; }
@@ -119,7 +121,7 @@
 .audio-tool .tp-btn,
 .midi-tool .tp-btn,
 .stt-tool .tp-btn {
-  flex: none; width: 34px; height: 34px; border-radius: 10px;
+  flex: none; width: 40px; height: 40px; border-radius: 11px;
   display: flex; align-items: center; justify-content: center; cursor: pointer;
   background: rgba(255, 255, 255, 0.035); border: 1px solid var(--line); color: var(--text);
   transition: background .18s, border-color .18s, color .18s, opacity .18s;
@@ -149,10 +151,12 @@
 .stt-tool .tp-btn:disabled { opacity: .3; cursor: not-allowed; }
 .audio-tool .tp-btn svg,
 .midi-tool .tp-btn svg,
-.stt-tool .tp-btn svg { width: 17px; height: 17px; }
+.stt-tool .tp-btn svg { width: 20px; height: 20px; }
+/* Сердцевина белая. Зелёный треугольник читался как «уже включено», а зелёный на тёмном
+   вдобавок теряет контраст на солнце. */
 .audio-tool .tp-play,
 .midi-tool .tp-play,
-.stt-tool .tp-play { color: var(--accent); }
+.stt-tool .tp-play { color: #fff; }
 
 /* Часы отделены чертой, как секции на приборе. Моноширинные: иначе при переходе с 0:09 на 0:10
    строка дёргается -- мусор, который не осознаётся, но оставляет ощущение дешевизны. */
@@ -161,42 +165,37 @@
 .stt-tool .tp-time {
   margin-left: 6px; padding-left: 12px; border-left: 1px solid var(--line);
   font-size: 13.5px; font-weight: 600; color: var(--text);
-  font-variant-numeric: tabular-nums; letter-spacing: .02em; line-height: 34px;
+  font-variant-numeric: tabular-nums; letter-spacing: .02em; line-height: 40px;
 }
+/* Общая длительность стоит рядом с текущим временем: из столбика сведений это единственное
+   число, за которым человек следит по ходу дела. */
 .audio-tool .tp-total,
 .midi-tool .tp-total,
-.stt-tool .tp-total { display: none; }
+.stt-tool .tp-total {
+  font-size: 13.5px; font-weight: 500; color: var(--muted);
+  font-variant-numeric: tabular-nums; line-height: 40px;
+}
+.audio-tool .tp-total::before,
+.midi-tool .tp-total::before,
+.stt-tool .tp-total::before { content: '/ '; opacity: .6; }
 
-/* --- Сведения о файле в ряду управления -----------------------------------------------------
-   Подпись сверху, значение снизу. В строку глаз каждый раз разбирал, где кончается подпись и
-   начинается значение: промежутки внутри пары и между парами были похожими. Значения негромкие --
-   это справка о файле, а не то, ради чего человек пришёл. */
-.audio-tool .transport .file-meta,
-.midi-tool .transport .file-meta,
-.stt-tool .transport .file-meta {
-  margin: 0 0 0 auto; padding: 0; border: none; background: none;
-  display: flex; flex-wrap: wrap; align-items: center; gap: 4px 22px; justify-content: flex-end;
+/* --- Место для предупреждений ---------------------------------------------------------------
+   Здесь раньше стоял столбик FORMAT / SIZE / TIME / RATE / CHAN. Он утолщал панель, на телефоне
+   переносился второй строкой и почти никогда не был нужен: формат человек и так знает, размер
+   ему безразличен, длительность теперь стоит рядом с часами. Освободившееся место отдано под
+   предупреждения -- их видно сразу, рядом с кнопкой, а не где-то ниже по странице. */
+.audio-tool .tp-note,
+.midi-tool .tp-note,
+.stt-tool .tp-note {
+  margin-left: auto; text-align: right; font-size: 12px; line-height: 1.3;
+  color: var(--muted); min-width: 0;
 }
-.audio-tool .transport .fm-item,
-.midi-tool .transport .fm-item,
-.stt-tool .transport .fm-item {
-  display: flex; flex-direction: column; align-items: flex-start; gap: 1px; line-height: 1.25;
-}
-.audio-tool .transport .fm-key,
-.midi-tool .transport .fm-key,
-.stt-tool .transport .fm-key {
-  font-size: 9px; letter-spacing: .08em; text-transform: uppercase; color: var(--muted); opacity: .75;
-}
-.audio-tool .transport .fm-val,
-.midi-tool .transport .fm-val,
-.stt-tool .transport .fm-val {
-  font-size: 11.5px; font-weight: 500; color: rgba(240, 240, 242, 0.88); font-variant-numeric: tabular-nums;
-}
+.audio-tool .tp-note.is-warn,
+.midi-tool .tp-note.is-warn,
+.stt-tool .tp-note.is-warn { color: #f2b8b5; font-weight: 600; }
 
 @media (max-width: 640px) {
-  /* Сведения прижаты вправо: они справочные, а левый край занят кнопками воспроизведения --
-     взгляд не должен спотыкаться о них по пути к плею. */
-  .audio-tool .transport .file-meta,
-  .midi-tool .transport .file-meta,
-  .stt-tool .transport .file-meta { margin-left: 0; width: 100%; justify-content: flex-end; gap: 8px 18px; }
+  .audio-tool .tp-note,
+  .midi-tool .tp-note,
+  .stt-tool .tp-note { font-size: 11.5px; }
 }
