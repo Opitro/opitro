@@ -792,7 +792,13 @@ const ICO = {
         Место под ход работы и ползунок держится всегда: их появление ничего не сдвигает. */}
     {controls === 'stems' && (
       <div class="st-tool">
-        <div class="st-label">{config.stemKeep === 'music' ? labels.stemsRemoveVocalLabel : labels.stemsRemoveMusicLabel}</div>
+        {/* Заголовок и подсказка стоят одной строкой НАД кнопками: и «нажмите ещё раз», и
+            «только на ПК» относятся к кнопкам, а строка хода работы идёт ниже -- туда
+            предупреждение не годится, его там ищут глазами уже после нажатия. */}
+        <div class="st-head">
+          <div class="st-label">{config.stemKeep === 'music' ? labels.stemsRemoveVocalLabel : labels.stemsRemoveMusicLabel}</div>
+          <div class="st-hint" id="st-hint"></div>
+        </div>
         <div class="st-ways" id="st-ways" role="group">
           <button type="button" class="st-way" data-way="browser">{labels.stemsBrowserLabel}</button>
           <button type="button" class="st-way" data-way="light">{labels.stemsNeuralLabel}</button>
@@ -800,7 +806,7 @@ const ICO = {
         </div>
         <div class="st-run">
           <div class="st-run-text" id="st-run-text"></div>
-          <div class="st-bar"><i id="st-bar-fill"></i></div>
+          <div class="st-bar" id="st-bar"><i id="st-bar-fill"></i></div>
         </div>
         <div class="st-power" id="st-power">
           <span class="st-power-name">{labels.stemsPowerLabel}</span>
@@ -2099,6 +2105,8 @@ const ICO = {
       const рядСпособов = root.querySelector('#st-ways');
       const строкаХода = root.querySelector('#st-run-text');
       const полосаХода = root.querySelector('#st-bar-fill');
+      const рамкаПолосы = root.querySelector('#st-bar');
+      const полеПодсказки = root.querySelector('#st-hint');
       const блокСилы = root.querySelector('#st-power');
       const ползунокСилы = root.querySelector('#st-power-slider');
       const числоСилы = root.querySelector('#st-power-val');
@@ -2119,9 +2127,17 @@ const ICO = {
         for (let i = 0; i < L.length; i += шаг) разница += Math.abs(L[i] - R[i]);
         return разница / Math.ceil(L.length / шаг) < 1e-4;
       }
+      // Полоса нужна ТОЛЬКО пока идёт работа. Кончилась -- зелёного больше нет, остаётся
+      // словами сказанный итог: «Вокал удалён». Владелец 24.08.2026.
       function ход(текст, доля) {
         строкаХода.textContent = текст || '';
+        рамкаПолосы.style.visibility = доля == null ? 'hidden' : 'visible';
         полосаХода.style.width = доля == null ? '0%' : Math.round(доля * 100) + '%';
+      }
+      const готово = () => (config.stemKeep === 'music' ? labels.stemsDoneVocalLabel : labels.stemsDoneMusicLabel);
+      function подсказка(текст, тревога) {
+        полеПодсказки.textContent = текст || '';
+        полеПодсказки.classList.toggle('is-warn', !!тревога);
       }
       function видСпособа() {
         кнопки.forEach((к) => к.classList.toggle('is-on', к.dataset.way === способ));
@@ -2167,12 +2183,13 @@ const ICO = {
       }
       function показать(пара) {
         дорожки = пара;
+        подсказка(labels.stemsAgainHintLabel, false);
         отдать(config.stemKeep === 'music' ? пара.музыка : пара.голос, место());
       }
       function вернутьИсходник() {
         const где = место();
         способ = null; дорожки = null; видСпособа();
-        ход('', null);
+        ход('', null); подсказка('', false);
         if (!sourceBuffer) return;
         отдать(sourceBuffer, где);
       }
@@ -2183,7 +2200,7 @@ const ICO = {
         способ = выбор; видСпособа(); clearError();
         // Уже считали этим способом -- показываем готовое мгновенно, без повторного счёта.
         if (посчитано[выбор]) {
-          ход(labels.stemsReadyLabel, 1);
+          ход(готово(), null);
           показать(посчитано[выбор]);
           return;
         }
@@ -2191,12 +2208,13 @@ const ICO = {
           if (выбор === 'browser') {
             // Каналы одинаковые -- вычитать нечего, на полной силе выйдет тишина. Говорим об
             // этом сразу, а не даём человеку слушать пустоту и думать, что сломалось.
-            ход(моноФайл() ? labels.vocalMonoNote : '', null);
+            ход(моноФайл() ? labels.vocalMonoNote : готово(), null);
             показать(браузером(sourceBuffer, Number(ползунокСилы.value) || 100));
             return;
           }
           const { разделить, МОДЕЛИ, естьВидеокарта } = await import('../lib/stem-split.js');
           if (выбор === 'heavy' && !естьВидеокарта()) {
+            подсказка(labels.stemsPcOnlyShortLabel, true);
             ход(labels.stemsPcOnlyLabel, null);
             способ = null; видСпособа();
             return;
@@ -2209,11 +2227,11 @@ const ICO = {
           });
           if (мойСчёт !== счёт || !пара) return;
           посчитано[выбор] = пара;
-          ход(labels.stemsReadyLabel, 1);
+          ход(готово(), null);
           показать(пара);
         } catch (e) {
           if (мойСчёт !== счёт) return;
-          способ = null; видСпособа(); ход('', null);
+          способ = null; видСпособа(); ход('', null); подсказка('', false);
           const код = (e && e.message) || '';
           showError(код.startsWith('НУЖЕН_КОМПЬЮТЕР') ? labels.stemsPcOnlyLabel : labels.stemsFailedLabel);
         }
@@ -2268,8 +2286,13 @@ const ICO = {
           ]);
           способ = работа.способ || null;
           видСпособа();
-          ход(labels.stemsReadyLabel, 1);
-          показать({ музыка: м, голос: г });
+          // Готовое кладём В ЗАПАС ПОД ТЕМ ЖЕ СПОСОБОМ. Без этого повторное нажатие на
+          // соседней странице снова качало модель и считало заново -- при том, что результат
+          // уже приехал вместе с файлом (владелец 24.08.2026).
+          const пара = { музыка: м, голос: г };
+          if (способ) посчитано[способ] = пара;
+          ход(готово(), null);
+          показать(пара);
         }
       })();
 

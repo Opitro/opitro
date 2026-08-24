@@ -32,7 +32,7 @@ Upload a song and pick a method. The result plays straight away, and pressing th
 
 - **Browser** — instant, nothing to download. Cancels the middle of the stereo image, where the voice usually sits. Strength is set by a slider.
 - **Neural** — real separation of voice and music. A 38 MB model downloads once and stays in your browser.
-- **Neural Pro** — the same, noticeably cleaner on dense mixes. Runs on a computer.
+- **Neural Pro** — the same, noticeably cleaner on dense mixes. Runs on a computer only.
 
 ## Worth knowing
 

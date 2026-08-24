@@ -28,7 +28,7 @@ Sube una canción y elige un método. El resultado suena enseguida, y pulsar el 
 
 - **Navegador** — instantáneo, sin descargas. Extrae el centro de la imagen estéreo, donde suele estar la voz. Con control de fuerza.
 - **Red neuronal** — separación real. Un modelo de 38 MB se descarga una vez y se queda en el navegador.
-- **Red neuronal Pro** — lo mismo, bastante más limpio en mezclas densas. Funciona en ordenador.
+- **Red neuronal Pro** — lo mismo, bastante más limpio en mezclas densas. Funciona solo en ordenador.
 
 ## Conviene saber
 
