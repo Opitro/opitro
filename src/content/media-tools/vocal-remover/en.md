@@ -6,7 +6,7 @@ tool: vocal-remover
 title: Remove Vocals from a Song Online — Free Karaoke Track
 h1: Remove Vocals from a Song
 navName: Remove vocals
-description: Take the voice out of a track and get a karaoke version. Runs in your browser, no sign-up, nothing uploaded to a server. Hear the result before you download it.
+description: "Remove the vocals from a song and keep the backing track: three methods, from instant to a neural network. Everything runs in your browser, nothing is uploaded."
 faq:
   - question: How does this work with no AI?
     answer: In most studio recordings the vocal sits dead centre — identical in the left and right channels. Subtract one channel from the other and anything centred cancels itself out. No model is needed for that; it's arithmetic on two tracks.
@@ -26,13 +26,14 @@ related:
   - trim-audio
 ---
 
-Load a track and press play — you'll hear the result immediately. The method doesn't work on every song, so listening first isn't optional here.
+Upload a song and pick a method. The result plays straight away, and pressing the same method again brings the original back.
 
-## What it's good for
+## Three methods
 
-- **A karaoke backing track** from a song you like
-- **Practising along** — singing or playing over it without the original voice
-- **Study** — picking an arrangement apart, hearing what sits behind the vocal
-- **A starting point for a remix**
+- **Browser** — instant, nothing to download. Cancels the middle of the stereo image, where the voice usually sits. Strength is set by a slider.
+- **Neural** — real separation of voice and music. A 38 MB model downloads once and stays in your browser.
+- **Neural Pro** — the same, noticeably cleaner on dense mixes. Runs on a computer.
 
-Straight about the method: this is channel subtraction, not neural separation. On tidy studio recordings it does a decent job; on modern wide mixes it often does nothing useful. There's no telling in advance, which is why you listen.
+## Worth knowing
+
+Everything is computed on your device: neither the song nor the result is sent anywhere. Download as WAV, MP3 or OGG. Need the voice instead of the backing track — the [remove the music](/en/remove-music) button is next to the download, and your file travels there with you.

@@ -1667,63 +1667,43 @@ export const AUDIO_TOOLS = {
       return gain;
     },
   },
+  // УБРАТЬ ГОЛОС и УБРАТЬ МУЗЫКУ -- две страницы под два разных запроса, но инструмент один:
+  // расчёт даёт СРАЗУ ОБЕ дорожки, поэтому со страницы на страницу переходят и файл, и уже
+  // готовый результат (см. handoff.js). `stemKeep` говорит, какую половину показывать здесь.
   'vocal-remover': {
-    // Кнопки вместо выпадающего списка. Слово «рекомендуется» в кнопку не влезает, поэтому
-    // выносим его подписью ПОД кнопкой -- владелец 17.08.2026: «где текст, если не влезет,
-    // то рекомендуется прямо под кнопкой напиши».
-    selectAsChips: true,
-    chipHints: [
-      { value: 'keepbass', label: 'vocalKeepBassLabel', hint: 'vocalKeepBassHint' },
-      { value: 'full', label: 'vocalFullLabel', hint: 'vocalFullHint' },
-    ],
+    // Обычный проигрыватель: результат готовый, живых ручек нет -- значит слышно ровно то,
+    // что скачается, и без пересборки на каждое движение.
+    elementPlayback: true,
+    controls: 'stems',
+    stemKeep: 'music',          // остаётся минусовка
+    stemOther: 'remove-music', // куда ведёт кнопка перехода
     compactPreview: true,
     transport: true,
-    renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     engine: 'webaudio',
-    controls: 'select',
     accept: 'audio/*',
-    selectLabel: 'vocalModeLabel',
-    selectOptions: [
-      { value: 'keepbass', label: 'vocalKeepBassLabel' },
-      { value: 'full', label: 'vocalFullLabel' },
-    ],
-    // Nothing to subtract in a mono file -- the method needs two channels that differ.
-    note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels < 2 ? labels.vocalMonoNote : ''),
-    directRender: (buffer, { value }) => {
-      const sr = buffer.sampleRate;
-      const n = buffer.length;
-      const L = buffer.getChannelData(0);
-      const R = buffer.numberOfChannels > 1 ? buffer.getChannelData(1) : L;
-      const out = new AudioBuffer({ numberOfChannels: 1, length: n, sampleRate: sr });
-      const dst = out.getChannelData(0);
-      // Anything panned dead centre cancels when the channels are subtracted -- which is usually
-      // the lead vocal, but also the bass and the kick. Keeping the low end from the summed
-      // signal and taking only the highs from the difference leaves the track with a bottom.
-      const keepBass = value !== 'full';
-      const cutoff = 200;
-      const k = Math.exp(-2 * Math.PI * cutoff / sr);
-      // Three one-pole stages, not one. A single pole only rolls off 6 dB/octave, so the vocal
-      // -- centred, and therefore surviving only through the bass path -- leaked back in at
-      // about -11 dB, which is audible. Measured on a test mix: one pole took a 0.350 vocal down
-      // to 0.096; three take it far lower while 60 Hz bass, well below the corner, still passes.
-      const m = [0, 0, 0];
-      const sd = [0, 0, 0];
-      for (let i = 0; i < n; i++) {
-        const mid = (L[i] + R[i]) / 2;
-        const side = (L[i] - R[i]) / 2;
-        if (!keepBass) { dst[i] = Math.max(-1, Math.min(1, side * 2)); continue; }
-        let mv = mid, sv = side;
-        for (let j = 0; j < 3; j++) {
-          m[j] = mv * (1 - k) + m[j] * k; mv = m[j];
-          sd[j] = sv * (1 - k) + sd[j] * k; sv = sd[j];
-        }
-        dst[i] = Math.max(-1, Math.min(1, (side - sv) * 2 + mv));
-      }
-      return out;
-    },
+    // Вычитание середины: мгновенно и без загрузок. Сила задаётся ползунком -- на полной
+    // мощности из плотных сведений вместе с голосом уходит половина музыки.
+    monoNote: 'vocalMonoNote',
   },
+
+  'remove-music': {
+    // Обычный проигрыватель: результат готовый, живых ручек нет -- значит слышно ровно то,
+    // что скачается, и без пересборки на каждое движение.
+    elementPlayback: true,
+    controls: 'stems',
+    stemKeep: 'vocals',         // остаётся голос
+    stemOther: 'vocal-remover',
+    compactPreview: true,
+    transport: true,
+    exportDeck: true,
+    downloadFormats: ['wav', 'mp3', 'ogg'],
+    engine: 'webaudio',
+    accept: 'audio/*',
+    monoNote: 'vocalMonoNote',
+  },
+
   // ШУМОМЕР. Показывает оценку громкости вокруг в децибелах. Точного числа браузер дать не
   // может: чувствительность микрофона неизвестна, поэтому берём общепринятую поправку и прямо
   // пишем на странице, что это оценка ±10 дБ. Главное на экране -- крупное число и понятное
