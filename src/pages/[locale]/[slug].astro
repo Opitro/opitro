@@ -7,9 +7,11 @@ import AudioTool from '../../components/AudioTool.astro';
 import AudioToMidi from '../../components/AudioToMidi.astro';
 import SpeechToText from '../../components/SpeechToText.astro';
 import AudioEditor from '../../components/AudioEditor.astro';
-// «Отделить вокал от музыки» -- своя страница со своим кодом и стилями: у неё на выходе ДВЕ
-// дорожки сразу, чего общий компонент не умеет, и правки в ней не касаются соседей.
-import SplitVocal from '../../components/SplitVocal.astro';
+// Три страницы разделения дорожек -- на своём компоненте со своими стилями: у них
+// накапливается несколько результатов, каждый со своим воспроизведением и скачиванием, чего
+// общий компонент не умеет. Правки в нём не касаются остальных инструментов.
+import StemTool from '../../components/StemTool.astro';
+const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
 // каждый следующий -- только после того, как предыдущий проверен живьём.
@@ -252,11 +254,11 @@ const wideLayout = kind === 'media';
     {kind === 'media' && EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioEditor tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
-    {kind === 'media' && entry.data.tool === 'split-vocal' && (
-      <SplitVocal locale={entry.data.locale} />
+    {kind === 'media' && РАЗДЕЛЕНИЕ[entry.data.tool] && (
+      <StemTool locale={entry.data.locale} режим={РАЗДЕЛЕНИЕ[entry.data.tool]} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'split-vocal'].includes(entry.data.tool)
-      && !EDITOR_TOOLS.includes(entry.data.tool) && (
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool)
+      && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
   </div>

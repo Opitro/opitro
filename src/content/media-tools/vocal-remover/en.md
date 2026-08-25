@@ -26,14 +26,14 @@ related:
   - trim-audio
 ---
 
-Upload a song and pick a method. The result plays straight away, and pressing the same method again brings the original back.
+Upload a song and press “Remove the vocals” — “Standard” starts straight away and the backing track appears below as its own row. Not what you wanted? Pick another method: the newest result goes on top and the earlier ones stay below, so you can compare them by ear.
 
 ## Three methods
 
-- **Browser** — instant, nothing to download. Cancels the middle of the stereo image, where the voice usually sits. Strength is set by a slider.
-- **Neural** — real separation of voice and music. A 38 MB model downloads once and stays in your browser.
-- **Neural Pro** — the best result there is. Runs on a computer only.
+- **Fast** — instant, nothing to download. Cancels the middle of the stereo image, where the voice usually sits; a slider sets the subtraction strength.
+- **Standard** — the neural network, the usual choice. A 38 MB model downloads once and stays in your browser.
+- **Best** — the best result there is. Runs on a computer only.
 
 ## Worth knowing
 
-Everything is computed on your device: neither the song nor the result is sent anywhere. Download as WAV, MP3 or OGG. Need the voice instead of the backing track — the [remove the music](/en/remove-music) button is next to the download, and your file travels there with you.
+Everything is computed on your device: neither the song nor the result is sent anywhere. Every finished track has its own play button and its own download button — MP3 or WAV. Need the voice instead of the backing, [remove the music](/en/remove-music) is next door; if you need both tracks at once, [separate vocals from music](/en/split-vocal) does it in one pass. Your file and everything already computed travel with you.

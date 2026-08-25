@@ -1,8 +1,12 @@
-/* СТИЛИ СТРАНИЦЫ «ОТДЕЛИТЬ ВОКАЛ ОТ МУЗЫКИ».
+/* СТИЛИ ТРЁХ СТРАНИЦ РАЗДЕЛЕНИЯ ДОРОЖЕК: «отделить вокал от музыки», «убрать вокал»,
+ * «убрать музыку».
  *
- * Файл принадлежит одной странице и подключается только ею. Общие стили звуковых инструментов
+ * Файл принадлежит только этим трём страницам и подключается только ими. Общие стили звуковых инструментов
  * сюда не приходят и отсюда не уходят: правка здесь не может задеть ни один соседний
  * инструмент, а их на сайте под сорок. Ради этого и выбран Astro.
+ *
+ * Три страницы -- один инструмент с разным выходом: там две дорожки, тут одна. Поэтому и
+ * компонент один: разница в том, что показывать, а не в том, как это устроено.
  *
  * Устройство простое: дорожка -- это ряд «кнопка | волна | действие». Такой ряд один и тот же
  * для исходника и для результатов, поэтому глазу не нужно учить второй вид.
@@ -47,9 +51,13 @@
   font-weight: 700; pointer-events: none; display: flex; align-items: center; gap: 6px;
   background: rgba(10,11,13,.52); border-radius: 7px; padding: 3px 9px 3px 7px }
 .sv .tlabel svg { width: 14px; height: 14px; flex: none; display: block }
-.sv .tmethod { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 11px;
-  color: rgba(214,219,230,.5); pointer-events: none; background: rgba(10,11,13,.45);
-  border-radius: 6px; padding: 2px 7px }
+/* Каким способом посчитана дорожка -- надпись читаемая, а не служебная мелочь: когда на
+   странице лежат три варианта, это единственное, что их различает. */
+.sv .tmethod { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 12px;
+  font-weight: 700; letter-spacing: .01em; color: rgba(236,240,247,.92); pointer-events: none;
+  background: rgba(10,11,13,.72); border: 1px solid rgba(255,255,255,.12);
+  border-radius: 7px; padding: 3px 9px }
+@media(max-width:640px){ .sv .tmethod { font-size: 11.5px; padding: 2px 7px } }
 .sv .trk.voice .tlabel, .sv .trk.voice .tside { color: var(--voice) }
 .sv .trk.music .tlabel, .sv .trk.music .tside { color: var(--music) }
 .sv .tside { flex: none; width: 46px; border: 0; border-left: 1px solid var(--line); background: #191d24;
@@ -193,3 +201,32 @@
   .sv .sv-chips { gap: 2px; padding: 2px }
   .sv .chip { font-size: 11.5px; padding: 0 2px }
 }
+
+/* --- Сила вычитания: только у «Лёгкой» ------------------------------------------------------
+   Когда способ другой, ползунок гаснет целиком -- рабочий на вид орган, который ни на что не
+   влияет, хуже отсутствующего. */
+.sv .sv-power { display: block; padding: 9px 14px 12px; border: 1px solid var(--line);
+  background: var(--surface-2); border-radius: 12px; margin-bottom: 12px }
+.sv .sv-power .caps { display: flex; align-items: baseline; justify-content: space-between;
+  gap: 12px; margin-bottom: 2px }
+.sv .sv-power .lbl { font-size: 13px; color: var(--muted) }
+.sv .sv-power b { font-size: 13px; color: var(--accent); font-variant-numeric: tabular-nums; white-space: nowrap }
+.sv .sv-power .wrap { position: relative; width: 100%; display: flex; align-items: center; height: 26px }
+.sv .sv-power input[type=range] { -webkit-appearance: none; appearance: none; width: 100%; min-width: 0;
+  height: 26px; background: transparent; cursor: pointer; margin: 0; touch-action: none }
+.sv .sv-power input[type=range]::-webkit-slider-runnable-track { height: 6px; border-radius: 99px;
+  background: linear-gradient(to right, var(--accent) var(--p,100%), rgba(255,255,255,.13) var(--p,100%)) }
+.sv .sv-power input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 20px; height: 20px;
+  border-radius: 50%; background: #fff; margin-top: -7px; box-shadow: 0 1px 5px rgba(0,0,0,.55) }
+.sv .sv-power input[type=range]::-moz-range-track { height: 6px; border-radius: 99px; background: rgba(255,255,255,.13) }
+.sv .sv-power input[type=range]::-moz-range-progress { height: 6px; border-radius: 99px; background: var(--accent) }
+.sv .sv-power input[type=range]::-moz-range-thumb { width: 20px; height: 20px; border: 0; border-radius: 50%; background: #fff }
+.sv .sv-power.off { opacity: .42 }
+.sv .sv-power.off b { color: var(--muted) }
+.sv .sv-power input[type=range]:disabled { cursor: default }
+.sv .sv-power input[type=range]:disabled::-webkit-slider-runnable-track {
+  background: linear-gradient(to right, rgba(255,255,255,.28) var(--p,100%), rgba(255,255,255,.10) var(--p,100%)) }
+.sv .sv-power input[type=range]:disabled::-webkit-slider-thumb { background: #8b909b; box-shadow: none }
+.sv .sv-power input[type=range]:disabled::-moz-range-progress { background: rgba(255,255,255,.28) }
+.sv .sv-power input[type=range]:disabled::-moz-range-thumb { background: #8b909b }
+@media(max-width:640px){ .sv .sv-power { padding: 8px 10px 10px } }

@@ -1,20 +1,27 @@
 ---
-// ОТДЕЛИТЬ ВОКАЛ ОТ МУЗЫКИ -- отдельная страница со своим кодом и своими стилями.
+// РАЗДЕЛЕНИЕ ДОРОЖЕК -- три страницы на одном компоненте.
 //
-// Почему не ветка в общем AudioTool: там инструмент устроен как «один звук на входе, один на
-// выходе», а здесь на выходе ДВЕ дорожки, и обе нужны одновременно -- слушать вперемежку и
-// скачивать по отдельности. Втискивание этого в общий компонент означало бы новые ветки в
-// файле, который читают почти сорок страниц. Своя страница -- свой файл: правка здесь не может
-// задеть соседей, и проверять после неё нужно только эту страницу.
+//   режим 'split'  -- «отделить вокал от музыки»: на выходе обе дорожки;
+//   режим 'music'  -- «убрать вокал»: остаётся минусовка;
+//   режим 'voice'  -- «убрать музыку»: остаётся голос.
 //
-// Из общего берётся только то, что и должно быть общим: расчёт разделения (lib/stem-split.js),
-// определение «это компьютер?» (lib/pc-only.js) и держатель звуковой сессии для iOS.
-import css from '../styles/split-vocal.css?inline';
+// Это один инструмент с разным выходом, поэтому и компонент один: разница в том, ЧТО показать,
+// а не в том, как оно устроено. Общий AudioTool сюда не годится -- он рассчитан на «один звук
+// на входе, один на выходе», а здесь результаты накапливаются, и каждый нужно слушать и
+// скачивать отдельно.
+//
+// Файл принадлежит только этим трём страницам: правка здесь не может задеть остальные сорок
+// звуковых инструментов -- ради этого он и вынесен.
+//
+// Из общего берётся только то, что и должно быть общим: расчёт (lib/stem-split.js), определение
+// «это компьютер?» (lib/pc-only.js), передача работы на соседнюю страницу (lib/handoff.js) и
+// держатель звуковой сессии для iOS.
+import css from '../styles/stem-tool.css?inline';
 
-const { locale = 'ru' } = Astro.props;
+const { locale = 'ru', режим = 'split' } = Astro.props;
 
-// Слова страницы лежат здесь же. Это сознательно: страница ни от чего не зависит, и добавление
-// пятого языка не требует трогать общий словарь, который читают все инструменты сайта.
+// Слова страниц лежат здесь же. Это сознательно: страницы ни от чего не зависят, и пятый язык
+// не потребует трогать общий словарь, который читают все инструменты сайта.
 const СЛОВА = {
   ru: {
     dropBig: 'Загрузите песню', dropSmall: 'MP3, WAV, M4A, OGG — нужен стереофайл',
@@ -40,6 +47,25 @@ const СЛОВА = {
     note: 'Всё считается прямо в браузере — песня не уходит на сервер. Скачайте дорожки до перехода на другую страницу: при уходе звук выгружается из памяти.',
     gone: 'Звук выгружен ради памяти телефона — загрузите файл заново',
     crossT: 'Нужна только минусовка?', crossS: 'Отдельная страница — без лишней дорожки',
+    quick: 'Лёгкая',
+    bigSplit: 'Разделить',
+    bigMusic: 'Убрать вокал',
+    bigVoice: 'Убрать музыку',
+    power: 'Сила вычитания',
+    hintPick3: '<b>Лёгкая</b> — мгновенно, без загрузки.<br><b>Основная</b> — нейросеть, обычный выбор.<br><b>Лучшая</b> — точнее, <em>только на компьютере</em>.',
+    hintDone1: 'Не подошло — попробуйте другой способ, новый результат встанет сверху.',
+    quickMono: '«Лёгкая» работает только со стереофайлом',
+    lineMusic: '<b>Убираем</b> вокал',
+    lineVoice: '<b>Убираем</b> музыку',
+    lineDone1: 'Готово вариантов: <b>{n}</b> — слушайте и скачивайте',
+    tipDone1: 'Можно посчитать другим способом и сравнить',
+    tipMono2: '«Лёгкая» не сработает — нужны два канала; нейросети справятся',
+    crossSplitT: 'Нужны обе дорожки сразу?',
+    crossSplitS: 'Разделить песню на голос и музыку за один проход',
+    crossMusicT: 'Нужна минусовка?',
+    crossMusicS: 'Та же песня, но останется музыка',
+    crossVoiceT: 'Нужен только голос?',
+    crossVoiceS: 'Та же песня, но останется вокал',
     mono: 'моно', stereo: 'стерео', chans: 'канала',
   },
   en: {
@@ -66,6 +92,25 @@ const СЛОВА = {
     note: 'Everything runs in your browser — the song never goes to a server. Download the tracks before leaving: the audio is dropped from memory when you go.',
     gone: 'Audio was dropped to save phone memory — upload the file again',
     crossT: 'Only need the backing track?', crossS: 'A separate page — without the extra track',
+    quick: 'Fast',
+    bigSplit: 'Split',
+    bigMusic: 'Remove the vocals',
+    bigVoice: 'Remove the music',
+    power: 'Subtraction strength',
+    hintPick3: '<b>Fast</b> — instant, nothing to download.<br><b>Standard</b> — the neural network, the usual choice.<br><b>Best</b> — sharper, <em>computer only</em>.',
+    hintDone1: 'Not what you wanted? Try another method — the newest result goes on top.',
+    quickMono: '“Fast” needs a stereo file',
+    lineMusic: '<b>Removing</b> the vocals',
+    lineVoice: '<b>Removing</b> the music',
+    lineDone1: 'Results ready: <b>{n}</b> — listen and download',
+    tipDone1: 'You can run another method and compare',
+    tipMono2: '“Fast” will not work — it needs two channels; the neural methods will',
+    crossSplitT: 'Need both tracks at once?',
+    crossSplitS: 'Split the song into voice and music in one pass',
+    crossMusicT: 'Need the backing track?',
+    crossMusicS: 'Same song, the music stays',
+    crossVoiceT: 'Need the voice only?',
+    crossVoiceS: 'Same song, the vocal stays',
     mono: 'mono', stereo: 'stereo', chans: 'channels',
   },
   es: {
@@ -92,6 +137,25 @@ const СЛОВА = {
     note: 'Todo se calcula en tu navegador: la canción no sale a ningún servidor. Descarga las pistas antes de irte: al salir el audio se libera de la memoria.',
     gone: 'El audio se liberó para ahorrar memoria — vuelve a subir el archivo',
     crossT: '¿Solo quieres la base?', crossS: 'Una página aparte — sin la pista de más',
+    quick: 'Rápida',
+    bigSplit: 'Separar',
+    bigMusic: 'Quitar la voz',
+    bigVoice: 'Quitar la música',
+    power: 'Fuerza de la resta',
+    hintPick3: '<b>Rápida</b> — al instante, sin descargas.<br><b>Normal</b> — la red neuronal, la opción de siempre.<br><b>La mejor</b> — más precisa, <em>solo en ordenador</em>.',
+    hintDone1: '¿No te convence? Prueba otro método: el nuevo resultado se coloca arriba.',
+    quickMono: '«Rápida» necesita un archivo estéreo',
+    lineMusic: '<b>Quitando</b> la voz',
+    lineVoice: '<b>Quitando</b> la música',
+    lineDone1: 'Resultados listos: <b>{n}</b> — escucha y descarga',
+    tipDone1: 'Puedes lanzar otro método y comparar',
+    tipMono2: '«Rápida» no servirá — necesita dos canales; las redes sí',
+    crossSplitT: '¿Quieres las dos pistas a la vez?',
+    crossSplitS: 'Separar la canción en voz y música de una pasada',
+    crossMusicT: '¿Quieres la base?',
+    crossMusicS: 'La misma canción, se queda la música',
+    crossVoiceT: '¿Quieres solo la voz?',
+    crossVoiceS: 'La misma canción, se queda la voz',
     mono: 'mono', stereo: 'estéreo', chans: 'canales',
   },
   uk: {
@@ -118,6 +182,25 @@ const СЛОВА = {
     note: 'Усе рахується просто в браузері — пісня не йде на сервер. Завантажте доріжки до переходу на іншу сторінку: при виході звук вивантажується з пам\'яті.',
     gone: 'Звук вивантажено заради пам\'яті телефона — завантажте файл заново',
     crossT: 'Потрібна лише мінусівка?', crossS: 'Окрема сторінка — без зайвої доріжки',
+    quick: 'Легка',
+    bigSplit: 'Розділити',
+    bigMusic: 'Прибрати вокал',
+    bigVoice: 'Прибрати музику',
+    power: 'Сила віднімання',
+    hintPick3: '<b>Легка</b> — миттєво, без завантаження.<br><b>Основна</b> — нейромережа, звичайний вибір.<br><b>Найкраща</b> — точніша, <em>лише на комп\'ютері</em>.',
+    hintDone1: 'Не підійшло — спробуйте інший спосіб, новий результат стане згори.',
+    quickMono: '«Легка» працює лише зі стереофайлом',
+    lineMusic: '<b>Прибираємо</b> вокал',
+    lineVoice: '<b>Прибираємо</b> музику',
+    lineDone1: 'Готово варіантів: <b>{n}</b> — слухайте й завантажуйте',
+    tipDone1: 'Можна порахувати іншим способом і порівняти',
+    tipMono2: '«Легка» не спрацює — потрібні два канали; нейромережі впораються',
+    crossSplitT: 'Потрібні обидві доріжки одразу?',
+    crossSplitS: 'Розділити пісню на голос і музику за один прохід',
+    crossMusicT: 'Потрібна мінусівка?',
+    crossMusicS: 'Та сама пісня, але залишиться музика',
+    crossVoiceT: 'Потрібен лише голос?',
+    crossVoiceS: 'Та сама пісня, але залишиться вокал',
     mono: 'моно', stereo: 'стерео', chans: 'канали',
   },
 };
@@ -126,7 +209,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <style is:inline set:html={css}></style>
 
-<div class="sv" data-locale={locale} data-words={JSON.stringify(с)}>
+<div class="sv" data-locale={locale} data-mode={режим} data-words={JSON.stringify(с)}>
   <div class="sv-drop" id="sv-drop">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
     <div class="big">{с.dropBig}</div>
@@ -153,10 +236,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="sv-meta" id="sv-metarow"></div>
     <div class="sv-frag" id="sv-frag"></div>
 
+    {/* Сначала одна кнопка: выбирать не из чего, пока ничего не сделано. По нажатию она
+        уступает место способам, а работа начинается сразу «Основной» -- она подходит почти
+        всем, и лишний выбор до первого результата только задерживает. */}
     <div class="sv-row" id="sv-controls">
       <span class="sv-cap" id="sv-cap" style="display:none">{с.method}</span>
-      <button class="sv-big" id="sv-start" type="button">{с.split}</button>
+      <button class="sv-big" id="sv-start" type="button">
+        {режим === 'split' ? с.bigSplit : режим === 'music' ? с.bigMusic : с.bigVoice}
+      </button>
       <div class="sv-chips" id="sv-chips" role="group" style="display:none">
+        {режим !== 'split' && <button class="chip" type="button" data-way="quick"><span>{с.quick}</span></button>}
         <button class="chip" type="button" data-way="light"><span>{с.light}</span></button>
         <button class="chip" type="button" data-way="heavy"><span>{с.heavy}</span></button>
       </div>
@@ -172,6 +261,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       </div>
     </div>
 
+    {режим !== 'split' && (
+      <div class="sv-power off" id="sv-power">
+        <div class="caps"><span class="lbl">{с.power}</span><b id="sv-power-val">100%</b></div>
+        <div class="wrap"><input type="range" id="sv-power-sl" min="0" max="100" step="5" value="100" aria-label={с.power} disabled></div>
+      </div>
+    )}
+
     <div id="sv-results"></div>
     <select class="sv-fmt" id="sv-format" style="display:none" aria-label="WAV / MP3">
       <option value="mp3">MP3</option>
@@ -181,11 +277,29 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="sv-status" id="sv-status"></div>
     <div class="sv-err" id="sv-error"></div>
     <div class="sv-note">{с.note}</div>
-    <a class="sv-cross" href={`/${locale}/vocal-remover`}>
-      <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h4l3-9 3 14 3-9h3"/></svg></span>
-      <span class="cb-txt"><span class="cb-t">{с.crossT}</span><span class="cb-s">{с.crossS}</span></span>
-      <span class="cb-go" aria-hidden="true">→</span>
-    </a>
+    {/* Переходы на соседние страницы. Работа едет вместе с переходом: файл и всё, что уже
+        посчитано, -- считать одно и то же дважды человек не должен. */}
+    {режим !== 'music' && (
+      <a class="sv-cross sv-go" href={`/${locale}/vocal-remover`}>
+        <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M4 17h4l3-9 3 14 3-9h3"/></svg></span>
+        <span class="cb-txt"><span class="cb-t">{с.crossMusicT}</span><span class="cb-s">{с.crossMusicS}</span></span>
+        <span class="cb-go" aria-hidden="true">→</span>
+      </a>
+    )}
+    {режим !== 'voice' && (
+      <a class="sv-cross sv-go" href={`/${locale}/remove-music`}>
+        <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><rect x="9" y="2" width="6" height="11" rx="3"/><path d="M5 10a7 7 0 0 0 14 0"/><path d="M12 17v4"/></svg></span>
+        <span class="cb-txt"><span class="cb-t">{с.crossVoiceT}</span><span class="cb-s">{с.crossVoiceS}</span></span>
+        <span class="cb-go" aria-hidden="true">→</span>
+      </a>
+    )}
+    {режим !== 'split' && (
+      <a class="sv-cross sv-go" href={`/${locale}/split-vocal`}>
+        <span class="cb-ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round"><path d="M12 3v6M12 15v6M5 12H3M21 12h-2"/><circle cx="12" cy="12" r="3"/></svg></span>
+        <span class="cb-txt"><span class="cb-t">{с.crossSplitT}</span><span class="cb-s">{с.crossSplitS}</span></span>
+        <span class="cb-go" aria-hidden="true">→</span>
+      </a>
+    )}
   </div>
 </div>
 
@@ -209,7 +323,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       music: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M9 18V5l10-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="16" cy="16" r="3"/></svg>',
     };
     const ЦВЕТ = { src: 'rgba(74,222,158,.5)', voice: 'rgba(74,222,158,.55)', music: 'rgba(121,184,255,.55)' };
-    const ИМЯ = { light: с.light, heavy: с.heavy };
+    const ИМЯ = { quick: с.quick, light: с.light, heavy: с.heavy };
+    const режим = корень.dataset.mode || 'split';
+    // Что показываем из посчитанной пары: на «разделить» -- обе дорожки, на двух других -- одну.
+    const ВИДЫ = режим === 'split' ? ['voice', 'music'] : режим === 'music' ? ['music'] : ['voice'];
+    const ползунокСилы = $('sv-power-sl'), блокСилы = $('sv-power'), числоСилы = $('sv-power-val');
 
     let файл = null, звук = null, длина = 0, частотаИсходника = 0;
     let сведения = { моно: false, доля: 1 };
@@ -234,7 +352,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (window.__svAC.state !== 'running') { try { window.__svAC.resume(); } catch (e) {} }
       return window.__svAC;
     }
-    const годится = () => !!звук && !сведения.моно && сведения.доля >= 0.02;
+    // Нейросети работают и с моно -- им разница каналов не нужна. Стерео нужно только
+    // «Лёгкой», поэтому моно гасит одну кнопку, а не всю страницу.
+    const годится = () => !!звук;
+    const естьСтороны = () => !сведения.моно && сведения.доля >= 0.02;
     function показатьПолосу(t, p) {
       полеПодсказки.style.display = 'none';
       полоса.classList.add('on');
@@ -289,6 +410,24 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       for (let i = 0; i < n; i += шаг) { const m = (L[i] + R[i]) * 0.5, s = (L[i] - R[i]) * 0.5; см += m * m; сс += s * s; c++; }
       const рм = Math.sqrt(см / Math.max(1, c)), рс = Math.sqrt(сс / Math.max(1, c));
       return { моно: false, доля: рм > 1e-7 ? рс / рм : 0 };
+    }
+
+    // «Лёгкая»: гасим середину стереокартины -- там обычно стоит голос. Ни модели, ни ожидания:
+    // это школьная арифметика над двумя каналами. Сила k=1 убирает центр целиком.
+    function лёгкая(buf, сила) {
+      const k = Math.max(0, Math.min(1, сила / 100));
+      const c = контекст();
+      const n = buf.length, sr = buf.sampleRate;
+      const L = buf.getChannelData(0), R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : L;
+      const музыка = c.createBuffer(2, n, sr), голос = c.createBuffer(2, n, sr);
+      const мл = музыка.getChannelData(0), мп = музыка.getChannelData(1);
+      const гл = голос.getChannelData(0), гп = голос.getChannelData(1);
+      for (let i = 0; i < n; i++) {
+        const середина = (L[i] + R[i]) / 2;
+        мл[i] = L[i] - k * середина; мп[i] = R[i] - k * середина;
+        гл[i] = середина * k; гп[i] = середина * k;
+      }
+      return { музыка, голос };
     }
 
     async function взять(f) {
@@ -400,7 +539,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       шапкаРезультатов();
       const обёртка = document.createElement('div');
       обёртка.dataset.way = способ;
-      for (const вид of ['voice', 'music']) {
+      for (const вид of ВИДЫ) {
         const ряд = document.createElement('div');
         ряд.className = 'trk res ' + вид;
         ряд.innerHTML = '<button class="tplay" type="button" aria-label="' + с.play + '">' + ЗНАЧКИ.play + '</button>'
@@ -419,8 +558,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         t.dl.onclick = () => скачать(t);
         t.btn.disabled = true; t.dl.disabled = true;
       }
-      списокРезультатов.appendChild(обёртка);
+      // Свежий результат встаёт ПЕРВЫМ, сразу под шапкой: только что посчитанное и есть то,
+      // ради чего человек нажимал. Прежние остаются ниже -- их можно сравнить.
+      const шапка = document.getElementById('sv-reshead');
+      списокРезультатов.insertBefore(обёртка, шапка ? шапка.nextSibling : списокРезультатов.firstChild);
       return { voice: дорожки[ключ(способ, 'voice')], music: дорожки[ключ(способ, 'music')] };
+      // Ссылки на недостающий вид просто равны undefined -- ниже это учтено.
     }
     function очиститьРезультаты() {
       for (const k in дорожки) if (k !== 'src') delete дорожки[k];
@@ -499,10 +642,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // ---- пульт ------------------------------------------------------------------------------
     function синхр() {
       [...рядСпособов.querySelectorAll('.chip')].forEach((b) => {
-        b.classList.toggle('on', !!пары[b.dataset.way]);
-        b.classList.toggle('locked', b.dataset.way === 'heavy' && !наПК);
+        const сп = b.dataset.way;
+        b.classList.toggle('on', !!пары[сп]);
+        b.classList.toggle('locked', (сп === 'heavy' && !наПК) || (сп === 'quick' && !естьСтороны()));
         b.disabled = !годится() || занято;
       });
+      if (блокСилы) {
+        // Ползунок относится только к «Лёгкой»: пока её нет, он погашен и не нажимается.
+        const живой = !!пары.quick && !занято;
+        блокСилы.classList.toggle('off', !живой);
+        ползунокСилы.disabled = !живой;
+      }
       кнопкаСтарт.disabled = !годится() || занято;
       $('sv-controls').classList.toggle('off', !годится());
       if (!занято) подсказка();
@@ -518,13 +668,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       строкаСведений.innerHTML = части.map((p) => '<i class="' + (p[1] ? 'tech' : '') + '">' + p[0] + '</i>').join('<span class="sep">·</span>');
 
       let строка = '', совет = '';
-      if (сведения.моно) { строка = с.lineMono; совет = с.tipMono; }
-      else if (сведения.доля < 0.02) { строка = с.lineSame; совет = с.tipSame; }
+      const один = режим !== 'split';
+      const идётРабота = один ? (режим === 'music' ? с.lineMusic : с.lineVoice) : с.lineWork;
+      if (!естьСтороны() && !выбрано) {
+        строка = сведения.моно ? с.lineMono : с.lineSame;
+        совет = один ? с.tipMono2 : (сведения.моно ? с.tipMono : с.tipSame);
+      }
       else if (!выбрано) { строка = с.lineOrig; совет = с.tipOrig; }
       else {
         const n = Object.keys(пары).length;
-        строка = n ? с.lineDone.replace('{n}', n) : с.lineWork;
-        совет = n ? с.tipDone : с.tipWork;
+        строка = n ? (один ? с.lineDone1 : с.lineDone).replace('{n}', n) : идётРабота;
+        совет = n ? (один ? с.tipDone1 : с.tipDone) : с.tipWork;
       }
       строкаСостояния.innerHTML = '<span>' + строка + '</span>' + (совет ? '<span class="tip">' + совет + '</span>' : '');
     }
@@ -532,6 +686,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (таймерМигания) return;
       if (!годится()) { полеПодсказки.innerHTML = ''; return; }
       if (!выбрано) { полеПодсказки.innerHTML = с.hintStart; return; }
+      if (режим !== 'split') {
+        полеПодсказки.innerHTML = Object.keys(пары).length > 1 ? с.hintDone1 : с.hintPick3;
+        return;
+      }
       полеПодсказки.innerHTML = пары.heavy ? с.hintBoth : с.hintPick;
     }
 
@@ -550,6 +708,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (!b || b.disabled) return;
       const способ = b.dataset.way;
       if (способ === 'heavy' && !наПК) { мигнуть(с.pcOnly); return; }
+      if (способ === 'quick' && (сведения.моно || сведения.доля < 0.02)) { мигнуть(с.quickMono); return; }
       // Уже посчитано -- просто показываем, где оно лежит. Второй раз тот же файл не делим.
       if (пары[способ]) {
         const t = дорожки[ключ(способ, 'voice')];
@@ -559,6 +718,25 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       разделитьПарой(способ);
     });
 
+    // Сила -- только у «Лёгкой». Пересчёт по всему файлу не на каждое движение пальца:
+    // ползунок шлёт события потоком, и считать сто раз вместо одного незачем.
+    let таймерСилы = 0;
+    if (ползунокСилы) {
+      const закрасить = () => ползунокСилы.style.setProperty('--p', ползунокСилы.value + '%');
+      закрасить();
+      ползунокСилы.addEventListener('input', () => {
+        числоСилы.textContent = ползунокСилы.value + '%';
+        закрасить();
+        if (!пары.quick) return;
+        clearTimeout(таймерСилы);
+        таймерСилы = window.setTimeout(() => {
+          const пара = лёгкая(звук, Number(ползунокСилы.value) || 100);
+          пары.quick = пара;
+          показатьПару({ voice: дорожки[ключ('quick', 'voice')], music: дорожки[ключ('quick', 'music')] }, пара);
+        }, 260);
+      });
+    }
+
     // ---- разделение: обе дорожки за один расчёт ---------------------------------------------
     async function разделитьПарой(способ) {
       const мой = ++заход;
@@ -567,11 +745,21 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (играет) пауза();
       const ссылки = добавитьПару(способ);
       try {
+        // «Лёгкая» считается прямо здесь и мгновенно -- ни модели, ни ожидания.
+        if (способ === 'quick') {
+          const пара = лёгкая(звук, Number(ползунокСилы.value) || 100);
+          пары.quick = пара;
+          показатьПару(ссылки, пара);
+          занято = false; спрятатьПолосу(); выборФормата.style.display = '';
+          итог(с.done.replace('{n}', ИМЯ.quick), true);
+          синхр();
+          return;
+        }
         const { разделить, модельУжеСкачана, МОДЕЛИ } = await import('../lib/stem-split.js');
         if (способ === 'heavy' && !наПК) throw new Error('НУЖЕН_КОМПЬЮТЕР');
         const ужеЕсть = await модельУжеСкачана(способ);
         показатьПолосу(ужеЕсть ? с.prepare : с.loading + ' ' + МОДЕЛИ[способ].мб + ' MB', 0);
-        подогнать(ссылки.voice); подогнать(ссылки.music);
+        for (const вид of ВИДЫ) подогнать(ссылки[вид]);
         const пара = await разделить(звук, способ, {
           onЗагрузка: (p) => показатьПолосу(с.loading + ' ' + Math.round(p * 100) + '%', p),
           onСчёт: (p, готовоДо, части) => {
@@ -579,18 +767,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
             // Волна дорисовывается по мере готовности -- видно, что работа идёт, и слышно
             // будет ровно то, что уже нарисовано.
             if (части) {
-              ссылки.voice.buf = части.голос; ссылки.music.buf = части.музыка;
-              нарисовать(ссылки.voice, готовоДо); нарисовать(ссылки.music, готовоДо);
+              if (ссылки.voice) { ссылки.voice.buf = части.голос; нарисовать(ссылки.voice, готовоДо); }
+              if (ссылки.music) { ссылки.music.buf = части.музыка; нарисовать(ссылки.music, готовоДо); }
             }
           },
           живо: () => мой === заход,
         });
         if (мой !== заход || !пара) return;
         пары[способ] = пара;
-        ссылки.voice.buf = пара.голос; ссылки.music.buf = пара.музыка;
-        нарисовать(ссылки.voice); нарисовать(ссылки.music);
-        ссылки.voice.btn.disabled = false; ссылки.voice.dl.disabled = false;
-        ссылки.music.btn.disabled = false; ссылки.music.dl.disabled = false;
+        показатьПару(ссылки, пара);
         занято = false; спрятатьПолосу(); выборФормата.style.display = '';
         итог(с.done.replace('{n}', ИМЯ[способ]), true);
         синхр();
@@ -606,6 +791,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         else ошибка(с.errSplit + m);
         синхр();
       }
+    }
+
+    function показатьПару(ссылки, пара) {
+      if (ссылки.voice) { ссылки.voice.buf = пара.голос; нарисовать(ссылки.voice); ссылки.voice.btn.disabled = false; ссылки.voice.dl.disabled = false; }
+      if (ссылки.music) { ссылки.music.buf = пара.музыка; нарисовать(ссылки.music); ссылки.music.btn.disabled = false; ссылки.music.dl.disabled = false; }
     }
 
     // ---- скачивание одной дорожки ------------------------------------------------------------
@@ -698,6 +888,60 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       панель.style.display = 'none'; зонаФайла.style.display = ''; полеФайла.value = '';
       итог(с.gone);
     });
+
+    // ---- переход на соседнюю страницу вместе с работой ----------------------------------
+    // Всё посчитанное едет с человеком: один и тот же файл не должен считаться дважды.
+    // Потолок 500 МБ -- дальше браузер начинает молча отказывать в записи, и тогда не доехал
+    // бы даже сам файл.
+    const ПОТОЛОК = 500 * 1024 * 1024;
+    [...корень.querySelectorAll('.sv-go')].forEach((ссылка) => {
+      ссылка.addEventListener('click', async (e) => {
+        if (!файл) return;
+        e.preventDefault();
+        const адрес = ссылка.getAttribute('href');
+        try {
+          const { отложить } = await import('../lib/handoff.js');
+          const запас = {};
+          let вес = 0;
+          for (const к of Object.keys(пары)) {
+            const м = вWav(пары[к].музыка), г = вWav(пары[к].голос);
+            if (вес + м.size + г.size > ПОТОЛОК) break;
+            вес += м.size + г.size;
+            запас[к] = { музыка: м, голос: г };
+          }
+          await отложить({ имя: файл.name, файл, запас });
+        } catch (x) {}
+        window.location.href = адрес;
+      });
+    });
+
+    // ---- пришли с соседней страницы -----------------------------------------------------
+    (async () => {
+      try {
+        const { забрать } = await import('../lib/handoff.js');
+        const работа = await забрать();
+        if (!работа || !работа.файл) return;
+        await взять(new File([работа.файл], работа.имя || 'audio', { type: работа.файл.type || 'audio/wav' }));
+        const запас = работа.запас;
+        if (!запас || !Object.keys(запас).length) return;
+        // Готовое разворачиваем в те же ряды, что и после расчёта: заново ничего не считаем.
+        выбрано = true;
+        кнопкаСтарт.style.display = 'none';
+        рядСпособов.style.display = '';
+        if (window.innerWidth > 640) подписьСпособа.style.display = '';
+        for (const к of Object.keys(запас)) {
+          if (!ИМЯ[к]) continue;
+          const пара = {
+            музыка: await контекст().decodeAudioData(await запас[к].музыка.arrayBuffer()),
+            голос: await контекст().decodeAudioData(await запас[к].голос.arrayBuffer()),
+          };
+          пары[к] = пара;
+          показатьПару(добавитьПару(к), пара);
+        }
+        выборФормата.style.display = '';
+        синхр();
+      } catch (x) {}
+    })();
 
     // Для проверок: состояние страницы одним объектом.
     window.__svСостояние = () => ({

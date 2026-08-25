@@ -190,23 +190,7 @@
 .midi-tool .tp-total::before,
 .stt-tool .tp-total::before { content: '/ '; opacity: .6; }
 
-/* --- Место для предупреждений ---------------------------------------------------------------
-   Здесь раньше стоял столбик FORMAT / SIZE / TIME / RATE / CHAN. Он утолщал панель, на телефоне
-   переносился второй строкой и почти никогда не был нужен: формат человек и так знает, размер
-   ему безразличен, длительность теперь стоит рядом с часами. Освободившееся место отдано под
-   предупреждения -- их видно сразу, рядом с кнопкой, а не где-то ниже по странице. */
-.audio-tool .tp-note,
-.midi-tool .tp-note,
-.stt-tool .tp-note {
-  margin-left: auto; text-align: right; font-size: 12px; line-height: 1.3;
-  color: var(--muted); min-width: 0;
-}
-.audio-tool .tp-note.is-warn,
-.midi-tool .tp-note.is-warn,
-.stt-tool .tp-note.is-warn { color: #f2b8b5; font-weight: 600; }
+/* Столбик FORMAT / SIZE / TIME / RATE / CHAN отсюда убран: он утолщал панель, на телефоне
+   переносился второй строкой и почти никогда не был нужен -- формат человек и так знает,
+   размер ему безразличен, а длительность теперь стоит рядом с часами. */
 
-@media (max-width: 640px) {
-  .audio-tool .tp-note,
-  .midi-tool .tp-note,
-  .stt-tool .tp-note { font-size: 11.5px; }
-}

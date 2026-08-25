@@ -1,8 +1,6 @@
 ---
 import playerCss from '../styles/player.css?inline';
 import css from '../styles/audio-tool.css?inline';
-// Стили разделения дорожек живут отдельно и едут только на свои две страницы -- см. шапку файла.
-import stemsCss from '../styles/stems.css?inline';
 // One component drives every audio tool. `AUDIO_TOOLS[tool].engine` picks the processing path:
 // 'webaudio' (native Web Audio API, waveform + live preview, no ffmpeg download at all),
 // 'webaudio-merge' / 'webaudio-generator' (variants without a single decoded source buffer),
@@ -112,9 +110,9 @@ const ICO = {
     everywhere, of which a calculator page used almost none. As a plain string it lands
     only on the page that renders this component. It goes first, before any markup, so
     nothing is ever painted unstyled. */}
-<style is:inline set:html={playerCss + css + (controls === 'stems' ? stemsCss : '')}></style>
+<style is:inline set:html={playerCss + css}></style>
 
-<div class={`audio-tool${controls === 'voicefx' ? ' voice-tool' : ''}${controls === 'stems' ? ' stems-tool' : ''}`} data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
+<div class={controls === 'voicefx' ? 'audio-tool voice-tool' : 'audio-tool'} data-tool={tool} data-locale={locale} data-labels={JSON.stringify(labels)}>
   {!isGenerator && !isNoise && !isRecorder && !безФайла && (
     <>
       {/* Первый экран: два равных пути -- записать голос или принести файл. Обе плашки
@@ -232,8 +230,7 @@ const ICO = {
         <span class="wave-duration" id="wave-duration" hidden>0:00</span>
         {/* Столбик FORMAT / SIZE / RATE / CHAN отсюда убран: он утолщал панель и на телефоне
             занимал вторую строку. Единственное число, за которым следят, -- длительность, и
-            она теперь стоит рядом с часами. Освободившееся место отдано предупреждениям. */}
-        <span class="tp-note" id="tp-note"></span>
+            она теперь стоит рядом с часами. */}
       </div>
     )}
     {showWaveform && !config.simplePreview && !config.compactPreview && (
@@ -791,32 +788,6 @@ const ICO = {
     {/* УБРАТЬ ГОЛОС / УБРАТЬ МУЗЫКУ. Три способа, ход работы сразу под ними, ползунок силы
         только у «Браузера», переход на соседнюю страницу -- обычной кнопкой в ряду скачивания.
         Место под ход работы и ползунок держится всегда: их появление ничего не сдвигает. */}
-    {controls === 'stems' && (
-      <div class="st-tool">
-        {/* Заголовок и подсказка стоят одной строкой НАД кнопками: и «нажмите ещё раз», и
-            «только на ПК» относятся к кнопкам, а строка хода работы идёт ниже -- туда
-            предупреждение не годится, его там ищут глазами уже после нажатия. */}
-        <div class="st-head">
-          <div class="st-label">{labels.stemsMethodLabel}</div>
-          <div class="st-hint" id="st-hint"></div>
-        </div>
-        <div class="st-ways" id="st-ways" role="group">
-          <button type="button" class="st-way" data-way="browser">{labels.stemsBrowserLabel}</button>
-          <button type="button" class="st-way" data-way="light">{labels.stemsNeuralLabel}</button>
-          <button type="button" class="st-way" data-way="heavy">{labels.stemsNeuralProLabel}</button>
-        </div>
-        <div class="st-run">
-          <div class="st-run-text" id="st-run-text"></div>
-          <div class="st-bar" id="st-bar"><i id="st-bar-fill"></i></div>
-        </div>
-        <div class="st-power" id="st-power">
-          <span class="st-power-name">{labels.stemsPowerLabel}</span>
-          <input type="range" id="st-power-slider" min="20" max="100" step="5" value="100">
-          <b class="st-power-val" id="st-power-val">100%</b>
-        </div>
-      </div>
-    )}
-
     {/* Тест микрофона. Поле волны и строка состояния стоят всегда -- пустыми до начала,
         чтобы страница не прыгала, когда микрофон включится. Кнопки устройств рисует код:
         их число и названия известны только после разрешения на микрофон. */}
@@ -999,13 +970,6 @@ const ICO = {
         gone -- two rows made one decision look like two. */}
     {config.exportDeck && (
       <div class="deck">
-        {/* Переход на соседнюю страницу стоит В ЭТОМ ЖЕ ряду, слева: это соседнее действие
-            того же уровня, что и скачивание, а не отдельный шаг. */}
-        {controls === 'stems' && (
-          <button type="button" class="act st-go-btn" id="st-go-other">
-            {config.stemKeep === 'music' ? labels.stemsGoOtherLabel : labels.stemsGoBackLabel}
-          </button>
-        )}
         {/* A dropdown holding a single option is a control that can't be used. The compressor
             only ever writes MP3 -- choosing a bitrate is the entire point -- so it gets the
             action alone, and a hidden input keeps the export path's format lookup working. */}
@@ -2102,270 +2066,6 @@ const ICO = {
     // Три способа. «Браузер» -- вычитание середины прямо здесь, мгновенно и без загрузок, с
     // ползунком силы. Две нейросети считают по-настоящему и отдают СРАЗУ ОБЕ дорожки, поэтому
     // переход на соседнюю страницу уносит готовый результат и там ничего не пересчитывается.
-    if (config.controls === 'stems') {
-      const рядСпособов = root.querySelector('#st-ways');
-      const строкаХода = root.querySelector('#st-run-text');
-      const полосаХода = root.querySelector('#st-bar-fill');
-      const рамкаПолосы = root.querySelector('#st-bar');
-      const полеПодсказки = root.querySelector('#st-hint');
-      // Предупреждения живут в ряду управления, на месте бывшего столбика сведений: там их
-      // видно сразу, рядом с кнопкой воспроизведения (владелец 24.08.2026).
-      const полеПредупреждения = root.querySelector('#tp-note');
-      const блокСилы = root.querySelector('#st-power');
-      const ползунокСилы = root.querySelector('#st-power-slider');
-      const числоСилы = root.querySelector('#st-power-val');
-      const кнопки = [...root.querySelectorAll('.st-way')];
-      let способ = null, дорожки = null, счёт = 0;
-      // Посчитанное храним ПО СПОСОБАМ: нажал «Нейросеть», ушёл на исходник, вернулся --
-      // результат уже есть, считать заново незачем (владелец 24.08.2026).
-      const посчитано = {};
-      const мой = () => счёт;
-
-      // Моно или две одинаковые дорожки: середина равна самому сигналу, и вычитание убирает всё.
-      function моноФайл() {
-        if (!sourceBuffer) return false;
-        if (sourceBuffer.numberOfChannels < 2) return true;
-        const L = sourceBuffer.getChannelData(0), R = sourceBuffer.getChannelData(1);
-        let разница = 0;
-        const шаг = Math.max(1, Math.floor(L.length / 4000));
-        for (let i = 0; i < L.length; i += шаг) разница += Math.abs(L[i] - R[i]);
-        return разница / Math.ceil(L.length / шаг) < 1e-4;
-      }
-      // Полоса нужна ТОЛЬКО пока идёт работа. Кончилась -- зелёного больше нет, остаётся
-      // словами сказанный итог: «Вокал удалён». Владелец 24.08.2026.
-      function ход(текст, доля) {
-        строкаХода.textContent = текст || '';
-        рамкаПолосы.style.visibility = доля == null ? 'hidden' : 'visible';
-        полосаХода.style.width = доля == null ? '0%' : Math.round(доля * 100) + '%';
-      }
-      const готово = () => (config.stemKeep === 'music' ? labels.stemsDoneVocalLabel : labels.stemsDoneMusicLabel);
-      function подсказка(текст, тревога) {
-        полеПодсказки.textContent = текст || '';
-        полеПодсказки.classList.toggle('is-warn', !!тревога);
-      }
-      function предупредить(текст, тревога) {
-        if (!полеПредупреждения) return;
-        полеПредупреждения.textContent = текст || '';
-        полеПредупреждения.classList.toggle('is-warn', !!тревога);
-      }
-      // Про запрет говорим ЗАРАНЕЕ, а не после нажатия. И спрашиваем именно «это компьютер?»:
-      // Safari на iPhone показывает видеокарту, поэтому по одной только видеокарте телефон
-      // проходил проверку, запускал тяжёлую модель и ронял вкладку (владелец, 24.08.2026).
-      let наПК = true;
-      // Предупреждение показываем ПО НАЖАТИЮ на «Про», а не постоянно: висящая красная строка
-      // на телефоне мешает всем, кто на «Про» и не собирался (владелец 24.08.2026).
-      // Всегда СТАВИТ или СНИМАЕТ: иначе предупреждение про моно остаётся висеть после
-      // перехода на нейросеть, где оно уже неправда.
-      function предупредитьПроПК(жали) {
-        const надо = жали && !наПК;
-        // Предупреждение стоит там же, где «Нажмите ещё раз — оригинал»: это строка подсказок
-        // к кнопкам способов, а не к файлу. Место под неё держится всегда -- сдвига нет.
-        if (надо || !наПК) подсказка(надо ? labels.stemsPcOnlyNoteLabel : '', надо);
-      }
-      import('../lib/pc-only.js').then((м) => { наПК = м.этоПК(); }).catch(() => {});
-      function видСпособа() {
-        кнопки.forEach((к) => к.classList.toggle('is-on', к.dataset.way === способ));
-        // Ползунок силы есть только у «Браузера»: у нейросети регулировать нечего.
-        блокСилы.classList.toggle('on', способ === 'browser');
-      }
-
-      // Вычитание середины. Сила k: при 100 % центр гаснет целиком, ниже -- остаётся частично.
-      // Голос -- это, наоборот, сама середина; так из одного действия выходят обе дорожки.
-      function браузером(buf, сила) {
-        const k = Math.max(0, Math.min(1, сила / 100));
-        const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-        const делать = (какая) => {
-          const oc = new OC(2, buf.length, buf.sampleRate);
-          const out = oc.createBuffer(2, buf.length, buf.sampleRate);
-          const L = buf.getChannelData(0);
-          const R = buf.numberOfChannels > 1 ? buf.getChannelData(1) : L;
-          const a = out.getChannelData(0), b = out.getChannelData(1);
-          for (let i = 0; i < buf.length; i++) {
-            const серединa = (L[i] + R[i]) / 2;
-            if (какая === 'music') { a[i] = L[i] - k * серединa; b[i] = R[i] - k * серединa; }
-            else { a[i] = серединa * k; b[i] = серединa * k; }
-          }
-          return out;
-        };
-        return { музыка: делать('music'), голос: делать('vocals') };
-      }
-
-      // Где сейчас звук -- чтобы переключение способа не отбрасывало в начало.
-      function место() {
-        try { return эл && эл.src ? эл.currentTime : 0; } catch (e) { return 0; }
-      }
-      function отдать(буфер, откуда, играть) {
-        renderedBuffer = буфер === sourceBuffer ? null : буфер;
-        exportedClean = false;
-        dur = буфер.duration;
-        scheduleWaveformDraw(буфер);
-        eqSyncState();
-        // Продолжаем С ТОГО ЖЕ МЕСТА: переключение способа -- это сравнение, а сравнивать
-        // с начала трека каждый раз невозможно (владелец 24.08.2026).
-        const где = Math.max(0, Math.min(буфер.duration - 0.05, откуда || 0));
-        // `играть === false` -- звук стоял до расчёта, значит и после расчёта стоит: бегунок
-        // просто возвращается на место. Общее правило проигрывателя, не наше исключение.
-        if (играть === false) { местоДоПересчёта = где; продолжитьПослеПересчёта = null; }
-        else { продолжитьПослеПересчёта = где; местоДоПересчёта = null; }
-        отдатьВПроигрыватель(буфер);
-      }
-      // Остановить на время расчёта и сказать, играло ли до этого.
-      function остановитьНаВремяРасчёта() {
-        try {
-          if (!эл || !эл.src || эл.paused) return false;
-          эл.pause();
-          сброситьВид(false);
-          return true;
-        } catch (e) { return false; }
-      }
-      function показать(пара, откуда, играть) {
-        дорожки = пара;
-        подсказка(labels.stemsAgainHintLabel);
-        const где = откуда == null ? место() : откуда;
-        отдать(config.stemKeep === 'music' ? пара.музыка : пара.голос, где, играть);
-      }
-      function вернутьИсходник() {
-        const где = место();
-        способ = null; дорожки = null; видСпособа();
-        ход('', null); подсказка('');
-        if (!sourceBuffer) return;
-        отдать(sourceBuffer, где);
-      }
-
-      async function применить(выбор) {
-        if (!sourceBuffer) return;
-        const мойСчёт = ++счёт;
-        способ = выбор; видСпособа(); clearError();
-        предупредитьПроПК(выбор === 'heavy');
-        // Уже считали этим способом -- показываем готовое мгновенно, без повторного счёта.
-        if (посчитано[выбор]) {
-          ход(готово(), null);
-          показать(посчитано[выбор]);
-          return;
-        }
-        try {
-          if (выбор === 'browser') {
-            // Каналы одинаковые -- вычитать нечего, на полной силе выйдет тишина. Говорим об
-            // этом сразу, а не даём человеку слушать пустоту и думать, что сломалось.
-            if (моноФайл()) предупредить(labels.vocalMonoNote, true);
-            ход(готово(), null);
-            показать(браузером(sourceBuffer, Number(ползунокСилы.value) || 100));
-            return;
-          }
-          const { разделить, МОДЕЛИ, естьВидеокарта, модельУжеСкачана } = await import('../lib/stem-split.js');
-          if (выбор === 'heavy' && !естьВидеокарта()) {
-            // Одно короткое предупреждение в строке подсказок -- и всё. Длинная строка под
-            // кнопками говорила то же самое второй раз.
-            подсказка(labels.stemsPcOnlyNoteLabel, true);
-            ход('', null);
-            способ = null; видСпособа();
-            return;
-          }
-          // Нейросеть считает не мгновенно. Пока идёт расчёт -- звук СТОИТ: слушать старое,
-          // ожидая новое, незачем, а на телефоне это ещё и отнимает силы у расчёта.
-          // По готовности продолжаем ровно с того места, где остановились. Как на LeebTTS.
-          const былоМесто = место();
-          const игралоДо = остановитьНаВремяРасчёта();
-          // Модель уже лежит в браузере -- не пугаем человека мегабайтами и словом «скачиваем»:
-          // на деле она только готовится к работе (владелец 24.08.2026).
-          const ужеЕсть = await модельУжеСкачана(выбор);
-          ход(ужеЕсть ? labels.stemsPreparingLabel
-            : (labels.stemsFirstTimeLabel || '').replace('{mb}', МОДЕЛИ[выбор].мб), 0);
-          const пара = await разделить(sourceBuffer, выбор, {
-            onЗагрузка: (p) => ход(labels.stemsDownloadingLabel + ' · ' + Math.round(p * 100) + '%', p),
-            onСчёт: (p) => ход(labels.stemsWorkingLabel + ' · ' + Math.round(p * 100) + '%', p),
-            живо: () => мойСчёт === счёт,
-          });
-          if (мойСчёт !== счёт || !пара) return;
-          посчитано[выбор] = пара;
-          ход(готово(), null);
-          показать(пара, былоМесто, игралоДо);
-        } catch (e) {
-          if (мойСчёт !== счёт) return;
-          способ = null; видСпособа(); ход('', null); подсказка('');
-          const код = (e && e.message) || '';
-          showError(код.startsWith('НУЖЕН_КОМПЬЮТЕР') ? labels.stemsPcOnlyLabel : labels.stemsFailedLabel);
-        }
-      }
-
-      кнопки.forEach((к) => к.addEventListener('click', () => {
-        // Нажал тот же способ ещё раз -- вернулся исходник. Как на «изменить голос».
-        if (к.dataset.way === способ) { вернутьИсходник(); return; }
-        применить(к.dataset.way);
-      }));
-
-      let таймерСилы = 0;
-      ползунокСилы.addEventListener('input', () => {
-        числоСилы.textContent = ползунокСилы.value + '%';
-        if (способ !== 'browser') return;
-        // Пересчёт по всему файлу -- не на каждое движение пальца.
-        clearTimeout(таймерСилы);
-        таймерСилы = window.setTimeout(() => показать(браузером(sourceBuffer, Number(ползунокСилы.value) || 100)), 260);
-      });
-
-      // ---- переход на соседнюю страницу вместе с работой ----
-      const кнПереход = root.querySelector('#st-go-other');
-      if (кнПереход) {
-        кнПереход.addEventListener('click', async () => {
-          if (!file) return;
-          const { отложить } = await import('../lib/handoff.js');
-          const вWav = (b) => new Blob([encodeWAV(b)], { type: 'audio/wav' });
-          // Едет ВСЁ, что уже посчитано, а не только показанное сейчас. Иначе человек считал
-          // двумя способами, переходил -- и второй способ на соседней странице начинал считать
-          // заново тот же файл. Владелец поймал это 24.08.2026 и спросил ровно об этом:
-          // «почему я один файл дважды разделяю?».
-          const ПРЕДЕЛ = 500 * 1024 * 1024;   // потолок переезда: столько браузер отдаёт без спора
-          const запас = {};
-          let занято = 0;
-          // Показанный способ кладём первым: если места хватит только на один, поедет он.
-          const порядок = Object.keys(посчитано).sort((a) => (a === способ ? -1 : 1));
-          for (const к of порядок) {
-            const м = вWav(посчитано[к].музыка), г = вWav(посчитано[к].голос);
-            if (занято + м.size + г.size > ПРЕДЕЛ) break;
-            занято += м.size + г.size;
-            запас[к] = { музыка: м, голос: г };
-          }
-          await отложить({
-            имя: file.name,
-            файл: file,
-            запас,
-            способ,
-          });
-          // Язык берём из разметки: в клиентском коде переменной сборки нет.
-          const язык = root.dataset.locale || 'ru';
-          window.location.href = '/' + язык + '/' + config.stemOther;
-        });
-      }
-
-      // ---- пришли с соседней страницы ----
-      (async () => {
-        const { забрать } = await import('../lib/handoff.js');
-        const работа = await забрать();
-        if (!работа || !работа.файл) return;
-        await pickFile(new File([работа.файл], работа.имя || 'audio', { type: работа.файл.type || 'audio/wav' }));
-        const запас = работа.запас || null;
-        if (запас) {
-          // Всё приехавшее кладём В ЗАПАС ПОД СВОИМИ СПОСОБАМИ -- ни один из них не должен
-          // считаться заново. Показываем тот, что был открыт на прежней странице.
-          for (const к of Object.keys(запас)) {
-            const [м, г] = await Promise.all([
-              decodeFile(new File([запас[к].музыка], 'm.wav')),
-              decodeFile(new File([запас[к].голос], 'v.wav')),
-            ]);
-            посчитано[к] = { музыка: м, голос: г };
-          }
-          способ = (работа.способ && посчитано[работа.способ]) ? работа.способ : null;
-          видСпособа();
-          if (способ) {
-            ход(готово(), null);
-            показать(посчитано[способ], 0, false);
-          }
-        }
-      })();
-
-      числоСилы.textContent = ползунокСилы.value + '%';
-      видСпособа();
-    }
 
     // ---- Микрофон на первом экране (изменить голос) ------------------------------------------
     // Записал -- и файл сразу лёг в инструмент, как будто его перетащили. Дальше всё общее:
