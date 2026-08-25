@@ -7,6 +7,9 @@ import AudioTool from '../../components/AudioTool.astro';
 import AudioToMidi from '../../components/AudioToMidi.astro';
 import SpeechToText from '../../components/SpeechToText.astro';
 import AudioEditor from '../../components/AudioEditor.astro';
+// «Отделить вокал от музыки» -- своя страница со своим кодом и стилями: у неё на выходе ДВЕ
+// дорожки сразу, чего общий компонент не умеет, и правки в ней не касаются соседей.
+import SplitVocal from '../../components/SplitVocal.astro';
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
 // каждый следующий -- только после того, как предыдущий проверен живьём.
@@ -249,7 +252,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioEditor tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'split-vocal' && (
+      <SplitVocal locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'split-vocal'].includes(entry.data.tool)
       && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

@@ -373,7 +373,10 @@ async function лёгкая(сеансы2, src, onp, живо) {
         }
       }
     }
-    if (onp) onp((b + 1) / блоков);
+    // Третьим и четвёртым доводом отдаём, до какого места дорожки уже посчитаны и сами
+    // дорожки: страница «отделить вокал» рисует волну по ходу работы. Прежние вызовы берут
+    // только первый довод, поэтому для них ничего не меняется.
+    if (onp) onp((b + 1) / блоков, Math.min(n, (f0 + T) * HOP), { музыка, голос });
     await new Promise((r) => setTimeout(r, 0));
   }
 
@@ -430,7 +433,7 @@ async function тяжёлая(сеансы2, src, onp, живо) {
       гЛ[g] = мL[g] - мЛ[g];
       гР[g] = мR[g] - мР[g];
     }
-    if (onp) onp((c + 1) / кусков);
+    if (onp) onp((c + 1) / кусков, Math.min(n, i + GEN), { музыка, голос });
     await new Promise((r) => setTimeout(r, 0));
   }
   return { музыка, голос };
@@ -440,7 +443,9 @@ async function тяжёлая(сеансы2, src, onp, живо) {
  * Разделить запись. Возвращает { музыка, голос } -- обе дорожки за один расчёт.
  * @param {AudioBuffer} buffer исходная запись
  * @param {'light'|'heavy'} вид способ
- * @param {{onЗагрузка?:(p:number)=>void,onСчёт?:(p:number)=>void,живо?:()=>boolean}} события
+ * @param {{onЗагрузка?:(p:number)=>void,
+ *           onСчёт?:(p:number, готовоДо:number, пара:{музыка:AudioBuffer,голос:AudioBuffer})=>void,
+ *           живо?:()=>boolean}} события
  */
 export async function разделить(buffer, вид, события = {}) {
   const { onЗагрузка, onСчёт, живо } = события;
