@@ -15,8 +15,9 @@
 .sv { --voice: #4ade9e; --music: #79b8ff; }
 
 /* --- Приём файла ------------------------------------------------------------------------- */
-.sv .sv-drop { border: 1.5px dashed var(--line); border-radius: 14px; padding: 32px 20px;
-  text-align: center; cursor: pointer; background: var(--surface); transition: .2s }
+.sv .sv-drop { display: block; border: 1.5px dashed var(--line); border-radius: 14px; padding: 32px 20px;
+  text-align: center; cursor: pointer; background: var(--surface); transition: .2s;
+  -webkit-tap-highlight-color: transparent }
 .sv .sv-drop:hover, .sv .sv-drop.over { border-color: var(--accent); background: rgba(74,222,158,.04) }
 .sv .sv-drop svg { width: 34px; height: 34px; color: var(--accent); margin-bottom: 10px }
 .sv .sv-drop .big { font-size: 15px; font-weight: 600; margin-bottom: 4px }

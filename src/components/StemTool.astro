@@ -210,12 +210,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 <style is:inline set:html={css}></style>
 
 <div class="sv" data-locale={locale} data-mode={режим} data-words={JSON.stringify(с)}>
-  <div class="sv-drop" id="sv-drop">
+  {/* Это подпись к полю выбора, а не просто рамка: на айфоне нажатие по <label> открывает выбор
+      файла средствами самого браузера, без обработчика -- надёжнее, чем звать click() из кода. */}
+  <label class="sv-drop" id="sv-drop" for="sv-file">
     <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/></svg>
     <div class="big">{с.dropBig}</div>
     <div class="small">{с.dropSmall}</div>
-  </div>
-  <input type="file" id="sv-file" accept="audio/*,video/*">
+  </label>
+  {/* БЕЗ accept намеренно. На айфоне `accept="audio/*"` сводит выбор к музыкальной библиотеке,
+      и файл из «Файлов» или iCloud выбрать нельзя вовсе. Так же сделано на всех остальных
+      звуковых страницах -- владелец сравнил их живьём и нашёл разницу. */}
+  <input type="file" id="sv-file">
 
   <div id="sv-panel" style="display:none">
     {/* Исходник устроен так же, как результаты: кнопка слева, волна, действие справа. Один вид
@@ -372,7 +377,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     // ---- приём файла ---------------------------------------------------------------------
-    зонаФайла.onclick = () => полеФайла.click();
     зонаФайла.ondragover = (e) => { e.preventDefault(); зонаФайла.classList.add('over'); };
     зонаФайла.ondragleave = () => зонаФайла.classList.remove('over');
     зонаФайла.ondrop = (e) => {

@@ -3,37 +3,53 @@ toolSlug: vocal-remover
 locale: en
 category: audio
 tool: vocal-remover
-title: Remove Vocals from a Song Online — Free Karaoke Track
-h1: Remove Vocals from a Song
+title: Remove vocals from a song online — free karaoke backing track
+h1: Remove the vocals from a song
 navName: Remove vocals
-description: "Remove the vocals from a song and keep the backing track: three methods, from instant to a neural network. Everything runs in your browser, nothing is uploaded."
+description: "Turn any song into a backing track: three methods, from instant to neural. A karaoke minus for singing, rehearsing and performing. Your browser does the work, the file never leaves it."
 faq:
-  - question: How does this work with no AI?
-    answer: In most studio recordings the vocal sits dead centre — identical in the left and right channels. Subtract one channel from the other and anything centred cancels itself out. No model is needed for that; it's arithmetic on two tracks.
-  - question: Why did it come out badly on my track?
-    answer: The method doesn't work on everything, and it's better to know that upfront. If the vocal is spread even slightly across the stereo field, treated with a wide reverb, or the track has a modern wide mix, subtraction won't remove it — it'll just degrade the sound. It works well on tidy studio recordings, older ones especially.
-  - question: What else disappears along with the voice?
-    answer: Everything that sits centred, which usually means the bass and the kick. That's why "keep the bass" is on by default — the low end is taken from the summed channels and the subtraction only applies above 200 Hz. If the result sounds muddy, try full subtraction.
-  - question: Can I keep only the vocal instead?
-    answer: No, and we won't pretend otherwise. Isolating a clean vocal this way isn't possible — that needs neural stem separation, which doesn't run in a browser. Removal is the honest half.
-  - question: Why is the result mono?
-    answer: Because subtracting the channels leaves you with one signal. That's a consequence of the method, not a shortcut. For karaoke and practice it makes no difference.
-  - question: Will a file from my phone or a messenger work?
-    answer: Only if it's stereo. Voice messages and many phone recordings are mono, so there's nothing to subtract — the tool says so directly once you load one.
+  - question: Is this backing track good enough for karaoke?
+    answer: For singing at home or at a party, yes. In quiet passages you may hear a shadow of the removed voice; in choruses it drowns in the music and nobody notices. If the track is for a stage, run “Best” and listen to the intro and the last verse — that is where the flaws show first.
+  - question: Do backing vocals stay in the track?
+    answer: "It depends on the method. The neural network treats everything sung as voice and removes the harmonies together with the lead. “Fast” cancels the middle, and backing vocals are usually spread to the sides — so after it they are often still audible."
+  - question: Why did the bass and the drums disappear?
+    answer: "That is “Fast” at full strength: it cancels everything in the centre, and the kick and bass sit right where the voice does. Lower the strength on the slider — the low end comes back, but so does some of the voice. This is exactly what the neural methods solve: they take the recording apart by sound, not by the stereo image, and leave the low end alone."
+  - question: Can I perform with this backing track at a contest?
+    answer: Technically the track is ready. Legally it is still someone else's recording. Contest organisers normally ask for a licensed backing track or the rights holder's permission. Rehearsing and singing at home is nobody's business but yours; performing for money is worth asking about.
+  - question: How do I raise or lower the key?
+    answer: Download the backing track and load it into [change the pitch](/en/audio-pitch) — the shift is set in semitones and the tempo stays put. That is how you fit a track to your voice when the original sits too high or too low.
+  - question: The track sounds muffled, like it is underwater — what now?
+    answer: "That is usually “Fast” at full strength: along with the voice it takes out the centre of the whole midrange, and the recording goes dull. Try a lower strength, or run “Standard” — it takes the recording apart properly and leaves the sound intact."
+  - question: How is this different from “Separate vocals from music”?
+    answer: Here the only output is the backing track — the page is built around it and there is no second row on screen. If you want both halves at once, the separate tool hands you voice and music from a single computation.
 related:
+  - split-vocal
+  - remove-music
   - audio-pitch
-  - audio-speed
-  - trim-audio
 ---
 
-Upload a song and press “Remove the vocals” — “Standard” starts straight away and the backing track appears below as its own row. Not what you wanted? Pick another method: the newest result goes on top and the earlier ones stay below, so you can compare them by ear.
+Upload a song and press “Remove the vocals” — “Standard” starts straight away and the backing track appears below as its own row. The newest result goes on top and the earlier ones stay below: compare them by ear and download the one that sounds best.
+
+## Where a backing track is needed
+
+- **Karaoke at home or at a party** — your own song instead of whatever the catalogue had
+- **Rehearsal** — learn a part, sing over it, work on the intro
+- **A performance or a contest** — a track that fits your voice, not someone else's arrangement
+- **Background for video** — music without a voice does not fight your narration
+- **Studying an arrangement** — hear what plays under the vocal
 
 ## Three methods
 
-- **Fast** — instant, nothing to download. Cancels the middle of the stereo image, where the voice usually sits; a slider sets the subtraction strength.
+- **Fast** — instant, nothing to download. Cancels the middle of the stereo image; a slider sets the strength.
 - **Standard** — the neural network, the usual choice. A 38 MB model downloads once and stays in your browser.
-- **Best** — the best result there is. Runs on a computer only.
+- **Best** — the cleanest backing track. Runs on a computer only.
+
+The neural network counts backing vocals as voice and removes them with the lead. “Fast” does the opposite: harmonies are usually spread to the sides and survive the subtraction — sometimes handy, sometimes not.
+
+## About copyright
+
+Removing the voice is not the same as owning the song. A backing track stays a derivative of someone else's recording: the rights to the music and to the master do not go anywhere. Sing at home, rehearse, study — go ahead. Publishing the track, performing with it for money or uploading it to a platform needs the rights holder's permission.
 
 ## Worth knowing
 
-Everything is computed on your device: neither the song nor the result is sent anywhere. Every finished track has its own play button and its own download button — MP3 or WAV. Need the voice instead of the backing, [remove the music](/en/remove-music) is next door; if you need both tracks at once, [separate vocals from music](/en/split-vocal) does it in one pass. Your file and everything already computed travel with you.
+Everything is computed on your device: neither the song nor the backing track is sent anywhere. Every finished row has its own play and download buttons — MP3 or WAV. Need the voice instead, [remove the music](/en/remove-music) is next door; need both tracks at once, [separate vocals from music](/en/split-vocal) hands them over in one pass. Your file and everything already computed travel with you.

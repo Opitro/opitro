@@ -5,37 +5,51 @@ category: audio
 tool: vocal-remover
 title: Quitar la voz de una canción online — pista de karaoke gratis
 h1: Quitar la voz de una canción
-description: "Quita la voz de un tema y quédate con la base: tres métodos, del instantáneo a la red neuronal. Todo se calcula en el navegador y el archivo no sube a ningún servidor."
 navName: Quitar la voz
+description: "Convierte cualquier canción en una base: tres métodos, del instantáneo a la red neuronal. Una base para karaoke, ensayo y actuación. Calcula tu navegador y el archivo no sale de él."
 faq:
-  - question: ¿En qué se diferencian los tres métodos?
-    answer: "«Rápida» es instantáneo y no descarga nada: apaga el centro de la imagen estéreo, donde suele estar la voz. «Normal» separa la grabación de verdad — el modelo se descarga una sola vez, 38 MB, y se queda en tu navegador. «La mejor» hace lo mismo más limpio, pero es pesada y solo funciona en ordenador."
-  - question: ¿Qué es el control de fuerza?
-    answer: Solo lo tiene «Rápida». A tope el centro se apaga entero y con él se va parte de la música; más bajo, la música queda más íntegra pero la voz se oye más. Ajústalo de oído — el recálculo es inmediato.
-  - question: ¿Por qué con mi tema «Rápida» salió mal?
-    answer: "El método se apoya en que la voz esté mezclada justo en el centro. Si está desplazada, tratada con efectos, o la grabación es mono, no hay nada que restar. En esos casos ayuda «Normal»: no depende de la imagen estéreo."
-  - question: ¿A dónde va mi archivo?
-    answer: A ninguna parte. El cálculo ocurre en el navegador, en tu dispositivo. El modelo se descarga de un repositorio abierto y también se queda contigo — no habrá que bajarlo otra vez.
-  - question: ¿Puedo quedarme al revés solo con la voz?
-    answer: Sí, con el botón «Quitar la música» que está junto a la descarga. El archivo viaja contigo, y si el cálculo ya se hizo, la página vecina se abre con el resultado listo.
-  - question: ¿Por qué en el móvil no arranca «La mejor»?
-    answer: "Está pensada para ordenador: en un móvil el cálculo llevaría horas y casi seguro se cortaría. El botón sigue visible y te propone la «Normal» normal, que funciona en todas partes."
-  - question: ¿Sirve un archivo del móvil o de un mensaje?
-    answer: Sí, se leen MP3, WAV, M4A, AAC, OGG, OPUS, FLAC y archivos de vídeo — de estos se toma la pista de sonido.
+  - question: ¿Sirve esta base para karaoke?
+    answer: "Para cantar en casa o en una fiesta, sí. En los pasajes tranquilos a veces se oye una sombra de la voz retirada; en los estribillos se hunde en la música y nadie la nota. Si la base es para un escenario, lanza «La mejor» y escucha la entrada y el último verso: ahí es donde primero se notan los fallos."
+  - question: ¿Se quedan los coros en la base?
+    answer: "Depende del método. La red neuronal considera voz todo lo que se canta y se lleva los coros junto con la principal. «Rápida» cancela el centro, y los coros suelen estar abiertos hacia los lados, así que después de ella se siguen oyendo a menudo."
+  - question: ¿Por qué han desaparecido el bajo y la batería?
+    answer: "Eso es «Rápida» a tope: cancela todo lo que está en el centro, y el bombo y el bajo están justo donde la voz. Baja la fuerza con el control: vuelven los graves, pero también algo de voz. Justo eso resuelven las redes neuronales, que separan por sonido y no por la imagen estéreo, y no tocan los graves."
+  - question: ¿Puedo actuar con esta base en un concurso?
+    answer: Técnicamente la base está lista; legalmente sigue siendo una grabación ajena. Los organizadores suelen pedir una base con licencia o el permiso del titular de los derechos. Ensayar y cantar en casa no es asunto de nadie; actuar cobrando conviene consultarlo.
+  - question: ¿Cómo subo o bajo el tono de la base?
+    answer: "Descarga la base y cárgala en [cambiar el tono](/es/audio-pitch): el desplazamiento se fija en semitonos y el tempo no se mueve. Así se ajusta una base a tu voz cuando el original está demasiado alto o bajo."
+  - question: La base suena apagada, como debajo del agua, ¿qué hago?
+    answer: "Suele ser «Rápida» a plena fuerza: junto con la voz se lleva el centro de todo el medio, y la grabación se apaga. Prueba menos fuerza o lanza «Normal», que separa la grabación de verdad y no estropea el sonido."
+  - question: ¿En qué se diferencia de «Separar la voz de la música»?
+    answer: "En que aquí la única salida es la base: la página está hecha para eso y no hay una segunda pista en pantalla. Si quieres las dos mitades a la vez, la herramienta aparte te entrega voz y música con un solo cálculo."
 related:
+  - split-vocal
+  - remove-music
   - audio-pitch
-  - audio-speed
-  - trim-audio
 ---
 
-Sube una canción y pulsa «Quitar la voz»: arranca «Normal» al momento y la base aparece abajo como una pista propia. ¿No te convence? Elige otro método: el nuevo resultado se coloca arriba y los anteriores quedan debajo, así puedes compararlos de oído.
+Sube una canción y pulsa «Quitar la voz»: arranca «Normal» al momento y la base aparece abajo como una pista propia. El nuevo resultado se coloca arriba y los anteriores quedan debajo: compáralos de oído y descarga el que mejor suene.
+
+## Dónde hace falta una base
+
+- **Karaoke en casa o en una fiesta** — tu canción, no la que había en el catálogo
+- **Ensayo** — aprender una parte, cantar encima, trabajar la entrada
+- **Actuación o concurso** — una base a la medida de tu voz
+- **Fondo para vídeo** — la música sin voz no pelea con tu locución
+- **Estudiar un arreglo** — oír qué suena debajo de la voz
 
 ## Tres métodos
 
-- **Rápida** — al instante, sin descargar nada. Apaga el centro de la imagen estéreo, donde suele estar la voz; un control ajusta la fuerza de la resta.
+- **Rápida** — al instante, sin descargas. Apaga el centro de la imagen estéreo; un control ajusta la fuerza.
 - **Normal** — la red neuronal, la opción de siempre. Un modelo de 38 MB se descarga una vez y se queda en el navegador.
-- **La mejor** — el mejor resultado posible. Funciona solo en ordenador.
+- **La mejor** — la base más limpia. Funciona solo en ordenador.
+
+La red neuronal cuenta los coros como voz y se los lleva con la principal. «Rápida» hace lo contrario: los coros suelen estar abiertos a los lados y sobreviven a la resta, lo que a veces viene bien y a veces molesta.
+
+## Sobre los derechos de autor
+
+Quitar la voz no es lo mismo que tener los derechos de la canción. La base sigue siendo una obra derivada de una grabación ajena: los derechos sobre la música y sobre el máster no desaparecen. Cantar en casa, ensayar y estudiar, adelante. Publicar la base, actuar con ella cobrando o subirla a una plataforma requiere permiso del titular.
 
 ## Lo que conviene saber
 
-Todo se calcula en tu dispositivo: ni la canción ni el resultado se envían a ninguna parte. Cada pista terminada tiene su botón de reproducción y su botón de descarga, en MP3 o WAV. Si quieres la voz en vez de la base, al lado tienes [quitar la música](/es/remove-music); y si quieres las dos pistas a la vez, [separar la voz de la música](/es/split-vocal) lo hace de una pasada. El archivo y todo lo ya calculado viajan contigo.
+Todo se calcula en tu dispositivo: ni la canción ni la base se envían a ninguna parte. Cada pista terminada tiene sus botones de reproducción y descarga, en MP3 o WAV. Si quieres la voz, al lado tienes [quitar la música](/es/remove-music); si quieres las dos pistas a la vez, [separar la voz de la música](/es/split-vocal) te las da de una pasada. El archivo y todo lo calculado viajan contigo.

@@ -44,6 +44,10 @@ Sube una canción y pulsa «Separar». La red neuronal descompone la grabación 
 
 Lanza las dos y compara: los pares se van apilando en la página uno debajo de otro y la diferencia se oye enseguida. Cada pista se descarga por separado, en MP3 o WAV.
 
+## Sobre los derechos de autor
+
+Separar una canción no es lo mismo que tener sus derechos. Las dos pistas siguen siendo obra derivada de una grabación ajena: los derechos sobre la música, la interpretación y el máster no desaparecen. Escuchar, estudiar y ensayar es libre. Publicar, actuar cobrando o sacar un remix requiere permiso del titular.
+
 ## Lo que conviene saber
 
 Todo se calcula en tu dispositivo y la canción no se sube a ningún sitio. El modelo se descarga una vez y se queda en el navegador: la segunda vez no hay nada que esperar. Si solo quieres la base, al lado tienes [quitar la voz de una canción](/es/vocal-remover); si solo quieres la voz, usa [quitar la música](/es/remove-music).

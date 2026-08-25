@@ -44,6 +44,10 @@ Upload a song and press “Split”. The neural network takes the recording apar
 
 Run both and compare: the pairs stack up on the page one under another, and the difference is audible straight away. Each track downloads separately, as MP3 or WAV.
 
+## About copyright
+
+Splitting a song is not the same as owning it. Both tracks stay derivatives of someone else's recording: the rights to the music, to the performance and to the master do not go anywhere. Listening, studying and rehearsing is free. Publishing, performing for money and releasing a remix need the rights holder's permission.
+
 ## Worth knowing
 
 Everything is computed on your device; the song is not uploaded anywhere. The model downloads once and stays in the browser — the second time there is nothing to wait for. If you only need the backing track, [remove the vocals](/en/vocal-remover) is next door; if you only need the voice, use [remove the music](/en/remove-music).
