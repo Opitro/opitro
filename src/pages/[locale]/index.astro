@@ -88,7 +88,10 @@ const t = {
       {categories.map((c) => (
         <details class="acc-item" style={`--cat: ${видРубрики(c.data.catSlug).цвет}`}>
           <summary>
-            <span class="acc-ico" set:html={`<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">${видРубрики(c.data.catSlug).путь}</svg>`} />
+            {/* Размер задан АТРИБУТАМИ прямо в значке. Стиль `.acc-ico svg` сюда не достаёт:
+                разметка вставлена через set:html, метки области видимости на ней нет, и правило
+                не срабатывает -- значок раскрывался на всю плашку и лез в глаза. */}
+            <span class="acc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" set:html={видРубрики(c.data.catSlug).путь} /></span>
             <span class="acc-tx">
               <span class="acc-name">{c.data.name}</span>
               {c.data.blurb && <span class="acc-blurb">{c.data.blurb}</span>}
@@ -227,8 +230,9 @@ const t = {
   .acc-item summary::-webkit-details-marker{display:none}
   /* Значок в приглушённой плашке своего цвета -- цвет ищется глазом раньше слова. */
   .acc-ico{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
-    justify-content:center;color:var(--cat,var(--accent));background:color-mix(in srgb,var(--cat,var(--accent)) 13%,transparent)}
-  .acc-ico svg{width:18px;height:18px;display:block}
+    justify-content:center;color:var(--cat,var(--accent));
+    background:color-mix(in srgb,var(--cat,var(--accent)) 12%,transparent)}
+  .acc-ico svg{display:block}
   .acc-tx{flex:1;min-width:0}
   .acc-name{display:block;color:var(--text);font-size:15.5px;font-weight:700;line-height:1.25}
   .acc-blurb{display:block;font-size:12.5px;font-weight:400;color:var(--muted);margin-top:2px;
