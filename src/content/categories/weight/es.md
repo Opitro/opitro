@@ -2,6 +2,8 @@
 catSlug: weight
 locale: es
 name: Peso
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Kilogramos, libras, onzas, stones
 title: Calculadora de peso online gratis, sin registro — kg, libras, gramos, onzas, stone
 h1: Calculadora de Peso Online
 description: Convierte entre cualquier unidad de peso a la vez — kilogramos, gramos, libras, onzas, stone, toneladas. Introduce un número, elige las unidades, listo.

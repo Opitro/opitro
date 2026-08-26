@@ -54,6 +54,9 @@ const categories = defineCollection({
     // long, keyword-rich `title` (browser tab / SEO <title>), which is far too long to
     // show as a UI label. Mixing the two up was a real bug the user caught live.
     name: z.string(),
+    /** Короткая строка «что внутри» под названием рубрики на главной: «Обрезать, склеить,
+        убрать шум». Без неё рубрики отличались одним словом и сливались. */
+    blurb: z.string().optional(),
     title: z.string(),
     h1: z.string(),
     description: z.string(),

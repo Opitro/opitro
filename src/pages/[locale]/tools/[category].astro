@@ -5,6 +5,8 @@ import UniversalConverter from '../../../components/UniversalConverter.astro';
 import TemperatureUniversalConverter from '../../../components/TemperatureUniversalConverter.astro';
 import AdSlot from '../../../components/AdSlot.astro';
 import { t as translate } from '../../../lib/ui-strings.js';
+import { поПолкам } from '../../../lib/tool-groups.js';
+import { iconFor } from '../../../lib/tool-icons.js';
 
 export async function getStaticPaths() {
   const locales = ['en', 'ru', 'es', 'uk'];
@@ -209,7 +211,12 @@ const resultLabel = translate(entry.data.locale, 'resultLabel');
 const fromLabel = translate(entry.data.locale, 'fromLabel');
 const toLabel = translate(entry.data.locale, 'toLabel');
 const faqLabel = translate(entry.data.locale, 'faqLabel');
-const pairsLabel = translate(entry.data.locale, 'pairsLabel');
+// «Калькуляторы по конкретным парам» -- это про переводы величин. На звуке и на тестах такой
+// заголовок был просто неправдой, и он там стоял.
+const парные = ['length', 'volume', 'weight', 'temperature'].includes(entry.data.catSlug);
+const pairsLabel = translate(entry.data.locale, парные ? 'pairsLabel' : 'toolsInCategoryLabel');
+// Полки заданы только у больших рубрик; у маленьких список остаётся обычной сеткой.
+const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale);
 ---
 
 <Layout
@@ -265,18 +272,56 @@ const pairsLabel = translate(entry.data.locale, 'pairsLabel');
     )}
   </section>
 
+  {/* Список инструментов рубрики. У большой рубрики он разложен по полкам: сорок два
+      одинаковых прямоугольника подряд человек не читает, а семь коротких полок -- читает.
+      У значка своя работа: он обозначает РОД дела (резать, переводить, слушать), поэтому
+      повторяется и оттого узнаётся с одного взгляда. */}
   <section class="all-tools">
     <h2 class="all-tools-title">{pairsLabel}</h2>
-    <div class="all-tools-grid">
-      {tools.map((t) => (
-        <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-          <span class="tc-name">{t.data.navName || t.data.h1}</span>
-        </a>
-      ))}
-    </div>
+    {полки.length > 0 ? (
+      <>
+        <nav class="shelf-jump">
+          {полки.map((п) => (
+            <a href={`#p-${п.ключ}`}>{п.имя}</a>
+          ))}
+        </nav>
+        {полки.map((п) => (
+          <>
+            <h3 class="shelf-name" id={`p-${п.ключ}`}>{п.имя}<b>{п.инструменты.length}</b></h3>
+            <div class="all-tools-grid">
+              {п.инструменты.map((t) => (
+                <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
+                  <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+                  <span class="tc-name">{t.data.navName || t.data.h1}</span>
+                </a>
+              ))}
+            </div>
+          </>
+        ))}
+      </>
+    ) : (
+      <div class="all-tools-grid">
+        {tools.map((t) => (
+          <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
+            <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+            <span class="tc-name">{t.data.navName || t.data.h1}</span>
+          </a>
+        ))}
+      </div>
+    )}
   </section>
 </Layout>
 
 <style>
   .main{text-align:center}
+  /* Ряд переходов по полкам: на большой рубрике он избавляет от прокрутки вслепую. */
+  .shelf-jump{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:0 0 22px}
+  .shelf-jump a{font-size:12.5px;color:var(--text);text-decoration:none;background:var(--surface-2);
+    border:1px solid var(--line);border-radius:999px;padding:6px 12px;transition:border-color .15s,color .15s}
+  .shelf-jump a:hover{border-color:var(--accent);color:var(--accent)}
+  .shelf-name{display:flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:.14em;
+    text-transform:uppercase;font-weight:700;color:var(--muted);margin:26px 0 10px;
+    text-align:left;scroll-margin-top:20px}
+  .shelf-name::after{content:"";flex:1;height:1px;background:var(--line)}
+  .shelf-name b{color:rgba(214,219,230,.5);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
 </style>

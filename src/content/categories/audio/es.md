@@ -2,6 +2,8 @@
 catSlug: audio
 locale: es
 name: Audio
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Recortar, unir, quitar ruido, sacar la voz
 title: Herramientas de audio online gratis — recortar, convertir, volumen, velocidad y más
 h1: Herramientas de audio
 description: Edita y convierte audio directamente en tu navegador — recortar, unir, volumen, velocidad, tono, formato y mucho más. Gratis, sin registro, los archivos no salen de tu dispositivo.

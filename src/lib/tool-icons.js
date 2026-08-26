@@ -31,6 +31,9 @@ const I = {
 // Порядок важен: первое совпадение выигрывает, поэтому частное стоит выше общего --
 // "remove-silence" должен попасть в резку, а не в шум по слову "silence".
 const RULES = [
+  // Голос стоит ПЕРЕД резкой: «split-vocal» содержит «split», и без этого страница про вокал
+  // получала ножницы.
+  [/vocal|remove-music|voice-changer/, 'mic'],
   [/trim|split|cut|remove-silence|add-silence|loop/, 'cut'],
   [/merge|mixer|join/, 'merge'],
   [/volume|normalize|compress|dynamic/, 'volume'],

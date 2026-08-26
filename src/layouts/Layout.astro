@@ -240,12 +240,19 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   @media(max-width:640px){section.seo.ve h2{font-size:20px;margin-top:32px}}
 
 
-  .all-tools{max-width:900px;margin:50px auto 0;padding:0 2rem}
+  /* Список инструментов шире текста: текст читается узкой колонкой, а плитки -- наоборот,
+     чем шире, тем меньше прокрутки. На большом экране это шесть колонок вместо трёх. */
+  /* width:100% обязателен: main -- гибкая колонка, и без него раздел сжимается по содержимому,
+     а не занимает отведённые 1360. Из-за этого на широком экране было четыре колонки вместо шести. */
+  .all-tools{max-width:1360px;width:100%;margin:50px auto 0;padding:0 2rem}
   .all-tools-title{font-size:18px;font-weight:600;color:rgba(210,215,228,0.85);margin-bottom:18px;text-align:center}
-  .all-tools-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:12px}
-  .tool-card{display:flex;flex-direction:column;gap:5px;padding:16px 14px;background:var(--surface);border:1px solid var(--line);border-radius:13px;text-decoration:none;transition:transform .12s,border-color .2s,background .2s}
+  .all-tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(205px,1fr));gap:10px}
+  .tool-card{display:flex;align-items:center;gap:10px;padding:13px 14px;min-height:52px;background:var(--surface);border:1px solid var(--line);border-radius:13px;text-decoration:none;transition:transform .12s,border-color .2s,background .2s}
   .tool-card:hover{transform:translateY(-3px);border-color:var(--accent);background:rgba(74,222,158,0.05)}
-  .tc-name{font-size:14px;font-weight:600;color:var(--text)}
+  .tc-name{font-size:14px;font-weight:600;color:var(--text);text-align:left}
+  /* Значок обозначает род дела, а не сам инструмент: их тринадцать на семьдесят восемь страниц,
+     и оттого они узнаются -- увидев ножницы второй раз, человек уже знает, что это про резку. */
+  .tc-ico{flex:none;width:19px;height:19px;color:var(--accent)}
   .tc-desc{font-size:11.5px;color:rgba(210,215,228,0.7);line-height:1.35}
   @media(max-width:760px){.all-tools-grid{grid-template-columns:repeat(2,1fr)}.all-tools{padding:0 1rem}}
   @media(max-width:640px){.main{padding:1.5rem 1rem 2rem}section.seo{padding:0 1rem}}

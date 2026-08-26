@@ -2,6 +2,8 @@
 catSlug: temperature
 locale: en
 name: Temperature
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Celsius, Fahrenheit, Kelvin
 title: Temperature Calculator Online, Free — Celsius, Fahrenheit, Kelvin
 description: Convert temperature between Celsius, Fahrenheit, and Kelvin. Accurate calculators for each pair of scales — no sign-up, no ads on landing.
 h1: Temperature Calculator

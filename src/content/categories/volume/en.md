@@ -2,6 +2,8 @@
 catSlug: volume
 locale: en
 name: Volume
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Litres, gallons, cups, ounces
 title: Volume Calculator — Free, No Sign-Up — liters, gallons, ml, cups, ounces
 h1: Volume Calculator Online
 description: Converts between any volume units at once — liters, milliliters, gallons, cups, fluid ounces. Enter a number, pick the units, done. Free, no sign-up.

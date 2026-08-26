@@ -2,6 +2,8 @@
 catSlug: weight
 locale: en
 name: Weight
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Kilograms, pounds, ounces, stones
 title: Weight Calculator — Free, No Sign-Up — kg, lbs, grams, ounces, stone
 h1: Weight Calculator Online
 description: Converts between any weight units at once — kilograms, grams, pounds, ounces, stone, tonnes. Enter a number, pick the units, done. Free, no sign-up.

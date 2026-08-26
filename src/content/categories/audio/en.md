@@ -2,6 +2,8 @@
 catSlug: audio
 locale: en
 name: Audio
+# Строка «что внутри» под названием рубрики на главной.
+blurb: Trim, join, clean up noise, pull out the vocal
 title: Audio Tools Online, Free — Trim, Convert, Volume, Speed, Pitch & More
 h1: Audio Tools
 description: Edit and convert audio files right in your browser — trim, merge, change volume, speed, pitch, format, and more. Free, no sign-up, files never leave your device.
