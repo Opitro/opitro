@@ -63,7 +63,6 @@ const t = {
   tagline: translate(locale, 'tagline')(totalTools),
   searchPlaceholder: translate(locale, 'searchPlaceholder'),
   noResults: translate(locale, 'noResults'),
-  allTools: translate(locale, 'allToolsLink'),
 };
 ---
 
@@ -84,27 +83,23 @@ const t = {
     {/* Рубрики -- строками со значком и цветной кромкой, в два столбца на большом экране.
         Раньше это были шесть одинаковых плашек с одним словом: «Аудио» с сорока двумя
         инструментами выглядела ровно как «Тесты» с четырьмя. */}
+    {/* Рубрика -- ССЫЛКА на свою страницу, а не раскрывающийся список. Раньше нажатие
+        раскрывало перечень прямо здесь и отодвигало всё вниз: в два столбца это ещё и дёргало
+        соседнюю рубрику. Внутри рубрики список теперь разложен по полкам -- показывать его
+        дважды незачем. */}
     <div class="accordion" id="accordion">
       {categories.map((c) => (
-        <details class="acc-item" style={`--cat: ${видРубрики(c.data.catSlug).цвет}`}>
-          <summary>
-            {/* Размер задан АТРИБУТАМИ прямо в значке. Стиль `.acc-ico svg` сюда не достаёт:
-                разметка вставлена через set:html, метки области видимости на ней нет, и правило
-                не срабатывает -- значок раскрывался на всю плашку и лез в глаза. */}
-            <span class="acc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" set:html={видРубрики(c.data.catSlug).путь} /></span>
-            <span class="acc-tx">
-              <span class="acc-name">{c.data.name}</span>
-              {c.data.blurb && <span class="acc-blurb">{c.data.blurb}</span>}
-            </span>
-            <span class="acc-count">{toolsByCategory[c.data.catSlug].length}</span>
-          </summary>
-          <div class="acc-body">
-            {toolsByCategory[c.data.catSlug].map((tool) => (
-              <a class="acc-link" href={`/${tool.data.locale}/${tool.data.toolSlug}`}>{tool.data.navName || tool.data.h1}</a>
-            ))}
-            <a class="acc-link acc-all" href={`/${locale}/tools/${c.data.catSlug}`}>{t.allTools}</a>
-          </div>
-        </details>
+        <a class="acc-item" href={`/${locale}/tools/${c.data.catSlug}`} style={`--cat: ${видРубрики(c.data.catSlug).цвет}`}>
+          {/* Размер задан АТРИБУТАМИ прямо в значке. Стиль `.acc-ico svg` сюда не достаёт:
+              разметка вставлена через set:html, метки области видимости на ней нет, и правило
+              не срабатывает -- значок раскрывался на всю плашку и лез в глаза. */}
+          <span class="acc-ico"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" set:html={видРубрики(c.data.catSlug).путь} /></span>
+          <span class="acc-tx">
+            <span class="acc-name">{c.data.name}</span>
+            {c.data.blurb && <span class="acc-blurb">{c.data.blurb}</span>}
+          </span>
+          <span class="acc-count">{toolsByCategory[c.data.catSlug].length}</span>
+        </a>
       ))}
     </div>
   </div>
@@ -223,11 +218,11 @@ const t = {
   .accordion{display:grid;grid-template-columns:repeat(2,minmax(0,460px));justify-content:center;
     align-items:start;gap:12px;margin-top:8px}
   @media(max-width:900px){.accordion{grid-template-columns:minmax(0,460px)}}
-  .acc-item{background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--cat,var(--accent));
-    border-radius:14px;overflow:hidden}
-  .acc-item summary{list-style:none;cursor:pointer;padding:13px 15px;display:flex;align-items:center;
-    gap:12px;font-weight:600;font-size:15px}
-  .acc-item summary::-webkit-details-marker{display:none}
+  .acc-item{display:flex;align-items:center;gap:12px;padding:13px 15px;text-decoration:none;
+    background:var(--surface);border:1px solid var(--line);border-left:3px solid var(--cat,var(--accent));
+    border-radius:14px;transition:transform .14s,border-color .18s}
+  .acc-item:hover{transform:translateY(-2px);border-color:var(--cat,var(--accent))}
+  @media(prefers-reduced-motion:reduce){.acc-item:hover{transform:none}}
   /* Значок в приглушённой плашке своего цвета -- цвет ищется глазом раньше слова. */
   .acc-ico{flex:none;width:34px;height:34px;border-radius:10px;display:flex;align-items:center;
     justify-content:center;color:var(--cat,var(--accent));
@@ -238,8 +233,4 @@ const t = {
   .acc-blurb{display:block;font-size:12.5px;font-weight:400;color:var(--muted);margin-top:2px;
     line-height:1.35}
   .acc-count{flex:none;font-size:12px;color:var(--muted);font-weight:400;background:var(--surface-2);padding:2px 9px;border-radius:20px}
-  .acc-body{display:flex;flex-direction:column;padding:0 18px 14px;gap:2px}
-  .acc-link{color:var(--muted);text-decoration:none;font-size:13.5px;padding:8px 0;border-top:1px solid var(--line)}
-  .acc-link:hover{color:var(--accent)}
-  .acc-all{color:var(--accent);font-weight:600}
 </style>
