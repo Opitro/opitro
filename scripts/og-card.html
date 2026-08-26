@@ -1,0 +1,55 @@
+<!DOCTYPE html>
+<!-- Образец карточки для соцсетей и поиска по картинкам. Ровно 1200×630 -- это размер, который
+     ждут Facebook, Telegram, X и предпросмотр Google. Рисуется скриптом scripts/make-og.mjs. -->
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html, body { width: 1200px; height: 630px; overflow: hidden; }
+  body {
+    background: #0e0f11;
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+    color: #f0f0f2;
+    display: flex; flex-direction: column; justify-content: center;
+    padding: 0 86px; position: relative;
+  }
+  /* Свечение в углу -- фон не должен быть плоским чёрным прямоугольником: в ленте он сливается
+     с тёмной темой мессенджера. */
+  .glow { position: absolute; inset: auto -180px -220px auto; width: 760px; height: 760px;
+    border-radius: 50%; background: radial-gradient(circle, rgba(74,222,158,.16), rgba(74,222,158,0) 62%); }
+  .glow2 { position: absolute; inset: -260px auto auto -220px; width: 660px; height: 660px;
+    border-radius: 50%; background: radial-gradient(circle, rgba(88,184,240,.10), rgba(88,184,240,0) 64%); }
+  .mark { display: flex; align-items: center; gap: 22px; position: relative; }
+  /* Знак сайта -- те же четыре квадрата, что в значке вкладки. */
+  .prism { width: 92px; height: 92px; border-radius: 22px; background: #15171c;
+    border: 1px solid rgba(255,255,255,.09);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 18px; flex: none; }
+  .prism i { border-radius: 7px; display: block; }
+  .prism i:nth-child(1) { background: #f5c451; }
+  .prism i:nth-child(2) { background: #ec5f7f; }
+  .prism i:nth-child(3) { background: #58b8f0; }
+  .prism i:nth-child(4) { background: #4ade9e; }
+  .word { font-size: 76px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
+  .line { position: relative; margin-top: 40px; font-size: 34px; line-height: 1.32;
+    color: rgba(214,219,230,.86); max-width: 900px; font-weight: 500; }
+  .line b { color: #f0f0f2; font-weight: 700; }
+  .foot { position: relative; margin-top: 46px; display: flex; align-items: center; gap: 14px; }
+  .dom { font-size: 27px; font-weight: 700; color: #4ade9e; letter-spacing: .2px; }
+  .rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(74,222,158,.45), rgba(255,255,255,0)); }
+</style>
+</head>
+<body>
+  <div class="glow"></div>
+  <div class="glow2"></div>
+  <div class="mark">
+    <div class="prism"><i></i><i></i><i></i><i></i></div>
+    <div class="word">Opitro</div>
+  </div>
+  <div class="line">Аудио, конвертеры и калькуляторы&nbsp;— <b>всё считается прямо в браузере</b>, без загрузки на сервер</div>
+  <div class="foot">
+    <div class="dom">opitro.com</div>
+    <div class="rule"></div>
+  </div>
+</body>
+</html>
