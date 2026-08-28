@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-noise
 locale: en
-category: tests
+category: device-tests
 tool: mic-noise
 title: Microphone Noise Test — How Quiet Is Your Room
 h1: Microphone noise

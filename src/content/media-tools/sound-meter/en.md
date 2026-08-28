@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-meter
 locale: en
-category: tests
+category: device-tests
 tool: sound-meter
 title: Sound Level Meter Online — Measure Noise in Decibels
 h1: Sound meter

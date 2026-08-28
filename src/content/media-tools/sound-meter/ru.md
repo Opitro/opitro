@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-meter
 locale: ru
-category: tests
+category: device-tests
 tool: sound-meter
 title: Шумомер онлайн — измерить уровень шума в децибелах
 h1: Шумомер

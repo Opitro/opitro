@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-test
 locale: en
-category: tests
+category: device-tests
 tool: sound-test
 title: Sound Test — Check Left and Right Speakers Online
 h1: Sound test

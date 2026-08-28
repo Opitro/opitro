@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-test
 locale: ru
-category: tests
+category: device-tests
 tool: mic-test
 title: Тест микрофона онлайн — проверить, слышит ли микрофон
 h1: Тест микрофона

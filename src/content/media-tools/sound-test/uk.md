@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-test
 locale: uk
-category: tests
+category: device-tests
 tool: sound-test
 title: Тест звуку — перевірити ліву та праву колонку онлайн
 h1: Тест звуку

@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-meter
 locale: uk
-category: tests
+category: device-tests
 tool: sound-meter
 title: Шумомір онлайн — виміряти рівень шуму в децибелах
 h1: Шумомір

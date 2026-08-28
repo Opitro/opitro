@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-test
 locale: es
-category: tests
+category: device-tests
 tool: mic-test
 title: Prueba de micrófono en línea — comprueba si te oye
 h1: Prueba de micrófono

@@ -1,7 +1,7 @@
 ---
-catSlug: tests
+catSlug: device-tests
 locale: es
-name: Pruebas
+name: Pruebas de dispositivos
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Probar el micrófono, los altavoces, el ruido de alrededor
 title: Pruebas de dispositivos en línea — micrófono, sonido, pantalla, teclado

@@ -1,3 +1,9 @@
 / /en/ 302
 /ru/length-converter /ru/tools/length 301
 /en/length-converter /en/tools/length 301
+# Рубрика «Тесты» переименована в «Тесты устройств»: скоро рядом появится рубрика
+# психологических тестов, и слово «тесты» само по себе перестало что-либо означать.
+/ru/tools/tests /ru/tools/device-tests 301
+/en/tools/tests /en/tools/device-tests 301
+/es/tools/tests /es/tools/device-tests 301
+/uk/tools/tests /uk/tools/device-tests 301

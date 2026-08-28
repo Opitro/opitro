@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-noise
 locale: uk
-category: tests
+category: device-tests
 tool: mic-noise
 title: Тест шуму мікрофона — наскільки тихо в кімнаті
 h1: Шум мікрофона

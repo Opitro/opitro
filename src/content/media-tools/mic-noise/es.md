@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-noise
 locale: es
-category: tests
+category: device-tests
 tool: mic-noise
 title: Prueba de ruido del micrófono — cómo de silenciosa es tu sala
 h1: Ruido del micrófono

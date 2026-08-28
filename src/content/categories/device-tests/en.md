@@ -1,7 +1,7 @@
 ---
-catSlug: tests
+catSlug: device-tests
 locale: en
-name: Tests
+name: Device tests
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Check the mic, the speakers, the noise around you
 title: Online Device Tests — Microphone, Sound, Screen, Keyboard

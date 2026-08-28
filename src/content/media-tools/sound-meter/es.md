@@ -1,7 +1,7 @@
 ---
 toolSlug: sound-meter
 locale: es
-category: tests
+category: device-tests
 tool: sound-meter
 title: Sonómetro en línea — mide el ruido en decibelios
 h1: Sonómetro

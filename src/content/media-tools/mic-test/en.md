@@ -1,7 +1,7 @@
 ---
 toolSlug: mic-test
 locale: en
-category: tests
+category: device-tests
 tool: mic-test
 title: Microphone Test Online — Check If Your Mic Is Working
 h1: Microphone test
