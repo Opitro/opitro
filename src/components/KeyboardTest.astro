@@ -1,0 +1,236 @@
+---
+// ТЕСТ КЛАВИАТУРЫ -- отдельная страница со своим кодом, своими стилями и своими словами.
+//
+// Ни звука, ни файлов, ни моделей: чистый браузер. Из общего не берётся ничего, кроме
+// раскладки (lib/keyboard-layout.js) -- правка здесь физически не может задеть остальные
+// страницы сайта.
+//
+// Главное решение: клавиши узнаются ПО МЕСТУ (event.code), а не по букве. Тогда тест
+// одинаково работает при русской и английской раскладке и не сбивается, если человек
+// переключит язык посреди проверки.
+import css from '../styles/keyboard-test.css?inline';
+import { БЛОКИ, ВСЕГО } from '../lib/keyboard-layout.js';
+
+const { locale = 'ru' } = Astro.props;
+
+// Вторую подпись (кириллицу) показываем только там, где она есть на настоящих клавишах.
+const сКириллицей = locale === 'ru' || locale === 'uk';
+
+const СЛОВА = {
+  ru: {
+    hint: 'Нажимайте клавиши — проверенные закрасятся',
+    checked: 'Проверено', of: 'из', held: 'Сейчас зажато', nothing: 'ничего',
+    reset: 'Сбросить', last: 'Последняя клавиша', place: 'место', sign: 'символ', code: 'код',
+    waiting: 'нажмите любую клавишу',
+    n1: 'Часть сочетаний забирает система раньше браузера — Cmd+Q, Alt+Tab, клавиша Windows. Мы их не увидим, и это не поломка клавиатуры.',
+    n2: 'Нет цифрового блока справа — значит его нет и на вашей клавиатуре. У ноутбуков так и должно быть.',
+    n3: 'Клавиша осталась в списке зажатых, хотя вы её отпустили? Вот она и залипла.',
+    n4: 'Нужна настоящая клавиатура. Подключённая к телефону или планшету по Bluetooth тоже подойдёт.',
+  },
+  en: {
+    hint: 'Press the keys — the ones that respond get filled in',
+    checked: 'Checked', of: 'of', held: 'Held right now', nothing: 'nothing',
+    reset: 'Reset', last: 'Last key', place: 'place', sign: 'character', code: 'code',
+    waiting: 'press any key',
+    n1: 'Some combinations are taken by the system before the browser sees them — Cmd+Q, Alt+Tab, the Windows key. We never get those, and it does not mean the key is broken.',
+    n2: 'No numeric pad on the right means your keyboard has none. On laptops that is normal.',
+    n3: 'A key still listed as held after you let go? That is the one that sticks.',
+    n4: 'A real keyboard is required. One connected to a phone or tablet over Bluetooth works too.',
+  },
+  es: {
+    hint: 'Pulsa las teclas: las que respondan se rellenan',
+    checked: 'Comprobadas', of: 'de', held: 'Pulsadas ahora', nothing: 'ninguna',
+    reset: 'Reiniciar', last: 'Última tecla', place: 'posición', sign: 'carácter', code: 'código',
+    waiting: 'pulsa cualquier tecla',
+    n1: 'Algunas combinaciones las toma el sistema antes que el navegador — Cmd+Q, Alt+Tab, la tecla Windows. No llegan hasta aquí, y no significa que la tecla esté rota.',
+    n2: 'Si no hay bloque numérico a la derecha, es que tu teclado no lo tiene. En los portátiles es lo normal.',
+    n3: '¿Una tecla sigue en la lista de pulsadas después de soltarla? Esa es la que se queda trabada.',
+    n4: 'Hace falta un teclado físico. Uno conectado por Bluetooth a un móvil o tableta también sirve.',
+  },
+  uk: {
+    hint: 'Натискайте клавіші — перевірені зафарбуються',
+    checked: 'Перевірено', of: 'з', held: 'Зараз затиснуто', nothing: 'нічого',
+    reset: 'Скинути', last: 'Остання клавіша', place: 'місце', sign: 'символ', code: 'код',
+    waiting: 'натисніть будь-яку клавішу',
+    n1: 'Частину сполучень система забирає раніше за браузер — Cmd+Q, Alt+Tab, клавіша Windows. Ми їх не побачимо, і це не поломка клавіатури.',
+    n2: 'Немає цифрового блоку праворуч — отже, його немає і на вашій клавіатурі. У ноутбуків так і має бути.',
+    n3: 'Клавіша лишилася у списку затиснутих, хоча ви її відпустили? Ось вона й залипла.',
+    n4: 'Потрібна справжня клавіатура. Підключена до телефона чи планшета через Bluetooth теж підійде.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="kb" data-words={JSON.stringify(с)} data-total={ВСЕГО}>
+  <p class="kb-hint" style="text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 12px">{с.hint}</p>
+
+  {/* Клавиатура шире экрана на телефоне -- её листают вбок, это нормально для схемы,
+      у которой ряды обязаны сходиться край в край. */}
+  <div class="kb-scroll">
+    <div class="kb-board">
+      {БЛОКИ.map((блок) => (
+        <div class="kb-block">
+          {блок.map((ряд) => (
+            <div class="kb-row">
+              {ряд.map((кл) => (
+                кл.пусто
+                  ? <div class="kb-key gap" style={`--w:${кл.ш}`}></div>
+                  : (
+                    <div class={`kb-key${(кл.лат || '').length > 3 ? ' small' : ''}`}
+                         data-code={кл.код} style={`--w:${кл.ш}`}>
+                      <span>{кл.лат}</span>
+                      {сКириллицей && кл.кир && <span class="ru">{кл.кир}</span>}
+                    </div>
+                  )
+              ))}
+            </div>
+          ))}
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="kb-bar">
+    <span class="kb-count">{с.checked} <b id="kb-done">0</b> {с.of} {ВСЕГО}</span>
+    <span class="kb-held" id="kb-held">{с.held}: {с.nothing}</span>
+    <button type="button" class="kb-reset" id="kb-reset" disabled>{с.reset}</button>
+  </div>
+
+  {/* Три вида одной клавиши сразу: место, символ и число. Ради этой строки половина людей
+      сюда и приходит -- назначить клавишу в игре или в программе. */}
+  <div class="kb-last">
+    <span class="cap">{с.last}</span>
+    <span class="val empty" id="kb-place">{с.waiting}</span>
+    <span class="val empty" id="kb-sign" hidden></span>
+    <span class="val empty" id="kb-code" hidden></span>
+  </div>
+
+  <div class="kb-notes">
+    <div class="kb-note">{с.n1}</div>
+    <div class="kb-note">{с.n2}</div>
+    <div class="kb-note">{с.n3}</div>
+    <div class="kb-note">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.kb');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const всего = Number(корень.dataset.total) || 0;
+    const поКоду = new Map();
+    корень.querySelectorAll('.kb-key[data-code]').forEach((э) => поКоду.set(э.dataset.code, э));
+    const числоПройденных = document.getElementById('kb-done');
+    const строкаЗажатых = document.getElementById('kb-held');
+    const кнопкаСброса = document.getElementById('kb-reset');
+    const полеМеста = document.getElementById('kb-place');
+    const полеСимвола = document.getElementById('kb-sign');
+    const полеКода = document.getElementById('kb-code');
+
+    const пройденные = new Set();
+    const зажатые = new Map();   // код -> подпись
+
+    // Подпись клавиши для строки «сейчас зажато»: берём то, что написано на схеме, а для
+    // неизвестной клавиши -- её служебное имя. Пробел словом, иначе в строке пустота.
+    function подпись(код) {
+      const э = поКоду.get(код);
+      if (код === 'Space') return 'Space';
+      if (!э) return код;
+      const т = (э.firstElementChild && э.firstElementChild.textContent || '').trim();
+      return т || код;
+    }
+    function обновитьЗажатые() {
+      const имена = [...зажатые.values()];
+      строкаЗажатых.innerHTML = с.held + ': ' + (имена.length
+        ? '<span>' + имена.join(' + ') + '</span>'
+        : с.nothing);
+    }
+    function показатьПоследнюю(e) {
+      полеМеста.textContent = e.code || '—';
+      полеМеста.classList.remove('empty');
+      // Символ показываем только для печатных клавиш: у Shift и стрелок в e.key лежит их
+      // собственное имя, и «символ: Shift» -- это не сведение, а шум.
+      const символ = (e.key && e.key.length === 1) ? e.key : null;
+      полеСимвола.hidden = !символ;
+      if (символ) {
+        полеСимвола.textContent = с.sign + ': ' + (символ === ' ' ? '␣' : символ);
+        полеСимвола.classList.remove('empty');
+      }
+      // keyCode браузеры считают устаревшим, но именно это число просят игры и программы,
+      // когда клавишу назначают вручную. Показываем, пока оно есть.
+      const число = e.keyCode || e.which || 0;
+      полеКода.hidden = !число;
+      if (число) {
+        полеКода.textContent = с.code + ': ' + число;
+        полеКода.classList.remove('empty');
+      }
+    }
+
+    // Клавиши перехватываем на всей странице: чтобы пробел не прокручивал её, Tab не уводил
+    // фокус, а F-клавиши не открывали браузерные окна. Сочетания с Ctrl/Cmd не трогаем --
+    // человек должен иметь возможность обновить страницу или уйти по своим делам.
+    function держатьСебе(e) {
+      if (e.ctrlKey || e.metaKey) return false;
+      return true;
+    }
+
+    window.addEventListener('keydown', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      показатьПоследнюю(e);
+      const э = поКоду.get(e.code);
+      if (!e.repeat) {
+        зажатые.set(e.code, подпись(e.code));
+        обновитьЗажатые();
+      }
+      if (!э) return;                       // клавиши нет на схеме -- она видна в строке выше
+      э.classList.add('is-down');
+      if (!пройденные.has(e.code)) {
+        пройденные.add(e.code);
+        э.classList.add('is-ok');
+        числоПройденных.textContent = String(пройденные.size);
+        кнопкаСброса.disabled = false;
+      }
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      зажатые.delete(e.code);
+      обновитьЗажатые();
+      const э = поКоду.get(e.code);
+      if (э) э.classList.remove('is-down');
+    });
+
+    // Ушли с вкладки, зажав клавишу, -- отпускания мы не увидим и клавиша осталась бы гореть
+    // навсегда. Гасим всё, что горит.
+    window.addEventListener('blur', () => {
+      зажатые.clear();
+      обновитьЗажатые();
+      корень.querySelectorAll('.kb-key.is-down').forEach((э) => э.classList.remove('is-down'));
+    });
+
+    кнопкаСброса.addEventListener('click', () => {
+      пройденные.clear();
+      зажатые.clear();
+      корень.querySelectorAll('.kb-key').forEach((э) => э.classList.remove('is-ok', 'is-down'));
+      числоПройденных.textContent = '0';
+      кнопкаСброса.disabled = true;
+      обновитьЗажатые();
+      полеМеста.textContent = с.waiting;
+      полеМеста.classList.add('empty');
+      полеСимвола.hidden = true;
+      полеКода.hidden = true;
+      кнопкаСброса.blur();     // иначе пробел будет нажимать её снова
+    });
+
+    // Для проверок: состояние страницы одним объектом.
+    window.__kbСостояние = () => ({
+      всего, пройдено: пройденные.size,
+      зажато: [...зажатые.keys()],
+      горит: корень.querySelectorAll('.kb-key.is-down').length,
+      отмечено: корень.querySelectorAll('.kb-key.is-ok').length,
+      место: полеМеста.textContent,
+    });
+  })();
+</script>

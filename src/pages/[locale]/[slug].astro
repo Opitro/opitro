@@ -11,6 +11,9 @@ import AudioEditor from '../../components/AudioEditor.astro';
 // накапливается несколько результатов, каждый со своим воспроизведением и скачиванием, чего
 // общий компонент не умеет. Правки в нём не касаются остальных инструментов.
 import StemTool from '../../components/StemTool.astro';
+// Тест клавиатуры -- своя страница: ни звука, ни файлов, чистый браузер, и с общим звуковым
+// инструментом у неё нет ничего общего.
+import KeyboardTest from '../../components/KeyboardTest.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
@@ -210,7 +213,7 @@ const wideLayout = kind === 'media';
   breadcrumb={breadcrumb}
   footerContact={false}
 >
-  <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}`}>
+  <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}${entry.data.tool === 'keyboard-test' ? ' main-board' : ''}`}>
     <h1>{entry.data.h1}</h1>
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
@@ -257,7 +260,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && РАЗДЕЛЕНИЕ[entry.data.tool] && (
       <StemTool locale={entry.data.locale} режим={РАЗДЕЛЕНИЕ[entry.data.tool]} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'keyboard-test' && (
+      <KeyboardTest locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
@@ -382,6 +388,14 @@ const wideLayout = kind === 'media';
   /* Audio tools need more room for the waveform + controls than the narrower calculator
      width -- matches LeebTTS's own 760px content width for the same kind of editor UI. */
   .main-media{max-width:760px}
+  /* Схеме клавиатуры нужна своя ширина: она 1148 пикселей и в текстовую колонку не влезает.
+     Растягивать её приёмом «выйти за колонку» нельзя -- страница обрезает всё, что вылезло
+     за края (overflow-x: hidden у html и body), и левый край схемы становится недостижим.
+     Поэтому колонку расширяем честно, а на узком экране схема листается вбок внутри себя. */
+  /* Тремя классами. Двух не хватило: у соседнего `.main-media.main-wide` их столько же, а стоит
+     оно НИЖЕ по файлу -- при равной вескости побеждает последнее, и колонка оставалась в 1000
+     пикселей. Схема тогда листалась даже на большом экране. Поймано замером computed-стиля. */
+  .main.main-media.main-board{max-width:1240px}
   .main-media ~ section.seo{max-width:760px}
   /* Образец: инструменту ширина, тексту наоборот узкая колонка. Правила стоят здесь, а не в
      Layout.astro, потому что там у них ровно та же вескость, что у .main-media выше, и спор
