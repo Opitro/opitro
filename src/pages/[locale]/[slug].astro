@@ -14,6 +14,7 @@ import StemTool from '../../components/StemTool.astro';
 // Тест клавиатуры -- своя страница: ни звука, ни файлов, чистый браузер, и с общим звуковым
 // инструментом у неё нет ничего общего.
 import KeyboardTest from '../../components/KeyboardTest.astro';
+import RolloverTest from '../../components/RolloverTest.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
@@ -213,7 +214,7 @@ const wideLayout = kind === 'media';
   breadcrumb={breadcrumb}
   footerContact={false}
 >
-  <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}${entry.data.tool === 'keyboard-test' ? ' main-board' : ''}`}>
+  <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}${['keyboard-test', 'key-rollover'].includes(entry.data.tool) ? ' main-board' : ''}`}>
     <h1>{entry.data.h1}</h1>
     {kind === 'tool' && entry.data.engine === 'linear-converter' && (
       <LinearConverter
@@ -263,7 +264,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'keyboard-test' && (
       <KeyboardTest locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'key-rollover' && (
+      <RolloverTest locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

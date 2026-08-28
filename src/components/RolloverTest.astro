@@ -1,0 +1,183 @@
+---
+// СКОЛЬКО КЛАВИШ НАЖИМАЕТСЯ РАЗОМ -- вторая клавиатурная страница.
+//
+// Схему и стили берёт у «теста клавиатуры»: клавиатура на обеих страницах обязана быть одной
+// и той же. Своё здесь -- только счёт одновременных нажатий.
+//
+// Что меряем на самом деле: сколько клавиш ОДНОВРЕМЕННО доходит до браузера. Дешёвые
+// клавиатуры теряют часть нажатий на трёх-четырёх клавишах, обычные USB отдают шесть плюс
+// модификаторы, игровые -- все сразу. Мы видим ровно то, что дошло, и об этом честно пишем:
+// клавишу может съесть и клавиатура, и система.
+import css from '../styles/keyboard.css?inline';
+import KeyboardBoard from './KeyboardBoard.astro';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hint: 'Зажмите сразу столько клавиш, сколько сможете — и не отпускайте',
+    now: 'Сейчас зажато', best: 'Рекорд', keys: 'клавиш', reset: 'Сбросить рекорд',
+    nowSub: 'Столько клавиш браузер видит одновременно',
+    bestSub: 'Больше всего за эту попытку',
+    v6: 'Обычная клавиатура: шесть клавиш плюс модификаторы',
+    v10: 'Хороший результат — клавиатура держит много клавиш разом',
+    vAll: 'Полный проход: клавиатура не теряет ни одной',
+    vLow: 'Мало: на этой клавиатуре часть нажатий теряется',
+    n1: 'Модификаторы — Shift, Ctrl, Alt — почти всегда идут сверх счёта, поэтому держите их тоже.',
+    n2: 'Клавишу может съесть и сама клавиатура, и система: Alt+Tab или сочетание с Windows до браузера не дойдут.',
+    n3: 'Шесть клавиш — не поломка, а обычный предел USB-клавиатуры. Больше держат те, что заявляют полный проход.',
+    n4: 'Соседние клавиши в одном ряду теряются чаще: у дешёвых плат они сидят на одной линии.',
+  },
+  en: {
+    hint: 'Hold down as many keys at once as you can — and keep holding',
+    now: 'Held right now', best: 'Best', keys: 'keys', reset: 'Reset the best',
+    nowSub: 'That many keys reach the browser at once',
+    bestSub: 'The most in this attempt',
+    v6: 'An ordinary keyboard: six keys plus modifiers',
+    v10: 'A good result — this keyboard holds many keys at once',
+    vAll: 'Full rollover: the keyboard drops nothing',
+    vLow: 'Low: this keyboard loses some of the presses',
+    n1: 'Modifiers — Shift, Ctrl, Alt — almost always come on top of the count, so hold them too.',
+    n2: 'A key can be swallowed by the keyboard or by the system: Alt+Tab or a Windows-key combination never reaches the browser.',
+    n3: 'Six keys is not a fault but the usual limit of a USB keyboard. Only boards that advertise full rollover hold more.',
+    n4: 'Neighbouring keys in one row drop out more often: on cheap boards they share a line.',
+  },
+  es: {
+    hint: 'Mantén pulsadas a la vez tantas teclas como puedas, sin soltarlas',
+    now: 'Pulsadas ahora', best: 'Récord', keys: 'teclas', reset: 'Reiniciar el récord',
+    nowSub: 'Tantas teclas llegan al navegador a la vez',
+    bestSub: 'El máximo de este intento',
+    v6: 'Teclado corriente: seis teclas más los modificadores',
+    v10: 'Buen resultado: este teclado aguanta muchas teclas a la vez',
+    vAll: 'Recorrido completo: el teclado no pierde ninguna',
+    vLow: 'Pocas: este teclado pierde parte de las pulsaciones',
+    n1: 'Los modificadores —Shift, Ctrl, Alt— casi siempre cuentan aparte, así que mantenlos pulsados también.',
+    n2: 'Una tecla la puede comer el teclado o el sistema: Alt+Tab o una combinación con la tecla Windows no llegan al navegador.',
+    n3: 'Seis teclas no es una avería, es el límite habitual de un teclado USB. Solo aguantan más los que anuncian recorrido completo.',
+    n4: 'Las teclas vecinas de una misma fila se pierden más a menudo: en placas baratas comparten línea.',
+  },
+  uk: {
+    hint: 'Затисніть одразу стільки клавіш, скільки зможете — і не відпускайте',
+    now: 'Зараз затиснуто', best: 'Рекорд', keys: 'клавіш', reset: 'Скинути рекорд',
+    nowSub: 'Стільки клавіш браузер бачить одночасно',
+    bestSub: 'Найбільше за цю спробу',
+    v6: 'Звичайна клавіатура: шість клавіш плюс модифікатори',
+    v10: 'Добрий результат — клавіатура тримає багато клавіш разом',
+    vAll: 'Повний прохід: клавіатура не втрачає жодної',
+    vLow: 'Мало: на цій клавіатурі частина натискань губиться',
+    n1: 'Модифікатори — Shift, Ctrl, Alt — майже завжди йдуть понад лік, тому тримайте і їх.',
+    n2: 'Клавішу може з\'їсти і сама клавіатура, і система: Alt+Tab чи сполучення з Windows до браузера не дійдуть.',
+    n3: 'Шість клавіш — не поломка, а звичайна межа USB-клавіатури. Більше тримають ті, що заявляють повний прохід.',
+    n4: 'Сусідні клавіші в одному ряду губляться частіше: у дешевих плат вони сидять на одній лінії.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="kb" data-words={JSON.stringify(с)}>
+  <p class="kb-hint" style="text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 12px">{с.hint}</p>
+
+  {/* Два числа: текущее -- крупно и цветом, потому что за ним следят во время нажатия;
+      рекорд -- рядом, он итог попытки. */}
+  <div class="kb-ro">
+    <div class="kb-ro-box now">
+      <span class="cap">{с.now}</span>
+      <span class="num" id="ro-now">0</span>
+      <span class="sub">{с.nowSub}</span>
+    </div>
+    <div class="kb-ro-box">
+      <span class="cap">{с.best}</span>
+      <span class="num" id="ro-best">0</span>
+      <span class="sub">{с.bestSub}</span>
+      <div class="kb-ro-verdict" id="ro-verdict"></div>
+    </div>
+    <button type="button" class="kb-ro-reset" id="ro-reset" disabled>{с.reset}</button>
+  </div>
+
+  <KeyboardBoard locale={locale} />
+
+  <div class="kb-notes">
+    <div class="kb-note">{с.n1}</div>
+    <div class="kb-note">{с.n2}</div>
+    <div class="kb-note">{с.n3}</div>
+    <div class="kb-note">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.kb');
+  if (корень && document.getElementById('ro-now')) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const поКоду = new Map();
+    корень.querySelectorAll('.kb-key[data-code]').forEach((э) => поКоду.set(э.dataset.code, э));
+    const полеСейчас = document.getElementById('ro-now');
+    const полеРекорд = document.getElementById('ro-best');
+    const полеОценки = document.getElementById('ro-verdict');
+    const кнопка = document.getElementById('ro-reset');
+
+    const зажатые = new Set();
+    let рекорд = 0;
+
+    // Оценка по рекорду. Пороги не выдуманы: шесть клавиш -- предел обычной USB-клавиатуры
+    // (стандарт передаёт шесть кодов плюс модификаторы), десять и больше бывает у плат
+    // с полным проходом.
+    function оценка(n) {
+      if (n >= 14) return ['ok', с.vAll];
+      if (n >= 10) return ['ok', с.v10];
+      if (n >= 6) return ['mid', с.v6];
+      return ['low', с.vLow];
+    }
+    function обновить() {
+      полеСейчас.textContent = String(зажатые.size);
+      if (зажатые.size > рекорд) {
+        рекорд = зажатые.size;
+        полеРекорд.textContent = String(рекорд);
+        const [вид, текст] = оценка(рекорд);
+        полеОценки.className = 'kb-ro-verdict ' + вид;
+        полеОценки.textContent = текст;
+        кнопка.disabled = false;
+      }
+    }
+
+    // Сочетания с Ctrl и Cmd не перехватываем: человек должен иметь возможность обновить
+    // страницу или уйти. Всё остальное держим себе, иначе пробел прокрутит страницу, а Tab
+    // уведёт фокус посреди попытки.
+    const держатьСебе = (e) => !(e.ctrlKey || e.metaKey);
+
+    window.addEventListener('keydown', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      if (e.repeat) return;
+      зажатые.add(e.code);
+      const э = поКоду.get(e.code);
+      if (э) э.classList.add('is-down');
+      обновить();
+    });
+    window.addEventListener('keyup', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      зажатые.delete(e.code);
+      const э = поКоду.get(e.code);
+      if (э) э.classList.remove('is-down');
+      обновить();
+    });
+    // Ушли с вкладки, не отпустив клавиши, -- отпускания мы не увидим, и клавиши горели бы
+    // вечно, а счётчик врал.
+    window.addEventListener('blur', () => {
+      зажатые.clear();
+      корень.querySelectorAll('.kb-key.is-down').forEach((э) => э.classList.remove('is-down'));
+      обновить();
+    });
+
+    кнопка.addEventListener('click', () => {
+      рекорд = 0;
+      полеРекорд.textContent = '0';
+      полеОценки.textContent = '';
+      полеОценки.className = 'kb-ro-verdict';
+      кнопка.disabled = true;
+      кнопка.blur();          // иначе пробел снова нажмёт её
+    });
+
+    window.__roСостояние = () => ({ сейчас: зажатые.size, рекорд, оценка: полеОценки.textContent });
+  })();
+</script>

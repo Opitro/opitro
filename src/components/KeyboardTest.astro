@@ -8,18 +8,15 @@
 // Главное решение: клавиши узнаются ПО МЕСТУ (event.code), а не по букве. Тогда тест
 // одинаково работает при русской и английской раскладке и не сбивается, если человек
 // переключит язык посреди проверки.
-import css from '../styles/keyboard-test.css?inline';
-import { БЛОКИ, ВСЕГО } from '../lib/keyboard-layout.js';
+import css from '../styles/keyboard.css?inline';
+import KeyboardBoard from './KeyboardBoard.astro';
+import { ВСЕГО } from '../lib/keyboard-layout.js';
 
 const { locale = 'ru' } = Astro.props;
-
-// Вторую подпись (кириллицу) показываем только там, где она есть на настоящих клавишах.
-const сКириллицей = locale === 'ru' || locale === 'uk';
 
 const СЛОВА = {
   ru: {
     need1: 'Подключите клавиатуру',
-    need2: 'Экранная клавиатура для теста не годится — она не шлёт нажатия клавиш. Подключите настоящую по Bluetooth, нажмите любую клавишу, и схема оживёт.',
     hint: 'Нажимайте клавиши — проверенные закрасятся',
     checked: 'Проверено', of: 'из', held: 'Сейчас зажато', nothing: 'ничего',
     reset: 'Сбросить', last: 'Последняя клавиша', place: 'место', sign: 'символ', code: 'код',
@@ -31,7 +28,6 @@ const СЛОВА = {
   },
   en: {
     need1: 'Connect a keyboard',
-    need2: 'An on-screen keyboard will not do — it does not send key presses. Pair a real one over Bluetooth, press any key, and the diagram comes to life.',
     hint: 'Press the keys — the ones that respond get filled in',
     checked: 'Checked', of: 'of', held: 'Held right now', nothing: 'nothing',
     reset: 'Reset', last: 'Last key', place: 'place', sign: 'character', code: 'code',
@@ -43,7 +39,6 @@ const СЛОВА = {
   },
   es: {
     need1: 'Conecta un teclado',
-    need2: 'El teclado en pantalla no sirve: no envía pulsaciones de teclas. Empareja uno real por Bluetooth, pulsa cualquier tecla y el esquema cobrará vida.',
     hint: 'Pulsa las teclas: las que respondan se rellenan',
     checked: 'Comprobadas', of: 'de', held: 'Pulsadas ahora', nothing: 'ninguna',
     reset: 'Reiniciar', last: 'Última tecla', place: 'posición', sign: 'carácter', code: 'código',
@@ -55,7 +50,6 @@ const СЛОВА = {
   },
   uk: {
     need1: 'Підключіть клавіатуру',
-    need2: 'Екранна клавіатура для тесту не годиться — вона не шле натискань клавіш. Підключіть справжню через Bluetooth, натисніть будь-яку клавішу, і схема ожине.',
     hint: 'Натискайте клавіші — перевірені зафарбуються',
     checked: 'Перевірено', of: 'з', held: 'Зараз затиснуто', nothing: 'нічого',
     reset: 'Скинути', last: 'Остання клавіша', place: 'місце', sign: 'символ', code: 'код',
@@ -79,36 +73,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       прячет её чистый CSS, без кода: значит, она не мигнёт при загрузке.
       Как только придёт первое настоящее нажатие, код ставит на страницу метку -- и плашка
       уходит навсегда: клавиатура есть, предупреждать не о чем. */}
-  <div class="kb-need">
-    <strong>{с.need1}</strong>
-    <span>{с.need2}</span>
-  </div>
+  <div class="kb-need"><strong>{с.need1}</strong></div>
 
-  {/* Клавиатура шире экрана на телефоне -- её листают вбок, это нормально для схемы,
-      у которой ряды обязаны сходиться край в край. */}
-  <div class="kb-scroll">
-    <div class="kb-board">
-      {БЛОКИ.map((блок) => (
-        <div class="kb-block">
-          {блок.map((ряд) => (
-            <div class="kb-row">
-              {ряд.map((кл) => (
-                кл.пусто
-                  ? <div class="kb-key gap" style={`--w:${кл.ш}`}></div>
-                  : (
-                    <div class={`kb-key${(кл.лат || '').length > 3 ? ' small' : ''}`}
-                         data-code={кл.код} style={`--w:${кл.ш}`}>
-                      <span>{кл.лат}</span>
-                      {сКириллицей && кл.кир && <span class="ru">{кл.кир}</span>}
-                    </div>
-                  )
-              ))}
-            </div>
-          ))}
-        </div>
-      ))}
-    </div>
-  </div>
+  <KeyboardBoard locale={locale} />
 
   <div class="kb-bar">
     <span class="kb-count">{с.checked} <b id="kb-done">0</b> {с.of} {ВСЕГО}</span>
