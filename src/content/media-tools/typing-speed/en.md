@@ -13,9 +13,11 @@ faq:
   - question: What counts as a normal speed?
     answer: An adult typing with two to four fingers manages 30–40 words per minute. Confident touch typing starts around 60; professional typists hold 80–100. Below 25 it is worth practising — the difference in everyday work is noticeable.
   - question: What text do I have to type?
-    answer: "Two kinds to choose from. “Words” are common words of the language shuffled together: real text can be guessed from meaning, and then you measure familiarity with the passage rather than typing. “Phrases” are short everyday phrases, read whole and typed from memory. Neither has commas or capitals: those test knowledge of the layout, not speed."
+    answer: "Three levels to choose from. Easy is connected text about ordinary things, in short familiar words. Medium is the same connected text but with long, difficult words. Hard is words with no connection between them at all, with punctuation and capitals."
   - question: Is the text different every time?
-    answer: Yes. It is put together anew on every visit and on every press of “Again”, so the second run is never over familiar text. Words come from the language’s common-word list; phrases come from their own set and do not repeat until the whole set is used.
+    answer: Yes. It is put together anew on every visit and on every press of “Again”, so the second run is never over familiar text. Phrases do not repeat within an attempt until the whole set is used, and the hard level draws its words from the language’s common-word list.
+  - question: Why are unconnected words the hardest level and not the easiest?
+    answer: "Because meaning helps you type. In connected text each word suggests the next one, and the fingers run ahead of the head. Take the meaning away and every word has to be read to the end: measurements put the loss at roughly ten to twenty per cent. On top of that the hard level adds commas, full stops and capitals."
   - question: Can I correct a mistake?
     answer: "Yes — delete the wrong letter and type it again, and accuracy will take it into account. But the clock keeps running, so a correction always costs speed. That is fair: in real work corrections cost time too."
   - question: Does the test work on a phone?

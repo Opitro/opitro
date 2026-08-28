@@ -1,26 +1,28 @@
-// МАТЕРИАЛ ДЛЯ ТЕСТА СКОРОСТИ ПЕЧАТИ.
+// МАТЕРИАЛ ДЛЯ ТЕСТА СКОРОСТИ ПЕЧАТИ -- три уровня.
 //
-// Что вообще положено набирать в таких тестах -- вопрос давно изученный. В работе, на которую
-// в этой области ссылаются все (MacKenzie, Soukoreff, «Phrase sets for evaluating text entry
-// techniques», CHI 2003), собран набор из 500 коротких английских фраз и названы требования
-// к материалу:
-//   * фразы КОРОТКИЕ -- от 16 до 43 знаков, в среднем 28,6;
-//   * ЛЕГКО ЗАПОМИНАЮТСЯ -- человек прочитывает фразу и набирает, а не читает по букве;
-//   * ПРЕДСТАВЛЯЮТ ЯЗЫК -- частота букв в наборе близка к частоте букв в языке (у них 0,954);
-//   * БЕЗ ЗНАКОВ ПРЕПИНАНИЯ и почти без заглавных: запятые и Shift проверяют знание раскладки,
-//     а не скорость, и портят сравнение между людьми.
-// Средняя длина слова у них 4,46 знака -- то есть слова обычные, короткие.
+// Порядок уровней взят из того, как человек на самом деле печатает. Связный текст набирают
+// быстрее всего: смысл подсказывает следующее слово, и пальцы идут вперёд головы. Стоит убрать
+// смысл -- и скорость падает, потому что каждое слово приходится читать целиком. Поэтому
+// бессвязные слова здесь САМЫЙ ТРУДНЫЙ уровень, а не самый лёгкий:
+//   * ЛЁГКИЙ  -- связный текст, слова короткие и знакомые;
+//   * СРЕДНИЙ -- связный текст, слова длинные и трудные;
+//   * СЛОЖНЫЙ -- слова без связи, со знаками препинания и заглавными.
 //
-// Отсюда два вида материала, и оба здесь есть:
-//   1. СЛОВА -- частые слова языка вперемешку. Так делают Monkeytype и подобные: связный текст
-//      можно угадывать по смыслу, и тогда меряется знакомство с отрывком, а не набор.
-//   2. ФРАЗЫ -- по требованиям выше: короткие, без знаков препинания, из обычных слов.
+// Про сам материал. В работе, на которую в этой области ссылаются все (MacKenzie, Soukoreff,
+// «Phrase sets for evaluating text entry techniques», CHI 2003), названы требования к фразам:
+// короткие (16-43 знака, в среднем 28,6), легко запоминаются, частота букв близка к частоте
+// букв в языке, средняя длина слова 4,46 знака. Первые два уровня сделаны по этим требованиям.
+//
+// Знаки препинания и заглавные там намеренно исключены: они проверяют знание раскладки, а не
+// скорость. Здесь они есть только на сложном уровне -- как отдельная, заявленная трудность.
 //
 // Набор для попытки собирается СЛУЧАЙНО и заново на каждый заход: нажал «Заново» -- получил
-// другой текст. Раньше текст был один на всю сборку, и это была настоящая беда: человек
-// проходил тест второй раз уже по знакомому.
+// другой текст. Раньше текст был один на всю сборку, и человек проходил тест второй раз уже
+// по знакомому.
 
-const RU = `и в не на я быть с он а то все она так его но да ты к у же вы за бы по только ее мне
+// Частые слова языка. Идут в сложный уровень -- вперемешку, без всякой связи между собой.
+const ЧАСТЫЕ = {
+  ru: `и в не на я быть с он а то все она так его но да ты к у же вы за бы по только ее мне
 было вот от меня еще нет о из ему теперь когда даже ну вдруг ли если уже или ни был него до вас
 опять уж вам сказал ведь там потом себя ничего ей может они тут где есть надо ней для мы тебя их
 чем была сам чтоб без будто человек чего раз тоже себе под жизнь будет тогда кто этот говорил
@@ -31,10 +33,9 @@ const RU = `и в не на я быть с он а то все она так е�
 место друг сторона вопрос дело город вода земля путь свет стол окно дверь книга письмо голос
 утро вечер ночь неделя месяц минута час дорога море небо снег дождь ветер лес поле река гора
 хлеб чай мама папа сын дочь брат сестра школа улица машина поезд самолет телефон деньги цена
-магазин врач больница`
-  .split(/\s+/).filter(Boolean);
+магазин врач больница`,
 
-const EN = `the be to of and a in that have it for not on with he as you do at this but his by
+  en: `the be to of and a in that have it for not on with he as you do at this but his by
 from they we say her she or an will my one all would there their what so up out if about who get
 which go me when make can like time no just him know take people into year your good some could
 them see other than then now look only come its over think also back after use two how our work
@@ -43,9 +44,9 @@ school state family student group country problem hand part place case week comp
 program question night water house room door book letter voice morning evening street city river
 sea sky snow rain wind forest field mountain bread money price shop doctor train plane phone
 mother father son daughter brother sister friend road light table window paper music garden
-summer winter spring autumn`.split(/\s+/).filter(Boolean);
+summer winter spring autumn`,
 
-const ES = `de la que el en y a los se del las un por con no una su para es al lo como más pero
+  es: `de la que el en y a los se del las un por con no una su para es al lo como más pero
 sus le ya o este sí porque esta entre cuando muy sin sobre también me hasta hay donde quien desde
 todo nos durante todos uno les ni contra otros ese eso ante ellos esto antes algunos qué unos yo
 otro otras otra él tanto esa estos mucho quienes nada muchos cual poco ella estar estas algunas
@@ -53,9 +54,9 @@ algo nosotros mi mis tú te ti tu tus ellas casa tiempo día vida hombre mujer p
 trabajo país lugar mano forma caso noche agua puerta libro carta voz mañana tarde calle ciudad
 río mar cielo nieve lluvia viento bosque campo montaña pan dinero precio tienda médico tren avión
 teléfono madre padre hijo hija hermano hermana amigo camino luz mesa ventana papel música jardín
-verano invierno primavera otoño`.split(/\s+/).filter(Boolean);
+verano invierno primavera otoño`,
 
-const UK = `і в не на я бути з він а то все вона так його але ти у же ви за би по тільки її мені
+  uk: `і в не на я бути з він а то все вона так його але ти у же ви за би по тільки її мені
 було ось від мене ще немає про йому тепер коли навіть ну раптом чи якщо вже або ні був нього до
 вас знову вам сказав адже там потім себе нічого їй може вони тут де є треба для ми тебе їх ніж
 була сам щоб без ніби людина чого раз теж собі під життя буде тоді хто цей говорив того тому
@@ -65,13 +66,13 @@ const UK = `і в не на я бути з він а то все вона так
 очі час день рік робота слово місце друг сторона питання справа місто вода земля шлях світло стіл
 вікно двері книга лист голос ранок вечір ніч тиждень місяць хвилина година дорога море небо сніг
 дощ вітер ліс поле річка гора хліб чай мама тато син дочка брат сестра школа вулиця машина потяг
-літак телефон гроші ціна магазин лікар лікарня`.split(/\s+/).filter(Boolean);
+літак телефон гроші ціна магазин лікар лікарня`,
+};
+for (const яз of Object.keys(ЧАСТЫЕ)) ЧАСТЫЕ[яз] = ЧАСТЫЕ[яз].split(/\s+/).filter(Boolean);
 
-const СЛОВА = { ru: RU, en: EN, es: ES, uk: UK };
-
-// Фразы -- по требованиям из работы выше: короткие, без знаков препинания и заглавных,
-// из обычных слов, о простых вещах. Их легко прочитать целиком и набрать по памяти.
-const ФРАЗЫ = {
+// ЛЁГКИЙ. Связный текст об обычных вещах, слова короткие и знакомые. Такую фразу человек
+// прочитывает целиком и набирает по памяти, не возвращаясь глазами к началу.
+const ПРОСТЫЕ = {
   ru: [
     'завтра утром обещали дождь', 'поставь чайник на плиту', 'он забыл ключи на столе',
     'мы вернёмся домой к вечеру', 'у неё новая работа в городе', 'книга лежит на верхней полке',
@@ -144,48 +145,208 @@ const ФРАЗЫ = {
   ],
 };
 
-/** Сколько всего слов и фраз в запасе -- для честного ответа «а сколько у нас текстов». */
+// СРЕДНИЙ. Тот же связный текст, но слова длинные и редкие: «предварительное», «сотрудничество».
+// Смысл ещё помогает, а вот пальцы уже нет -- длинное слово надо дочитать до конца.
+const ТРУДНЫЕ = {
+  ru: [
+    'предварительное согласование заняло несколько недель',
+    'представители организации подтвердили договорённость',
+    'исследователи опубликовали промежуточные результаты наблюдений',
+    'администрация предупредила о временном ограничении движения',
+    'специалисты рекомендуют использовать альтернативное оборудование',
+    'в университете открылась дополнительная лаборатория',
+    'документация потребовала существенной переработки',
+    'окончательное решение принимается коллегиально',
+    'производительность оборудования превысила ожидания',
+    'международное сотрудничество продолжается несмотря на обстоятельства',
+    'предпринимателям предложили упрощённую систему налогообложения',
+    'качественная реставрация памятника заняла четыре года',
+    'последовательность действий описана в сопроводительной инструкции',
+    'большинство участников высказалось за пересмотр соглашения',
+    'автоматизация производства сократила издержки предприятия',
+    'неблагоприятные погодные условия задержали строительство',
+    'правительство рассматривает возможность продления программы',
+    'дополнительное финансирование распределяется по направлениям',
+    'археологи обнаружили удивительно хорошо сохранившееся захоронение',
+    'распространение технологии потребовало переподготовки сотрудников',
+    'свидетельство о регистрации выдаётся в течение недели',
+    'преподаватель порекомендовал ознакомиться с первоисточниками',
+    'эффективность лечения подтверждена независимыми испытаниями',
+    'предполагаемая продолжительность работ составляет полгода',
+    'существующая инфраструктура нуждается в модернизации',
+    'общественность отреагировала на публикацию неоднозначно',
+    'восстановление электроснабжения обещают к понедельнику',
+    'ответственность за сохранность оборудования несёт руководитель',
+    'взаимодействие подразделений происходит через общую систему',
+    'предварительные подсчёты оказались слишком оптимистичными',
+  ],
+  en: [
+    'the preliminary arrangement required additional approval',
+    'researchers published the intermediate results of their observations',
+    'the administration announced a temporary traffic restriction',
+    'specialists recommend using alternative equipment',
+    'the university opened an additional research laboratory',
+    'the documentation needed substantial revision',
+    'the final decision is taken collectively',
+    'equipment performance significantly exceeded expectations',
+    'international cooperation continues despite the circumstances',
+    'entrepreneurs were offered a simplified taxation system',
+    'careful restoration of the monument took four years',
+    'the sequence of actions is described in the accompanying instructions',
+    'most participants voted for revising the agreement',
+    'manufacturing automation reduced the expenses of the enterprise',
+    'unfavourable weather conditions delayed construction',
+    'the government is considering extending the programme',
+    'additional funding is distributed across several directions',
+    'archaeologists discovered a remarkably well preserved burial',
+    'spreading the technology required retraining the employees',
+    'the registration certificate is issued within a week',
+    'the lecturer recommended consulting the original sources',
+    'the effectiveness of treatment was confirmed by independent trials',
+    'the estimated duration of the works is about six months',
+    'the existing infrastructure needs modernisation',
+    'the public reacted to the publication ambiguously',
+    'electricity supply is expected to be restored by monday',
+    'responsibility for the equipment rests with the manager',
+    'the departments communicate through a shared system',
+    'preliminary calculations proved too optimistic',
+    'the committee postponed consideration until the following quarter',
+  ],
+  es: [
+    'el acuerdo preliminar requirió una aprobación adicional',
+    'los investigadores publicaron los resultados intermedios',
+    'la administración anunció una restricción temporal del tráfico',
+    'los especialistas recomiendan utilizar equipos alternativos',
+    'la universidad inauguró un laboratorio de investigación adicional',
+    'la documentación necesitaba una revisión sustancial',
+    'la decisión definitiva se toma colectivamente',
+    'el rendimiento del equipo superó considerablemente las expectativas',
+    'la cooperación internacional continúa pese a las circunstancias',
+    'ofrecieron a los empresarios un sistema tributario simplificado',
+    'la restauración del monumento duró cuatro años',
+    'la secuencia de acciones aparece en las instrucciones adjuntas',
+    'la mayoría de los participantes votó por revisar el acuerdo',
+    'la automatización redujo los gastos de la empresa',
+    'las condiciones meteorológicas desfavorables retrasaron la construcción',
+    'el gobierno estudia la posibilidad de prorrogar el programa',
+    'la financiación adicional se distribuye en varias direcciones',
+    'los arqueólogos descubrieron un enterramiento sorprendentemente conservado',
+    'la difusión de la tecnología exigió capacitar de nuevo al personal',
+    'el certificado de registro se expide en una semana',
+    'el profesor recomendó consultar las fuentes originales',
+    'la eficacia del tratamiento fue confirmada por ensayos independientes',
+    'la duración estimada de las obras es de medio año',
+    'la infraestructura existente necesita modernización',
+    'la opinión pública reaccionó de forma ambigua',
+    'prometen restablecer el suministro eléctrico el lunes',
+    'la responsabilidad del equipamiento corresponde al director',
+    'los departamentos se comunican mediante un sistema común',
+    'los cálculos preliminares resultaron demasiado optimistas',
+    'la comisión aplazó el examen hasta el trimestre siguiente',
+  ],
+  uk: [
+    'попереднє погодження зайняло кілька тижнів',
+    'представники організації підтвердили домовленість',
+    'дослідники оприлюднили проміжні результати спостережень',
+    'адміністрація попередила про тимчасове обмеження руху',
+    'фахівці рекомендують використовувати альтернативне обладнання',
+    'в університеті відкрилася додаткова дослідницька лабораторія',
+    'документація потребувала суттєвого доопрацювання',
+    'остаточне рішення ухвалюється колегіально',
+    'продуктивність обладнання перевищила очікування',
+    'міжнародна співпраця триває попри обставини',
+    'підприємцям запропонували спрощену систему оподаткування',
+    'якісне відновлення споруди тривало чотири роки',
+    'послідовність дій описана в супровідній інструкції',
+    'більшість учасників висловилася за перегляд угоди',
+    'автоматизація виробництва скоротила витрати підприємства',
+    'несприятливі погодні умови затримали будівництво',
+    'уряд розглядає можливість продовження програми',
+    'додаткове фінансування розподіляється за напрямами',
+    'археологи виявили напрочуд добре збережене поховання',
+    'поширення технології потребувало перепідготовки працівників',
+    'свідоцтво про реєстрацію видається протягом тижня',
+    'викладач порекомендував ознайомитися з першоджерелами',
+    'ефективність лікування підтверджена незалежними випробуваннями',
+    'передбачувана тривалість робіт становить півроку',
+    'наявна інфраструктура потребує модернізації',
+    'громадськість відреагувала на публікацію неоднозначно',
+    'відновлення електропостачання обіцяють до понеділка',
+    'відповідальність за збереження обладнання несе керівник',
+    'взаємодія підрозділів відбувається через спільну систему',
+    'попередні підрахунки виявилися надто оптимістичними',
+  ],
+};
+
+// Кавычки у каждого языка свои. Английские «лапки» в русском тексте выглядят чужеродно, а
+// печатаются они по-разному -- значит и трудность была бы не та.
+const КАВЫЧКИ = { ru: ['«', '»'], uk: ['«', '»'], es: ['«', '»'], en: ['“', '”'] };
+
+const сл = (n) => Math.floor(Math.random() * n);
+const из = (список) => список[сл(список.length)];
+
+/** Сколько всего материала в запасе -- для честного ответа «а сколько у нас текстов». */
 export function размерЗапаса(язык = 'ru') {
-  return {
-    слов: (СЛОВА[язык] || СЛОВА.ru).length,
-    фраз: (ФРАЗЫ[язык] || ФРАЗЫ.ru).length,
-  };
+  const яз = ЧАСТЫЕ[язык] ? язык : 'ru';
+  return { слов: ЧАСТЫЕ[яз].length, простых: ПРОСТЫЕ[яз].length, трудных: ТРУДНЫЕ[яз].length };
 }
 
 /**
- * Набор слов для одной попытки. Слова берутся случайно, но одно и то же не встаёт подряд:
- * повтор сбивает -- человек думает, что промахнулся строкой.
+ * Связный уровень: фразы идут подряд и разбиты на слова. Весь список сначала перемешивается,
+ * а не тянется по одной случайной -- иначе одна и та же фраза попадается за попытку дважды,
+ * и это выглядит как поломка страницы.
  */
-export function словаДляТеста(язык = 'ru', сколько = 140) {
-  const список = СЛОВА[язык] || СЛОВА.ru;
-  const из = [];
-  let прошлое = '';
-  for (let i = 0; i < сколько; i++) {
-    let слово = прошлое;
-    for (let n = 0; n < 3 && слово === прошлое; n++) слово = список[Math.floor(Math.random() * список.length)];
-    из.push(слово);
-    прошлое = слово;
+function изФраз(список, сколькоСлов) {
+  const свои = [...список];
+  for (let i = свои.length - 1; i > 0; i--) {
+    const j = сл(i + 1);
+    [свои[i], свои[j]] = [свои[j], свои[i]];
   }
-  return из;
-}
-
-/**
- * Набор фраз для одной попытки, разложенный по словам: набирается он так же, как слова, а
- * читается как речь. Фразы идут подряд и не повторяются, пока не кончится весь список.
- */
-export function фразыДляТеста(язык = 'ru', сколькоСлов = 140) {
-  const список = [...(ФРАЗЫ[язык] || ФРАЗЫ.ru)];
-  // Перемешиваем весь список, а не тянем случайные: иначе одна и та же фраза попадается
-  // дважды за попытку, и это выглядит как ошибка страницы.
-  for (let i = список.length - 1; i > 0; i--) {
-    const j = Math.floor(Math.random() * (i + 1));
-    [список[i], список[j]] = [список[j], список[i]];
-  }
-  const из = [];
+  const вышло = [];
   let i = 0;
-  while (из.length < сколькоСлов) {
-    из.push(...список[i % список.length].split(' '));
-    i++;
+  while (вышло.length < сколькоСлов) вышло.push(...свои[i++ % свои.length].split(' '));
+  return вышло.slice(0, сколькоСлов);
+}
+
+/**
+ * Сложный уровень: слова без всякой связи, разложенные на предложения со знаками препинания
+ * и заглавными. Смысла нет -- каждое слово приходится дочитывать до конца, и на этом скорость
+ * заметно падает. Это и есть заявленная трудность уровня.
+ */
+function изСлов(список, сколькоСлов, язык) {
+  const [лк, пк] = КАВЫЧКИ[язык] || КАВЫЧКИ.en;
+  const вышло = [];
+  let сНачала = true;
+  while (вышло.length < сколькоСлов) {
+    const длина = 4 + сл(5); // предложение из 4-8 слов -- как обычная фраза
+    const запятая = длина > 5 && Math.random() < 0.5 ? 1 + сл(длина - 2) : -1;
+    for (let i = 0; i < длина && вышло.length < сколькоСлов; i++) {
+      let слово = из(список);
+      // Кавычки и числа -- редко: они трудные (Shift и верхний ряд), но если сыпать их часто,
+      // тест перестаёт быть тестом набора и становится тестом верхнего ряда.
+      if (Math.random() < 0.03) слово = лк + слово + пк;
+      else if (Math.random() < 0.03) слово = String(10 + сл(990));
+      if (сНачала) {
+        // Заглавная ставится на первую БУКВУ, а не на первый знак: иначе после кавычки
+        // предложение начинается со строчной и выглядит опечаткой.
+        const б = слово.search(/\p{L}/u);
+        if (б >= 0) слово = слово.slice(0, б) + слово[б].toUpperCase() + слово.slice(б + 1);
+        сНачала = false;
+      }
+      if (i === запятая) слово += ',';
+      if (i === длина - 1) { слово += из(['.', '.', '.', '.', '!', '?']); сНачала = true; }
+      вышло.push(слово);
+    }
   }
-  return из.slice(0, сколькоСлов);
+  return вышло;
+}
+
+/**
+ * Материал на одну попытку. Уровни: 'easy' -- связный текст простыми словами, 'medium' -- он же
+ * длинными и трудными, 'hard' -- слова без связи со знаками препинания.
+ */
+export function текстДляТеста(язык = 'ru', уровень = 'easy', сколькоСлов = 140) {
+  const яз = ЧАСТЫЕ[язык] ? язык : 'ru';
+  if (уровень === 'hard') return изСлов(ЧАСТЫЕ[яз], сколькоСлов, яз);
+  return изФраз(уровень === 'medium' ? ТРУДНЫЕ[яз] : ПРОСТЫЕ[яз], сколькоСлов);
 }

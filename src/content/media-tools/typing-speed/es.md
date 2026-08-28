@@ -13,9 +13,11 @@ faq:
   - question: ¿Qué velocidad se considera normal?
     answer: "Un adulto que escribe con dos o cuatro dedos alcanza 30–40 palabras por minuto. La mecanografía segura empieza en torno a 60; los profesionales sostienen 80–100. Por debajo de 25 conviene practicar: la diferencia en el trabajo diario se nota."
   - question: ¿Qué texto hay que escribir?
-    answer: "Dos tipos a elegir. «Palabras» son palabras frecuentes del idioma mezcladas: un texto con sentido se puede adivinar, y entonces se mide la familiaridad con el fragmento, no la escritura. «Frases» son frases cortas y cotidianas, se leen enteras y se escriben de memoria. Ninguno lleva comas ni mayúsculas: eso prueba el conocimiento de la distribución, no la velocidad."
+    answer: "Tres niveles a elegir. Fácil es texto con sentido sobre cosas cotidianas, con palabras cortas y conocidas. Medio es el mismo texto con sentido, pero con palabras largas y difíciles. Difícil son palabras sin ninguna relación entre sí, con signos de puntuación y mayúsculas."
   - question: ¿El texto cambia cada vez?
-    answer: Sí. Se compone de nuevo en cada visita y cada vez que pulsas «Otra vez», así que la segunda ronda nunca es sobre un texto ya conocido. Las palabras salen de la lista de palabras frecuentes; las frases, de su propio conjunto, y no se repiten hasta agotarlo.
+    answer: Sí. Se compone de nuevo en cada visita y cada vez que pulsas «Otra vez», así que la segunda ronda nunca es sobre un texto ya conocido. Las frases no se repiten dentro de un intento hasta agotar el conjunto, y el nivel difícil toma sus palabras de la lista de palabras frecuentes del idioma.
+  - question: ¿Por qué las palabras sin relación son el nivel difícil y no el fácil?
+    answer: "Porque el sentido ayuda a escribir. En un texto con sentido cada palabra sugiere la siguiente y los dedos van por delante de la cabeza. Quita el sentido y hay que leer cada palabra entera: las mediciones sitúan la pérdida en torno al diez o veinte por ciento. Además el nivel difícil añade comas, puntos y mayúsculas."
   - question: ¿Puedo corregir un error?
     answer: "Sí, borra la letra equivocada y escríbela otra vez; la precisión lo tendrá en cuenta. Pero el reloj sigue corriendo, así que corregir siempre cuesta velocidad. Es justo: en el trabajo real corregir también cuesta tiempo."
   - question: ¿Funciona desde el móvil?

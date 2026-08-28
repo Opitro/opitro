@@ -18,7 +18,7 @@ const запас = размерЗапаса(locale);
 
 const СЛОВА = {
   ru: {
-    mWords: 'Слова', mPhrases: 'Фразы',
+    lvEasy: 'Лёгкий', lvMid: 'Средний', lvHard: 'Сложный',
     wpmShort: 'сл/мин',
     after: 'Нажмите «Заново», чтобы пройти ещё раз',
     focus: 'Нажмите, чтобы продолжить',
@@ -37,12 +37,12 @@ const СЛОВА = {
     accSub: 'Доля верных знаков',
     errSub: 'Знаков набрано неверно',
     n1: 'В зачёт идут только верно набранные знаки: скорость, набитая опечатками, ничего не значит.',
-    n2: 'Каждый заход — новый текст. Слова или короткие фразы, без запятых и заглавных: так проверяется набор, а не знание раскладки.',
+    n2: 'Каждый заход — новый текст. Лёгкий уровень — связный текст простыми словами, средний — он же длинными и трудными, сложный — слова без связи со знаками препинания.',
     n3: 'Ошибку можно исправить: сотрите неверную букву и наберите заново, точность это учтёт.',
     n4: 'Средняя скорость взрослого — 30-40 слов в минуту, уверенная печать вслепую — от 60.',
   },
   en: {
-    mWords: 'Words', mPhrases: 'Phrases',
+    lvEasy: 'Easy', lvMid: 'Medium', lvHard: 'Hard',
     wpmShort: 'wpm',
     after: 'Press “Again” to have another go',
     focus: 'Click to carry on',
@@ -61,12 +61,12 @@ const СЛОВА = {
     accSub: 'Share of correct characters',
     errSub: 'Characters typed wrong',
     n1: 'Only correctly typed characters count: speed made of typos means nothing.',
-    n2: 'Every attempt gets a new text. Words or short phrases, without commas or capitals: this measures typing, not knowledge of the layout.',
+    n2: 'Every attempt gets a new text. Easy is plain connected text, medium is the same with long difficult words, hard is unconnected words with punctuation.',
     n3: 'You can fix a mistake: delete the wrong letter and type it again, accuracy takes that into account.',
     n4: 'An average adult types 30–40 words per minute; confident touch typing starts around 60.',
   },
   es: {
-    mWords: 'Palabras', mPhrases: 'Frases',
+    lvEasy: 'Fácil', lvMid: 'Medio', lvHard: 'Difícil',
     wpmShort: 'ppm',
     after: 'Pulsa «Otra vez» para repetir',
     focus: 'Pulsa para continuar',
@@ -85,12 +85,12 @@ const СЛОВА = {
     accSub: 'Proporción de caracteres correctos',
     errSub: 'Caracteres escritos mal',
     n1: 'Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada.',
-    n2: 'Cada intento trae un texto nuevo. Palabras o frases cortas, sin comas ni mayúsculas: así se mide la escritura, no el conocimiento de la distribución.',
+    n2: 'Cada intento trae un texto nuevo. Fácil es texto sencillo con sentido, medio es el mismo con palabras largas y difíciles, difícil son palabras sueltas con signos de puntuación.',
     n3: 'Puedes corregir: borra la letra equivocada y escríbela de nuevo, la precisión lo tendrá en cuenta.',
     n4: 'Un adulto medio escribe 30-40 palabras por minuto; la mecanografía segura empieza en torno a 60.',
   },
   uk: {
-    mWords: 'Слова', mPhrases: 'Фрази',
+    lvEasy: 'Легкий', lvMid: 'Середній', lvHard: 'Складний',
     wpmShort: 'сл/хв',
     after: 'Натисніть «Заново», щоб пройти ще раз',
     focus: 'Натисніть, щоб продовжити',
@@ -109,7 +109,7 @@ const СЛОВА = {
     accSub: 'Частка вірних знаків',
     errSub: 'Знаків набрано неправильно',
     n1: 'У залік ідуть лише правильно набрані знаки: швидкість, набита одруківками, нічого не варта.',
-    n2: 'Кожен захід — новий текст. Слова або короткі фрази, без ком і великих літер: так перевіряється набір, а не знання розкладки.',
+    n2: 'Кожен захід — новий текст. Легкий рівень — зв\'язний текст простими словами, середній — він же довгими й важкими, складний — слова без зв\'язку зі знаками пунктуації.',
     n3: 'Помилку можна виправити: зітріть невірну літеру й наберіть заново, точність це врахує.',
     n4: 'Середня швидкість дорослого — 30-40 слів за хвилину, впевнений сліпий друк — від 60.',
   },
@@ -123,11 +123,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   {/* Длительность слева, живые числа справа. Пока набор не начался, время показывает выбранную
       длительность -- человек видит, на что подписывается. */}
   <div class="tp-top">
-    {/* Что набирать: случайные частые слова или короткие фразы. Оба вида -- по требованиям
-        к материалу таких тестов: без знаков препинания и заглавных. */}
+    {/* Уровень. Связный текст набирают быстрее всего -- смысл подсказывает следующее слово,
+        поэтому слова без связи стоят не в начале ряда, а в конце, как самое трудное. */}
     <div class="tp-modes" id="tp-kind" role="group">
-      <button type="button" class="tp-mode on" data-kind="words">{с.mWords}</button>
-      <button type="button" class="tp-mode" data-kind="phrases">{с.mPhrases}</button>
+      <button type="button" class="tp-mode on" data-kind="easy">{с.lvEasy}</button>
+      <button type="button" class="tp-mode" data-kind="medium">{с.lvMid}</button>
+      <button type="button" class="tp-mode" data-kind="hard">{с.lvHard}</button>
     </div>
     <div class="tp-modes" id="tp-modes" role="group">
       <button type="button" class="tp-mode" data-sec="30">30 {с.sec}</button>
@@ -190,7 +191,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const язык = корень.dataset.locale || 'ru';
     // Материал собирается заново на каждую попытку -- см. lib/typing-words.js.
     let слова = [];
-    let вид = 'words';
+    let уровень = 'easy';
     let собрать = null;   // приедет вместе с модулем слов
     const поле = document.getElementById('tp-field');
     const окно = document.getElementById('tp-viewport');
@@ -366,7 +367,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       полеСкорость.textContent = '0';
       полеТочность.textContent = '100%';
       подсказка.textContent = с.ready;
-      if (собрать) слова = собрать(вид);   // каждый заход -- новый текст
+      if (собрать) слова = собрать(уровень);   // каждый заход -- новый текст
       нарисовать();
       поставитьКурсор();
       ввод.focus();
@@ -394,7 +395,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // Слова живут в отдельном файле: он весит килобайты и грузится сразу, но отдельно от
     // страницы -- разметка успевает показаться раньше.
     import('../lib/typing-words.js').then((м) => {
-      собрать = (какой) => (какой === 'phrases' ? м.фразыДляТеста(язык, 140) : м.словаДляТеста(язык, 140));
+      собрать = (какой) => м.текстДляТеста(язык, какой, 140);
       заново();
     });
 
@@ -402,13 +403,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const б = e.target.closest('.tp-mode');
       if (!б) return;
       [...рядВида.children].forEach((x) => x.classList.toggle('on', x === б));
-      вид = б.dataset.kind || 'words';
+      уровень = б.dataset.kind || 'easy';
       заново();
       б.blur();
     });
 
     window.__tpСостояние = () => ({
-      идёт, кончено, длительность, вид,
+      идёт, кончено, длительность, уровень,
       первыеСлова: слова.slice(0, 5).join(' '),
       скорость: Number(полеСкорость.textContent),
       точность: полеТочность.textContent,
