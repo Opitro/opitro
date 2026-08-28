@@ -1,4 +1,4 @@
-/* СТИЛИ КЛАВИАТУРНЫХ СТРАНИЦ: «тест клавиатуры» и «сколько клавиш нажимается разом».
+/* СТИЛИ КЛАВИАТУРНЫХ СТРАНИЦ: «тест клавиатуры», «сколько клавиш разом», «дребезг».
  *
  * Схема клавиатуры у них одна и та же -- значит и стиль один: разъехавшиеся копии одной
  * клавиатуры на двух соседних страницах выглядели бы как недоделка. Кроме этих двух страниц
@@ -149,3 +149,35 @@
 .kb-ro-reset:hover { border-color: rgba(255,255,255,.24) }
 .kb-ro-reset:disabled { opacity: .45; cursor: default }
 @media (max-width: 560px) { .kb-ro-box .num { font-size: 34px } }
+
+/* ================= «ДРЕБЕЗГ: КЛАВИША ПЕЧАТАЕТ ДВАЖДЫ» =======================================
+   Здесь главное -- список пойманных случаев, а не число: человеку важно, КАКАЯ клавиша
+   двоит и насколько быстро. */
+.kb-ch-keys .kb-key.is-bad {
+  color: #f2b8b5; border-color: rgba(242,184,181,.5);
+  background: color-mix(in srgb, #ec5f7f 12%, transparent);
+}
+/* Найденные двойные -- это плохая новость, и зелёным она выглядела бы как достижение.
+   Пока их ноль, число спокойное; появились -- краснеет. */
+.kb-ch-keys .kb-ro-box.now .num { color: var(--text) }
+.kb-ch-keys .kb-ro-box.now.есть .num { color: #f2b8b5 }
+
+.kb-ch-log {
+  margin-top: 14px; border: 1px solid var(--line); border-radius: 12px;
+  background: var(--surface-2); overflow: hidden;
+}
+.kb-ch-line {
+  display: flex; align-items: baseline; gap: 10px; padding: 10px 14px;
+  border-top: 1px solid var(--line); font-size: 13px;
+}
+.kb-ch-line:first-child { border-top: 0 }
+.kb-ch-line .key {
+  font: 700 13px/1 ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  color: #f2b8b5; background: color-mix(in srgb, #ec5f7f 12%, transparent);
+  border: 1px solid rgba(242,184,181,.34); border-radius: 7px; padding: 5px 8px; flex: none;
+}
+.kb-ch-line .ms { color: var(--text); font-weight: 700; font-variant-numeric: tabular-nums }
+.kb-ch-line .why { color: var(--muted); font-size: 12.5px }
+/* Пока ничего не поймано -- спокойная строка, а не пустая рамка: пустота читается как поломка. */
+.kb-ch-empty { padding: 14px; font-size: 13px; color: var(--muted); text-align: center }
+.kb-ch-empty.good { color: var(--accent) }

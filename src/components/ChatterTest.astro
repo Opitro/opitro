@@ -1,0 +1,190 @@
+---
+// ДРЕБЕЗГ: КЛАВИША ПЕЧАТАЕТ ДВАЖДЫ -- третья клавиатурная страница.
+//
+// Что меряем. Изношенный переключатель при одном нажатии успевает замкнуться и разомкнуться
+// несколько раз -- получается два срабатывания вместо одного, и в тексте появляется лишняя
+// буква. Человек так быстро не умеет: осознанное двойное нажатие это 100 миллисекунд и
+// больше, а дребезг укладывается в 20-40. По этому промежутку его и ловим.
+//
+// Автоповтор зажатой клавиши сюда не попадает: браузер помечает такие события, и мы их
+// пропускаем -- иначе любой зажатый пробел выглядел бы как поломка.
+import css from '../styles/keyboard.css?inline';
+import KeyboardBoard from './KeyboardBoard.astro';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hint: 'Нажимайте клавиши по одной, как обычно печатаете',
+    presses: 'Нажатий', doubles: 'Двойных', reset: 'Сбросить',
+    empty: 'Пока ничего подозрительного',
+    good: 'Двойных срабатываний нет — клавиатура чистая',
+    sure: 'дребезг', maybe: 'похоже на дребезг',
+    between: 'между срабатываниями',
+    n1: 'Осознанное двойное нажатие — это 100 миллисекунд и больше. Всё, что укладывается в сорок, человек нажать не может: так дребезжит изношенный переключатель.',
+    n2: 'Зажатую клавишу мы не считаем: повтор при удержании — это работа системы, а не поломка.',
+    n3: 'Дребезг может быть и незаметен здесь: часть клавиатур и систем гасит его сама, до браузера.',
+    n4: 'Поймали дребезг — обычно помогает чистка под клавишей, а у механических клавиатур замена одного переключателя.',
+  },
+  en: {
+    hint: 'Press keys one at a time, the way you normally type',
+    presses: 'Presses', doubles: 'Doubles', reset: 'Reset',
+    empty: 'Nothing suspicious so far',
+    good: 'No double presses — the keyboard is clean',
+    sure: 'chatter', maybe: 'looks like chatter',
+    between: 'between events',
+    n1: 'A deliberate double tap takes 100 milliseconds or more. Anything under forty is beyond human speed: that is a worn switch bouncing.',
+    n2: 'A held key does not count: repeats while holding are the system at work, not a fault.',
+    n3: 'Chatter can also stay invisible here: some keyboards and systems filter it out before the browser.',
+    n4: 'Caught chatter? Cleaning under the key usually helps; on a mechanical keyboard a single switch can be replaced.',
+  },
+  es: {
+    hint: 'Pulsa las teclas de una en una, como cuando escribes',
+    presses: 'Pulsaciones', doubles: 'Dobles', reset: 'Reiniciar',
+    empty: 'De momento nada sospechoso',
+    good: 'Sin dobles pulsaciones: el teclado está limpio',
+    sure: 'rebote', maybe: 'parece rebote',
+    between: 'entre eventos',
+    n1: 'Un doble toque intencionado lleva 100 milisegundos o más. Todo lo que baja de cuarenta está fuera del alcance humano: eso es un interruptor gastado rebotando.',
+    n2: 'Una tecla mantenida no cuenta: la repetición al mantener es cosa del sistema, no una avería.',
+    n3: 'El rebote también puede quedar invisible aquí: algunos teclados y sistemas lo filtran antes del navegador.',
+    n4: '¿Has cazado un rebote? Limpiar debajo de la tecla suele bastar; en un teclado mecánico se cambia un solo interruptor.',
+  },
+  uk: {
+    hint: 'Натискайте клавіші по одній, як зазвичай друкуєте',
+    presses: 'Натискань', doubles: 'Подвійних', reset: 'Скинути',
+    empty: 'Поки нічого підозрілого',
+    good: 'Подвійних спрацювань немає — клавіатура чиста',
+    sure: 'деренчання', maybe: 'схоже на деренчання',
+    between: 'між спрацюваннями',
+    n1: 'Свідоме подвійне натискання — це 100 мілісекунд і більше. Усе, що вкладається в сорок, людина натиснути не може: так деренчить зношений перемикач.',
+    n2: 'Затиснуту клавішу ми не рахуємо: повтор при утриманні — це робота системи, а не поломка.',
+    n3: 'Деренчання може бути й непомітним тут: частина клавіатур і систем гасить його сама, до браузера.',
+    n4: 'Спіймали деренчання — зазвичай допомагає чищення під клавішею, а в механічних клавіатур заміна одного перемикача.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="kb kb-ch-keys" data-words={JSON.stringify(с)}>
+  <p class="kb-hint" style="text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 12px">{с.hint}</p>
+
+  <div class="kb-ro">
+    <div class="kb-ro-box">
+      <span class="cap">{с.presses}</span>
+      <span class="num" id="ch-presses">0</span>
+    </div>
+    <div class="kb-ro-box now">
+      <span class="cap">{с.doubles}</span>
+      <span class="num" id="ch-doubles">0</span>
+    </div>
+    <button type="button" class="kb-ro-reset" id="ch-reset" disabled>{с.reset}</button>
+  </div>
+
+  <KeyboardBoard locale={locale} />
+
+  {/* Список пойманных случаев: какая клавиша и за сколько миллисекунд сработала повторно.
+      Само число важнее оценки -- по нему видно, дребезг это или просто быстрая печать. */}
+  <div class="kb-ch-log" id="ch-log">
+    <div class="kb-ch-empty" id="ch-empty">{с.empty}</div>
+  </div>
+
+  <div class="kb-notes">
+    <div class="kb-note">{с.n1}</div>
+    <div class="kb-note">{с.n2}</div>
+    <div class="kb-note">{с.n3}</div>
+    <div class="kb-note">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.kb-ch-keys');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const поКоду = new Map();
+    корень.querySelectorAll('.kb-key[data-code]').forEach((э) => поКоду.set(э.dataset.code, э));
+    const полеНажатий = document.getElementById('ch-presses');
+    const полеДвойных = document.getElementById('ch-doubles');
+    const список = document.getElementById('ch-log');
+    const пусто = document.getElementById('ch-empty');
+    const кнопка = document.getElementById('ch-reset');
+
+    // Пороги. Ниже сорока миллисекунд человек нажать не успевает -- это дребезг наверняка.
+    // От сорока до восьмидесяти -- подозрительно: очень быстрая печать сюда ещё попадает,
+    // поэтому пишем «похоже», а не выносим приговор.
+    const ТОЧНО = 40, ПОХОЖЕ = 80;
+
+    let нажатий = 0, двойных = 0;
+    const последнее = new Map();   // код -> время предыдущего срабатывания
+
+    function добавитьВСписок(код, мс) {
+      if (пусто.parentNode) пусто.remove();
+      const строка = document.createElement('div');
+      строка.className = 'kb-ch-line';
+      const имя = (поКоду.get(код) && поКоду.get(код).firstElementChild.textContent.trim()) || код;
+      строка.innerHTML = '<span class="key"></span><span class="ms"></span><span class="why"></span>';
+      строка.children[0].textContent = имя;
+      строка.children[1].textContent = мс + ' мс';
+      строка.children[2].textContent = с.between + ' — ' + (мс < ТОЧНО ? с.sure : с.maybe);
+      // Свежее сверху: последний пойманный случай и есть тот, который человек только что видел.
+      список.insertBefore(строка, список.firstChild);
+      while (список.children.length > 12) список.lastChild.remove();
+    }
+
+    const держатьСебе = (e) => !(e.ctrlKey || e.metaKey);
+
+    window.addEventListener('keydown', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      // Автоповтор зажатой клавиши -- это система, а не поломка.
+      if (e.repeat) return;
+      нажатий++;
+      полеНажатий.textContent = String(нажатий);
+      кнопка.disabled = false;
+      const э = поКоду.get(e.code);
+      if (э) э.classList.add('is-down');
+
+      const было = последнее.get(e.code);
+      const сейчас = e.timeStamp || performance.now();
+      последнее.set(e.code, сейчас);
+      if (было == null) return;
+      const мс = Math.round(сейчас - было);
+      if (мс > ПОХОЖЕ) return;
+      двойных++;
+      полеДвойных.textContent = String(двойных);
+      полеДвойных.parentElement.classList.add('есть');
+      if (э) э.classList.add('is-bad');
+      добавитьВСписок(e.code, мс);
+    });
+
+    window.addEventListener('keyup', (e) => {
+      if (держатьСебе(e)) e.preventDefault();
+      const э = поКоду.get(e.code);
+      if (э) э.classList.remove('is-down');
+    });
+    window.addEventListener('blur', () => {
+      корень.querySelectorAll('.kb-key.is-down').forEach((э) => э.classList.remove('is-down'));
+    });
+
+    кнопка.addEventListener('click', () => {
+      нажатий = 0; двойных = 0;
+      последнее.clear();
+      полеНажатий.textContent = '0';
+      полеДвойных.textContent = '0';
+      полеДвойных.parentElement.classList.remove('есть');
+      корень.querySelectorAll('.kb-key.is-bad').forEach((э) => э.classList.remove('is-bad'));
+      список.innerHTML = '';
+      // Прошли круг без единого двойного -- говорим об этом прямо, а не молчим пустой рамкой.
+      const итог = document.createElement('div');
+      итог.className = 'kb-ch-empty';
+      итог.textContent = с.empty;
+      список.appendChild(итог);
+      кнопка.disabled = true;
+      кнопка.blur();
+    });
+
+    window.__chСостояние = () => ({ нажатий, двойных, строк: список.querySelectorAll('.kb-ch-line').length,
+      помечено: корень.querySelectorAll('.kb-key.is-bad').length });
+  })();
+</script>
