@@ -24,11 +24,13 @@ import os from 'node:os';
 const КОРЕНЬ = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const ИСХОДНИК = path.join(КОРЕНЬ, 'scripts', 'og-card.html');
 const ПАПКА = path.join(КОРЕНЬ, 'public');
+// Одна короткая строка под именем. В поиске по картинкам длинный текст не читают -- решает
+// картинка целиком, за долю секунды.
 const СТРОКИ = {
-  ru: 'Аудио, конвертеры и калькуляторы&nbsp;— <b>всё считается прямо в браузере</b>, без загрузки на сервер',
-  en: 'Audio tools, converters and calculators&nbsp;— <b>everything runs in your browser</b>, nothing is uploaded',
-  es: 'Audio, conversores y calculadoras&nbsp;— <b>todo se calcula en tu navegador</b>, sin subir nada',
-  uk: 'Аудіо, конвертери й калькулятори&nbsp;— <b>усе рахується просто в браузері</b>, без завантаження на сервер',
+  ru: 'Бесплатные онлайн-инструменты',
+  en: 'Free online tools',
+  es: 'Herramientas online gratis',
+  uk: 'Безкоштовні онлайн-інструменти',
 };
 const ХРОМ = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome';
 const сон = (мс) => new Promise((r) => setTimeout(r, мс));

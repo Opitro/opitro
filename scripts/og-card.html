@@ -1,6 +1,10 @@
 <!DOCTYPE html>
-<!-- Образец карточки для соцсетей и поиска по картинкам. Ровно 1200×630 -- это размер, который
-     ждут Facebook, Telegram, X и предпросмотр Google. Рисуется скриптом scripts/make-og.mjs. -->
+<!-- Карточка для соцсетей и поиска по картинкам. Ровно 1200×630 -- этот размер ждут Facebook,
+     Telegram, X и предпросмотр Google. Рисуется скриптом scripts/make-og.mjs.
+
+     Устройство: знак посередине и крупно -- он главное украшение и узнаваемость сайта, в углу
+     ему не место. Под ним имя и одна короткая строка. Читать в поиске по картинкам никто не
+     будет: там решает картинка целиком, за долю секунды. -->
 <html lang="ru">
 <head>
 <meta charset="UTF-8">
@@ -11,46 +15,47 @@
     background: #0e0f11;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
     color: #f0f0f2;
-    display: flex; flex-direction: column; justify-content: center;
-    padding: 0 86px; position: relative;
+    display: flex; flex-direction: column; align-items: center; justify-content: center;
+    position: relative; text-align: center;
   }
-  /* Свечение в углу -- фон не должен быть плоским чёрным прямоугольником: в ленте он сливается
-     с тёмной темой мессенджера. */
-  .glow { position: absolute; inset: auto -180px -220px auto; width: 760px; height: 760px;
-    border-radius: 50%; background: radial-gradient(circle, rgba(74,222,158,.16), rgba(74,222,158,0) 62%); }
-  .glow2 { position: absolute; inset: -260px auto auto -220px; width: 660px; height: 660px;
-    border-radius: 50%; background: radial-gradient(circle, rgba(88,184,240,.10), rgba(88,184,240,0) 64%); }
-  .mark { display: flex; align-items: center; gap: 22px; position: relative; }
-  /* Знак сайта -- те же четыре квадрата, что в значке вкладки. */
-  .prism { width: 92px; height: 92px; border-radius: 22px; background: #15171c;
-    border: 1px solid rgba(255,255,255,.09);
-    display: grid; grid-template-columns: 1fr 1fr; gap: 8px; padding: 18px; flex: none; }
-  .prism i { border-radius: 7px; display: block; }
+  /* Свечение ровно за знаком: оно приподнимает его над фоном и не даёт картинке выглядеть
+     плоским чёрным прямоугольником в тёмной ленте мессенджера. */
+  .halo {
+    position: absolute; left: 50%; top: 240px; transform: translate(-50%, -50%);
+    width: 900px; height: 900px; border-radius: 50%;
+    background:
+      radial-gradient(circle, rgba(74,222,158,.13), rgba(74,222,158,0) 45%),
+      radial-gradient(circle, rgba(88,184,240,.10), rgba(88,184,240,0) 60%);
+  }
+  /* Знак -- те же четыре квадрата, что в значке вкладки, только крупно. */
+  .prism {
+    position: relative; width: 240px; height: 240px; border-radius: 58px; background: #15171c;
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 30px 80px rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.05);
+    display: grid; grid-template-columns: 1fr 1fr; gap: 20px; padding: 44px;
+  }
+  .prism i { border-radius: 18px; display: block; }
   .prism i:nth-child(1) { background: #f5c451; }
   .prism i:nth-child(2) { background: #ec5f7f; }
   .prism i:nth-child(3) { background: #58b8f0; }
   .prism i:nth-child(4) { background: #4ade9e; }
-  .word { font-size: 76px; font-weight: 800; letter-spacing: -2px; line-height: 1; }
-  .line { position: relative; margin-top: 40px; font-size: 34px; line-height: 1.32;
-    color: rgba(214,219,230,.86); max-width: 900px; font-weight: 500; }
-  .line b { color: #f0f0f2; font-weight: 700; }
-  .foot { position: relative; margin-top: 46px; display: flex; align-items: center; gap: 14px; }
-  .dom { font-size: 27px; font-weight: 700; color: #4ade9e; letter-spacing: .2px; }
-  .rule { flex: 1; height: 1px; background: linear-gradient(90deg, rgba(74,222,158,.45), rgba(255,255,255,0)); }
+
+  .word {
+    position: relative; margin-top: 44px;
+    font-size: 116px; font-weight: 800; letter-spacing: -4px; line-height: 1;
+  }
+  .line {
+    position: relative; margin-top: 22px;
+    font-size: 40px; font-weight: 500; letter-spacing: -.3px;
+    color: rgba(214,219,230,.78);
+  }
 </style>
 </head>
 <body>
-  <div class="glow"></div>
-  <div class="glow2"></div>
-  <div class="mark">
-    <div class="prism"><i></i><i></i><i></i><i></i></div>
-    <div class="word">Opitro</div>
-  </div>
+  <div class="halo"></div>
+  <div class="prism"><i></i><i></i><i></i><i></i></div>
+  <div class="word">Opitro</div>
   <!-- Строка подставляется скриптом: на каждом языке своя. -->
   <div class="line" id="line">СТРОКА</div>
-  <div class="foot">
-    <div class="dom">opitro.com</div>
-    <div class="rule"></div>
-  </div>
 </body>
 </html>
