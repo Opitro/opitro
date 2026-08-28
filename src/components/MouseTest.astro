@@ -1,0 +1,231 @@
+---
+// ТЕСТ МЫШИ -- своя страница со своим кодом и стилями.
+//
+// Проверяем то, что ломается: пять кнопок, колесо в обе стороны и двойной клик. Отдельно
+// ловим главную жалобу -- «мышь сама делает двойной клик»: изношенный микропереключатель
+// успевает сработать дважды за одно нажатие, и промежуток при этом меньше человеческого.
+//
+// Все нажатия перехватываются ТОЛЬКО на самом поле проверки: за его пределами правая кнопка
+// должна открывать обычное меню, а «назад» -- уводить со страницы. Отбирать это у человека
+// на всей странице нельзя.
+import css from '../styles/mouse-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hint: 'Нажимайте кнопки и крутите колесо прямо на рисунке',
+    need: 'Нужна мышь',
+    left: 'Левая', right: 'Правая', middle: 'Средняя', back: 'Назад', fwd: 'Вперёд',
+    wheelUp: 'Колесо вверх', wheelDown: 'Колесо вниз',
+    dbl: 'Двойной клик', dblSub: 'Промежуток между нажатиями',
+    dblWait: 'нажмите дважды', dblOk: 'распознан',
+    dblBad: 'Слишком быстро — похоже, кнопка срабатывает сама',
+    clicks: 'Нажатий', ghosts: 'Самопроизвольных двойных', reset: 'Сбросить',
+    n1: 'Правая кнопка на рисунке не открывает меню, а средняя не включает прокрутку: на время проверки мы забираем их себе. За пределами рисунка всё работает как обычно.',
+    n2: 'Боковые кнопки «назад» и «вперёд» есть не у всех мышей. Если они не загораются — скорее всего, их просто нет.',
+    n3: 'Двойной клик у человека занимает 100-500 миллисекунд. Если промежуток меньше сорока, вы физически не успели нажать дважды — так двоит изношенная кнопка.',
+    n4: 'Изношенный переключатель меняют отдельно, это дешевле новой мыши. Иногда помогает чистка от пыли под кнопкой.',
+  },
+  en: {
+    hint: 'Press the buttons and spin the wheel right on the drawing',
+    need: 'A mouse is required',
+    left: 'Left', right: 'Right', middle: 'Middle', back: 'Back', fwd: 'Forward',
+    wheelUp: 'Wheel up', wheelDown: 'Wheel down',
+    dbl: 'Double click', dblSub: 'Gap between the presses',
+    dblWait: 'click twice', dblOk: 'recognised',
+    dblBad: 'Too fast — the button seems to fire on its own',
+    clicks: 'Clicks', ghosts: 'Unintended doubles', reset: 'Reset',
+    n1: 'On the drawing the right button does not open a menu and the middle one does not start autoscroll: we take them over for the test. Outside the drawing everything works as usual.',
+    n2: 'Side buttons “back” and “forward” are not on every mouse. If they never light up, most likely they simply are not there.',
+    n3: 'A human double click takes 100–500 milliseconds. A gap under forty means you physically could not have pressed twice — that is a worn button doubling.',
+    n4: 'A worn switch can be replaced on its own, far cheaper than a new mouse. Sometimes clearing dust from under the button helps.',
+  },
+  es: {
+    hint: 'Pulsa los botones y gira la rueda sobre el dibujo',
+    need: 'Hace falta un ratón',
+    left: 'Izquierdo', right: 'Derecho', middle: 'Central', back: 'Atrás', fwd: 'Adelante',
+    wheelUp: 'Rueda arriba', wheelDown: 'Rueda abajo',
+    dbl: 'Doble clic', dblSub: 'Intervalo entre pulsaciones',
+    dblWait: 'haz doble clic', dblOk: 'reconocido',
+    dblBad: 'Demasiado rápido: parece que el botón se dispara solo',
+    clicks: 'Clics', ghosts: 'Dobles involuntarios', reset: 'Reiniciar',
+    n1: 'Sobre el dibujo el botón derecho no abre el menú y el central no activa el desplazamiento: durante la prueba los tomamos nosotros. Fuera del dibujo todo funciona como siempre.',
+    n2: 'Los botones laterales «atrás» y «adelante» no están en todos los ratones. Si no se encienden, lo más probable es que no existan.',
+    n3: 'Un doble clic humano lleva de 100 a 500 milisegundos. Un intervalo por debajo de cuarenta significa que no pudiste pulsar dos veces: eso es un botón gastado que se duplica.',
+    n4: 'El interruptor gastado se cambia por separado, mucho más barato que un ratón nuevo. A veces basta con limpiar el polvo bajo el botón.',
+  },
+  uk: {
+    hint: 'Натискайте кнопки й крутіть колесо просто на малюнку',
+    need: 'Потрібна миша',
+    left: 'Ліва', right: 'Права', middle: 'Середня', back: 'Назад', fwd: 'Вперед',
+    wheelUp: 'Колесо вгору', wheelDown: 'Колесо вниз',
+    dbl: 'Подвійний клік', dblSub: 'Проміжок між натисканнями',
+    dblWait: 'натисніть двічі', dblOk: 'розпізнано',
+    dblBad: 'Надто швидко — схоже, кнопка спрацьовує сама',
+    clicks: 'Натискань', ghosts: 'Мимовільних подвійних', reset: 'Скинути',
+    n1: 'Права кнопка на малюнку не відкриває меню, а середня не вмикає прокручування: на час перевірки ми забираємо їх собі. За межами малюнка все працює як звичайно.',
+    n2: 'Бічні кнопки «назад» і «вперед» є не в усіх мишей. Якщо вони не загоряються — найімовірніше, їх просто немає.',
+    n3: 'Подвійний клік у людини займає 100-500 мілісекунд. Якщо проміжок менший за сорок, ви фізично не встигли натиснути двічі — так двоїть зношена кнопка.',
+    n4: 'Зношений перемикач міняють окремо, це дешевше за нову мишу. Інколи допомагає чищення від пилу під кнопкою.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ms" data-words={JSON.stringify(с)}>
+  <div class="ms-need">{с.need}</div>
+  <p class="ms-hint" style="text-align:center;color:var(--muted);font-size:13.5px;margin:0 0 12px">{с.hint}</p>
+
+  <div class="ms-pad" id="ms-pad">
+    <div class="ms-body">
+      <div class="ms-btn left" data-b="0"></div>
+      <div class="ms-btn right" data-b="2"></div>
+      <div class="ms-wheel" data-b="1"></div>
+      <div class="ms-side back" data-b="3"></div>
+      <div class="ms-side fwd" data-b="4"></div>
+    </div>
+    <div class="ms-rows" id="ms-chips">
+      <span class="ms-chip" data-c="0">{с.left}</span>
+      <span class="ms-chip" data-c="2">{с.right}</span>
+      <span class="ms-chip" data-c="1">{с.middle}</span>
+      <span class="ms-chip" data-c="3">{с.back}</span>
+      <span class="ms-chip" data-c="4">{с.fwd}</span>
+      <span class="ms-chip" data-c="up">{с.wheelUp}</span>
+      <span class="ms-chip" data-c="down">{с.wheelDown}</span>
+    </div>
+  </div>
+
+  <div class="ms-out">
+    <div class="ms-box">
+      <span class="cap">{с.clicks}</span>
+      <span class="num" id="ms-clicks">0</span>
+    </div>
+    <div class="ms-box">
+      <span class="cap">{с.dbl}</span>
+      <span class="num" id="ms-dbl">—</span>
+      <span class="sub" id="ms-dblsub">{с.dblWait}</span>
+    </div>
+    <div class="ms-box">
+      <span class="cap">{с.ghosts}</span>
+      <span class="num" id="ms-ghost">0</span>
+      <span class="sub">{с.dblSub}</span>
+    </div>
+    <button type="button" class="ms-reset" id="ms-reset" disabled>{с.reset}</button>
+  </div>
+
+  <div class="ms-notes">
+    <div class="ms-note">{с.n1}</div>
+    <div class="ms-note">{с.n2}</div>
+    <div class="ms-note">{с.n3}</div>
+    <div class="ms-note">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.ms');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const поле = document.getElementById('ms-pad');
+    const фишки = new Map();
+    document.querySelectorAll('#ms-chips .ms-chip').forEach((э) => фишки.set(э.dataset.c, э));
+    const части = new Map();
+    поле.querySelectorAll('[data-b]').forEach((э) => части.set(э.dataset.b, э));
+    const полеНажатий = document.getElementById('ms-clicks');
+    const полеДвойного = document.getElementById('ms-dbl');
+    const подписьДвойного = document.getElementById('ms-dblsub');
+    const полеПризраков = document.getElementById('ms-ghost');
+    const кнопка = document.getElementById('ms-reset');
+
+    let нажатий = 0, призраков = 0;
+    const последнее = new Map();   // кнопка -> время прошлого нажатия
+
+    // Человеческий двойной клик -- от ста миллисекунд. Меньше сорока нажать невозможно:
+    // столько длится дребезг изношенного микропереключателя.
+    const ЧЕЛОВЕК = 500, ПРИЗРАК = 40;
+
+    function отметить(ключ) {
+      const ф = фишки.get(String(ключ));
+      if (ф) ф.classList.add('ok');
+      const ч = части.get(String(ключ));
+      if (ч) ч.classList.add('ms-ok');
+      кнопка.disabled = false;
+    }
+
+    поле.addEventListener('mousedown', (e) => {
+      // Забираем себе только внутри поля: снаружи правая кнопка должна открывать меню.
+      e.preventDefault();
+      нажатий++;
+      полеНажатий.textContent = String(нажатий);
+      const ч = части.get(String(e.button));
+      if (ч) ч.classList.add('ms-down');
+      отметить(e.button);
+
+      const было = последнее.get(e.button);
+      const сейчас = e.timeStamp || performance.now();
+      последнее.set(e.button, сейчас);
+      if (было == null) return;
+      const мс = Math.round(сейчас - было);
+      if (мс > ЧЕЛОВЕК) return;
+      полеДвойного.textContent = мс + ' мс';
+      if (мс < ПРИЗРАК) {
+        призраков++;
+        полеПризраков.textContent = String(призраков);
+        подписьДвойного.textContent = с.dblBad;
+        подписьДвойного.classList.add('bad');
+      } else {
+        подписьДвойного.textContent = с.dblOk;
+        подписьДвойного.classList.remove('bad');
+      }
+    });
+    поле.addEventListener('mouseup', (e) => {
+      e.preventDefault();
+      const ч = части.get(String(e.button));
+      if (ч) ч.classList.remove('ms-down');
+    });
+    // Меню по правой кнопке и прокрутка по средней -- только внутри поля.
+    поле.addEventListener('contextmenu', (e) => e.preventDefault());
+    поле.addEventListener('auxclick', (e) => e.preventDefault());
+    // Колесо: важно только направление. passive:false -- иначе браузер не даст отменить
+    // прокрутку страницы, и поле будет уезжать из-под курсора.
+    поле.addEventListener('wheel', (e) => {
+      e.preventDefault();
+      const куда = e.deltaY < 0 ? 'up' : 'down';
+      отметить(куда);
+      const к = части.get('1');
+      if (к) {
+        к.classList.add('ms-down');
+        clearTimeout(к._т);
+        к._т = setTimeout(() => к.classList.remove('ms-down'), 140);
+      }
+    }, { passive: false });
+    // Мышь есть -- предупреждение на телефоне больше не нужно.
+    поле.addEventListener('mouseenter', () => корень.classList.add('есть-мышь'));
+    window.addEventListener('blur', () => {
+      поле.querySelectorAll('.ms-down').forEach((э) => э.classList.remove('ms-down'));
+    });
+
+    кнопка.addEventListener('click', () => {
+      нажатий = 0; призраков = 0;
+      последнее.clear();
+      полеНажатий.textContent = '0';
+      полеПризраков.textContent = '0';
+      полеДвойного.textContent = '—';
+      подписьДвойного.textContent = с.dblWait;
+      подписьДвойного.classList.remove('bad');
+      фишки.forEach((ф) => ф.classList.remove('ok'));
+      части.forEach((ч) => ч.classList.remove('ms-ok', 'ms-down'));
+      кнопка.disabled = true;
+      кнопка.blur();
+    });
+
+    window.__msСостояние = () => ({
+      нажатий, призраков,
+      проверено: [...фишки.values()].filter((ф) => ф.classList.contains('ok')).length,
+      горит: поле.querySelectorAll('.ms-down').length,
+      двойной: полеДвойного.textContent,
+    });
+  })();
+</script>

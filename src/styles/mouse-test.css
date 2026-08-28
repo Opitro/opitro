@@ -1,0 +1,103 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ МЫШИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Мышь нарисована обычными прямоугольниками со скруглениями, а не картинкой: так каждую кнопку
+ * можно подсветить отдельно, и рисунок остаётся чётким на любом экране без второго файла.
+ */
+
+.ms-pad {
+  display: flex; flex-direction: column; align-items: center; gap: 16px;
+  padding: 26px 20px; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--surface); user-select: none; -webkit-user-select: none;
+  touch-action: manipulation;
+}
+
+/* Корпус: вытянутый овал сверху, скруглённое дно. Пропорции взяты у обычной мыши, чтобы
+   рисунок узнавался с одного взгляда. */
+.ms-body {
+  position: relative; width: 168px; height: 258px;
+  border: 2px solid var(--line); border-radius: 84px 84px 66px 66px;
+  background: #0a0b0d;
+}
+.ms-btn {
+  position: absolute; top: 0; height: 46%; width: 50%;
+  border: 0; background: var(--surface-2); cursor: pointer;
+  transition: background .08s, box-shadow .12s;
+}
+/* Разделитель между кнопками -- отдельной чертой поверх заливки: когда обе кнопки отмечены
+   зелёным, обычная граница в этой заливке тонет, и верх мыши читается одним пятном. */
+.ms-btn.left { left: 0; border-radius: 82px 0 0 0 }
+.ms-btn.right { right: 0; border-radius: 0 82px 0 0 }
+.ms-body::before {
+  content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 46%;
+  transform: translateX(-50%); background: #0a0b0d; z-index: 2; pointer-events: none;
+}
+/* Нижняя граница кнопок -- та же черта, что делит корпус пополам у настоящей мыши. */
+.ms-body::after {
+  content: ""; position: absolute; left: 0; right: 0; top: 46%; height: 2px;
+  background: #0a0b0d; z-index: 2; pointer-events: none;
+}
+/* Колесо сидит в вырезе между кнопками -- как на настоящей мыши. */
+/* Колесо стоит поверх разделителя -- как в жизни, и оттого сразу узнаётся. Рамка потемнее,
+   чтобы оно не сливалось с подсвеченными кнопками. */
+.ms-wheel {
+  position: absolute; left: 50%; top: 11%; transform: translateX(-50%); z-index: 3;
+  width: 30px; height: 68px; border-radius: 15px;
+  background: var(--surface-2); border: 2px solid #0a0b0d; cursor: pointer;
+  transition: background .08s, box-shadow .12s;
+}
+/* Боковые кнопки -- «назад» и «вперёд», их проверяют реже всего и о них чаще всего спрашивают. */
+/* Боковые кнопки выступают за корпус -- так они и стоят на мыши, и так их видно на рисунке. */
+.ms-side {
+  position: absolute; left: -10px; width: 20px; height: 38px; border-radius: 9px;
+  background: var(--surface-2); border: 2px solid #0a0b0d;
+  transition: background .08s, box-shadow .12s;
+}
+.ms-side.back { top: 104px }
+.ms-side.fwd { top: 148px }
+
+/* Проверена -- приглушённо; нажата прямо сейчас -- ярко. Те же два состояния, что на
+   клавиатуре: человек, прошедший там, узнаёт язык. */
+.ms-ok { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)) }
+.ms-down { background: var(--accent); box-shadow: 0 0 0 3px rgba(74,222,158,.18) }
+
+.ms-rows { display: flex; flex-wrap: wrap; justify-content: center; gap: 8px }
+.ms-chip {
+  font-size: 12.5px; font-weight: 600; color: var(--muted);
+  background: var(--surface-2); border: 1px solid var(--line);
+  border-radius: 999px; padding: 7px 13px;
+}
+.ms-chip.ok { color: var(--accent); border-color: rgba(74,222,158,.4);
+  background: color-mix(in srgb, var(--accent) 10%, transparent) }
+
+.ms-out { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px }
+.ms-box { flex: 1 1 190px; min-width: 0; padding: 13px 16px; border: 1px solid var(--line);
+  border-radius: 13px; background: var(--surface-2) }
+.ms-box .cap { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3px }
+.ms-box .num { font-size: 26px; font-weight: 800; color: var(--text); font-variant-numeric: tabular-nums }
+.ms-box .sub { display: block; margin-top: 4px; font-size: 12px; color: var(--muted); line-height: 1.4 }
+.ms-box .sub.bad { color: #f2b8b5; font-weight: 600 }
+.ms-reset { flex: none; align-self: center; font-family: inherit; font-size: 13px; font-weight: 600;
+  height: 36px; padding: 0 16px; border-radius: 9px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text) }
+.ms-reset:hover { border-color: rgba(255,255,255,.24) }
+.ms-reset:disabled { opacity: .45; cursor: default }
+
+/* «Нужна мышь» -- только там, где точного указателя нет. Как на клавиатурной странице:
+   показывает и прячет чистый CSS, чтобы не мигало у всех подряд. */
+.ms-need { display: none }
+@media (hover: none) and (pointer: coarse) {
+  .ms:not(.есть-мышь) .ms-need {
+    display: block; text-align: center; margin: 0 0 14px; padding: 11px 15px;
+    border: 1px solid rgba(245,196,81,.34); border-radius: 12px;
+    background: color-mix(in srgb, #f5c451 8%, transparent);
+    font-size: 14.5px; font-weight: 700; color: #f5c451;
+  }
+}
+
+.ms-notes { margin-top: 16px; display: flex; flex-direction: column; gap: 7px }
+.ms-note { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.ms-note::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+@media (prefers-reduced-motion: reduce) { .ms-btn, .ms-wheel, .ms-side { transition: none } }
