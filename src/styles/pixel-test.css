@@ -1,0 +1,61 @@
+/* СТИЛИ СТРАНИЦЫ «БИТЫЕ ПИКСЕЛИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Главное здесь -- заливка во весь экран без единой посторонней точки: любая рамка, тень или
+ * подпись поверх цвета мешает искать неисправный пиксель, потому что глаз цепляется за них,
+ * а не за экран. Поэтому в полноэкранном виде на цвете нет вообще ничего, кроме подсказки,
+ * которая сама гаснет через три секунды.
+ */
+
+.px-start {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
+  padding: 16px; border: 1px solid var(--line); border-radius: 14px; background: var(--surface);
+}
+.px-go {
+  font-family: inherit; font-size: 15px; font-weight: 700; height: 46px; padding: 0 22px;
+  border-radius: 11px; cursor: pointer; border: 1px solid #eef1f4;
+  background: #eef1f4; color: #10141a;
+}
+.px-go:hover { background: #dfe4ea; border-color: #dfe4ea }
+.px-start .why { flex: 1; min-width: 220px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+
+/* Образцы цветов -- чтобы было видно, что именно покажут, и можно было ткнуть в нужный. */
+.px-swatches { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 14px }
+.px-sw {
+  width: 46px; height: 34px; border-radius: 9px; border: 1px solid rgba(255,255,255,.18);
+  cursor: pointer; padding: 0;
+}
+.px-sw:hover { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* Полноэкранный слой. Стоит в разметке всегда, но виден только по нажатию: создавать его
+   в момент нажатия нельзя -- переход в полный экран разрешён только прямо из жеста. */
+.px-full {
+  position: fixed; inset: 0; z-index: 9999; display: none;
+  background: #000; cursor: pointer; touch-action: manipulation;
+}
+.px-full.on { display: block }
+/* Подсказка гаснет сама: на цвете не должно остаться ничего, что можно принять за пиксель. */
+.px-tip {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  font: 600 15px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: rgba(0,0,0,.55); background: rgba(255,255,255,.75); border-radius: 12px;
+  padding: 12px 18px; text-align: center; max-width: 80vw;
+  transition: opacity .6s ease;
+}
+.px-full.тихо .px-tip { opacity: 0 }
+/* На тёмных заливках чёрная подсказка на белом фоне читается, поэтому цвет подсказки не
+   меняем -- меняется только сама заливка под ней. */
+.px-count {
+  position: absolute; right: 14px; top: 12px;
+  font: 600 13px/1 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  color: rgba(0,0,0,.45); background: rgba(255,255,255,.6);
+  border-radius: 8px; padding: 6px 9px;
+  transition: opacity .6s ease;
+}
+.px-full.тихо .px-count { opacity: 0 }
+
+.px-notes { margin-top: 16px; display: flex; flex-direction: column; gap: 7px }
+.px-note { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.px-note::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+@media (prefers-reduced-motion: reduce) { .px-tip, .px-count { transition: none } }

@@ -1,0 +1,163 @@
+---
+// БИТЫЕ ПИКСЕЛИ -- своя страница со своим кодом и стилями.
+//
+// Устройство простое до предела: заливаем экран сплошным цветом и даём человеку посмотреть.
+// Битый пиксель не светится вовсе и виден чёрной точкой на светлом; застрявший светится
+// всегда одним цветом и виден на чёрном. Поэтому цвета идут по кругу и обязательно включают
+// и белый, и чёрный.
+//
+// На цвете не должно быть ничего постороннего: любая подпись или рамка притягивает взгляд, и
+// человек смотрит на неё, а не на экран. Подсказка и счётчик гаснут сами через три секунды.
+import css from '../styles/pixel-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+// Порядок не случайный: сперва белый и чёрный -- на них видно оба вида неисправности, потом
+// чистые цвета, на которых заметен пиксель, застрявший на одном канале.
+const ЦВЕТА = [
+  { имя: { ru: 'Белый', en: 'White', es: 'Blanco', uk: 'Білий' }, цвет: '#ffffff' },
+  { имя: { ru: 'Чёрный', en: 'Black', es: 'Negro', uk: 'Чорний' }, цвет: '#000000' },
+  { имя: { ru: 'Красный', en: 'Red', es: 'Rojo', uk: 'Червоний' }, цвет: '#ff0000' },
+  { имя: { ru: 'Зелёный', en: 'Green', es: 'Verde', uk: 'Зелений' }, цвет: '#00ff00' },
+  { имя: { ru: 'Синий', en: 'Blue', es: 'Azul', uk: 'Синій' }, цвет: '#0000ff' },
+  { имя: { ru: 'Голубой', en: 'Cyan', es: 'Cian', uk: 'Блакитний' }, цвет: '#00ffff' },
+  { имя: { ru: 'Пурпурный', en: 'Magenta', es: 'Magenta', uk: 'Пурпуровий' }, цвет: '#ff00ff' },
+  { имя: { ru: 'Жёлтый', en: 'Yellow', es: 'Amarillo', uk: 'Жовтий' }, цвет: '#ffff00' },
+  { имя: { ru: 'Серый', en: 'Grey', es: 'Gris', uk: 'Сірий' }, цвет: '#808080' },
+];
+
+const СЛОВА = {
+  ru: {
+    go: 'Начать проверку',
+    why: 'Экран зальётся цветом на весь экран. Нажимайте, чтобы менять цвет, — на каждом внимательно осмотрите экран. Выход — клавиша Esc или два нажатия подряд в углу.',
+    tip: 'Нажимайте, чтобы сменить цвет · Esc — выход',
+    n1: 'Сначала протрите экран: пылинка выглядит точно как битый пиксель, и её приняли за поломку многие.',
+    n2: 'Битый пиксель не светится совсем — ищите чёрную точку на белом. Застрявший светится всегда одним цветом — его видно на чёрном.',
+    n3: 'Смотрите с расстояния вытянутой руки и под прямым углом: сбоку матрица меняет цвет сама, это не дефект.',
+    n4: 'На телефоне поднимите яркость до предела и выключите автояркость — на тусклом экране слабый дефект незаметен.',
+  },
+  en: {
+    go: 'Start the check',
+    why: 'The screen will fill with colour edge to edge. Tap to change the colour and look the screen over on each one. Press Esc to leave.',
+    tip: 'Tap to change the colour · Esc to leave',
+    n1: 'Wipe the screen first: a speck of dust looks exactly like a dead pixel, and plenty of people have mistaken one for the other.',
+    n2: 'A dead pixel never lights up — look for a black dot on white. A stuck one always shows the same colour and stands out on black.',
+    n3: 'Look from arm’s length and straight on: seen from an angle the panel shifts colour by itself, and that is not a fault.',
+    n4: 'On a phone turn the brightness all the way up and switch auto-brightness off — a faint defect is invisible on a dim screen.',
+  },
+  es: {
+    go: 'Empezar la comprobación',
+    why: 'La pantalla se llenará de color de borde a borde. Toca para cambiar de color y revisa la pantalla en cada uno. Pulsa Esc para salir.',
+    tip: 'Toca para cambiar de color · Esc para salir',
+    n1: 'Limpia antes la pantalla: una mota de polvo parece exactamente un píxel muerto, y a mucha gente la ha engañado.',
+    n2: 'Un píxel muerto no se enciende nunca: busca un punto negro sobre blanco. Uno atascado muestra siempre el mismo color y se ve sobre negro.',
+    n3: 'Mira desde la distancia del brazo y de frente: de lado el panel cambia de color por sí solo, y eso no es un defecto.',
+    n4: 'En el móvil sube el brillo al máximo y desactiva el automático: en una pantalla apagada un defecto leve no se ve.',
+  },
+  uk: {
+    go: 'Почати перевірку',
+    why: 'Екран заллється кольором на весь екран. Натискайте, щоб змінювати колір, — на кожному уважно огляньте екран. Вихід — клавіша Esc.',
+    tip: 'Натискайте, щоб змінити колір · Esc — вихід',
+    n1: 'Спершу протріть екран: порошинка виглядає точнісінько як битий піксель, і багатьох це обманювало.',
+    n2: 'Битий піксель не світиться зовсім — шукайте чорну крапку на білому. Залиплий світиться завжди одним кольором — його видно на чорному.',
+    n3: 'Дивіться з відстані витягнутої руки й під прямим кутом: збоку матриця змінює колір сама, це не дефект.',
+    n4: 'На телефоні підніміть яскравість до межі й вимкніть автояскравість — на тьмяному екрані слабкий дефект непомітний.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const цвета = ЦВЕТА.map((ц) => ({ цвет: ц.цвет, имя: ц.имя[locale] || ц.имя.ru }));
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="px" data-words={JSON.stringify(с)} data-colors={JSON.stringify(цвета)}>
+  <div class="px-start">
+    <button type="button" class="px-go" id="px-go">{с.go}</button>
+    <span class="why">{с.why}</span>
+  </div>
+
+  {/* Образцы: видно, какие цвета будут, и можно начать сразу с нужного. */}
+  <div class="px-swatches" id="px-swatches">
+    {цвета.map((ц, i) => (
+      <button type="button" class="px-sw" data-i={i} style={`background:${ц.цвет}`}
+              title={ц.имя} aria-label={ц.имя}></button>
+    ))}
+  </div>
+
+  <div class="px-notes">
+    <div class="px-note">{с.n1}</div>
+    <div class="px-note">{с.n2}</div>
+    <div class="px-note">{с.n3}</div>
+    <div class="px-note">{с.n4}</div>
+  </div>
+
+  {/* Слой лежит в разметке заранее: переход в полный экран браузер разрешает только прямо
+      из жеста, и создавать узел в этот момент уже поздно. */}
+  <div class="px-full" id="px-full">
+    <div class="px-count" id="px-count">1 / 9</div>
+    <div class="px-tip" id="px-tip">{с.tip}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.px');
+  if (корень) (() => {
+    const цвета = JSON.parse(корень.dataset.colors || '[]');
+    const слой = document.getElementById('px-full');
+    const счётчик = document.getElementById('px-count');
+    const кнопка = document.getElementById('px-go');
+    const образцы = document.getElementById('px-swatches');
+
+    let сейчас = 0, таймерТишины = 0;
+
+    function показать(i) {
+      сейчас = (i + цвета.length) % цвета.length;
+      слой.style.background = цвета[сейчас].цвет;
+      счётчик.textContent = (сейчас + 1) + ' / ' + цвета.length;
+      // Подсказка и счётчик гаснут через три секунды: на цвете не должно остаться ничего,
+      // что можно принять за неисправный пиксель.
+      слой.classList.remove('тихо');
+      clearTimeout(таймерТишины);
+      таймерТишины = window.setTimeout(() => слой.classList.add('тихо'), 3000);
+    }
+    function открыть(i) {
+      слой.classList.add('on');
+      показать(i);
+      // Полный экран -- попытка: где браузер его не даёт (Safari на айфоне для обычных узлов),
+      // слой всё равно закрывает окно целиком, и проверка работает.
+      const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
+      if (пуск) { try { пуск.call(слой); } catch (e) {} }
+    }
+    function закрыть() {
+      слой.classList.remove('on');
+      clearTimeout(таймерТишины);
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+      }
+    }
+
+    кнопка.addEventListener('click', () => открыть(0));
+    образцы.addEventListener('click', (e) => {
+      const б = e.target.closest('.px-sw');
+      if (б) открыть(Number(б.dataset.i) || 0);
+    });
+    слой.addEventListener('click', () => показать(сейчас + 1));
+    // Стрелки листают в обе стороны -- вернуться к прошлому цвету без обхода по кругу.
+    window.addEventListener('keydown', (e) => {
+      if (!слой.classList.contains('on')) return;
+      if (e.key === 'Escape') { закрыть(); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); показать(сейчас - 1); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') { e.preventDefault(); показать(сейчас + 1); }
+    });
+    // Вышли из полного экрана системной кнопкой -- слой обязан уйти вместе с ним, иначе
+    // страница останется залитой цветом без всякого объяснения.
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) слой.classList.remove('on');
+    });
+
+    window.__pxСостояние = () => ({
+      открыт: слой.classList.contains('on'), номер: сейчас + 1, всего: цвета.length,
+      цвет: слой.style.background, тихо: слой.classList.contains('тихо'),
+    });
+  })();
+</script>

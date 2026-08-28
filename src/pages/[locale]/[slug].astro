@@ -17,6 +17,7 @@ import KeyboardTest from '../../components/KeyboardTest.astro';
 import RolloverTest from '../../components/RolloverTest.astro';
 import ChatterTest from '../../components/ChatterTest.astro';
 import TypingTest from '../../components/TypingTest.astro';
+import PixelTest from '../../components/PixelTest.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
@@ -275,7 +276,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'typing-speed' && (
       <TypingTest locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'dead-pixel-test' && (
+      <PixelTest locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'dead-pixel-test'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}
