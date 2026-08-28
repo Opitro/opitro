@@ -90,7 +90,10 @@
   position: relative; padding: 16px 26px 24px; border: 1px solid var(--line); border-radius: 16px;
   background: var(--surface); cursor: text; overflow: hidden;
   font: 400 21px/1.9 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
-  color: rgba(214,219,230,.34);
+  /* Ненабранное приглушено -- так отделяют «ещё впереди» от «уже позади» во всех таких
+     тестах. Но приглушать можно только до предела читаемости: на .34 контраст к фону был
+     2,6 при норме 4,5 для такого кегля, и текст приходилось разглядывать. Сейчас 4,8. */
+  color: rgba(214,219,230,.56);
   -webkit-user-select: none; user-select: none;
 }
 .tp-field.ждёт { border-color: rgba(74,222,158,.35) }
