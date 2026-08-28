@@ -8,14 +8,17 @@
 // Слова -- случайные частые слова языка, а не связный текст: связный можно угадывать по
 // смыслу, и тогда меряется знакомство с отрывком, а не набор. Подробности в lib/typing-words.js.
 import css from '../styles/typing-test.css?inline';
-import { словаДляТеста } from '../lib/typing-words.js';
+import { размерЗапаса } from '../lib/typing-words.js';
 
 const { locale = 'ru' } = Astro.props;
-// Слова готовит сборка: страница отдаётся уже с текстом, без ожидания и без прыжка вёрстки.
-const слова = словаДляТеста(locale, 140);
+// Текст собирает БРАУЗЕР на каждую попытку, а не сборка. Раньше он печатался в страницу
+// один раз и был одинаковым у всех, а «Заново» его не менял -- второй заход шёл уже по
+// знакомому тексту, и замер получался нечестным.
+const запас = размерЗапаса(locale);
 
 const СЛОВА = {
   ru: {
+    mWords: 'Слова', mPhrases: 'Фразы',
     wpmShort: 'сл/мин',
     after: 'Нажмите «Заново», чтобы пройти ещё раз',
     focus: 'Нажмите, чтобы продолжить',
@@ -34,11 +37,12 @@ const СЛОВА = {
     accSub: 'Доля верных знаков',
     errSub: 'Знаков набрано неверно',
     n1: 'В зачёт идут только верно набранные знаки: скорость, набитая опечатками, ничего не значит.',
-    n2: 'Слова случайные и без запятых и заглавных — так проверяется набор, а не знание раскладки.',
+    n2: 'Каждый заход — новый текст. Слова или короткие фразы, без запятых и заглавных: так проверяется набор, а не знание раскладки.',
     n3: 'Ошибку можно исправить: сотрите неверную букву и наберите заново, точность это учтёт.',
     n4: 'Средняя скорость взрослого — 30-40 слов в минуту, уверенная печать вслепую — от 60.',
   },
   en: {
+    mWords: 'Words', mPhrases: 'Phrases',
     wpmShort: 'wpm',
     after: 'Press “Again” to have another go',
     focus: 'Click to carry on',
@@ -57,11 +61,12 @@ const СЛОВА = {
     accSub: 'Share of correct characters',
     errSub: 'Characters typed wrong',
     n1: 'Only correctly typed characters count: speed made of typos means nothing.',
-    n2: 'The words are random, without commas or capitals — this measures typing, not knowledge of the layout.',
+    n2: 'Every attempt gets a new text. Words or short phrases, without commas or capitals: this measures typing, not knowledge of the layout.',
     n3: 'You can fix a mistake: delete the wrong letter and type it again, accuracy takes that into account.',
     n4: 'An average adult types 30–40 words per minute; confident touch typing starts around 60.',
   },
   es: {
+    mWords: 'Palabras', mPhrases: 'Frases',
     wpmShort: 'ppm',
     after: 'Pulsa «Otra vez» para repetir',
     focus: 'Pulsa para continuar',
@@ -80,11 +85,12 @@ const СЛОВА = {
     accSub: 'Proporción de caracteres correctos',
     errSub: 'Caracteres escritos mal',
     n1: 'Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada.',
-    n2: 'Las palabras son aleatorias, sin comas ni mayúsculas: así se mide la escritura, no el conocimiento de la distribución.',
+    n2: 'Cada intento trae un texto nuevo. Palabras o frases cortas, sin comas ni mayúsculas: así se mide la escritura, no el conocimiento de la distribución.',
     n3: 'Puedes corregir: borra la letra equivocada y escríbela de nuevo, la precisión lo tendrá en cuenta.',
     n4: 'Un adulto medio escribe 30-40 palabras por minuto; la mecanografía segura empieza en torno a 60.',
   },
   uk: {
+    mWords: 'Слова', mPhrases: 'Фрази',
     wpmShort: 'сл/хв',
     after: 'Натисніть «Заново», щоб пройти ще раз',
     focus: 'Натисніть, щоб продовжити',
@@ -103,7 +109,7 @@ const СЛОВА = {
     accSub: 'Частка вірних знаків',
     errSub: 'Знаків набрано неправильно',
     n1: 'У залік ідуть лише правильно набрані знаки: швидкість, набита одруківками, нічого не варта.',
-    n2: 'Слова випадкові й без ком і великих літер — так перевіряється набір, а не знання розкладки.',
+    n2: 'Кожен захід — новий текст. Слова або короткі фрази, без ком і великих літер: так перевіряється набір, а не знання розкладки.',
     n3: 'Помилку можна виправити: зітріть невірну літеру й наберіть заново, точність це врахує.',
     n4: 'Середня швидкість дорослого — 30-40 слів за хвилину, впевнений сліпий друк — від 60.',
   },
@@ -113,10 +119,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <style is:inline set:html={css}></style>
 
-<div class="tp" data-words={JSON.stringify(с)} data-list={JSON.stringify(слова)}>
+<div class="tp" data-words={JSON.stringify(с)} data-locale={locale} data-stock={JSON.stringify(запас)}>
   {/* Длительность слева, живые числа справа. Пока набор не начался, время показывает выбранную
       длительность -- человек видит, на что подписывается. */}
   <div class="tp-top">
+    {/* Что набирать: случайные частые слова или короткие фразы. Оба вида -- по требованиям
+        к материалу таких тестов: без знаков препинания и заглавных. */}
+    <div class="tp-modes" id="tp-kind" role="group">
+      <button type="button" class="tp-mode on" data-kind="words">{с.mWords}</button>
+      <button type="button" class="tp-mode" data-kind="phrases">{с.mPhrases}</button>
+    </div>
     <div class="tp-modes" id="tp-modes" role="group">
       <button type="button" class="tp-mode" data-sec="30">30 {с.sec}</button>
       <button type="button" class="tp-mode on" data-sec="60">60 {с.sec}</button>
@@ -175,7 +187,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   const корень = document.querySelector('.tp');
   if (корень) (() => {
     const с = JSON.parse(корень.dataset.words || '{}');
-    const слова = JSON.parse(корень.dataset.list || '[]');
+    const язык = корень.dataset.locale || 'ru';
+    // Материал собирается заново на каждую попытку -- см. lib/typing-words.js.
+    let слова = [];
+    let вид = 'words';
+    let собрать = null;   // приедет вместе с модулем слов
     const поле = document.getElementById('tp-field');
     const окно = document.getElementById('tp-viewport');
     const текст = document.getElementById('tp-text');
@@ -191,6 +207,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const итогСлова = document.getElementById('tp-verdict');
     const кнопкаЗаново = document.getElementById('tp-again');
     const рядРежимов = document.getElementById('tp-modes');
+    const рядВида = document.getElementById('tp-kind');
 
     let длительность = 60;
     let начало = 0, таймер = 0, идёт = false, кончено = false;
@@ -349,6 +366,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       полеСкорость.textContent = '0';
       полеТочность.textContent = '100%';
       подсказка.textContent = с.ready;
+      if (собрать) слова = собрать(вид);   // каждый заход -- новый текст
       нарисовать();
       поставитьКурсор();
       ввод.focus();
@@ -373,10 +391,25 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // Ширина изменилась -- строки перебились, и курсор с прокруткой должны встать заново.
     window.addEventListener('resize', () => { верхПрошлый = -1; поставитьКурсор(); });
 
-    нарисовать();
-    поставитьКурсор();
+    // Слова живут в отдельном файле: он весит килобайты и грузится сразу, но отдельно от
+    // страницы -- разметка успевает показаться раньше.
+    import('../lib/typing-words.js').then((м) => {
+      собрать = (какой) => (какой === 'phrases' ? м.фразыДляТеста(язык, 140) : м.словаДляТеста(язык, 140));
+      заново();
+    });
+
+    рядВида.addEventListener('click', (e) => {
+      const б = e.target.closest('.tp-mode');
+      if (!б) return;
+      [...рядВида.children].forEach((x) => x.classList.toggle('on', x === б));
+      вид = б.dataset.kind || 'words';
+      заново();
+      б.blur();
+    });
+
     window.__tpСостояние = () => ({
-      идёт, кончено, длительность,
+      идёт, кончено, длительность, вид,
+      первыеСлова: слова.slice(0, 5).join(' '),
       скорость: Number(полеСкорость.textContent),
       точность: полеТочность.textContent,
       итог: итогСкорость.textContent,

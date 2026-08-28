@@ -12,8 +12,10 @@ faq:
     answer: "A word counts as five typed characters — that is the standard measure everywhere, and it is why the numbers can be compared between people and between languages with different word lengths. Only correctly typed characters count: speed made of typos means nothing."
   - question: What counts as a normal speed?
     answer: An adult typing with two to four fingers manages 30–40 words per minute. Confident touch typing starts around 60; professional typists hold 80–100. Below 25 it is worth practising — the difference in everyday work is noticeable.
-  - question: Why random words instead of real text?
-    answer: Real text can be guessed from its meaning, and then you are measuring familiarity with the passage rather than typing. Random common words remove the guessing. For the same reason there are no commas or capitals — those test knowledge of the layout, not speed.
+  - question: What text do I have to type?
+    answer: "Two kinds to choose from. “Words” are common words of the language shuffled together: real text can be guessed from meaning, and then you measure familiarity with the passage rather than typing. “Phrases” are short everyday phrases, read whole and typed from memory. Neither has commas or capitals: those test knowledge of the layout, not speed."
+  - question: Is the text different every time?
+    answer: Yes. It is put together anew on every visit and on every press of “Again”, so the second run is never over familiar text. Words come from the language’s common-word list; phrases come from their own set and do not repeat until the whole set is used.
   - question: Can I correct a mistake?
     answer: "Yes — delete the wrong letter and type it again, and accuracy will take it into account. But the clock keeps running, so a correction always costs speed. That is fair: in real work corrections cost time too."
   - question: Does the test work on a phone?

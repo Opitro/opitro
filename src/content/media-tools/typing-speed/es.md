@@ -12,8 +12,10 @@ faq:
     answer: "Una palabra son cinco caracteres escritos: es la medida estándar en todas partes, y por eso las cifras se pueden comparar entre personas y entre idiomas con palabras de distinta longitud. Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada."
   - question: ¿Qué velocidad se considera normal?
     answer: "Un adulto que escribe con dos o cuatro dedos alcanza 30–40 palabras por minuto. La mecanografía segura empieza en torno a 60; los profesionales sostienen 80–100. Por debajo de 25 conviene practicar: la diferencia en el trabajo diario se nota."
-  - question: ¿Por qué palabras al azar y no un texto con sentido?
-    answer: "Un texto con sentido se puede adivinar, y entonces se mide la familiaridad con el fragmento, no la escritura. Las palabras frecuentes al azar eliminan la adivinación. Por lo mismo no hay comas ni mayúsculas: eso prueba el conocimiento de la distribución, no la velocidad."
+  - question: ¿Qué texto hay que escribir?
+    answer: "Dos tipos a elegir. «Palabras» son palabras frecuentes del idioma mezcladas: un texto con sentido se puede adivinar, y entonces se mide la familiaridad con el fragmento, no la escritura. «Frases» son frases cortas y cotidianas, se leen enteras y se escriben de memoria. Ninguno lleva comas ni mayúsculas: eso prueba el conocimiento de la distribución, no la velocidad."
+  - question: ¿El texto cambia cada vez?
+    answer: Sí. Se compone de nuevo en cada visita y cada vez que pulsas «Otra vez», así que la segunda ronda nunca es sobre un texto ya conocido. Las palabras salen de la lista de palabras frecuentes; las frases, de su propio conjunto, y no se repiten hasta agotarlo.
   - question: ¿Puedo corregir un error?
     answer: "Sí, borra la letra equivocada y escríbela otra vez; la precisión lo tendrá en cuenta. Pero el reloj sigue corriendo, así que corregir siempre cuesta velocidad. Es justo: en el trabajo real corregir también cuesta tiempo."
   - question: ¿Funciona desde el móvil?
