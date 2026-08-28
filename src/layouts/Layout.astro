@@ -146,6 +146,12 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   .lc-swap{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:2px auto;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
   .lc-swap:hover{border-color:var(--accent);color:var(--accent)}
   .lc-swap svg{width:16px;height:16px}
+  /* Ширина калькулятора -- его собственное свойство, а не свойство страницы, поэтому она
+     лежит здесь, рядом с остальными его стилями. Раньше она стояла в стилях страницы рубрики
+     и оттуда не доставала до чужой разметки -- приходилось снимать защиту через :global.
+     616 пикселей: растянутый во всю ширину, он разносил два поля ввода по краям экрана,
+     и взгляд ходил между ними через всю страницу. */
+  .uc-widget{max-width:616px;margin-left:auto;margin-right:auto}
   .uc-row{display:flex;align-items:center;gap:10px}
   .uc-row .field{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:0}
   .uc-row input,.uc-row select{height:46px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;width:100%}
