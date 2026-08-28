@@ -32,11 +32,18 @@ related:
 
 Toca el texto y empieza a escribir: el tiempo corre desde la primera letra. Las letras correctas se ponen verdes, los errores rojos, y al terminar verás velocidad, precisión y número de errores.
 
-## Qué dicen los tres números
+## Qué dicen los números
 
 - **Palabras por minuto** — el número principal. Aquí una palabra son cinco caracteres, la medida habitual
+- **Pulsaciones por minuto** — lo mismo contado en caracteres, espacios incluidos
 - **Precisión** — proporción de caracteres correctos sobre todo lo escrito
 - **Errores** — cuántos caracteres salieron mal
+
+Al terminar, el resultado se coloca en una escalera de rangos — de principiante a campeón — y se ve de un vistazo si es mucho o poco. Tu mejor marca en cada nivel se recuerda en el navegador y aparece junto a la velocidad: superarte a ti mismo motiva más que una tabla anónima.
+
+## Tu propio texto
+
+El botón «Tu texto» está junto a los niveles. Pega una carta, un fragmento de un libro, tus apuntes: será justo lo que escribas, y la prueba termina en la última letra, no con el cronómetro. El texto se queda en tu navegador: no se envía a ninguna parte ni se guarda. Ten en cuenta que tu texto lleva mayúsculas y comas, así que su resultado no se compara con el normal ni cuenta para el récord.
 
 ## Con qué compararse
 

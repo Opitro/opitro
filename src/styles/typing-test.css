@@ -2,46 +2,126 @@
  *
  * Файл принадлежит одной странице и подключается только ею.
  *
- * Устройство подсмотрено у тех, кто делает это давно и хорошо (Monkeytype, 10FastFingers), и
- * держится на трёх правилах:
+ * Устройство держится на четырёх правилах:
  *   1. Слова видны ВСЕГДА. Ничего поверх текста до начала: человек должен видеть, что печатать,
  *      прежде чем решит начать.
- *   2. Накладка появляется только когда поле потеряло фокус -- и только чтобы вернуть его.
- *   3. Пока идёт набор, на экране нет ничего, что двигается и отвлекает: цифры обновляются на
- *      месте, ширина не пляшет.
+ *   2. Настройки отдельно от чисел. Наверху только то, что ВЫБИРАЕШЬ, внутри поля -- только то,
+ *      что тебе ПОКАЗЫВАЮТ. Пока они стояли в одной строке, разобрать это было нельзя.
+ *   3. Пока идёт набор, ничего не прыгает: цифры моноширинные, ячейки не появляются и не
+ *      исчезают, время уходит полосой по краю -- её видно, не отрывая глаз от слов.
+ *   4. Кнопки выбора сделаны клавишами. Это страница про клавиатуру, у нас уже есть клавиши на
+ *      соседних тестах, и нажимать их приятно -- ровно та эмоция, за которой сюда идут.
  */
 
-.tp { --верно: #4ade9e; --ошибка: #f2b8b5; }
+.tp {
+  --верно: #4ade9e; --ошибка: #f2b8b5; --тревога: #f5c451; --огонь: #f2857b;
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
 
-/* Шапка: длительность слева, время и живые числа справа. Моноширинные цифры -- чтобы строка
-   не дёргалась при смене 9 на 10. */
-.tp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-bottom: 12px }
-.tp-modes { display: flex; gap: 4px; padding: 4px; border-radius: 11px;
-  background: rgba(0,0,0,.3); border: 1px solid var(--line) }
-.tp-mode { font-family: inherit; font-size: 13px; font-weight: 600; height: 34px; padding: 0 15px;
-  border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--muted);
-  cursor: pointer; -webkit-tap-highlight-color: transparent }
-.tp-mode:hover { color: var(--text) }
-.tp-mode.on { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
-.tp-live { margin-left: auto; display: flex; align-items: baseline; gap: 18px;
-  font-variant-numeric: tabular-nums }
-.tp-live .v { font-size: 22px; font-weight: 800; color: var(--text); line-height: 1 }
-.tp-live .v.time { color: var(--accent) }
-.tp-live .k { font-size: 11px; letter-spacing: .1em; text-transform: uppercase; color: var(--muted);
-  margin-left: 6px; white-space: nowrap }
-.tp-live .k i { font-style: normal }
-.tp-live .k .кр { display: none }
+/* ---- Настройки: уровень, время, свой текст ---------------------------------------------- */
 
-/* Поле с текстом. Моноширинный шрифт взят намеренно: при смене цвета буквы её ширина не
-   меняется, и строка не дрожит под пальцами. */
+.tp-bar { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 14px 18px; margin-bottom: 14px }
+.tp-set { display: flex; flex-direction: column; gap: 6px }
+.tp-set-k { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(214,219,230,.5); padding-left: 2px }
+.tp-keys { display: flex; gap: 6px }
+
+/* Клавиша: приподнятая грань сверху, тень снизу. При нажатии уходит вниз на свою тень --
+   то же движение, что у настоящей клавиши под пальцем. */
+.tp-key {
+  font-family: inherit; font-size: 13px; font-weight: 600; height: 36px; padding: 0 15px;
+  border-radius: 9px; cursor: pointer; color: var(--muted); -webkit-tap-highlight-color: transparent;
+  background: linear-gradient(180deg, #23262e, #191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform .06s ease, box-shadow .06s ease, color .12s ease;
+}
+.tp-key:hover { color: var(--text) }
+.tp-key:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06) }
+.tp-key.on {
+  background: linear-gradient(180deg, #f6f8fa, #dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.5);
+  box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff;
+}
+.tp-key:disabled { opacity: .38; cursor: default; transform: none }
+.tp-key:disabled:active { transform: none; box-shadow: 0 2px 0 rgba(0,0,0,.55) }
+
+.tp-own {
+  margin-left: auto; font-family: inherit; font-size: 13px; font-weight: 600; height: 36px;
+  padding: 0 16px; border-radius: 9px; cursor: pointer; color: var(--muted);
+  background: transparent; border: 1px dashed rgba(255,255,255,.22);
+}
+.tp-own:hover { color: var(--text); border-color: rgba(255,255,255,.4) }
+.tp-own.on { color: var(--accent); border-color: rgba(74,222,158,.5); border-style: solid }
+
+/* ---- Панель своего текста ---------------------------------------------------------------- */
+
+.tp-panel {
+  margin-bottom: 14px; padding: 16px 18px 14px; border-radius: 14px;
+  border: 1px solid var(--line); background: var(--surface);
+  font-family: var(--ui);
+}
+.tp-panel[hidden] { display: none }
+.tp-panel-k { display: block; font-size: 13px; font-weight: 600; color: var(--text); margin-bottom: 9px }
+.tp-paste {
+  display: block; width: 100%; resize: vertical; min-height: 88px;
+  font: 400 15px/1.6 var(--ui); color: var(--text);
+  padding: 11px 13px; border-radius: 10px; border: 1px solid var(--line);
+  background: rgba(0,0,0,.3);
+}
+.tp-paste:focus { outline: none; border-color: rgba(74,222,158,.45) }
+.tp-panel-under { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 14px; margin-top: 11px }
+.tp-panel-note { font-size: 12px; color: var(--muted); font-variant-numeric: tabular-nums }
+.tp-panel-note.мало { color: var(--тревога) }
+.tp-panel-priv { flex: 1 1 240px; color: rgba(214,219,230,.6) }
+.tp-go, .tp-cancel {
+  font-family: inherit; font-size: 13px; font-weight: 700; height: 36px; padding: 0 16px;
+  border-radius: 9px; cursor: pointer; border: 1px solid var(--line);
+}
+.tp-go { background: #eef1f4; color: #10141a; border-color: #eef1f4; order: 2 }
+.tp-cancel { background: transparent; color: var(--muted) }
+.tp-cancel:hover { color: var(--text) }
+
+/* ---- Поле с текстом ---------------------------------------------------------------------- */
+
+/* Моноширинный шрифт взят намеренно: при смене цвета буквы её ширина не меняется, и строка не
+   дрожит под пальцами. */
 .tp-field {
-  position: relative; padding: 24px 26px; border: 1px solid var(--line); border-radius: 16px;
-  background: var(--surface); cursor: text;
+  position: relative; padding: 16px 26px 24px; border: 1px solid var(--line); border-radius: 16px;
+  background: var(--surface); cursor: text; overflow: hidden;
   font: 400 21px/1.9 ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
   color: rgba(214,219,230,.34);
   -webkit-user-select: none; user-select: none;
 }
 .tp-field.ждёт { border-color: rgba(74,222,158,.35) }
+
+/* Полоса времени по верхнему краю. Уходит слева направо, и её видно краем глаза -- смотреть
+   на цифру времени во время набора некогда. */
+.tp-time { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: rgba(255,255,255,.06) }
+.tp-time i { display: block; height: 100%; background: var(--accent); transform-origin: left;
+  transform: scaleX(1); transition: transform .2s linear }
+.tp.мало .tp-time i { background: var(--тревога) }
+.tp.совсем-мало .tp-time i { background: var(--огонь) }
+.tp.конец .tp-time { opacity: 0 }
+@media (prefers-reduced-motion: reduce) { .tp-time i { transition: none } }
+
+/* Табло внутри поля: время, скорость, точность, рекорд. Ячейки стоят всегда, даже пустые --
+   если бы рекорд появлялся после первого захода, строка бы прыгала. */
+.tp-scores {
+  display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px;
+  padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line);
+  font-family: var(--ui); font-variant-numeric: tabular-nums;
+}
+.tp-scores b { font-size: 23px; font-weight: 800; color: var(--text); line-height: 1 }
+.tp-scores i { font-style: normal; font-size: 10.5px; font-weight: 600; letter-spacing: .11em;
+  text-transform: uppercase; color: rgba(214,219,230,.55); margin-left: 7px }
+.tp-scores .time b { color: var(--accent) }
+.tp.мало .tp-scores .time b { color: var(--тревога) }
+.tp.совсем-мало .tp-scores .time b { color: var(--огонь) }
+.tp-scores .rec { margin-left: auto }
+.tp-scores .rec b { color: rgba(240,240,242,.55); font-size: 19px }
+.tp.конец .tp-scores { display: none }
+
 /* Окно ровно в три строки. Высота в em от той же строки, что и текст: в пикселях браузер
    округляет высоту строки по-своему, и четвёртая строка вылезала краем. */
 .tp-view { position: relative; height: calc(1.9em * 3); overflow: hidden }
@@ -78,31 +158,57 @@
 .tp-blur {
   position: absolute; inset: 0; display: none; align-items: center; justify-content: center;
   border-radius: 16px; background: rgba(14,15,17,.45); backdrop-filter: blur(3px);
-  font: 600 15px/1.4 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: var(--text); text-align: center; padding: 0 20px; z-index: 4;
+  font: 600 15px/1.4 var(--ui); color: var(--text); text-align: center; padding: 0 20px; z-index: 4;
 }
 .tp.не-в-фокусе:not(.конец) .tp-blur { display: flex }
 
-/* Итог вместо текста: набор кончился -- слова больше не нужны, нужен ответ.
+/* ---- Итог -------------------------------------------------------------------------------- */
+
+/* Итог занимает место текста: набор кончился -- слова больше не нужны, нужен ответ.
    Шрифт здесь обычный, а не моноширинный: моноширинный нужен словам, чтобы строка не дрожала
    при наборе, а в итоге он читается как распечатка из программы. */
-.tp-result {
-  display: none; padding: 4px 2px;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-}
+.tp-result { display: none; padding: 2px 0 0; font-family: var(--ui) }
 .tp.конец .tp-result { display: block }
 .tp.конец .tp-view, .tp.конец .tp-caret, .tp.конец .tp-input { display: none }
 .tp-res-row { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 40px }
+
+/* Разряд стоит НАД числом: сначала человек читает, кто он теперь, и только потом сколько. */
+.tp-rank { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .15em;
+  text-transform: uppercase; color: var(--accent); margin-bottom: 8px }
+.tp-rank.рекорд { color: var(--тревога) }
 .tp-res-main .v { font-size: 64px; font-weight: 800; line-height: .95; color: var(--accent);
-  font-variant-numeric: tabular-nums }
+  font-variant-numeric: tabular-nums; display: block }
 .tp-res-main .k { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted) }
 .tp-res-sub { display: flex; flex-wrap: wrap; gap: 12px 26px }
 .tp-res-sub .v { font-size: 26px; font-weight: 700; color: var(--text); font-variant-numeric: tabular-nums }
 .tp-res-sub .k { display: block; margin-top: 3px; font-size: 11px; letter-spacing: .1em;
   text-transform: uppercase; color: var(--muted) }
-.tp-verdict { margin-top: 16px; padding-top: 14px; border-top: 1px solid var(--line);
-  font-size: 13.5px; line-height: 1.55; color: var(--muted); max-width: 62ch }
+
+/* Лестница разрядов. Отвечает на вопрос, ради которого сюда и приходят: «а это много или
+   мало?» Каждый разряд занимает свою пятую часть ленты, отметка стоит на вашем результате. */
+.tp-scale { margin-top: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line) }
+.tp-scale-line {
+  position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,.07);
+  background-image: linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
+  background-size: 20% 100%; background-position: -1px 0;
+}
+.tp-scale-you {
+  position: absolute; top: -4px; left: 0; width: 14px; height: 14px; margin-left: -7px;
+  border-radius: 4px; background: var(--accent); transform: rotate(45deg);
+  box-shadow: 0 0 0 3px var(--surface); transition: left .5s cubic-bezier(.22,1,.36,1);
+}
+@media (prefers-reduced-motion: reduce) { .tp-scale-you { transition: none } }
+.tp-scale-steps { display: flex; margin-top: 9px }
+.tp-step { flex: 1 1 0; min-width: 0; font-size: 11px; font-weight: 600; letter-spacing: .02em;
+  color: rgba(214,219,230,.42); text-align: center; padding: 0 2px;
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+.tp-step.on { color: var(--text) }
+
+.tp-verdict { margin-top: 15px; font-size: 13.5px; line-height: 1.55; color: var(--muted);
+  max-width: 62ch }
 .tp-verdict b { color: var(--text) }
+
+/* ---- Низ --------------------------------------------------------------------------------- */
 
 .tp-under { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px }
 .tp-hint { font-size: 13px; color: var(--muted); line-height: 1.5 }
@@ -119,12 +225,15 @@
 .tp-note::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
 
 @media (max-width: 640px) {
-  .tp-live { gap: 14px; width: 100%; justify-content: space-between }
-  .tp-live .k .дл { display: none }
-  .tp-live .k .кр { display: inline }
-  .tp-field { font-size: 17px; padding: 18px 16px }
-  .tp-live .v { font-size: 19px }
+  .tp-bar { gap: 12px 14px }
+  .tp-own { margin-left: 0; width: 100% }
+  .tp-key { height: 34px; padding: 0 13px; font-size: 12.5px }
+  .tp-scores { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px }
+  .tp-scores b { font-size: 20px }
+  .tp-scores .rec { margin-left: 0 }
+  .tp-field { font-size: 17px; padding: 14px 16px 18px }
   .tp-res-main .v { font-size: 48px }
   .tp-res-sub { gap: 20px }
   .tp-res-sub .v { font-size: 22px }
+  .tp-step { font-size: 10px }
 }

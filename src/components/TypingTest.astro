@@ -5,8 +5,7 @@
 // длина слов в языке на результат не влияет и цифры сравнимы между людьми и языками.
 // В зачёт идут только ВЕРНЫЕ знаки: иначе «скорость» набивается опечатками.
 //
-// Слова -- случайные частые слова языка, а не связный текст: связный можно угадывать по
-// смыслу, и тогда меряется знакомство с отрывком, а не набор. Подробности в lib/typing-words.js.
+// Три уровня и свой текст -- см. lib/typing-words.js и панель «Свой текст» ниже.
 import css from '../styles/typing-test.css?inline';
 import { размерЗапаса } from '../lib/typing-words.js';
 
@@ -22,13 +21,14 @@ const знакиГлавное = locale === 'ru' || locale === 'uk';
 const СЛОВА = {
   ru: {
     lvEasy: 'Лёгкий', lvMid: 'Средний', lvHard: 'Сложный',
+    setLevel: 'Уровень', setTime: 'Время',
     wpmShort: 'сл/мин', cpm: 'знаков в минуту', cpmShort: 'зн/мин',
     cpmSub: 'Знаков в минуту — с пробелами, как считают на курсах',
-    after: 'Нажмите «Заново», чтобы пройти ещё раз',
+    after: 'Нажмите «Ещё раз», чтобы пройти снова',
     focus: 'Нажмите, чтобы продолжить',
     ready: 'Нажмите на текст — время пойдёт с первой буквы',
     typing: 'Время идёт. Ошибку можно стереть и набрать заново',
-    result: 'Результат', restart: 'Заново', time: 'Время',
+    result: 'Результат', restart: 'Ещё раз', time: 'Время', elapsed: 'Прошло',
     vSlow: 'Это скорость набора двумя пальцами. Обычная для тех, кто печатает нечасто.',
     vMid: 'Уверенный набор. Столько печатает большинство тех, кто много пишет.',
     vFast: 'Слепая печать. Так набирают те, для кого текст — работа.',
@@ -36,10 +36,19 @@ const СЛОВА = {
     vAcc: 'При точности ниже 95 % скорость обманчива: время уходит на исправления.',
     start: 'Начните печатать — время пойдёт с первой буквы',
     left: 'Осталось', sec: 'с', speed: 'Скорость', wpm: 'слов в минуту',
-    acc: 'Точность', errors: 'Ошибок', again: 'Заново',
+    acc: 'Точность', errors: 'Ошибок', again: 'Ещё раз',
     wpmSub: 'Слов в минуту — за слово приняты пять знаков',
     accSub: 'Доля верных знаков',
     errSub: 'Знаков набрано неверно',
+    ranks: ['Новичок', 'Уверенный', 'Слепая печать', 'Мастер', 'Чемпион'],
+    rec: 'Рекорд', recNew: 'Личный рекорд!', recWas: 'было',
+    own: 'Свой текст', ownTitle: 'Вставьте свой текст — печатать будете именно его',
+    ownPlace: 'Письмо, отрывок из книги, конспект — что угодно на любом языке',
+    ownPrivacy: 'Текст остаётся в браузере: никуда не отправляется и нигде не сохраняется.',
+    ownGo: 'Печатать этот текст', ownCancel: 'Отмена', ownChars: 'знаков',
+    ownShort: 'Нужно хотя бы 20 знаков', ownLong: 'Взяли первые 500 слов',
+    ownBadge: 'Свой текст', untilEnd: 'до конца',
+    ownNote: 'Это ваш текст: в нём свои заглавные и знаки препинания, поэтому результат не сравнивают с обычным и в рекорд он не идёт.',
     n1: 'В зачёт идут только верно набранные знаки: скорость, набитая опечатками, ничего не значит.',
     n2: 'Каждый заход — новый текст. Лёгкий уровень — связный текст простыми словами, средний — он же длинными и трудными, сложный — слова без связи со знаками препинания.',
     n3: 'Ошибку можно исправить: сотрите неверную букву и наберите заново, точность это учтёт.',
@@ -47,13 +56,14 @@ const СЛОВА = {
   },
   en: {
     lvEasy: 'Easy', lvMid: 'Medium', lvHard: 'Hard',
+    setLevel: 'Level', setTime: 'Time',
     wpmShort: 'wpm', cpm: 'characters per minute', cpmShort: 'cpm',
     cpmSub: 'Characters per minute, spaces included',
     after: 'Press “Again” to have another go',
     focus: 'Click to carry on',
     ready: 'Click the text — the clock starts with your first letter',
     typing: 'The clock is running. A mistake can be deleted and retyped',
-    result: 'Result', restart: 'Again', time: 'Time',
+    result: 'Result', restart: 'Again', time: 'Time', elapsed: 'Elapsed',
     vSlow: 'That is two-finger speed. Normal for people who type rarely.',
     vMid: 'Confident typing. Most people who write a lot land here.',
     vFast: 'Touch typing. This is the speed of people who write for a living.',
@@ -65,6 +75,15 @@ const СЛОВА = {
     wpmSub: 'Words per minute — a word counts as five characters',
     accSub: 'Share of correct characters',
     errSub: 'Characters typed wrong',
+    ranks: ['Beginner', 'Confident', 'Touch typist', 'Master', 'Champion'],
+    rec: 'Best', recNew: 'Personal best!', recWas: 'was',
+    own: 'Your text', ownTitle: 'Paste your own text — that is what you will type',
+    ownPlace: 'A letter, a passage from a book, your notes — anything, in any language',
+    ownPrivacy: 'The text stays in your browser: nothing is sent anywhere and nothing is stored.',
+    ownGo: 'Type this text', ownCancel: 'Cancel', ownChars: 'characters',
+    ownShort: 'At least 20 characters, please', ownLong: 'Took the first 500 words',
+    ownBadge: 'Your text', untilEnd: 'to the end',
+    ownNote: 'This is your own text: it has its own capitals and punctuation, so the result is not compared with the usual one and does not count towards your best.',
     n1: 'Only correctly typed characters count: speed made of typos means nothing.',
     n2: 'Every attempt gets a new text. Easy is plain connected text, medium is the same with long difficult words, hard is unconnected words with punctuation.',
     n3: 'You can fix a mistake: delete the wrong letter and type it again, accuracy takes that into account.',
@@ -72,13 +91,14 @@ const СЛОВА = {
   },
   es: {
     lvEasy: 'Fácil', lvMid: 'Medio', lvHard: 'Difícil',
+    setLevel: 'Nivel', setTime: 'Tiempo',
     wpmShort: 'ppm', cpm: 'pulsaciones por minuto', cpmShort: 'ppm.',
     cpmSub: 'Caracteres por minuto, espacios incluidos',
     after: 'Pulsa «Otra vez» para repetir',
     focus: 'Pulsa para continuar',
     ready: 'Pulsa el texto: el tiempo corre desde la primera letra',
     typing: 'El tiempo corre. Un error se puede borrar y escribir de nuevo',
-    result: 'Resultado', restart: 'Otra vez', time: 'Tiempo',
+    result: 'Resultado', restart: 'Otra vez', time: 'Tiempo', elapsed: 'Transcurrido',
     vSlow: 'Es la velocidad de escribir con dos dedos. Normal si escribes poco.',
     vMid: 'Escritura segura. Ahí está la mayoría de quienes escriben mucho.',
     vFast: 'Mecanografía. Es la velocidad de quien escribe para vivir.',
@@ -90,31 +110,50 @@ const СЛОВА = {
     wpmSub: 'Palabras por minuto — una palabra son cinco caracteres',
     accSub: 'Proporción de caracteres correctos',
     errSub: 'Caracteres escritos mal',
-    n1: 'Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada.',
+    ranks: ['Principiante', 'Seguro', 'Mecanógrafo', 'Maestro', 'Campeón'],
+    rec: 'Récord', recNew: '¡Récord personal!', recWas: 'antes',
+    own: 'Tu texto', ownTitle: 'Pega tu propio texto: será el que escribas',
+    ownPlace: 'Una carta, un fragmento de un libro, tus apuntes: lo que sea, en cualquier idioma',
+    ownPrivacy: 'El texto se queda en tu navegador: no se envía a ninguna parte ni se guarda.',
+    ownGo: 'Escribir este texto', ownCancel: 'Cancelar', ownChars: 'caracteres',
+    ownShort: 'Hacen falta al menos 20 caracteres', ownLong: 'Tomamos las primeras 500 palabras',
+    ownBadge: 'Tu texto', untilEnd: 'hasta el final',
+    ownNote: 'Es tu propio texto: lleva sus mayúsculas y su puntuación, así que el resultado no se compara con el normal ni cuenta para el récord.',
+    n1: 'Solo cuentan los caracteres escritos correctamente: la velocidad hecha de erratas no significa nada.',
     n2: 'Cada intento trae un texto nuevo. Fácil es texto sencillo con sentido, medio es el mismo con palabras largas y difíciles, difícil son palabras sueltas con signos de puntuación.',
     n3: 'Puedes corregir: borra la letra equivocada y escríbela de nuevo, la precisión lo tendrá en cuenta.',
     n4: 'Un adulto medio escribe 30-40 palabras por minuto; la mecanografía segura empieza en torno a 60.',
   },
   uk: {
     lvEasy: 'Легкий', lvMid: 'Середній', lvHard: 'Складний',
+    setLevel: 'Рівень', setTime: 'Час',
     wpmShort: 'сл/хв', cpm: 'знаків за хвилину', cpmShort: 'зн/хв',
     cpmSub: 'Знаків за хвилину — з пробілами, як рахують на курсах',
-    after: 'Натисніть «Заново», щоб пройти ще раз',
+    after: 'Натисніть «Ще раз», щоб пройти знову',
     focus: 'Натисніть, щоб продовжити',
     ready: 'Натисніть на текст — час піде з першої літери',
     typing: 'Час іде. Помилку можна стерти й набрати заново',
-    result: 'Результат', restart: 'Заново', time: 'Час',
+    result: 'Результат', restart: 'Ще раз', time: 'Час', elapsed: 'Минуло',
     vSlow: 'Це швидкість набору двома пальцями. Звична для тих, хто друкує нечасто.',
-    vMid: 'Впевнений набір. Стільки друкує більшість тих, хто багато пише.',
+    vMid: 'Упевнений набір. Стільки друкує більшість тих, хто багато пише.',
     vFast: 'Сліпий друк. Так набирають ті, для кого текст — робота.',
     vPro: 'Професійний рівень: швидше друкують небагато хто.',
     vAcc: 'При точності нижче 95 % швидкість оманлива: час іде на виправлення.',
     start: 'Починайте друкувати — час піде з першої літери',
     left: 'Залишилось', sec: 'с', speed: 'Швидкість', wpm: 'слів за хвилину',
-    acc: 'Точність', errors: 'Помилок', again: 'Заново',
+    acc: 'Точність', errors: 'Помилок', again: 'Ще раз',
     wpmSub: 'Слів за хвилину — за слово взято п\'ять знаків',
-    accSub: 'Частка вірних знаків',
+    accSub: 'Частка правильних знаків',
     errSub: 'Знаків набрано неправильно',
+    ranks: ['Новачок', 'Упевнений', 'Сліпий друк', 'Майстер', 'Чемпіон'],
+    rec: 'Рекорд', recNew: 'Особистий рекорд!', recWas: 'було',
+    own: 'Свій текст', ownTitle: 'Вставте свій текст — саме його ви й набиратимете',
+    ownPlace: 'Лист, уривок із книги, конспект — будь-що, будь-якою мовою',
+    ownPrivacy: 'Текст лишається у браузері: нікуди не надсилається й ніде не зберігається.',
+    ownGo: 'Друкувати цей текст', ownCancel: 'Скасувати', ownChars: 'знаків',
+    ownShort: 'Потрібно щонайменше 20 знаків', ownLong: 'Узяли перші 500 слів',
+    ownBadge: 'Свій текст', untilEnd: 'до кінця',
+    ownNote: 'Це ваш текст: у ньому свої великі літери й розділові знаки, тому результат не порівнюють зі звичайним і в рекорд він не йде.',
     n1: 'У залік ідуть лише правильно набрані знаки: швидкість, набита одруківками, нічого не варта.',
     n2: 'Кожен захід — новий текст. Легкий рівень — зв\'язний текст простими словами, середній — він же довгими й важкими, складний — слова без зв\'язку зі знаками пунктуації.',
     n3: 'Помилку можна виправити: зітріть невірну літеру й наберіть заново, точність це врахує.',
@@ -126,34 +165,62 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <style is:inline set:html={css}></style>
 
-<div class="tp" data-words={JSON.stringify(с)} data-locale={locale} data-stock={JSON.stringify(запас)}>
-  {/* Длительность слева, живые числа справа. Пока набор не начался, время показывает выбранную
-      длительность -- человек видит, на что подписывается. */}
-  <div class="tp-top">
+<div class="tp" data-words={JSON.stringify(с)} data-locale={locale} data-stock={JSON.stringify(запас)}
+     data-cpm={знакиГлавное ? '1' : ''}>
+  {/* Настройки отдельно от чисел. Раньше уровень, время и живой счёт стояли в одной строке, и
+      было не разобрать, где то, что ты выбираешь, а где то, что тебе показывают. Теперь наверху
+      только выбор, а счёт живёт внутри поля -- там, куда и так смотрят. */}
+  <div class="tp-bar">
     {/* Уровень. Связный текст набирают быстрее всего -- смысл подсказывает следующее слово,
         поэтому слова без связи стоят не в начале ряда, а в конце, как самое трудное. */}
-    <div class="tp-modes" id="tp-kind" role="group">
-      <button type="button" class="tp-mode on" data-kind="easy">{с.lvEasy}</button>
-      <button type="button" class="tp-mode" data-kind="medium">{с.lvMid}</button>
-      <button type="button" class="tp-mode" data-kind="hard">{с.lvHard}</button>
+    <div class="tp-set" id="tp-set-kind">
+      <span class="tp-set-k">{с.setLevel}</span>
+      <div class="tp-keys" id="tp-kind" role="group" aria-label={с.setLevel}>
+        <button type="button" class="tp-key on" data-kind="easy">{с.lvEasy}</button>
+        <button type="button" class="tp-key" data-kind="medium">{с.lvMid}</button>
+        <button type="button" class="tp-key" data-kind="hard">{с.lvHard}</button>
+      </div>
     </div>
-    <div class="tp-modes" id="tp-modes" role="group">
-      <button type="button" class="tp-mode" data-sec="30">30 {с.sec}</button>
-      <button type="button" class="tp-mode on" data-sec="60">60 {с.sec}</button>
-      <button type="button" class="tp-mode" data-sec="180">180 {с.sec}</button>
+    <div class="tp-set" id="tp-set-time">
+      <span class="tp-set-k">{с.setTime}</span>
+      <div class="tp-keys" id="tp-modes" role="group" aria-label={с.setTime}>
+        <button type="button" class="tp-key" data-sec="30">30 {с.sec}</button>
+        <button type="button" class="tp-key on" data-sec="60">60 {с.sec}</button>
+        <button type="button" class="tp-key" data-sec="120">120 {с.sec}</button>
+      </div>
     </div>
-    <div class="tp-live">
-      <span><span class="v time" id="tp-left">60</span><span class="k">{с.time}</span></span>
-      {/* Две подписи, длинная и короткая: на телефоне «слов в минуту» переносится на вторую
-          строку и разваливает ряд. Выбирает нужную стиль, а не код. */}
-      <span><span class="v" id="tp-wpm">0</span><span class="k"><i class="дл">{знакиГлавное ? с.cpm : с.wpm}</i><i class="кр">{знакиГлавное ? с.cpmShort : с.wpmShort}</i></span></span>
-      <span><span class="v" id="tp-acc">100%</span><span class="k">{с.acc}</span></span>
+    <button type="button" class="tp-own" id="tp-own" aria-expanded="false">{с.own}</button>
+  </div>
+
+  {/* Свой текст. Панель раскрывается по нажатию и ничего не двигает, пока её не открыли. */}
+  <div class="tp-panel" id="tp-panel" hidden>
+    <label class="tp-panel-k" for="tp-paste">{с.ownTitle}</label>
+    <textarea id="tp-paste" class="tp-paste" rows="4" placeholder={с.ownPlace}
+              spellcheck="false"></textarea>
+    <div class="tp-panel-under">
+      <span class="tp-panel-note" id="tp-count">0 {с.ownChars}</span>
+      <span class="tp-panel-note tp-panel-priv">{с.ownPrivacy}</span>
+      <button type="button" class="tp-cancel" id="tp-drop">{с.ownCancel}</button>
+      <button type="button" class="tp-go" id="tp-take">{с.ownGo}</button>
     </div>
   </div>
 
   {/* Слова видны с самого начала и ничем не закрыты: человек должен видеть, что печатать,
       прежде чем решит начать. Накладка появляется только когда поле теряет фокус. */}
   <div class="tp-field ждёт" id="tp-field">
+    {/* Полоса времени по верхнему краю: она уходит, и это видно краем глаза, не отрывая
+        взгляда от слов. В последние секунды меняет цвет -- это и есть весь азарт. */}
+    <div class="tp-time" aria-hidden="true"><i id="tp-time-fill"></i></div>
+
+    <div class="tp-scores">
+      <span class="s time"><b id="tp-left">60</b><i id="tp-left-k">{с.time}</i></span>
+      <span class="s"><b id="tp-wpm">0</b><i>{знакиГлавное ? с.cpmShort : с.wpmShort}</i></span>
+      <span class="s"><b id="tp-acc">100%</b><i>{с.acc}</i></span>
+      {/* Рекорд стоит всегда, даже пустой: если бы ячейка появлялась после первого захода,
+          строка бы каждый раз прыгала. */}
+      <span class="s rec"><b id="tp-rec">—</b><i>{с.rec}</i></span>
+    </div>
+
     <div class="tp-view" id="tp-viewport">
       <div class="tp-lines" id="tp-text"></div>
       <div class="tp-caret" id="tp-caret"></div>
@@ -166,6 +233,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="tp-result" id="tp-result">
       <div class="tp-res-row">
         <div class="tp-res-main">
+          <span class="tp-rank" id="tp-rank"></span>
           <span class="v" id="tp-res-wpm">0</span>
           <span class="k">{знакиГлавное ? с.cpmSub : с.wpmSub}</span>
         </div>
@@ -175,6 +243,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           <div><span class="v" id="tp-res-err">0</span><span class="k">{с.errors}</span></div>
         </div>
       </div>
+
+      {/* Лестница разрядов. Показывает не только «сколько», но и «где это среди людей» --
+          ради этого сюда и приходят. Отметка стоит на вашем результате. */}
+      <div class="tp-scale" id="tp-scale">
+        <div class="tp-scale-line"><i class="tp-scale-you" id="tp-you"></i></div>
+        <div class="tp-scale-steps">
+          {с.ranks.map((имя, i) => <span class="tp-step" data-i={i}>{имя}</span>)}
+        </div>
+      </div>
+
       <div class="tp-verdict" id="tp-verdict"></div>
     </div>
   </div>
@@ -197,11 +275,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   if (корень) (() => {
     const с = JSON.parse(корень.dataset.words || '{}');
     const язык = корень.dataset.locale || 'ru';
-    const знакиГлавное = язык === 'ru' || язык === 'uk';
+    const знакиГлавное = корень.dataset.cpm === '1';
     // Материал собирается заново на каждую попытку -- см. lib/typing-words.js.
     let слова = [];
     let уровень = 'easy';
     let собрать = null;   // приедет вместе с модулем слов
+    let свой = null;      // слова своего текста, если человек его вставил
     const поле = document.getElementById('tp-field');
     const окно = document.getElementById('tp-viewport');
     const текст = document.getElementById('tp-text');
@@ -209,20 +288,54 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const курсор = document.getElementById('tp-caret');
     const подсказка = document.getElementById('tp-hint');
     const полеОсталось = document.getElementById('tp-left');
+    const подписьВремени = document.getElementById('tp-left-k');
     const полеСкорость = document.getElementById('tp-wpm');
     const полеТочность = document.getElementById('tp-acc');
+    const полеРекорд = document.getElementById('tp-rec');
+    const полоса = document.getElementById('tp-time-fill');
     const итогСкорость = document.getElementById('tp-res-wpm');
     const итогВторая = document.getElementById('tp-res-alt');
     const итогТочность = document.getElementById('tp-res-acc');
     const итогОшибки = document.getElementById('tp-res-err');
     const итогСлова = document.getElementById('tp-verdict');
+    const итогРазряд = document.getElementById('tp-rank');
+    const отметка = document.getElementById('tp-you');
+    const ступени = [...document.querySelectorAll('.tp-step')];
     const кнопкаЗаново = document.getElementById('tp-again');
     const рядРежимов = document.getElementById('tp-modes');
     const рядВида = document.getElementById('tp-kind');
+    const кнопкаСвой = document.getElementById('tp-own');
+    const панель = document.getElementById('tp-panel');
+    const вставка = document.getElementById('tp-paste');
+    const счётЗнаков = document.getElementById('tp-count');
 
     let длительность = 60;
     let начало = 0, таймер = 0, идёт = false, кончено = false;
     let верныхВсего = 0, неверныхВсего = 0;
+
+    // РАЗРЯДЫ. Границы в словах в минуту -- мера международная, по ней разряд один и тот же
+    // на всех языках. Знаки получаются умножением на пять: 30 слов это 150 знаков.
+    const ГРАНИЦЫ = [30, 50, 70, 90];
+    const разряд = (сл) => ГРАНИЦЫ.filter((г) => сл >= г).length;
+    // Место отметки на ленте: каждый разряд занимает свою пятую часть, внутри -- пропорция.
+    // Так лента остаётся ровной, а отметка честной.
+    function местоНаЛенте(сл) {
+      const края = [0, ...ГРАНИЦЫ, 130];
+      const i = разряд(сл);
+      const доля = Math.min(1, Math.max(0, (сл - края[i]) / (края[i + 1] - края[i])));
+      return Math.min(99, (i + доля) * 20);
+    }
+
+    // ЛИЧНЫЙ РЕКОРД. Свой на каждое сочетание «уровень + время»: сравнивать минуту лёгкого
+    // текста с половиной минуты сложного было бы бессмысленно. Лежит только в этом браузере.
+    const ключРекорда = () => 'opitro-tp-' + язык + '-' + уровень + '-' + длительность;
+    function взятьРекорд() {
+      try { return Number(localStorage.getItem(ключРекорда())) || 0; } catch { return 0; }
+    }
+    function показатьРекорд() {
+      const р = свой ? 0 : взятьРекорд();
+      полеРекорд.textContent = р ? String(р) : '—';
+    }
 
     // Рисуем слова буквами: каждая буква своим узлом, иначе не показать, где именно ошибка.
     // Делается один раз на попытку -- перерисовывать тысячу узлов на каждое нажатие значило бы
@@ -315,13 +428,24 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const секунд = идёт ? (Date.now() - начало) / 1000 : 0;
       полеСкорость.textContent = (идёт && секунд >= 3)
         ? String(Math.round((верных / (знакиГлавное ? 1 : 5)) / (секунд / 60))) : '0';
+      // Свой текст кончается сам, поэтому полоса показывает не время, а сколько осталось слов.
+      if (свой) полоса.style.transform = 'scaleX(' + (1 - Math.min(1, (набрано.length - 1) / слова.length)) + ')';
       поставитьКурсор();
       if (набрано.length >= слова.length) закончить();
     }
 
     function тик() {
-      const осталось = Math.max(0, Math.ceil(длительность - (Date.now() - начало) / 1000));
+      const прошло = (Date.now() - начало) / 1000;
+      if (свой) {
+        полеОсталось.textContent = String(Math.floor(прошло));
+        разобрать();
+        return;
+      }
+      const осталось = Math.max(0, Math.ceil(длительность - прошло));
       полеОсталось.textContent = String(осталось);
+      полоса.style.transform = 'scaleX(' + Math.max(0, 1 - прошло / длительность) + ')';
+      корень.classList.toggle('мало', осталось <= 10 && осталось > 5);
+      корень.classList.toggle('совсем-мало', осталось <= 5);
       if (осталось <= 0) { закончить(); return; }
       разобрать();
     }
@@ -334,13 +458,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       начало = Date.now();
       таймер = window.setInterval(тик, 200);
     }
-    function оценка(скорость, точность) {
-      const части = [];
-      if (скорость < 30) части.push(с.vSlow);
-      else if (скорость < 60) части.push(с.vMid);
-      else if (скорость < 85) части.push(с.vFast);
-      else части.push(с.vPro);
+    function оценка(разр, точность) {
+      const части = [[с.vSlow], [с.vMid], [с.vFast], [с.vPro], [с.vPro]][разр].slice();
       if (точность < 95) части.push(с.vAcc);
+      if (свой) части.push(с.ownNote);
       return части.join(' ');
     }
     function закончить() {
@@ -352,15 +473,34 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const знаков = Math.round(верныхВсего / (секунд / 60));            // знаков в минуту
       const всего = верныхВсего + неверныхВсего;
       const точность = всего ? Math.round((верныхВсего / всего) * 100) : 100;
-      итогСкорость.textContent = String(знакиГлавное ? знаков : скорость);
+      const главное = знакиГлавное ? знаков : скорость;
+      итогСкорость.textContent = String(главное);
       итогВторая.textContent = String(знакиГлавное ? скорость : знаков);
       итогТочность.textContent = точность + '%';
       итогОшибки.textContent = String(неверныхВсего);
-      итогСлова.textContent = оценка(скорость, точность);   // оценка всегда по словам
-      полеСкорость.textContent = String(знакиГлавное ? знаков : скорость);
+
+      const разр = разряд(скорость);
+      ступени.forEach((ш, i) => ш.classList.toggle('on', i === разр));
+      отметка.style.left = местоНаЛенте(скорость) + '%';
+      итогСлова.textContent = оценка(разр, точность);
+
+      // Рекорд. Свой текст в него не идёт: там свои знаки препинания, и сравнение было бы
+      // нечестным по отношению к обычным заходам.
+      const прежний = свой ? 0 : взятьРекорд();
+      const побит = !свой && главное > прежний;
+      if (побит) { try { localStorage.setItem(ключРекорда(), String(главное)); } catch {} }
+      // Разряд человек читает первым -- он и стоит первым. Рекорд приписывается рядом, но
+      // только настоящий: самый первый заход бить нечего, а «рекорд» на пустом месте -- обман.
+      const настоящийРекорд = побит && прежний > 0;
+      итогРазряд.textContent = свой ? с.ownBadge
+        : с.ranks[разр] + (настоящийРекорд ? ' · ' + с.recNew + ' ' + с.recWas + ' ' + прежний : '');
+      итогРазряд.classList.toggle('рекорд', настоящийРекорд);
+      показатьРекорд();
+
+      полеСкорость.textContent = String(главное);
       полеТочность.textContent = точность + '%';
-      полеОсталось.textContent = '0';
-      корень.classList.remove('идёт');
+      полеОсталось.textContent = свой ? String(Math.round(секунд)) : '0';
+      корень.classList.remove('идёт', 'мало', 'совсем-мало');
       корень.classList.add('конец');
       подсказка.textContent = с.after;
       ввод.readOnly = true;    // добить текст после гонга нельзя -- счёт был бы нечестным
@@ -370,16 +510,20 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       clearInterval(таймер);
       идёт = false; кончено = false;
       верныхВсего = 0; неверныхВсего = 0; верхПрошлый = -1;
-      корень.classList.remove('идёт', 'конец');
+      корень.classList.remove('идёт', 'конец', 'мало', 'совсем-мало');
       поле.classList.add('ждёт');
       ввод.readOnly = false;
       ввод.value = '';
       текст.style.transform = '';
-      полеОсталось.textContent = String(длительность);
+      полоса.style.transform = 'scaleX(1)';
+      подписьВремени.textContent = свой ? с.elapsed : с.time;
+      полеОсталось.textContent = свой ? '0' : String(длительность);
       полеСкорость.textContent = '0';
       полеТочность.textContent = '100%';
       подсказка.textContent = с.ready;
-      if (собрать) слова = собрать(уровень);   // каждый заход -- новый текст
+      показатьРекорд();
+      if (свой) слова = свой.slice();
+      else if (собрать) слова = собрать(уровень);   // каждый заход -- новый текст
       нарисовать();
       поставитьКурсор();
       ввод.focus();
@@ -394,15 +538,74 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     поле.addEventListener('click', () => { if (!кончено) ввод.focus(); });
     кнопкаЗаново.addEventListener('click', () => { заново(); кнопкаЗаново.blur(); });
     рядРежимов.addEventListener('click', (e) => {
-      const б = e.target.closest('.tp-mode');
-      if (!б) return;
+      const б = e.target.closest('.tp-key');
+      if (!б || свой) return;
       [...рядРежимов.children].forEach((x) => x.classList.toggle('on', x === б));
       длительность = Number(б.dataset.sec) || 60;
       заново();
       б.blur();
     });
+    рядВида.addEventListener('click', (e) => {
+      const б = e.target.closest('.tp-key');
+      if (!б || свой) return;
+      [...рядВида.children].forEach((x) => x.classList.toggle('on', x === б));
+      уровень = б.dataset.kind || 'easy';
+      заново();
+      б.blur();
+    });
     // Ширина изменилась -- строки перебились, и курсор с прокруткой должны встать заново.
     window.addEventListener('resize', () => { верхПрошлый = -1; поставитьКурсор(); });
+
+    // СВОЙ ТЕКСТ. Никуда не уходит и нигде не сохраняется: живёт только в этой вкладке, пока
+    // она открыта. Люди вставляют сюда рабочие письма, и это должно быть правдой.
+    function почистить(t) {
+      return String(t || '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
+    }
+    function открытьПанель(да) {
+      панель.hidden = !да;
+      кнопкаСвой.setAttribute('aria-expanded', да ? 'true' : 'false');
+      кнопкаСвой.classList.toggle('on', да);
+      if (да) вставка.focus();
+    }
+    кнопкаСвой.addEventListener('click', () => {
+      if (свой) { снятьСвой(); return; }        // второе нажатие возвращает обычный текст
+      открытьПанель(панель.hidden);
+    });
+    вставка.addEventListener('input', () => {
+      const n = почистить(вставка.value).length;
+      счётЗнаков.textContent = n + ' ' + с.ownChars;
+      счётЗнаков.classList.toggle('мало', n > 0 && n < 20);
+    });
+    document.getElementById('tp-drop').addEventListener('click', () => открытьПанель(false));
+    document.getElementById('tp-take').addEventListener('click', () => {
+      const чистый = почистить(вставка.value);
+      if (чистый.length < 20) {
+        счётЗнаков.textContent = с.ownShort;
+        счётЗнаков.classList.add('мало');
+        вставка.focus();
+        return;
+      }
+      let части = чистый.split(' ');
+      const длинно = части.length > 500;
+      if (длинно) части = части.slice(0, 500);
+      свой = части;
+      корень.classList.add('свой');
+      кнопкаСвой.classList.add('on');
+      кнопкаСвой.textContent = с.ownCancel;
+      [...рядРежимов.children, ...рядВида.children].forEach((б) => { б.disabled = true; });
+      полеРекорд.textContent = '—';
+      открытьПанель(false);
+      заново();
+      подсказка.textContent = длинно ? с.ownLong : с.ready;
+    });
+    function снятьСвой() {
+      свой = null;
+      корень.classList.remove('свой');
+      кнопкаСвой.classList.remove('on');
+      кнопкаСвой.textContent = с.own;
+      [...рядРежимов.children, ...рядВида.children].forEach((б) => { б.disabled = false; });
+      заново();
+    }
 
     // Слова живут в отдельном файле: он весит килобайты и грузится сразу, но отдельно от
     // страницы -- разметка успевает показаться раньше.
@@ -411,21 +614,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       заново();
     });
 
-    рядВида.addEventListener('click', (e) => {
-      const б = e.target.closest('.tp-mode');
-      if (!б) return;
-      [...рядВида.children].forEach((x) => x.classList.toggle('on', x === б));
-      уровень = б.dataset.kind || 'easy';
-      заново();
-      б.blur();
-    });
-
     window.__tpСостояние = () => ({
       идёт, кончено, длительность, уровень,
+      свой: !!свой,
       первыеСлова: слова.slice(0, 5).join(' '),
       скорость: Number(полеСкорость.textContent),
       точность: полеТочность.textContent,
       итог: итогСкорость.textContent,
+      разряд: итогРазряд.textContent,
+      рекорд: полеРекорд.textContent,
       верных: корень.querySelectorAll('.tp-ch.ok').length,
       неверных: корень.querySelectorAll('.tp-ch.bad, .tp-ch.extra').length,
       наЭкранеИтог: корень.classList.contains('конец'),

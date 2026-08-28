@@ -32,11 +32,18 @@ related:
 
 Click the text and start typing — the clock starts with your first letter. Correct letters turn green, mistakes turn red, and when the time is up you get your speed, accuracy and mistake count.
 
-## What the three numbers mean
+## What the numbers mean
 
 - **Words per minute** — the headline number. A word here is five characters, the usual measure
+- **Characters per minute** — the same thing counted in keystrokes, spaces included
 - **Accuracy** — the share of correct characters among everything you typed
 - **Mistakes** — how many characters came out wrong
+
+When the run ends your result lands on a ladder of ranks — from beginner to champion — so you can see at a glance whether it is a lot or a little. Your best score for each level is remembered in the browser and shown next to your speed: beating yesterday's self is more interesting than a nameless table.
+
+## Your own text
+
+The “Your text” button sits next to the level buttons. Paste a letter, a passage from a book, your notes — that is what you will type, and the run ends on the last letter rather than on a timer. The text stays in your browser: nothing is sent anywhere and nothing is stored. Just bear in mind that your own text has capitals and commas, so its result is not compared with the usual one and does not count towards your best.
 
 ## What to aim for
 
