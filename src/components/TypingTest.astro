@@ -15,11 +15,15 @@ const { locale = 'ru' } = Astro.props;
 // один раз и был одинаковым у всех, а «Заново» его не менял -- второй заход шёл уже по
 // знакомому тексту, и замер получался нечестным.
 const запас = размерЗапаса(locale);
+// Главная мера зависит от языка: русский и украинский читатель считает ЗНАКИ, английский и
+// испанский -- слова. Вторая мера всегда рядом, чтобы было с чем сравнить.
+const знакиГлавное = locale === 'ru' || locale === 'uk';
 
 const СЛОВА = {
   ru: {
     lvEasy: 'Лёгкий', lvMid: 'Средний', lvHard: 'Сложный',
-    wpmShort: 'сл/мин',
+    wpmShort: 'сл/мин', cpm: 'знаков в минуту', cpmShort: 'зн/мин',
+    cpmSub: 'Знаков в минуту — с пробелами, как считают на курсах',
     after: 'Нажмите «Заново», чтобы пройти ещё раз',
     focus: 'Нажмите, чтобы продолжить',
     ready: 'Нажмите на текст — время пойдёт с первой буквы',
@@ -33,17 +37,18 @@ const СЛОВА = {
     start: 'Начните печатать — время пойдёт с первой буквы',
     left: 'Осталось', sec: 'с', speed: 'Скорость', wpm: 'слов в минуту',
     acc: 'Точность', errors: 'Ошибок', again: 'Заново',
-    wpmSub: 'Слово — это пять знаков, как принято при замере',
+    wpmSub: 'Слов в минуту — за слово приняты пять знаков',
     accSub: 'Доля верных знаков',
     errSub: 'Знаков набрано неверно',
     n1: 'В зачёт идут только верно набранные знаки: скорость, набитая опечатками, ничего не значит.',
     n2: 'Каждый заход — новый текст. Лёгкий уровень — связный текст простыми словами, средний — он же длинными и трудными, сложный — слова без связи со знаками препинания.',
     n3: 'Ошибку можно исправить: сотрите неверную букву и наберите заново, точность это учтёт.',
-    n4: 'Средняя скорость взрослого — 30-40 слов в минуту, уверенная печать вслепую — от 60.',
+    n4: 'Средняя скорость взрослого — около 200 знаков в минуту (40 слов), уверенная печать вслепую — от 300 (60 слов).',
   },
   en: {
     lvEasy: 'Easy', lvMid: 'Medium', lvHard: 'Hard',
-    wpmShort: 'wpm',
+    wpmShort: 'wpm', cpm: 'characters per minute', cpmShort: 'cpm',
+    cpmSub: 'Characters per minute, spaces included',
     after: 'Press “Again” to have another go',
     focus: 'Click to carry on',
     ready: 'Click the text — the clock starts with your first letter',
@@ -57,7 +62,7 @@ const СЛОВА = {
     start: 'Just start typing — the clock starts with your first letter',
     left: 'Left', sec: 's', speed: 'Speed', wpm: 'words per minute',
     acc: 'Accuracy', errors: 'Mistakes', again: 'Again',
-    wpmSub: 'A word counts as five characters, the usual measure',
+    wpmSub: 'Words per minute — a word counts as five characters',
     accSub: 'Share of correct characters',
     errSub: 'Characters typed wrong',
     n1: 'Only correctly typed characters count: speed made of typos means nothing.',
@@ -67,7 +72,8 @@ const СЛОВА = {
   },
   es: {
     lvEasy: 'Fácil', lvMid: 'Medio', lvHard: 'Difícil',
-    wpmShort: 'ppm',
+    wpmShort: 'ppm', cpm: 'pulsaciones por minuto', cpmShort: 'ppm.',
+    cpmSub: 'Caracteres por minuto, espacios incluidos',
     after: 'Pulsa «Otra vez» para repetir',
     focus: 'Pulsa para continuar',
     ready: 'Pulsa el texto: el tiempo corre desde la primera letra',
@@ -81,7 +87,7 @@ const СЛОВА = {
     start: 'Empieza a escribir: el tiempo corre desde la primera letra',
     left: 'Queda', sec: 's', speed: 'Velocidad', wpm: 'palabras por minuto',
     acc: 'Precisión', errors: 'Errores', again: 'Otra vez',
-    wpmSub: 'Una palabra son cinco caracteres, la medida habitual',
+    wpmSub: 'Palabras por minuto — una palabra son cinco caracteres',
     accSub: 'Proporción de caracteres correctos',
     errSub: 'Caracteres escritos mal',
     n1: 'Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada.',
@@ -91,7 +97,8 @@ const СЛОВА = {
   },
   uk: {
     lvEasy: 'Легкий', lvMid: 'Середній', lvHard: 'Складний',
-    wpmShort: 'сл/хв',
+    wpmShort: 'сл/хв', cpm: 'знаків за хвилину', cpmShort: 'зн/хв',
+    cpmSub: 'Знаків за хвилину — з пробілами, як рахують на курсах',
     after: 'Натисніть «Заново», щоб пройти ще раз',
     focus: 'Натисніть, щоб продовжити',
     ready: 'Натисніть на текст — час піде з першої літери',
@@ -105,13 +112,13 @@ const СЛОВА = {
     start: 'Починайте друкувати — час піде з першої літери',
     left: 'Залишилось', sec: 'с', speed: 'Швидкість', wpm: 'слів за хвилину',
     acc: 'Точність', errors: 'Помилок', again: 'Заново',
-    wpmSub: 'Слово — це п\'ять знаків, як заведено при замірі',
+    wpmSub: 'Слів за хвилину — за слово взято п\'ять знаків',
     accSub: 'Частка вірних знаків',
     errSub: 'Знаків набрано неправильно',
     n1: 'У залік ідуть лише правильно набрані знаки: швидкість, набита одруківками, нічого не варта.',
     n2: 'Кожен захід — новий текст. Легкий рівень — зв\'язний текст простими словами, середній — він же довгими й важкими, складний — слова без зв\'язку зі знаками пунктуації.',
     n3: 'Помилку можна виправити: зітріть невірну літеру й наберіть заново, точність це врахує.',
-    n4: 'Середня швидкість дорослого — 30-40 слів за хвилину, впевнений сліпий друк — від 60.',
+    n4: 'Середня швидкість дорослого — близько 200 знаків за хвилину (40 слів), впевнений сліпий друк — від 300 (60 слів).',
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
@@ -139,7 +146,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <span><span class="v time" id="tp-left">60</span><span class="k">{с.time}</span></span>
       {/* Две подписи, длинная и короткая: на телефоне «слов в минуту» переносится на вторую
           строку и разваливает ряд. Выбирает нужную стиль, а не код. */}
-      <span><span class="v" id="tp-wpm">0</span><span class="k"><i class="дл">{с.wpm}</i><i class="кр">{с.wpmShort}</i></span></span>
+      <span><span class="v" id="tp-wpm">0</span><span class="k"><i class="дл">{знакиГлавное ? с.cpm : с.wpm}</i><i class="кр">{знакиГлавное ? с.cpmShort : с.wpmShort}</i></span></span>
       <span><span class="v" id="tp-acc">100%</span><span class="k">{с.acc}</span></span>
     </div>
   </div>
@@ -160,9 +167,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="tp-res-row">
         <div class="tp-res-main">
           <span class="v" id="tp-res-wpm">0</span>
-          <span class="k">{с.wpmSub}</span>
+          <span class="k">{знакиГлавное ? с.cpmSub : с.wpmSub}</span>
         </div>
         <div class="tp-res-sub">
+          <div><span class="v" id="tp-res-alt">0</span><span class="k">{знакиГлавное ? с.wpmShort : с.cpmShort}</span></div>
           <div><span class="v" id="tp-res-acc">100%</span><span class="k">{с.acc}</span></div>
           <div><span class="v" id="tp-res-err">0</span><span class="k">{с.errors}</span></div>
         </div>
@@ -189,6 +197,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   if (корень) (() => {
     const с = JSON.parse(корень.dataset.words || '{}');
     const язык = корень.dataset.locale || 'ru';
+    const знакиГлавное = язык === 'ru' || язык === 'uk';
     // Материал собирается заново на каждую попытку -- см. lib/typing-words.js.
     let слова = [];
     let уровень = 'easy';
@@ -203,6 +212,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const полеСкорость = document.getElementById('tp-wpm');
     const полеТочность = document.getElementById('tp-acc');
     const итогСкорость = document.getElementById('tp-res-wpm');
+    const итогВторая = document.getElementById('tp-res-alt');
     const итогТочность = document.getElementById('tp-res-acc');
     const итогОшибки = document.getElementById('tp-res-err');
     const итогСлова = document.getElementById('tp-verdict');
@@ -304,7 +314,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       // Первые три секунды скорость не показываем: на одной секунде выходит бессмыслица.
       const секунд = идёт ? (Date.now() - начало) / 1000 : 0;
       полеСкорость.textContent = (идёт && секунд >= 3)
-        ? String(Math.round((верных / 5) / (секунд / 60))) : '0';
+        ? String(Math.round((верных / (знакиГлавное ? 1 : 5)) / (секунд / 60))) : '0';
       поставитьКурсор();
       if (набрано.length >= слова.length) закончить();
     }
@@ -338,14 +348,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       идёт = false; кончено = true;
       clearInterval(таймер);
       const секунд = Math.max(1, (Date.now() - начало) / 1000);
-      const скорость = Math.round((верныхВсего / 5) / (секунд / 60));
+      const скорость = Math.round((верныхВсего / 5) / (секунд / 60));   // слов в минуту
+      const знаков = Math.round(верныхВсего / (секунд / 60));            // знаков в минуту
       const всего = верныхВсего + неверныхВсего;
       const точность = всего ? Math.round((верныхВсего / всего) * 100) : 100;
-      итогСкорость.textContent = String(скорость);
+      итогСкорость.textContent = String(знакиГлавное ? знаков : скорость);
+      итогВторая.textContent = String(знакиГлавное ? скорость : знаков);
       итогТочность.textContent = точность + '%';
       итогОшибки.textContent = String(неверныхВсего);
-      итогСлова.textContent = оценка(скорость, точность);
-      полеСкорость.textContent = String(скорость);
+      итогСлова.textContent = оценка(скорость, точность);   // оценка всегда по словам
+      полеСкорость.textContent = String(знакиГлавное ? знаков : скорость);
       полеТочность.textContent = точность + '%';
       полеОсталось.textContent = '0';
       корень.classList.remove('идёт');
