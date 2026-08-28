@@ -6,7 +6,7 @@ tool: dead-pixel-test
 title: Dead pixel test online — check a monitor, laptop or phone screen
 h1: Dead pixel test
 navName: Dead pixels
-description: "Check the screen for dead and stuck pixels: nine solid colours edge to edge, nothing to install. Works for a monitor, laptop, phone or TV."
+description: "Nine solid colours edge to edge — dead and stuck pixels show up on them. Works for a monitor, laptop, phone or TV."
 faq:
   - question: What is the difference between a dead pixel and a stuck one?
     answer: "A dead pixel never lights up — on a white field it is a black dot, visible on every colour. A stuck one does the opposite: it always shows the same colour, so on black you see a bright red, green or blue dot. The difference matters: a stuck pixel can sometimes be revived, a dead one almost never."

@@ -6,7 +6,7 @@ tool: typing-speed
 title: Test de velocidad de escritura online — cuántas palabras por minuto escribes
 h1: Velocidad de escritura
 navName: Velocidad de escritura
-description: "Descubre tu velocidad de escritura en un minuto: palabras por minuto, precisión y número de errores. Sin registro, en el navegador, en cuatro idiomas."
+description: "Descubre cuántas palabras por minuto escribes: velocidad, precisión y número de errores. Sin registro, en el navegador."
 faq:
   - question: ¿Cómo se calcula la velocidad?
     answer: "Una palabra son cinco caracteres escritos: es la medida estándar en todas partes, y por eso las cifras se pueden comparar entre personas y entre idiomas con palabras de distinta longitud. Solo cuentan los caracteres correctos: una velocidad hecha de erratas no significa nada."

@@ -6,7 +6,7 @@ tool: key-chatter
 title: Una tecla escribe dos veces — test de rebote del teclado online
 h1: Una tecla que escribe dos veces
 navName: Rebote de teclas
-description: "¿Pulsas una vez y salen dos letras? Comprueba el rebote del teclado: la página caza las repeticiones y muestra cuántos milisegundos las separan."
+description: "¿Pulsas una vez y salen dos letras? La página caza las repeticiones de la tecla y muestra cuántos milisegundos las separan."
 faq:
   - question: ¿Qué es el rebote de una tecla?
     answer: "Bajo cada tecla hay un interruptor con dos contactos. Al desgastarse, una sola pulsación hace que los contactos se cierren y se abran varias veces en una fracción de segundo: el ordenador recibe dos señales en lugar de una y aparece una letra de más."

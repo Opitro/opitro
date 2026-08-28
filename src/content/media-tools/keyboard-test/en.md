@@ -6,7 +6,7 @@ tool: keyboard-test
 title: Keyboard test online — check every key for free
 h1: Keyboard test
 navName: Keyboard test
-description: "Check every key in a minute: press a key and it fills in on the diagram. Shows stuck keys and the key code for games. Runs in your browser, nothing to install."
+description: "Press a key and it fills in on the diagram. You can see which one stays silent, which one sticks, and the key code for games. Right in your browser."
 faq:
   - question: How do I tell which key is dead?
     answer: "Walk across the keyboard and watch the diagram: everything that responds stays filled in. At the end, the keys left blank are exactly the ones that never reached the browser. The counter at the top shows how many of the 104 you have covered."

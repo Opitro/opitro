@@ -6,7 +6,7 @@ tool: keyboard-test
 title: Test de teclado online — comprueba todas las teclas gratis
 h1: Test de teclado
 navName: Test de teclado
-description: "Comprueba cada tecla en un minuto: la pulsas y se rellena en el esquema. Detecta teclas trabadas y muestra el código de la tecla para juegos. En el navegador, sin instalar nada."
+description: "Pulsas una tecla y se rellena en el esquema. Se ve cuál no responde, cuál se traba y el código de la tecla para juegos. En el navegador."
 faq:
   - question: ¿Cómo sé qué tecla no funciona?
     answer: "Recorre el teclado tecla a tecla y mira el esquema: todo lo que responde queda relleno. Al final, las que sigan en blanco son exactamente las que no llegaron al navegador. El contador de arriba indica cuántas de las 104 llevas."

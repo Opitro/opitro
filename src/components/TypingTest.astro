@@ -16,6 +16,17 @@ const слова = словаДляТеста(locale, 140);
 
 const СЛОВА = {
   ru: {
+    wpmShort: 'сл/мин',
+    after: 'Нажмите «Заново», чтобы пройти ещё раз',
+    focus: 'Нажмите, чтобы продолжить',
+    ready: 'Нажмите на текст — время пойдёт с первой буквы',
+    typing: 'Время идёт. Ошибку можно стереть и набрать заново',
+    result: 'Результат', restart: 'Заново', time: 'Время',
+    vSlow: 'Это скорость набора двумя пальцами. Обычная для тех, кто печатает нечасто.',
+    vMid: 'Уверенный набор. Столько печатает большинство тех, кто много пишет.',
+    vFast: 'Слепая печать. Так набирают те, для кого текст — работа.',
+    vPro: 'Профессиональный уровень: быстрее печатают немногие.',
+    vAcc: 'При точности ниже 95 % скорость обманчива: время уходит на исправления.',
     start: 'Начните печатать — время пойдёт с первой буквы',
     left: 'Осталось', sec: 'с', speed: 'Скорость', wpm: 'слов в минуту',
     acc: 'Точность', errors: 'Ошибок', again: 'Заново',
@@ -28,6 +39,17 @@ const СЛОВА = {
     n4: 'Средняя скорость взрослого — 30-40 слов в минуту, уверенная печать вслепую — от 60.',
   },
   en: {
+    wpmShort: 'wpm',
+    after: 'Press “Again” to have another go',
+    focus: 'Click to carry on',
+    ready: 'Click the text — the clock starts with your first letter',
+    typing: 'The clock is running. A mistake can be deleted and retyped',
+    result: 'Result', restart: 'Again', time: 'Time',
+    vSlow: 'That is two-finger speed. Normal for people who type rarely.',
+    vMid: 'Confident typing. Most people who write a lot land here.',
+    vFast: 'Touch typing. This is the speed of people who write for a living.',
+    vPro: 'Professional level: not many type faster.',
+    vAcc: 'Below 95 % accuracy the speed is misleading: the time goes into corrections.',
     start: 'Just start typing — the clock starts with your first letter',
     left: 'Left', sec: 's', speed: 'Speed', wpm: 'words per minute',
     acc: 'Accuracy', errors: 'Mistakes', again: 'Again',
@@ -40,6 +62,17 @@ const СЛОВА = {
     n4: 'An average adult types 30–40 words per minute; confident touch typing starts around 60.',
   },
   es: {
+    wpmShort: 'ppm',
+    after: 'Pulsa «Otra vez» para repetir',
+    focus: 'Pulsa para continuar',
+    ready: 'Pulsa el texto: el tiempo corre desde la primera letra',
+    typing: 'El tiempo corre. Un error se puede borrar y escribir de nuevo',
+    result: 'Resultado', restart: 'Otra vez', time: 'Tiempo',
+    vSlow: 'Es la velocidad de escribir con dos dedos. Normal si escribes poco.',
+    vMid: 'Escritura segura. Ahí está la mayoría de quienes escriben mucho.',
+    vFast: 'Mecanografía. Es la velocidad de quien escribe para vivir.',
+    vPro: 'Nivel profesional: pocos escriben más rápido.',
+    vAcc: 'Por debajo del 95 % de precisión la velocidad engaña: el tiempo se va en correcciones.',
     start: 'Empieza a escribir: el tiempo corre desde la primera letra',
     left: 'Queda', sec: 's', speed: 'Velocidad', wpm: 'palabras por minuto',
     acc: 'Precisión', errors: 'Errores', again: 'Otra vez',
@@ -52,6 +85,17 @@ const СЛОВА = {
     n4: 'Un adulto medio escribe 30-40 palabras por minuto; la mecanografía segura empieza en torno a 60.',
   },
   uk: {
+    wpmShort: 'сл/хв',
+    after: 'Натисніть «Заново», щоб пройти ще раз',
+    focus: 'Натисніть, щоб продовжити',
+    ready: 'Натисніть на текст — час піде з першої літери',
+    typing: 'Час іде. Помилку можна стерти й набрати заново',
+    result: 'Результат', restart: 'Заново', time: 'Час',
+    vSlow: 'Це швидкість набору двома пальцями. Звична для тих, хто друкує нечасто.',
+    vMid: 'Впевнений набір. Стільки друкує більшість тих, хто багато пише.',
+    vFast: 'Сліпий друк. Так набирають ті, для кого текст — робота.',
+    vPro: 'Професійний рівень: швидше друкують небагато хто.',
+    vAcc: 'При точності нижче 95 % швидкість оманлива: час іде на виправлення.',
     start: 'Починайте друкувати — час піде з першої літери',
     left: 'Залишилось', sec: 'с', speed: 'Швидкість', wpm: 'слів за хвилину',
     acc: 'Точність', errors: 'Помилок', again: 'Заново',
@@ -70,42 +114,53 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 <style is:inline set:html={css}></style>
 
 <div class="tp" data-words={JSON.stringify(с)} data-list={JSON.stringify(слова)}>
+  {/* Длительность слева, живые числа справа. Пока набор не начался, время показывает выбранную
+      длительность -- человек видит, на что подписывается. */}
   <div class="tp-top">
     <div class="tp-modes" id="tp-modes" role="group">
       <button type="button" class="tp-mode" data-sec="30">30 {с.sec}</button>
       <button type="button" class="tp-mode on" data-sec="60">60 {с.sec}</button>
       <button type="button" class="tp-mode" data-sec="180">180 {с.sec}</button>
     </div>
-    <span class="tp-left">{с.left}: <b id="tp-left">60</b> {с.sec}</span>
+    <div class="tp-live">
+      <span><span class="v time" id="tp-left">60</span><span class="k">{с.time}</span></span>
+      {/* Две подписи, длинная и короткая: на телефоне «слов в минуту» переносится на вторую
+          строку и разваливает ряд. Выбирает нужную стиль, а не код. */}
+      <span><span class="v" id="tp-wpm">0</span><span class="k"><i class="дл">{с.wpm}</i><i class="кр">{с.wpmShort}</i></span></span>
+      <span><span class="v" id="tp-acc">100%</span><span class="k">{с.acc}</span></span>
+    </div>
   </div>
 
-  {/* Настоящее поле ввода лежит поверх текста и прозрачно: оно ловит набор и вызывает
-      клавиатуру на телефоне. Поэтому эта страница работает и с экранной клавиатурой -- в
-      отличие от теста клавиш, которому нужны настоящие нажатия. */}
-  <div class="tp-field" id="tp-field">
-    <div class="tp-view"><div class="tp-lines" id="tp-text"></div></div>
+  {/* Слова видны с самого начала и ничем не закрыты: человек должен видеть, что печатать,
+      прежде чем решит начать. Накладка появляется только когда поле теряет фокус. */}
+  <div class="tp-field ждёт" id="tp-field">
+    <div class="tp-view" id="tp-viewport">
+      <div class="tp-lines" id="tp-text"></div>
+      <div class="tp-caret" id="tp-caret"></div>
+    </div>
     <textarea class="tp-input" id="tp-input" autocomplete="off" autocorrect="off"
               autocapitalize="off" spellcheck="false" aria-label={с.speed}></textarea>
-    <div class="tp-veil" id="tp-veil">{с.start}</div>
+    <div class="tp-blur" id="tp-blur">{с.focus}</div>
+
+    {/* Итог занимает место текста: набор кончился -- слова больше не нужны, нужен ответ. */}
+    <div class="tp-result" id="tp-result">
+      <div class="tp-res-row">
+        <div class="tp-res-main">
+          <span class="v" id="tp-res-wpm">0</span>
+          <span class="k">{с.wpmSub}</span>
+        </div>
+        <div class="tp-res-sub">
+          <div><span class="v" id="tp-res-acc">100%</span><span class="k">{с.acc}</span></div>
+          <div><span class="v" id="tp-res-err">0</span><span class="k">{с.errors}</span></div>
+        </div>
+      </div>
+      <div class="tp-verdict" id="tp-verdict"></div>
+    </div>
   </div>
 
-  <div class="tp-out">
-    <div class="tp-box main">
-      <span class="cap">{с.speed}</span>
-      <span class="num" id="tp-wpm">0</span>
-      <span class="sub">{с.wpmSub}</span>
-    </div>
-    <div class="tp-box">
-      <span class="cap">{с.acc}</span>
-      <span class="num" id="tp-acc">100%</span>
-      <span class="sub">{с.accSub}</span>
-    </div>
-    <div class="tp-box">
-      <span class="cap">{с.errors}</span>
-      <span class="num" id="tp-err">0</span>
-      <span class="sub">{с.errSub}</span>
-    </div>
-    <button type="button" class="tp-again" id="tp-again">{с.again}</button>
+  <div class="tp-under">
+    <span class="tp-hint" id="tp-hint">{с.ready}</span>
+    <button type="button" class="tp-again" id="tp-again">{с.restart}</button>
   </div>
 
   <div class="tp-notes">
@@ -122,22 +177,28 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const с = JSON.parse(корень.dataset.words || '{}');
     const слова = JSON.parse(корень.dataset.list || '[]');
     const поле = document.getElementById('tp-field');
+    const окно = document.getElementById('tp-viewport');
     const текст = document.getElementById('tp-text');
     const ввод = document.getElementById('tp-input');
-    const покрывало = document.getElementById('tp-veil');
+    const курсор = document.getElementById('tp-caret');
+    const подсказка = document.getElementById('tp-hint');
     const полеОсталось = document.getElementById('tp-left');
     const полеСкорость = document.getElementById('tp-wpm');
     const полеТочность = document.getElementById('tp-acc');
-    const полеОшибки = document.getElementById('tp-err');
+    const итогСкорость = document.getElementById('tp-res-wpm');
+    const итогТочность = document.getElementById('tp-res-acc');
+    const итогОшибки = document.getElementById('tp-res-err');
+    const итогСлова = document.getElementById('tp-verdict');
     const кнопкаЗаново = document.getElementById('tp-again');
     const рядРежимов = document.getElementById('tp-modes');
 
     let длительность = 60;
     let начало = 0, таймер = 0, идёт = false, кончено = false;
+    let верныхВсего = 0, неверныхВсего = 0;
 
-    // Рисуем слова буквами: каждая буква -- свой узел, иначе не показать, где именно ошибка.
-    // Делается один раз на попытку, а не на каждое нажатие: 140 слов -- это около тысячи
-    // узлов, и перерисовывать их по букве значило бы тормозить на каждом нажатии.
+    // Рисуем слова буквами: каждая буква своим узлом, иначе не показать, где именно ошибка.
+    // Делается один раз на попытку -- перерисовывать тысячу узлов на каждое нажатие значило бы
+    // тормозить под пальцами.
     const узлыСлов = [];
     function нарисовать() {
       const куски = document.createDocumentFragment();
@@ -155,25 +216,38 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         узлыСлов.push(у);
       }
       текст.replaceChildren(куски);
-      if (узлыСлов[0]) узлыСлов[0].classList.add('now');
     }
 
-    // Текст едет вверх, чтобы строка с курсором стояла второй. Считаем по положению самого
-    // слова, а не по числу набранных: слова разной длины, и строки получаются неодинаковыми.
+    // Курсор ставим перед той буквой, которую предстоит набрать. По нему глаз держит место в
+    // строке -- вернее, чем по подсветке слова.
+    function поставитьКурсор() {
+      const набрано = ввод.value.split(' ');
+      const i = Math.min(набрано.length - 1, узлыСлов.length - 1);
+      const узел = узлыСлов[i];
+      if (!узел) return;
+      const буквы = узел.children;
+      const j = (набрано[i] || '').length;
+      const цель = буквы[Math.min(j, буквы.length - 1)];
+      if (!цель) return;
+      const рб = цель.getBoundingClientRect();
+      const ро = окно.getBoundingClientRect();
+      const справа = j >= буквы.length;      // слово добрано -- курсор за последней буквой
+      курсор.style.left = (рб.left - ро.left + (справа ? рб.width : 0)) + 'px';
+      курсор.style.top = (рб.top - ро.top) + 'px';
+      курсор.style.height = рб.height + 'px';
+    }
+
+    // Текст едет вверх, чтобы строка с курсором стояла второй. Считаем по положению слова,
+    // а не по числу набранных: слова разной длины, строки получаются неодинаковыми.
     let верхПрошлый = -1;
     function подвинуть(узел) {
       if (!узел) return;
       const строка = узел.offsetTop;
       if (строка === верхПрошлый) return;
       верхПрошлый = строка;
-      const высотаСтроки = узел.offsetHeight;
-      const сдвиг = Math.max(0, строка - высотаСтроки);
-      текст.style.transform = 'translateY(' + (-сдвиг) + 'px)';
+      текст.style.transform = 'translateY(' + (-Math.max(0, строка - узел.offsetHeight)) + 'px)';
     }
 
-    // Разбор набранного. Считаем по словам: набранное делим по пробелам и сверяем с образцом.
-    // Верные знаки идут в скорость, неверные -- в ошибки; лишние буквы дописываются в конец
-    // слова, чтобы человек видел, что он напечатал.
     function разобрать() {
       const набрано = ввод.value.split(' ');
       let верных = 0, неверных = 0;
@@ -181,10 +255,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const узел = узлыСлов[i];
         const образец = слова[i];
         const было = набрано[i];
-        const текущее = i === набрано.length - 1;
-        узел.classList.toggle('now', текущее);
-        if (текущее) подвинуть(узел);
-        // Лишние буквы прошлой попытки убираем -- иначе они копятся.
+        if (i === набрано.length - 1) подвинуть(узел);
         [...узел.querySelectorAll('.tp-ch.extra')].forEach((э) => э.remove());
         const буквы = узел.children;
         if (было == null) {
@@ -207,23 +278,21 @@ const с = СЛОВА[locale] || СЛОВА.ru;
             неверных++;
           }
         }
-        // Пробел после законченного слова тоже знак -- он идёт в зачёт, как принято.
-        if (i < набрано.length - 1) верных++;
+        if (i < набрано.length - 1) верных++;   // пробел между словами тоже знак
       }
+      верныхВсего = верных; неверныхВсего = неверных;
       const всего = верных + неверных;
-      полеОшибки.textContent = String(неверных);
       полеТочность.textContent = (всего ? Math.round((верных / всего) * 100) : 100) + '%';
-      // Первые три секунды скорость не показываем: на одной секунде любая мелочь превращается
-      // в двести слов в минуту, и число выглядит поломкой.
-      const секунд = (Date.now() - начало) / 1000;
-      полеСкорость.textContent = секунд < 3 ? '—' : String(Math.round((верных / 5) / (секунд / 60)));
-      // Слова кончились -- останавливаемся сами, а не ждём таймера.
+      // Первые три секунды скорость не показываем: на одной секунде выходит бессмыслица.
+      const секунд = идёт ? (Date.now() - начало) / 1000 : 0;
+      полеСкорость.textContent = (идёт && секунд >= 3)
+        ? String(Math.round((верных / 5) / (секунд / 60))) : '0';
+      поставитьКурсор();
       if (набрано.length >= слова.length) закончить();
     }
 
     function тик() {
-      const прошло = (Date.now() - начало) / 1000;
-      const осталось = Math.max(0, Math.ceil(длительность - прошло));
+      const осталось = Math.max(0, Math.ceil(длительность - (Date.now() - начало) / 1000));
       полеОсталось.textContent = String(осталось);
       if (осталось <= 0) { закончить(); return; }
       разобрать();
@@ -232,38 +301,66 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (идёт || кончено) return;
       идёт = true;
       корень.classList.add('идёт');
+      поле.classList.remove('ждёт');
+      подсказка.textContent = с.typing;
       начало = Date.now();
       таймер = window.setInterval(тик, 200);
+    }
+    function оценка(скорость, точность) {
+      const части = [];
+      if (скорость < 30) части.push(с.vSlow);
+      else if (скорость < 60) части.push(с.vMid);
+      else if (скорость < 85) части.push(с.vFast);
+      else части.push(с.vPro);
+      if (точность < 95) части.push(с.vAcc);
+      return части.join(' ');
     }
     function закончить() {
       if (!идёт) return;
       идёт = false; кончено = true;
       clearInterval(таймер);
+      const секунд = Math.max(1, (Date.now() - начало) / 1000);
+      const скорость = Math.round((верныхВсего / 5) / (секунд / 60));
+      const всего = верныхВсего + неверныхВсего;
+      const точность = всего ? Math.round((верныхВсего / всего) * 100) : 100;
+      итогСкорость.textContent = String(скорость);
+      итогТочность.textContent = точность + '%';
+      итогОшибки.textContent = String(неверныхВсего);
+      итогСлова.textContent = оценка(скорость, точность);
+      полеСкорость.textContent = String(скорость);
+      полеТочность.textContent = точность + '%';
+      полеОсталось.textContent = '0';
+      корень.classList.remove('идёт');
       корень.classList.add('конец');
+      подсказка.textContent = с.after;
+      ввод.readOnly = true;    // добить текст после гонга нельзя -- счёт был бы нечестным
       ввод.blur();
-      ввод.readOnly = true;      // добить текст после гонга нельзя -- иначе счёт нечестный
     }
     function заново() {
       clearInterval(таймер);
       идёт = false; кончено = false;
+      верныхВсего = 0; неверныхВсего = 0; верхПрошлый = -1;
       корень.classList.remove('идёт', 'конец');
+      поле.classList.add('ждёт');
       ввод.readOnly = false;
       ввод.value = '';
+      текст.style.transform = '';
       полеОсталось.textContent = String(длительность);
       полеСкорость.textContent = '0';
       полеТочность.textContent = '100%';
-      полеОшибки.textContent = '0';
-      верхПрошлый = -1;
-      текст.style.transform = '';
+      подсказка.textContent = с.ready;
       нарисовать();
+      поставитьКурсор();
       ввод.focus();
     }
 
     ввод.addEventListener('input', () => { начать(); разобрать(); });
-    // Enter в поле ни к чему: перевод строки в наборе слов только портит разбор.
     ввод.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+    // Потеря фокуса на середине попытки: время останавливаем и говорим об этом. Продолжать
+    // отсчёт, пока человек ушёл в другое окно, было бы враньём.
+    ввод.addEventListener('focus', () => корень.classList.remove('не-в-фокусе'));
+    ввод.addEventListener('blur', () => { if (!кончено) корень.classList.add('не-в-фокусе'); });
     поле.addEventListener('click', () => { if (!кончено) ввод.focus(); });
-    покрывало.addEventListener('click', () => ввод.focus());
     кнопкаЗаново.addEventListener('click', () => { заново(); кнопкаЗаново.blur(); });
     рядРежимов.addEventListener('click', (e) => {
       const б = e.target.closest('.tp-mode');
@@ -273,15 +370,20 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       заново();
       б.blur();
     });
+    // Ширина изменилась -- строки перебились, и курсор с прокруткой должны встать заново.
+    window.addEventListener('resize', () => { верхПрошлый = -1; поставитьКурсор(); });
 
     нарисовать();
+    поставитьКурсор();
     window.__tpСостояние = () => ({
       идёт, кончено, длительность,
       скорость: Number(полеСкорость.textContent),
       точность: полеТочность.textContent,
-      ошибок: Number(полеОшибки.textContent),
+      итог: итогСкорость.textContent,
       верных: корень.querySelectorAll('.tp-ch.ok').length,
       неверных: корень.querySelectorAll('.tp-ch.bad, .tp-ch.extra').length,
+      наЭкранеИтог: корень.classList.contains('конец'),
+      накладка: корень.classList.contains('не-в-фокусе'),
     });
   })();
 </script>

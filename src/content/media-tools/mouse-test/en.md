@@ -6,7 +6,7 @@ tool: mouse-test
 title: Mouse test online — check the buttons, wheel and double click
 h1: Mouse test
 navName: Mouse test
-description: "Check every mouse button, the wheel and the double click in a minute. Catches the unintended double click — the classic failure of a worn button. Right in your browser."
+description: "Check the mouse buttons, the wheel and the double click. The page catches the unintended double click — the classic failure of a worn button."
 faq:
   - question: My mouse double-clicks on its own — what is that?
     answer: "A worn micro-switch under the button fires twice on a single press. Telling it apart from your own double click is easy by timing: a human takes 100–500 milliseconds, while a bouncing switch fits into forty or less. The page counts those separately, in the “unintended doubles” line."

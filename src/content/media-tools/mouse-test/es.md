@@ -6,7 +6,7 @@ tool: mouse-test
 title: Test de ratón online — comprobar botones, rueda y doble clic
 h1: Test de ratón
 navName: Test de ratón
-description: "Comprueba todos los botones del ratón, la rueda y el doble clic en un minuto. Detecta el doble clic involuntario, la avería clásica de un botón gastado. En el navegador."
+description: "Comprueba los botones del ratón, la rueda y el doble clic. La página detecta el doble clic involuntario, la avería clásica de un botón gastado."
 faq:
   - question: El ratón hace doble clic solo, ¿qué es eso?
     answer: "El microinterruptor gastado bajo el botón se dispara dos veces en una sola pulsación. Distinguirlo de tu propio doble clic es fácil por el tiempo: una persona tarda de 100 a 500 milisegundos, mientras que el rebote cabe en cuarenta o menos. La página cuenta esos casos aparte, en la línea «dobles involuntarios»."

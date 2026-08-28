@@ -6,7 +6,7 @@ tool: key-rollover
 title: How many keys at once — keyboard rollover and anti-ghosting test
 h1: How many keys at once
 navName: Keys at once
-description: "Hold several keys down and see how many actually reach the computer. A rollover and anti-ghosting check that matters for games. In your browser, nothing to install."
+description: "Hold several keys at once and see how many of them reach the computer. A rollover and anti-ghosting check that matters for games."
 faq:
   - question: How many keys should register at once?
     answer: "An ordinary USB keyboard tops out at six plus modifiers: that is how the data is transmitted, and it is not a fault. Keyboards with full rollover hold every key at once, so the counter climbs past ten. Fewer than six means presses are being lost inside the keyboard itself."

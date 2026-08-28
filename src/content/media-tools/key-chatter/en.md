@@ -6,7 +6,7 @@ tool: key-chatter
 title: Key types twice — keyboard chatter test online
 h1: A key that types twice
 navName: Key chatter
-description: "One press, two letters? Check the keyboard for chatter: the page catches repeated events and shows how many milliseconds apart they arrived."
+description: "One press, two letters? The page catches repeated key events and shows how many milliseconds apart they arrived."
 faq:
   - question: What is key chatter?
     answer: Under each key sits a switch with two contacts. As it wears out, a single press makes the contacts close and open several times within a fraction of a second — the computer receives two signals instead of one, and an extra letter appears in your text.

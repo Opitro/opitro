@@ -6,7 +6,7 @@ tool: typing-speed
 title: Typing speed test online — how many words per minute do you type
 h1: Typing speed
 navName: Typing speed
-description: "Find out your typing speed in a minute: words per minute, accuracy and the number of mistakes. No sign-up, right in your browser, in four languages."
+description: "Find out how many words per minute you type: speed, accuracy and the number of mistakes. No sign-up, right in your browser."
 faq:
   - question: How is the speed calculated?
     answer: "A word counts as five typed characters — that is the standard measure everywhere, and it is why the numbers can be compared between people and between languages with different word lengths. Only correctly typed characters count: speed made of typos means nothing."
