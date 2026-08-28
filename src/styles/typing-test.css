@@ -1,0 +1,90 @@
+/* СТИЛИ СТРАНИЦЫ «СКОРОСТЬ ПЕЧАТИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Главное решение вида: текст крупный и в две-три строки, набранное подсвечивается по буквам.
+ * Мелкий текст на такой странице читать нельзя -- глаз должен идти по строке, не спотыкаясь,
+ * иначе меряется не скорость печати, а разборчивость шрифта.
+ */
+
+.tp { --верно: #4ade9e; --ошибка: #f2b8b5; }
+
+/* Ряд времени: три кнопки и число. Стоит НАД текстом -- менять длину попытки посреди набора
+   бессмысленно, значит и место у выбора до начала. */
+.tp-top { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin-bottom: 14px }
+.tp-modes { display: flex; gap: 4px; padding: 4px; border-radius: 11px;
+  background: rgba(0,0,0,.3); border: 1px solid var(--line) }
+.tp-mode { font-family: inherit; font-size: 13px; font-weight: 600; height: 34px; padding: 0 14px;
+  border-radius: 8px; border: 1px solid transparent; background: transparent; color: var(--muted);
+  cursor: pointer; -webkit-tap-highlight-color: transparent }
+.tp-mode:hover { color: var(--text) }
+.tp-mode.on { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
+.tp-left { margin-left: auto; font-size: 15px; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums }
+.tp-left b { color: var(--accent) }
+
+/* Поле с текстом. Слова переносятся сами, строка не режется посередине слова. */
+/* Ровно три строки в окне. Сто сорок слов сразу на экране -- это стена серого текста, по
+   которой глаз не идёт; три строки читаются как строка книги, а остальное подъезжает само. */
+.tp-field {
+  position: relative; padding: 20px 22px; border: 1px solid var(--line); border-radius: 14px;
+  background: var(--surface); cursor: text;
+  font-size: 22px; line-height: 1.75; letter-spacing: .2px;
+  color: rgba(214,219,230,.42);
+  -webkit-user-select: none; user-select: none;
+}
+/* Окно ровно в три строки. Высота задана в em от той же строки, что и текст, -- считать в
+   пикселях нельзя: браузер округляет высоту строки по-своему, и четвёртая строка вылезала
+   краем снизу. */
+.tp-view { height: calc(1.75em * 3); overflow: hidden }
+/* Текст едет вверх по мере набора -- строка с курсором всегда вторая сверху. */
+.tp-lines { transition: transform .18s ease }
+@media (prefers-reduced-motion: reduce) { .tp-lines { transition: none } }
+.tp-word { display: inline-block; margin-right: .55ch; white-space: nowrap }
+.tp-ch.ok { color: var(--верно) }
+.tp-ch.bad { color: var(--ошибка); text-decoration: underline; text-decoration-color: rgba(242,184,181,.55) }
+/* Лишние буквы -- те, что человек напечатал сверх слова. Показываем их, иначе непонятно,
+   почему слово помечено ошибочным. */
+.tp-ch.extra { color: var(--ошибка); opacity: .75 }
+.tp-word.now { border-bottom: 2px solid var(--accent); border-radius: 2px }
+
+/* Настоящее поле ввода спрятано за текстом: оно ловит набор и вызывает клавиатуру на телефоне,
+   но видеть его незачем -- человек смотрит на слова. */
+.tp-input {
+  position: absolute; inset: 0; width: 100%; height: 100%;
+  opacity: 0; border: 0; padding: 0; background: transparent; resize: none;
+  font-size: 16px;            /* меньше 16 -- Safari на айфоне приближает экран при фокусе */
+  cursor: text;
+}
+/* Пока не начали -- подсказка поверх текста. Она же уходит с первым нажатием. */
+.tp-veil {
+  position: absolute; inset: 0; display: flex; align-items: center; justify-content: center;
+  border-radius: 14px; background: rgba(10,11,13,.72); backdrop-filter: blur(1.5px);
+  font-size: 15px; font-weight: 600; color: var(--text); text-align: center; padding: 0 20px;
+}
+.tp.идёт .tp-veil, .tp.конец .tp-veil { display: none }
+
+/* Итог: три числа в ряд. Скорость крупнее прочего -- за ней и приходят. */
+.tp-out { display: flex; flex-wrap: wrap; gap: 12px; margin-top: 14px }
+.tp-box { flex: 1 1 150px; min-width: 0; padding: 13px 16px; border: 1px solid var(--line);
+  border-radius: 13px; background: var(--surface-2) }
+.tp-box .cap { display: block; font-size: 11px; letter-spacing: .12em; text-transform: uppercase;
+  color: var(--muted); margin-bottom: 3px }
+.tp-box .num { font-size: 30px; font-weight: 800; line-height: 1.05; color: var(--text);
+  font-variant-numeric: tabular-nums }
+.tp-box.main .num { font-size: 40px; color: var(--accent) }
+.tp-box .sub { display: block; margin-top: 4px; font-size: 12px; color: var(--muted) }
+.tp-again { flex: none; align-self: center; font-family: inherit; font-size: 13px; font-weight: 600;
+  height: 36px; padding: 0 16px; border-radius: 9px; cursor: pointer;
+  background: var(--surface); border: 1px solid var(--line); color: var(--text) }
+.tp-again:hover { border-color: rgba(255,255,255,.24) }
+
+.tp-notes { margin-top: 16px; display: flex; flex-direction: column; gap: 7px }
+.tp-note { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.tp-note::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 640px) {
+  .tp-field { font-size: 19px; padding: 16px 16px }
+  .tp-box .num { font-size: 26px }
+  .tp-box.main .num { font-size: 34px }
+}
