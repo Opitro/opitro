@@ -85,8 +85,12 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 {translations.map((t) => (
   <link rel="alternate" hreflang={t.locale} href={new URL(getRelativeLocaleUrl(t.locale, path), Astro.site).toString()} />
 ))}
+{/* x-default -- это «версия для тех, чей язык мы не угадали». Для главной такая версия у нас
+    есть: страница выбора языка в корне. Для остальных страниц выбора нет, и роль запасной
+    играет английская. */}
 {translations.some((t) => t.locale === DEFAULT_LOCALE) && (
-  <link rel="alternate" hreflang="x-default" href={new URL(getRelativeLocaleUrl(DEFAULT_LOCALE, path), Astro.site).toString()} />
+  <link rel="alternate" hreflang="x-default"
+        href={path === '' ? Astro.site.toString() : new URL(getRelativeLocaleUrl(DEFAULT_LOCALE, path), Astro.site).toString()} />
 )}
 <style is:global>
   :root{
@@ -278,6 +282,29 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   @media(max-width:640px){.main{padding:1.5rem 1rem 2rem}section.seo{padding:0 1rem}}
   footer{padding:1.25rem;text-align:center;font-size:12px;color:rgba(200,205,220,0.78);border-top:1px solid rgba(255,255,255,0.05);margin-top:auto}
   footer a{color:rgba(200,205,220,0.75);text-decoration:none;margin:0 8px}
+  /* Подсказка о языке: прижата к низу, поверх всего, ничего не двигает. Появляется редко и
+     уходит навсегда, если человек её закрыл. */
+  .яз-подсказка {
+    position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60;
+    display: flex; align-items: center; gap: 12px; margin: 0 auto; max-width: 520px;
+    padding: 11px 12px 11px 16px; border-radius: 13px;
+    background: var(--surface-2, #1c1e24); border: 1px solid rgba(255,255,255,.14);
+    box-shadow: 0 20px 46px -20px rgba(0,0,0,.85);
+    font-size: 13.5px; line-height: 1.4;
+  }
+  .яз-подсказка[hidden] { display: none }
+  .яз-подсказка span { flex: 1 1 auto }
+  .яз-да {
+    flex: none; text-decoration: none; font-weight: 700; font-size: 13px;
+    color: #10141a; background: var(--accent, #4ade9e); padding: 8px 14px; border-radius: 9px;
+  }
+  .яз-нет {
+    flex: none; width: 30px; height: 30px; border-radius: 9px; cursor: pointer;
+    background: none; border: 1px solid rgba(255,255,255,.16); color: rgba(214,219,230,.7);
+    font: 400 17px/1 inherit;
+  }
+  .яз-нет:hover { color: #f0f0f2; border-color: rgba(255,255,255,.35) }
+
 </style>
 </head>
 <body>
@@ -351,6 +378,53 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
     <a href={getRelativeLocaleUrl(locale, 'contact')}>{translate(locale, 'contactFooterLink')}</a>
   )}
 </footer>
+<script is:inline>
+  // ПОДСКАЗКА О ЯЗЫКЕ. Адрес нужной версии берём из hreflang в голове страницы -- он там уже
+  // есть и всегда указывает на ЭТУ ЖЕ страницу на другом языке, а не на главную.
+  (function () {
+    var СЛОВА = {
+      uk: { т: 'Ця сторінка є українською', д: 'Перейти' },
+      ru: { т: 'Эта страница есть на русском', д: 'Перейти' },
+      en: { т: 'This page is available in English', д: 'Switch' },
+      es: { т: 'Esta página está en español', д: 'Cambiar' },
+    };
+    var свой = document.documentElement.lang || 'en';
+    var список = navigator.languages && navigator.languages.length
+      ? navigator.languages : [navigator.language || ''];
+    var хочет = null;
+    for (var i = 0; i < список.length && !хочет; i++) {
+      var код = String(список[i]).toLowerCase().split('-')[0];
+      if (СЛОВА[код]) хочет = код;
+    }
+    if (!хочет || хочет === свой) return;
+    try { if (localStorage.getItem('opitro-яз-нет') === '1') return; } catch (e) {}
+    var ссылка = document.querySelector('link[rel="alternate"][hreflang="' + хочет + '"]');
+    if (!ссылка) return;
+
+    // Полоску собираем здесь, а не в разметке: ссылка без адреса в готовой странице -- это
+    // битая ссылка, и она была бы на каждой странице сайта.
+    var полоска = document.createElement('div');
+    полоска.className = 'яз-подсказка';
+    полоска.setAttribute('lang', хочет);
+    var текст = document.createElement('span');
+    текст.textContent = СЛОВА[хочет].т;
+    var перейти = document.createElement('a');
+    перейти.className = 'яз-да';
+    перейти.textContent = СЛОВА[хочет].д;
+    перейти.href = ссылка.getAttribute('href');
+    перейти.setAttribute('hreflang', хочет);
+    var закрыть = document.createElement('button');
+    закрыть.type = 'button'; закрыть.className = 'яз-нет';
+    закрыть.textContent = '×'; закрыть.setAttribute('aria-label', 'Закрыть');
+    закрыть.addEventListener('click', function () {
+      полоска.remove();
+      try { localStorage.setItem('opitro-яз-нет', '1'); } catch (e) {}
+    });
+    полоска.appendChild(текст); полоска.appendChild(перейти); полоска.appendChild(закрыть);
+    document.body.appendChild(полоска);
+  })();
+</script>
+
 <script>
   const dropdowns = document.querySelectorAll<HTMLElement>('[data-dropdown]');
   // Само открытие делает CSS (см. выше). Здесь только держим в порядке отметку для читалок

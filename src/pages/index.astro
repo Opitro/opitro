@@ -1,0 +1,91 @@
+---
+// КОРЕНЬ САЙТА -- страница выбора языка.
+//
+// Раньше здесь стояло жёсткое перенаправление на английскую версию: кто бы ни зашёл, с
+// украинского телефона или с испанского, всех отправляло на /en. Язык браузера никто не
+// смотрел, и предложить другой язык было некому.
+//
+// Теперь тут настоящая страница. У кого работает JS -- он не увидит её вовсе: уводит на свой
+// язык за долю секунды. У кого не работает, и поисковикам -- четыре крупные ссылки. Именно
+// такую страницу и положено помечать hreflang="x-default": это и есть «версия для тех, чей
+// язык мы не угадали».
+const ЯЗЫКИ = [
+  { код: 'uk', имя: 'Українська', под: 'Онлайн-інструменти' },
+  { код: 'ru', имя: 'Русский', под: 'Онлайн-инструменты' },
+  { код: 'en', имя: 'English', под: 'Online tools' },
+  { код: 'es', имя: 'Español', под: 'Herramientas online' },
+];
+const САЙТ = 'https://opitro.com';
+---
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Opitro — online tools in your language</title>
+  <meta name="description" content="Opitro: free online tools — calculators, audio, images, text and device tests. Choose your language.">
+  <link rel="canonical" href={`${САЙТ}/`}>
+  {ЯЗЫКИ.map((я) => (
+    <link rel="alternate" hreflang={я.код} href={`${САЙТ}/${я.код}`} />
+  ))}
+  <link rel="alternate" hreflang="x-default" href={`${САЙТ}/`} />
+  <link rel="icon" href="/favicon.svg" type="image/svg+xml">
+  <link rel="icon" href="/favicon-32.png" sizes="32x32">
+  <link rel="apple-touch-icon" href="/apple-touch-icon.png">
+  <style is:inline>
+    :root { color-scheme: dark }
+    * { box-sizing: border-box }
+    body {
+      margin: 0; min-height: 100dvh; display: grid; place-items: center; padding: 28px 20px;
+      background: #0e0f11; color: #f0f0f2;
+      font: 400 16px/1.5 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+      -webkit-font-smoothing: antialiased;
+    }
+    .кор { width: 100%; max-width: 560px; text-align: center }
+    .значок { display: grid; grid-template-columns: 1fr 1fr; gap: 5px; width: 54px; margin: 0 auto 18px }
+    .значок i { display: block; width: 24px; height: 24px; border-radius: 5px }
+    h1 { font-size: 30px; font-weight: 800; letter-spacing: -.02em; margin: 0 0 8px }
+    p { margin: 0 0 26px; color: rgba(214,219,230,.72); font-size: 14.5px }
+    .языки { display: grid; grid-template-columns: 1fr 1fr; gap: 10px }
+    @media (max-width: 460px) { .языки { grid-template-columns: 1fr } }
+    a.язык {
+      display: block; padding: 15px 16px; border-radius: 13px; text-decoration: none;
+      background: #181a20; border: 1px solid rgba(255,255,255,.09); text-align: left;
+      transition: border-color .15s ease, background .15s ease;
+    }
+    a.язык:hover { background: #1c1e24; border-color: rgba(74,222,158,.5) }
+    a.язык b { display: block; font-size: 16px; font-weight: 700; color: #f0f0f2 }
+    a.язык span { display: block; margin-top: 2px; font-size: 12.5px; color: rgba(214,219,230,.6) }
+  </style>
+</head>
+<body>
+  <div class="кор">
+    <div class="значок" aria-hidden="true">
+      <i style="background:#f2857b"></i><i style="background:#f5c451"></i>
+      <i style="background:#4ade9e"></i><i style="background:#60a5fa"></i>
+    </div>
+    <h1>Opitro</h1>
+    <p>Online tools · Онлайн-инструменты · Онлайн-інструменти · Herramientas online</p>
+    <div class="языки">
+      {ЯЗЫКИ.map((я) => (
+        <a class="язык" href={`/${я.код}`} hreflang={я.код}><b>{я.имя}</b><span>{я.под}</span></a>
+      ))}
+    </div>
+  </div>
+
+  <script is:inline>
+    // Уводим на язык браузера сразу, до отрисовки. replace, а не assign: кнопка «назад»
+    // не должна возвращать человека сюда же и снова его уводить.
+    (function () {
+      var есть = ['uk', 'ru', 'en', 'es'];
+      var список = navigator.languages && navigator.languages.length
+        ? navigator.languages : [navigator.language || 'en'];
+      for (var i = 0; i < список.length; i++) {
+        var код = String(список[i]).toLowerCase().split('-')[0];
+        if (есть.indexOf(код) >= 0) { location.replace('/' + код); return; }
+      }
+      location.replace('/en');
+    })();
+  </script>
+</body>
+</html>
