@@ -1,0 +1,346 @@
+---
+// СКОРОСТЬ ПЕЧАТИ НА ТЕЛЕФОНЕ.
+//
+// Отдельная страница, а не повторение большого теста: там человек сидит за клавиатурой и
+// хочет разбор -- график, карту клавиш, уровни. Здесь он стоит в очереди с телефоном в руке
+// и хочет одну цифру за полминуты. Поэтому тут нет ни настроек, ни уровней, ни курсоров:
+// крупный текст, кольцо времени и одна кнопка.
+//
+// Считаем при этом ровно так же, как на большом тесте: слово = пять ЗНАКОВ, в зачёт идут
+// только верные. Иначе цифры двух наших же страниц не сходились бы между собой.
+import css from '../styles/mobile-typing.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+// На русском и украинском привычнее знаки в минуту, на английском и испанском -- слова.
+const знакиГлавное = locale === 'ru' || locale === 'uk';
+
+const СЛОВА = {
+  ru: {
+    hint: 'Нажмите на текст и начните печатать',
+    typing: 'Время идёт',
+    startBtn: 'Начать', startSub: 'Время пойдёт с первой буквы',
+    cpm: 'знаков в минуту', wpm: 'слов в минуту',
+    accShort: 'точность', errShort: 'ошибок', altShort: 'сл/мин', altCpm: 'зн/мин',
+    again: 'Ещё раз', big: 'Тест на клавиатуре',
+    ranks: ['Одним пальцем', 'Уверенно', 'Быстро', 'Очень быстро'],
+    vSlow: 'Обычная скорость для набора одним пальцем. На телефоне это нормально.',
+    vMid: 'Хороший темп для телефона: так набирает большинство тех, кто много переписывается.',
+    vFast: 'Быстро для телефона. Двумя большими пальцами так получается у немногих.',
+    vTop: 'Очень быстро. На телефоне это уже уровень, до которого доходят единицы.',
+    vAcc: 'Точность ниже 95 % — скорость обманчива: время уходит на исправления.',
+    n1: 'На телефоне результат обычно вдвое ниже, чем на настоящей клавиатуре. Это нормально: сравнивать имеет смысл себя с собой на одном устройстве.',
+    n2: 'Тридцать секунд, простые короткие слова, никаких запятых и заглавных: они проверяют знание клавиатуры, а не скорость.',
+    n3: 'В зачёт идут только верно набранные знаки. Слово — это пять знаков, как принято при замере везде.',
+    n4: 'Автозамена и подсказки телефона мешают: они дописывают слова за вас. Если хотите честную цифру, на время теста их лучше выключить.',
+  },
+  en: {
+    hint: 'Tap the text and start typing',
+    typing: 'The clock is running',
+    startBtn: 'Start', startSub: 'The clock starts with your first letter',
+    cpm: 'characters per minute', wpm: 'words per minute',
+    accShort: 'accuracy', errShort: 'mistakes', altShort: 'wpm', altCpm: 'cpm',
+    again: 'Again', big: 'Keyboard test',
+    ranks: ['One finger', 'Confident', 'Fast', 'Very fast'],
+    vSlow: 'A normal pace for one-finger typing. On a phone that is fine.',
+    vMid: 'A good pace for a phone: most people who text a lot land here.',
+    vFast: 'Fast for a phone. Not many manage this with two thumbs.',
+    vTop: 'Very fast. On a phone only a few people get this far.',
+    vAcc: 'Below 95 % accuracy the speed is misleading: the time goes into corrections.',
+    n1: 'On a phone the result is usually half of what you get on a real keyboard. That is normal: compare yourself with yourself on one device.',
+    n2: 'Thirty seconds, short simple words, no commas or capitals: those test your knowledge of the keyboard, not your speed.',
+    n3: 'Only correctly typed characters count. A word is five characters, the usual measure everywhere.',
+    n4: 'Autocorrect and suggestions get in the way — they finish words for you. For an honest number, turn them off for the test.',
+  },
+  es: {
+    hint: 'Toca el texto y empieza a escribir',
+    typing: 'El tiempo corre',
+    startBtn: 'Empezar', startSub: 'El tiempo corre desde la primera letra',
+    cpm: 'pulsaciones por minuto', wpm: 'palabras por minuto',
+    accShort: 'precisión', errShort: 'errores', altShort: 'ppm', altCpm: 'ppm.',
+    again: 'Otra vez', big: 'Prueba con teclado',
+    ranks: ['Con un dedo', 'Seguro', 'Rápido', 'Muy rápido'],
+    vSlow: 'Un ritmo normal para escribir con un dedo. En el móvil está bien.',
+    vMid: 'Buen ritmo para el móvil: ahí está la mayoría de quien escribe mucho por chat.',
+    vFast: 'Rápido para un móvil. Pocos lo consiguen con dos pulgares.',
+    vTop: 'Muy rápido. En el móvil pocos llegan tan lejos.',
+    vAcc: 'Por debajo del 95 % de precisión la velocidad engaña: el tiempo se va en correcciones.',
+    n1: 'En el móvil el resultado suele ser la mitad que en un teclado de verdad. Es normal: compárate contigo mismo en el mismo dispositivo.',
+    n2: 'Treinta segundos, palabras cortas y sencillas, sin comas ni mayúsculas: eso prueba el conocimiento del teclado, no la velocidad.',
+    n3: 'Solo cuentan los caracteres escritos correctamente. Una palabra son cinco caracteres, la medida habitual.',
+    n4: 'El autocorrector y las sugerencias estorban: terminan las palabras por ti. Para un número honesto, apágalos durante la prueba.',
+  },
+  uk: {
+    hint: 'Натисніть на текст і починайте друкувати',
+    typing: 'Час іде',
+    startBtn: 'Почати', startSub: 'Час піде з першої літери',
+    cpm: 'знаків за хвилину', wpm: 'слів за хвилину',
+    accShort: 'точність', errShort: 'помилок', altShort: 'сл/хв', altCpm: 'зн/хв',
+    again: 'Ще раз', big: 'Тест на клавіатурі',
+    ranks: ['Одним пальцем', 'Упевнено', 'Швидко', 'Дуже швидко'],
+    vSlow: 'Звичайна швидкість для набору одним пальцем. На телефоні це нормально.',
+    vMid: 'Добрий темп для телефона: так набирає більшість тих, хто багато листується.',
+    vFast: 'Швидко для телефона. Двома великими пальцями так виходить у небагатьох.',
+    vTop: 'Дуже швидко. На телефоні це вже рівень, до якого доходять одиниці.',
+    vAcc: 'Точність нижче 95 % — швидкість оманлива: час іде на виправлення.',
+    n1: 'На телефоні результат зазвичай удвічі нижчий, ніж на справжній клавіатурі. Це нормально: порівнювати варто себе із собою на одному пристрої.',
+    n2: 'Тридцять секунд, прості короткі слова, жодних ком і великих літер: вони перевіряють знання клавіатури, а не швидкість.',
+    n3: 'У залік ідуть лише правильно набрані знаки. Слово — це п\'ять знаків, як заведено при замірі всюди.',
+    n4: 'Автозаміна та підказки телефона заважають: вони дописують слова за вас. Для чесної цифри на час тесту їх краще вимкнути.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="мт ждёт" data-words={JSON.stringify(с)} data-locale={locale}
+     data-cpm={знакиГлавное ? '1' : ''}>
+  <div class="мт-карта" id="мт-карта">
+    <div class="мт-шапка">
+      <span class="мт-подпись" id="мт-подпись">{с.hint}</span>
+      <div class="мт-кольцо" aria-hidden="true">
+        <svg viewBox="0 0 52 52" width="52" height="52">
+          <circle class="фон" cx="26" cy="26" r="23"></circle>
+          <circle class="дуга" id="мт-дуга" cx="26" cy="26" r="23"
+                  stroke-dasharray="144.5" stroke-dashoffset="0"></circle>
+        </svg>
+        <span class="мт-часы" id="мт-часы">30</span>
+      </div>
+    </div>
+
+    <div class="мт-окно" id="мт-окно">
+      <div class="мт-строки" id="мт-строки"></div>
+      <div class="мт-курсор" id="мт-курсор"></div>
+    </div>
+    <textarea class="мт-ввод" id="мт-ввод" autocomplete="off" autocorrect="off"
+              autocapitalize="off" spellcheck="false" aria-label={с.hint}></textarea>
+
+    {/* Кнопка только даёт полю фокус и вызывает клавиатуру. Время по-прежнему идёт
+        с первой буквы -- секунды на раздумье не должны попадать в результат. */}
+    <div class="мт-старт" id="мт-старт">
+      <b>{с.startBtn}</b><i>{с.startSub}</i>
+    </div>
+
+    {/* Итог -- в той же карточке, поверх текста: страница никуда не уходит. */}
+    <div class="мт-итог" id="мт-итог">
+      <span class="мт-разряд" id="мт-разряд"></span>
+      <span class="мт-число" id="мт-число">0</span>
+      <span class="мт-мера">{знакиГлавное ? с.cpm : с.wpm}</span>
+      <div class="мт-мелочь">
+        <div><b id="мт-вторая">0</b><span>{знакиГлавное ? с.altShort : с.altCpm}</span></div>
+        <div><b id="мт-точность">100%</b><span>{с.accShort}</span></div>
+        <div><b id="мт-ошибки">0</b><span>{с.errShort}</span></div>
+      </div>
+      <p class="мт-слово-итога" id="мт-слово-итога"></p>
+    </div>
+  </div>
+
+  <div class="мт-низ">
+    <button type="button" class="мт-снова" id="мт-снова">{с.again}</button>
+    <a class="мт-большой" href={`/${locale}/typing-speed`}>{с.big}</a>
+  </div>
+
+  <div class="мт-заметки">
+    <div class="мт-заметка">{с.n1}</div>
+    <div class="мт-заметка">{с.n2}</div>
+    <div class="мт-заметка">{с.n3}</div>
+    <div class="мт-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.мт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const знакиГлавное = корень.dataset.cpm === '1';
+    const $ = (id) => document.getElementById(id);
+
+    const ДЛИТЕЛЬНОСТЬ = 30;      // полминуты: больше на телефоне никто не выдерживает
+    const ОКРУЖНОСТЬ = 144.5;     // длина дуги кольца, 2πr при r = 23
+
+    const карта = $('мт-карта'), окно = $('мт-окно'), строки = $('мт-строки');
+    const ввод = $('мт-ввод'), курсор = $('мт-курсор'), дуга = $('мт-дуга');
+    const часы = $('мт-часы'), подпись = $('мт-подпись');
+
+    let слова = [], собрать = null;
+    let начало = 0, таймер = 0, идёт = false, кончено = false;
+    let верных = 0, неверных = 0, былоНачало = false, прошлыхОшибок = 0;
+
+    // Короткий стук телефона на ошибке. Просить разрешения не нужно, а выключить можно
+    // системно -- поэтому это единственный отклик, который тут уместен.
+    function дрогнуть() {
+      try { if (navigator.vibrate) navigator.vibrate(12); } catch {}
+    }
+
+    const узлы = [];
+    function нарисовать() {
+      const куски = document.createDocumentFragment(); узлы.length = 0;
+      for (const слово of слова) {
+        const у = document.createElement('span'); у.className = 'мт-слово';
+        for (const б of слово) {
+          const s = document.createElement('span'); s.className = 'мт-зн'; s.textContent = б;
+          у.appendChild(s);
+        }
+        куски.appendChild(у); узлы.push(у);
+      }
+      строки.replaceChildren(куски);
+    }
+
+    function поставитьКурсор() {
+      const набрано = ввод.value.split(' ');
+      const i = Math.min(набрано.length - 1, узлы.length - 1);
+      const узел = узлы[i]; if (!узел) return;
+      const буквы = узел.children, j = (набрано[i] || '').length;
+      const цель = буквы[Math.min(j, буквы.length - 1)]; if (!цель) return;
+      const заКонцом = j >= буквы.length;
+      const рб = заКонцом ? узел.getBoundingClientRect() : цель.getBoundingClientRect();
+      const ро = окно.getBoundingClientRect();
+      курсор.style.left = (рб.left - ро.left + (заКонцом ? рб.width - рб.width / 2 : 0)) + 'px';
+      курсор.style.width = (заКонцом ? рб.width / 2 : рб.width) + 'px';
+      курсор.style.top = (рб.top - ро.top + рб.height - 4) + 'px';
+    }
+
+    let верхПрошлый = -1;
+    function подвинуть(узел) {
+      if (!узел) return;
+      const строка = узел.offsetTop; if (строка === верхПрошлый) return;
+      верхПрошлый = строка;
+      // Строка с курсором держится первой: на двух строках вторая -- это уже «что дальше».
+      строки.style.transform = 'translateY(' + (-строка) + 'px)';
+    }
+
+    function разобрать() {
+      const набрано = ввод.value.split(' ');
+      let в = 0, н = 0;
+      for (let i = 0; i < узлы.length; i++) {
+        const узел = узлы[i], образец = слова[i], было = набрано[i];
+        if (i === набрано.length - 1) подвинуть(узел);
+        [...узел.querySelectorAll('.мт-зн.лишняя')].forEach((э) => э.remove());
+        const буквы = узел.children;
+        if (было == null) {
+          for (const б of буквы) if (б.className !== 'мт-зн') б.className = 'мт-зн';
+          continue;
+        }
+        for (let j = 0; j < буквы.length; j++) {
+          const набран = было[j];
+          if (набран == null) { if (буквы[j].className !== 'мт-зн') буквы[j].className = 'мт-зн'; continue; }
+          const верно = набран === образец[j];
+          const нужен = 'мт-зн ' + (верно ? 'верно' : 'мимо');
+          if (буквы[j].className !== нужен) буквы[j].className = нужен;
+          if (верно) в++; else н++;
+        }
+        if (было.length > образец.length) {
+          for (let j = образец.length; j < было.length; j++) {
+            const л = document.createElement('span'); л.className = 'мт-зн лишняя';
+            л.textContent = было[j]; узел.appendChild(л); н++;
+          }
+        }
+        if (i < набрано.length - 1) в++;   // пробел между словами тоже знак
+      }
+      верных = в; неверных = н;
+      if (н > прошлыхОшибок) дрогнуть();
+      прошлыхОшибок = н;
+      поставитьКурсор();
+      if (набрано.length >= слова.length) закончить();
+    }
+
+    function тик() {
+      const прошло = (Date.now() - начало) / 1000;
+      const осталось = Math.max(0, Math.ceil(ДЛИТЕЛЬНОСТЬ - прошло));
+      часы.textContent = String(осталось);
+      дуга.style.strokeDashoffset = String(ОКРУЖНОСТЬ * Math.min(1, прошло / ДЛИТЕЛЬНОСТЬ));
+      корень.classList.toggle('мало', осталось <= 10 && осталось > 5);
+      корень.classList.toggle('совсем-мало', осталось <= 5);
+      if (осталось <= 0) { разобрать(); закончить(); return; }
+      разобрать();
+    }
+
+    function начать() {
+      if (идёт || кончено) return;
+      идёт = true;
+      корень.classList.add('идёт'); корень.classList.remove('ждёт');
+      подпись.textContent = с.typing;
+      начало = Date.now(); таймер = window.setInterval(тик, 200);
+    }
+
+    function набежать(узел, до, знак) {
+      const шагов = 22; let i = 0;
+      const т = setInterval(() => {
+        i++; const доля = 1 - Math.pow(1 - i / шагов, 3);
+        узел.textContent = Math.round(до * доля) + (знак || '');
+        if (i >= шагов) { clearInterval(т); узел.textContent = до + (знак || ''); }
+      }, 18);
+    }
+
+    function закончить() {
+      if (!идёт) return;
+      идёт = false; кончено = true; clearInterval(таймер);
+      const секунд = Math.max(1, (Date.now() - начало) / 1000);
+      const слов = Math.round((верных / 5) / (секунд / 60));
+      const знаков = Math.round(верных / (секунд / 60));
+      const всего = верных + неверных;
+      const точность = всего ? Math.round(верных / всего * 100) : 100;
+      const главное = знакиГлавное ? знаков : слов;
+      const вторая = знакиГлавное ? слов : знаков;
+      // Пороги телефонные, не клавиатурные: 25 слов в минуту на телефоне -- уже хороший темп.
+      const разр = [15, 30, 45].filter((г) => слов >= г).length;
+
+      корень.classList.remove('идёт', 'мало', 'совсем-мало');
+      корень.classList.add('конец');
+      ввод.readOnly = true; ввод.blur();
+      $('мт-разряд').textContent = с.ranks[разр];
+      $('мт-точность').textContent = точность + '%';
+      $('мт-ошибки').textContent = String(неверных);
+      набежать($('мт-число'), главное);
+      набежать($('мт-вторая'), вторая);
+      $('мт-слово-итога').textContent = [с.vSlow, с.vMid, с.vFast, с.vTop][разр]
+        + (точность < 95 ? ' ' + с.vAcc : '');
+      подпись.textContent = с.hint;
+    }
+
+    function заново() {
+      clearInterval(таймер);
+      идёт = false; кончено = false;
+      верных = 0; неверных = 0; прошлыхОшибок = 0; верхПрошлый = -1;
+      корень.classList.remove('идёт', 'конец', 'мало', 'совсем-мало');
+      корень.classList.add('ждёт');
+      ввод.readOnly = false; ввод.value = '';
+      строки.style.transform = '';
+      дуга.style.strokeDashoffset = '0';
+      часы.textContent = String(ДЛИТЕЛЬНОСТЬ);
+      подпись.textContent = с.hint;
+      if (собрать) слова = собрать();
+      нарисовать(); поставитьКурсор();
+      if (былоНачало) ввод.focus();
+    }
+
+    ввод.addEventListener('input', () => { начать(); разобрать(); });
+    ввод.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+    ввод.addEventListener('focus', () => корень.classList.add('в-фокусе'));
+    ввод.addEventListener('blur', () => корень.classList.remove('в-фокусе'));
+    карта.addEventListener('click', () => { if (!кончено) ввод.focus(); });
+    $('мт-старт').addEventListener('click', (e) => {
+      e.stopPropagation(); былоНачало = true; ввод.focus();
+      корень.classList.add('в-фокусе');
+    });
+    $('мт-снова').addEventListener('click', () => { былоНачало = true; заново(); $('мт-снова').blur(); });
+    window.addEventListener('resize', () => { верхПрошлый = -1; поставитьКурсор(); });
+
+    // Слова берём из общего запаса сайта -- лёгкий уровень: связный текст короткими словами.
+    // Свой словарь тут был бы вторым местом, где хранится одно и то же.
+    import('../lib/typing-words.js').then((м) => {
+      собрать = () => м.текстДляТеста(язык, 'easy', 60);
+      заново();
+    });
+
+    window.__мтСостояние = () => ({
+      идёт, кончено,
+      первыеСлова: слова.slice(0, 4).join(' '),
+      итог: $('мт-число').textContent,
+      точность: $('мт-точность').textContent,
+      разряд: $('мт-разряд').textContent,
+      наЭкранеИтог: корень.classList.contains('конец'),
+    });
+  })();
+</script>
