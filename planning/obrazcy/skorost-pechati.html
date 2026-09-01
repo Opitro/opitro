@@ -1,0 +1,990 @@
+<title>Скорость печати — образец</title>
+
+<style>
+  :root {
+    --bg: #0e0f11; --surface: #16181d; --surface-2: #1c1e24;
+    --line: rgba(255,255,255,.09); --text: #f0f0f2; --muted: rgba(214,219,230,.72);
+    --accent: #4ade9e; --тревога: #f5c451; --ошибка: #f2857b; --мягкая-ошибка: #f2b8b5;
+    --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --моно: ui-monospace, SFMono-Regular, "SF Mono", Menlo, Consolas, monospace;
+  }
+  /* Образец нарочно живёт в одном тёмном мире: это предпросмотр страницы сайта, а не
+     самостоятельный документ, и он должен выглядеть ровно так, как будет выглядеть там. */
+  body { margin: 0; background: var(--bg); color: var(--text); font-family: var(--ui);
+    -webkit-font-smoothing: antialiased }
+  .об { max-width: 1080px; margin: 0 auto; padding: 26px 20px 70px }
+
+  .шапка { display: flex; align-items: baseline; gap: 12px; flex-wrap: wrap }
+  .шапка h1 { font-size: 27px; font-weight: 800; letter-spacing: -.015em; margin: 0 }
+  .метка { font-size: 10.5px; font-weight: 800; letter-spacing: .15em; text-transform: uppercase;
+    color: var(--тревога); border: 1px solid rgba(245,196,81,.4); border-radius: 999px; padding: 4px 11px }
+  .подзаг { color: var(--muted); font-size: 14px; line-height: 1.65; margin: 10px 0 26px; max-width: 68ch }
+  .подзаг b { color: var(--text) }
+
+  /* ---- Настройки ------------------------------------------------------------ */
+  .tp { --тускло: 1 }
+  /* Слой ряда настроек выше, чем у кнопки «Начать тест»: панель накрывает поле, а кнопка
+     лежит на поле -- при равных слоях кнопка оказывалась сверху и съедала нажатия по панели. */
+  .tp-bar { position: relative; z-index: 20;
+    display: flex; flex-wrap: wrap; align-items: center; gap: 13px 16px; margin-bottom: 14px;
+    opacity: var(--тускло); transition: opacity .5s ease }
+  .набор { display: flex; flex-direction: column; gap: 6px }
+  .набор-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,219,230,.45); padding-left: 2px }
+  .клавиши { display: flex; gap: 5px }
+  .кнопка { font: 600 13px var(--ui); height: 35px; padding: 0 14px; border-radius: 9px; cursor: pointer;
+    color: var(--muted); background: linear-gradient(180deg,#23262e,#191b21);
+    border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+    transition: transform .06s ease, box-shadow .06s ease, color .12s ease }
+  .кнопка:hover { color: var(--text) }
+  .кнопка:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
+  .кнопка.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+    border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
+  .кнопка.мал { width: 35px; padding: 0; font-size: 15px }
+  .свой { margin-left: auto; font: 600 13px var(--ui); height: 35px; padding: 0 15px; border-radius: 9px;
+    cursor: pointer; color: var(--muted); background: transparent; border: 1px dashed rgba(255,255,255,.22) }
+  .свой:hover { color: var(--text); border-color: rgba(255,255,255,.4) }
+
+  /* ---- Поле ----------------------------------------------------------------- */
+  .поле { position: relative; padding: 16px 26px 26px; border: 1px solid var(--line);
+    border-radius: 16px; background: var(--surface); cursor: text; overflow: hidden;
+    font: 400 21px/1.9 var(--моно); color: rgba(214,219,230,.56);
+    -webkit-user-select: none; user-select: none;
+    transition: border-color .3s ease, box-shadow .3s ease }
+  .tp.ждёт .поле { border-color: rgba(74,222,158,.35) }
+  .tp.идёт .поле { box-shadow: 0 0 0 1px rgba(74,222,158,.15), 0 26px 64px -32px rgba(74,222,158,.4) }
+  .tp.провал .поле { border-color: rgba(242,133,123,.55); animation: тряска .32s ease }
+  /* Отвергнутая буква: короткая встряска. Без неё непонятно, почему ничего не происходит,
+     и человек начинает жать клавишу сильнее. */
+  .tp.отказ .поле { border-color: rgba(242,133,123,.45); animation: тряска .2s ease }
+  @keyframes тряска { 0%,100%{transform:translateX(0)} 25%{transform:translateX(-5px)}
+    60%{transform:translateX(4px)} }
+
+  .полоса { position: absolute; left: 0; right: 0; top: 0; height: 3px; background: rgba(255,255,255,.06) }
+  .полоса i { display: block; height: 100%; background: var(--accent); transform-origin: left;
+    transform: scaleX(1); transition: transform .2s linear }
+  .tp.мало .полоса i { background: var(--тревога) }
+  .tp.совсем-мало .полоса i { background: var(--ошибка) }
+  .tp.конец .полоса { opacity: 0 }
+
+  .табло { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 24px;
+    padding-bottom: 12px; margin-bottom: 14px; border-bottom: 1px solid var(--line);
+    font-variant-numeric: tabular-nums }
+  .табло b { font-size: 23px; font-weight: 800; line-height: 1 }
+  .табло i { font-style: normal; font-size: 10.5px; font-weight: 600; letter-spacing: .11em;
+    text-transform: uppercase; color: rgba(214,219,230,.55); margin-left: 7px }
+  .табло .часы b { color: var(--accent) }
+  .tp.мало .табло .часы b { color: var(--тревога) }
+  .tp.совсем-мало .табло .часы b { color: var(--ошибка) }
+  .табло .рекорд { margin-left: auto }
+  .табло .рекорд b { color: rgba(240,240,242,.55); font-size: 19px }
+  .tp.конец .табло { display: none }
+
+  /* Окно обрезает строки по вертикали -- иначе видна четвёртая. Но обрезает оно и по
+     горизонтали, а Глотатель стоит СЛЕВА от буквы: в начале строки он оказывался за краем и
+     пропадал целиком. Отступ внутрь плюс такой же вынос наружу расширяют область рисования
+     влево, не сдвигая при этом ни одной буквы. */
+  .окно { position: relative; height: calc(1.9em * 3); overflow: hidden;
+    padding-left: 28px; margin-left: -28px }
+  .строки { transition: transform .18s ease }
+  .слово { display: inline-block; margin-right: .6ch; white-space: nowrap }
+  .зн.верно { color: var(--accent) }
+  .зн.мимо { color: var(--мягкая-ошибка); background: rgba(242,184,181,.14); border-radius: 3px }
+  .зн.лишняя { color: var(--мягкая-ошибка); opacity: .6 }
+  /* Съеденная буква не пропадает молча, а СЖИМАЕТСЯ И ГАСНЕТ у него во рту: проглатывание
+     должно быть видно. Позади Глотателя не остаётся ничего.
+     Ширину строка при этом держит: если бы съеденное схлопывалось, весь текст полз бы влево
+     на каждой букве и читать его было бы невозможно. */
+  .зн.съел { display: inline-block; animation: съедание .2s cubic-bezier(.4,0,.7,1) forwards }
+  @keyframes съедание {
+    0%   { transform: none; opacity: 1 }
+    100% { transform: scale(.1) translateY(-.1em); opacity: 0 }
+  }
+
+  /* Каретка. Четыре вида, между ними переключаются списком. Общее у всех -- плавный переезд
+     между буквами: без него движение выглядит рывками. */
+  .каретка { position: absolute; border-radius: 2px; pointer-events: none;
+    transition: left .11s cubic-bezier(.33,.9,.4,1), top .11s ease, width .11s ease }
+  .каретка.черта { width: 2px; background: var(--accent); animation: миг 1.1s step-end infinite }
+  .каретка.блок { background: rgba(74,222,158,.3); border-radius: 3px;
+    box-shadow: inset 0 0 0 1px rgba(74,222,158,.6); animation: миг 1.4s step-end infinite }
+  .каретка.черт-низ { background: none; border-bottom: 3px solid var(--accent); border-radius: 0;
+    animation: миг 1.1s step-end infinite }
+  .tp.идёт .каретка { animation: none }
+  @keyframes миг { 0%,100% { opacity: 1 } 50% { opacity: .18 } }
+
+  /* ГЛОТАТЕЛЬ. Круг с вырезанным ртом, и рот смотрит ВПРАВО -- туда, куда он движется. Вырез
+     делает конический градиент, поэтому начало отсчёта сдвинуто на 90 градусов: без сдвига рот
+     открывается вверх, и выходит не глотатель, а удивлённый кругляш. */
+  @property --рот { syntax: '<angle>'; initial-value: 6deg; inherits: false }
+  .пакман {
+    width: var(--d, 1.06em); height: var(--d, 1.06em); border-radius: 50%; position: relative;
+    background: var(--тревога); flex: none;
+    -webkit-mask: conic-gradient(from calc(90deg - var(--рот)), transparent 0 calc(var(--рот) * 2), #000 0);
+    mask: conic-gradient(from calc(90deg - var(--рот)), transparent 0 calc(var(--рот) * 2), #000 0);
+    animation: жуёт .5s ease-in-out infinite;
+  }
+  @keyframes жуёт { 0%, 100% { --рот: 4deg } 50% { --рот: 33deg } }
+  .пакман::after { content: ""; position: absolute; left: 43%; top: 16%;
+    width: 15%; height: 15%; border-radius: 50%; background: #10141a }
+  /* Глотатель едет СВОИМ ходом, а не переездами каретки. Переезд по CSS перезапускался на
+     каждой букве и на быстром наборе не успевал закончиться -- отсюда и дёрганье. Теперь его
+     положение подтягивается к цели каждый кадр, и скорость набора на плавность не влияет.
+     Стоит он СЛЕВА от буквы: буква должна быть видна, иначе непонятно, что он собирается есть. */
+  #пакман { position: absolute; left: 0; top: 0; display: none; will-change: transform }
+  .tp.с-глотателем #пакман { display: block }
+  .tp.с-глотателем .каретка { display: none }
+  /* Никаких рывков на букве: он просто ровно едет и ровно жуёт. Скачок в размере на каждом
+     нажатии выглядел сбоем -- в быстром наборе это десять подскоков в секунду. */
+
+  /* Список выбора курсора. Каждый вид нарисован образцом: по названию «блок» или
+     «подчёркивание» никто не поймёт, что получит. */
+  .выбор { position: relative }
+  .выбор-кнопка { display: flex; align-items: center; gap: 8px; height: 35px; padding: 0 8px;
+    border-radius: 9px; cursor: pointer; color: var(--muted);
+    background: linear-gradient(180deg,#23262e,#191b21); border: 1px solid rgba(255,255,255,.10);
+    box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06) }
+  .выбор-кнопка:hover { color: var(--text) }
+  .шестерня { width: 16px; height: 16px; flex: none; opacity: .75 }
+  .выбор-кнопка .галка { width: 8px; height: 8px; border-right: 1.6px solid currentColor;
+    border-bottom: 1.6px solid currentColor; transform: rotate(45deg) translate(-2px,-2px);
+    opacity: .5; transition: transform .18s ease }
+  .выбор[data-открыт] .выбор-кнопка .галка { transform: rotate(-135deg) translate(-3px,-3px) }
+  .сейчас { font: 600 13px var(--ui); white-space: nowrap }
+  .группа + .группа { margin-top: 12px; padding-top: 12px; border-top: 1px solid var(--line) }
+  .г-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,219,230,.45); margin: 0 0 7px 2px }
+  .г-к ~ .г-к { margin-top: 10px }
+  .чипы { display: flex; flex-wrap: wrap; gap: 5px }
+  .чип { display: inline-flex; align-items: center; gap: 7px; height: 32px; padding: 0 12px;
+    border-radius: 8px; cursor: pointer; font: 600 12.5px var(--ui); color: var(--muted);
+    background: rgba(255,255,255,.045); border: 1px solid rgba(255,255,255,.08) }
+  .чип:hover { color: var(--text); background: rgba(255,255,255,.08) }
+  .чип.вкл { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
+  /* Курсор -- только знаки. Слово-образец с подписью занимало полпанели, а выбирают тут
+     из четырёх похожих вещей: сам знак говорит о себе лучше любой подписи. Названия
+     остаются во всплывающей подсказке. */
+  .знаки { display: flex; flex-wrap: wrap; gap: 6px }
+  .знак { display: grid; place-items: center; width: 40px; height: 34px; border-radius: 8px;
+    cursor: pointer; background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.08) }
+  .знак:hover { background: rgba(255,255,255,.08) }
+  .знак.вкл { border-color: rgba(74,222,158,.55); background: rgba(74,222,158,.12) }
+  .з-черта { width: 2px; height: 17px; background: var(--accent); border-radius: 1px }
+  .з-блок { width: 11px; height: 17px; border-radius: 2px; background: rgba(74,222,158,.32);
+    box-shadow: inset 0 0 0 1px rgba(74,222,158,.75) }
+  .з-низ { width: 13px; height: 17px; border-bottom: 3px solid var(--accent) }
+  .знак .пакман { --d: 17px }
+  /* Панель НАКРЫВАЕТ поле, а не двигает его: раскрытие настроек не должно перекладывать
+     страницу под курсором. Отсюда absolute и тень -- она читается как всплывшая. */
+  .панель { position: absolute; z-index: 30; top: calc(100% + 8px); left: 0; right: 0;
+    padding: 13px 16px 16px; border-radius: 14px;
+    background: var(--surface-2); border: 1px solid var(--line);
+    box-shadow: 0 26px 60px -24px rgba(0,0,0,.9) }
+  .панель[hidden] { display: none }
+  .панель-шапка { display: flex; align-items: center; margin-bottom: 13px }
+  .панель-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,219,230,.45) }
+  .закрыть { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px;
+    border-radius: 8px; cursor: pointer; color: rgba(214,219,230,.5);
+    background: none; border: 1px solid var(--line) }
+  .закрыть:hover { color: var(--text); border-color: rgba(255,255,255,.3) }
+  /* Три раздела в ряд, пока хватает ширины: так панель не вырастает в длинную простыню. */
+  .панель-тело { display: grid; grid-template-columns: repeat(auto-fit, minmax(214px, 1fr));
+    gap: 18px 26px; align-items: start }
+  .группа + .группа { margin: 0; padding: 0; border: 0 }
+  .шапка-списка { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,219,230,.45); padding: 6px 8px 4px }
+  .пункт { display: flex; align-items: center; gap: 11px; padding: 8px; border-radius: 8px;
+    background: none; border: 0; cursor: pointer; text-align: left; color: var(--muted);
+    font: 600 13px var(--ui) }
+  .пункт:hover { background: rgba(255,255,255,.06); color: var(--text) }
+  .пункт.вкл { background: rgba(74,222,158,.1); color: var(--text) }
+  .пункт small { display: block; margin-top: 2px; font-weight: 400; font-size: 11.5px;
+    color: rgba(214,219,230,.5) }
+
+  /* Образец вида: две настоящие буквы и на них -- та самая каретка. */
+  .обр { display: inline-flex; align-items: center; flex: none; width: 42px; height: 24px;
+    padding: 0 5px; border-radius: 6px; background: rgba(0,0,0,.42);
+    font: 400 12px/1 var(--моно); color: rgba(214,219,230,.5); overflow: hidden }
+  .обр .бук { padding: 3px 0 }
+  .обр-черта .бук:first-child { border-right: 2px solid var(--accent); padding-right: 3px; margin-right: 3px }
+  .обр-блок .бук:first-child { background: rgba(74,222,158,.32); border-radius: 2px;
+    box-shadow: inset 0 0 0 1px rgba(74,222,158,.6); padding: 3px 1px }
+  .обр-низ .бук:first-child { border-bottom: 2px solid var(--accent) }
+  .обр-глотатель .пакман { --d: 13px; display: block; margin-right: 3px }
+
+  .ввод { position: absolute; inset: 0; width: 100%; height: 100%; opacity: 0; border: 0;
+    padding: 0; background: transparent; resize: none; font-size: 16px; cursor: text }
+
+  /* Кнопка начала. Лежит поверх текста, но текст под ней виден -- человек должен понимать,
+     что ему предстоит набирать, ещё до того, как решит начать. */
+  .старт { position: absolute; inset: 0; z-index: 6; display: none;
+    flex-direction: column; align-items: center; justify-content: center; gap: 9px;
+    border-radius: 16px; background: rgba(14,15,17,.62); backdrop-filter: blur(2px);
+    font-family: var(--ui); cursor: pointer }
+  .tp.ждёт:not(.в-фокусе) .старт { display: flex }
+  .старт-кнопка { font: 800 15px var(--ui); color: #10141a; background: var(--accent);
+    padding: 11px 24px; border-radius: 11px; letter-spacing: .01em;
+    box-shadow: 0 12px 30px -12px rgba(74,222,158,.7) }
+  .старт:hover .старт-кнопка { background: var(--accent2, #60efb8) }
+  .старт-под { font: 500 12.5px var(--ui); color: rgba(214,219,230,.75) }
+
+  /* ---- Итог ----------------------------------------------------------------- */
+  .итог { display: none; font-family: var(--ui) }
+  .tp.конец .итог { display: block }
+  .tp.конец .окно, .tp.конец .каретка, .tp.конец .ввод { display: none }
+  .ряд-итога { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px 40px }
+  .разряд { display: block; font-size: 11.5px; font-weight: 800; letter-spacing: .15em;
+    text-transform: uppercase; color: var(--accent); margin-bottom: 8px }
+  .разряд.рек { color: var(--тревога) }
+  .главное .ч { display: block; font-size: 66px; font-weight: 800; line-height: .95;
+    color: var(--accent); font-variant-numeric: tabular-nums; letter-spacing: -.025em }
+  .главное .п { display: block; margin-top: 6px; font-size: 12.5px; color: var(--muted) }
+  .второе { display: flex; flex-wrap: wrap; gap: 12px 26px }
+  .второе .ч { font-size: 26px; font-weight: 700; font-variant-numeric: tabular-nums }
+  .второе .п { display: block; margin-top: 3px; font-size: 11px; letter-spacing: .1em;
+    text-transform: uppercase; color: var(--muted) }
+
+  .лестница { margin-top: 22px; padding-bottom: 18px; border-bottom: 1px solid var(--line) }
+  .лента { position: relative; height: 6px; border-radius: 3px; background: rgba(255,255,255,.07);
+    background-image: linear-gradient(90deg, rgba(255,255,255,.18) 1px, transparent 1px);
+    background-size: 20% 100%; background-position: -1px 0 }
+  .вы { position: absolute; top: -4px; left: 0; width: 14px; height: 14px; margin-left: -7px;
+    border-radius: 4px; background: var(--accent); transform: rotate(45deg);
+    box-shadow: 0 0 0 3px var(--surface); transition: left .7s cubic-bezier(.22,1,.36,1) }
+  .ступени { display: flex; margin-top: 9px }
+  .ступень { flex: 1; min-width: 0; font-size: 11px; font-weight: 600; text-align: center;
+    color: rgba(214,219,230,.42); padding: 0 2px; overflow: hidden; text-overflow: ellipsis;
+    white-space: nowrap; transition: color .3s ease }
+  .ступень.вкл { color: var(--text) }
+
+  .разбор { display: grid; grid-template-columns: 1.1fr .9fr; gap: 26px; margin-top: 22px }
+  @media (max-width: 860px) { .разбор { grid-template-columns: 1fr } }
+  .заг-блока { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+    color: rgba(214,219,230,.45); margin-bottom: 10px }
+  .холст { width: 100%; height: 152px; display: block }
+  .ключ { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; font-size: 11.5px; color: var(--muted) }
+  .ключ span { display: inline-flex; align-items: center; gap: 6px }
+  .ключ i { width: 9px; height: 9px; border-radius: 2px }
+
+  .клава { display: flex; flex-direction: column; gap: 5px; align-items: center }
+  .ряд-клавиш { display: flex; gap: 5px }
+  .кл { width: 31px; height: 31px; border-radius: 6px; display: grid; place-items: center;
+    font: 600 12px var(--ui); color: rgba(240,240,242,.42);
+    background: rgba(255,255,255,.04); border: 1px solid rgba(255,255,255,.06);
+    transition: background .4s ease, border-color .4s ease, color .4s ease }
+  .кл.пробел { width: 174px }
+  .под-клавой { margin-top: 11px; font-size: 12.5px; line-height: 1.55; color: var(--muted); text-align: center }
+  .под-клавой b { color: var(--text) }
+
+  .вердикт { margin-top: 20px; font-size: 13.5px; line-height: 1.6; color: var(--muted); max-width: 64ch }
+  .низ { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px;
+    opacity: var(--тускло); transition: opacity .5s ease }
+  .подсказка { font-size: 13px; color: var(--muted) }
+  .подсказка kbd { font: 600 11px var(--моно); background: rgba(255,255,255,.08); border-radius: 4px;
+    padding: 2px 6px; border: 1px solid rgba(255,255,255,.12) }
+  .ещё { margin-left: auto; font: 700 13.5px var(--ui); height: 38px; padding: 0 18px;
+    border-radius: 10px; cursor: pointer; background: var(--surface-2); border: 1px solid var(--line);
+    color: var(--text) }
+  .tp.конец .ещё { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
+
+  /* Режим сосредоточения: пошёл набор -- всё лишнее уходит в тень. */
+  .tp.идёт { --тускло: .5 }
+  .tp.идёт .tp-bar, .tp.идёт .низ { pointer-events: none }
+
+  .хвост { margin-top: 46px; padding-top: 24px; border-top: 1px solid var(--line);
+    font-size: 13.5px; line-height: 1.7; color: var(--muted) }
+  .хвост h2 { font-size: 15px; color: var(--text); margin: 0 0 14px }
+  .хвост ul { margin: 0 0 22px; padding-left: 18px }
+  .хвост li { margin-bottom: 10px }
+  .хвост b { color: var(--text) }
+
+  @media (prefers-reduced-motion: reduce) { * { transition: none !important; animation: none !important } }
+  @media (max-width: 640px) {
+    .поле { font-size: 17px; padding: 14px 16px 20px }
+    .главное .ч { font-size: 50px }
+    .табло { display: grid; grid-template-columns: 1fr 1fr; gap: 10px 14px }
+    .табло .рекорд { margin-left: 0 }
+    .свой { margin-left: 0; width: 100% }
+    .кл { width: 26px; height: 26px; font-size: 11px }
+    .кл.пробел { width: 140px }
+  }
+</style>
+
+<div class="об">
+  <div class="шапка">
+    <h1>Скорость печати</h1><span class="метка">образец</span>
+  </div>
+  <p class="подзаг">Живой, а не картинка — начните печатать прямо здесь. Все настройки убраны
+    под одну кнопку, а на ней написано, что выбрано. Внутри: <b>четыре вида курсора</b> — среди
+    них Глотатель, который съедает буквы, — <b>три способа меряться</b> и уровень. Дальше сами
+    собой работают <b>режим сосредоточения</b>, <b>график скорости по секундам</b> и <b>карта
+    клавиш</b> с вашими промахами.</p>
+
+  <div class="tp ждёт" id="тест">
+    <div class="tp-bar">
+      <!-- Всё под одной кнопкой. На ней написано, что сейчас выбрано, поэтому открывать её
+           ради проверки не нужно -- а нагромождения из трёх рядов кнопок больше нет. -->
+      <div class="выбор" id="настройки">
+        <button class="выбор-кнопка" aria-expanded="false" aria-haspopup="dialog">
+          <svg class="шестерня" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+               stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+            <circle cx="12" cy="12" r="3"/>
+            <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"/>
+          </svg>
+          <span class="сейчас" id="сейчас">Лёгкий · 60 секунд</span><span class="галка"></span>
+        </button>
+
+      </div>
+      <button class="свой">Свой текст</button>
+
+  <!-- Настройки раскрываются НАД полем, а не поверх него: выбрал курсор -- и сразу видишь
+       его на своём месте перед текстом. Панель поверх текста этого не позволяла. -->
+  <div class="панель" id="панель" hidden>
+    <div class="панель-шапка">
+      <span class="панель-к">Настройки</span>
+      <button class="закрыть" id="закрыть" aria-label="Закрыть настройки" title="Закрыть">
+        <svg viewBox="0 0 24 24" width="15" height="15" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <path d="M6 6l12 12M18 6L6 18"/>
+        </svg>
+      </button>
+    </div>
+    <div class="панель-тело">
+        <div class="группа">
+          <div class="г-к">Уровень</div>
+          <div class="чипы" id="ряд-ур">
+            <button class="чип вкл" data-ур="easy" data-метка="Лёгкий">Лёгкий</button>
+            <button class="чип" data-ур="medium" data-метка="Средний">Средний</button>
+            <button class="чип" data-ур="hard" data-метка="Сложный">Сложный</button>
+          </div>
+        </div>
+
+        <div class="группа" id="ряд-задачи">
+          <div class="г-к">По времени</div>
+          <div class="чипы">
+            <button class="чип" data-реж="время" data-знач="30" data-метка="30 секунд">30 с</button>
+            <button class="чип вкл" data-реж="время" data-знач="60" data-метка="60 секунд">60 с</button>
+            <button class="чип" data-реж="время" data-знач="120" data-метка="120 секунд">120 с</button>
+          </div>
+          <div class="г-к">По словам</div>
+          <div class="чипы">
+            <button class="чип" data-реж="слова" data-знач="25" data-метка="25 слов">25</button>
+            <button class="чип" data-реж="слова" data-знач="50" data-метка="50 слов">50</button>
+            <button class="чип" data-реж="слова" data-знач="100" data-метка="100 слов">100</button>
+          </div>
+        </div>
+
+        <div class="группа" id="ряд-строгости">
+          <div class="г-к">Способ</div>
+          <div class="чипы">
+            <button class="чип вкл" data-стр="обычно" data-метка=""
+                    title="Ошибку можно стереть и набрать заново">Обычный</button>
+            <button class="чип" data-стр="строго" data-метка="строгий"
+                    title="Неверную букву поле не принимает: пока не наберёте нужную, дальше не пойдёте">Строгий</button>
+            <button class="чип" data-стр="смерть" data-метка="беспощадный"
+                    title="Одна промашка — и тест окончен">Беспощадный</button>
+          </div>
+        </div>
+
+        <div class="группа">
+          <div class="г-к">Курсор</div>
+          <div class="знаки" id="ряд-кур">
+            <button class="знак вкл" data-кур="черта" title="Черта" aria-label="Черта">
+              <i class="з-черта"></i></button>
+            <button class="знак" data-кур="блок" title="Блок" aria-label="Блок">
+              <i class="з-блок"></i></button>
+            <button class="знак" data-кур="черт-низ" title="Подчёркивание" aria-label="Подчёркивание">
+              <i class="з-низ"></i></button>
+            <button class="знак" data-кур="глотатель" title="Глотатель — съедает буквы"
+                    aria-label="Глотатель">
+              <span class="пакман"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
+    </div>
+
+    <div class="поле" id="поле">
+      <div class="полоса"><i id="полоса"></i></div>
+      <div class="табло">
+        <span class="часы"><b id="часы">60</b><i id="к-часов">время</i></span>
+        <span><b id="скорость">0</b><i>зн/мин</i></span>
+        <span><b id="точность">100%</b><i>точность</i></span>
+        <span class="рекорд"><b id="рекорд">—</b><i>рекорд</i></span>
+      </div>
+
+      <div class="окно" id="окно">
+        <div class="строки" id="строки"></div>
+        <div class="каретка черта" id="каретка"></div>
+        <span class="пакман" id="пакман"></span>
+      </div>
+      <textarea class="ввод" id="ввод" autocomplete="off" autocorrect="off" autocapitalize="off"
+                spellcheck="false" aria-label="поле набора"></textarea>
+
+      <!-- Начало теста было неочевидным: надо было догадаться щёлкнуть по тексту. Теперь на
+           поле лежит заметная кнопка. Время она НЕ запускает -- отсчёт по-прежнему идёт с
+           первой набранной буквы, иначе человек терял бы секунды на раздумье. -->
+      <div class="старт" id="старт">
+        <span class="старт-кнопка">Начать тест</span>
+        <span class="старт-под">Время пойдёт с первой буквы</span>
+      </div>
+
+      <div class="итог" id="итог">
+        <div class="ряд-итога">
+          <div class="главное">
+            <span class="разряд" id="разряд"></span>
+            <span class="ч" id="и-знаков">0</span>
+            <span class="п">Знаков в минуту — с пробелами, как считают на курсах</span>
+          </div>
+          <div class="второе">
+            <div><span class="ч" id="и-слов">0</span><span class="п">сл/мин</span></div>
+            <div><span class="ч" id="и-точность">100%</span><span class="п">точность</span></div>
+            <div><span class="ч" id="и-ошибок">0</span><span class="п">ошибок</span></div>
+          </div>
+        </div>
+
+        <div class="лестница">
+          <div class="лента"><i class="вы" id="отметка"></i></div>
+          <div class="ступени" id="ступени">
+            <span class="ступень">Новичок</span><span class="ступень">Уверенный</span>
+            <span class="ступень">Слепая печать</span><span class="ступень">Мастер</span>
+            <span class="ступень">Чемпион</span>
+          </div>
+        </div>
+
+        <div class="разбор">
+          <div>
+            <div class="заг-блока">Как менялась скорость</div>
+            <canvas class="холст" id="график"></canvas>
+            <div class="ключ">
+              <span><i style="background:#4ade9e"></i>по секундам</span>
+              <span><i style="background:#f2857b"></i>секунда с ошибкой</span>
+              <span><i style="background:rgba(255,255,255,.3)"></i>средняя за тест</span>
+            </div>
+          </div>
+          <div>
+            <div class="заг-блока">Где спотыкались</div>
+            <div class="клава" id="клава"></div>
+            <div class="под-клавой" id="под-клавой"></div>
+          </div>
+        </div>
+
+        <div class="вердикт" id="вердикт"></div>
+      </div>
+    </div>
+
+    <div class="низ">
+      <span class="подсказка" id="подсказка">Нажмите на текст — время пойдёт с первой буквы</span>
+      <button class="ещё" id="ещё">Ещё раз</button>
+    </div>
+  </div>
+
+  <div class="хвост">
+    <h2>Что здесь нового против того, что стоит на сайте сейчас</h2>
+    <ul>
+      <li><b>Четыре вида курсора, и среди них Глотатель.</b> Жёлтый кругляш жуёт на ходу и делает
+        кусь на каждой верной букве, а съеденное исчезает у него за спиной. Мелочь, за которую
+        цепляются и показывают друзьям.</li>
+      <li><b>Режим сосредоточения.</b> С первой буквы настройки и подсказки уходят в тень, поле
+        подсвечивается — на экране остаётся только текст. Всё возвращается, когда тест кончился.</li>
+      <li><b>График скорости по секундам.</b> Видно не одну цифру, а как вы шли: где разогнались,
+        где просели. Секунды с ошибками отмечены точками — провал и ошибка почти всегда рядом.</li>
+      <li><b>Карта клавиш.</b> Каждая буква закрашена по вашей точности на ней, ниже названы три
+        худшие. Это единственное на странице, что говорит <b>что делать дальше</b>, а не просто
+        «вот ваша скорость».</li>
+      <li><b>Длительность и строгость выбираются отдельно.</b> Длительность — по времени или
+        по числу слов, как в нормативах на курсах. Строгость — обычный, <b>строгий</b> (неверную
+        букву поле просто не принимает) или <b>беспощадный</b> (одна промашка обрывает тест).
+        Строгость сочетается с любой длительностью.</li>
+      <li><b>Без мыши.</b> <kbd>Esc</kbd> — начать заново, не отрывая рук от клавиатуры.</li>
+    </ul>
+  </div>
+</div>
+
+<script>
+(() => {
+  const ПРОСТЫЕ = ['завтра утром обещали дождь','поставь чайник на плиту','он забыл ключи на столе',
+    'мы вернёмся домой к вечеру','у неё новая работа в городе','книга лежит на верхней полке',
+    'дети играют во дворе после школы','позвони мне когда будешь готов','свет в комнате слишком яркий',
+    'поезд приходит через двадцать минут','она варит кофе каждое утро','снег шёл всю ночь без остановки',
+    'старый дом стоит у самой реки','мне нужно купить хлеб и молоко','он читает газету за завтраком',
+    'дорога до моря заняла три часа','в саду растут яблони и груши','письмо пришло только вчера вечером',
+    'ветер сорвал шляпу с головы','кот спит на подоконнике весь день','магазин закрывается в девять',
+    'у нас закончилась горячая вода','покажи мне дорогу до вокзала','я оставил зонт в машине'];
+  const ТРУДНЫЕ = ['предварительное согласование заняло несколько недель',
+    'исследователи опубликовали промежуточные результаты наблюдений',
+    'администрация предупредила о временном ограничении движения',
+    'специалисты рекомендуют использовать альтернативное оборудование',
+    'производительность оборудования превысила ожидания',
+    'международное сотрудничество продолжается несмотря на обстоятельства',
+    'последовательность действий описана в сопроводительной инструкции',
+    'автоматизация производства сократила издержки предприятия',
+    'правительство рассматривает возможность продления программы',
+    'ответственность за сохранность оборудования несёт руководитель',
+    'археологи обнаружили хорошо сохранившееся захоронение',
+    'существующая инфраструктура нуждается в модернизации'];
+  const ЧАСТЫЕ = ('и в не на я быть с он а то все она так его но да ты к у же вы за бы по только ее мне '+
+    'было вот от меня еще нет о из ему теперь когда даже ну вдруг ли если уже или ни был него до вас '+
+    'дом рука глаза время день год работа слово место друг сторона вопрос дело город вода земля путь '+
+    'свет стол окно дверь книга письмо голос утро вечер ночь неделя месяц минута час дорога море небо').split(' ');
+
+  const РЯДЫ = [['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
+                ['ф','ы','в','а','п','р','о','л','д','ж','э'],
+                ['я','ч','с','м','и','т','ь','б','ю']];
+  const РАЗРЯДЫ = ['Новичок','Уверенный','Слепая печать','Мастер','Чемпион'];
+  const ГРАНИЦЫ = [30, 50, 70, 90];
+
+  const $ = (id) => document.getElementById(id);
+  const корень = $('тест'), поле = $('поле'), окно = $('окно'), строки = $('строки'), ввод = $('ввод'),
+        каретка = $('каретка'), полоса = $('полоса'), часы = $('часы'), кЧасов = $('к-часов'),
+        полеСкорость = $('скорость'), полеТочность = $('точность'), полеРекорд = $('рекорд'),
+        подсказка = $('подсказка'), холст = $('график'), клава = $('клава'), подКлавой = $('под-клавой'),
+        отметка = $('отметка'), ступени = [...$('ступени').children];
+
+  let слова = [], уровень = 'easy', режим = 'время', значение = 60, курсор = 'черта';
+  // Строгость -- отдельная от длительности вещь: «не пускает дальше» и «до первой ошибки»
+  // работают с любым временем и с любым числом слов, а не вместо них.
+  let строгость = 'обычно';
+  const поВремени = () => режим === 'время';
+  let эталон = '', прошлыйВвод = '', отказов = 0;
+  const пакман = $('пакман');
+  // Ход Глотателя: каждый кадр он проходит четверть оставшегося пути до цели. Такой ход
+  // не зависит от того, как часто нажимают клавиши, и не обрывается на полпути.
+  let гX = 0, гY = 0, цельX = 0, цельY = 0, идётКадр = 0;
+  function ход() {
+    гX += (цельX - гX) * 0.26;
+    гY += (цельY - гY) * 0.26;
+    пакман.style.transform = 'translate(' + гX.toFixed(2) + 'px,' + гY.toFixed(2) + 'px)';
+    идётКадр = requestAnimationFrame(ход);
+  }
+  function глотательВключён(да) {
+    корень.classList.toggle('с-глотателем', да);
+    cancelAnimationFrame(идётКадр); идётКадр = 0;
+    if (да) идётКадр = requestAnimationFrame(ход);
+  }
+  let былоНачало = false;   // человек уже нажимал «Начать тест»
+  let начало = 0, таймер = 0, идёт = false, кончено = false, провалено = false;
+  let верных = 0, неверных = 0;
+  const рекорды = new Map();
+  let точки = [], прошлыеЗнаки = 0, прошлыеОшибки = 0;
+  let прошлыйВерных = 0;
+
+  const сл = (n) => Math.floor(Math.random() * n);
+  function собрать() {
+    const сколько = поВремени() ? 140 : значение;
+    if (уровень === 'hard') {
+      const из = []; let сНачала = true;
+      while (из.length < сколько) {
+        const длина = 4 + сл(5);
+        for (let i = 0; i < длина && из.length < сколько; i++) {
+          let w = ЧАСТЫЕ[сл(ЧАСТЫЕ.length)];
+          if (сНачала) { w = w[0].toUpperCase() + w.slice(1); сНачала = false; }
+          if (i === длина - 1) { w += '.'; сНачала = true; }
+          else if (длина > 5 && i === 2 && Math.random() < .4) w += ',';
+          из.push(w);
+        }
+      }
+      return из;
+    }
+    const список = [...(уровень === 'medium' ? ТРУДНЫЕ : ПРОСТЫЕ)];
+    for (let i = список.length - 1; i > 0; i--) { const j = сл(i+1); [список[i],список[j]]=[список[j],список[i]]; }
+    const из = []; let i = 0;
+    while (из.length < сколько) из.push(...список[i++ % список.length].split(' '));
+    return из.slice(0, сколько);
+  }
+
+  const узлы = [];
+  function нарисовать() {
+    const куски = document.createDocumentFragment(); узлы.length = 0;
+    for (const слово of слова) {
+      const у = document.createElement('span'); у.className = 'слово';
+      for (const б of слово) {
+        const s = document.createElement('span'); s.className = 'зн'; s.textContent = б; у.appendChild(s);
+      }
+      куски.appendChild(у); узлы.push(у);
+    }
+    строки.replaceChildren(куски);
+  }
+
+  function поставитьКаретку() {
+    const набрано = ввод.value.split(' ');
+    const i = Math.min(набрано.length - 1, узлы.length - 1);
+    const узел = узлы[i]; if (!узел) return;
+    const буквы = узел.children, j = (набрано[i] || '').length;
+    const цель = буквы[Math.min(j, буквы.length - 1)]; if (!цель) return;
+    const заКонцом = j >= буквы.length;
+    // Слово дописано -- меряем по СЛОВУ, а не по последней букве: у Глотателя она в этот
+    // момент уже сжимается во рту, её рамка едет, и курсор дрожал вместе с ней.
+    const рб = заКонцом ? узел.getBoundingClientRect() : цель.getBoundingClientRect();
+    const ро = окно.getBoundingClientRect();
+    // Блок стоит НА букве, остальные -- перед ней. Ширина у блока по букве, у прочих нулевая.
+    const блок = курсор === 'блок';
+    каретка.style.left = (рб.left - ро.left + (заКонцом && !блок ? рб.width : 0)) + 'px';
+    каретка.style.top = (рб.top - ро.top) + 'px';
+    каретка.style.height = рб.height + 'px';
+    каретка.style.width = блок ? рб.width + 'px' : (курсор === 'черт-низ' ? рб.width + 'px' : '');
+    if (курсор === 'глотатель') {
+      const размер = пакман.offsetWidth || 22;
+      цельX = рб.left - ро.left + (заКонцом ? рб.width : 0) - размер - 1;
+      цельY = рб.top - ро.top + (рб.height - размер) / 2;
+    }
+  }
+
+  let верхПрошлый = -1;
+  function подвинуть(узел) {
+    if (!узел) return;
+    const строка = узел.offsetTop; if (строка === верхПрошлый) return;
+    верхПрошлый = строка;
+    строки.style.transform = 'translateY(' + (-Math.max(0, строка - узел.offsetHeight)) + 'px)';
+  }
+
+  const поБуквам = new Map();
+  function разобрать() {
+    const набрано = ввод.value.split(' ');
+    let в = 0, н = 0, перваяОшибка = false;
+    поБуквам.clear();
+    for (let i = 0; i < узлы.length; i++) {
+      const узел = узлы[i], образец = слова[i], было = набрано[i];
+      if (i === набрано.length - 1) подвинуть(узел);
+      [...узел.querySelectorAll('.зн.лишняя')].forEach((э) => э.remove());
+      const буквы = узел.children;
+      if (было == null) {
+        for (const б of буквы) if (б.className !== 'зн') б.className = 'зн';
+        continue;
+      }
+      for (let j = 0; j < буквы.length; j++) {
+        const набран = было[j];
+        if (набран == null) { if (буквы[j].className !== 'зн') буквы[j].className = 'зн'; continue; }
+        const верно = набран === образец[j];
+        // Глотатель съедает то, что позади: буква сжимается и гаснет, а не зеленеет.
+        // Класс ставим ТОЛЬКО при смене: иначе на каждом нажатии съедание перезапускается
+        // у всех уже съеденных букв разом, и строка мигает.
+        const нужен = 'зн ' + (верно ? (курсор === 'глотатель' ? 'съел' : 'верно') : 'мимо');
+        if (буквы[j].className !== нужен) буквы[j].className = нужен;
+        if (верно) в++; else { н++; перваяОшибка = true; }
+        const ключ = образец[j].toLowerCase();
+        const з = поБуквам.get(ключ) || { всего: 0, плохо: 0 };
+        з.всего++; if (!верно) з.плохо++; поБуквам.set(ключ, з);
+      }
+      if (было.length > образец.length) {
+        for (let j = образец.length; j < было.length; j++) {
+          const л = document.createElement('span'); л.className = 'зн лишняя';
+          л.textContent = было[j]; узел.appendChild(л); н++; перваяОшибка = true;
+        }
+      }
+      if (i < набрано.length - 1) {
+        в++; const з = поБуквам.get(' ') || { всего: 0, плохо: 0 }; з.всего++; поБуквам.set(' ', з);
+      }
+    }
+    // Отвергнутых букв в разметке не остаётся, но в точность они идут: промах был.
+    верных = в; неверных = н + отказов;
+    const всего = верных + неверных;
+    полеТочность.textContent = (всего ? Math.round(в / всего * 100) : 100) + '%';
+    const сек = идёт ? (Date.now() - начало) / 1000 : 0;
+    полеСкорость.textContent = (идёт && сек >= 3) ? String(Math.round(в / (сек / 60))) : '0';
+
+
+    поставитьКаретку();
+    if (строгость === 'смерть' && перваяОшибка && идёт) { провалено = true; закончить(); return; }
+    if (набрано.length >= слова.length) закончить();
+  }
+
+  function тик() {
+    const прошло = (Date.now() - начало) / 1000;
+    if (поВремени()) {
+      const осталось = Math.max(0, Math.ceil(значение - прошло));
+      часы.textContent = String(осталось);
+      полоса.style.transform = 'scaleX(' + Math.max(0, 1 - прошло / значение) + ')';
+      корень.classList.toggle('мало', осталось <= 10 && осталось > 5);
+      корень.classList.toggle('совсем-мало', осталось <= 5);
+      if (осталось <= 0) { разобрать(); закончить(); return; }
+    } else {
+      часы.textContent = String(Math.floor(прошло));
+      const сделано = ввод.value.split(' ').length - 1;
+      полоса.style.transform = 'scaleX(' + (1 - Math.min(1, сделано / слова.length)) + ')';
+    }
+    разобрать();
+    const целая = Math.floor(прошло);
+    if (целая > точки.length && целая <= 180) {
+      точки.push({ знаков: верных - прошлыеЗнаки, ошибок: неверных - прошлыеОшибки });
+      прошлыеЗнаки = верных; прошлыеОшибки = неверных;
+    }
+  }
+
+  function начать() {
+    if (идёт || кончено) return;
+    идёт = true; корень.classList.add('идёт'); корень.classList.remove('ждёт');
+    открытьСписок(false);
+    подсказка.textContent = строгость === 'смерть' ? 'Одна ошибка обрывает тест. Спокойнее.'
+      : (строгость === 'строго' ? 'Неверную букву поле не примет — наберите нужную'
+                                : 'Время идёт. Ошибку можно стереть и набрать заново');
+    начало = Date.now(); таймер = setInterval(тик, 200);
+  }
+
+  function набежать(узел, до, знак) {
+    const шагов = 24; let i = 0;
+    const т = setInterval(() => {
+      i++; const доля = 1 - Math.pow(1 - i / шагов, 3);
+      узел.textContent = Math.round(до * доля) + (знак || '');
+      if (i >= шагов) { clearInterval(т); узел.textContent = до + (знак || ''); }
+    }, 18);
+  }
+
+  function рисоватьГрафик(средняя) {
+    const к = холст.getContext('2d');
+    const ш = холст.clientWidth, в = холст.clientHeight, м = window.devicePixelRatio || 1;
+    холст.width = ш * м; холст.height = в * м; к.setTransform(м, 0, 0, м, 0, 0);
+    к.clearRect(0, 0, ш, в);
+    const данные = точки.length ? точки : [{ знаков: 0, ошибок: 0 }];
+    const макс = Math.max(80, ...данные.map((т) => т.знаков * 60)) * 1.15;
+    const x = (i) => 30 + (ш - 38) * (данные.length > 1 ? i / (данные.length - 1) : .5);
+    const y = (v) => в - 20 - (в - 32) * Math.min(1, v / макс);
+
+    к.font = '10px ' + getComputedStyle(document.body).fontFamily;
+    к.textAlign = 'left';
+    for (let i = 0; i <= 3; i++) {
+      const v = макс * i / 3, yy = Math.round(y(v)) + .5;
+      к.strokeStyle = 'rgba(255,255,255,.07)'; к.lineWidth = 1;
+      к.beginPath(); к.moveTo(30, yy); к.lineTo(ш - 6, yy); к.stroke();
+      if (i) { к.fillStyle = 'rgba(214,219,230,.4)'; к.fillText(String(Math.round(v)), 0, yy + 3); }
+    }
+    к.setLineDash([4, 4]); к.strokeStyle = 'rgba(255,255,255,.3)';
+    к.beginPath(); к.moveTo(30, y(средняя)); к.lineTo(ш - 6, y(средняя)); к.stroke(); к.setLineDash([]);
+
+    const путь = () => {
+      к.beginPath();
+      данные.forEach((т, i) => { const px = x(i), py = y(т.знаков * 60); i ? к.lineTo(px, py) : к.moveTo(px, py); });
+    };
+    путь();
+    к.lineTo(x(данные.length - 1), в - 20); к.lineTo(x(0), в - 20); к.closePath();
+    const зал = к.createLinearGradient(0, 0, 0, в);
+    зал.addColorStop(0, 'rgba(74,222,158,.3)'); зал.addColorStop(1, 'rgba(74,222,158,0)');
+    к.fillStyle = зал; к.fill();
+    путь(); к.strokeStyle = '#4ade9e'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+    данные.forEach((т, i) => {
+      if (!т.ошибок) return;
+      к.beginPath(); к.arc(x(i), y(т.знаков * 60), 3.5, 0, Math.PI * 2);
+      к.fillStyle = '#f2857b'; к.fill();
+    });
+  }
+
+  function рисоватьКлаву() {
+    клава.replaceChildren();
+    const плохие = [];
+    for (const ряд of РЯДЫ) {
+      const р = document.createElement('div'); р.className = 'ряд-клавиш';
+      for (const б of ряд) {
+        const к = document.createElement('div'); к.className = 'кл'; к.textContent = б;
+        const з = поБуквам.get(б);
+        if (з && з.всего) {
+          const точность = 1 - з.плохо / з.всего;
+          // Насыщенность -- по числу нажатий: одна ошибка на одно нажатие ещё ни о чём не говорит.
+          const вес = Math.min(1, .35 + з.всего / 14);
+          const тон = точность >= .999 ? '74,222,158' : (точность > .8 ? '245,196,81' : '242,133,123');
+          к.style.background = 'rgba(' + тон + ',' + (вес * .3).toFixed(2) + ')';
+          к.style.borderColor = 'rgba(' + тон + ',' + (вес * .55).toFixed(2) + ')';
+          к.style.color = 'rgba(240,240,242,' + (.5 + вес * .45).toFixed(2) + ')';
+          к.title = б + ' — нажатий ' + з.всего + ', ошибок ' + з.плохо;
+          if (з.плохо) плохие.push({ б, плохо: з.плохо });
+        }
+        р.appendChild(к);
+      }
+      клава.appendChild(р);
+    }
+    const р = document.createElement('div'); р.className = 'ряд-клавиш';
+    const п = document.createElement('div'); п.className = 'кл пробел'; п.textContent = 'пробел';
+    if ((поБуквам.get(' ') || {}).всего) {
+      п.style.background = 'rgba(74,222,158,.12)'; п.style.borderColor = 'rgba(74,222,158,.3)';
+    }
+    р.appendChild(п); клава.appendChild(р);
+
+    плохие.sort((a, b) => b.плохо - a.плохо);
+    подКлавой.innerHTML = плохие.length
+      ? 'Чаще всего промахивались на ' + плохие.slice(0, 3).map((п) => '<b>' + п.б + '</b>').join(', ')
+        + '. Эти буквы и стоит гонять отдельно.'
+      : 'Ни одной промахнутой буквы. Так держать.';
+  }
+
+  const ключРекорда = () => уровень + '|' + режим + '|' + значение;
+  function показатьРекорд() {
+    const р = рекорды.get(ключРекорда()) || 0;
+    полеРекорд.textContent = р ? String(р) : '—';
+  }
+
+  function закончить() {
+    if (!идёт) return;
+    идёт = false; кончено = true; clearInterval(таймер);
+    const сек = Math.max(1, (Date.now() - начало) / 1000);
+    const знаков = Math.round(верных / (сек / 60));
+    const слов = Math.round((верных / 5) / (сек / 60));
+    const всего = верных + неверных;
+    const точность = всего ? Math.round(верных / всего * 100) : 100;
+    const разр = ГРАНИЦЫ.filter((г) => слов >= г).length;
+
+    корень.classList.remove('идёт', 'мало', 'совсем-мало');
+    корень.classList.add('конец');
+    if (провалено) { корень.classList.add('провал'); setTimeout(() => корень.classList.remove('провал'), 400); }
+    ввод.readOnly = true; ввод.blur();
+
+    набежать($('и-знаков'), знаков); набежать($('и-слов'), слов);
+    набежать($('и-точность'), точность, '%'); набежать($('и-ошибок'), неверных);
+
+    ступени.forEach((ш, i) => ш.classList.toggle('вкл', i === разр));
+    const края = [0, ...ГРАНИЦЫ, 130];
+    const доля = Math.min(1, Math.max(0, (слов - края[разр]) / (края[разр + 1] - края[разр])));
+    отметка.style.left = Math.min(99, (разр + доля) * 20) + '%';
+
+    const прежний = рекорды.get(ключРекорда()) || 0;
+    const побит = знаков > прежний && прежний > 0;
+    if (знаков > прежний) рекорды.set(ключРекорда(), знаков);
+    показатьРекорд();
+    $('разряд').textContent = провалено
+      ? 'Ошибка — тест прерван'
+      : РАЗРЯДЫ[разр] + (побит ? ' · Личный рекорд! было ' + прежний : '');
+    $('разряд').classList.toggle('рек', побит);
+
+    рисоватьГрафик(знаков);
+    рисоватьКлаву();
+    const букв = (n) => (n % 10 === 1 && n % 100 !== 11) ? 'букву'
+      : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'буквы' : 'букв');
+    const строгое = (строгость === 'строго' && отказов)
+      ? 'Поле не приняло ' + отказов + ' ' + букв(отказов)
+        + ' — столько раз вы промахнулись, но уехать вперёд с ошибкой не смогли. ' : '';
+    $('вердикт').textContent = строгое + (провалено
+      ? 'Тест шёл до первой ошибки — она и остановила время. Такой режим лечит привычку гнать: '
+      + 'сбавляешь до темпа, на котором правда не мажешь. '
+      : '') + [
+      'Это скорость набора двумя пальцами. Обычная для тех, кто печатает нечасто.',
+      'Уверенный набор. Столько печатает большинство тех, кто много пишет.',
+      'Слепая печать. Так набирают те, для кого текст — работа.',
+      'Профессиональный уровень: быстрее печатают немногие.',
+      'Профессиональный уровень: быстрее печатают немногие.'][разр]
+      + (точность < 95 ? ' При точности ниже 95 % скорость обманчива: время уходит на исправления.' : '');
+    подсказка.innerHTML = 'Нажмите «Ещё раз» или <kbd>Esc</kbd>, чтобы пройти снова';
+  }
+
+  function заново() {
+    clearInterval(таймер);
+    идёт = false; кончено = false; провалено = false;
+    верных = 0; неверных = 0; верхПрошлый = -1; прошлыйВерных = 0;
+    точки = []; прошлыеЗнаки = 0; прошлыеОшибки = 0;
+    корень.classList.remove('идёт', 'конец', 'мало', 'совсем-мало', 'провал');
+    корень.classList.add('ждёт');
+    ввод.readOnly = false; ввод.value = ''; строки.style.transform = '';
+    полоса.style.transform = 'scaleX(1)';
+    кЧасов.textContent = поВремени() ? 'время' : 'прошло';
+    часы.textContent = поВремени() ? String(значение) : '0';
+    прошлыйВвод = ''; отказов = 0;
+    полеСкорость.textContent = '0'; полеТочность.textContent = '100%';
+    подсказка.textContent = строгость === 'смерть'
+      ? 'Одна ошибка обрывает тест. Время пойдёт с первой буквы'
+      : (строгость === 'строго' ? 'Дальше не пустит, пока не наберёте верно'
+                                : 'Нажмите на текст — время пойдёт с первой буквы');
+    показатьРекорд();
+    слова = собрать(); нарисовать(); поставитьКаретку();
+    гX = цельX; гY = цельY;    // новая попытка -- он уже на месте, а не едет через всё поле
+    пакман.style.transform = 'translate(' + гX + 'px,' + гY + 'px)';
+    // Фокус сам себе не берём, пока человек не нажал «Начать тест»: иначе кнопка мигнёт и
+    // пропадёт, и начало снова окажется неочевидным. После первого раза -- забираем.
+    if (былоНачало) ввод.focus();
+    // Эталон строится ПОСЛЕ сборки слов: до неё в переменной лежит текст прошлой попытки,
+    // и строгий режим сверял набор не с тем, что на экране.
+    эталон = слова.join(' ');
+  }
+
+
+  ввод.addEventListener('input', () => {
+    // В строгом режиме неверная буква не принимается: возвращаем поле как было и считаем
+    // промах. Человек не уезжает вперёд с ошибкой за спиной и вынужден набрать верно.
+    if (строгость === 'строго' && ввод.value.length > прошлыйВвод.length) {
+      const i = ввод.value.length - 1;
+      if (ввод.value[i] !== эталон[i]) {
+        ввод.value = прошлыйВвод;
+        отказов++;
+        корень.classList.add('отказ');
+        setTimeout(() => корень.classList.remove('отказ'), 220);
+        начать(); разобрать();
+        return;
+      }
+    }
+    прошлыйВвод = ввод.value;
+    начать(); разобрать();
+  });
+  ввод.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
+  поле.addEventListener('click', () => { if (!кончено) ввод.focus(); });
+  $('старт').addEventListener('click', (e) => {
+    e.stopPropagation(); былоНачало = true; ввод.focus();
+    // Фокус мог не встать (окно браузера не активно) -- прячем кнопку сами, чтобы она
+    // не висела поверх текста, в который уже можно печатать.
+    корень.classList.add('в-фокусе');
+  });
+  ввод.addEventListener('focus', () => корень.classList.add('в-фокусе'));
+  ввод.addEventListener('blur', () => корень.classList.remove('в-фокусе'));
+  $('ещё').addEventListener('click', () => { заново(); $('ещё').blur(); });
+  // Начать заново, не отрывая рук от клавиатуры.
+  document.addEventListener('keydown', (e) => {
+    if (e.key !== 'Escape') return;
+    e.preventDefault();
+    // Открытый список Escape закрывает, а не перезапускает тест: иначе человек теряет попытку,
+    // просто передумав менять курсор.
+    if (!списокВыбора.hidden) { открытьСписок(false); return; }
+    заново();
+  });
+
+  const выбор = $('настройки');
+  const кнопкаВыбора = выбор.querySelector('.выбор-кнопка');
+  const списокВыбора = $('панель');
+  const надпись = $('сейчас');
+  function открытьСписок(да) {
+    списокВыбора.hidden = !да;
+    кнопкаВыбора.setAttribute('aria-expanded', да ? 'true' : 'false');
+    выбор.toggleAttribute('data-открыт', да);
+  }
+  // На кнопке всегда написано, что выбрано: открывать настройки ради проверки не нужно.
+  function обновитьНадпись() {
+    const ур = $('ряд-ур').querySelector('.вкл').dataset.метка;
+    const за = $('ряд-задачи').querySelector('.вкл').dataset.метка;
+    const стр = $('ряд-строгости').querySelector('.вкл').dataset.метка;
+    надпись.textContent = ур + ' · ' + за + (стр ? ' · ' + стр : '');
+  }
+  кнопкаВыбора.addEventListener('click', (e) => { e.stopPropagation(); открытьСписок(списокВыбора.hidden); });
+  $('закрыть').addEventListener('click', (e) => { e.stopPropagation(); открытьСписок(false); });
+
+  // Один обработчик на всю панель: три группы устроены одинаково, разводить их по трём
+  // слушателям значило бы трижды написать одно и то же.
+  списокВыбора.addEventListener('click', (e) => {
+    // Панель остаётся открытой: обычно меняют не одну настройку, а две-три подряд, и
+    // закрываться после каждого нажатия -- значит заставлять открывать её снова.
+    e.stopPropagation();
+    const ч = e.target.closest('.чип, .знак'); if (!ч) return;
+    const группа = ч.dataset.кур ? $('ряд-кур')
+      : (ч.dataset.ур ? $('ряд-ур') : (ч.dataset.стр ? $('ряд-строгости') : $('ряд-задачи')));
+    [...группа.querySelectorAll('.чип, .знак')].forEach((x) => x.classList.toggle('вкл', x === ч));
+    if (ч.dataset.ур) уровень = ч.dataset.ур;
+    else if (ч.dataset.кур) {
+      курсор = ч.dataset.кур;
+      каретка.className = 'каретка ' + курсор;
+      глотательВключён(курсор === 'глотатель');
+    }
+    else if (ч.dataset.стр) строгость = ч.dataset.стр;
+    else { режим = ч.dataset.реж; значение = Number(ч.dataset.знач); }
+    обновитьНадпись();
+    заново();
+    // заново() уводит фокус в поле, а человек ещё в настройках -- возвращаем фокус плитке,
+    // но каретку оставляем на месте: выбранный курсор должен быть виден сразу.
+    ч.focus();
+    поставитьКаретку();
+  });
+  // Щелчок мимо закрывает панель -- иначе она висит и перекрывает текст.
+  document.addEventListener('click', () => открытьСписок(false));
+  window.addEventListener('resize', () => {
+    верхПрошлый = -1; поставитьКаретку();
+    if (кончено) рисоватьГрафик(Number($('и-знаков').textContent) || 0);
+  });
+
+  обновитьНадпись();
+  заново();
+})();
+</script>
