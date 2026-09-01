@@ -66,11 +66,11 @@
   font-variant-numeric: tabular-nums; letter-spacing: -.02em;
 }
 .тс-главное span {
-  margin-top: 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em;
-  text-transform: uppercase; color: rgba(214,219,230,.55);
+  margin-top: 9px; font-size: 12px; font-weight: 700; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(226,231,240,.86);
 }
 .тс-главное i {
-  margin-top: 12px; font-style: normal; font-size: 13.5px; color: var(--muted);
+  margin-top: 12px; font-style: normal; font-size: 13.5px; color: rgba(214,219,230,.78);
 }
 .тс-главное em { font-style: normal; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums }
@@ -79,21 +79,26 @@
    правому краю -- столбик читается сверху вниз одним взглядом, а не построчно. */
 .тс-список {
   grid-column: 1 / -1;
-  background: var(--surface); margin: 0; padding: 12px 20px 14px;
-  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 26px;
+  background: var(--surface); margin: 0; padding: 0;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
   font-family: var(--ui);
 }
+/* Тонкие перегородки вместо отдельных плиток: это одна панель прибора, а не шесть карточек. */
 .тс-список > div {
-  display: flex; align-items: baseline; gap: 10px;
-  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05);
+  padding: 14px 14px 15px;
+  border-left: 1px solid rgba(255,255,255,.06);
 }
-.тс-список > div:nth-last-child(-n+3) { border-bottom: 0 }
-.тс-список dt { flex: 1 1 auto; font-size: 13px; color: var(--muted) }
+.тс-список > div:first-child { border-left: 0 }
 .тс-список dd {
-  margin: 0; font-size: 15px; font-weight: 700; color: var(--text);
+  margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-.тс-список > div:nth-last-child(-n+2) dt { color: rgba(214,219,230,.55) }
+.тс-список dt {
+  margin-top: 5px; font-size: 11px; font-weight: 600; letter-spacing: .05em;
+  color: rgba(214,219,230,.72); line-height: 1.35;
+}
+/* Время чтения -- не про объём, а про восприятие: тише числами, но подпись читаемая. */
+.тс-список > div:nth-last-child(-n+2) dd { color: rgba(240,240,242,.82) }
 
 /* ---- Лимиты и частота ------------------------------------------------------------ */
 
@@ -156,9 +161,12 @@
   .тс-главное b { font-size: 38px }
   .тс-главное span { font-size: 10.5px }
   .тс-главное i { margin-top: 8px; font-size: 12.5px }
-  .тс-список { grid-template-columns: 1fr 1fr; padding: 10px 16px 12px; gap: 0 18px }
-  .тс-список > div:nth-last-child(-n+3) { border-bottom: 1px solid rgba(255,255,255,.05) }
-  .тс-список > div:nth-last-child(-n+2) { border-bottom: 0 }
+  .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)) }
+  .тс-список > div { padding: 11px 10px 12px }
+  .тс-список > div:nth-child(3n+1) { border-left: 0 }
+  .тс-список > div:nth-child(n+4) { border-top: 1px solid rgba(255,255,255,.06) }
+  .тс-список dd { font-size: 18px }
+  .тс-список dt { font-size: 10.5px }
 }
 @media (prefers-reduced-motion: reduce) {
   .тс-полоса i { transition: none }

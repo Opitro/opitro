@@ -108,24 +108,27 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="тс-ряд">
       <span class="тс-сказ" id="тс-сказ"></span>
       <button type="button" class="тс-зн" id="тс-вставить" title={с.paste} aria-label={с.paste}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"></path>
-          <path d="M16 6h1.5A1.5 1.5 0 0 1 19 7.5v11A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H8"></path>
+          <path d="M9.5 4.5H7.6A2.1 2.1 0 0 0 5.5 6.6v11.8A2.1 2.1 0 0 0 7.6 20.5h8.8a2.1 2.1 0 0 0 2.1-2.1V6.6a2.1 2.1 0 0 0-2.1-2.1h-1.9"></path>
+          <rect x="9.5" y="2.8" width="5" height="3.4" rx="1.2"></rect>
+          <path d="M8.8 12.2h6.4M8.8 15.6h4.2"></path>
         </svg>
       </button>
       <button type="button" class="тс-зн" id="тс-копировать" title={с.copy} aria-label={с.copy}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
-          <path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
+          <rect x="9.2" y="9.2" width="11.3" height="11.3" rx="2.4"></rect>
+          <path d="M15.4 5.9V5.6a2.1 2.1 0 0 0-2.1-2.1H5.6a2.1 2.1 0 0 0-2.1 2.1v7.7a2.1 2.1 0 0 0 2.1 2.1h.3"></path>
         </svg>
       </button>
       <button type="button" class="тс-зн" id="тс-очистить" title={с.clear} aria-label={с.clear}>
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
              stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-          <path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"></path>
-          <path d="M6.5 7l.8 11.1A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.9L17.5 7"></path>
+          <path d="M4.2 6.8h15.6"></path>
+          <path d="M9.4 6.8V5.4a1.6 1.6 0 0 1 1.6-1.6h2a1.6 1.6 0 0 1 1.6 1.6v1.4"></path>
+          <path d="M6.6 6.8l.9 12.1a2 2 0 0 0 2 1.9h5a2 2 0 0 0 2-1.9l.9-12.1"></path>
+          <path d="M10.4 10.6v6.2M13.6 10.6v6.2"></path>
         </svg>
       </button>
     </div>
@@ -147,13 +150,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <i><em id="тс-уникальных">0</em> {с.unique}</i>
     </div>
 
+    {/* Число прямо над своей подписью. Подпись слева и число у дальнего края растягивались
+        на широком экране так, что глазу приходилось скакать через полполосы и гадать, что
+        к чему относится. */}
     <dl class="тс-список">
-      <div><dt>{с.sentences}</dt><dd id="тс-предложения">0</dd></div>
-      <div><dt>{с.punct}</dt><dd id="тс-препинание">0</dd></div>
-      <div><dt>{с.lines}</dt><dd id="тс-строки">0</dd></div>
-      <div><dt>{с.paras}</dt><dd id="тс-абзацы">0</dd></div>
-      <div><dt>{с.readAloud}</dt><dd id="тс-вслух">0:00</dd></div>
-      <div><dt>{с.readSilent}</dt><dd id="тс-просебя">0:00</dd></div>
+      <div><dd id="тс-предложения">0</dd><dt>{с.sentences}</dt></div>
+      <div><dd id="тс-препинание">0</dd><dt>{с.punct}</dt></div>
+      <div><dd id="тс-строки">0</dd><dt>{с.lines}</dt></div>
+      <div><dd id="тс-абзацы">0</dd><dt>{с.paras}</dt></div>
+      <div><dd id="тс-вслух">0:00</dd><dt>{с.readAloud}</dt></div>
+      <div><dd id="тс-просебя">0:00</dd><dt>{с.readSilent}</dt></div>
     </dl>
   </div>
 
