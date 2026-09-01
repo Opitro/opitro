@@ -1,0 +1,284 @@
+---
+// ЧАСТОТА ОПРОСА МЫШИ.
+//
+// Меряет, сколько раз в секунду мышь докладывает компьютеру о своём положении.
+//
+// Главная ловушка: браузер СКЛЕИВАЕТ события движения и отдаёт их пачкой раз в кадр. Если
+// считать по обычным pointermove, у любой мыши выйдет частота экрана -- 60 или 120 герц, --
+// и тест будет врать всем подряд. Настоящие события лежат внутри, их отдаёт
+// getCoalescedEvents(); по ним и считаем.
+import css from '../styles/polling-rate.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    ready: 'Ведите мышью по этому полю', readySub: 'Двигайте не спеша и не отрывая — числа появятся сами',
+    hz: 'герц сейчас',
+    maxHz: 'максимум', avgHz: 'в среднем', samples: 'замеров',
+    graph: 'Как менялась частота', legNow: 'частота', legAvg: 'среднее',
+    again: 'Начать заново',
+    hint: 'Ведите мышью по полю несколько секунд',
+    hintGo: 'Ведите дальше — чем дольше, тем точнее',
+    noCoalesced: 'Браузер не отдаёт отдельные события мыши, поэтому число будет занижено. В Chrome, Edge и Firefox замер точный.',
+    touch: 'Здесь нужна мышь: у пальца и стилуса частоты опроса нет в том смысле, в каком она есть у мыши.',
+    warnScreen: 'Похоже, браузер выдаёт частоту экрана, а не мыши: числа совпали с частотой обновления монитора. Настоящая частота мыши выше — попробуйте другой браузер.',
+    n1: 'Частота опроса — это сколько раз в секунду мышь сообщает компьютеру, где она. Обычные мыши дают 125 герц, игровые — 500 или 1000.',
+    n2: 'Браузер склеивает события движения и отдаёт их пачкой раз в кадр. Мы разбираем пачку на отдельные события — иначе у любой мыши получилась бы частота экрана.',
+    n3: 'Число ниже заявленного — не всегда поломка. Частоту режут USB-разветвители, беспроводное соединение в режиме экономии и загруженный процессор.',
+    n4: 'Ведите мышь плавно и без остановок: на паузах события не приходят, и среднее занижается.',
+  },
+  uk: {
+    ready: 'Ведіть мишею по цьому полю', readySub: 'Рухайте неквапливо й не відриваючи — числа з\'являться самі',
+    hz: 'герц зараз',
+    maxHz: 'максимум', avgHz: 'у середньому', samples: 'замірів',
+    graph: 'Як змінювалася частота', legNow: 'частота', legAvg: 'середнє',
+    again: 'Почати заново',
+    hint: 'Ведіть мишею по полю кілька секунд',
+    hintGo: 'Ведіть далі — що довше, то точніше',
+    noCoalesced: 'Браузер не віддає окремі події миші, тому число буде заниженим. У Chrome, Edge і Firefox замір точний.',
+    touch: 'Тут потрібна миша: у пальця та стилуса немає частоти опитування в тому сенсі, в якому вона є в миші.',
+    warnScreen: 'Схоже, браузер видає частоту екрана, а не миші: числа збіглися з частотою оновлення монітора. Справжня частота миші вища — спробуйте інший браузер.',
+    n1: 'Частота опитування — це скільки разів за секунду миша повідомляє комп\'ютеру, де вона. Звичайні миші дають 125 герц, ігрові — 500 або 1000.',
+    n2: 'Браузер склеює події руху й віддає їх пачкою раз на кадр. Ми розбираємо пачку на окремі події — інакше в будь-якої миші вийшла б частота екрана.',
+    n3: 'Число нижче заявленого — не завжди поломка. Частоту ріжуть USB-розгалужувачі, бездротове з\'єднання в режимі економії та завантажений процесор.',
+    n4: 'Ведіть мишу плавно й без зупинок: на паузах події не надходять, і середнє занижується.',
+  },
+  en: {
+    ready: 'Move the mouse across this area', readySub: 'Keep moving steadily — the numbers appear on their own',
+    hz: 'hertz now',
+    maxHz: 'peak', avgHz: 'average', samples: 'samples',
+    graph: 'How the rate changed', legNow: 'rate', legAvg: 'average',
+    again: 'Start over',
+    hint: 'Move the mouse across the area for a few seconds',
+    hintGo: 'Keep going — the longer, the more accurate',
+    noCoalesced: 'This browser does not expose the individual mouse events, so the number will come out low. In Chrome, Edge and Firefox the measurement is exact.',
+    touch: 'A mouse is needed here: a finger or a stylus has no polling rate in the sense a mouse does.',
+    warnScreen: 'It looks like the browser is reporting the screen rate, not the mouse: the numbers match your monitor’s refresh rate. Your mouse is faster than this — try another browser.',
+    n1: 'The polling rate is how many times per second the mouse tells the computer where it is. Ordinary mice report 125 times, gaming mice 500 or 1000.',
+    n2: 'Browsers merge movement events and hand them over once per frame. We unpack the batch into individual events — otherwise every mouse would show the refresh rate of the screen.',
+    n3: 'A number below the advertised one is not always a fault. USB hubs, wireless power saving and a busy processor all cut the rate.',
+    n4: 'Move the mouse smoothly and without stopping: during pauses no events arrive and the average drops.',
+  },
+  es: {
+    ready: 'Mueve el ratón por esta zona', readySub: 'Muévelo sin parar y los números aparecerán solos',
+    hz: 'hercios ahora',
+    maxHz: 'máximo', avgHz: 'media', samples: 'muestras',
+    graph: 'Cómo cambió la frecuencia', legNow: 'frecuencia', legAvg: 'media',
+    again: 'Empezar de nuevo',
+    hint: 'Mueve el ratón por la zona unos segundos',
+    hintGo: 'Sigue moviéndolo: cuanto más, más preciso',
+    noCoalesced: 'Este navegador no expone los eventos individuales del ratón, así que el número saldrá bajo. En Chrome, Edge y Firefox la medida es exacta.',
+    touch: 'Aquí hace falta un ratón: el dedo y el lápiz no tienen frecuencia de sondeo en el sentido en que la tiene un ratón.',
+    warnScreen: 'Parece que el navegador informa de la frecuencia de la pantalla y no del ratón: los números coinciden con la del monitor. Tu ratón es más rápido — prueba con otro navegador.',
+    n1: 'La frecuencia de sondeo es cuántas veces por segundo el ratón le dice al ordenador dónde está. Los ratones normales dan 125 hercios; los de juego, 500 o 1000.',
+    n2: 'El navegador agrupa los eventos de movimiento y los entrega una vez por fotograma. Nosotros desmontamos el grupo en eventos sueltos: si no, cualquier ratón mostraría la frecuencia de la pantalla.',
+    n3: 'Un número por debajo del anunciado no siempre es una avería. Los concentradores USB, el ahorro de energía inalámbrico y un procesador cargado recortan la frecuencia.',
+    n4: 'Mueve el ratón con suavidad y sin parar: en las pausas no llegan eventos y la media baja.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="чо" data-words={JSON.stringify(с)} data-locale={locale}>
+  {/* Поле широкое и низкое: мышь по нему возят вдоль, а длинное движение даёт больше
+      событий, чем тыканье в маленький квадрат. */}
+  <div class="чо-поле" id="чо-поле">
+    <canvas class="чо-след" id="чо-след" aria-hidden="true"></canvas>
+    <div class="чо-ждёт" id="чо-ждёт">
+      <div class="чо-зов">{с.ready}</div>
+      <div class="чо-под">{с.readySub}</div>
+    </div>
+    <div class="чо-идёт" id="чо-идёт" hidden>
+      <div class="чо-число" id="чо-число">0</div>
+      <div class="чо-гц">{с.hz}</div>
+    </div>
+  </div>
+
+  <div class="чо-плитки">
+    <div class="чо-плитка"><b id="чо-макс">0</b><span>{с.maxHz}</span></div>
+    <div class="чо-плитка"><b id="чо-сред">0</b><span>{с.avgHz}</span></div>
+    <div class="чо-плитка"><b id="чо-замеров">0</b><span>{с.samples}</span></div>
+  </div>
+
+  <div class="чо-блок">
+    <div class="чо-заг">{с.graph}</div>
+    <canvas class="чо-холст" id="чо-график"></canvas>
+    <div class="чо-ключ">
+      <span><i style="background:#4ade9e"></i>{с.legNow}</span>
+      <span><i style="background:rgba(255,255,255,.3)"></i>{с.legAvg}</span>
+    </div>
+  </div>
+
+  <div class="чо-низ">
+    <span class="чо-подсказка" id="чо-подсказка">{с.hint}</span>
+    <button type="button" class="чо-снова" id="чо-снова">{с.again}</button>
+  </div>
+
+  <div class="чо-заметки">
+    <div class="чо-заметка">{с.n1}</div>
+    <div class="чо-заметка">{с.n2}</div>
+    <div class="чо-заметка">{с.n3}</div>
+    <div class="чо-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.чо');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    const поле = $('чо-поле'), подсказка = $('чо-подсказка');
+    const холст = $('чо-график'), след = $('чо-след');
+
+    let времена = [];        // время каждого настоящего события движения
+    let частоты = [];        // сглаженная частота, одна точка в десятую секунды
+    let макс = 0, началось = false;
+    // Частота экрана нужна не для красоты: если замер в неё упёрся, значит браузер отдал
+    // нам кадры, а не события мыши, и число надо не показывать молча, а объяснить.
+    let частотаЭкрана = 0;
+    (function померитьЭкран() {
+      const было = performance.now(); let кадров = 0;
+      const шаг = (т) => {
+        кадров++;
+        if (т - было < 700) requestAnimationFrame(шаг);
+        else частотаЭкрана = кадров / ((т - было) / 1000);
+      };
+      requestAnimationFrame(шаг);
+    })();
+    let предупредили = false;
+    let точки = [];          // след курсора
+
+    const округлить = (гц) => гц >= 100 ? Math.round(гц / 5) * 5 : Math.round(гц);
+
+    // Частота считается по МЕДИАНЕ промежутков, а не по среднему: одна пауза в полсекунды
+    // утягивает среднее в пол, а медиана её не замечает.
+    function частотаПо(промежутки) {
+      if (промежутки.length < 4) return 0;
+      const с2 = [...промежутки].sort((a, b) => a - b);
+      const медиана = с2[Math.floor(с2.length / 2)];
+      return медиана > 0 ? 1000 / медиана : 0;
+    }
+
+    function промежуткиЗа(мс) {
+      const край = performance.now() - мс;
+      const свежие = времена.filter((т) => т >= край);
+      const п = [];
+      for (let i = 1; i < свежие.length; i++) {
+        const д = свежие[i] - свежие[i - 1];
+        // Промежутки длиннее 100 мс -- это остановка руки, а не работа мыши.
+        if (д > 0.05 && д < 100) п.push(д);
+      }
+      return п;
+    }
+
+    function обновить() {
+      const сейчас = частотаПо(промежуткиЗа(400));
+      if (сейчас > 0) {
+        $('чо-число').textContent = String(округлить(сейчас));
+        if (сейчас > макс) { макс = сейчас; $('чо-макс').textContent = String(округлить(макс)); }
+        частоты.push(сейчас);
+        if (частоты.length > 240) частоты.shift();
+      }
+      const всеПромежутки = промежуткиЗа(60000);
+      const среднее = частотаПо(всеПромежутки);
+      $('чо-сред').textContent = среднее ? String(округлить(среднее)) : '0';
+      // Замер совпал с частотой экрана -- значит настоящих отметок времени нам не дали.
+      // Молчать об этом нельзя: именно так и врут чужие счётчики.
+      if (!предупредили && частотаЭкрана > 30 && среднее > 0 && времена.length > 60
+          && Math.abs(среднее - частотаЭкрана) / частотаЭкрана < 0.09) {
+        подсказка.textContent = с.warnScreen;
+        предупредили = true;
+      }
+      $('чо-замеров').textContent = String(времена.length);
+      рисовать(среднее);
+    }
+
+    function рисовать(среднее) {
+      const к = холст.getContext('2d');
+      const ш = холст.clientWidth, в = холст.clientHeight, м = window.devicePixelRatio || 1;
+      холст.width = ш * м; холст.height = в * м; к.setTransform(м, 0, 0, м, 0, 0);
+      к.clearRect(0, 0, ш, в);
+      const макс2 = Math.max(200, ...частоты) * 1.15;
+      const x = (i) => 34 + (ш - 42) * (частоты.length > 1 ? i / (частоты.length - 1) : .5);
+      const y = (v) => в - 16 - (в - 28) * Math.min(1, v / макс2);
+
+      к.font = '10px ' + getComputedStyle(document.body).fontFamily;
+      к.textAlign = 'left';
+      for (let i = 0; i <= 3; i++) {
+        const v = макс2 * i / 3, yy = Math.round(y(v)) + .5;
+        к.strokeStyle = 'rgba(255,255,255,.07)'; к.lineWidth = 1;
+        к.beginPath(); к.moveTo(34, yy); к.lineTo(ш - 6, yy); к.stroke();
+        if (i) { к.fillStyle = 'rgba(214,219,230,.4)'; к.fillText(String(Math.round(v)), 0, yy + 3); }
+      }
+      if (среднее) {
+        к.setLineDash([4, 4]); к.strokeStyle = 'rgba(255,255,255,.3)';
+        к.beginPath(); к.moveTo(34, y(среднее)); к.lineTo(ш - 6, y(среднее)); к.stroke(); к.setLineDash([]);
+      }
+      if (частоты.length < 2) return;
+      к.beginPath();
+      частоты.forEach((v, i) => { const px = x(i), py = y(v); i ? к.lineTo(px, py) : к.moveTo(px, py); });
+      к.strokeStyle = '#4ade9e'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+    }
+
+    function рисоватьСлед() {
+      const к = след.getContext('2d');
+      const ш = поле.clientWidth, в = поле.clientHeight, м = window.devicePixelRatio || 1;
+      if (след.width !== ш * м || след.height !== в * м) { след.width = ш * м; след.height = в * м; }
+      к.setTransform(м, 0, 0, м, 0, 0);
+      к.clearRect(0, 0, ш, в);
+      if (точки.length < 2) return;
+      к.beginPath();
+      точки.forEach((т, i) => { i ? к.lineTo(т.x, т.y) : к.moveTo(т.x, т.y) });
+      к.strokeStyle = 'rgba(74,222,158,.35)'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+    }
+
+    поле.addEventListener('pointermove', (e) => {
+      if (e.pointerType !== 'mouse') { подсказка.textContent = с.touch; return; }
+      // Браузер отдаёт события пачкой раз в кадр. Настоящие лежат внутри -- берём их.
+      const пачка = (e.getCoalescedEvents && e.getCoalescedEvents()) || [e];
+      if (!e.getCoalescedEvents) подсказка.textContent = с.noCoalesced;
+      const рп = поле.getBoundingClientRect();
+      for (const с3 of пачка) {
+        времена.push(с3.timeStamp);
+        точки.push({ x: с3.clientX - рп.left, y: с3.clientY - рп.top });
+      }
+      if (времена.length > 20000) времена = времена.slice(-20000);
+      if (точки.length > 700) точки = точки.slice(-700);
+
+      if (!началось) {
+        началось = true;
+        $('чо-ждёт').hidden = true; $('чо-идёт').hidden = false;
+        подсказка.textContent = с.hintGo;
+      }
+      рисоватьСлед();
+    });
+
+    // Числа обновляет отдельный ход, а не само событие движения: иначе последняя серия
+    // остаётся непосчитанной -- рука остановилась, событий больше нет, и на экране висит
+    // то, что было до неё.
+    setInterval(() => { if (началось) обновить(); }, 100);
+
+    $('чо-снова').addEventListener('click', () => {
+      времена = []; частоты = []; точки = []; макс = 0; началось = false;
+      $('чо-ждёт').hidden = false; $('чо-идёт').hidden = true;
+      $('чо-число').textContent = '0';
+      $('чо-макс').textContent = '0'; $('чо-сред').textContent = '0'; $('чо-замеров').textContent = '0';
+      подсказка.textContent = с.hint;
+      рисовать(0); рисоватьСлед();
+      $('чо-снова').blur();
+    });
+    window.addEventListener('resize', () => { рисовать(0); рисоватьСлед(); });
+    рисовать(0);
+
+    window.__чоСостояние = () => ({
+      началось,
+      сейчас: $('чо-число').textContent,
+      максимум: $('чо-макс').textContent,
+      среднее: $('чо-сред').textContent,
+      замеров: $('чо-замеров').textContent,
+    });
+  })();
+</script>
