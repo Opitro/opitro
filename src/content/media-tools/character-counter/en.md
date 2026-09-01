@@ -6,7 +6,7 @@ tool: character-counter
 title: Character and word counter — count characters in a text online
 h1: Count the characters and words in a text
 navName: Characters and words
-description: "Paste your text and see the characters with and without spaces, plus words and paragraphs. Reading time and SMS and social limits too. Free, no sign-up."
+description: "Paste your text and see the characters with and without spaces, plus words, punctuation marks and your most repeated words. Free, no sign-up."
 faq:
   - question: How do I count the characters in a text?
     answer: "Paste the text into the field — the numbers count themselves, there is nothing to press. Characters with and without spaces are shown separately: briefs usually mean “with spaces”, but it is worth asking, because on a long text the difference is about a sixth."
@@ -18,6 +18,10 @@ faq:
     answer: "A sentence ends with a full stop, a question mark, an exclamation mark or an ellipsis. A paragraph is a chunk separated by an empty line, not every line break: ten list items in a row are one paragraph."
   - question: How many characters fit into one SMS?
     answer: "160 in Latin script, but only 70 in Cyrillic — the encoding is different, so half as much fits. The counter works this out from your own text. Many counters ignore it and are off by half."
+  - question: Why count word frequency?
+    answer: "To spot the word you repeated twenty times without noticing. It is the first thing an editor and a search engine see: a text with the same word on every line loses both readability and ranking. The ten most frequent words are shown, with short function words dropped by default."
+  - question: Which marks count as punctuation?
+    answer: "Full stops, commas, question and exclamation marks, colons, semicolons, ellipses, dashes and hyphens, quotes, brackets and slashes. Briefs normally count them alongside letters, so they are part of the character count too."
   - question: Is the text sent anywhere?
     answer: "No. Everything is counted in your browser: the text never goes to a server, is never stored and does not survive closing the page. You can safely paste work emails and drafts."
 related:
@@ -33,7 +37,11 @@ Paste or type your text — the numbers count themselves on every keystroke. Not
 - **Characters without spaces** — the same thing, letters and marks only
 - **Words** — chunks between spaces; a hyphen does not split a word
 - **Sentences** — by full stops, question and exclamation marks
+- **Unique words** — how many different words there are, repeats aside
+- **Punctuation marks** — full stops, commas, dashes, quotes and brackets
 - **Lines and paragraphs** — a paragraph is a chunk separated by an empty line
+
+A separate block shows **which words you repeat most**: the ten most frequent with their counts. Short function words are dropped by default, and a checkbox brings them back.
 
 Next to that you get the reading time, aloud and silently, and whether the text fits the familiar limits: a post on X, one SMS, a search title and description, a Telegram post and an Instagram caption.
 

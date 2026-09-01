@@ -96,6 +96,34 @@
 .тс-лимит.мимо .тс-полоса i { background: #f2857b }
 .тс-лимит.мимо .тс-лимит-счёт { color: #f2857b }
 
+/* ---- Частота слов ------------------------------------------------------------------ */
+
+.тс-частота-блок { margin-top: 16px }
+.тс-заг-ряд { display: flex; align-items: center; gap: 12px; margin-bottom: 12px }
+.тс-заг-ряд .тс-заг { margin-bottom: 0 }
+.тс-галка { margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
+  font: 500 12.5px var(--ui); color: var(--muted); cursor: pointer; user-select: none }
+.тс-галка input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer }
+.тс-частота { display: grid; gap: 8px }
+/* Слово, число и полоса в трёх колонках: числа выстраиваются в столбик и читаются сверху
+   вниз одним взглядом, а не построчно. */
+.тс-слово-строка { display: grid; grid-template-columns: minmax(0, 1fr) auto 40%;
+  align-items: center; gap: 10px; font-family: var(--ui) }
+.тс-сл { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden;
+  text-overflow: ellipsis; white-space: nowrap }
+.тс-скол { font-size: 12px; color: rgba(214,219,230,.55); font-variant-numeric: tabular-nums;
+  white-space: nowrap }
+.тс-сл-полоса { height: 6px; border-radius: 3px; background: rgba(255,255,255,.07); overflow: hidden }
+.тс-сл-полоса i { display: block; height: 100%; border-radius: 3px; background: var(--accent);
+  transition: width .18s ease }
+.тс-пусто { margin: 0; font-size: 13px; color: rgba(214,219,230,.5) }
+.тс-пусто[hidden] { display: none }
+
+@media (max-width: 560px) {
+  .тс-слово-строка { grid-template-columns: minmax(0, 1fr) auto; }
+  .тс-сл-полоса { grid-column: 1 / -1 }
+}
+
 .тс-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
 .тс-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
 .тс-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }

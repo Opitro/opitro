@@ -18,6 +18,10 @@ const СЛОВА = {
     copied: 'Скопировано', cleared: 'Очищено', nothing: 'Текст пуст',
     chars: 'символов с пробелами', charsNo: 'без пробелов', words: 'слов',
     lines: 'строк', paras: 'абзацев', sentences: 'предложений',
+    unique: 'уникальных слов', punct: 'знаков препинания',
+    freqTitle: 'Какие слова чаще всего', freqShort: 'без коротких слов',
+    freqEmpty: 'Вставьте текст — здесь появятся самые частые слова',
+    times: 'раз',
     readTitle: 'Сколько читать', aloud: 'вслух', silent: 'про себя',
     limitsTitle: 'Влезет ли текст',
     lPost: 'Пост в X (Twitter)', lSms: 'Одно СМС', lTitle: 'Заголовок для поиска',
@@ -34,6 +38,10 @@ const СЛОВА = {
     copied: 'Скопійовано', cleared: 'Очищено', nothing: 'Текст порожній',
     chars: 'символів із пробілами', charsNo: 'без пробілів', words: 'слів',
     lines: 'рядків', paras: 'абзаців', sentences: 'речень',
+    unique: 'унікальних слів', punct: 'розділових знаків',
+    freqTitle: 'Які слова найчастіше', freqShort: 'без коротких слів',
+    freqEmpty: 'Вставте текст — тут з\'являться найчастіші слова',
+    times: 'разів',
     readTitle: 'Скільки читати', aloud: 'вголос', silent: 'подумки',
     limitsTitle: 'Чи влізе текст',
     lPost: 'Допис у X (Twitter)', lSms: 'Одна СМС', lTitle: 'Заголовок для пошуку',
@@ -50,6 +58,10 @@ const СЛОВА = {
     copied: 'Copied', cleared: 'Cleared', nothing: 'The text is empty',
     chars: 'characters with spaces', charsNo: 'without spaces', words: 'words',
     lines: 'lines', paras: 'paragraphs', sentences: 'sentences',
+    unique: 'unique words', punct: 'punctuation marks',
+    freqTitle: 'Most frequent words', freqShort: 'skip short words',
+    freqEmpty: 'Paste your text — the most frequent words will show up here',
+    times: 'times',
     readTitle: 'Reading time', aloud: 'aloud', silent: 'silently',
     limitsTitle: 'Will it fit',
     lPost: 'Post on X (Twitter)', lSms: 'One SMS', lTitle: 'Search title',
@@ -66,6 +78,10 @@ const СЛОВА = {
     copied: 'Copiado', cleared: 'Limpiado', nothing: 'El texto está vacío',
     chars: 'caracteres con espacios', charsNo: 'sin espacios', words: 'palabras',
     lines: 'líneas', paras: 'párrafos', sentences: 'frases',
+    unique: 'palabras únicas', punct: 'signos de puntuación',
+    freqTitle: 'Palabras más frecuentes', freqShort: 'sin palabras cortas',
+    freqEmpty: 'Pega el texto y aquí saldrán las palabras más frecuentes',
+    times: 'veces',
     readTitle: 'Tiempo de lectura', aloud: 'en voz alta', silent: 'en silencio',
     limitsTitle: '¿Cabe el texto?',
     lPost: 'Publicación en X (Twitter)', lSms: 'Un SMS', lTitle: 'Título para buscadores',
@@ -100,9 +116,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="тс-число главное"><b id="тс-символы">0</b><span>{с.chars}</span></div>
     <div class="тс-число"><b id="тс-безпробелов">0</b><span>{с.charsNo}</span></div>
     <div class="тс-число"><b id="тс-слова">0</b><span>{с.words}</span></div>
+    <div class="тс-число"><b id="тс-уникальных">0</b><span>{с.unique}</span></div>
     <div class="тс-число"><b id="тс-предложения">0</b><span>{с.sentences}</span></div>
     <div class="тс-число"><b id="тс-строки">0</b><span>{с.lines}</span></div>
     <div class="тс-число"><b id="тс-абзацы">0</b><span>{с.paras}</span></div>
+    <div class="тс-число"><b id="тс-препинание">0</b><span>{с.punct}</span></div>
   </div>
 
   <div class="тс-низ">
@@ -118,6 +136,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="тс-заг">{с.limitsTitle}</div>
       <div class="тс-лимиты" id="тс-лимиты"></div>
     </div>
+  </div>
+
+  {/* Частота слов -- то, ради чего копирайтер и открывает такой счётчик: увидеть, какое
+      слово он повторил двадцать раз, не заметив этого. */}
+  <div class="тс-блок тс-частота-блок">
+    <div class="тс-заг-ряд">
+      <span class="тс-заг">{с.freqTitle}</span>
+      <label class="тс-галка"><input type="checkbox" id="тс-без-коротких" checked><span>{с.freqShort}</span></label>
+    </div>
+    <div class="тс-частота" id="тс-частота"></div>
+    <p class="тс-пусто" id="тс-пусто">{с.freqEmpty}</p>
   </div>
 
   <div class="тс-заметки">
@@ -155,6 +184,35 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     });
 
     const кириллица = /[Ѐ-ӿ]/;
+    // Знаки препинания -- ровно те, что ими и являются. Скобки и кавычки сюда входят:
+    // в требованиях к объёму их обычно считают наравне с точками.
+    const ЗНАКИ_ПРЕПИНАНИЯ = /[.,!?;:…—–\-«»""''„“()\[\]{}\/\\]/g;
+    const частотаБлок = $('тс-частота'), пусто = $('тс-пусто'), безКоротких = $('тс-без-коротких');
+    let словаТекста = [];
+
+    // ЧАСТОТА СЛОВ. Ради неё копирайтер такой счётчик и открывает: увидеть слово, которое
+    // повторил двадцать раз, сам того не заметив. Короткие служебные слова по умолчанию
+    // отброшены -- иначе весь список занимают «и», «в», «на» и смотреть там нечего.
+    function показатьЧастоту() {
+      const порог = безКоротких.checked ? 4 : 1;
+      const счёт = new Map();
+      for (const w of словаТекста) if (w.length >= порог) счёт.set(w, (счёт.get(w) || 0) + 1);
+      const верх = [...счёт.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0])).slice(0, 10);
+      пусто.hidden = верх.length > 0;
+      if (!верх.length) { частотаБлок.replaceChildren(); return; }
+      const макс = верх[0][1];
+      const куски = document.createDocumentFragment();
+      for (const [слово, сколько] of верх) {
+        const р = document.createElement('div'); р.className = 'тс-слово-строка';
+        р.innerHTML = '<span class="тс-сл"></span><span class="тс-скол"></span>'
+          + '<span class="тс-сл-полоса"><i></i></span>';
+        р.querySelector('.тс-сл').textContent = слово;
+        р.querySelector('.тс-скол').textContent = сколько + ' ' + с.times;
+        р.querySelector('.тс-сл-полоса i').style.width = (сколько / макс * 100).toFixed(1) + '%';
+        куски.appendChild(р);
+      }
+      частотаБлок.replaceChildren(куски);
+    }
     const разделитель = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
     function время(минут) {
       const всего = Math.round(минут * 60);
@@ -174,6 +232,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const абзацев = т.trim() ? т.trim().split(/\n\s*\n/).filter((к) => к.trim()).length : 0;
       const предложений = (т.match(/[^.!?…]+[.!?…]+(\s|$)/g) || []).length
         || (т.trim() ? 1 : 0);
+      const препинания = (т.match(ЗНАКИ_ПРЕПИНАНИЯ) || []).length;
+      // Для частоты слово чистится от знаков по краям и опускается в нижний регистр:
+      // «Текст,» и «текст» -- одно и то же слово, считать их порознь было бы неправдой.
+      словаТекста = т.toLowerCase().split(/\s+/)
+        .map((w) => w.replace(/^[^\p{L}\p{N}]+|[^\p{L}\p{N}]+$/gu, ''))
+        .filter(Boolean);
+      const уникальных = new Set(словаТекста).size;
 
       $('тс-символы').textContent = разделитель(символов);
       $('тс-безпробелов').textContent = разделитель(безПробелов);
@@ -181,6 +246,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('тс-предложения').textContent = разделитель(предложений);
       $('тс-строки').textContent = разделитель(строк);
       $('тс-абзацы').textContent = разделитель(абзацев);
+      $('тс-уникальных').textContent = разделитель(уникальных);
+      $('тс-препинание').textContent = разделитель(препинания);
+      показатьЧастоту();
 
       $('тс-вслух').textContent = время(слов / 150);
       $('тс-просебя').textContent = время(слов / 220);
@@ -209,6 +277,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     ввод.addEventListener('input', посчитать);
+    безКоротких.addEventListener('change', показатьЧастоту);
     $('тс-вставить').addEventListener('click', async () => {
       try {
         const т = await navigator.clipboard.readText();
@@ -237,6 +306,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       предложений: $('тс-предложения').textContent,
       строк: $('тс-строки').textContent,
       абзацев: $('тс-абзацы').textContent,
+      уникальных: $('тс-уникальных').textContent,
+      препинания: $('тс-препинание').textContent,
+      частота: [...document.querySelectorAll('.тс-слово-строка')].map((р) =>
+        р.querySelector('.тс-сл').textContent + ':' + р.querySelector('.тс-скол').textContent),
       вслух: $('тс-вслух').textContent,
       просебя: $('тс-просебя').textContent,
       смс: узлы.find((у) => у.л.смс).имя.textContent,
