@@ -236,9 +236,13 @@
     border-radius: 10px; cursor: pointer; color: var(--text);
     background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22);
     transition: background .15s ease, border-color .15s ease, color .15s ease }
-  /* На наведении -- тёплый жёлтый, тот же, что у метки «образец». Красный тут читался как
-     «сейчас что-то удалю», хотя крестик всего лишь закрывает панель. */
-  .закрыть:hover { background: var(--тревога); border-color: var(--тревога); color: #10141a }
+  /* На наведении жёлтым становятся ОБВОДКА И САМ КРЕСТИК, а не вся кнопка: залитая целиком,
+     она кричала громче, чем нужно кнопке «закрыть». Тон -- тот же, что у метки «образец». */
+  .закрыть:hover {
+    color: var(--тревога);
+    border-color: var(--тревога);
+    background: color-mix(in srgb, var(--тревога) 13%, transparent);
+  }
   .закрыть svg { width: 17px; height: 17px }
   /* Три раздела в ряд, пока хватает ширины: так панель не вырастает в длинную простыню. */
   .панель-тело { display: grid; grid-template-columns: repeat(auto-fit, minmax(214px, 1fr));
