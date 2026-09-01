@@ -61,6 +61,29 @@
   .tp.облик-бумага .старт-под { color: rgba(40,38,34,.82) }
   .tp.облик-бумага .старт { background: rgba(243,239,230,.8) }
 
+  /* Итог на светлом листе: тёмные буквы. Без этого весь разбор был белым по белому. */
+  .tp.облик-бумага .итог { color: #1e1c19 }
+  .tp.облик-бумага .разряд { color: #17603c }
+  .tp.облик-бумага .разряд.рек { color: #9a6a00 }
+  .tp.облик-бумага .главное .ч { color: #17603c }
+  .tp.облик-бумага .главное .п { color: rgba(40,38,34,.72) }
+  .tp.облик-бумага .второе .ч { color: #1e1c19 }
+  .tp.облик-бумага .второе .п { color: rgba(40,38,34,.66) }
+  .tp.облик-бумага .лестница { border-bottom-color: rgba(0,0,0,.13) }
+  .tp.облик-бумага .лента { background: rgba(0,0,0,.09);
+    background-image: linear-gradient(90deg, rgba(0,0,0,.22) 1px, transparent 1px) }
+  .tp.облик-бумага .вы { background: #17603c; box-shadow: 0 0 0 3px #f3efe6 }
+  .tp.облик-бумага .ступень { color: rgba(40,38,34,.52) }
+  .tp.облик-бумага .ступень.вкл { color: #1e1c19 }
+  .tp.облик-бумага .заг-блока { color: rgba(40,38,34,.6) }
+  .tp.облик-бумага .ключ { color: rgba(40,38,34,.72) }
+  .tp.облик-бумага .кл { background: rgba(0,0,0,.05); border-color: rgba(0,0,0,.12);
+    color: rgba(40,38,34,.55) }
+  .tp.облик-бумага .под-клавой { color: rgba(40,38,34,.72) }
+  .tp.облик-бумага .под-клавой b { color: #1e1c19 }
+  .tp.облик-бумага .вердикт { color: rgba(40,38,34,.78) }
+  .tp.облик-бумага .табло { border-bottom-color: rgba(0,0,0,.12) }
+
   .tp.облик-терминал .поле { background: #050b06; border-color: rgba(74,222,158,.3);
     color: rgba(120,220,160,.42) }
   .tp.облик-терминал .табло b { color: #7ef0b4 }
@@ -208,10 +231,13 @@
   .панель-шапка { display: flex; align-items: center; margin-bottom: 13px }
   .панель-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
     color: rgba(214,219,230,.45) }
-  .закрыть { margin-left: auto; display: grid; place-items: center; width: 28px; height: 28px;
-    border-radius: 8px; cursor: pointer; color: rgba(214,219,230,.5);
-    background: none; border: 1px solid var(--line) }
-  .закрыть:hover { color: var(--text); border-color: rgba(255,255,255,.3) }
+  /* Крестик должен находиться взглядом сразу: бледная иконка на тёмном терялась. */
+  .закрыть { margin-left: auto; display: grid; place-items: center; width: 34px; height: 34px;
+    border-radius: 10px; cursor: pointer; color: var(--text);
+    background: rgba(255,255,255,.1); border: 1px solid rgba(255,255,255,.22);
+    transition: background .15s ease, border-color .15s ease, color .15s ease }
+  .закрыть:hover { background: var(--ошибка); border-color: var(--ошибка); color: #10141a }
+  .закрыть svg { width: 17px; height: 17px }
   /* Три раздела в ряд, пока хватает ширины: так панель не вырастает в длинную простыню. */
   .панель-тело { display: grid; grid-template-columns: repeat(auto-fit, minmax(214px, 1fr));
     gap: 18px 26px; align-items: start }
@@ -290,6 +316,8 @@
   .ключ { display: flex; flex-wrap: wrap; gap: 13px; margin-top: 9px; font-size: 11.5px; color: var(--muted) }
   .ключ span { display: inline-flex; align-items: center; gap: 6px }
   .ключ i { width: 9px; height: 9px; border-radius: 2px }
+  .ключ-средняя { background: rgba(255,255,255,.3) }
+  .tp.облик-бумага .ключ-средняя { background: rgba(0,0,0,.32) }
 
   .клава { display: flex; flex-direction: column; gap: 5px; align-items: center }
   .ряд-клавиш { display: flex; gap: 5px }
@@ -336,10 +364,32 @@
   .пк-кл.сейчас { background: var(--accent); color: #10141a; border-color: var(--accent);
     box-shadow: 0 0 16px -3px rgba(74,222,158,.8) }
 
-  /* Финиш: текст осыпается вниз и гаснет, и только потом на его месте собирается итог. */
-  .tp.падает .строки { animation: осыпь .34s cubic-bezier(.5,0,.75,0) forwards }
-  @keyframes осыпь { to { transform: translateY(46px); opacity: 0; filter: blur(3px) } }
-  .tp.падает #пакман, .tp.падает .каретка { opacity: 0; transition: opacity .2s ease }
+  /* ФИНИШ. Текст проваливается вниз, размазываясь на ходу, и только потом на его месте
+     собирается итог -- по частям, а не разом. Это самый сильный момент на странице, и он
+     стоит полусекунды: пока он длится, человек смотрит именно сюда. */
+  .tp.падает .строки { animation: осыпь .46s cubic-bezier(.55,0,.85,.2) forwards }
+  @keyframes осыпь {
+    0%   { transform: none; opacity: 1; filter: blur(0) }
+    35%  { transform: translateY(-8px) scale(1.015); opacity: .95 }
+    100% { transform: translateY(120px) scale(.92); opacity: 0; filter: blur(9px) }
+  }
+  .tp.падает #пакман, .tp.падает .каретка { opacity: 0; transition: opacity .18s ease }
+  .tp.падает .поле { border-color: rgba(74,222,158,.5) }
+
+  /* Итог всплывает частями: сначала число, следом лестница, разбор и слово под ними. */
+  @keyframes всплыть { from { opacity: 0; transform: translateY(16px) } to { opacity: 1; transform: none } }
+  .tp.конец .ряд-итога { animation: всплыть .4s 0s both cubic-bezier(.2,.85,.3,1) }
+  .tp.конец .лестница  { animation: всплыть .4s .09s both cubic-bezier(.2,.85,.3,1) }
+  .tp.конец .разбор    { animation: всплыть .4s .18s both cubic-bezier(.2,.85,.3,1) }
+  .tp.конец .вердикт   { animation: всплыть .4s .27s both cubic-bezier(.2,.85,.3,1) }
+
+  .снимок { margin-top: 14px; display: flex; flex-direction: column; align-items: flex-start; gap: 10px }
+  .снимок[hidden] { display: none }
+  .снимок img { display: block; width: 100%; max-width: 520px; border-radius: 12px;
+    border: 1px solid var(--line) }
+  .снимок-скачать { font: 700 13px var(--ui); color: #10141a; background: var(--accent);
+    padding: 9px 16px; border-radius: 9px; text-decoration: none }
+  .снимок-скачать:hover { background: #60efb8 }
 
   .хвост { margin-top: 46px; padding-top: 24px; border-top: 1px solid var(--line);
     font-size: 13.5px; line-height: 1.7; color: var(--muted) }
@@ -527,7 +577,7 @@
             <div class="ключ">
               <span><i style="background:#4ade9e"></i>по секундам</span>
               <span><i style="background:#f2857b"></i>секунда с ошибкой</span>
-              <span><i style="background:rgba(255,255,255,.3)"></i>средняя за тест</span>
+              <span><i class="ключ-средняя"></i>средняя за тест</span>
             </div>
           </div>
           <div>
@@ -545,6 +595,11 @@
     <!-- Клавиатура-подсказка. Появляется сама на лёгком уровне: там она учит, а на среднем и
          сложном только мешает -- глаз уходит вниз вместо текста. -->
     <div class="подсказ-клава" id="подсказ-клава" hidden></div>
+
+    <div class="снимок" id="снимок" hidden>
+      <img id="снимок-вид" alt="Картинка результата">
+      <a class="снимок-скачать" id="снимок-скачать" download>Скачать файл</a>
+    </div>
 
     <div class="низ">
       <span class="подсказка" id="подсказка">Нажмите на текст — время пойдёт с первой буквы</span>
@@ -647,7 +702,7 @@
   }
   let былоНачало = false;   // человек уже нажимал «Начать тест»
   let промежутки = [], прошлыйСтук = 0;   // ритм: когда пришло каждое верное нажатие
-  let звукВкл = false, звукКонтекст = null, простой = 0;
+  let звукВкл = false, звукКонтекст = null, простой = 0, виситПростой = false;
   let начало = 0, таймер = 0, идёт = false, кончено = false, провалено = false;
   let верных = 0, неверных = 0;
   const рекорды = new Map();
@@ -846,7 +901,10 @@
     }
     разобрать();
     // Три секунды тишины -- скорее всего отвлеклись. Молчать в этот момент нечестно: время идёт.
-    if (простой && performance.now() - простой > 3000) подсказка.textContent = 'Отвлеклись? Время идёт';
+    if (простой && performance.now() - простой > 3000 && !виситПростой) {
+      подсказка.textContent = 'Отвлеклись? Время идёт';
+      виситПростой = true;
+    }
     const целая = Math.floor(прошло);
     if (целая > точки.length && целая <= 180) {
       точки.push({ знаков: верных - прошлыеЗнаки, ошибок: неверных - прошлыеОшибки });
@@ -854,13 +912,17 @@
     }
   }
 
+  // Что написано под полем, пока идёт набор. Вынесено, чтобы возвращать после простоя.
+  function ходовАяПодсказка() {
+    return строгость === 'смерть' ? 'Одна ошибка обрывает тест. Спокойнее.'
+      : строгость === 'строго' ? 'Неверную букву поле не примет — наберите нужную'
+      : 'Время идёт. Ошибку можно стереть и набрать заново';
+  }
   function начать() {
     if (идёт || кончено) return;
     идёт = true; корень.classList.add('идёт'); корень.classList.remove('ждёт');
     открытьСписок(false);
-    подсказка.textContent = строгость === 'смерть' ? 'Одна ошибка обрывает тест. Спокойнее.'
-      : (строгость === 'строго' ? 'Неверную букву поле не примет — наберите нужную'
-                                : 'Время идёт. Ошибку можно стереть и набрать заново');
+    подсказка.textContent = ходовАяПодсказка();
     начало = Date.now(); таймер = setInterval(тик, 200);
   }
 
@@ -884,7 +946,16 @@
       if (доля < 1) графикКадр = requestAnimationFrame(шаг);
     })();
   }
+  // Цвета графика зависят от облика: на светлом листе белые линии не видно вовсе.
+  function палитра() {
+    return корень.classList.contains('облик-бумага')
+      ? { сетка: 'rgba(0,0,0,.1)', подпись: 'rgba(40,38,34,.6)', средняя: 'rgba(0,0,0,.32)',
+          линия: '#17603c', верх: 'rgba(23,96,60,.24)', низ: 'rgba(23,96,60,0)', точка: '#b03a2e' }
+      : { сетка: 'rgba(255,255,255,.07)', подпись: 'rgba(214,219,230,.4)', средняя: 'rgba(255,255,255,.3)',
+          линия: '#4ade9e', верх: 'rgba(74,222,158,.3)', низ: 'rgba(74,222,158,0)', точка: '#f2857b' };
+  }
   function рисоватьГрафик(средняя, доля) {
+    const цв = палитра();
     const к = холст.getContext('2d');
     const ш = холст.clientWidth, в = холст.clientHeight, м = window.devicePixelRatio || 1;
     холст.width = ш * м; холст.height = в * м; к.setTransform(м, 0, 0, м, 0, 0);
@@ -900,11 +971,11 @@
     к.textAlign = 'left';
     for (let i = 0; i <= 3; i++) {
       const v = макс * i / 3, yy = Math.round(y(v)) + .5;
-      к.strokeStyle = 'rgba(255,255,255,.07)'; к.lineWidth = 1;
+      к.strokeStyle = цв.сетка; к.lineWidth = 1;
       к.beginPath(); к.moveTo(30, yy); к.lineTo(ш - 6, yy); к.stroke();
-      if (i) { к.fillStyle = 'rgba(214,219,230,.4)'; к.fillText(String(Math.round(v)), 0, yy + 3); }
+      if (i) { к.fillStyle = цв.подпись; к.fillText(String(Math.round(v)), 0, yy + 3); }
     }
-    к.setLineDash([4, 4]); к.strokeStyle = 'rgba(255,255,255,.3)';
+    к.setLineDash([4, 4]); к.strokeStyle = цв.средняя;
     к.beginPath(); к.moveTo(30, y(средняя)); к.lineTo(ш - 6, y(средняя)); к.stroke(); к.setLineDash([]);
 
     const путь = () => {
@@ -914,13 +985,13 @@
     путь();
     к.lineTo(x(данные.length - 1), в - 20); к.lineTo(x(0), в - 20); к.closePath();
     const зал = к.createLinearGradient(0, 0, 0, в);
-    зал.addColorStop(0, 'rgba(74,222,158,.3)'); зал.addColorStop(1, 'rgba(74,222,158,0)');
+    зал.addColorStop(0, цв.верх); зал.addColorStop(1, цв.низ);
     к.fillStyle = зал; к.fill();
-    путь(); к.strokeStyle = '#4ade9e'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+    путь(); к.strokeStyle = цв.линия; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
     данные.forEach((т, i) => {
       if (!т.ошибок) return;
       к.beginPath(); к.arc(x(i), y(т.знаков * 60), 3.5, 0, Math.PI * 2);
-      к.fillStyle = '#f2857b'; к.fill();
+      к.fillStyle = цв.точка; к.fill();
     });
   }
 
@@ -935,11 +1006,13 @@
         if (з && з.всего) {
           const точность = 1 - з.плохо / з.всего;
           // Насыщенность -- по числу нажатий: одна ошибка на одно нажатие ещё ни о чём не говорит.
-          const вес = Math.min(1, .35 + з.всего / 14);
+          const вес = Math.min(1, .35 + з.всего / 14) * (корень.classList.contains('облик-бумага') ? 1.7 : 1);
           const тон = точность >= .999 ? '74,222,158' : (точность > .8 ? '245,196,81' : '242,133,123');
           к.style.background = 'rgba(' + тон + ',' + (вес * .3).toFixed(2) + ')';
           к.style.borderColor = 'rgba(' + тон + ',' + (вес * .55).toFixed(2) + ')';
-          к.style.color = 'rgba(240,240,242,' + (.5 + вес * .45).toFixed(2) + ')';
+          к.style.color = корень.classList.contains('облик-бумага')
+            ? 'rgba(30,28,25,' + Math.min(1, .55 + вес * .45).toFixed(2) + ')'
+            : 'rgba(240,240,242,' + (.5 + вес * .45).toFixed(2) + ')';
           к.title = б + ' — нажатий ' + з.всего + ', ошибок ' + з.плохо;
           if (з.плохо) плохие.push({ б, плохо: з.плохо });
         }
@@ -1013,12 +1086,17 @@
     к.textAlign = 'left'; к.fillStyle = '#f0f0f2'; к.font = '800 40px ' + шр;
     к.fillText('Opitro', 574, 583);
 
-    const а = document.createElement('a');
-    а.download = 'skorost-pechati-' + последнийИтог.знаков + '.png';
-    а.href = х.toDataURL('image/png');
-    а.click();
+    const адрес = х.toDataURL('image/png');
+    const вид = $('снимок-вид'), ссылка = $('снимок-скачать');
+    вид.src = адрес;
+    ссылка.href = адрес;
+    ссылка.download = 'skorost-pechati-' + последнийИтог.знаков + '.png';
+    $('снимок').hidden = false;
   }
-  кнопкаКартинки.addEventListener('click', () => { нарисоватьКартинку(); кнопкаКартинки.blur(); });
+  кнопкаКартинки.addEventListener('click', () => {
+    нарисоватьКартинку(); кнопкаКартинки.blur();
+    $('снимок').scrollIntoView({ block: 'nearest', behavior: 'smooth' });
+  });
 
   const ключРекорда = () => уровень + '|' + режим + '|' + значение;
   function показатьРекорд() {
@@ -1041,17 +1119,13 @@
     // Текст сначала осыпается, и только потом на его месте собирается итог. Это самый
     // сильный момент на странице, и он должен быть сыгран, а не просто сменить экран.
     корень.classList.add('падает');
-    setTimeout(() => { корень.classList.remove('падает'); корень.classList.add('конец'); }, 330);
     if (провалено) { корень.classList.add('провал'); setTimeout(() => корень.classList.remove('провал'), 400); }
     ввод.readOnly = true; ввод.blur();
-
-    набежать($('и-знаков'), знаков); набежать($('и-слов'), слов);
-    набежать($('и-точность'), точность, '%'); набежать($('и-ошибок'), неверных);
 
     ступени.forEach((ш, i) => ш.classList.toggle('вкл', i === разр));
     const края = [0, ...ГРАНИЦЫ, 130];
     const доля = Math.min(1, Math.max(0, (слов - края[разр]) / (края[разр + 1] - края[разр])));
-    отметка.style.left = Math.min(99, (разр + доля) * 20) + '%';
+    отметка.style.left = '0%';   // поедет к своему месту уже на глазах
 
     const прежний = рекорды.get(ключРекорда()) || 0;
     const побит = знаков > прежний && прежний > 0;
@@ -1062,11 +1136,21 @@
       : РАЗРЯДЫ[разр] + (побит ? ' · Личный рекорд! было ' + прежний : '');
     $('разряд').classList.toggle('рек', побит);
 
-    начертитьГрафик(знаков);
     рисоватьКлаву();
     const ров = ровность();
     $('и-ровность').textContent = ров == null ? '—' : ров + '%';
-    if (ров != null) набежать($('и-ровность'), ров, '%');
+
+    // Всё, что движется, запускаем не сразу, а когда текст уже осыпался и итог появился:
+    // иначе числа успевали добежать за закрытым занавесом.
+    setTimeout(() => {
+      корень.classList.remove('падает');
+      корень.classList.add('конец');
+      набежать($('и-знаков'), знаков); набежать($('и-слов'), слов);
+      набежать($('и-точность'), точность, '%'); набежать($('и-ошибок'), неверных);
+      if (ров != null) набежать($('и-ровность'), ров, '%');
+      requestAnimationFrame(() => { отметка.style.left = Math.min(99, (разр + доля) * 20) + '%'; });
+      начертитьГрафик(знаков);
+    }, 440);
     const букв = (n) => (n % 10 === 1 && n % 100 !== 11) ? 'букву'
       : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? 'буквы' : 'букв');
     const строгое = (строгость === 'строго' && отказов)
@@ -1112,8 +1196,8 @@
     показатьРекорд();
     // Клавиатура-подсказка -- только на лёгком: там она учит, дальше только уводит глаз вниз.
     подсказКлава.hidden = уровень !== 'easy';
-    кнопкаКартинки.hidden = true;
-    промежутки = []; прошлыйСтук = 0; простой = 0;
+    кнопкаКартинки.hidden = true; $('снимок').hidden = true;
+    промежутки = []; прошлыйСтук = 0; простой = 0; виситПростой = false;
     слова = собрать(); нарисовать(); поставитьКаретку();
     гX = цельX; гY = цельY;    // новая попытка -- он уже на месте, а не едет через всё поле
     пакман.style.transform = 'translate(' + гX + 'px,' + гY + 'px)';
@@ -1146,6 +1230,8 @@
     const сейчас = performance.now();
     if (прошлыйСтук) промежутки.push(сейчас - прошлыйСтук);
     прошлыйСтук = сейчас; простой = сейчас;
+    // Снова печатают -- предупреждение о простое убираем сразу, а не ждём конца попытки.
+    if (виситПростой) { виситПростой = false; подсказка.textContent = ходовАяПодсказка(); }
     звякнуть('стук');
     начать(); разобрать();
   });
