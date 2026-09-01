@@ -79,20 +79,21 @@
    правому краю -- столбик читается сверху вниз одним взглядом, а не построчно. */
 .тс-список {
   grid-column: 1 / -1;
-  background: var(--surface); margin: 0; padding: 0;
-  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
+  background: var(--surface); margin: 0; padding: 14px;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;
   font-family: var(--ui);
 }
-/* Тонкие перегородки вместо отдельных плиток: это одна панель прибора, а не шесть карточек. */
+/* Плитки приподняты: светлая грань сверху, тень снизу. Тот же язык, что у клавиш на тесте
+   печати, -- на сайте не должно быть двух разных представлений об объёме. */
 .тс-список > div {
-  padding: 15px 10px 16px; text-align: center;
-  border-left: 1px solid rgba(245,196,81,.3);
-  border-top: 1px solid rgba(245,196,81,.3);
+  padding: 14px 8px 15px; text-align: center; border-radius: 11px;
+  background: linear-gradient(180deg, #23262e, #191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
 }
-.тс-список > div:first-child { border-left: 0 }
-/* Перегородка потолще там, где меняется смысл: слева -- из чего состоит текст, справа --
-   сколько его читать. Разная толщина линии группирует надёжнее любых подписей. */
-.тс-список > div.иное { border-left-color: rgba(245,196,81,.55) }
+/* Время чтения отделено увеличенным зазором: слева -- из чего состоит текст, справа --
+   сколько его читать. Пустота группирует надёжнее любых подписей. */
+.тс-список > div.иное { margin-left: 10px }
 /* Полоса подробностей выделена ПО КОНТУРУ: жёлтые линии обводят колонки и отделяют полосу
    от главных чисел. Сами числа и подписи остаются обычного цвета -- крашеный текст спорил
    бы с зелёными главными числами за внимание, а линия только очерчивает. */
@@ -168,12 +169,10 @@
   .тс-главное b { font-size: 38px }
   .тс-главное span { font-size: 10.5px }
   .тс-главное i { margin-top: 8px; font-size: 12.5px }
-  .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)) }
-  .тс-список > div { padding: 12px 8px 13px }
-  .тс-список > div:nth-child(3n+1) { border-left: 0 }
-  .тс-список > div:nth-child(n+4) { border-top: 1px solid rgba(245,196,81,.3) }
-  /* На трёх колонках граница смысла проходит по строке, а не по вертикали. */
-  .тс-список > div.иное { border-left-color: rgba(245,196,81,.3) }
+  .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 12px; gap: 7px }
+  .тс-список > div { padding: 12px 6px 13px }
+  /* На трёх колонках увеличенный зазор сдвинул бы всю сетку -- группировка тут не нужна. */
+  .тс-список > div.иное { margin-left: 0 }
   .тс-список dd { font-size: 18px }
   .тс-список dt { font-size: 10.5px }
 }
