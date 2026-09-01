@@ -4,7 +4,7 @@ locale: es
 category: device-tests
 tool: polling-rate
 title: Test de frecuencia de sondeo del ratón — comprueba los Hz
-h1: Test de frecuencia de sondeo (Polling Rate)
+h1: Test de frecuencia de sondeo del ratón
 navName: Frecuencia de sondeo
 description: "Descubre tu frecuencia real —125, 500, 1000 Hz o más— y la latencia en milisegundos. Los números cambian en vivo y al lado hay un gráfico de estabilidad. Gratis."
 faq:

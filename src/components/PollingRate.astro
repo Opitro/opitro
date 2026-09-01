@@ -108,7 +108,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="чо-заг">{с.graph}</div>
     <canvas class="чо-холст" id="чо-график"></canvas>
     <div class="чо-ключ">
-      <span><i style="background:#4ade9e"></i>{с.legNow}</span>
+      <span><i style="background:#60a5fa"></i>{с.legNow}</span>
       <span><i style="background:rgba(255,255,255,.3)"></i>{с.legAvg}</span>
     </div>
   </div>
@@ -136,7 +136,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     let времена = [];        // время каждого настоящего события движения
     let частоты = [];        // сглаженная частота, одна точка в десятую секунды
-    let макс = 0, началось = false;
+    let макс = 0, началось = false, надоРисовать = false;
     // Частота экрана нужна не для красоты: если замер в неё упёрся, значит браузер отдал
     // нам кадры, а не события мыши, и число надо не показывать молча, а объяснить.
     let частотаЭкрана = 0;
@@ -224,7 +224,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (частоты.length < 2) return;
       к.beginPath();
       частоты.forEach((v, i) => { const px = x(i), py = y(v); i ? к.lineTo(px, py) : к.moveTo(px, py); });
-      к.strokeStyle = '#4ade9e'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+      к.strokeStyle = '#60a5fa'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
     }
 
     function рисоватьСлед() {
@@ -234,9 +234,19 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       к.setTransform(м, 0, 0, м, 0, 0);
       к.clearRect(0, 0, ш, в);
       if (точки.length < 2) return;
+      к.lineWidth = 2; к.lineCap = 'round'; к.lineJoin = 'round';
+      const последняя = точки[точки.length - 1];
+      for (let i = 1; i < точки.length; i++) {
+        const доля = i / точки.length;
+        к.strokeStyle = 'rgba(96,165,250,' + (0.06 + доля * 0.5).toFixed(3) + ')';
+        к.beginPath();
+        к.moveTo(точки[i - 1].x, точки[i - 1].y);
+        к.lineTo(точки[i].x, точки[i].y);
+        к.stroke();
+      }
       к.beginPath();
-      точки.forEach((т, i) => { i ? к.lineTo(т.x, т.y) : к.moveTo(т.x, т.y) });
-      к.strokeStyle = 'rgba(74,222,158,.35)'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+      к.arc(последняя.x, последняя.y, 3.5, 0, Math.PI * 2);
+      к.fillStyle = '#60a5fa'; к.fill();
     }
 
     поле.addEventListener('pointermove', (e) => {
@@ -244,26 +254,33 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       // Браузер отдаёт события пачкой раз в кадр. Настоящие лежат внутри -- берём их.
       const пачка = (e.getCoalescedEvents && e.getCoalescedEvents()) || [e];
       if (!e.getCoalescedEvents) подсказка.textContent = с.noCoalesced;
-      const рп = поле.getBoundingClientRect();
+      const рп = след.getBoundingClientRect();
       for (const с3 of пачка) {
         времена.push(с3.timeStamp);
         точки.push({ x: с3.clientX - рп.left, y: с3.clientY - рп.top });
       }
       if (времена.length > 20000) времена = времена.slice(-20000);
-      if (точки.length > 700) точки = точки.slice(-700);
+      // След короткий: он показывает, что события идут, а не хранит историю движения.
+      if (точки.length > 140) точки = точки.slice(-140);
+      надоРисовать = true;
 
       if (!началось) {
         началось = true;
         $('чо-ждёт').hidden = true; $('чо-идёт').hidden = false;
         подсказка.textContent = с.hintGo;
       }
-      рисоватьСлед();
     });
 
     // Числа обновляет отдельный ход, а не само событие движения: иначе последняя серия
     // остаётся непосчитанной -- рука остановилась, событий больше нет, и на экране висит
     // то, что было до неё.
     setInterval(() => { if (началось) обновить(); }, 100);
+    // След перерисовывается раз в кадр: чаще экран всё равно не покажет, а рисовать на
+    // каждое событие -- значит не поспевать за быстрой мышью.
+    (function кадр() {
+      if (надоРисовать) { надоРисовать = false; рисоватьСлед(); }
+      requestAnimationFrame(кадр);
+    })();
 
     $('чо-снова').addEventListener('click', () => {
       времена = []; частоты = []; точки = []; макс = 0; началось = false;
