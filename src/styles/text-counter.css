@@ -57,9 +57,9 @@
   gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
 }
 .тс-главное {
-  background: var(--surface); padding: 22px 22px 20px;
-  display: flex; flex-direction: column; justify-content: center;
-  font-family: var(--ui);
+  background: var(--surface); padding: 24px 20px 22px;
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  text-align: center; font-family: var(--ui);
 }
 .тс-главное b {
   font-size: 56px; font-weight: 800; line-height: 1; color: var(--accent);
@@ -85,10 +85,13 @@
 }
 /* Тонкие перегородки вместо отдельных плиток: это одна панель прибора, а не шесть карточек. */
 .тс-список > div {
-  padding: 14px 14px 15px;
+  padding: 15px 10px 16px; text-align: center;
   border-left: 1px solid rgba(255,255,255,.06);
 }
 .тс-список > div:first-child { border-left: 0 }
+/* Перегородка потолще там, где меняется смысл: слева -- из чего состоит текст, справа --
+   сколько его читать. Разная толщина линии группирует надёжнее любых подписей. */
+.тс-список > div.иное { border-left-color: rgba(255,255,255,.16) }
 .тс-список dd {
   margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
   font-variant-numeric: tabular-nums;
@@ -103,13 +106,13 @@
 /* ---- Лимиты и частота ------------------------------------------------------------ */
 
 .тс-низ { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
-  margin-top: 16px; align-items: start }
+  margin-top: 16px; align-items: stretch }
 .тс-блок { border: 1px solid var(--line); border-radius: 16px; padding: 15px 16px 16px;
-  background: var(--surface) }
+  background: var(--surface); display: flex; flex-direction: column }
 .тс-заг { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
   color: rgba(214,219,230,.5); margin-bottom: 12px }
 
-.тс-лимиты { display: flex; flex-direction: column; gap: 11px }
+.тс-лимиты { flex: 1 1 auto; display: flex; flex-direction: column; justify-content: space-between; gap: 11px }
 .тс-лимит { font-family: var(--ui) }
 .тс-лимит-верх { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px }
 .тс-лимит-имя { color: var(--muted) }
@@ -131,7 +134,7 @@
 .тс-галка { margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
   font: 500 12.5px var(--ui); color: var(--muted); cursor: pointer; user-select: none }
 .тс-галка input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer }
-.тс-частота { display: grid; gap: 8px }
+.тс-частота { flex: 1 1 auto; display: grid; align-content: space-between; gap: 8px }
 /* Слово, число и полоса в трёх колонках: числа выстраиваются в столбик и читаются сверху
    вниз одним взглядом, а не построчно. */
 .тс-слово-строка { display: grid; grid-template-columns: minmax(0, 1fr) auto 40%;
@@ -162,9 +165,11 @@
   .тс-главное span { font-size: 10.5px }
   .тс-главное i { margin-top: 8px; font-size: 12.5px }
   .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)) }
-  .тс-список > div { padding: 11px 10px 12px }
+  .тс-список > div { padding: 12px 8px 13px }
   .тс-список > div:nth-child(3n+1) { border-left: 0 }
   .тс-список > div:nth-child(n+4) { border-top: 1px solid rgba(255,255,255,.06) }
+  /* На трёх колонках граница смысла проходит по строке, а не по вертикали. */
+  .тс-список > div.иное { border-left-color: rgba(255,255,255,.06) }
   .тс-список dd { font-size: 18px }
   .тс-список dt { font-size: 10.5px }
 }

@@ -21,8 +21,8 @@ const СЛОВА = {
     unique: 'уникальных слов', punct: 'знаков препинания',
     freqTitle: 'Какие слова чаще всего', freqShort: 'без коротких слов',
     freqEmpty: 'Вставьте текст — здесь появятся самые частые слова',
-    times: 'раз',
-    readAloud: 'Читать вслух', readSilent: 'Читать про себя',
+    times1: 'раз', times2: 'раза', times5: 'раз',
+    readAloud: 'читать вслух', readSilent: 'читать про себя',
     limitsTitle: 'Влезет ли текст',
     lPost: 'Пост в X (Twitter)', lSms: 'Одно СМС', lTitle: 'Заголовок для поиска',
     lDesc: 'Описание для поиска', lTg: 'Пост в Telegram', lIg: 'Подпись в Instagram',
@@ -41,8 +41,8 @@ const СЛОВА = {
     unique: 'унікальних слів', punct: 'розділових знаків',
     freqTitle: 'Які слова найчастіше', freqShort: 'без коротких слів',
     freqEmpty: 'Вставте текст — тут з\'являться найчастіші слова',
-    times: 'разів',
-    readAloud: 'Читати вголос', readSilent: 'Читати подумки',
+    times1: 'раз', times2: 'рази', times5: 'разів',
+    readAloud: 'читати вголос', readSilent: 'читати подумки',
     limitsTitle: 'Чи влізе текст',
     lPost: 'Допис у X (Twitter)', lSms: 'Одна СМС', lTitle: 'Заголовок для пошуку',
     lDesc: 'Опис для пошуку', lTg: 'Допис у Telegram', lIg: 'Підпис в Instagram',
@@ -61,8 +61,8 @@ const СЛОВА = {
     unique: 'unique words', punct: 'punctuation marks',
     freqTitle: 'Most frequent words', freqShort: 'skip short words',
     freqEmpty: 'Paste your text — the most frequent words will show up here',
-    times: 'times',
-    readAloud: 'Read aloud', readSilent: 'Read silently',
+    times1: 'time', times2: 'times', times5: 'times',
+    readAloud: 'read aloud', readSilent: 'read silently',
     limitsTitle: 'Will it fit',
     lPost: 'Post on X (Twitter)', lSms: 'One SMS', lTitle: 'Search title',
     lDesc: 'Search description', lTg: 'Telegram post', lIg: 'Instagram caption',
@@ -81,8 +81,8 @@ const СЛОВА = {
     unique: 'palabras únicas', punct: 'signos de puntuación',
     freqTitle: 'Palabras más frecuentes', freqShort: 'sin palabras cortas',
     freqEmpty: 'Pega el texto y aquí saldrán las palabras más frecuentes',
-    times: 'veces',
-    readAloud: 'Leer en voz alta', readSilent: 'Leer en silencio',
+    times1: 'vez', times2: 'veces', times5: 'veces',
+    readAloud: 'leer en voz alta', readSilent: 'leer en silencio',
     limitsTitle: '¿Cabe el texto?',
     lPost: 'Publicación en X (Twitter)', lSms: 'Un SMS', lTitle: 'Título para buscadores',
     lDesc: 'Descripción para buscadores', lTg: 'Publicación en Telegram', lIg: 'Pie en Instagram',
@@ -155,10 +155,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         к чему относится. */}
     <dl class="тс-список">
       <div><dd id="тс-предложения">0</dd><dt>{с.sentences}</dt></div>
-      <div><dd id="тс-препинание">0</dd><dt>{с.punct}</dt></div>
       <div><dd id="тс-строки">0</dd><dt>{с.lines}</dt></div>
       <div><dd id="тс-абзацы">0</dd><dt>{с.paras}</dt></div>
-      <div><dd id="тс-вслух">0:00</dd><dt>{с.readAloud}</dt></div>
+      <div><dd id="тс-препинание">0</dd><dt>{с.punct}</dt></div>
+      <div class="иное"><dd id="тс-вслух">0:00</dd><dt>{с.readAloud}</dt></div>
       <div><dd id="тс-просебя">0:00</dd><dt>{с.readSilent}</dt></div>
     </dl>
   </div>
@@ -239,13 +239,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         р.innerHTML = '<span class="тс-сл"></span><span class="тс-скол"></span>'
           + '<span class="тс-сл-полоса"><i></i></span>';
         р.querySelector('.тс-сл').textContent = слово;
-        р.querySelector('.тс-скол').textContent = сколько + ' ' + с.times;
+        р.querySelector('.тс-скол').textContent = сколько + ' ' + разов(сколько);
         р.querySelector('.тс-сл-полоса i').style.width = (сколько / макс * 100).toFixed(1) + '%';
         куски.appendChild(р);
       }
       частотаБлок.replaceChildren(куски);
     }
     const разделитель = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    // «3 раз» -- неграмотно. У русского и украинского три формы, у английского и испанского
+    // две; общее правило покрывает все четыре языка.
+    const разов = (n) => (n % 10 === 1 && n % 100 !== 11) ? с.times1
+      : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? с.times2 : с.times5);
     function время(минут) {
       const всего = Math.round(минут * 60);
       const м = Math.floor(всего / 60), сек = всего % 60;
