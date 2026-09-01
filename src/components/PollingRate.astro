@@ -87,13 +87,21 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       событий, чем тыканье в маленький квадрат. */}
   <div class="чо-поле" id="чо-поле">
     <canvas class="чо-след" id="чо-след" aria-hidden="true"></canvas>
+    <i class="чо-угол лв" aria-hidden="true"></i><i class="чо-угол пв" aria-hidden="true"></i>
+    <i class="чо-угол лн" aria-hidden="true"></i><i class="чо-угол пн" aria-hidden="true"></i>
+
     <div class="чо-ждёт" id="чо-ждёт">
+      <svg class="чо-значок" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+           stroke-width="1.7" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="7" y="2.5" width="10" height="19" rx="5"></rect>
+        <path d="M12 6.5v3.5"></path>
+      </svg>
       <div class="чо-зов">{с.ready}</div>
       <div class="чо-под">{с.readySub}</div>
     </div>
     <div class="чо-идёт" id="чо-идёт" hidden>
       <div class="чо-число" id="чо-число">0</div>
-      <div class="чо-гц">{с.hz}</div>
+      <div class="чо-гц"><i class="чо-огонёк" aria-hidden="true"></i>{с.hz}</div>
     </div>
   </div>
 
@@ -235,6 +243,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       к.clearRect(0, 0, ш, в);
       if (точки.length < 2) return;
       к.lineWidth = 2; к.lineCap = 'round'; к.lineJoin = 'round';
+      к.shadowColor = 'rgba(96,165,250,.55)'; к.shadowBlur = 6;
       const последняя = точки[точки.length - 1];
       for (let i = 1; i < точки.length; i++) {
         const доля = i / точки.length;
@@ -266,6 +275,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
       if (!началось) {
         началось = true;
+        корень.classList.add('идёт');
         $('чо-ждёт').hidden = true; $('чо-идёт').hidden = false;
         подсказка.textContent = с.hintGo;
       }
@@ -284,6 +294,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     $('чо-снова').addEventListener('click', () => {
       времена = []; частоты = []; точки = []; макс = 0; началось = false;
+      корень.classList.remove('идёт');
       $('чо-ждёт').hidden = false; $('чо-идёт').hidden = true;
       $('чо-число').textContent = '0';
       $('чо-макс').textContent = '0'; $('чо-сред').textContent = '0'; $('чо-замеров').textContent = '0';
