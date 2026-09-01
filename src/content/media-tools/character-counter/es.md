@@ -3,10 +3,10 @@ toolSlug: character-counter
 locale: es
 category: text
 tool: character-counter
-title: Contador de caracteres y palabras — cuenta tu texto online
-h1: Contar caracteres y palabras
+title: Contador de caracteres y palabras en un texto — contar online
+h1: Contar caracteres y palabras en un texto
 navName: Caracteres y palabras
-description: "Pega el texto y verás los caracteres con y sin espacios, además de palabras, líneas y párrafos. Con tiempo de lectura y límites de redes. Gratis y online."
+description: "Pega el texto y verás los caracteres con y sin espacios, más palabras y párrafos. Con tiempo de lectura y límites de SMS y redes. Gratis y sin registro."
 faq:
   - question: ¿Cómo cuento los caracteres de un texto?
     answer: "Pega el texto en el campo: los números se cuentan solos, no hay que pulsar nada. Los caracteres con y sin espacios se muestran por separado; en los encargos suele pedirse «con espacios», pero conviene preguntar, porque en un texto largo la diferencia es de un sexto."

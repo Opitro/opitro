@@ -3,10 +3,10 @@ toolSlug: character-counter
 locale: en
 category: text
 tool: character-counter
-title: Character and word counter — count your text online
-h1: Count characters and words
+title: Character and word counter — count characters in a text online
+h1: Count the characters and words in a text
 navName: Characters and words
-description: "Paste your text and see the character count with and without spaces, plus words, lines and paragraphs. Reading time and social limits included. Free and online."
+description: "Paste your text and see the characters with and without spaces, plus words and paragraphs. Reading time and SMS and social limits too. Free, no sign-up."
 faq:
   - question: How do I count the characters in a text?
     answer: "Paste the text into the field — the numbers count themselves, there is nothing to press. Characters with and without spaces are shown separately: briefs usually mean “with spaces”, but it is worth asking, because on a long text the difference is about a sixth."
