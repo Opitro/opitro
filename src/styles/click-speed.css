@@ -50,6 +50,9 @@
 /* Отклик на каждое нажатие: без него непонятно, засчитан клик или нет. */
 .кс.бьёт .кс-поле { background: color-mix(in srgb, var(--accent) 7%, var(--surface)) }
 
+/* Оба состояния поля -- ожидание и счёт -- стоят по центру и не двигают поле. */
+.кс-ждёт, .кс-идёт { display: flex; flex-direction: column; align-items: center; gap: 8px }
+.кс-ждёт[hidden], .кс-идёт[hidden] { display: none }
 .кс-зов { font: 800 21px var(--ui); color: var(--text) }
 .кс-под { font: 500 13.5px var(--ui); color: var(--muted); max-width: 40ch }
 

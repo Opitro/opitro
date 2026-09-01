@@ -1,0 +1,287 @@
+---
+// СКОРОСТЬ КЛИКА.
+//
+// Меряет число нажатий в секунду за выбранный отрезок. Время идёт с ПЕРВОГО нажатия, а не с
+// открытия страницы: секунды на раздумье не должны попадать в результат.
+//
+// Считаются нажатия, а не «клики» браузера: слушаем pointerdown. Событие click приходит
+// только после отпускания кнопки, и на быстром стуке часть нажатий браузер до него не
+// доводит -- счётчики на click занижают результат.
+import css from '../styles/click-speed.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    setTime: 'Сколько секунд', sec: 'с',
+    ready: 'Нажимайте сюда', readySub: 'Время пойдёт с первого нажатия',
+    go: 'Жмите!', left: 'осталось',
+    result: 'кликов в секунду', clicksTotal: 'всего нажатий', bestSec: 'лучшая секунда',
+    rec: 'рекорд', again: 'Ещё раз', hint: 'Нажимайте по большому полю — промахнуться нельзя',
+    hintGo: 'Не останавливайтесь до конца отсчёта',
+    after: 'Нажмите «Ещё раз», чтобы повторить',
+    ranks: ['Спокойно', 'Обычно', 'Быстро', 'Очень быстро', 'Запредельно'],
+    vSlow: 'Спокойный темп. Столько выходит, если нажимать одним пальцем без спешки.',
+    vMid: 'Обычная скорость: примерно так кликает большинство людей, когда торопится.',
+    vFast: 'Быстро. Так стучат те, кто играет и привык к частым нажатиям.',
+    vTop: 'Очень быстро. Обычным нажатием пальца такое почти не берут.',
+    vCrazy: 'Запредельно. Столько выдают приёмами вроде дрожания руки или двумя пальцами по очереди.',
+    vNew: 'Личный рекорд!',
+    n1: 'Время идёт с первого нажатия, а не с открытия страницы: секунды на раздумье в результат не попадают.',
+    n2: 'Считаются нажатия, а не отпускания. На быстром стуке браузер не всегда доводит нажатие до события «клик», и счётчики, построенные на нём, занижают результат.',
+    n3: 'Работает и пальцем: на телефоне и планшете считается каждое касание поля.',
+    n4: 'Обычный человек выдаёт 5–7 нажатий в секунду. Выше 10 берут особыми приёмами, а не простым нажатием пальца.',
+  },
+  uk: {
+    setTime: 'Скільки секунд', sec: 'с',
+    ready: 'Натискайте сюди', readySub: 'Час піде з першого натискання',
+    go: 'Тисніть!', left: 'лишилося',
+    result: 'кліків за секунду', clicksTotal: 'усього натискань', bestSec: 'найкраща секунда',
+    rec: 'рекорд', again: 'Ще раз', hint: 'Натискайте по великому полю — промахнутися неможливо',
+    hintGo: 'Не зупиняйтеся до кінця відліку',
+    after: 'Натисніть «Ще раз», щоб повторити',
+    ranks: ['Спокійно', 'Звичайно', 'Швидко', 'Дуже швидко', 'Позамежно'],
+    vSlow: 'Спокійний темп. Стільки виходить, якщо натискати одним пальцем без поспіху.',
+    vMid: 'Звичайна швидкість: приблизно так клікає більшість людей, коли поспішає.',
+    vFast: 'Швидко. Так стукають ті, хто грає і звик до частих натискань.',
+    vTop: 'Дуже швидко. Звичайним натисканням пальця таке майже не беруть.',
+    vCrazy: 'Позамежно. Стільки видають прийомами на кшталт тремтіння руки або двома пальцями по черзі.',
+    vNew: 'Особистий рекорд!',
+    n1: 'Час іде з першого натискання, а не з відкриття сторінки: секунди на роздуми в результат не потрапляють.',
+    n2: 'Рахуються натискання, а не відпускання. На швидкому стуку браузер не завжди доводить натискання до події «клік», і лічильники на ній занижують результат.',
+    n3: 'Працює і пальцем: на телефоні та планшеті рахується кожен дотик до поля.',
+    n4: 'Звичайна людина видає 5–7 натискань за секунду. Вище 10 беруть особливими прийомами, а не простим натисканням пальця.',
+  },
+  en: {
+    setTime: 'How many seconds', sec: 's',
+    ready: 'Click here', readySub: 'The clock starts with your first click',
+    go: 'Go!', left: 'left',
+    result: 'clicks per second', clicksTotal: 'clicks in total', bestSec: 'best second',
+    rec: 'best', again: 'Again', hint: 'Click anywhere in the big area — you cannot miss it',
+    hintGo: 'Keep going until the timer runs out',
+    after: 'Press “Again” to have another go',
+    ranks: ['Calm', 'Average', 'Fast', 'Very fast', 'Off the scale'],
+    vSlow: 'A calm pace. That is what one unhurried finger gives you.',
+    vMid: 'Average speed: this is roughly how most people click when they are in a hurry.',
+    vFast: 'Fast. That is the rate of people who game and are used to rapid clicking.',
+    vTop: 'Very fast. A plain finger press rarely gets this far.',
+    vCrazy: 'Off the scale. Rates like this come from tricks — shaking the hand or alternating two fingers.',
+    vNew: 'Personal best!',
+    n1: 'The clock starts with your first click, not when the page opens: thinking time never counts.',
+    n2: 'Presses are counted, not releases. During fast clicking the browser does not always turn a press into a “click” event, so counters built on it come out low.',
+    n3: 'Works with a finger too: on a phone or tablet every tap on the area counts.',
+    n4: 'An ordinary person gets 5–7 clicks per second. Above 10 comes from special techniques, not from pressing a finger.',
+  },
+  es: {
+    setTime: 'Cuántos segundos', sec: 's',
+    ready: 'Haz clic aquí', readySub: 'El tiempo corre desde el primer clic',
+    go: '¡Dale!', left: 'quedan',
+    result: 'clics por segundo', clicksTotal: 'clics en total', bestSec: 'mejor segundo',
+    rec: 'récord', again: 'Otra vez', hint: 'Haz clic en cualquier punto del área: no puedes fallar',
+    hintGo: 'No pares hasta que acabe la cuenta',
+    after: 'Pulsa «Otra vez» para repetir',
+    ranks: ['Tranquilo', 'Normal', 'Rápido', 'Muy rápido', 'Fuera de escala'],
+    vSlow: 'Un ritmo tranquilo. Es lo que da un dedo sin prisa.',
+    vMid: 'Velocidad normal: así hace clic la mayoría cuando tiene prisa.',
+    vFast: 'Rápido. Es el ritmo de quien juega y está acostumbrado a clicar mucho.',
+    vTop: 'Muy rápido. Con una simple pulsación del dedo casi no se llega ahí.',
+    vCrazy: 'Fuera de escala. Estas cifras salen de trucos: vibrar la mano o alternar dos dedos.',
+    vNew: '¡Récord personal!',
+    n1: 'El tiempo corre desde el primer clic, no desde que se abre la página: pensar no cuenta.',
+    n2: 'Se cuentan las pulsaciones, no las sueltas. Al clicar rápido el navegador no siempre convierte la pulsación en un evento «click», y los contadores basados en él se quedan cortos.',
+    n3: 'Funciona también con el dedo: en móvil y tableta cuenta cada toque en el área.',
+    n4: 'Una persona normal hace 5–7 clics por segundo. Por encima de 10 se llega con técnicas especiales, no pulsando con el dedo.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="кс ждёт" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="кс-верх">
+    <span class="кс-к">{с.setTime}</span>
+    <div class="кс-чипы" id="кс-время" role="group" aria-label={с.setTime}>
+      <button type="button" class="кс-чип" data-сек="1">1 {с.sec}</button>
+      <button type="button" class="кс-чип вкл" data-сек="5">5 {с.sec}</button>
+      <button type="button" class="кс-чип" data-сек="10">10 {с.sec}</button>
+      <button type="button" class="кс-чип" data-сек="30">30 {с.sec}</button>
+      <button type="button" class="кс-чип" data-сек="60">60 {с.sec}</button>
+    </div>
+  </div>
+
+  {/* Поле нарочно огромное: промахнуться по нему нельзя ни мышью, ни пальцем, иначе замер
+      меряет меткость, а не скорость. */}
+  <div class="кс-поле" id="кс-поле" role="button" tabindex="0" aria-label={с.ready}>
+    <div class="кс-полоса" aria-hidden="true"><i id="кс-полоса"></i></div>
+
+    <div class="кс-ждёт" id="кс-ждёт">
+      <div class="кс-зов">{с.ready}</div>
+      <div class="кс-под">{с.readySub}</div>
+    </div>
+
+    <div class="кс-идёт" id="кс-идёт" hidden>
+      <div class="кс-счёт" id="кс-счёт">0</div>
+      <div class="кс-время"><span id="кс-осталось">5.0</span> {с.sec} {с.left}</div>
+    </div>
+
+    <div class="кс-итог" id="кс-итог">
+      <span class="кс-разряд" id="кс-разряд"></span>
+      <span class="кс-число" id="кс-число">0</span>
+      <span class="кс-мера">{с.result}</span>
+      <div class="кс-мелочь">
+        <div class="кс-плитка"><b id="кс-всего">0</b><span>{с.clicksTotal}</span></div>
+        <div class="кс-плитка"><b id="кс-лучшая">0</b><span>{с.bestSec}</span></div>
+        <div class="кс-плитка"><b id="кс-рекорд">—</b><span>{с.rec}</span></div>
+      </div>
+      <p class="кс-слово" id="кс-слово"></p>
+    </div>
+  </div>
+
+  <div class="кс-низ">
+    <span class="кс-подсказка" id="кс-подсказка">{с.hint}</span>
+    <button type="button" class="кс-снова" id="кс-снова">{с.again}</button>
+  </div>
+
+  <div class="кс-заметки">
+    <div class="кс-заметка">{с.n1}</div>
+    <div class="кс-заметка">{с.n2}</div>
+    <div class="кс-заметка">{с.n3}</div>
+    <div class="кс-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.кс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (id) => document.getElementById(id);
+
+    const поле = $('кс-поле'), полоса = $('кс-полоса');
+    const блокЖдёт = $('кс-ждёт'), блокИдёт = $('кс-идёт');
+    const счёт = $('кс-счёт'), осталось = $('кс-осталось'), подсказка = $('кс-подсказка');
+
+    let длительность = 5;
+    let начало = 0, таймер = 0, идёт = false, кончено = false;
+    let нажатий = 0, отметки = [];
+
+    const ключРекорда = () => 'opitro-cps-' + язык + '-' + длительность;
+    function взятьРекорд() {
+      try { return Number(localStorage.getItem(ключРекорда())) || 0; } catch { return 0; }
+    }
+
+    // Лучшая секунда: самое плотное окно в одну секунду за всю попытку. Считается по
+    // отметкам времени, а не по «секундам от начала» -- иначе удачный стук на границе
+    // делится пополам и лучшая секунда выходит меньше настоящей.
+    function лучшаяСекунда() {
+      let лучше = 0;
+      for (let i = 0, j = 0; i < отметки.length; i++) {
+        while (отметки[i] - отметки[j] > 1000) j++;
+        лучше = Math.max(лучше, i - j + 1);
+      }
+      return лучше;
+    }
+
+    function тик() {
+      const прошло = (Date.now() - начало) / 1000;
+      const ост = Math.max(0, длительность - прошло);
+      осталось.textContent = ост.toFixed(1);
+      полоса.style.transform = 'scaleX(' + Math.max(0, 1 - прошло / длительность) + ')';
+      корень.classList.toggle('мало', ост <= Math.min(2, длительность / 3));
+      if (ост <= 0) закончить();
+    }
+
+    function начать() {
+      идёт = true;
+      корень.classList.remove('ждёт'); корень.classList.add('идёт');
+      блокЖдёт.hidden = true; блокИдёт.hidden = false;
+      подсказка.textContent = с.hintGo;
+      начало = Date.now();
+      таймер = window.setInterval(тик, 40);
+    }
+
+    function нажатие(e) {
+      // Только основная кнопка: правая открывает меню, средняя включает прокрутку, и считать
+      // их за клик было бы неправдой.
+      if (e.pointerType === 'mouse' && e.button !== 0) return;
+      e.preventDefault();
+      if (кончено) return;
+      if (!идёт) начать();
+      нажатий++; отметки.push(Date.now());
+      счёт.textContent = String(нажатий);
+      // Короткая вспышка поля: без отклика непонятно, засчитано нажатие или нет.
+      корень.classList.add('бьёт');
+      setTimeout(() => корень.classList.remove('бьёт'), 60);
+    }
+
+    function набежать(узел, до, знаков) {
+      const шагов = 20; let i = 0;
+      const т = setInterval(() => {
+        i++; const доля = 1 - Math.pow(1 - i / шагов, 3);
+        узел.textContent = (до * доля).toFixed(знаков || 0);
+        if (i >= шагов) { clearInterval(т); узел.textContent = до.toFixed(знаков || 0); }
+      }, 18);
+    }
+
+    function закончить() {
+      if (!идёт) return;
+      идёт = false; кончено = true; clearInterval(таймер);
+      const вСекунду = нажатий / длительность;
+      const лучшая = лучшаяСекунда();
+      const прежний = взятьРекорд();
+      const побит = вСекунду > прежний;
+      if (побит) { try { localStorage.setItem(ключРекорда(), вСекунду.toFixed(2)); } catch {} }
+
+      корень.classList.remove('идёт', 'мало'); корень.classList.add('конец');
+      const разр = [3.5, 6, 9, 12].filter((г) => вСекунду >= г).length;
+      $('кс-разряд').textContent = (побит && прежний > 0) ? с.vNew : с.ranks[разр];
+      $('кс-разряд').classList.toggle('рекорд', побит && прежний > 0);
+      набежать($('кс-число'), вСекунду, 1);
+      набежать($('кс-всего'), нажатий);
+      набежать($('кс-лучшая'), лучшая);
+      const рек = взятьРекорд();
+      $('кс-рекорд').textContent = рек ? рек.toFixed(1) : '—';
+      $('кс-слово').textContent = [с.vSlow, с.vMid, с.vFast, с.vTop, с.vCrazy][разр];
+      подсказка.textContent = с.after;
+    }
+
+    function заново() {
+      clearInterval(таймер);
+      идёт = false; кончено = false; нажатий = 0; отметки = [];
+      корень.classList.remove('идёт', 'конец', 'мало', 'бьёт');
+      корень.classList.add('ждёт');
+      блокЖдёт.hidden = false; блокИдёт.hidden = true;
+      счёт.textContent = '0';
+      осталось.textContent = длительность.toFixed(1);
+      полоса.style.transform = 'scaleX(1)';
+      подсказка.textContent = с.hint;
+    }
+
+    поле.addEventListener('pointerdown', нажатие);
+    // Клавиатура тоже засчитывается: пробел и Enter -- обычный способ нажать кнопку без мыши.
+    поле.addEventListener('keydown', (e) => {
+      if (e.key !== ' ' && e.key !== 'Enter') return;
+      e.preventDefault();
+      нажатие({ pointerType: 'key', button: 0, preventDefault() {} });
+    });
+    поле.addEventListener('contextmenu', (e) => { if (идёт) e.preventDefault(); });
+    $('кс-снова').addEventListener('click', () => { заново(); $('кс-снова').blur(); });
+    $('кс-время').addEventListener('click', (e) => {
+      const б = e.target.closest('.кс-чип'); if (!б) return;
+      [...e.currentTarget.children].forEach((x) => x.classList.toggle('вкл', x === б));
+      длительность = Number(б.dataset.сек) || 5;
+      заново(); б.blur();
+    });
+
+    заново();
+
+    window.__ксСостояние = () => ({
+      идёт, кончено, длительность, нажатий,
+      результат: $('кс-число').textContent,
+      разряд: $('кс-разряд').textContent,
+      лучшая: $('кс-лучшая').textContent,
+      рекорд: $('кс-рекорд').textContent,
+    });
+  })();
+</script>
