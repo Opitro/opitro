@@ -235,8 +235,34 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       к.strokeStyle = '#60a5fa'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
     }
 
+    // Холст в режиме малой задержки: браузеру разрешено выводить его, не дожидаясь общей
+    // сборки кадра страницы. Ради этого режим и придуман.
+    const холстСледа = след.getContext('2d', { desynchronized: true, alpha: true });
+
+    // Новые куски дорисовываются ПРЯМО В СОБЫТИИ, не дожидаясь кадра. Кадр потом
+    // перерисовывает весь след с затуханием, но линия уже дотянулась до курсора: так мы
+    // не добавляем к неизбежной задержке ещё и свою.
+    function дорисовать(с_какой) {
+      const к = холстСледа;
+      const м = window.devicePixelRatio || 1;
+      к.setTransform(м, 0, 0, м, 0, 0);
+      к.lineWidth = 2; к.lineCap = 'round'; к.lineJoin = 'round';
+      к.shadowColor = 'rgba(96,165,250,.55)'; к.shadowBlur = 6;
+      к.strokeStyle = 'rgba(96,165,250,.48)';
+      к.beginPath();
+      for (let i = Math.max(1, с_какой); i < точки.length; i++) {
+        к.moveTo(точки[i - 1].x, точки[i - 1].y);
+        к.lineTo(точки[i].x, точки[i].y);
+      }
+      к.stroke();
+      const п2 = точки[точки.length - 1];
+      к.beginPath(); к.arc(п2.x, п2.y, 3.5, 0, Math.PI * 2);
+      к.fillStyle = '#60a5fa'; к.fill();
+      к.shadowBlur = 0;
+    }
+
     function рисоватьСлед() {
-      const к = след.getContext('2d');
+      const к = холстСледа;
       const ш = поле.clientWidth, в = поле.clientHeight, м = window.devicePixelRatio || 1;
       if (след.width !== ш * м || след.height !== в * м) { след.width = ш * м; след.height = в * м; }
       к.setTransform(м, 0, 0, м, 0, 0);
@@ -264,13 +290,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const пачка = (e.getCoalescedEvents && e.getCoalescedEvents()) || [e];
       if (!e.getCoalescedEvents) подсказка.textContent = с.noCoalesced;
       const рп = след.getBoundingClientRect();
+      const былоТочек = точки.length;
       for (const с3 of пачка) {
         времена.push(с3.timeStamp);
         точки.push({ x: с3.clientX - рп.left, y: с3.clientY - рп.top });
       }
       if (времена.length > 20000) времена = времена.slice(-20000);
       // След короткий: он показывает, что события идут, а не хранит историю движения.
-      if (точки.length > 140) точки = точки.slice(-140);
+      const срезано = Math.max(0, точки.length - 140);
+      if (срезано) точки = точки.slice(-140);
       надоРисовать = true;
 
       if (!началось) {
@@ -279,6 +307,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         $('чо-ждёт').hidden = true; $('чо-идёт').hidden = false;
         подсказка.textContent = с.hintGo;
       }
+      // Дотягиваем линию сразу, в этом же событии.
+      if (точки.length > 1) дорисовать(былоТочек - срезано);
     });
 
     // Числа обновляет отдельный ход, а не само событие движения: иначе последняя серия
