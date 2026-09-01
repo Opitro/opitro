@@ -13,24 +13,27 @@
 
 .тс {
   --рамка: var(--line);
+  /* Пока текста нет, считать нечего: числа и полоски приглушены и проявляются с первой
+     буквой. Это не украшение -- так видно, что страница ждёт именно вас. */
+  --живо: 1;
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
 /* ---- Поле ввода ------------------------------------------------------------------ */
 
-/* Поле -- главное на странице: с него всё начинается. Пока оно пустое, у него зелёная рамка
-   и мягкое свечение -- взгляд идёт туда сам. Как только текст вставлен, свечение уходит:
-   светиться пустому полю нужно, а занятому уже незачем. */
+/* Поле -- главное на странице: с него всё начинается. Выделено ДВОЙНОЙ рамкой: своя линия,
+   зазор цветом страницы и вторая линия снаружи -- получается оправа. Линии нейтральные:
+   цветная рамка вокруг большого поля превращала его в предупреждение, а не в приглашение. */
 .тс-поле {
   position: relative;
-  border: 1px solid var(--рамка); border-radius: 16px; background: var(--surface);
-  transition: border-color .25s ease, box-shadow .25s ease;
+  border: 1.5px solid rgba(255,255,255,.24); border-radius: 16px; background: var(--surface);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5.5px rgba(255,255,255,.10);
+  transition: border-color .2s ease, box-shadow .2s ease;
 }
-.тс.пусто .тс-поле {
-  border-color: rgba(74,222,158,.42);
-  box-shadow: 0 0 0 3px rgba(74,222,158,.07), 0 22px 50px -30px rgba(74,222,158,.75);
+.тс-поле:focus-within {
+  border-color: rgba(255,255,255,.45);
+  box-shadow: 0 0 0 4px var(--bg), 0 0 0 5.5px rgba(255,255,255,.2);
 }
-.тс-поле:focus-within { border-color: rgba(74,222,158,.6) }
 .тс-ввод {
   display: block; width: 100%; min-height: 168px; resize: vertical;
   padding: 20px 20px 14px; border: 0; background: transparent; color: var(--text);
@@ -59,6 +62,10 @@
 
 /* Два главных числа -- символы и слова: за ними приходят одинаково часто, и прятать слова
    в список мелочей было ошибкой. Остальное идёт подробностями снизу. */
+.тс.пусто { --живо: .34 }
+.тс-итоги, .тс-низ {
+  opacity: var(--живо); transition: opacity .45s ease;
+}
 .тс-итоги {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
@@ -82,6 +89,36 @@
 .тс-главное em { font-style: normal; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums }
 
+
+/* Полоса подробностей: шесть приподнятых плиток. Число стоит прямо над своей подписью --
+   подпись слева и число у дальнего края расходились на широком экране так, что глазу
+   приходилось гадать, что к чему относится. */
+.тс-список {
+  grid-column: 1 / -1;
+  background: var(--surface); margin: 0; padding: 14px;
+  display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;
+  font-family: var(--ui);
+}
+/* Плитки приподняты: светлая грань сверху, тень снизу -- тот же язык, что у клавиш на
+   тесте печати. */
+.тс-список > div {
+  padding: 14px 8px 15px; text-align: center; border-radius: 11px;
+  background: linear-gradient(180deg, #23262e, #191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
+}
+/* Время чтения отделено увеличенным зазором: слева -- из чего состоит текст, справа --
+   сколько его читать. Пустота группирует надёжнее линии. */
+.тс-список > div.иное { margin-left: 10px }
+.тс-список dd {
+  margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.тс-список dt {
+  margin-top: 5px; font-size: 11px; font-weight: 600; letter-spacing: .05em;
+  color: rgba(214,219,230,.72); line-height: 1.35;
+}
+.тс-список > div:nth-last-child(-n+2) dd { color: rgba(240,240,242,.84) }
 
 /* ---- Лимиты и частота ------------------------------------------------------------ */
 
