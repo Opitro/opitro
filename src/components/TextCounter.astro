@@ -102,7 +102,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <style is:inline set:html={css}></style>
 
-<div class="тс" data-words={JSON.stringify(с)} data-locale={locale}>
+<div class="тс пусто" data-words={JSON.stringify(с)} data-locale={locale}>
   {/* Поле встречает первым: человек пришёл вставить текст, а не читать цифры. */}
   <div class="тс-поле">
     <textarea class="тс-ввод" id="тс-ввод" placeholder={с.place} spellcheck="false"
@@ -267,6 +267,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     function посчитать() {
       const т = ввод.value;
       const символов = т.length;
+      // Пустому полю свечение нужно, занятому -- уже нет: оно звало бы туда, где всё сделано.
+      корень.classList.toggle('пусто', !т);
       const безПробелов = т.replace(/\s/g, '').length;
       // Слово -- любая непробельная последовательность. Дефис внутри слово не разрывает:
       // «кто-то» это одно слово, и делить его было бы неправдой.

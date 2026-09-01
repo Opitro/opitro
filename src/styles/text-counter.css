@@ -18,20 +18,27 @@
 
 /* ---- Поле ввода ------------------------------------------------------------------ */
 
+/* Поле -- главное на странице: с него всё начинается. Пока оно пустое, у него зелёная рамка
+   и мягкое свечение -- взгляд идёт туда сам. Как только текст вставлен, свечение уходит:
+   светиться пустому полю нужно, а занятому уже незачем. */
 .тс-поле {
   position: relative;
   border: 1px solid var(--рамка); border-radius: 16px; background: var(--surface);
-  transition: border-color .2s ease;
+  transition: border-color .25s ease, box-shadow .25s ease;
 }
-.тс-поле:focus-within { border-color: rgba(74,222,158,.45) }
+.тс.пусто .тс-поле {
+  border-color: rgba(74,222,158,.42);
+  box-shadow: 0 0 0 3px rgba(74,222,158,.07), 0 22px 50px -30px rgba(74,222,158,.75);
+}
+.тс-поле:focus-within { border-color: rgba(74,222,158,.6) }
 .тс-ввод {
   display: block; width: 100%; min-height: 168px; resize: vertical;
-  padding: 18px 18px 14px; border: 0; background: transparent; color: var(--text);
-  font: 400 16px/1.65 var(--ui);
+  padding: 20px 20px 14px; border: 0; background: transparent; color: var(--text);
+  font: 400 17px/1.65 var(--ui);
   border-radius: 16px;
 }
 .тс-ввод:focus { outline: none }
-.тс-ввод::placeholder { color: rgba(214,219,230,.38) }
+.тс-ввод::placeholder { color: rgba(214,219,230,.5); font-size: 16px }
 
 .тс-ряд {
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;

@@ -1,0 +1,118 @@
+/* СТИЛИ СТРАНИЦЫ «СКОРОСТЬ КЛИКА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ПОЛЕ ДЛЯ КЛИКОВ ОГРОМНОЕ. Промахнуться по нему нельзя ни мышью, ни пальцем -- иначе
+ *      замер меряет не скорость, а меткость.
+ *   2. ВРЕМЯ ИДЁТ С ПЕРВОГО НАЖАТИЯ. Секунды на раздумье в результат не попадают.
+ *   3. НИЧЕГО НЕ ПРЫГАЕТ. Счётчик и время стоят на своих местах, цифры моноширинные:
+ *      при десяти нажатиях в секунду дрожащая строка невыносима.
+ */
+
+.кс {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  max-width: 720px; margin: 0 auto;
+}
+
+/* ---- Настройки ------------------------------------------------------------------- */
+
+.кс-верх { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px }
+.кс-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(214,219,230,.5); padding-left: 2px }
+.кс-чипы { display: flex; flex-wrap: wrap; gap: 6px }
+.кс-чип {
+  font: 600 13px var(--ui); height: 36px; padding: 0 15px; border-radius: 9px; cursor: pointer;
+  color: var(--muted); background: linear-gradient(180deg,#23262e,#191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform .06s ease, box-shadow .06s ease, color .12s ease;
+}
+.кс-чип:hover { color: var(--text) }
+.кс-чип:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
+.кс-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
+
+/* ---- Поле ------------------------------------------------------------------------ */
+
+.кс-поле {
+  position: relative; width: 100%; min-height: 300px; border-radius: 18px; cursor: pointer;
+  border: 1px solid var(--line); background: var(--surface);
+  display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 10px;
+  font-family: var(--ui); text-align: center; padding: 26px 22px;
+  -webkit-user-select: none; user-select: none; -webkit-tap-highlight-color: transparent;
+  touch-action: manipulation;
+  transition: border-color .2s ease, box-shadow .2s ease;
+}
+.кс.ждёт .кс-поле { border-color: rgba(74,222,158,.35) }
+.кс.идёт .кс-поле { border-color: rgba(74,222,158,.5);
+  box-shadow: 0 0 0 1px rgba(74,222,158,.14), 0 24px 60px -30px rgba(74,222,158,.35) }
+/* Отклик на каждое нажатие: без него непонятно, засчитан клик или нет. */
+.кс.бьёт .кс-поле { background: color-mix(in srgb, var(--accent) 7%, var(--surface)) }
+
+.кс-зов { font: 800 21px var(--ui); color: var(--text) }
+.кс-под { font: 500 13.5px var(--ui); color: var(--muted); max-width: 40ch }
+
+/* Полоса времени по верхнему краю поля -- видно, не отрывая глаз от места нажатия. */
+.кс-полоса { position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 18px 18px 0 0;
+  background: rgba(255,255,255,.06); overflow: hidden }
+.кс-полоса i { display: block; height: 100%; width: 100%; background: var(--accent);
+  transform-origin: left; transition: transform .1s linear }
+.кс.мало .кс-полоса i { background: #f5c451 }
+
+/* Счётчик во время нажатий: одно крупное число и время под ним. */
+.кс-счёт { font: 800 84px/1 var(--ui); color: var(--accent); font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em }
+.кс-время { font: 700 15px var(--ui); color: var(--muted); font-variant-numeric: tabular-nums }
+
+/* ---- Итог ------------------------------------------------------------------------- */
+
+.кс-итог { position: absolute; inset: 0; display: none; flex-direction: column;
+  align-items: center; justify-content: center; gap: 4px; padding: 24px 20px;
+  border-radius: 18px; background: var(--surface); font-family: var(--ui) }
+.кс.конец .кс-итог { display: flex; animation: кс-всплыть .38s cubic-bezier(.2,.85,.3,1) both }
+@keyframes кс-всплыть { from { opacity: 0; transform: translateY(14px) } to { opacity: 1; transform: none } }
+.кс-разряд { font: 800 11.5px var(--ui); letter-spacing: .15em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 6px }
+.кс-разряд.рекорд { color: #f5c451 }
+.кс-число { font: 800 76px/1 var(--ui); color: var(--accent); font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em }
+.кс-мера { margin-top: 6px; font: 500 13px var(--ui); color: var(--muted) }
+.кс-мелочь { display: flex; gap: 10px; margin-top: 18px }
+/* Плитки того же вида, что и на счётчике текста: приподнятые, с гранью и тенью. */
+.кс-плитка { min-width: 104px; padding: 12px 14px 13px; border-radius: 11px; text-align: center;
+  background: linear-gradient(180deg, #23262e, #191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07) }
+.кс-плитка b { display: block; font: 800 21px/1.05 var(--ui); color: var(--text);
+  font-variant-numeric: tabular-nums }
+.кс-плитка span { display: block; margin-top: 5px; font: 600 11px var(--ui); letter-spacing: .05em;
+  color: rgba(214,219,230,.72) }
+.кс-слово { margin-top: 16px; max-width: 44ch; font: 400 13px/1.55 var(--ui); color: var(--muted) }
+
+/* ---- Низ --------------------------------------------------------------------------- */
+
+.кс-низ { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px }
+.кс-подсказка { font-size: 13px; color: var(--muted) }
+.кс-снова { margin-left: auto; font: 700 13.5px var(--ui); height: 38px; padding: 0 18px;
+  border-radius: 10px; cursor: pointer; background: var(--surface-2); border: 1px solid var(--line);
+  color: var(--text) }
+.кс.конец .кс-снова { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
+
+.кс-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.кс-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.кс-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 560px) {
+  .кс-поле { min-height: 260px }
+  .кс-счёт { font-size: 64px }
+  .кс-число { font-size: 58px }
+  .кс-мелочь { gap: 8px }
+  .кс-плитка { min-width: 88px; padding: 10px 10px 11px }
+  .кс-плитка b { font-size: 18px }
+  .кс-снова { margin-left: 0; width: 100% }
+}
+@media (prefers-reduced-motion: reduce) {
+  .кс.конец .кс-итог { animation: none }
+  .кс-полоса i { transition: none }
+}
