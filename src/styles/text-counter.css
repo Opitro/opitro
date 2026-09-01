@@ -13,9 +13,7 @@
 
 .тс {
   --рамка: var(--line);
-  /* Пока текста нет, считать нечего: числа и полоски приглушены и проявляются с первой
-     буквой. Это не украшение -- так видно, что страница ждёт именно вас. */
-  --живо: 1;
+
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
@@ -75,10 +73,6 @@
 
 /* Два главных числа -- символы и слова: за ними приходят одинаково часто, и прятать слова
    в список мелочей было ошибкой. Остальное идёт подробностями снизу. */
-.тс.пусто { --живо: .34 }
-.тс-итоги, .тс-низ {
-  opacity: var(--живо); transition: opacity .45s ease;
-}
 .тс-итоги {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
@@ -88,10 +82,18 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; font-family: var(--ui);
 }
+/* Пока текста нет, все числа -- нули, и зелёными им быть не за что: зелёный тут значит
+   «есть результат». Серый ноль честнее и не роняет доступность, в отличие от приглушения
+   всей области: там проверка считает прозрачность и контраст подписей падает вчетверо. */
 .тс-главное b {
   font-size: 56px; font-weight: 800; line-height: 1; color: var(--accent);
   font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+  transition: color .3s ease;
 }
+.тс.пусто .тс-главное b,
+.тс.пусто .тс-главное em,
+.тс.пусто .тс-список dd { color: rgba(214,219,230,.55) }
+.тс.пусто .тс-полоса i, .тс.пусто .тс-сл-полоса i { background: rgba(214,219,230,.28) }
 .тс-главное span {
   margin-top: 9px; font-size: 12px; font-weight: 700; letter-spacing: .08em;
   text-transform: uppercase; color: rgba(226,231,240,.86);
@@ -125,7 +127,7 @@
 .тс-список > div.иное { margin-left: 10px }
 .тс-список dd {
   margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
-  font-variant-numeric: tabular-nums;
+  font-variant-numeric: tabular-nums; transition: color .3s ease;
 }
 .тс-список dt {
   margin-top: 5px; font-size: 11px; font-weight: 600; letter-spacing: .05em;
