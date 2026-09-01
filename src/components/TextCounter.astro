@@ -1,0 +1,246 @@
+---
+// КОЛИЧЕСТВО СИМВОЛОВ И СЛОВ.
+//
+// Считает на каждой букве, ничего никуда не отправляя. Кроме самих чисел даёт то, ради чего
+// эти числа обычно и считают: сколько текст читается вслух и про себя и влезает ли он в
+// известные лимиты -- пост, СМС, заголовок и описание для поиска.
+//
+// Отдельно про СМС: у кириллицы своя кодировка, и в одно сообщение влезает 70 знаков вместо
+// 160. Счётчики, которые этого не знают, врут русскому и украинскому читателю ровно вдвое.
+import css from '../styles/text-counter.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте или напишите текст — числа посчитаются сами',
+    paste: 'Вставить', copy: 'Копировать', clear: 'Очистить',
+    copied: 'Скопировано', cleared: 'Очищено', nothing: 'Текст пуст',
+    chars: 'символов с пробелами', charsNo: 'без пробелов', words: 'слов',
+    lines: 'строк', paras: 'абзацев', sentences: 'предложений',
+    readTitle: 'Сколько читать', aloud: 'вслух', silent: 'про себя',
+    limitsTitle: 'Влезет ли текст',
+    lPost: 'Пост в X (Twitter)', lSms: 'Одно СМС', lTitle: 'Заголовок для поиска',
+    lDesc: 'Описание для поиска', lTg: 'Пост в Telegram', lIg: 'Подпись в Instagram',
+    left: 'осталось {n}', over: 'лишних {n}',
+    n1: 'Текст никуда не отправляется: всё считается прямо в вашем браузере, страница ничего не сохраняет.',
+    n2: 'Слова разделяются пробелами и переносами строк. Дефис слово не разрывает: «кто-то» — это одно слово.',
+    n3: 'В одно СМС на кириллице влезает 70 знаков, а не 160: у кириллицы своя кодировка. Счётчики, которые этого не учитывают, ошибаются вдвое.',
+    n4: 'Скорость чтения взята обычная: 150 слов в минуту вслух и 220 про себя. У быстрых читателей выходит заметно меньше.',
+  },
+  uk: {
+    place: 'Вставте або напишіть текст — числа порахуються самі',
+    paste: 'Вставити', copy: 'Копіювати', clear: 'Очистити',
+    copied: 'Скопійовано', cleared: 'Очищено', nothing: 'Текст порожній',
+    chars: 'символів із пробілами', charsNo: 'без пробілів', words: 'слів',
+    lines: 'рядків', paras: 'абзаців', sentences: 'речень',
+    readTitle: 'Скільки читати', aloud: 'вголос', silent: 'подумки',
+    limitsTitle: 'Чи влізе текст',
+    lPost: 'Допис у X (Twitter)', lSms: 'Одна СМС', lTitle: 'Заголовок для пошуку',
+    lDesc: 'Опис для пошуку', lTg: 'Допис у Telegram', lIg: 'Підпис в Instagram',
+    left: 'лишилося {n}', over: 'зайвих {n}',
+    n1: 'Текст нікуди не надсилається: усе рахується просто у вашому браузері, сторінка нічого не зберігає.',
+    n2: 'Слова розділяються пробілами та переносами рядків. Дефіс слово не розриває: «хтось-то» — це одне слово.',
+    n3: 'В одну СМС кирилицею вміщується 70 знаків, а не 160: у кирилиці своє кодування. Лічильники, які цього не враховують, помиляються удвічі.',
+    n4: 'Швидкість читання взята звичайна: 150 слів за хвилину вголос і 220 подумки. У швидких читачів виходить помітно менше.',
+  },
+  en: {
+    place: 'Paste or type your text — the numbers count themselves',
+    paste: 'Paste', copy: 'Copy', clear: 'Clear',
+    copied: 'Copied', cleared: 'Cleared', nothing: 'The text is empty',
+    chars: 'characters with spaces', charsNo: 'without spaces', words: 'words',
+    lines: 'lines', paras: 'paragraphs', sentences: 'sentences',
+    readTitle: 'Reading time', aloud: 'aloud', silent: 'silently',
+    limitsTitle: 'Will it fit',
+    lPost: 'Post on X (Twitter)', lSms: 'One SMS', lTitle: 'Search title',
+    lDesc: 'Search description', lTg: 'Telegram post', lIg: 'Instagram caption',
+    left: '{n} left', over: '{n} over',
+    n1: 'The text is never sent anywhere: everything is counted in your browser and nothing is stored.',
+    n2: 'Words are separated by spaces and line breaks. A hyphen does not split a word: “well-known” is one word.',
+    n3: 'One SMS holds 160 characters in Latin script but only 70 in Cyrillic — the encoding is different. Counters that ignore this are off by half.',
+    n4: 'Reading speed is taken as usual: 150 words per minute aloud and 220 silently. Fast readers do it noticeably quicker.',
+  },
+  es: {
+    place: 'Pega o escribe tu texto: los números se cuentan solos',
+    paste: 'Pegar', copy: 'Copiar', clear: 'Limpiar',
+    copied: 'Copiado', cleared: 'Limpiado', nothing: 'El texto está vacío',
+    chars: 'caracteres con espacios', charsNo: 'sin espacios', words: 'palabras',
+    lines: 'líneas', paras: 'párrafos', sentences: 'frases',
+    readTitle: 'Tiempo de lectura', aloud: 'en voz alta', silent: 'en silencio',
+    limitsTitle: '¿Cabe el texto?',
+    lPost: 'Publicación en X (Twitter)', lSms: 'Un SMS', lTitle: 'Título para buscadores',
+    lDesc: 'Descripción para buscadores', lTg: 'Publicación en Telegram', lIg: 'Pie en Instagram',
+    left: 'quedan {n}', over: '{n} de más',
+    n1: 'El texto no se envía a ninguna parte: todo se cuenta en tu navegador y no se guarda nada.',
+    n2: 'Las palabras se separan por espacios y saltos de línea. El guion no parte la palabra: «bien-estar» es una sola.',
+    n3: 'Un SMS admite 160 caracteres en alfabeto latino y solo 70 en cirílico: la codificación es distinta.',
+    n4: 'La velocidad de lectura es la habitual: 150 palabras por minuto en voz alta y 220 en silencio.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тс" data-words={JSON.stringify(с)} data-locale={locale}>
+  {/* Поле встречает первым: человек пришёл вставить текст, а не читать цифры. */}
+  <div class="тс-поле">
+    <textarea class="тс-ввод" id="тс-ввод" placeholder={с.place} spellcheck="false"
+              autocomplete="off" aria-label={с.place}></textarea>
+    <div class="тс-ряд">
+      <button type="button" class="тс-кн главная" id="тс-вставить">{с.paste}</button>
+      <button type="button" class="тс-кн" id="тс-копировать">{с.copy}</button>
+      <button type="button" class="тс-кн" id="тс-очистить">{с.clear}</button>
+      <span class="тс-сказ" id="тс-сказ"></span>
+    </div>
+  </div>
+
+  {/* Ячейки стоят всегда, даже пока поле пустое: иначе ряд прыгал бы с первой буквой. */}
+  <div class="тс-числа">
+    <div class="тс-число главное"><b id="тс-символы">0</b><span>{с.chars}</span></div>
+    <div class="тс-число"><b id="тс-безпробелов">0</b><span>{с.charsNo}</span></div>
+    <div class="тс-число"><b id="тс-слова">0</b><span>{с.words}</span></div>
+    <div class="тс-число"><b id="тс-предложения">0</b><span>{с.sentences}</span></div>
+    <div class="тс-число"><b id="тс-строки">0</b><span>{с.lines}</span></div>
+    <div class="тс-число"><b id="тс-абзацы">0</b><span>{с.paras}</span></div>
+  </div>
+
+  <div class="тс-низ">
+    <div class="тс-блок">
+      <div class="тс-заг">{с.readTitle}</div>
+      <div class="тс-чтение">
+        <div><b id="тс-вслух">0:00</b><span>{с.aloud}</span></div>
+        <div><b id="тс-просебя">0:00</b><span>{с.silent}</span></div>
+      </div>
+    </div>
+
+    <div class="тс-блок">
+      <div class="тс-заг">{с.limitsTitle}</div>
+      <div class="тс-лимиты" id="тс-лимиты"></div>
+    </div>
+  </div>
+
+  <div class="тс-заметки">
+    <div class="тс-заметка">{с.n1}</div>
+    <div class="тс-заметка">{с.n2}</div>
+    <div class="тс-заметка">{с.n3}</div>
+    <div class="тс-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.тс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    const ввод = $('тс-ввод'), сказ = $('тс-сказ');
+
+    // Лимиты. СМС стоит первым не случайно: именно из-за него счётчики чаще всего врут.
+    const ЛИМИТЫ = [
+      { имя: с.lPost, сколько: 280 },
+      { имя: с.lSms, сколько: 160, смс: true },
+      { имя: с.lTitle, сколько: 60 },
+      { имя: с.lDesc, сколько: 160 },
+      { имя: с.lTg, сколько: 4096 },
+      { имя: с.lIg, сколько: 2200 },
+    ];
+    const узлы = ЛИМИТЫ.map((л) => {
+      const к = document.createElement('div'); к.className = 'тс-лимит';
+      к.innerHTML = '<div class="тс-лимит-верх"><span class="тс-лимит-имя"></span>'
+        + '<span class="тс-лимит-счёт"></span></div><div class="тс-полоса"><i></i></div>';
+      к.querySelector('.тс-лимит-имя').textContent = л.имя;
+      $('тс-лимиты').appendChild(к);
+      return { к, имя: к.querySelector('.тс-лимит-имя'), счёт: к.querySelector('.тс-лимит-счёт'),
+               полоса: к.querySelector('.тс-полоса i'), л };
+    });
+
+    const кириллица = /[Ѐ-ӿ]/;
+    const разделитель = (n) => String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ' ');
+    function время(минут) {
+      const всего = Math.round(минут * 60);
+      const м = Math.floor(всего / 60), сек = всего % 60;
+      return м + ':' + String(сек).padStart(2, '0');
+    }
+
+    function посчитать() {
+      const т = ввод.value;
+      const символов = т.length;
+      const безПробелов = т.replace(/\s/g, '').length;
+      // Слово -- любая непробельная последовательность. Дефис внутри слово не разрывает:
+      // «кто-то» это одно слово, и делить его было бы неправдой.
+      const слов = т.trim() ? т.trim().split(/\s+/).length : 0;
+      const строк = т ? т.split('\n').length : 0;
+      // Абзац -- кусок, отделённый пустой строкой. Просто «строка» абзацем не является.
+      const абзацев = т.trim() ? т.trim().split(/\n\s*\n/).filter((к) => к.trim()).length : 0;
+      const предложений = (т.match(/[^.!?…]+[.!?…]+(\s|$)/g) || []).length
+        || (т.trim() ? 1 : 0);
+
+      $('тс-символы').textContent = разделитель(символов);
+      $('тс-безпробелов').textContent = разделитель(безПробелов);
+      $('тс-слова').textContent = разделитель(слов);
+      $('тс-предложения').textContent = разделитель(предложений);
+      $('тс-строки').textContent = разделитель(строк);
+      $('тс-абзацы').textContent = разделитель(абзацев);
+
+      $('тс-вслух').textContent = время(слов / 150);
+      $('тс-просебя').textContent = время(слов / 220);
+
+      // Кириллица в СМС кодируется иначе: 70 знаков вместо 160.
+      const наКириллице = кириллица.test(т);
+      for (const у of узлы) {
+        const предел = у.л.смс ? (наКириллице ? 70 : 160) : у.л.сколько;
+        if (у.л.смс) у.имя.textContent = с.lSms + ' · ' + предел;
+        const доля = Math.min(1, символов / предел);
+        у.полоса.style.width = (доля * 100).toFixed(1) + '%';
+        const осталось = предел - символов;
+        у.счёт.textContent = осталось >= 0
+          ? с.left.replace('{n}', разделитель(осталось))
+          : с.over.replace('{n}', разделитель(-осталось));
+        у.к.classList.toggle('близко', осталось >= 0 && осталось <= предел * 0.1);
+        у.к.classList.toggle('мимо', осталось < 0);
+      }
+    }
+
+    let таймерСказа = 0;
+    function сказать(текст) {
+      сказ.textContent = текст;
+      clearTimeout(таймерСказа);
+      таймерСказа = setTimeout(() => { сказ.textContent = ''; }, 2200);
+    }
+
+    ввод.addEventListener('input', посчитать);
+    $('тс-вставить').addEventListener('click', async () => {
+      try {
+        const т = await navigator.clipboard.readText();
+        if (т) { ввод.value = т; посчитать(); }
+      } catch {
+        // Браузер не дал буфер обмена -- не притворяемся, что вставили: просто зовём вставить
+        // самому. Молчаливая кнопка выглядит сломанной.
+        ввод.focus();
+      }
+    });
+    $('тс-копировать').addEventListener('click', async () => {
+      if (!ввод.value) { сказать(с.nothing); return; }
+      try { await navigator.clipboard.writeText(ввод.value); сказать(с.copied); }
+      catch { ввод.select(); }
+    });
+    $('тс-очистить').addEventListener('click', () => {
+      ввод.value = ''; посчитать(); ввод.focus(); сказать(с.cleared);
+    });
+
+    посчитать();
+
+    window.__тсСостояние = () => ({
+      символов: $('тс-символы').textContent,
+      безПробелов: $('тс-безпробелов').textContent,
+      слов: $('тс-слова').textContent,
+      предложений: $('тс-предложения').textContent,
+      строк: $('тс-строки').textContent,
+      абзацев: $('тс-абзацы').textContent,
+      вслух: $('тс-вслух').textContent,
+      просебя: $('тс-просебя').textContent,
+      смс: узлы.find((у) => у.л.смс).имя.textContent,
+      мимоЛимитов: узлы.filter((у) => у.к.classList.contains('мимо')).length,
+    });
+  })();
+</script>

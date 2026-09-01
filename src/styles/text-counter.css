@@ -1,0 +1,111 @@
+/* СТИЛИ СТРАНИЦЫ «КОЛИЧЕСТВО СИМВОЛОВ И СЛОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство простое, но три вещи здесь решают всё:
+ *   1. ПОЛЕ СВЕРХУ, ЧИСЛА СНИЗУ. Человек пришёл вставить текст -- поле должно встречать его
+ *      первым, а не после ряда цифр.
+ *   2. ЧИСЛА НЕ ПРЫГАЮТ. Ячейки стоят всегда, цифры моноширинные: счёт идёт на каждой букве,
+ *      и дрожащая строка при наборе невыносима.
+ *   3. ЛИМИТЫ ПОЛОСКАМИ. «280 знаков» само по себе ничего не значит; полоска показывает,
+ *      сколько осталось, без чтения.
+ */
+
+.тс {
+  --рамка: var(--line);
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+}
+
+/* ---- Поле ввода ------------------------------------------------------------------ */
+
+.тс-поле {
+  position: relative;
+  border: 1px solid var(--рамка); border-radius: 16px; background: var(--surface);
+  transition: border-color .2s ease;
+}
+.тс-поле:focus-within { border-color: rgba(74,222,158,.45) }
+.тс-ввод {
+  display: block; width: 100%; min-height: 210px; resize: vertical;
+  padding: 18px 18px 14px; border: 0; background: transparent; color: var(--text);
+  font: 400 16px/1.65 var(--ui);
+  border-radius: 16px;
+}
+.тс-ввод:focus { outline: none }
+.тс-ввод::placeholder { color: rgba(214,219,230,.38) }
+
+.тс-ряд {
+  display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
+  padding: 0 14px 14px;
+}
+.тс-кн {
+  font: 600 13px var(--ui); height: 36px; padding: 0 14px; border-radius: 9px; cursor: pointer;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+}
+.тс-кн:hover { color: var(--text); border-color: rgba(255,255,255,.26) }
+.тс-кн.главная { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
+.тс-кн:disabled { opacity: .4; cursor: default }
+.тс-сказ { margin-left: auto; font-size: 12.5px; color: rgba(214,219,230,.55) }
+
+/* ---- Числа ------------------------------------------------------------------------ */
+
+/* Главное число -- символы: за ним и приходят. Остальные стоят рядом ровным рядом и
+   никуда не деваются, даже пока поле пустое. */
+.тс-числа {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 2px;
+  margin-top: 14px; border-radius: 16px; overflow: hidden;
+  background: var(--line);
+}
+.тс-число {
+  background: var(--surface); padding: 15px 14px 13px; text-align: left;
+  font-family: var(--ui);
+}
+.тс-число b {
+  display: block; font-size: 27px; font-weight: 800; line-height: 1.05; color: var(--text);
+  font-variant-numeric: tabular-nums;
+}
+.тс-число.главное b { font-size: 34px; color: var(--accent) }
+.тс-число span {
+  display: block; margin-top: 4px; font-size: 11px; font-weight: 600; letter-spacing: .07em;
+  text-transform: uppercase; color: rgba(214,219,230,.55); line-height: 1.35;
+}
+
+/* ---- Чтение и лимиты --------------------------------------------------------------- */
+
+.тс-низ { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;
+  margin-top: 16px; align-items: start }
+.тс-блок { border: 1px solid var(--line); border-radius: 16px; padding: 15px 16px 16px;
+  background: var(--surface) }
+.тс-заг { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(214,219,230,.5); margin-bottom: 12px }
+
+.тс-чтение { display: flex; gap: 22px; font-family: var(--ui) }
+.тс-чтение div b { display: block; font-size: 21px; font-weight: 800; color: var(--text);
+  font-variant-numeric: tabular-nums }
+.тс-чтение div span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--muted) }
+
+.тс-лимиты { display: flex; flex-direction: column; gap: 11px }
+.тс-лимит { font-family: var(--ui) }
+.тс-лимит-верх { display: flex; align-items: baseline; gap: 8px; font-size: 12.5px }
+.тс-лимит-имя { color: var(--muted) }
+.тс-лимит-счёт { margin-left: auto; color: rgba(214,219,230,.55); font-variant-numeric: tabular-nums }
+.тс-полоса { margin-top: 5px; height: 5px; border-radius: 3px; background: rgba(255,255,255,.07);
+  overflow: hidden }
+.тс-полоса i { display: block; height: 100%; width: 0; border-radius: 3px;
+  background: var(--accent); transition: width .18s ease, background .25s ease }
+.тс-лимит.близко .тс-полоса i { background: var(--тревога, #f5c451) }
+.тс-лимит.мимо .тс-полоса i { background: #f2857b }
+.тс-лимит.мимо .тс-лимит-счёт { color: #f2857b }
+
+.тс-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.тс-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.тс-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 560px) {
+  .тс-ввод { min-height: 170px; font-size: 15.5px; padding: 15px 15px 12px }
+  .тс-число b { font-size: 23px }
+  .тс-число.главное b { font-size: 29px }
+  .тс-сказ { margin-left: 0; width: 100% }
+}
+@media (prefers-reduced-motion: reduce) {
+  .тс-полоса i { transition: none }
+}

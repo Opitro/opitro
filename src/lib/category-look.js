@@ -14,6 +14,7 @@ const ЗНАЧКИ = {
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   temp: '<path d="M14 14.8V4a2 2 0 1 0-4 0v10.8a4.5 4.5 0 1 0 4 0z"/>',
   gauge: '<path d="M12 20a8 8 0 1 1 8-8"/><path d="M12 12l4.5-3"/><circle cx="12" cy="12" r="1.4" fill="currentColor" stroke="none"/>',
+  lines: '<path d="M4 6h16M4 12h11M4 18h7"/>',
   tool: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
 };
 
@@ -26,6 +27,9 @@ const ВИД = {
   weight: { значок: 'weight', цвет: '#f0915a' },
   temperature: { значок: 'temp', цвет: '#ec5f7f' },
   'device-tests': { значок: 'gauge', цвет: '#f5c451' },
+  // Бирюзовый: из свободных оттенков он дальше всего и от зелёного «Аудио», и от голубой
+  // «Длины» -- две рубрики одного цвета взгляд не различает.
+  text: { значок: 'lines', цвет: '#3fd0c9' },
 };
 
 /** Значок и цвет рубрики. Незнакомая рубрика получает общий значок и цвет сайта. */
