@@ -5,240 +5,346 @@
 // длина слов в языке на результат не влияет и цифры сравнимы между людьми и языками.
 // В зачёт идут только ВЕРНЫЕ знаки: иначе «скорость» набивается опечатками.
 //
-// Три уровня и свой текст -- см. lib/typing-words.js и панель «Свой текст» ниже.
+// Кроме самого замера страница отвечает на вопрос «а что мне с этим делать»: показывает
+// график по секундам, карту промахнутых клавиш, пальцы и РОВНОСТЬ -- насколько похожи
+// промежутки между нажатиями. Ровность и есть то, что отличает слепую печать от быстрого
+// тыканья, и её никто из соседей не считает.
 import css from '../styles/typing-test.css?inline';
 import { размерЗапаса } from '../lib/typing-words.js';
 
 const { locale = 'ru' } = Astro.props;
-// Текст собирает БРАУЗЕР на каждую попытку, а не сборка. Раньше он печатался в страницу
-// один раз и был одинаковым у всех, а «Заново» его не менял -- второй заход шёл уже по
-// знакомому тексту, и замер получался нечестным.
 const запас = размерЗапаса(locale);
-// Главная мера зависит от языка: русский и украинский читатель считает ЗНАКИ, английский и
-// испанский -- слова. Вторая мера всегда рядом, чтобы было с чем сравнить.
+// Главная мера зависит от языка: русский и украинский читатель считает ЗНАКИ (так на курсах
+// и в вакансиях), английский и испанский -- слова. Вторая мера всегда рядом.
 const знакиГлавное = locale === 'ru' || locale === 'uk';
+
+// Раскладка своя у каждого языка -- иначе карта промахов и подсказка врут.
+const РАСКЛАДКИ = {
+  ru: [['й','ц','у','к','е','н','г','ш','щ','з','х','ъ'],
+       ['ф','ы','в','а','п','р','о','л','д','ж','э'],
+       ['я','ч','с','м','и','т','ь','б','ю']],
+  uk: [['й','ц','у','к','е','н','г','ш','щ','з','х','ї'],
+       ['ф','і','в','а','п','р','о','л','д','ж','є'],
+       ['я','ч','с','м','и','т','ь','б','ю']],
+  en: [['q','w','e','r','t','y','u','i','o','p'],
+       ['a','s','d','f','g','h','j','k','l'],
+       ['z','x','c','v','b','n','m']],
+  es: [['q','w','e','r','t','y','u','i','o','p'],
+       ['a','s','d','f','g','h','j','k','l','ñ'],
+       ['z','x','c','v','b','n','m']],
+};
 
 const СЛОВА = {
   ru: {
     lvEasy: 'Лёгкий', lvMid: 'Средний', lvHard: 'Сложный',
-    setLevel: 'Уровень', setTime: 'Время',
-    wpmShort: 'сл/мин', cpm: 'знаков в минуту', cpmShort: 'зн/мин',
+    setNast: 'Настройки', setClose: 'Закрыть',
+    gLevel: 'Уровень', gTime: 'По времени', gWords: 'По словам', gMode: 'Способ',
+    gLook: 'Облик', gSound: 'Звук', gCursor: 'Курсор',
+    sec: 'с', secLong: 'секунд', wordsLong: 'слов', space: 'пробел',
+    mNormal: 'Обычный', mStrict: 'Строгий', mDeath: 'Беспощадный',
+    mNormalT: 'Ошибку можно стереть и набрать заново',
+    mStrictT: 'Неверную букву поле не принимает: пока не наберёте нужную, дальше не пойдёте',
+    mDeathT: 'Одна промашка — и тест окончен',
+    lookNight: 'Ночь', lookPaper: 'Бумага', lookTerm: 'Терминал',
+    soundOff: 'Выключен', soundOn: 'Включён', soundT: 'Тихий щелчок на клавишу и гонг в конце',
+    curLine: 'Черта', curBlock: 'Блок', curUnder: 'Подчёркивание',
+    curEater: 'Глотатель — съедает буквы',
+    startBtn: 'Начать тест', startSub: 'Время пойдёт с первой буквы',
+    cpm: 'знаков в минуту', cpmShort: 'зн/мин', wpmShort: 'сл/мин',
     cpmSub: 'Знаков в минуту — с пробелами, как считают на курсах',
-    after: 'Нажмите «Ещё раз», чтобы пройти снова',
-    focus: 'Нажмите, чтобы продолжить',
+    wpmSub: 'Слов в минуту — за слово приняты пять знаков',
+    time: 'Время', elapsed: 'Прошло', acc: 'Точность', errors: 'Ошибок',
+    even: 'Ровность', evenT: 'Насколько одинаковы промежутки между нажатиями',
+    rec: 'Рекорд', recNew: 'Личный рекорд!', recWas: 'было',
     ready: 'Нажмите на текст — время пойдёт с первой буквы',
     typing: 'Время идёт. Ошибку можно стереть и набрать заново',
-    result: 'Результат', restart: 'Ещё раз', time: 'Время', elapsed: 'Прошло',
+    strictHint: 'Неверную букву поле не примет — наберите нужную',
+    deathHint: 'Одна ошибка обрывает тест. Спокойнее',
+    idle: 'Отвлеклись? Время идёт',
+    after: 'Нажмите «Ещё раз», чтобы пройти снова', restart: 'Ещё раз',
+    graphTitle: 'Как менялась скорость', mapTitle: 'Где спотыкались',
+    legSec: 'по секундам', legErr: 'секунда с ошибкой', legAvg: 'средняя за тест',
+    worst: 'Чаще всего промахивались на {n}. Эти буквы и стоит гонять отдельно.',
+    clean: 'Ни одной промахнутой буквы. Так держать.',
+    fingersLine: 'Больше всего мажет {n}.',
+    fingers: ['левый мизинец','левый безымянный','левый средний','левый указательный',
+              'правый указательный','правый средний','правый безымянный','правый мизинец'],
+    imgBtn: 'Сохранить картинку', imgGet: 'Скачать файл', imgTitle: 'Скорость печати',
+    imgSub: 'знаков в минуту', imgWords: 'слов', imgAcc: 'точность', imgEven: 'ровность',
+    ranks: ['Новичок','Уверенный','Слепая печать','Мастер','Чемпион'],
+    // Прозвище по двум осям: зверь растёт со скоростью, определение говорит о манере.
+    names: [
+      ['Торопливый Крот','Спокойный Крот','Аккуратный Крот'],
+      ['Торопливый Ёж','Бодрый Ёж','Аккуратный Ёж'],
+      ['Резкий Барс','Быстрый Барс','Точный Барс'],
+      ['Дерзкий Сокол','Быстрый Сокол','Безупречный Сокол'],
+      ['Неистовый Ястреб','Стремительный Ястреб','Безупречный Ястреб'],
+    ],
     vSlow: 'Это скорость набора двумя пальцами. Обычная для тех, кто печатает нечасто.',
     vMid: 'Уверенный набор. Столько печатает большинство тех, кто много пишет.',
     vFast: 'Слепая печать. Так набирают те, для кого текст — работа.',
     vPro: 'Профессиональный уровень: быстрее печатают немногие.',
     vAcc: 'При точности ниже 95 % скорость обманчива: время уходит на исправления.',
-    start: 'Начните печатать — время пойдёт с первой буквы',
-    left: 'Осталось', sec: 'с', speed: 'Скорость', wpm: 'слов в минуту',
-    acc: 'Точность', errors: 'Ошибок', again: 'Ещё раз',
-    wpmSub: 'Слов в минуту — за слово приняты пять знаков',
-    accSub: 'Доля верных знаков',
-    errSub: 'Знаков набрано неверно',
-    ranks: ['Новичок', 'Уверенный', 'Слепая печать', 'Мастер', 'Чемпион'],
-    // Прозвище по двум осям: зверь растёт со скоростью, определение говорит о манере --
-    // спешит человек или идёт чисто. Так оно значит хоть что-то, а не выпадает наугад.
-    names: [
-      ['Торопливый Крот', 'Спокойный Крот', 'Аккуратный Крот'],
-      ['Торопливый Ёж', 'Бодрый Ёж', 'Аккуратный Ёж'],
-      ['Резкий Барс', 'Быстрый Барс', 'Точный Барс'],
-      ['Дерзкий Сокол', 'Быстрый Сокол', 'Безупречный Сокол'],
-      ['Неистовый Ястреб', 'Стремительный Ястреб', 'Безупречный Ястреб'],
-    ],
+    vEvenHi: 'Ровность {n} % — промежутки между нажатиями почти одинаковые, так печатают вслепую.',
+    vEvenMid: 'Ровность {n} % — набор идёт рывками: часть букв вы ищете глазами. Выше 80 % начинается слепая печать.',
+    vEvenLow: 'Ровность {n} % — набор рваный, буквы ищутся по одной. Это чинится быстрее, чем скорость.',
+    vDeath: 'Тест шёл до первой ошибки — она и остановила время. Такой режим лечит привычку гнать.',
+    vStrict: 'Поле не приняло {n} — столько раз вы промахнулись, но уехать вперёд с ошибкой не смогли.',
+    letters1: 'букву', letters2: 'буквы', letters5: 'букв',
+    deathBadge: 'Ошибка — тест прерван',
     pFirst: 'Первая попытка — теперь есть с чем сравнивать.',
-    pFaster: 'Быстрее прошлого раза на {n}.',
-    pSame: 'Ровно как в прошлый раз.',
+    pFaster: 'Быстрее прошлого раза на {n}.', pSame: 'Ровно как в прошлый раз.',
     pSlowerAcc: 'Медленнее на {n}, зато точность выше на {m} %.',
-    pSlower: 'В этот раз медленнее на {n} — скорость гуляет от захода к заходу, это нормально.',
-    pClean: 'И ни одной ошибки.',
-    pAccUp: 'Точность выше прошлой на {m} %.',
+    pSlower: 'В этот раз медленнее на {n} — скорость гуляет от раза к разу, это нормально.',
+    pClean: 'И ни одной ошибки.', pAccUp: 'Точность выше прошлой на {m} %.',
     pTipAcc: 'Попробуйте сбавить темп: точность вытянет скорость сама.',
     pTipKeep: 'Ещё несколько попыток — и станет заметно ровнее.',
     pTipGood: 'Держите этот темп.',
-    logTitle: 'Ваши последние попытки',
+    logTitle: 'Ваши последние попытки', logClear: 'Стереть', logNow: 'только что',
     logNote: 'Хранится только в этом браузере, от лучшей к худшей.',
-    logClear: 'Стереть',
-    logNow: 'только что',
-    rec: 'Рекорд', recNew: 'Личный рекорд!', recWas: 'было',
     own: 'Свой текст', ownTitle: 'Вставьте свой текст — печатать будете именно его',
     ownPlace: 'Письмо, отрывок из книги, конспект — что угодно на любом языке',
     ownPrivacy: 'Текст остаётся в браузере: никуда не отправляется и нигде не сохраняется.',
     ownGo: 'Печатать этот текст', ownCancel: 'Отмена', ownChars: 'знаков',
     ownShort: 'Нужно хотя бы 20 знаков', ownLong: 'Взяли первые 500 слов',
-    ownBadge: 'Свой текст', untilEnd: 'до конца',
+    ownBadge: 'Свой текст',
     ownNote: 'Это ваш текст: в нём свои заглавные и знаки препинания, поэтому результат не сравнивают с обычным и в рекорд он не идёт.',
     n1: 'В зачёт идут только верно набранные знаки: скорость, набитая опечатками, ничего не значит.',
     n2: 'Каждый раз новый текст. Лёгкий уровень — связный текст простыми словами, средний — он же длинными и трудными, сложный — слова без связи со знаками препинания.',
     n3: 'Ошибку можно исправить: сотрите неверную букву и наберите заново, точность это учтёт.',
     n4: 'Средняя скорость взрослого — около 200 знаков в минуту (40 слов), уверенная печать вслепую — от 300 (60 слов).',
   },
+
   en: {
     lvEasy: 'Easy', lvMid: 'Medium', lvHard: 'Hard',
-    setLevel: 'Level', setTime: 'Time',
-    wpmShort: 'wpm', cpm: 'characters per minute', cpmShort: 'cpm',
+    setNast: 'Settings', setClose: 'Close',
+    gLevel: 'Level', gTime: 'By time', gWords: 'By words', gMode: 'Mode',
+    gLook: 'Look', gSound: 'Sound', gCursor: 'Cursor',
+    sec: 's', secLong: 'seconds', wordsLong: 'words', space: 'space',
+    mNormal: 'Normal', mStrict: 'Strict', mDeath: 'Merciless',
+    mNormalT: 'A mistake can be deleted and retyped',
+    mStrictT: 'A wrong letter is not accepted: you cannot move on until you type the right one',
+    mDeathT: 'One slip and the run is over',
+    lookNight: 'Night', lookPaper: 'Paper', lookTerm: 'Terminal',
+    soundOff: 'Off', soundOn: 'On', soundT: 'A soft key click and a gong at the end',
+    curLine: 'Line', curBlock: 'Block', curUnder: 'Underline',
+    curEater: 'Eater — swallows the letters',
+    startBtn: 'Start the test', startSub: 'The clock starts with your first letter',
+    cpm: 'characters per minute', cpmShort: 'cpm', wpmShort: 'wpm',
     cpmSub: 'Characters per minute, spaces included',
-    after: 'Press “Again” to have another go',
-    focus: 'Click to carry on',
+    wpmSub: 'Words per minute — a word counts as five characters',
+    time: 'Time', elapsed: 'Elapsed', acc: 'Accuracy', errors: 'Mistakes',
+    even: 'Evenness', evenT: 'How similar the gaps between keystrokes are',
+    rec: 'Best', recNew: 'Personal best!', recWas: 'was',
     ready: 'Click the text — the clock starts with your first letter',
     typing: 'The clock is running. A mistake can be deleted and retyped',
-    result: 'Result', restart: 'Again', time: 'Time', elapsed: 'Elapsed',
+    strictHint: 'A wrong letter will not be accepted — type the right one',
+    deathHint: 'One mistake ends the run. Easy does it',
+    idle: 'Still there? The clock is running',
+    after: 'Press “Again” to have another go', restart: 'Again',
+    graphTitle: 'How the speed changed', mapTitle: 'Where you slipped',
+    legSec: 'per second', legErr: 'second with a mistake', legAvg: 'average for the run',
+    worst: 'You slipped most often on {n}. Those are the letters to drill.',
+    clean: 'Not a single letter missed. Keep it up.',
+    fingersLine: 'The finger that slips most is the {n}.',
+    fingers: ['left little finger','left ring finger','left middle finger','left index finger',
+              'right index finger','right middle finger','right ring finger','right little finger'],
+    imgBtn: 'Save an image', imgGet: 'Download the file', imgTitle: 'Typing speed',
+    imgSub: 'words per minute', imgWords: 'cpm', imgAcc: 'accuracy', imgEven: 'evenness',
+    ranks: ['Beginner','Confident','Touch typist','Master','Champion'],
+    names: [
+      ['Hasty Mole','Steady Mole','Careful Mole'],
+      ['Hasty Hedgehog','Brisk Hedgehog','Careful Hedgehog'],
+      ['Reckless Lynx','Swift Lynx','Precise Lynx'],
+      ['Daring Falcon','Swift Falcon','Flawless Falcon'],
+      ['Furious Hawk','Blazing Hawk','Flawless Hawk'],
+    ],
     vSlow: 'That is two-finger speed. Normal for people who type rarely.',
     vMid: 'Confident typing. Most people who write a lot land here.',
     vFast: 'Touch typing. This is the speed of people who write for a living.',
     vPro: 'Professional level: not many type faster.',
     vAcc: 'Below 95 % accuracy the speed is misleading: the time goes into corrections.',
-    start: 'Just start typing — the clock starts with your first letter',
-    left: 'Left', sec: 's', speed: 'Speed', wpm: 'words per minute',
-    acc: 'Accuracy', errors: 'Mistakes', again: 'Again',
-    wpmSub: 'Words per minute — a word counts as five characters',
-    accSub: 'Share of correct characters',
-    errSub: 'Characters typed wrong',
-    ranks: ['Beginner', 'Confident', 'Touch typist', 'Master', 'Champion'],
-    names: [
-      ['Hasty Mole', 'Steady Mole', 'Careful Mole'],
-      ['Hasty Hedgehog', 'Brisk Hedgehog', 'Careful Hedgehog'],
-      ['Reckless Lynx', 'Swift Lynx', 'Precise Lynx'],
-      ['Daring Falcon', 'Swift Falcon', 'Flawless Falcon'],
-      ['Furious Hawk', 'Blazing Hawk', 'Flawless Hawk'],
-    ],
+    vEvenHi: 'Evenness {n} % — the gaps between keystrokes are almost equal, that is touch typing.',
+    vEvenMid: 'Evenness {n} % — the run goes in bursts: some letters you still hunt for. Touch typing starts above 80 %.',
+    vEvenLow: 'Evenness {n} % — the run is ragged, letters are hunted one by one. That is quicker to fix than speed.',
+    vDeath: 'The run went until the first mistake — that is what stopped the clock. This mode cures the habit of rushing.',
+    vStrict: 'The field refused {n} — that is how many times you slipped without being able to move on.',
+    letters1: 'letter', letters2: 'letters', letters5: 'letters',
+    deathBadge: 'Mistake — run stopped',
     pFirst: 'First run — now you have something to measure against.',
-    pFaster: 'Faster than last time by {n}.',
-    pSame: 'Exactly the same as last time.',
+    pFaster: 'Faster than last time by {n}.', pSame: 'Exactly the same as last time.',
     pSlowerAcc: 'Slower by {n}, but {m} % more accurate.',
     pSlower: 'Slower by {n} this time — speed wanders from run to run, that is normal.',
-    pClean: 'And not a single mistake.',
-    pAccUp: 'Accuracy up {m} % on last time.',
+    pClean: 'And not a single mistake.', pAccUp: 'Accuracy up {m} % on last time.',
     pTipAcc: 'Try easing off: accuracy pulls the speed up by itself.',
     pTipKeep: 'A few more runs and it will settle down noticeably.',
     pTipGood: 'Hold that pace.',
-    logTitle: 'Your recent runs',
+    logTitle: 'Your recent runs', logClear: 'Clear', logNow: 'just now',
     logNote: 'Kept in this browser only, best to worst.',
-    logClear: 'Clear',
-    logNow: 'just now',
-    rec: 'Best', recNew: 'Personal best!', recWas: 'was',
     own: 'Your text', ownTitle: 'Paste your own text — that is what you will type',
     ownPlace: 'A letter, a passage from a book, your notes — anything, in any language',
     ownPrivacy: 'The text stays in your browser: nothing is sent anywhere and nothing is stored.',
     ownGo: 'Type this text', ownCancel: 'Cancel', ownChars: 'characters',
     ownShort: 'At least 20 characters, please', ownLong: 'Took the first 500 words',
-    ownBadge: 'Your text', untilEnd: 'to the end',
+    ownBadge: 'Your text',
     ownNote: 'This is your own text: it has its own capitals and punctuation, so the result is not compared with the usual one and does not count towards your best.',
     n1: 'Only correctly typed characters count: speed made of typos means nothing.',
     n2: 'Every attempt gets a new text. Easy is plain connected text, medium is the same with long difficult words, hard is unconnected words with punctuation.',
     n3: 'You can fix a mistake: delete the wrong letter and type it again, accuracy takes that into account.',
     n4: 'An average adult types 30–40 words per minute; confident touch typing starts around 60.',
   },
+
   es: {
     lvEasy: 'Fácil', lvMid: 'Medio', lvHard: 'Difícil',
-    setLevel: 'Nivel', setTime: 'Tiempo',
-    wpmShort: 'ppm', cpm: 'pulsaciones por minuto', cpmShort: 'ppm.',
+    setNast: 'Ajustes', setClose: 'Cerrar',
+    gLevel: 'Nivel', gTime: 'Por tiempo', gWords: 'Por palabras', gMode: 'Modo',
+    gLook: 'Aspecto', gSound: 'Sonido', gCursor: 'Cursor',
+    sec: 's', secLong: 'segundos', wordsLong: 'palabras', space: 'espacio',
+    mNormal: 'Normal', mStrict: 'Estricto', mDeath: 'Implacable',
+    mNormalT: 'El error se puede borrar y volver a escribir',
+    mStrictT: 'No acepta la letra equivocada: no avanzas hasta escribir la correcta',
+    mDeathT: 'Un fallo y la prueba termina',
+    lookNight: 'Noche', lookPaper: 'Papel', lookTerm: 'Terminal',
+    soundOff: 'Apagado', soundOn: 'Encendido', soundT: 'Un clic suave por tecla y un gong al final',
+    curLine: 'Raya', curBlock: 'Bloque', curUnder: 'Subrayado',
+    curEater: 'Tragón: se come las letras',
+    startBtn: 'Empezar la prueba', startSub: 'El tiempo corre desde la primera letra',
+    cpm: 'pulsaciones por minuto', cpmShort: 'ppm.', wpmShort: 'ppm',
     cpmSub: 'Caracteres por minuto, espacios incluidos',
-    after: 'Pulsa «Otra vez» para repetir',
-    focus: 'Pulsa para continuar',
+    wpmSub: 'Palabras por minuto — una palabra son cinco caracteres',
+    time: 'Tiempo', elapsed: 'Transcurrido', acc: 'Precisión', errors: 'Errores',
+    even: 'Regularidad', evenT: 'Cuán parecidos son los intervalos entre pulsaciones',
+    rec: 'Récord', recNew: '¡Récord personal!', recWas: 'antes',
     ready: 'Pulsa el texto: el tiempo corre desde la primera letra',
     typing: 'El tiempo corre. Un error se puede borrar y escribir de nuevo',
-    result: 'Resultado', restart: 'Otra vez', time: 'Tiempo', elapsed: 'Transcurrido',
+    strictHint: 'No aceptará la letra equivocada: escribe la correcta',
+    deathHint: 'Un error termina la prueba. Con calma',
+    idle: '¿Sigues ahí? El tiempo corre',
+    after: 'Pulsa «Otra vez» para repetir', restart: 'Otra vez',
+    graphTitle: 'Cómo cambió la velocidad', mapTitle: 'Dónde fallaste',
+    legSec: 'por segundo', legErr: 'segundo con error', legAvg: 'media de la prueba',
+    worst: 'Fallaste sobre todo en {n}. Son las letras que conviene practicar.',
+    clean: 'Ni una letra fallada. Así se hace.',
+    fingersLine: 'El dedo que más falla es el {n}.',
+    fingers: ['meñique izquierdo','anular izquierdo','corazón izquierdo','índice izquierdo',
+              'índice derecho','corazón derecho','anular derecho','meñique derecho'],
+    imgBtn: 'Guardar imagen', imgGet: 'Descargar el archivo', imgTitle: 'Velocidad de escritura',
+    imgSub: 'palabras por minuto', imgWords: 'ppm', imgAcc: 'precisión', imgEven: 'regularidad',
+    ranks: ['Principiante','Seguro','Mecanógrafo','Maestro','Campeón'],
+    names: [
+      ['Topo Apresurado','Topo Sereno','Topo Cuidadoso'],
+      ['Erizo Apresurado','Erizo Vivaz','Erizo Cuidadoso'],
+      ['Lince Impetuoso','Lince Veloz','Lince Preciso'],
+      ['Halcón Audaz','Halcón Veloz','Halcón Impecable'],
+      ['Azor Furioso','Azor Fulgurante','Azor Impecable'],
+    ],
     vSlow: 'Es la velocidad de escribir con dos dedos. Normal si escribes poco.',
     vMid: 'Escritura segura. Ahí está la mayoría de quienes escriben mucho.',
     vFast: 'Mecanografía. Es la velocidad de quien escribe para vivir.',
     vPro: 'Nivel profesional: pocos escriben más rápido.',
     vAcc: 'Por debajo del 95 % de precisión la velocidad engaña: el tiempo se va en correcciones.',
-    start: 'Empieza a escribir: el tiempo corre desde la primera letra',
-    left: 'Queda', sec: 's', speed: 'Velocidad', wpm: 'palabras por minuto',
-    acc: 'Precisión', errors: 'Errores', again: 'Otra vez',
-    wpmSub: 'Palabras por minuto — una palabra son cinco caracteres',
-    accSub: 'Proporción de caracteres correctos',
-    errSub: 'Caracteres escritos mal',
-    ranks: ['Principiante', 'Seguro', 'Mecanógrafo', 'Maestro', 'Campeón'],
-    names: [
-      ['Topo Apresurado', 'Topo Sereno', 'Topo Cuidadoso'],
-      ['Erizo Apresurado', 'Erizo Vivaz', 'Erizo Cuidadoso'],
-      ['Lince Impetuoso', 'Lince Veloz', 'Lince Preciso'],
-      ['Halcón Audaz', 'Halcón Veloz', 'Halcón Impecable'],
-      ['Azor Furioso', 'Azor Fulgurante', 'Azor Impecable'],
-    ],
+    vEvenHi: 'Regularidad {n} % — los intervalos son casi iguales, así escribe quien no mira el teclado.',
+    vEvenMid: 'Regularidad {n} % — escribes a rachas: algunas letras aún las buscas. Por encima del 80 % empieza la mecanografía.',
+    vEvenLow: 'Regularidad {n} % — la escritura es entrecortada, buscas letra por letra. Eso se arregla antes que la velocidad.',
+    vDeath: 'La prueba iba hasta el primer error, y él paró el tiempo. Este modo cura las prisas.',
+    vStrict: 'El campo rechazó {n}: esas veces fallaste sin poder avanzar.',
+    letters1: 'letra', letters2: 'letras', letters5: 'letras',
+    deathBadge: 'Error: prueba detenida',
     pFirst: 'Primer intento: ya tienes con qué compararte.',
-    pFaster: 'Más rápido que la vez anterior en {n}.',
-    pSame: 'Exactamente igual que la vez anterior.',
+    pFaster: 'Más rápido que la vez anterior en {n}.', pSame: 'Exactamente igual que la vez anterior.',
     pSlowerAcc: 'Más lento en {n}, pero con {m} % más de precisión.',
     pSlower: 'Esta vez más lento en {n}: la velocidad va y viene, es normal.',
-    pClean: 'Y ni un solo error.',
-    pAccUp: 'Precisión {m} % mejor que la vez anterior.',
+    pClean: 'Y ni un solo error.', pAccUp: 'Precisión {m} % mejor que la vez anterior.',
     pTipAcc: 'Prueba a bajar el ritmo: la precisión sube la velocidad sola.',
     pTipKeep: 'Unos intentos más y se volverá mucho más parejo.',
     pTipGood: 'Mantén ese ritmo.',
-    logTitle: 'Tus últimos intentos',
+    logTitle: 'Tus últimos intentos', logClear: 'Borrar', logNow: 'ahora mismo',
     logNote: 'Se guarda solo en este navegador, de mejor a peor.',
-    logClear: 'Borrar',
-    logNow: 'ahora mismo',
-    rec: 'Récord', recNew: '¡Récord personal!', recWas: 'antes',
     own: 'Tu texto', ownTitle: 'Pega tu propio texto: será el que escribas',
     ownPlace: 'Una carta, un fragmento de un libro, tus apuntes: lo que sea, en cualquier idioma',
     ownPrivacy: 'El texto se queda en tu navegador: no se envía a ninguna parte ni se guarda.',
     ownGo: 'Escribir este texto', ownCancel: 'Cancelar', ownChars: 'caracteres',
     ownShort: 'Hacen falta al menos 20 caracteres', ownLong: 'Tomamos las primeras 500 palabras',
-    ownBadge: 'Tu texto', untilEnd: 'hasta el final',
+    ownBadge: 'Tu texto',
     ownNote: 'Es tu propio texto: lleva sus mayúsculas y su puntuación, así que el resultado no se compara con el normal ni cuenta para el récord.',
     n1: 'Solo cuentan los caracteres escritos correctamente: la velocidad hecha de erratas no significa nada.',
     n2: 'Cada intento trae un texto nuevo. Fácil es texto sencillo con sentido, medio es el mismo con palabras largas y difíciles, difícil son palabras sueltas con signos de puntuación.',
     n3: 'Puedes corregir: borra la letra equivocada y escríbela de nuevo, la precisión lo tendrá en cuenta.',
     n4: 'Un adulto medio escribe 30-40 palabras por minuto; la mecanografía segura empieza en torno a 60.',
   },
+
   uk: {
     lvEasy: 'Легкий', lvMid: 'Середній', lvHard: 'Складний',
-    setLevel: 'Рівень', setTime: 'Час',
-    wpmShort: 'сл/хв', cpm: 'знаків за хвилину', cpmShort: 'зн/хв',
+    setNast: 'Налаштування', setClose: 'Закрити',
+    gLevel: 'Рівень', gTime: 'За часом', gWords: 'За словами', gMode: 'Спосіб',
+    gLook: 'Вигляд', gSound: 'Звук', gCursor: 'Курсор',
+    sec: 'с', secLong: 'секунд', wordsLong: 'слів', space: 'пробіл',
+    mNormal: 'Звичайний', mStrict: 'Суворий', mDeath: 'Нещадний',
+    mNormalT: 'Помилку можна стерти й набрати заново',
+    mStrictT: 'Невірну літеру поле не приймає: доки не наберете потрібну, далі не підете',
+    mDeathT: 'Один промах — і тест закінчено',
+    lookNight: 'Ніч', lookPaper: 'Папір', lookTerm: 'Термінал',
+    soundOff: 'Вимкнено', soundOn: 'Увімкнено', soundT: 'Тихий клац на клавішу і гонг наприкінці',
+    curLine: 'Риска', curBlock: 'Блок', curUnder: 'Підкреслення',
+    curEater: 'Ковтач — з\'їдає літери',
+    startBtn: 'Почати тест', startSub: 'Час піде з першої літери',
+    cpm: 'знаків за хвилину', cpmShort: 'зн/хв', wpmShort: 'сл/хв',
     cpmSub: 'Знаків за хвилину — з пробілами, як рахують на курсах',
-    after: 'Натисніть «Ще раз», щоб пройти знову',
-    focus: 'Натисніть, щоб продовжити',
+    wpmSub: 'Слів за хвилину — за слово взято п\'ять знаків',
+    time: 'Час', elapsed: 'Минуло', acc: 'Точність', errors: 'Помилок',
+    even: 'Рівність', evenT: 'Наскільки однакові проміжки між натисканнями',
+    rec: 'Рекорд', recNew: 'Особистий рекорд!', recWas: 'було',
     ready: 'Натисніть на текст — час піде з першої літери',
     typing: 'Час іде. Помилку можна стерти й набрати заново',
-    result: 'Результат', restart: 'Ще раз', time: 'Час', elapsed: 'Минуло',
+    strictHint: 'Невірну літеру поле не прийме — наберіть потрібну',
+    deathHint: 'Одна помилка обриває тест. Спокійніше',
+    idle: 'Відволіклися? Час іде',
+    after: 'Натисніть «Ще раз», щоб пройти знову', restart: 'Ще раз',
+    graphTitle: 'Як змінювалася швидкість', mapTitle: 'Де спотикалися',
+    legSec: 'за секундами', legErr: 'секунда з помилкою', legAvg: 'середня за тест',
+    worst: 'Найчастіше промахувалися на {n}. Ці літери й варто ганяти окремо.',
+    clean: 'Жодної промахнутої літери. Так тримати.',
+    fingersLine: 'Найбільше хибить {n}.',
+    fingers: ['лівий мізинець','лівий безіменний','лівий середній','лівий вказівний',
+              'правий вказівний','правий середній','правий безіменний','правий мізинець'],
+    imgBtn: 'Зберегти картинку', imgGet: 'Завантажити файл', imgTitle: 'Швидкість друку',
+    imgSub: 'знаків за хвилину', imgWords: 'слів', imgAcc: 'точність', imgEven: 'рівність',
+    ranks: ['Новачок','Упевнений','Сліпий друк','Майстер','Чемпіон'],
+    names: [
+      ['Квапливий Кріт','Спокійний Кріт','Акуратний Кріт'],
+      ['Квапливий Їжак','Бадьорий Їжак','Акуратний Їжак'],
+      ['Різкий Барс','Швидкий Барс','Точний Барс'],
+      ['Зухвалий Сокіл','Швидкий Сокіл','Бездоганний Сокіл'],
+      ['Несамовитий Яструб','Стрімкий Яструб','Бездоганний Яструб'],
+    ],
     vSlow: 'Це швидкість набору двома пальцями. Звична для тих, хто друкує нечасто.',
     vMid: 'Упевнений набір. Стільки друкує більшість тих, хто багато пише.',
     vFast: 'Сліпий друк. Так набирають ті, для кого текст — робота.',
     vPro: 'Професійний рівень: швидше друкують небагато хто.',
     vAcc: 'При точності нижче 95 % швидкість оманлива: час іде на виправлення.',
-    start: 'Починайте друкувати — час піде з першої літери',
-    left: 'Залишилось', sec: 'с', speed: 'Швидкість', wpm: 'слів за хвилину',
-    acc: 'Точність', errors: 'Помилок', again: 'Ще раз',
-    wpmSub: 'Слів за хвилину — за слово взято п\'ять знаків',
-    accSub: 'Частка правильних знаків',
-    errSub: 'Знаків набрано неправильно',
-    ranks: ['Новачок', 'Упевнений', 'Сліпий друк', 'Майстер', 'Чемпіон'],
-    names: [
-      ['Квапливий Кріт', 'Спокійний Кріт', 'Акуратний Кріт'],
-      ['Квапливий Їжак', 'Бадьорий Їжак', 'Акуратний Їжак'],
-      ['Різкий Барс', 'Швидкий Барс', 'Точний Барс'],
-      ['Зухвалий Сокіл', 'Швидкий Сокіл', 'Бездоганний Сокіл'],
-      ['Несамовитий Яструб', 'Стрімкий Яструб', 'Бездоганний Яструб'],
-    ],
+    vEvenHi: 'Рівність {n} % — проміжки між натисканнями майже однакові, так друкують наосліп.',
+    vEvenMid: 'Рівність {n} % — набір іде ривками: частину літер ви шукаєте очима. Вище 80 % починається сліпий друк.',
+    vEvenLow: 'Рівність {n} % — набір рваний, літери шукаються по одній. Це лагодиться швидше, ніж швидкість.',
+    vDeath: 'Тест ішов до першої помилки — вона й зупинила час. Такий режим лікує звичку гнати.',
+    vStrict: 'Поле не прийняло {n} — стільки разів ви промахнулися, але поїхати вперед з помилкою не змогли.',
+    letters1: 'літеру', letters2: 'літери', letters5: 'літер',
+    deathBadge: 'Помилка — тест перервано',
     pFirst: 'Перша спроба — тепер є з чим порівнювати.',
-    pFaster: 'Швидше за минулий раз на {n}.',
-    pSame: 'Рівно як минулого разу.',
+    pFaster: 'Швидше за минулий раз на {n}.', pSame: 'Рівно як минулого разу.',
     pSlowerAcc: 'Повільніше на {n}, зате точність вища на {m} %.',
     pSlower: 'Цього разу повільніше на {n} — швидкість гуляє від разу до разу, це нормально.',
-    pClean: 'І жодної помилки.',
-    pAccUp: 'Точність вища за минулу на {m} %.',
+    pClean: 'І жодної помилки.', pAccUp: 'Точність вища за минулу на {m} %.',
     pTipAcc: 'Спробуйте збавити темп: точність витягне швидкість сама.',
     pTipKeep: 'Ще кілька спроб — і стане помітно рівніше.',
     pTipGood: 'Тримайте цей темп.',
-    logTitle: 'Ваші останні спроби',
+    logTitle: 'Ваші останні спроби', logClear: 'Стерти', logNow: 'щойно',
     logNote: 'Зберігається лише в цьому браузері, від кращої до гіршої.',
-    logClear: 'Стерти',
-    logNow: 'щойно',
-    rec: 'Рекорд', recNew: 'Особистий рекорд!', recWas: 'було',
     own: 'Свій текст', ownTitle: 'Вставте свій текст — саме його ви й набиратимете',
     ownPlace: 'Лист, уривок із книги, конспект — будь-що, будь-якою мовою',
     ownPrivacy: 'Текст лишається у браузері: нікуди не надсилається й ніде не зберігається.',
     ownGo: 'Друкувати цей текст', ownCancel: 'Скасувати', ownChars: 'знаків',
     ownShort: 'Потрібно щонайменше 20 знаків', ownLong: 'Узяли перші 500 слів',
-    ownBadge: 'Свій текст', untilEnd: 'до кінця',
+    ownBadge: 'Свій текст',
     ownNote: 'Це ваш текст: у ньому свої великі літери й розділові знаки, тому результат не порівнюють зі звичайним і в рекорд він не йде.',
     n1: 'У залік ідуть лише правильно набрані знаки: швидкість, набита одруківками, нічого не варта.',
     n2: 'Щоразу новий текст. Легкий рівень — зв\'язний текст простими словами, середній — він же довгими й важкими, складний — слова без зв\'язку зі знаками пунктуації.',
@@ -247,42 +353,109 @@ const СЛОВА = {
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
+const ряды = РАСКЛАДКИ[locale] || РАСКЛАДКИ.ru;
 ---
 
 <style is:inline set:html={css}></style>
 
-<div class="tp" data-words={JSON.stringify(с)} data-locale={locale} data-stock={JSON.stringify(запас)}
-     data-cpm={знакиГлавное ? '1' : ''}>
-  {/* Настройки отдельно от чисел. Раньше уровень, время и живой счёт стояли в одной строке, и
-      было не разобрать, где то, что ты выбираешь, а где то, что тебе показывают. Теперь наверху
-      только выбор, а счёт живёт внутри поля -- там, куда и так смотрят. */}
+<div class="tp ждёт" data-words={JSON.stringify(с)} data-locale={locale}
+     data-cpm={знакиГлавное ? '1' : ''} data-rows={JSON.stringify(ряды)}
+     data-stock={JSON.stringify(запас)}>
+
+  {/* Всё под одной кнопкой, и на ней написано, что выбрано: открывать настройки ради
+      проверки не нужно, а нагромождения из трёх рядов кнопок нет. */}
   <div class="tp-bar">
-    {/* Уровень. Связный текст набирают быстрее всего -- смысл подсказывает следующее слово,
-        поэтому слова без связи стоят не в начале ряда, а в конце, как самое трудное. */}
-    <div class="tp-set" id="tp-set-kind">
-      <span class="tp-set-k">{с.setLevel}</span>
-      <div class="tp-keys" id="tp-kind" role="group" aria-label={с.setLevel}>
-        <button type="button" class="tp-key on" data-kind="easy">{с.lvEasy}</button>
-        <button type="button" class="tp-key" data-kind="medium">{с.lvMid}</button>
-        <button type="button" class="tp-key" data-kind="hard">{с.lvHard}</button>
-      </div>
+    <div class="выбор" id="настройки">
+      <button type="button" class="выбор-кнопка" aria-expanded="false" aria-haspopup="dialog">
+        <svg class="шестерня" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="3"></circle>
+          <path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 1 1-2.83 2.83l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 1 1-4 0v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 1 1-2.83-2.83l.06-.06a1.65 1.65 0 0 0 .33-1.82 1.65 1.65 0 0 0-1.51-1H3a2 2 0 1 1 0-4h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 1 1 2.83-2.83l.06.06A1.65 1.65 0 0 0 9 4.6h.09A1.65 1.65 0 0 0 10 3.09V3a2 2 0 1 1 4 0v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 1 1 2.83 2.83l-.06.06A1.65 1.65 0 0 0 19.4 9v.09a1.65 1.65 0 0 0 1.51 1H21a2 2 0 1 1 0 4h-.09a1.65 1.65 0 0 0-1.51 1z"></path>
+        </svg>
+        <span class="сейчас" id="сейчас">{с.lvEasy} · 60 {с.secLong}</span>
+        <span class="галка"></span>
+      </button>
     </div>
-    <div class="tp-set" id="tp-set-time">
-      <span class="tp-set-k">{с.setTime}</span>
-      <div class="tp-keys" id="tp-modes" role="group" aria-label={с.setTime}>
-        <button type="button" class="tp-key" data-sec="30">30 {с.sec}</button>
-        <button type="button" class="tp-key on" data-sec="60">60 {с.sec}</button>
-        <button type="button" class="tp-key" data-sec="120">120 {с.sec}</button>
-      </div>
-    </div>
+
     <button type="button" class="tp-own" id="tp-own" aria-expanded="false">{с.own}</button>
+
+    {/* Панель НАКРЫВАЕТ поле, а не двигает его. */}
+    <div class="панель" id="панель" hidden role="dialog" aria-label={с.setNast}>
+      <div class="панель-шапка">
+        <span class="панель-к">{с.setNast}</span>
+        <button type="button" class="закрыть" id="закрыть" aria-label={с.setClose} title={с.setClose}>
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"
+               stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"></path></svg>
+        </button>
+      </div>
+      <div class="панель-тело">
+        <div class="группа">
+          <div class="г-к">{с.gLevel}</div>
+          <div class="чипы" id="ряд-ур">
+            <button type="button" class="чип вкл" data-ур="easy" data-метка={с.lvEasy}>{с.lvEasy}</button>
+            <button type="button" class="чип" data-ур="medium" data-метка={с.lvMid}>{с.lvMid}</button>
+            <button type="button" class="чип" data-ур="hard" data-метка={с.lvHard}>{с.lvHard}</button>
+          </div>
+        </div>
+
+        <div class="группа" id="ряд-задачи">
+          <div class="г-к">{с.gTime}</div>
+          <div class="чипы">
+            <button type="button" class="чип" data-реж="время" data-знач="30" data-метка={`30 ${с.secLong}`}>30 {с.sec}</button>
+            <button type="button" class="чип вкл" data-реж="время" data-знач="60" data-метка={`60 ${с.secLong}`}>60 {с.sec}</button>
+            <button type="button" class="чип" data-реж="время" data-знач="120" data-метка={`120 ${с.secLong}`}>120 {с.sec}</button>
+          </div>
+          <div class="г-к">{с.gWords}</div>
+          <div class="чипы">
+            <button type="button" class="чип" data-реж="слова" data-знач="25" data-метка={`25 ${с.wordsLong}`}>25</button>
+            <button type="button" class="чип" data-реж="слова" data-знач="50" data-метка={`50 ${с.wordsLong}`}>50</button>
+            <button type="button" class="чип" data-реж="слова" data-знач="100" data-метка={`100 ${с.wordsLong}`}>100</button>
+          </div>
+        </div>
+
+        <div class="группа" id="ряд-строгости">
+          <div class="г-к">{с.gMode}</div>
+          <div class="чипы">
+            <button type="button" class="чип вкл" data-стр="обычно" data-метка="" title={с.mNormalT}>{с.mNormal}</button>
+            <button type="button" class="чип" data-стр="строго" data-метка={с.mStrict.toLowerCase()} title={с.mStrictT}>{с.mStrict}</button>
+            <button type="button" class="чип" data-стр="смерть" data-метка={с.mDeath.toLowerCase()} title={с.mDeathT}>{с.mDeath}</button>
+          </div>
+        </div>
+
+        <div class="группа">
+          <div class="г-к">{с.gLook}</div>
+          <div class="чипы" id="ряд-облика">
+            <button type="button" class="чип вкл" data-обл="ночь">{с.lookNight}</button>
+            <button type="button" class="чип" data-обл="бумага">{с.lookPaper}</button>
+            <button type="button" class="чип" data-обл="терминал">{с.lookTerm}</button>
+          </div>
+        </div>
+
+        <div class="группа">
+          <div class="г-к">{с.gSound}</div>
+          <div class="чипы" id="ряд-звука">
+            <button type="button" class="чип вкл" data-звук="нет">{с.soundOff}</button>
+            <button type="button" class="чип" data-звук="да" title={с.soundT}>{с.soundOn}</button>
+          </div>
+        </div>
+
+        <div class="группа">
+          <div class="г-к">{с.gCursor}</div>
+          <div class="знаки" id="ряд-кур">
+            <button type="button" class="знак вкл" data-кур="черта" title={с.curLine} aria-label={с.curLine}><i class="з-черта"></i></button>
+            <button type="button" class="знак" data-кур="блок" title={с.curBlock} aria-label={с.curBlock}><i class="з-блок"></i></button>
+            <button type="button" class="знак" data-кур="черт-низ" title={с.curUnder} aria-label={с.curUnder}><i class="з-низ"></i></button>
+            <button type="button" class="знак" data-кур="глотатель" title={с.curEater} aria-label={с.curEater}><span class="пакман"></span></button>
+          </div>
+        </div>
+      </div>
+    </div>
   </div>
 
-  {/* Свой текст. Панель раскрывается по нажатию и ничего не двигает, пока её не открыли. */}
+  {/* Свой текст. Никуда не уходит и нигде не сохраняется -- люди вставляют сюда письма. */}
   <div class="tp-panel" id="tp-panel" hidden>
     <label class="tp-panel-k" for="tp-paste">{с.ownTitle}</label>
-    <textarea id="tp-paste" class="tp-paste" rows="4" placeholder={с.ownPlace}
-              spellcheck="false"></textarea>
+    <textarea id="tp-paste" class="tp-paste" rows="4" placeholder={с.ownPlace} spellcheck="false"></textarea>
     <div class="tp-panel-under">
       <span class="tp-panel-note" id="tp-count">0 {с.ownChars}</span>
       <span class="tp-panel-note tp-panel-priv">{с.ownPrivacy}</span>
@@ -291,76 +464,95 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
   </div>
 
-  {/* Слова видны с самого начала и ничем не закрыты: человек должен видеть, что печатать,
-      прежде чем решит начать. Накладка появляется только когда поле теряет фокус. */}
-  <div class="tp-field ждёт" id="tp-field">
-    {/* Полоса времени по верхнему краю: она уходит, и это видно краем глаза, не отрывая
-        взгляда от слов. В последние секунды меняет цвет -- это и есть весь азарт. */}
-    <div class="tp-time" aria-hidden="true"><i id="tp-time-fill"></i></div>
+  <div class="поле" id="поле">
+    <div class="полоса" aria-hidden="true"><i id="полоса"></i></div>
 
-    <div class="tp-scores">
-      <span class="s time"><b id="tp-left">60</b><i id="tp-left-k">{с.time}</i></span>
-      <span class="s"><b id="tp-wpm">0</b><i>{знакиГлавное ? с.cpmShort : с.wpmShort}</i></span>
-      <span class="s"><b id="tp-acc">100%</b><i>{с.acc}</i></span>
-      {/* Рекорд стоит всегда, даже пустой: если бы ячейка появлялась после первого захода,
-          строка бы каждый раз прыгала. */}
-      <span class="s rec"><b id="tp-rec">—</b><i>{с.rec}</i></span>
+    <div class="табло">
+      <span class="часы"><b id="часы">60</b><i id="к-часов">{с.time}</i></span>
+      <span><b id="скорость">0</b><i>{знакиГлавное ? с.cpmShort : с.wpmShort}</i></span>
+      <span><b id="точность">100%</b><i>{с.acc}</i></span>
+      <span class="рекорд"><b id="рекорд">—</b><i>{с.rec}</i></span>
     </div>
 
-    <div class="tp-view" id="tp-viewport">
-      <div class="tp-lines" id="tp-text"></div>
-      <div class="tp-caret" id="tp-caret"></div>
+    <div class="окно" id="окно">
+      <div class="строки" id="строки"></div>
+      <div class="каретка черта" id="каретка"></div>
+      <span class="пакман" id="пакман"></span>
     </div>
-    <textarea class="tp-input" id="tp-input" autocomplete="off" autocorrect="off"
-              autocapitalize="off" spellcheck="false" aria-label={с.speed}></textarea>
-    <div class="tp-blur" id="tp-blur">{с.focus}</div>
+    <textarea class="ввод" id="ввод" autocomplete="off" autocorrect="off" autocapitalize="off"
+              spellcheck="false" aria-label={с.setNast}></textarea>
 
-    {/* Итог занимает место текста: набор кончился -- слова больше не нужны, нужен ответ. */}
-    <div class="tp-result" id="tp-result">
-      <div class="tp-res-row">
-        <div class="tp-res-main">
-          <span class="tp-rank" id="tp-rank"></span>
-          <span class="v" id="tp-res-wpm">0</span>
-          <span class="k">{знакиГлавное ? с.cpmSub : с.wpmSub}</span>
+    {/* Кнопка только даёт фокус: время по-прежнему идёт с первой буквы. */}
+    <div class="старт" id="старт">
+      <span class="старт-кнопка">{с.startBtn}</span>
+      <span class="старт-под">{с.startSub}</span>
+    </div>
+
+    <div class="итог" id="итог">
+      <div class="ряд-итога">
+        <div class="главное">
+          <span class="разряд" id="разряд"></span>
+          <span class="ч" id="и-знаков">0</span>
+          <span class="п">{знакиГлавное ? с.cpmSub : с.wpmSub}</span>
         </div>
-        <div class="tp-res-sub">
-          <div><span class="v" id="tp-res-alt">0</span><span class="k">{знакиГлавное ? с.wpmShort : с.cpmShort}</span></div>
-          <div><span class="v" id="tp-res-acc">100%</span><span class="k">{с.acc}</span></div>
-          <div><span class="v" id="tp-res-err">0</span><span class="k">{с.errors}</span></div>
+        <div class="второе">
+          <div><span class="ч" id="и-слов">0</span><span class="п">{знакиГлавное ? с.wpmShort : с.cpmShort}</span></div>
+          <div><span class="ч" id="и-точность">100%</span><span class="п">{с.acc}</span></div>
+          <div><span class="ч" id="и-ошибок">0</span><span class="п">{с.errors}</span></div>
+          <div><span class="ч" id="и-ровность">—</span><span class="п" title={с.evenT}>{с.even}</span></div>
         </div>
       </div>
 
-      {/* Лестница разрядов. Показывает не только «сколько», но и «где это среди людей» --
-          ради этого сюда и приходят. Отметка стоит на вашем результате. */}
-      <div class="tp-scale" id="tp-scale">
-        <div class="tp-scale-line"><i class="tp-scale-you" id="tp-you"></i></div>
-        <div class="tp-scale-steps">
-          {с.ranks.map((имя, i) => <span class="tp-step" data-i={i}>{имя}</span>)}
+      <div class="лестница">
+        <div class="лента"><i class="вы" id="отметка"></i></div>
+        <div class="ступени" id="ступени">
+          {с.ranks.map((имя) => <span class="ступень">{имя}</span>)}
         </div>
       </div>
 
-      {/* Слово о том, как прошло именно у вас: сравнение с прошлой попыткой, а не общая
-          похвала. Пустых «отлично!» тут нет -- каждая строка проверяема. */}
+      <div class="разбор">
+        <div>
+          <div class="заг-блока">{с.graphTitle}</div>
+          <canvas class="холст" id="график"></canvas>
+          <div class="ключ">
+            <span><i style="background:#4ade9e"></i>{с.legSec}</span>
+            <span><i style="background:#f2857b"></i>{с.legErr}</span>
+            <span><i class="ключ-средняя"></i>{с.legAvg}</span>
+          </div>
+        </div>
+        <div>
+          <div class="заг-блока">{с.mapTitle}</div>
+          <div class="клава" id="клава"></div>
+          <div class="под-клавой" id="под-клавой"></div>
+          <div class="под-клавой" id="пальцы"></div>
+        </div>
+      </div>
+
       <div class="tp-praise" id="tp-praise"></div>
+      <div class="вердикт" id="вердикт"></div>
 
-      <div class="tp-verdict" id="tp-verdict"></div>
-
-      {/* Последние десять попыток, от лучшей к худшей. Всё в этом браузере: никуда не уходит,
-          ни с кем не сравнивается. Появляется только в итоге, поэтому ничего не сдвигает. */}
       <div class="tp-log" id="tp-log" hidden>
         <div class="tp-log-top">
-          <span class="tp-log-k" id="tp-log-title"></span>
-          <button type="button" class="tp-log-clear" id="tp-log-clear"></button>
+          <span class="tp-log-k">{с.logTitle}</span>
+          <button type="button" class="tp-log-clear" id="tp-log-clear">{с.logClear}</button>
         </div>
         <ol class="tp-log-list" id="tp-log-list"></ol>
-        <div class="tp-log-note" id="tp-log-note"></div>
+        <div class="tp-log-note">{с.logNote}</div>
       </div>
     </div>
   </div>
 
-  <div class="tp-under">
-    <span class="tp-hint" id="tp-hint">{с.ready}</span>
-    <button type="button" class="tp-again" id="tp-again">{с.restart}</button>
+  {/* Клавиатура-подсказка: только на лёгком уровне, дальше она уводит глаз вниз. */}
+  <div class="подсказ-клава" id="подсказ-клава" hidden aria-hidden="true"></div>
+
+  <div class="снимок" id="снимок" hidden>
+    <img id="снимок-вид" alt={с.imgBtn}>
+  </div>
+
+  <div class="низ">
+    <span class="подсказка" id="подсказка">{с.ready}</span>
+    <button type="button" class="картинка" id="картинка" hidden>{с.imgBtn}</button>
+    <button type="button" class="ещё" id="ещё">{с.restart}</button>
   </div>
 
   <div class="tp-notes">
@@ -377,73 +569,370 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const с = JSON.parse(корень.dataset.words || '{}');
     const язык = корень.dataset.locale || 'ru';
     const знакиГлавное = корень.dataset.cpm === '1';
-    // Материал собирается заново на каждую попытку -- см. lib/typing-words.js.
-    let слова = [];
-    let уровень = 'easy';
-    let собрать = null;   // приедет вместе с модулем слов
-    let свой = null;      // слова своего текста, если человек его вставил
-    const поле = document.getElementById('tp-field');
-    const окно = document.getElementById('tp-viewport');
-    const текст = document.getElementById('tp-text');
-    const ввод = document.getElementById('tp-input');
-    const курсор = document.getElementById('tp-caret');
-    const подсказка = document.getElementById('tp-hint');
-    const полеОсталось = document.getElementById('tp-left');
-    const подписьВремени = document.getElementById('tp-left-k');
-    const полеСкорость = document.getElementById('tp-wpm');
-    const полеТочность = document.getElementById('tp-acc');
-    const полеРекорд = document.getElementById('tp-rec');
-    const полоса = document.getElementById('tp-time-fill');
-    const итогСкорость = document.getElementById('tp-res-wpm');
-    const итогВторая = document.getElementById('tp-res-alt');
-    const итогТочность = document.getElementById('tp-res-acc');
-    const итогОшибки = document.getElementById('tp-res-err');
-    const итогСлова = document.getElementById('tp-verdict');
-    const итогРазряд = document.getElementById('tp-rank');
-    const полеПохвалы = document.getElementById('tp-praise');
-    const блокЖурнала = document.getElementById('tp-log');
-    const списокЖурнала = document.getElementById('tp-log-list');
-    const отметка = document.getElementById('tp-you');
-    const ступени = [...document.querySelectorAll('.tp-step')];
-    const кнопкаЗаново = document.getElementById('tp-again');
-    const рядРежимов = document.getElementById('tp-modes');
-    const рядВида = document.getElementById('tp-kind');
-    const кнопкаСвой = document.getElementById('tp-own');
-    const панель = document.getElementById('tp-panel');
-    const вставка = document.getElementById('tp-paste');
-    const счётЗнаков = document.getElementById('tp-count');
+    const РЯДЫ = JSON.parse(корень.dataset.rows || '[]');
+    const $ = (id) => document.getElementById(id);
 
-    let длительность = 60;
-    let начало = 0, таймер = 0, идёт = false, кончено = false;
-    let верныхВсего = 0, неверныхВсего = 0;
-
-    // РАЗРЯДЫ. Границы в словах в минуту -- мера международная, по ней разряд один и тот же
-    // на всех языках. Знаки получаются умножением на пять: 30 слов это 150 знаков.
+    const РАЗРЯДЫ = с.ranks;
     const ГРАНИЦЫ = [30, 50, 70, 90];
-    const разряд = (сл) => ГРАНИЦЫ.filter((г) => сл >= г).length;
-    // Место отметки на ленте: каждый разряд занимает свою пятую часть, внутри -- пропорция.
-    // Так лента остаётся ровной, а отметка честной.
-    function местоНаЛенте(сл) {
-      const края = [0, ...ГРАНИЦЫ, 130];
-      const i = разряд(сл);
-      const доля = Math.min(1, Math.max(0, (сл - края[i]) / (края[i + 1] - края[i])));
-      return Math.min(99, (i + доля) * 20);
+    // Палец определяется положением клавиши в ряду, а не списком букв: так это работает
+    // на любой раскладке и не надо держать четыре таблицы.
+    const ПАЛЕЦ_ПО_МЕСТУ = [0, 1, 2, 3, 3, 4, 4, 5, 6, 7, 7, 7];
+    const палецБуквы = new Map();
+    РЯДЫ.forEach((ряд) => ряд.forEach((б, i) => {
+      палецБуквы.set(б, с.fingers[ПАЛЕЦ_ПО_МЕСТУ[Math.min(i, ПАЛЕЦ_ПО_МЕСТУ.length - 1)]]);
+    }));
+
+    const поле = $('поле'), окно = $('окно'), строки = $('строки'), ввод = $('ввод');
+    const каретка = $('каретка'), пакман = $('пакман'), полоса = $('полоса');
+    const часы = $('часы'), кЧасов = $('к-часов'), полеСкорость = $('скорость');
+    const полеТочность = $('точность'), полеРекорд = $('рекорд'), подсказка = $('подсказка');
+    const холст = $('график'), клава = $('клава'), подКлавой = $('под-клавой');
+    const отметка = $('отметка'), ступени = [...$('ступени').children];
+    const надпись = $('сейчас'), панель = $('панель'), подсказКлава = $('подсказ-клава');
+    const кнопкаКартинки = $('картинка'), полеПохвалы = $('tp-praise');
+    const блокЖурнала = $('tp-log'), списокЖурнала = $('tp-log-list');
+
+    let слова = [], уровень = 'easy', режим = 'время', значение = 60, курсор = 'черта';
+    let строгость = 'обычно', свой = null, собрать = null;
+    const поВремени = () => режим === 'время';
+    let начало = 0, таймер = 0, идёт = false, кончено = false, провалено = false;
+    let верных = 0, неверных = 0, отказов = 0;
+    let точки = [], прошлыеЗнаки = 0, прошлыеОшибки = 0;
+    let эталон = '', прошлыйВвод = '', былоНачало = false;
+    let промежутки = [], прошлыйСтук = 0, простой = 0, виситПростой = false;
+    let звукВкл = false, звукКонтекст = null;
+    let последнийИтог = null;
+
+    const сл = (n) => Math.floor(Math.random() * n);
+
+    // РОВНОСТЬ. Своя мера: насколько похожи промежутки между нажатиями. У слепой печати они
+    // почти одинаковые, у поиска глазами -- рваные. Паузы дольше двух секунд выбрасываем:
+    // это уже не набор, а «отвлёкся».
+    function ровность() {
+      const п = промежутки.filter((м) => м > 20 && м < 2000);
+      if (п.length < 8) return null;
+      const среднее = п.reduce((a, b) => a + b, 0) / п.length;
+      const разброс = Math.sqrt(п.reduce((a, b) => a + (b - среднее) ** 2, 0) / п.length);
+      return Math.max(0, Math.min(100, Math.round((1 - разброс / среднее) * 100)));
     }
 
-    // ПРОЗВИЩЕ. Две оси: зверь растёт со скоростью, определение говорит о манере. Человек с
-    // одной и той же скоростью, но разной точностью получает разные прозвища -- и это честно:
-    // манера у них правда разная.
+    // ЗВУК синтезируется на месте: ни одного файла не грузится. По умолчанию выключен.
+    function звякнуть(вид) {
+      if (!звукВкл) return;
+      try {
+        звукКонтекст = звукКонтекст || new (window.AudioContext || window.webkitAudioContext)();
+        const т = звукКонтекст.currentTime;
+        const о = звукКонтекст.createOscillator(), г = звукКонтекст.createGain();
+        о.connect(г); г.connect(звукКонтекст.destination);
+        if (вид === 'ошибка') { о.type = 'square'; о.frequency.value = 150; г.gain.value = .05; }
+        else if (вид === 'конец') { о.type = 'sine'; о.frequency.value = 440; г.gain.value = .12; }
+        else { о.type = 'triangle'; о.frequency.value = 1180 + сл(140); г.gain.value = .035; }
+        const долго = вид === 'конец' ? .5 : .035;
+        г.gain.exponentialRampToValueAtTime(.0001, т + долго);
+        о.start(т); о.stop(т + долго);
+      } catch {}
+    }
+
+    // Клавиатура-подсказка. Рисуется один раз, дальше только переставляется подсветка.
+    const клавишиПоБукве = new Map();
+    (function собратьКлаву() {
+      for (const ряд of РЯДЫ) {
+        const р = document.createElement('div'); р.className = 'пк-ряд';
+        for (const б of ряд) {
+          const к = document.createElement('div'); к.className = 'пк-кл'; к.textContent = б;
+          клавишиПоБукве.set(б, к); р.appendChild(к);
+        }
+        подсказКлава.appendChild(р);
+      }
+      const р = document.createElement('div'); р.className = 'пк-ряд';
+      const п = document.createElement('div'); п.className = 'пк-кл проб';
+      п.textContent = с.space;
+      клавишиПоБукве.set(' ', п); р.appendChild(п); подсказКлава.appendChild(р);
+    })();
+    let подсвечена = null;
+    function подсветить(буква) {
+      const к = клавишиПоБукве.get((буква || '').toLowerCase()) || null;
+      if (к === подсвечена) return;
+      if (подсвечена) подсвечена.classList.remove('сейчас');
+      if (к) к.classList.add('сейчас');
+      подсвечена = к;
+    }
+
+    // Ход Глотателя: каждый кадр он проходит четверть оставшегося пути до цели. Такой ход не
+    // зависит от частоты нажатий и не обрывается на полпути -- переезды по CSS обрывались.
+    let гX = 0, гY = 0, цельX = 0, цельY = 0, идётКадр = 0;
+    function ход() {
+      гX += (цельX - гX) * 0.26;
+      гY += (цельY - гY) * 0.26;
+      пакман.style.transform = 'translate(' + гX.toFixed(2) + 'px,' + гY.toFixed(2) + 'px)';
+      идётКадр = requestAnimationFrame(ход);
+    }
+    function глотательВключён(да) {
+      корень.classList.toggle('с-глотателем', да);
+      cancelAnimationFrame(идётКадр); идётКадр = 0;
+      if (да) идётКадр = requestAnimationFrame(ход);
+    }
+
+    const узлы = [];
+    function нарисовать() {
+      const куски = document.createDocumentFragment(); узлы.length = 0;
+      for (const слово of слова) {
+        const у = document.createElement('span'); у.className = 'слово';
+        for (const б of слово) {
+          const s = document.createElement('span'); s.className = 'зн'; s.textContent = б;
+          у.appendChild(s);
+        }
+        куски.appendChild(у); узлы.push(у);
+      }
+      строки.replaceChildren(куски);
+    }
+
+    function поставитьКаретку() {
+      const набрано = ввод.value.split(' ');
+      const i = Math.min(набрано.length - 1, узлы.length - 1);
+      const узел = узлы[i]; if (!узел) return;
+      const буквы = узел.children, j = (набрано[i] || '').length;
+      const цель = буквы[Math.min(j, буквы.length - 1)]; if (!цель) return;
+      const заКонцом = j >= буквы.length;
+      // Слово дописано -- меряем по СЛОВУ: у Глотателя последняя буква в этот момент
+      // сжимается во рту, её рамка едет, и курсор дрожал бы вместе с ней.
+      const рб = заКонцом ? узел.getBoundingClientRect() : цель.getBoundingClientRect();
+      const ро = окно.getBoundingClientRect();
+      const блок = курсор === 'блок';
+      каретка.style.left = (рб.left - ро.left + (заКонцом && !блок ? рб.width : 0)) + 'px';
+      каретка.style.top = (рб.top - ро.top) + 'px';
+      каретка.style.height = рб.height + 'px';
+      каретка.style.width = (блок || курсор === 'черт-низ') ? рб.width + 'px' : '';
+      if (!подсказКлава.hidden) подсветить(заКонцом ? ' ' : (слова[i] || '')[j]);
+      if (курсор === 'глотатель') {
+        const размер = пакман.offsetWidth || 22;
+        цельX = рб.left - ро.left + (заКонцом ? рб.width : 0) - размер - 1;
+        цельY = рб.top - ро.top + (рб.height - размер) / 2;
+      }
+    }
+
+    let верхПрошлый = -1;
+    function подвинуть(узел) {
+      if (!узел) return;
+      const строка = узел.offsetTop; if (строка === верхПрошлый) return;
+      верхПрошлый = строка;
+      строки.style.transform = 'translateY(' + (-Math.max(0, строка - узел.offsetHeight)) + 'px)';
+    }
+
+    const поБуквам = new Map();
+    function разобрать() {
+      const набрано = ввод.value.split(' ');
+      let в = 0, н = 0, перваяОшибка = false;
+      поБуквам.clear();
+      for (let i = 0; i < узлы.length; i++) {
+        const узел = узлы[i], образец = слова[i], было = набрано[i];
+        if (i === набрано.length - 1) подвинуть(узел);
+        [...узел.querySelectorAll('.зн.лишняя')].forEach((э) => э.remove());
+        const буквы = узел.children;
+        if (было == null) {
+          for (const б of буквы) if (б.className !== 'зн') б.className = 'зн';
+          continue;
+        }
+        for (let j = 0; j < буквы.length; j++) {
+          const набран = было[j];
+          if (набран == null) { if (буквы[j].className !== 'зн') буквы[j].className = 'зн'; continue; }
+          const верно = набран === образец[j];
+          // Класс ставим ТОЛЬКО при смене: иначе на каждом нажатии съедание перезапускается
+          // у всех уже съеденных букв разом, и строка мигает.
+          const нужен = 'зн ' + (верно ? (курсор === 'глотатель' ? 'съел' : 'верно') : 'мимо');
+          if (буквы[j].className !== нужен) буквы[j].className = нужен;
+          if (верно) в++; else { н++; перваяОшибка = true; }
+          const ключ = образец[j].toLowerCase();
+          const з = поБуквам.get(ключ) || { всего: 0, плохо: 0 };
+          з.всего++; if (!верно) з.плохо++; поБуквам.set(ключ, з);
+        }
+        if (было.length > образец.length) {
+          for (let j = образец.length; j < было.length; j++) {
+            const л = document.createElement('span'); л.className = 'зн лишняя';
+            л.textContent = было[j]; узел.appendChild(л); н++; перваяОшибка = true;
+          }
+        }
+        if (i < набрано.length - 1) {
+          в++; const з = поБуквам.get(' ') || { всего: 0, плохо: 0 }; з.всего++; поБуквам.set(' ', з);
+        }
+      }
+      // Отвергнутых букв в разметке не остаётся, но в точность они идут: промах был.
+      верных = в; неверных = н + отказов;
+      const всего = верных + неверных;
+      полеТочность.textContent = (всего ? Math.round(верных / всего * 100) : 100) + '%';
+      const сек = идёт ? (Date.now() - начало) / 1000 : 0;
+      полеСкорость.textContent = (идёт && сек >= 3)
+        ? String(Math.round(в / (знакиГлавное ? 1 : 5) / (сек / 60))) : '0';
+      if (свой) полоса.style.transform = 'scaleX(' + (1 - Math.min(1, (набрано.length - 1) / слова.length)) + ')';
+      поставитьКаретку();
+      if (строгость === 'смерть' && перваяОшибка && идёт) { провалено = true; закончить(); return; }
+      if (набрано.length >= слова.length) закончить();
+    }
+
+    function тик() {
+      const прошло = (Date.now() - начало) / 1000;
+      if (поВремени() && !свой) {
+        const осталось = Math.max(0, Math.ceil(значение - прошло));
+        часы.textContent = String(осталось);
+        полоса.style.transform = 'scaleX(' + Math.max(0, 1 - прошло / значение) + ')';
+        корень.classList.toggle('мало', осталось <= 10 && осталось > 5);
+        корень.classList.toggle('совсем-мало', осталось <= 5);
+        if (осталось <= 0) { разобрать(); закончить(); return; }
+      } else {
+        часы.textContent = String(Math.floor(прошло));
+      }
+      разобрать();
+      // Три секунды тишины -- скорее всего отвлеклись. Молчать нечестно: время-то идёт.
+      if (простой && performance.now() - простой > 3000 && !виситПростой) {
+        подсказка.textContent = с.idle; виситПростой = true;
+      }
+      const целая = Math.floor(прошло);
+      if (целая > точки.length && целая <= 180) {
+        точки.push({ знаков: верных - прошлыеЗнаки, ошибок: неверных - прошлыеОшибки });
+        прошлыеЗнаки = верных; прошлыеОшибки = неверных;
+      }
+    }
+
+    function ходоваяПодсказка() {
+      return строгость === 'смерть' ? с.deathHint
+        : строгость === 'строго' ? с.strictHint : с.typing;
+    }
+    function начать() {
+      if (идёт || кончено) return;
+      идёт = true; корень.classList.add('идёт'); корень.classList.remove('ждёт');
+      открытьПанель(false);
+      подсказка.textContent = ходоваяПодсказка();
+      начало = Date.now(); таймер = window.setInterval(тик, 200);
+    }
+
+    function набежать(узел, до, знак) {
+      const шагов = 24; let i = 0;
+      const т = setInterval(() => {
+        i++; const доля = 1 - Math.pow(1 - i / шагов, 3);
+        узел.textContent = Math.round(до * доля) + (знак || '');
+        if (i >= шагов) { clearInterval(т); узел.textContent = до + (знак || ''); }
+      }, 18);
+    }
+
+    // Цвета графика зависят от облика: на светлом листе белые линии не видно вовсе.
+    function палитра() {
+      return корень.classList.contains('облик-бумага')
+        ? { сетка: 'rgba(0,0,0,.1)', подпись: 'rgba(40,38,34,.6)', средняя: 'rgba(0,0,0,.32)',
+            линия: '#17603c', верх: 'rgba(23,96,60,.24)', низ: 'rgba(23,96,60,0)', точка: '#b03a2e' }
+        : { сетка: 'rgba(255,255,255,.07)', подпись: 'rgba(214,219,230,.4)', средняя: 'rgba(255,255,255,.3)',
+            линия: '#4ade9e', верх: 'rgba(74,222,158,.3)', низ: 'rgba(74,222,158,0)', точка: '#f2857b' };
+    }
+    let графикКадр = 0;
+    function начертитьГрафик(средняя) {
+      cancelAnimationFrame(графикКадр);
+      const т0 = performance.now();
+      (function шаг() {
+        const доля = Math.min(1, (performance.now() - т0) / 620);
+        рисоватьГрафик(средняя, доля);
+        if (доля < 1) графикКадр = requestAnimationFrame(шаг);
+      })();
+    }
+    function рисоватьГрафик(средняя, доля) {
+      const цв = палитра();
+      const к = холст.getContext('2d');
+      const ш = холст.clientWidth, в = холст.clientHeight, м = window.devicePixelRatio || 1;
+      холст.width = ш * м; холст.height = в * м; к.setTransform(м, 0, 0, м, 0, 0);
+      к.clearRect(0, 0, ш, в);
+      const все = точки.length ? точки : [{ знаков: 0, ошибок: 0 }];
+      const видно = Math.max(1, Math.ceil(все.length * (доля == null ? 1 : доля)));
+      const данные = все.slice(0, видно);
+      const макс = Math.max(80, ...все.map((т) => т.знаков * 60)) * 1.15;
+      const x = (i) => 30 + (ш - 38) * (все.length > 1 ? i / (все.length - 1) : .5);
+      const y = (v) => в - 20 - (в - 32) * Math.min(1, v / макс);
+
+      к.font = '10px ' + getComputedStyle(document.body).fontFamily;
+      к.textAlign = 'left';
+      for (let i = 0; i <= 3; i++) {
+        const v = макс * i / 3, yy = Math.round(y(v)) + .5;
+        к.strokeStyle = цв.сетка; к.lineWidth = 1;
+        к.beginPath(); к.moveTo(30, yy); к.lineTo(ш - 6, yy); к.stroke();
+        if (i) { к.fillStyle = цв.подпись; к.fillText(String(Math.round(v)), 0, yy + 3); }
+      }
+      к.setLineDash([4, 4]); к.strokeStyle = цв.средняя;
+      к.beginPath(); к.moveTo(30, y(средняя)); к.lineTo(ш - 6, y(средняя)); к.stroke(); к.setLineDash([]);
+
+      const путь = () => {
+        к.beginPath();
+        данные.forEach((т, i) => { const px = x(i), py = y(т.знаков * 60); i ? к.lineTo(px, py) : к.moveTo(px, py); });
+      };
+      путь();
+      к.lineTo(x(данные.length - 1), в - 20); к.lineTo(x(0), в - 20); к.closePath();
+      const зал = к.createLinearGradient(0, 0, 0, в);
+      зал.addColorStop(0, цв.верх); зал.addColorStop(1, цв.низ);
+      к.fillStyle = зал; к.fill();
+      путь(); к.strokeStyle = цв.линия; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+      данные.forEach((т, i) => {
+        if (!т.ошибок) return;
+        к.beginPath(); к.arc(x(i), y(т.знаков * 60), 3.5, 0, Math.PI * 2);
+        к.fillStyle = цв.точка; к.fill();
+      });
+    }
+
+    function рисоватьКлаву() {
+      клава.replaceChildren();
+      const бумага = корень.classList.contains('облик-бумага');
+      const плохие = [];
+      for (const ряд of РЯДЫ) {
+        const р = document.createElement('div'); р.className = 'ряд-клавиш';
+        for (const б of ряд) {
+          const к = document.createElement('div'); к.className = 'кл'; к.textContent = б;
+          const з = поБуквам.get(б);
+          if (з && з.всего) {
+            const точность = 1 - з.плохо / з.всего;
+            // Насыщенность по числу нажатий: одна ошибка на одно нажатие ещё ни о чём не говорит.
+            const вес = Math.min(1, .35 + з.всего / 14) * (бумага ? 1.7 : 1);
+            const тон = точность >= .999 ? '74,222,158' : (точность > .8 ? '245,196,81' : '242,133,123');
+            к.style.background = 'rgba(' + тон + ',' + (вес * .3).toFixed(2) + ')';
+            к.style.borderColor = 'rgba(' + тон + ',' + (вес * .55).toFixed(2) + ')';
+            к.style.color = бумага
+              ? 'rgba(30,28,25,' + Math.min(1, .55 + вес * .45).toFixed(2) + ')'
+              : 'rgba(240,240,242,' + (.5 + вес * .45).toFixed(2) + ')';
+            if (з.плохо) плохие.push({ б, плохо: з.плохо });
+          }
+          р.appendChild(к);
+        }
+        клава.appendChild(р);
+      }
+      const р = document.createElement('div'); р.className = 'ряд-клавиш';
+      const п = document.createElement('div'); п.className = 'кл пробел';
+      п.textContent = с.space;
+      if ((поБуквам.get(' ') || {}).всего) {
+        п.style.background = 'rgba(74,222,158,.12)'; п.style.borderColor = 'rgba(74,222,158,.3)';
+      }
+      р.appendChild(п); клава.appendChild(р);
+
+      плохие.sort((a, b) => b.плохо - a.плохо);
+      подКлавой.innerHTML = плохие.length
+        ? с.worst.replace('{n}', плохие.slice(0, 3).map((п2) => '<b>' + п2.б + '</b>').join(', '))
+        : с.clean;
+
+      // Пальцы: тренировать палец полезнее, чем букву.
+      const поПальцам = new Map();
+      for (const [б, з] of поБуквам) {
+        const п2 = палецБуквы.get(б); if (!п2 || !з.плохо) continue;
+        поПальцам.set(п2, (поПальцам.get(п2) || 0) + з.плохо);
+      }
+      const худшие = [...поПальцам.entries()].sort((a, b) => b[1] - a[1]).slice(0, 2);
+      $('пальцы').innerHTML = худшие.length
+        ? с.fingersLine.replace('{n}', худшие.map((п2) => '<b>' + п2[0] + '</b>').join(' / '))
+        : '';
+    }
+
+    // ПРОЗВИЩЕ по двум осям: зверь растёт со скоростью, определение говорит о манере.
     const мера = (точность) => (точность < 93 ? 0 : (точность < 98 ? 1 : 2));
     const прозвище = (разр, точность) => с.names[разр][мера(точность)];
 
-    // ПОХВАЛА. Только проверяемые утверждения: сравнение с прошлой попыткой и совет по делу.
-    // Пустое «отлично!» после 90 знаков с 70 % точности человек не купит, и правильно сделает.
+    // ПОХВАЛА только проверяемая: сравнение с прошлой попыткой и совет по делу.
     function похвала(главное, точность, разр, прошлая) {
       const части = [];
       if (!прошлая) части.push(с.pFirst);
       else {
-        const д = главное - прошлая.главное;
-        const т = точность - прошлая.точность;
+        const д = главное - прошлая.главное, т = точность - прошлая.точность;
         if (д > 0) части.push(с.pFaster.replace('{n}', д));
         else if (д === 0) части.push(с.pSame);
         else if (т > 0) части.push(с.pSlowerAcc.replace('{n}', -д).replace('{m}', т));
@@ -455,19 +944,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       return части.join(' ');
     }
 
-    // ЖУРНАЛ. Последние десять попыток, только в этом браузере: никуда не уходит и ни с кем
-    // не сравнивается. Свой текст сюда не пишется -- в нём свои знаки, сравнение было бы кривым.
+    // ЖУРНАЛ: последние десять попыток, только в этом браузере.
     const ключЖурнала = 'opitro-tp-log-' + язык;
+    const ключРекорда = () => 'opitro-tp-' + язык + '-' + уровень + '-' + режим + '-' + значение;
     function взятьЖурнал() {
       try { const j = JSON.parse(localStorage.getItem(ключЖурнала) || '[]'); return Array.isArray(j) ? j : []; }
       catch { return []; }
     }
     function записатьВЖурнал(запись) {
-      const ж = взятьЖурнал();
-      ж.unshift(запись);
+      const ж = взятьЖурнал(); ж.unshift(запись);
       try { localStorage.setItem(ключЖурнала, JSON.stringify(ж.slice(0, 10))); } catch {}
     }
-    // «5 минут назад» на языке страницы -- Intl умеет это сам, свои таблицы склонений не нужны.
     const когдаТо = (() => {
       try { return new Intl.RelativeTimeFormat(язык, { numeric: 'auto' }); } catch { return null; }
     })();
@@ -482,25 +969,18 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const ж = взятьЖурнал();
       блокЖурнала.hidden = !ж.length;
       if (!ж.length) return;
-      const лучшие = [...ж].sort((a, b) => b.главное - a.главное);
       const куски = document.createDocumentFragment();
-      for (const з2 of лучшие) {
+      for (const з of [...ж].sort((a, b) => b.главное - a.главное)) {
         const строка = document.createElement('li');
-        строка.className = 'tp-log-row' + (з2.свежая ? ' эта' : '');
-        строка.innerHTML =
-          '<span class="ч"></span><span class="п"></span><span class="д"></span><span class="к"></span>';
-        строка.querySelector('.ч').textContent = з2.главное;
-        строка.querySelector('.п').textContent = з2.прозвище;
-        строка.querySelector('.д').textContent = з2.точность + '% · ' + з2.уровень + ' · ' + з2.секунд + ' ' + с.sec;
-        строка.querySelector('.к').textContent = давноЛи(з2.когда);
+        строка.className = 'tp-log-row' + (з.свежая ? ' эта' : '');
+        строка.innerHTML = '<span class="ч"></span><span class="п"></span><span class="д"></span>';
+        строка.querySelector('.ч').textContent = з.главное;
+        строка.querySelector('.п').textContent = з.прозвище;
+        строка.querySelector('.д').textContent = з.точность + '% · ' + з.уровень + ' · ' + з.секунд + ' ' + с.sec;
         куски.appendChild(строка);
       }
       списокЖурнала.replaceChildren(куски);
     }
-
-    // ЛИЧНЫЙ РЕКОРД. Свой на каждое сочетание «уровень + время»: сравнивать минуту лёгкого
-    // текста с половиной минуты сложного было бы бессмысленно. Лежит только в этом браузере.
-    const ключРекорда = () => 'opitro-tp-' + язык + '-' + уровень + '-' + длительность;
     function взятьРекорд() {
       try { return Number(localStorage.getItem(ключРекорда())) || 0; } catch { return 0; }
     }
@@ -509,325 +989,325 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       полеРекорд.textContent = р ? String(р) : '—';
     }
 
-    // Рисуем слова буквами: каждая буква своим узлом, иначе не показать, где именно ошибка.
-    // Делается один раз на попытку -- перерисовывать тысячу узлов на каждое нажатие значило бы
-    // тормозить под пальцами.
-    const узлыСлов = [];
-    function нарисовать() {
-      const куски = document.createDocumentFragment();
-      узлыСлов.length = 0;
-      for (const слово of слова) {
-        const у = document.createElement('span');
-        у.className = 'tp-word';
-        for (const б of слово) {
-          const с2 = document.createElement('span');
-          с2.className = 'tp-ch';
-          с2.textContent = б;
-          у.appendChild(с2);
-        }
-        куски.appendChild(у);
-        узлыСлов.push(у);
+    // КАРТИНКА РЕЗУЛЬТАТА: рисуется на холсте прямо в браузере, без сервера. Показывается
+    // на странице, а не только уходит в загрузки: молчаливая загрузка выглядит как поломка.
+    function нарисоватьКартинку() {
+      if (!последнийИтог) return;
+      const х = document.createElement('canvas');
+      х.width = 1200; х.height = 630;
+      const к = х.getContext('2d');
+      к.fillStyle = '#0e0f11'; к.fillRect(0, 0, 1200, 630);
+      const св = к.createRadialGradient(600, 250, 40, 600, 250, 560);
+      св.addColorStop(0, 'rgba(74,222,158,.16)'); св.addColorStop(1, 'rgba(74,222,158,0)');
+      к.fillStyle = св; к.fillRect(0, 0, 1200, 630);
+      const шр = getComputedStyle(document.body).fontFamily;
+
+      к.textAlign = 'center';
+      к.fillStyle = 'rgba(214,219,230,.62)'; к.font = '600 26px ' + шр;
+      к.fillText(с.imgTitle.toUpperCase(), 600, 108);
+      к.fillStyle = '#4ade9e'; к.font = '800 200px ' + шр;
+      к.fillText(String(последнийИтог.главное), 600, 310);
+      к.fillStyle = 'rgba(214,219,230,.8)'; к.font = '500 30px ' + шр;
+      к.fillText(с.imgSub + ' · ' + последнийИтог.вторая + ' ' + с.imgWords, 600, 360);
+      к.fillStyle = '#f0f0f2'; к.font = '800 44px ' + шр;
+      к.fillText(последнийИтог.разряд, 600, 436);
+      к.fillStyle = 'rgba(214,219,230,.72)'; к.font = '500 27px ' + шр;
+      к.fillText(с.imgAcc + ' ' + последнийИтог.точность + ' %'
+        + (последнийИтог.ров == null ? '' : ' · ' + с.imgEven + ' ' + последнийИтог.ров + ' %'), 600, 488);
+
+      const цвета = ['#f2857b', '#f5c451', '#4ade9e', '#60a5fa'];
+      for (let i = 0; i < 4; i++) {
+        к.fillStyle = цвета[i];
+        к.fillRect(516 + (i % 2) * 22, 548 + Math.floor(i / 2) * 22, 17, 17);
       }
-      текст.replaceChildren(куски);
-    }
+      к.textAlign = 'left'; к.fillStyle = '#f0f0f2'; к.font = '800 40px ' + шр;
+      к.fillText('Opitro', 574, 583);
 
-    // Курсор ставим перед той буквой, которую предстоит набрать. По нему глаз держит место в
-    // строке -- вернее, чем по подсветке слова.
-    function поставитьКурсор() {
-      const набрано = ввод.value.split(' ');
-      const i = Math.min(набрано.length - 1, узлыСлов.length - 1);
-      const узел = узлыСлов[i];
-      if (!узел) return;
-      const буквы = узел.children;
-      const j = (набрано[i] || '').length;
-      const цель = буквы[Math.min(j, буквы.length - 1)];
-      if (!цель) return;
-      const рб = цель.getBoundingClientRect();
-      const ро = окно.getBoundingClientRect();
-      const справа = j >= буквы.length;      // слово добрано -- курсор за последней буквой
-      курсор.style.left = (рб.left - ро.left + (справа ? рб.width : 0)) + 'px';
-      курсор.style.top = (рб.top - ро.top) + 'px';
-      курсор.style.height = рб.height + 'px';
-    }
-
-    // Текст едет вверх, чтобы строка с курсором стояла второй. Считаем по положению слова,
-    // а не по числу набранных: слова разной длины, строки получаются неодинаковыми.
-    let верхПрошлый = -1;
-    function подвинуть(узел) {
-      if (!узел) return;
-      const строка = узел.offsetTop;
-      if (строка === верхПрошлый) return;
-      верхПрошлый = строка;
-      текст.style.transform = 'translateY(' + (-Math.max(0, строка - узел.offsetHeight)) + 'px)';
-    }
-
-    function разобрать() {
-      const набрано = ввод.value.split(' ');
-      let верных = 0, неверных = 0;
-      for (let i = 0; i < узлыСлов.length; i++) {
-        const узел = узлыСлов[i];
-        const образец = слова[i];
-        const было = набрано[i];
-        if (i === набрано.length - 1) подвинуть(узел);
-        [...узел.querySelectorAll('.tp-ch.extra')].forEach((э) => э.remove());
-        const буквы = узел.children;
-        if (было == null) {
-          for (const б of буквы) б.className = 'tp-ch';
-          continue;
-        }
-        for (let j = 0; j < буквы.length; j++) {
-          const набран = было[j];
-          if (набран == null) { буквы[j].className = 'tp-ch'; continue; }
-          const верно = набран === образец[j];
-          буквы[j].className = 'tp-ch ' + (верно ? 'ok' : 'bad');
-          if (верно) верных++; else неверных++;
-        }
-        if (было.length > образец.length) {
-          for (let j = образец.length; j < было.length; j++) {
-            const л = document.createElement('span');
-            л.className = 'tp-ch extra';
-            л.textContent = было[j];
-            узел.appendChild(л);
-            неверных++;
-          }
-        }
-        if (i < набрано.length - 1) верных++;   // пробел между словами тоже знак
+      const адрес = х.toDataURL('image/png');
+      $('снимок-вид').src = адрес;
+      // Ссылку создаём здесь, а не в разметке: пустой href -- это битая ссылка на странице.
+      let ссылка = $('снимок-скачать');
+      if (!ссылка) {
+        ссылка = document.createElement('a');
+        ссылка.className = 'снимок-скачать'; ссылка.id = 'снимок-скачать';
+        ссылка.textContent = с.imgGet;
+        $('снимок').appendChild(ссылка);
       }
-      верныхВсего = верных; неверныхВсего = неверных;
-      const всего = верных + неверных;
-      полеТочность.textContent = (всего ? Math.round((верных / всего) * 100) : 100) + '%';
-      // Первые три секунды скорость не показываем: на одной секунде выходит бессмыслица.
-      const секунд = идёт ? (Date.now() - начало) / 1000 : 0;
-      полеСкорость.textContent = (идёт && секунд >= 3)
-        ? String(Math.round((верных / (знакиГлавное ? 1 : 5)) / (секунд / 60))) : '0';
-      // Свой текст кончается сам, поэтому полоса показывает не время, а сколько осталось слов.
-      if (свой) полоса.style.transform = 'scaleX(' + (1 - Math.min(1, (набрано.length - 1) / слова.length)) + ')';
-      поставитьКурсор();
-      if (набрано.length >= слова.length) закончить();
+      ссылка.href = адрес;
+      ссылка.download = 'opitro-' + последнийИтог.главное + '.png';
+      $('снимок').hidden = false;
     }
 
-    function тик() {
-      const прошло = (Date.now() - начало) / 1000;
-      if (свой) {
-        полеОсталось.textContent = String(Math.floor(прошло));
-        разобрать();
-        return;
-      }
-      const осталось = Math.max(0, Math.ceil(длительность - прошло));
-      полеОсталось.textContent = String(осталось);
-      полоса.style.transform = 'scaleX(' + Math.max(0, 1 - прошло / длительность) + ')';
-      корень.classList.toggle('мало', осталось <= 10 && осталось > 5);
-      корень.classList.toggle('совсем-мало', осталось <= 5);
-      if (осталось <= 0) { закончить(); return; }
-      разобрать();
-    }
-    function начать() {
-      if (идёт || кончено) return;
-      идёт = true;
-      корень.classList.add('идёт');
-      поле.classList.remove('ждёт');
-      подсказка.textContent = с.typing;
-      начало = Date.now();
-      таймер = window.setInterval(тик, 200);
-    }
-    function оценка(разр, точность) {
-      const части = [[с.vSlow], [с.vMid], [с.vFast], [с.vPro], [с.vPro]][разр].slice();
-      if (точность < 95) части.push(с.vAcc);
-      if (свой) части.push(с.ownNote);
-      return части.join(' ');
-    }
+    const букв = (n) => (n % 10 === 1 && n % 100 !== 11) ? с.letters1
+      : ((n % 10 >= 2 && n % 10 <= 4 && (n % 100 < 10 || n % 100 >= 20)) ? с.letters2 : с.letters5);
+
     function закончить() {
       if (!идёт) return;
-      идёт = false; кончено = true;
-      clearInterval(таймер);
+      идёт = false; кончено = true; clearInterval(таймер);
       const секунд = Math.max(1, (Date.now() - начало) / 1000);
-      const скорость = Math.round((верныхВсего / 5) / (секунд / 60));   // слов в минуту
-      const знаков = Math.round(верныхВсего / (секунд / 60));            // знаков в минуту
-      const всего = верныхВсего + неверныхВсего;
-      const точность = всего ? Math.round((верныхВсего / всего) * 100) : 100;
+      const скорость = Math.round((верных / 5) / (секунд / 60));
+      const знаков = Math.round(верных / (секунд / 60));
+      const всего = верных + неверных;
+      const точность = всего ? Math.round(верных / всего * 100) : 100;
       const главное = знакиГлавное ? знаков : скорость;
-      итогСкорость.textContent = String(главное);
-      итогВторая.textContent = String(знакиГлавное ? скорость : знаков);
-      итогТочность.textContent = точность + '%';
-      итогОшибки.textContent = String(неверныхВсего);
+      const вторая = знакиГлавное ? скорость : знаков;
+      const разр = ГРАНИЦЫ.filter((г) => скорость >= г).length;
+      const ров = ровность();
 
-      const разр = разряд(скорость);
-      ступени.forEach((ш, i) => ш.classList.toggle('on', i === разр));
-      отметка.style.left = местоНаЛенте(скорость) + '%';
-      итогСлова.textContent = оценка(разр, точность);
+      корень.classList.remove('идёт', 'мало', 'совсем-мало');
+      звякнуть('конец');
+      корень.classList.add('падает');
+      if (провалено) { корень.classList.add('провал'); setTimeout(() => корень.classList.remove('провал'), 400); }
+      ввод.readOnly = true; ввод.blur();
 
-      // Рекорд. Свой текст в него не идёт: там свои знаки препинания, и сравнение было бы
-      // нечестным по отношению к обычным заходам.
+      ступени.forEach((ш, i) => ш.classList.toggle('вкл', i === разр));
+      const края = [0, ...ГРАНИЦЫ, 130];
+      const доля = Math.min(1, Math.max(0, (скорость - края[разр]) / (края[разр + 1] - края[разр])));
+      отметка.style.left = '0%';
+
+      const имя = прозвище(разр, точность);
       const прежний = свой ? 0 : взятьРекорд();
       const побит = !свой && главное > прежний;
-      if (побит) { try { localStorage.setItem(ключРекорда(), String(главное)); } catch {} }
-      // Разряд человек читает первым -- он и стоит первым. Рекорд приписывается рядом, но
-      // только настоящий: самый первый заход бить нечего, а «рекорд» на пустом месте -- обман.
       const настоящийРекорд = побит && прежний > 0;
-      const имя = прозвище(разр, точность);
-      итогРазряд.textContent = свой ? с.ownBadge
-        : имя + (настоящийРекорд ? ' · ' + с.recNew + ' ' + с.recWas + ' ' + прежний : '');
-      итогРазряд.classList.toggle('рекорд', настоящийРекорд);
+      if (побит) { try { localStorage.setItem(ключРекорда(), String(главное)); } catch {} }
+      $('разряд').textContent = провалено ? с.deathBadge
+        : (свой ? с.ownBadge
+          : имя + (настоящийРекорд ? ' · ' + с.recNew + ' ' + с.recWas + ' ' + прежний : ''));
+      $('разряд').classList.toggle('рекорд', настоящийРекорд);
       показатьРекорд();
+
+      рисоватьКлаву();
+      $('и-ровность').textContent = ров == null ? '—' : ров + '%';
+      $('вердикт').textContent =
+        (строгость === 'строго' && отказов ? с.vStrict.replace('{n}', отказов + ' ' + букв(отказов)) + ' ' : '')
+        + (провалено ? с.vDeath + ' ' : '')
+        + [с.vSlow, с.vMid, с.vFast, с.vPro, с.vPro][разр]
+        + (точность < 95 ? ' ' + с.vAcc : '')
+        + (ров == null ? '' : ' ' + (ров >= 80 ? с.vEvenHi : (ров >= 60 ? с.vEvenMid : с.vEvenLow)).replace('{n}', ров))
+        + (свой ? ' ' + с.ownNote : '');
 
       // Журнал ведём только по обычным заходам: свой текст с ними несравним.
       if (!свой) {
-        const прошлая = взятьЖурнал()[0] || null;
-        полеПохвалы.textContent = похвала(главное, точность, разр, прошлая);
+        полеПохвалы.textContent = похвала(главное, точность, разр, взятьЖурнал()[0] || null);
         const жур = взятьЖурнал();
-        жур.forEach((з2) => { delete з2.свежая; });
+        жур.forEach((з) => { delete з.свежая; });
         try { localStorage.setItem(ключЖурнала, JSON.stringify(жур)); } catch {}
         записатьВЖурнал({
-          главное, точность, прозвище: имя, уровень: с[({ easy: 'lvEasy', medium: 'lvMid', hard: 'lvHard' })[уровень]],
-          секунд: длительность, когда: Date.now(), свежая: true,
+          главное, точность, прозвище: имя,
+          уровень: с[{ easy: 'lvEasy', medium: 'lvMid', hard: 'lvHard' }[уровень]],
+          секунд: поВремени() ? значение : Math.round(секунд), когда: Date.now(), свежая: true,
         });
-      } else {
-        полеПохвалы.textContent = '';
-      }
+      } else полеПохвалы.textContent = '';
       показатьЖурнал();
 
       полеСкорость.textContent = String(главное);
       полеТочность.textContent = точность + '%';
-      полеОсталось.textContent = свой ? String(Math.round(секунд)) : '0';
-      корень.classList.remove('идёт', 'мало', 'совсем-мало');
-      корень.classList.add('конец');
       подсказка.textContent = с.after;
-      ввод.readOnly = true;    // добить текст после гонга нельзя -- счёт был бы нечестным
-      ввод.blur();
+      последнийИтог = { главное, вторая, точность, ров, разряд: РАЗРЯДЫ[разр] };
+
+      // Всё, что движется, запускаем, когда текст уже осыпался: иначе числа успевают
+      // добежать за закрытым занавесом.
+      setTimeout(() => {
+        корень.classList.remove('падает');
+        корень.classList.add('конец');
+        набежать($('и-знаков'), главное); набежать($('и-слов'), вторая);
+        набежать($('и-точность'), точность, '%'); набежать($('и-ошибок'), неверных);
+        if (ров != null) набежать($('и-ровность'), ров, '%');
+        requestAnimationFrame(() => { отметка.style.left = Math.min(99, (разр + доля) * 20) + '%'; });
+        начертитьГрафик(главное);
+        кнопкаКартинки.hidden = false;
+      }, 440);
     }
+
     function заново() {
       clearInterval(таймер);
-      идёт = false; кончено = false;
-      верныхВсего = 0; неверныхВсего = 0; верхПрошлый = -1;
-      корень.classList.remove('идёт', 'конец', 'мало', 'совсем-мало');
-      поле.classList.add('ждёт');
-      ввод.readOnly = false;
-      ввод.value = '';
-      текст.style.transform = '';
-      полоса.style.transform = 'scaleX(1)';
-      подписьВремени.textContent = свой ? с.elapsed : с.time;
-      полеОсталось.textContent = свой ? '0' : String(длительность);
-      полеСкорость.textContent = '0';
-      полеТочность.textContent = '100%';
-      подсказка.textContent = с.ready;
-      показатьРекорд();
+      идёт = false; кончено = false; провалено = false;
+      верных = 0; неверных = 0; отказов = 0; верхПрошлый = -1;
+      точки = []; прошлыеЗнаки = 0; прошлыеОшибки = 0;
+      промежутки = []; прошлыйСтук = 0; простой = 0; виситПростой = false;
+      корень.classList.remove('идёт', 'конец', 'падает', 'мало', 'совсем-мало', 'провал');
+      корень.classList.add('ждёт');
+      ввод.readOnly = false; ввод.value = ''; прошлыйВвод = '';
+      строки.style.transform = ''; полоса.style.transform = 'scaleX(1)';
+      кЧасов.textContent = (поВремени() && !свой) ? с.time : с.elapsed;
+      часы.textContent = (поВремени() && !свой) ? String(значение) : '0';
+      полеСкорость.textContent = '0'; полеТочность.textContent = '100%';
+      подсказка.textContent = свой ? с.ready
+        : (строгость === 'смерть' ? с.deathHint : (строгость === 'строго' ? с.strictHint : с.ready));
+      кнопкаКартинки.hidden = true; $('снимок').hidden = true;
+      полеПохвалы.textContent = '';
+      // Клавиатура-подсказка -- только на лёгком: дальше она уводит глаз вниз.
+      подсказКлава.hidden = уровень !== 'easy' || !!свой;
+      показатьРекорд(); показатьЖурнал();
       if (свой) слова = свой.slice();
-      else if (собрать) слова = собрать(уровень);   // каждый заход -- новый текст
-      нарисовать();
-      поставитьКурсор();
-      ввод.focus();
+      else if (собрать) слова = собрать(уровень, режим === 'слова' ? значение : 140);
+      нарисовать(); поставитьКаретку();
+      эталон = слова.join(' ');
+      гX = цельX; гY = цельY;
+      пакман.style.transform = 'translate(' + гX + 'px,' + гY + 'px)';
+      if (былоНачало) ввод.focus();
     }
 
-    ввод.addEventListener('input', () => { начать(); разобрать(); });
+    ввод.addEventListener('input', () => {
+      // В строгом режиме неверная буква не принимается: возвращаем поле как было и считаем
+      // промах. Человек не уезжает вперёд с ошибкой за спиной.
+      if (строгость === 'строго' && ввод.value.length > прошлыйВвод.length) {
+        const i = ввод.value.length - 1;
+        if (ввод.value[i] !== эталон[i]) {
+          ввод.value = прошлыйВвод; отказов++; звякнуть('ошибка');
+          корень.classList.add('отказ');
+          setTimeout(() => корень.classList.remove('отказ'), 220);
+          начать(); разобрать(); return;
+        }
+      }
+      прошлыйВвод = ввод.value;
+      const сейчас = performance.now();
+      if (прошлыйСтук) промежутки.push(сейчас - прошлыйСтук);
+      прошлыйСтук = сейчас; простой = сейчас;
+      if (виситПростой) { виситПростой = false; подсказка.textContent = ходоваяПодсказка(); }
+      звякнуть('стук');
+      начать(); разобрать();
+    });
     ввод.addEventListener('keydown', (e) => { if (e.key === 'Enter') e.preventDefault(); });
-    // Потеря фокуса на середине попытки: время останавливаем и говорим об этом. Продолжать
-    // отсчёт, пока человек ушёл в другое окно, было бы враньём.
-    ввод.addEventListener('focus', () => корень.classList.remove('не-в-фокусе'));
-    ввод.addEventListener('blur', () => { if (!кончено) корень.classList.add('не-в-фокусе'); });
+    ввод.addEventListener('focus', () => корень.classList.add('в-фокусе'));
+    ввод.addEventListener('blur', () => корень.classList.remove('в-фокусе'));
     поле.addEventListener('click', () => { if (!кончено) ввод.focus(); });
-    кнопкаЗаново.addEventListener('click', () => { заново(); кнопкаЗаново.blur(); });
-    рядРежимов.addEventListener('click', (e) => {
-      const б = e.target.closest('.tp-key');
-      if (!б || свой) return;
-      [...рядРежимов.children].forEach((x) => x.classList.toggle('on', x === б));
-      длительность = Number(б.dataset.sec) || 60;
-      заново();
-      б.blur();
+    $('старт').addEventListener('click', (e) => {
+      e.stopPropagation(); былоНачало = true; ввод.focus();
+      корень.classList.add('в-фокусе');
     });
-    рядВида.addEventListener('click', (e) => {
-      const б = e.target.closest('.tp-key');
-      if (!б || свой) return;
-      [...рядВида.children].forEach((x) => x.classList.toggle('on', x === б));
-      уровень = б.dataset.kind || 'easy';
-      заново();
-      б.blur();
+    $('ещё').addEventListener('click', () => { былоНачало = true; заново(); $('ещё').blur(); });
+    кнопкаКартинки.addEventListener('click', () => { нарисоватьКартинку(); кнопкаКартинки.blur(); });
+    $('tp-log-clear').addEventListener('click', () => {
+      try { localStorage.removeItem(ключЖурнала); } catch {}
+      показатьЖурнал(); $('tp-log-clear').blur();
     });
-    // Ширина изменилась -- строки перебились, и курсор с прокруткой должны встать заново.
-    window.addEventListener('resize', () => { верхПрошлый = -1; поставитьКурсор(); });
 
-    // СВОЙ ТЕКСТ. Никуда не уходит и нигде не сохраняется: живёт только в этой вкладке, пока
-    // она открыта. Люди вставляют сюда рабочие письма, и это должно быть правдой.
-    function почистить(t) {
-      return String(t || '').replace(/ /g, ' ').replace(/\s+/g, ' ').trim();
-    }
+    // --- настройки ---
+    const выбор = $('настройки');
+    const кнопкаВыбора = выбор.querySelector('.выбор-кнопка');
     function открытьПанель(да) {
       панель.hidden = !да;
+      кнопкаВыбора.setAttribute('aria-expanded', да ? 'true' : 'false');
+      выбор.toggleAttribute('data-открыт', да);
+    }
+    function обновитьНадпись() {
+      const ур = $('ряд-ур').querySelector('.вкл').dataset.метка;
+      const за = $('ряд-задачи').querySelector('.вкл').dataset.метка;
+      const стр = $('ряд-строгости').querySelector('.вкл').dataset.метка;
+      надпись.textContent = ур + ' · ' + за + (стр ? ' · ' + стр : '');
+    }
+    кнопкаВыбора.addEventListener('click', (e) => { e.stopPropagation(); открытьПанель(панель.hidden); });
+    $('закрыть').addEventListener('click', (e) => { e.stopPropagation(); открытьПанель(false); });
+    панель.addEventListener('click', (e) => {
+      // Панель остаётся открытой: обычно меняют две-три настройки подряд.
+      e.stopPropagation();
+      const ч = e.target.closest('.чип, .знак'); if (!ч || ч.disabled) return;
+      const группа = ч.dataset.кур ? $('ряд-кур')
+        : ч.dataset.ур ? $('ряд-ур')
+        : ч.dataset.стр ? $('ряд-строгости')
+        : ч.dataset.обл ? $('ряд-облика')
+        : ч.dataset.звук ? $('ряд-звука')
+        : $('ряд-задачи');
+      [...группа.querySelectorAll('.чип, .знак')].forEach((x) => x.classList.toggle('вкл', x === ч));
+      if (ч.dataset.ур) уровень = ч.dataset.ур;
+      else if (ч.dataset.кур) {
+        курсор = ч.dataset.кур;
+        каретка.className = 'каретка ' + курсор;
+        глотательВключён(курсор === 'глотатель');
+      }
+      else if (ч.dataset.стр) строгость = ч.dataset.стр;
+      else if (ч.dataset.обл) {
+        корень.classList.remove('облик-ночь', 'облик-бумага', 'облик-терминал');
+        корень.classList.add('облик-' + ч.dataset.обл);
+      }
+      else if (ч.dataset.звук) {
+        звукВкл = ч.dataset.звук === 'да';
+        if (звукВкл) звякнуть('стук');   // сразу слышно, на что подписался
+      }
+      else { режим = ч.dataset.реж; значение = Number(ч.dataset.знач); }
+      обновитьНадпись();
+      заново();
+      ч.focus(); поставитьКаретку();
+    });
+    document.addEventListener('click', () => открытьПанель(false));
+    document.addEventListener('keydown', (e) => {
+      if (e.key !== 'Escape') return;
+      e.preventDefault();
+      if (!панель.hidden) { открытьПанель(false); return; }
+      былоНачало = true; заново();
+    });
+    window.addEventListener('resize', () => {
+      верхПрошлый = -1; поставитьКаретку();
+      if (кончено) рисоватьГрафик(Number($('и-знаков').textContent) || 0, 1);
+    });
+
+    // --- свой текст ---
+    function почистить(t) {
+      // Неразрывные пробелы, переводы строк и двойные пробелы схлопываем: иначе человек
+      // «ошибается» на невидимом знаке и злится на тест, а не на свой текст.
+      return String(t || '').replace(/[   ]/g, ' ').replace(/\s+/g, ' ').trim();
+    }
+    const кнопкаСвой = $('tp-own'), своя = $('tp-panel'), вставка = $('tp-paste'), счёт = $('tp-count');
+    function открытьСвою(да) {
+      своя.hidden = !да;
       кнопкаСвой.setAttribute('aria-expanded', да ? 'true' : 'false');
       кнопкаСвой.classList.toggle('on', да);
       if (да) вставка.focus();
     }
-    кнопкаСвой.addEventListener('click', () => {
-      if (свой) { снятьСвой(); return; }        // второе нажатие возвращает обычный текст
-      открытьПанель(панель.hidden);
+    кнопкаСвой.addEventListener('click', (e) => {
+      e.stopPropagation();
+      if (свой) { снятьСвой(); return; }
+      открытьСвою(своя.hidden);
     });
+    своя.addEventListener('click', (e) => e.stopPropagation());
     вставка.addEventListener('input', () => {
       const n = почистить(вставка.value).length;
-      счётЗнаков.textContent = n + ' ' + с.ownChars;
-      счётЗнаков.classList.toggle('мало', n > 0 && n < 20);
+      счёт.textContent = n + ' ' + с.ownChars;
+      счёт.classList.toggle('мало', n > 0 && n < 20);
     });
-    document.getElementById('tp-drop').addEventListener('click', () => открытьПанель(false));
-    document.getElementById('tp-take').addEventListener('click', () => {
+    $('tp-drop').addEventListener('click', () => открытьСвою(false));
+    $('tp-take').addEventListener('click', () => {
       const чистый = почистить(вставка.value);
       if (чистый.length < 20) {
-        счётЗнаков.textContent = с.ownShort;
-        счётЗнаков.classList.add('мало');
-        вставка.focus();
-        return;
+        счёт.textContent = с.ownShort; счёт.classList.add('мало'); вставка.focus(); return;
       }
       let части = чистый.split(' ');
       const длинно = части.length > 500;
       if (длинно) части = части.slice(0, 500);
       свой = части;
-      корень.classList.add('свой');
-      кнопкаСвой.classList.add('on');
-      кнопкаСвой.textContent = с.ownCancel;
-      [...рядРежимов.children, ...рядВида.children].forEach((б) => { б.disabled = true; });
-      полеРекорд.textContent = '—';
-      открытьПанель(false);
-      заново();
-      подсказка.textContent = длинно ? с.ownLong : с.ready;
+      кнопкаСвой.classList.add('on'); кнопкаСвой.textContent = с.ownCancel;
+      [...панель.querySelectorAll('.чип')].forEach((б) => { б.disabled = true; });
+      открытьСвою(false); былоНачало = true; заново();
+      if (длинно) подсказка.textContent = с.ownLong;
     });
     function снятьСвой() {
       свой = null;
-      корень.classList.remove('свой');
-      кнопкаСвой.classList.remove('on');
-      кнопкаСвой.textContent = с.own;
-      [...рядРежимов.children, ...рядВида.children].forEach((б) => { б.disabled = false; });
+      кнопкаСвой.classList.remove('on'); кнопкаСвой.textContent = с.own;
+      [...панель.querySelectorAll('.чип')].forEach((б) => { б.disabled = false; });
       заново();
     }
 
-    document.getElementById('tp-log-title').textContent = с.logTitle;
-    document.getElementById('tp-log-note').textContent = с.logNote;
-    const кнопкаСтереть = document.getElementById('tp-log-clear');
-    кнопкаСтереть.textContent = с.logClear;
-    кнопкаСтереть.addEventListener('click', () => {
-      try { localStorage.removeItem(ключЖурнала); } catch {}
-      показатьЖурнал();
-      кнопкаСтереть.blur();
-    });
-
-    // Слова живут в отдельном файле: он весит килобайты и грузится сразу, но отдельно от
-    // страницы -- разметка успевает показаться раньше.
+    // Слова живут в отдельном файле: он весит килобайты и грузится отдельно от страницы.
     import('../lib/typing-words.js').then((м) => {
-      собрать = (какой) => м.текстДляТеста(язык, какой, 140);
+      собрать = (какой, сколько) => м.текстДляТеста(язык, какой, сколько);
+      обновитьНадпись();
       заново();
     });
 
     window.__tpСостояние = () => ({
-      идёт, кончено, длительность, уровень,
+      идёт, кончено, значение, режим, уровень, строгость, курсор,
       свой: !!свой,
       первыеСлова: слова.slice(0, 5).join(' '),
       скорость: Number(полеСкорость.textContent),
       точность: полеТочность.textContent,
-      итог: итогСкорость.textContent,
-      разряд: итогРазряд.textContent,
+      итог: $('и-знаков').textContent,
+      ровность: $('и-ровность').textContent,
+      разряд: $('разряд').textContent,
       похвала: полеПохвалы.textContent,
-      вЖурнале: взятьЖурнал().length,
       рекорд: полеРекорд.textContent,
-      верных: корень.querySelectorAll('.tp-ch.ok').length,
-      неверных: корень.querySelectorAll('.tp-ch.bad, .tp-ch.extra').length,
+      вЖурнале: взятьЖурнал().length,
       наЭкранеИтог: корень.classList.contains('конец'),
-      накладка: корень.classList.contains('не-в-фокусе'),
     });
   })();
 </script>
