@@ -11,7 +11,7 @@ faq:
   - question: How do I count the characters in a text?
     answer: "Paste the text into the field — the numbers count themselves, there is nothing to press. Characters with and without spaces are shown separately: briefs usually mean “with spaces”, but it is worth asking, because on a long text the difference is about a sixth."
   - question: Which number is the main one — with or without spaces?
-    answer: "Both, which is why they stand side by side at the same size. With spaces is what volume and limits are measured in: briefs ask for characters with spaces, and every length cap — a post, an SMS, a search title — counts a space as a character. Without spaces is the everyday reading of the word “characters”: letters and marks only. On a long text the gap is about a sixth, so it matters which one is meant."
+    answer: "With spaces is shown as the headline number: it is what volume and limits are measured in. With spaces is what volume and limits are measured in: briefs ask for characters with spaces, and every length cap — a post, an SMS, a search title — counts a space as a character. Without spaces is the everyday reading of the word “characters”: letters and marks only. On a long text the gap is about a sixth, so it matters which one is meant."
   - question: How are words counted?
     answer: "A word is any chunk of text between spaces and line breaks. A hyphen does not split it: “well-known” is one word. Punctuation is not attached to the word."
   - question: What counts as a sentence or a paragraph?
