@@ -21,6 +21,7 @@ faq:
   - question: ¿Funciona en un televisor?
     answer: "Sí, si abres la página en el navegador del televisor o duplicas la pantalla del portátil. Ten en cuenta que un televisor suele añadir su propio procesado de imagen: para una comprobación exacta, desactiva la mejora de imagen en los ajustes."
 related:
+  - stuck-pixel-fixer
   - keyboard-test
   - mic-test
   - sound-test

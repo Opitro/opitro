@@ -1,0 +1,146 @@
+/* СТИЛИ СТРАНИЦЫ «ЛЕЧЕНИЕ ЗАСТРЯВШИХ ПИКСЕЛЕЙ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ОБРАЗЕЦ ВИДЕН СРАЗУ. Человек должен понять, что произойдёт, до нажатия: инструмент
+ *      мигает, и запускать такое вслепую нельзя. Поэтому рядом с кнопкой живой квадратик.
+ *   2. ПРЕДУПРЕЖДЕНИЕ НЕ ПРЯЧЕТСЯ. Быстрое мигание опасно для людей со светочувствительной
+ *      эпилепсией. Оно стоит над кнопкой, а не в примечаниях мелким шрифтом.
+ *   3. В РАБОТЕ ЭКРАН ЧЁРНЫЙ И ПУСТОЙ. Кроме квадрата и часов -- ничего: всё остальное
+ *      только мешает целиться в точку.
+ *
+ * Цвет свой -- сиреневый. В знаке сайта четыре цвета, зелёный занят везде, синий у мыши,
+ * коралловый у частоты обновления; ещё одна страница того же цвета читалась бы как та же.
+ */
+
+.зп {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #a98cf0;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+/* ---- Карта запуска ------------------------------------------------------------------ */
+
+.зп-карта {
+  display: flex; gap: 16px; align-items: stretch; flex-wrap: wrap;
+  padding: 16px; border: 1px solid var(--line); border-radius: 16px; background: var(--surface);
+}
+/* Окошко с живым образцом. Утоплено, как экранчик прибора: сразу видно, что это показ,
+   а не украшение. */
+.зп-окошко {
+  flex: none; align-self: flex-start; width: 132px; height: 132px;
+  border-radius: 12px; overflow: hidden; background: #000;
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: inset 0 2px 10px rgba(0,0,0,.8);
+  display: flex; align-items: center; justify-content: center; padding: 12px;
+}
+.зп-образец { display: block; width: 100%; height: 100%; border-radius: 6px }
+
+.зп-правое { flex: 1; min-width: 260px; display: flex; flex-direction: column; gap: 12px }
+.зп-ряд { display: flex; flex-direction: column; gap: 6px }
+.зп-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(214,219,230,.5); padding-left: 2px }
+.зп-чипы { display: flex; flex-wrap: wrap; gap: 6px }
+.зп-чип {
+  font: 600 13px var(--ui); height: 34px; padding: 0 14px; border-radius: 9px; cursor: pointer;
+  color: var(--muted); background: linear-gradient(180deg,#23262e,#191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform .06s ease, box-shadow .06s ease, color .12s ease;
+}
+.зп-чип:hover { color: var(--text) }
+.зп-чип:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
+.зп-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
+
+.зп-пуск { display: flex; flex-wrap: wrap; align-items: center; gap: 14px; margin-top: 2px }
+.зп-го {
+  font: 700 15px var(--ui); height: 46px; padding: 0 22px; border-radius: 11px; cursor: pointer;
+  border: 1px solid #eef1f4; background: #eef1f4; color: #10141a;
+}
+.зп-го:hover { background: #dfe4ea; border-color: #dfe4ea }
+/* Галочка про звук стоит рядом с кнопкой, а не в настройках выше: она про то, что случится
+   через полчаса, и вспоминают о ней ровно в момент запуска. */
+.зп-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font-size: 13px; color: var(--muted) }
+.зп-галка input { width: 16px; height: 16px; accent-color: var(--свой); cursor: pointer }
+
+/* Строка про мигание. Ни фона, ни рамки, ни янтарной заливки: плашка кричала «ошибка» и
+   мешала раньше, чем помогала. Значок маленький и приглушённый -- он метит строку, а не
+   останавливает чтение. */
+.зп-тише { display: flex; gap: 8px; margin: 0; font-size: 12px; line-height: 1.5;
+  color: rgba(214,219,230,.55) }
+.зп-тише svg { flex: none; width: 14px; height: 14px; margin-top: 2px; color: rgba(245,196,81,.65) }
+
+/* ---- Как пользоваться --------------------------------------------------------------- */
+
+/* Шаги пронумерованы, потому что здесь порядок правда имеет значение: не найдя точку
+   заранее, целиться квадратом некуда. */
+.зп-шаги { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;
+  margin-top: 12px }
+.зп-шаг { padding: 13px 14px 14px; border-radius: 12px; background: var(--surface-2);
+  border: 1px solid var(--line) }
+.зп-шаг b { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  border-radius: 50%; font: 700 12px var(--ui); color: #10141a; background: var(--свой);
+  margin-bottom: 8px }
+.зп-шаг span { display: block; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+
+.зп-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.зп-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.зп-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+/* ---- Рабочий слой -------------------------------------------------------------------- */
+
+/* Слой лежит в разметке заранее: полный экран браузер разрешает только прямо из жеста,
+   и создавать узел в этот момент уже поздно. */
+.зп-слой { position: fixed; inset: 0; z-index: 9999; display: none; background: #000;
+  touch-action: none; -webkit-user-select: none; user-select: none }
+.зп-слой.on { display: block }
+
+.зп-квадрат { position: absolute; display: block; cursor: grab; touch-action: none;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.14) }
+.зп-квадрат.везёт { cursor: grabbing }
+.зп-слой.всюду .зп-квадрат { cursor: default; box-shadow: none }
+
+/* Часы и подсказка. Гаснут сами: на чёрном экране лишний светлый прямоугольник мешает
+   разглядывать пиксели вокруг квадрата. */
+.зп-панель {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 14px; padding: 9px 15px; border-radius: 12px;
+  background: rgba(255,255,255,.09); border: 1px solid rgba(255,255,255,.14);
+  color: #e8ecf3; font-size: 13px; white-space: nowrap; max-width: 92vw;
+  transition: opacity .6s ease;
+}
+.зп-слой.тихо .зп-панель { opacity: 0 }
+.зп-часы { font: 800 17px var(--ui); font-variant-numeric: tabular-nums; color: #fff }
+.зп-совет { overflow: hidden; text-overflow: ellipsis }
+
+/* Итог поверх чёрного: время вышло, и человеку надо сказать, что делать дальше. */
+.зп-итог { position: absolute; left: 50%; top: 50%; transform: translate(-50%, -50%);
+  display: none; flex-direction: column; align-items: center; gap: 6px; text-align: center;
+  padding: 26px 28px; border-radius: 18px; background: #16181e;
+  border: 1px solid rgba(255,255,255,.12); max-width: 90vw }
+.зп-слой.конец .зп-итог { display: flex }
+.зп-итог b { font: 800 21px var(--ui); color: #f2f5f9 }
+.зп-итог span { font-size: 13.5px; line-height: 1.55; color: rgba(214,219,230,.75); max-width: 42ch }
+.зп-кнопки { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px }
+.зп-кнопки a, .зп-кнопки button {
+  font: 700 13.5px var(--ui); height: 40px; padding: 0 18px; border-radius: 10px; cursor: pointer;
+  display: inline-flex; align-items: center; text-decoration: none;
+  background: var(--surface-2); border: 1px solid var(--line); color: var(--text);
+}
+.зп-кнопки .главная { background: #eef1f4; border-color: #eef1f4; color: #10141a }
+
+@media (max-width: 560px) {
+  /* На телефоне образец во всю ширину -- это большая мигающая площадь на странице,
+     которую никто не просил. Оставляем маленький квадрат. */
+  .зп-окошко { width: 116px; height: 116px }
+  .зп-го { width: 100%; justify-content: center; text-align: center }
+  .зп-панель { bottom: 16px; font-size: 12px; gap: 10px; padding: 8px 12px }
+}
+/* Полностью убрать мигание нельзя -- в нём весь смысл лечения. Но всё, что мигает без
+   надобности, гаснет: образец на странице замирает, и запуск остаётся сознательным. */
+@media (prefers-reduced-motion: reduce) {
+  .зп-панель { transition: none }
+}

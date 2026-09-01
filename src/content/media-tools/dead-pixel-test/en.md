@@ -21,6 +21,7 @@ faq:
   - question: Does it work for a TV?
     answer: Yes, if you open the page in the TV browser or mirror a laptop screen to it. Bear in mind that a TV often adds its own picture processing — for an accurate check, turn image enhancement off in the settings.
 related:
+  - stuck-pixel-fixer
   - keyboard-test
   - mic-test
   - sound-test

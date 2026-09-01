@@ -126,13 +126,16 @@ const цвета = ЦВЕТА.map((ц) => ({ цвет: ц.цвет, имя: ц.�
       // Полный экран -- попытка: где браузер его не даёт (Safari на айфоне для обычных узлов),
       // слой всё равно закрывает окно целиком, и проверка работает.
       const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
-      if (пуск) { try { пуск.call(слой); } catch (e) {} }
+      if (пуск) { try { const п = пуск.call(слой); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
     }
     function закрыть() {
       слой.classList.remove('on');
       clearTimeout(таймерТишины);
       if (document.fullscreenElement || document.webkitFullscreenElement) {
-        try { (document.exitFullscreen || document.webkitExitFullscreen).call(document); } catch (e) {}
+        try {
+          const п = (document.exitFullscreen || document.webkitExitFullscreen).call(document);
+          if (п && п.catch) п.catch(() => {});
+        } catch (e) {}
       }
     }
 

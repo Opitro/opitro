@@ -1,0 +1,489 @@
+---
+// ЛЕЧЕНИЕ ЗАСТРЯВШИХ ПИКСЕЛЕЙ.
+//
+// Застрявший пиксель -- это субпиксель, который перестал переключаться и застыл в одном
+// положении. Единственное, что умеет браузер, -- заставить его переключаться снова: гнать
+// на этом месте быстрый разноцветный шум. Иногда транзистор «отпускает», иногда нет, и
+// обещать здесь ничего нельзя.
+//
+// Битый пиксель (мёртвый, не светится вовсе) так не лечится вообще -- это сказано и на
+// странице, и в примечаниях: человек, который потратит час впустую, не вернётся.
+//
+// Шум рисуется не попиксельно каждый кадр -- это лишняя работа на ровном месте. Заранее
+// готовятся несколько плиток случайного шума, и каждый кадр берётся случайная плитка со
+// случайным сдвигом. Глазу это тот же шум, а нагрузка почти нулевая.
+import css from '../styles/stuck-pixel.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    warn: 'Пятно быстро мигает. Если у вас светочувствительная эпилепсия, запускать не стоит; всем остальным смотреть на него не обязательно — оставьте работать и отвернитесь.',
+    size: 'Размер пятна', time: 'Сколько лечить', speed: 'Частота мигания', mode: 'Чем мигать',
+    s1: 'мелкое', s2: 'среднее', s3: 'крупное', s4: 'весь экран',
+    m: 'мин', ch: 'ч',
+    mNoise: 'шум', mRGB: 'цвета', mBW: 'чёрное-белое',
+    bell: 'Динь в конце',
+    go: 'Запустить лечение',
+    tip: 'Перетащите пятно на точку · Esc — выход',
+    tipAll: 'Экран залит целиком · Esc — выход',
+    doneT: 'Время вышло',
+    doneS: 'Посмотрите на то место, где была точка. Если она осталась — можно повторить: иногда помогает только со второго или третьего раза.',
+    check: 'Проверить экран', again: 'Ещё раз', close: 'Закрыть',
+    p1: 'Найдите точку', p1s: 'Сначала посмотрите, где именно дефект и какой он. Застрявший пиксель светится одним цветом на чёрном; мёртвый не светится вовсе, и его этот способ не берёт.',
+    p2: 'Наведите пятно', p2s: 'Запустите и перетащите мигающий квадрат так, чтобы точка оказалась внутри него, ближе к середине.',
+    p3: 'Оставьте работать', p3s: 'Десять минут — это минимум. Чаще помогает полчаса, иногда нужен час. Экран за это время не уснёт: страница держит его включённым.',
+    p4: 'Проверьте', p4s: 'После остановки осмотрите место. Не помогло с первого раза — повторите ещё раз, дольше.',
+    n1: 'Способ ничего не гарантирует. Он оживляет часть застрявших пикселей и не действует на мёртвые — те не светятся вовсе и лечению не поддаются.',
+    n2: 'Не давите на экран пальцем: этот совет ходит по интернету, но им легко испортить матрицу необратимо, и на OLED он вреден особенно.',
+    n3: 'На OLED пятна на месте одного цвета — это выгорание, а не застрявший пиксель, и мигание его не лечит.',
+    n4: 'Если экран на гарантии, сначала обратитесь к продавцу: у многих производителей неисправный пиксель в середине экрана — повод для замены.',
+    n5: 'Не помогло одной частотой — попробуйте другую: матрицы отзываются по-разному. Самый резкий для глаз режим — чёрно-белый на 60 герц, начинайте не с него.',
+  },
+  uk: {
+    warn: 'Пляма швидко блимає. Якщо у вас світлочутлива епілепсія, запускати не варто; решті дивитися на неї не обов’язково — залиште працювати й відверніться.',
+    size: 'Розмір плями', time: 'Скільки лікувати', speed: 'Частота блимання', mode: 'Чим блимати',
+    s1: 'мала', s2: 'середня', s3: 'велика', s4: 'весь екран',
+    m: 'хв', ch: 'год',
+    mNoise: 'шум', mRGB: 'кольори', mBW: 'чорне-біле',
+    bell: 'Дзинь у кінці',
+    go: 'Запустити лікування',
+    tip: 'Перетягніть пляму на крапку · Esc — вихід',
+    tipAll: 'Екран залито цілком · Esc — вихід',
+    doneT: 'Час вийшов',
+    doneS: 'Подивіться на те місце, де була крапка. Якщо вона лишилася — можна повторити: іноді допомагає лише з другого чи третього разу.',
+    check: 'Перевірити екран', again: 'Ще раз', close: 'Закрити',
+    p1: 'Знайдіть крапку', p1s: 'Спершу подивіться, де саме дефект і який він. Залиплий піксель світиться одним кольором на чорному; мертвий не світиться зовсім, і його цей спосіб не бере.',
+    p2: 'Наведіть пляму', p2s: 'Запустіть і перетягніть миготливий квадрат так, щоб крапка опинилася всередині нього, ближче до середини.',
+    p3: 'Лишіть працювати', p3s: 'Десять хвилин — це мінімум. Частіше допомагає півгодини, іноді потрібна година. Екран за цей час не засне: сторінка тримає його увімкненим.',
+    p4: 'Перевірте', p4s: 'Після зупинки огляньте місце. Не допомогло з першого разу — повторіть ще раз, довше.',
+    n1: 'Спосіб нічого не гарантує. Він оживляє частину залиплих пікселів і не діє на мертві — ті не світяться зовсім і лікуванню не піддаються.',
+    n2: 'Не тисніть на екран пальцем: ця порада ходить інтернетом, але нею легко зіпсувати матрицю незворотно, а на OLED вона шкідлива особливо.',
+    n3: 'На OLED плями на місці одного кольору — це вигоряння, а не залиплий піксель, і блимання його не лікує.',
+    n4: 'Якщо екран на гарантії, спершу зверніться до продавця: у багатьох виробників несправний піксель посередині екрана — привід для заміни.',
+    n5: 'Не допомогло однією частотою — спробуйте іншу: матриці відгукуються по-різному. Найрізкіший для очей режим — чорно-біле на 60 герц, починайте не з нього.',
+  },
+  en: {
+    warn: 'The patch flashes fast. If you have photosensitive epilepsy, best not to run it; everyone else need not watch — start it and look away.',
+    size: 'Patch size', time: 'How long', speed: 'Flash rate', mode: 'What flashes',
+    s1: 'small', s2: 'medium', s3: 'large', s4: 'whole screen',
+    m: 'min', ch: 'h',
+    mNoise: 'noise', mRGB: 'colours', mBW: 'black and white',
+    bell: 'Chime at the end',
+    go: 'Start the fix',
+    tip: 'Drag the patch onto the dot · Esc to leave',
+    tipAll: 'Whole screen is covered · Esc to leave',
+    doneT: 'Time is up',
+    doneS: 'Look at the spot where the dot was. If it is still there you can run it again — sometimes only the second or third attempt works.',
+    check: 'Check the screen', again: 'Run again', close: 'Close',
+    p1: 'Find the dot', p1s: 'First see where the defect is and what it is. A stuck pixel glows in one colour on black; a dead one never lights up, and this method does nothing for it.',
+    p2: 'Aim the patch', p2s: 'Start the fix and drag the flashing square so the dot sits inside it, closer to the middle.',
+    p3: 'Leave it running', p3s: 'Ten minutes is the minimum. Half an hour works more often, an hour sometimes. The screen will not sleep meanwhile: the page keeps it awake.',
+    p4: 'Check it', p4s: 'When it stops, look the spot over. No luck the first time — run it again for longer.',
+    n1: 'The method guarantees nothing. It revives some stuck pixels and does nothing for dead ones, which never light up at all.',
+    n2: 'Do not press the screen with your finger: the advice is all over the internet, but it can damage the panel for good, and on OLED it is worse still.',
+    n3: 'On OLED, a patch shaped like whatever was on screen is burn-in, not a stuck pixel, and flashing will not cure it.',
+    n4: 'If the screen is under warranty, talk to the seller first: with many makers a faulty pixel in the middle of the screen is grounds for replacement.',
+    n5: 'If one rate does nothing, try another — panels respond differently. The harshest setting for the eyes is black and white at 60 Hz, so do not start there.',
+  },
+  es: {
+    warn: 'El cuadro parpadea rápido. Si tienes epilepsia fotosensible, mejor no usarlo; los demás no hace falta que lo miren: ponlo en marcha y aparta la vista.',
+    size: 'Tamaño', time: 'Duración', speed: 'Frecuencia', mode: 'Qué parpadea',
+    s1: 'pequeño', s2: 'medio', s3: 'grande', s4: 'pantalla entera',
+    m: 'min', ch: 'h',
+    mNoise: 'ruido', mRGB: 'colores', mBW: 'blanco y negro',
+    bell: 'Aviso al terminar',
+    go: 'Empezar',
+    tip: 'Arrastra el cuadro sobre el punto · Esc para salir',
+    tipAll: 'Pantalla completa · Esc para salir',
+    doneT: 'Se acabó el tiempo',
+    doneS: 'Mira el sitio donde estaba el punto. Si sigue ahí puedes repetirlo: a veces solo funciona al segundo o tercer intento.',
+    check: 'Comprobar la pantalla', again: 'Otra vez', close: 'Cerrar',
+    p1: 'Localiza el punto', p1s: 'Mira primero dónde está el defecto y de qué tipo es. Un píxel atascado brilla en un color sobre negro; uno muerto no se enciende, y este método no le hace nada.',
+    p2: 'Apunta el cuadro', p2s: 'Empieza y arrastra el cuadro parpadeante para que el punto quede dentro, cerca del centro.',
+    p3: 'Déjalo trabajar', p3s: 'Diez minutos es el mínimo. Media hora funciona más veces, y a veces hace falta una hora. La pantalla no se dormirá: la página la mantiene encendida.',
+    p4: 'Comprueba', p4s: 'Cuando pare, revisa el sitio. Si no ha salido a la primera, repítelo durante más tiempo.',
+    n1: 'El método no garantiza nada. Recupera parte de los píxeles atascados y no sirve para los muertos, que no se encienden en absoluto.',
+    n2: 'No presiones la pantalla con el dedo: ese consejo circula por internet, pero puede estropear el panel para siempre, y en OLED aún más.',
+    n3: 'En OLED, una mancha con la forma de lo que hubo en pantalla es quemado, no un píxel atascado, y el parpadeo no lo cura.',
+    n4: 'Si la pantalla está en garantía, habla antes con el vendedor: para muchos fabricantes un píxel defectuoso en el centro es motivo de cambio.',
+    n5: 'Si una frecuencia no hace nada, prueba otra: cada panel responde distinto. Lo más duro para la vista es blanco y negro a 60 Hz, así que no empieces por ahí.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+// Адрес соседней страницы: после лечения человек идёт смотреть, ушла ли точка.
+const проверить = `/${locale}/dead-pixel-test`;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="зп" data-words={JSON.stringify(с)}>
+  <div class="зп-карта">
+    {/* Живой образец: видно, что именно начнётся, ещё до нажатия. */}
+    <div class="зп-окошко"><canvas class="зп-образец" id="зп-образец"></canvas></div>
+
+    <div class="зп-правое">
+      <div class="зп-ряд">
+        <span class="зп-к">{с.size}</span>
+        <div class="зп-чипы" id="зп-размеры">
+          <button type="button" class="зп-чип" data-размер="160">{с.s1}</button>
+          <button type="button" class="зп-чип вкл" data-размер="280">{с.s2}</button>
+          <button type="button" class="зп-чип" data-размер="440">{с.s3}</button>
+          <button type="button" class="зп-чип" data-размер="0">{с.s4}</button>
+        </div>
+      </div>
+
+      <div class="зп-ряд">
+        <span class="зп-к">{с.time}</span>
+        <div class="зп-чипы" id="зп-время">
+          <button type="button" class="зп-чип вкл" data-минут="10">10 {с.m}</button>
+          <button type="button" class="зп-чип" data-минут="20">20 {с.m}</button>
+          <button type="button" class="зп-чип" data-минут="30">30 {с.m}</button>
+          <button type="button" class="зп-чип" data-минут="60">1 {с.ch}</button>
+        </div>
+      </div>
+
+      <div class="зп-ряд">
+        <span class="зп-к">{с.mode}</span>
+        <div class="зп-чипы" id="зп-режимы">
+          <button type="button" class="зп-чип вкл" data-режим="шум">{с.mNoise}</button>
+          <button type="button" class="зп-чип" data-режим="цвета">{с.mRGB}</button>
+          <button type="button" class="зп-чип" data-режим="чб">{с.mBW}</button>
+        </div>
+      </div>
+
+      <div class="зп-ряд">
+        <span class="зп-к">{с.speed}</span>
+        <div class="зп-чипы" id="зп-скорости">
+          <button type="button" class="зп-чип" data-гц="10">10 Гц</button>
+          <button type="button" class="зп-чип" data-гц="30">30 Гц</button>
+          <button type="button" class="зп-чип вкл" data-гц="60">60 Гц</button>
+        </div>
+      </div>
+
+      <div class="зп-пуск">
+        <button type="button" class="зп-го" id="зп-го">{с.go}</button>
+        <label class="зп-галка"><input type="checkbox" id="зп-звонок" checked /><span>{с.bell}</span></label>
+      </div>
+
+      {/* Про мигание сказано рядом с кнопкой, а не плашкой сверху: предупреждать нужно там,
+          где нажимают, и спокойным голосом -- иначе оно читается как поломка. */}
+      <p class="зп-тише">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+        </svg>
+        <span>{с.warn}</span>
+      </p>
+    </div>
+  </div>
+
+  <div class="зп-шаги">
+    <div class="зп-шаг"><b>1</b><span><strong>{с.p1}.</strong> {с.p1s}</span></div>
+    <div class="зп-шаг"><b>2</b><span><strong>{с.p2}.</strong> {с.p2s}</span></div>
+    <div class="зп-шаг"><b>3</b><span><strong>{с.p3}.</strong> {с.p3s}</span></div>
+    <div class="зп-шаг"><b>4</b><span><strong>{с.p4}.</strong> {с.p4s}</span></div>
+  </div>
+
+  <div class="зп-заметки">
+    <div class="зп-заметка">{с.n1}</div>
+    <div class="зп-заметка">{с.n2}</div>
+    <div class="зп-заметка">{с.n3}</div>
+    <div class="зп-заметка">{с.n4}</div>
+    <div class="зп-заметка">{с.n5}</div>
+  </div>
+
+  {/* Слой лежит здесь заранее: полный экран разрешён только прямо из жеста. */}
+  <div class="зп-слой" id="зп-слой">
+    <canvas class="зп-квадрат" id="зп-квадрат"></canvas>
+    <div class="зп-панель" id="зп-панель">
+      <span class="зп-часы" id="зп-часы">10:00</span>
+      <span class="зп-совет" id="зп-совет">{с.tip}</span>
+    </div>
+    <div class="зп-итог">
+      <b>{с.doneT}</b>
+      <span>{с.doneS}</span>
+      <div class="зп-кнопки">
+        <a class="главная" href={проверить}>{с.check}</a>
+        <button type="button" id="зп-ещё">{с.again}</button>
+        <button type="button" id="зп-закрыть">{с.close}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.зп');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    const слой = $('зп-слой'), холст = $('зп-квадрат'), образец = $('зп-образец');
+    const часы = $('зп-часы'), совет = $('зп-совет');
+
+    let размер = 280, минут = 10, гц = 60, режим = 'шум';
+
+    // ---- Шум ----------------------------------------------------------------------
+    // Плитки готовятся один раз. Рисовать случайный цвет в каждый пиксель каждый кадр --
+    // сотни тысяч вызовов Math.random в секунду ради картинки, которую глаз всё равно
+    // видит как «рябь». Плиток восемь: меньше -- заметен повтор.
+    const ПЛИТКА = 96, ПЛИТОК = 8;
+    const плитки = [];
+    for (let n = 0; n < ПЛИТОК; n++) {
+      const к = document.createElement('canvas');
+      к.width = к.height = ПЛИТКА;
+      const кт = к.getContext('2d');
+      const кар = кт.createImageData(ПЛИТКА, ПЛИТКА);
+      const д = кар.data;
+      // Каждый субпиксель получает свой случайный уровень: именно переключение отдельных
+      // субпикселей и должно расшевелить застрявший.
+      for (let i = 0; i < д.length; i += 4) {
+        д[i] = Math.random() * 256; д[i + 1] = Math.random() * 256;
+        д[i + 2] = Math.random() * 256; д[i + 3] = 255;
+      }
+      кт.putImageData(кар, 0, 0);
+      плитки.push(к);
+    }
+    const узоры = new WeakMap();
+    // Три способа встряхнуть пиксель -- они действуют по-разному, и матрицы отзываются на них
+    // не одинаково, поэтому выбор оставлен человеку:
+    //   шум  -- каждый субпиксель получает свой случайный уровень, самый мягкий для глаз;
+    //   цвета -- чистые красный, зелёный, синий по очереди: каждый канал гоняется отдельно;
+    //   чб   -- полное включение и полное выключение, самая сильная встряска и самая резкая.
+    const ЦВЕТА_RGB = ['#ff0000', '#00ff00', '#0000ff'];
+    function нарисовать(кт, ш, в, счёт) {
+      if (режим === 'цвета') { кт.fillStyle = ЦВЕТА_RGB[счёт % 3]; кт.fillRect(0, 0, ш, в); return; }
+      if (режим === 'чб') { кт.fillStyle = счёт % 2 ? '#ffffff' : '#000000'; кт.fillRect(0, 0, ш, в); return; }
+      const плитка = плитки[счёт % ПЛИТОК];
+      let узор = узоры.get(плитка);
+      if (!узор) { узор = кт.createPattern(плитка, 'repeat'); узоры.set(плитка, узор); }
+      кт.save();
+      // Случайный сдвиг: без него восемь плиток выдают себя повторяющимся рисунком.
+      кт.translate(-Math.random() * ПЛИТКА, -Math.random() * ПЛИТКА);
+      кт.fillStyle = узор;
+      кт.fillRect(0, 0, ш + ПЛИТКА, в + ПЛИТКА);
+      кт.restore();
+    }
+
+    // ---- Образец на странице ---------------------------------------------------------
+    // Он мигает медленно и только пока виден. Мигающий квадрат в глубине неоткрытой
+    // страницы -- это разряженная батарея и ничего больше.
+    const ок = образец.getContext('2d');
+    const тихо = matchMedia('(prefers-reduced-motion: reduce)');
+    let виден = false, счётОбразца = 0, таймерОбразца = 0;
+    function рисоватьОбразец() {
+      const ш = образец.clientWidth || 108, в = образец.clientHeight || 84;
+      if (образец.width !== ш || образец.height !== в) { образец.width = ш; образец.height = в; }
+      нарисовать(ок, ш, в, счётОбразца++);
+    }
+    function образецХод() {
+      clearInterval(таймерОбразца);
+      рисоватьОбразец();
+      // При просьбе убрать движение образец замирает: смысл «инструмент мигает» уже
+      // передан одной картинкой шума.
+      const шагОбразца = режим === 'шум' ? 120 : 360;
+      if (виден && !тихо.matches) таймерОбразца = window.setInterval(рисоватьОбразец, шагОбразца);
+    }
+    if ('IntersectionObserver' in window) {
+      new IntersectionObserver((з) => { виден = з[0].isIntersecting; образецХод(); })
+        .observe(образец);
+    } else { виден = true; образецХод(); }
+    document.addEventListener('visibilitychange', образецХод);
+
+    // ---- Настройки -------------------------------------------------------------------
+    function выбор(идКонтейнера, поле, кудаЧисло) {
+      const узел = $(идКонтейнера);
+      узел.addEventListener('click', (e) => {
+        const б = e.target.closest('.зп-чип');
+        if (!б) return;
+        узел.querySelectorAll('.зп-чип').forEach((к) => к.classList.remove('вкл'));
+        б.classList.add('вкл');
+        кудаЧисло(Number(б.dataset[поле]) || 0);
+      });
+    }
+    выбор('зп-размеры', 'размер', (з) => { размер = з; });
+    выбор('зп-время', 'минут', (з) => { минут = з; });
+    выбор('зп-скорости', 'гц', (з) => { гц = з || 60; });
+    // Образец показывает именно выбранный режим: иначе человек нажимает кнопку вслепую.
+    $('зп-режимы').addEventListener('click', (e) => {
+      const б = e.target.closest('.зп-чип');
+      if (!б) return;
+      $('зп-режимы').querySelectorAll('.зп-чип').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      режим = б.dataset.режим || 'шум';
+      образецХод();
+    });
+
+    // ---- Работа ----------------------------------------------------------------------
+    const кт = холст.getContext('2d');
+    let идёт = false, прошлыйКадр = 0, счёт = 0, конецВремени = 0, таймерЧасов = 0;
+    let замок = null, таймерТишины = 0;
+
+    function поставитьХолст() {
+      const целыйЭкран = размер === 0;
+      слой.classList.toggle('всюду', целыйЭкран);
+      const ш = целыйЭкран ? window.innerWidth : Math.min(размер, window.innerWidth - 16);
+      const в = целыйЭкран ? window.innerHeight : Math.min(размер, window.innerHeight - 16);
+      холст.style.width = ш + 'px'; холст.style.height = в + 'px';
+      холст.width = ш; холст.height = в;
+      холст.style.left = Math.round((window.innerWidth - ш) / 2) + 'px';
+      холст.style.top = Math.round((window.innerHeight - в) / 2) + 'px';
+      совет.textContent = целыйЭкран ? с.tipAll : с.tip;
+    }
+
+    function ход(сейчас) {
+      if (!идёт) return;
+      // Считаем по времени, а не по кадрам: на экране 144 герца счёт кадров дал бы 144
+      // мигания в секунду вместо выбранных шестидесяти. Выше частоты экрана не прыгнуть --
+      // это предел самого экрана, а не наш.
+      if (сейчас - прошлыйКадр >= 1000 / гц - 1) {
+        нарисовать(кт, холст.width, холст.height, счёт++);
+        прошлыйКадр = сейчас;
+      }
+      requestAnimationFrame(ход);
+    }
+
+    function времяСтрокой(мс) {
+      const всего = Math.max(0, Math.round(мс / 1000));
+      const м = Math.floor(всего / 60), к = всего % 60;
+      return м + ':' + String(к).padStart(2, '0');
+    }
+    function часыХод() {
+      const осталось = конецВремени - Date.now();
+      часы.textContent = времяСтрокой(осталось);
+      if (осталось <= 0) кончить();
+    }
+
+    // Экран не должен уснуть посреди лечения: полчаса без касаний -- и телефон гасит
+    // подсветку, а вместе с ней и всю затею.
+    async function держатьЭкран() {
+      try {
+        if ('wakeLock' in navigator) замок = await navigator.wakeLock.request('screen');
+      } catch (e) { /* браузер не дал -- лечение всё равно идёт */ }
+    }
+    function отпуститьЭкран() {
+      try { if (замок) { замок.release(); замок = null; } } catch (e) {}
+    }
+
+    function начать() {
+      слой.classList.add('on'); слой.classList.remove('конец');
+      поставитьХолст();
+      идёт = true; прошлыйКадр = 0;
+      конецВремени = Date.now() + минут * 60000;
+      часыХод();
+      clearInterval(таймерЧасов);
+      таймерЧасов = window.setInterval(часыХод, 500);
+      держатьЭкран();
+      готовитьЗвук();
+      требоватьПолныйЭкран();
+      разбудитьПанель();
+      requestAnimationFrame(ход);
+    }
+    function требоватьПолныйЭкран() {
+      // Полный экран -- попытка: где браузер его не даёт (Safari на айфоне для обычных узлов),
+      // слой всё равно закрывает окно целиком, и лечение работает.
+      const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
+      if (пуск) { try { const п = пуск.call(слой); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+    }
+
+    // Звук делается на месте, без файла: одна короткая нота на затухании. Разрешение на
+    // звук браузер даёт от нажатия «Запустить», поэтому узел готовится там же.
+    let звукУзел = null;
+    function готовитьЗвук() {
+      if (!$('зп-звонок').checked || звукУзел) return;
+      try { звукУзел = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    }
+    function динь() {
+      if (!$('зп-звонок').checked || !звукУзел) return;
+      try {
+        if (звукУзел.state === 'suspended') звукУзел.resume();
+        const т = звукУзел.currentTime;
+        [880, 1320].forEach((частота, i) => {
+          const о = звукУзел.createOscillator(), г = звукУзел.createGain();
+          о.frequency.value = частота; о.type = 'sine';
+          г.gain.setValueAtTime(0.0001, т + i * 0.16);
+          г.gain.exponentialRampToValueAtTime(0.22, т + i * 0.16 + 0.01);
+          г.gain.exponentialRampToValueAtTime(0.0001, т + i * 0.16 + 0.55);
+          о.connect(г); г.connect(звукУзел.destination);
+          о.start(т + i * 0.16); о.stop(т + i * 0.16 + 0.6);
+        });
+      } catch (e) { /* звук не обязателен: итог всё равно виден на экране */ }
+    }
+
+    function кончить() {
+      идёт = false;
+      clearInterval(таймерЧасов);
+      динь();
+      кт.clearRect(0, 0, холст.width, холст.height);
+      слой.classList.add('конец');
+      слой.classList.remove('тихо');
+      отпуститьЭкран();
+    }
+    function закрыть() {
+      идёт = false;
+      clearInterval(таймерЧасов); clearTimeout(таймерТишины);
+      слой.classList.remove('on', 'конец');
+      отпуститьЭкран();
+      if (document.fullscreenElement) {
+        try { const п = document.exitFullscreen(); if (п && п.catch) п.catch(() => {}); } catch (e) {}
+      }
+    }
+
+    // Панель с часами гаснет через четыре секунды и возвращается на любое движение:
+    // светлый прямоугольник на чёрном мешает разглядывать экран вокруг пятна.
+    function разбудитьПанель() {
+      слой.classList.remove('тихо');
+      clearTimeout(таймерТишины);
+      таймерТишины = window.setTimeout(() => {
+        if (идёт) слой.classList.add('тихо');
+      }, 4000);
+    }
+
+    $('зп-го').addEventListener('click', начать);
+    $('зп-ещё').addEventListener('click', начать);
+    $('зп-закрыть').addEventListener('click', закрыть);
+    слой.addEventListener('pointermove', разбудитьПанель);
+
+    // ---- Перетаскивание --------------------------------------------------------------
+    let везём = false, сдвигX = 0, сдвигY = 0;
+    холст.addEventListener('pointerdown', (e) => {
+      if (размер === 0) return;
+      везём = true;
+      холст.classList.add('везёт');
+      сдвигX = e.clientX - холст.offsetLeft;
+      сдвигY = e.clientY - холст.offsetTop;
+      холст.setPointerCapture(e.pointerId);
+      e.preventDefault();
+    });
+    холст.addEventListener('pointermove', (e) => {
+      if (!везём) return;
+      // Пятно не выпускаем за край: уехавшее за экран пятно вернуть нечем.
+      const x = Math.max(0, Math.min(window.innerWidth - холст.width, e.clientX - сдвигX));
+      const y = Math.max(0, Math.min(window.innerHeight - холст.height, e.clientY - сдвигY));
+      холст.style.left = Math.round(x) + 'px';
+      холст.style.top = Math.round(y) + 'px';
+    });
+    const отпустить = () => { везём = false; холст.classList.remove('везёт'); };
+    холст.addEventListener('pointerup', отпустить);
+    холст.addEventListener('pointercancel', отпустить);
+
+    window.addEventListener('keydown', (e) => {
+      if (слой.classList.contains('on') && e.key === 'Escape') закрыть();
+    });
+    // Вышли из полного экрана системной кнопкой -- слой обязан уйти вместе с ним.
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && слой.classList.contains('on')) закрыть();
+    });
+    // Замок на экран браузер снимает сам, когда вкладка уходит в фон; вернулись -- берём снова.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && идёт) держатьЭкран();
+    });
+    window.addEventListener('resize', () => { if (слой.classList.contains('on')) поставитьХолст(); });
+
+    window.__зпСостояние = () => ({
+      открыт: слой.classList.contains('on'), идёт, конец: слой.classList.contains('конец'),
+      размер, минут, гц, режим, часы: часы.textContent,
+      ширина: холст.width, высота: холст.height,
+      слева: холст.offsetLeft, сверху: холст.offsetTop,
+    });
+  })();
+</script>
