@@ -22,7 +22,7 @@ const СЛОВА = {
     freqTitle: 'Какие слова чаще всего', freqShort: 'без коротких слов',
     freqEmpty: 'Вставьте текст — здесь появятся самые частые слова',
     times: 'раз',
-    readTitle: 'Сколько читать', aloud: 'вслух', silent: 'про себя',
+    readAloud: 'Читать вслух', readSilent: 'Читать про себя',
     limitsTitle: 'Влезет ли текст',
     lPost: 'Пост в X (Twitter)', lSms: 'Одно СМС', lTitle: 'Заголовок для поиска',
     lDesc: 'Описание для поиска', lTg: 'Пост в Telegram', lIg: 'Подпись в Instagram',
@@ -42,7 +42,7 @@ const СЛОВА = {
     freqTitle: 'Які слова найчастіше', freqShort: 'без коротких слів',
     freqEmpty: 'Вставте текст — тут з\'являться найчастіші слова',
     times: 'разів',
-    readTitle: 'Скільки читати', aloud: 'вголос', silent: 'подумки',
+    readAloud: 'Читати вголос', readSilent: 'Читати подумки',
     limitsTitle: 'Чи влізе текст',
     lPost: 'Допис у X (Twitter)', lSms: 'Одна СМС', lTitle: 'Заголовок для пошуку',
     lDesc: 'Опис для пошуку', lTg: 'Допис у Telegram', lIg: 'Підпис в Instagram',
@@ -62,7 +62,7 @@ const СЛОВА = {
     freqTitle: 'Most frequent words', freqShort: 'skip short words',
     freqEmpty: 'Paste your text — the most frequent words will show up here',
     times: 'times',
-    readTitle: 'Reading time', aloud: 'aloud', silent: 'silently',
+    readAloud: 'Read aloud', readSilent: 'Read silently',
     limitsTitle: 'Will it fit',
     lPost: 'Post on X (Twitter)', lSms: 'One SMS', lTitle: 'Search title',
     lDesc: 'Search description', lTg: 'Telegram post', lIg: 'Instagram caption',
@@ -82,7 +82,7 @@ const СЛОВА = {
     freqTitle: 'Palabras más frecuentes', freqShort: 'sin palabras cortas',
     freqEmpty: 'Pega el texto y aquí saldrán las palabras más frecuentes',
     times: 'veces',
-    readTitle: 'Tiempo de lectura', aloud: 'en voz alta', silent: 'en silencio',
+    readAloud: 'Leer en voz alta', readSilent: 'Leer en silencio',
     limitsTitle: '¿Cabe el texto?',
     lPost: 'Publicación en X (Twitter)', lSms: 'Un SMS', lTitle: 'Título para buscadores',
     lDesc: 'Descripción para buscadores', lTg: 'Publicación en Telegram', lIg: 'Pie en Instagram',
@@ -103,50 +103,73 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="тс-поле">
     <textarea class="тс-ввод" id="тс-ввод" placeholder={с.place} spellcheck="false"
               autocomplete="off" aria-label={с.place}></textarea>
+    {/* Значки вместо трёх подписей: вставить, копировать и очистить узнают все, а три
+        слова в поле только съедали место. Название остаётся в подсказке и для читалок. */}
     <div class="тс-ряд">
-      <button type="button" class="тс-кн главная" id="тс-вставить">{с.paste}</button>
-      <button type="button" class="тс-кн" id="тс-копировать">{с.copy}</button>
-      <button type="button" class="тс-кн" id="тс-очистить">{с.clear}</button>
       <span class="тс-сказ" id="тс-сказ"></span>
+      <button type="button" class="тс-зн" id="тс-вставить" title={с.paste} aria-label={с.paste}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M9 4h6a1 1 0 0 1 1 1v1H8V5a1 1 0 0 1 1-1z"></path>
+          <path d="M16 6h1.5A1.5 1.5 0 0 1 19 7.5v11A1.5 1.5 0 0 1 17.5 20h-11A1.5 1.5 0 0 1 5 18.5v-11A1.5 1.5 0 0 1 6.5 6H8"></path>
+        </svg>
+      </button>
+      <button type="button" class="тс-зн" id="тс-копировать" title={с.copy} aria-label={с.copy}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="11" rx="2"></rect>
+          <path d="M5 15V6a2 2 0 0 1 2-2h9"></path>
+        </svg>
+      </button>
+      <button type="button" class="тс-зн" id="тс-очистить" title={с.clear} aria-label={с.clear}>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+             stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <path d="M4 7h16M9 7V5.5A1.5 1.5 0 0 1 10.5 4h3A1.5 1.5 0 0 1 15 5.5V7"></path>
+          <path d="M6.5 7l.8 11.1A2 2 0 0 0 9.3 20h5.4a2 2 0 0 0 2-1.9L17.5 7"></path>
+        </svg>
+      </button>
     </div>
   </div>
 
-  {/* Ячейки стоят всегда, даже пока поле пустое: иначе ряд прыгал бы с первой буквой. */}
-  <div class="тс-числа">
-    <div class="тс-число главное"><b id="тс-символы">0</b><span>{с.chars}</span></div>
-    <div class="тс-число"><b id="тс-безпробелов">0</b><span>{с.charsNo}</span></div>
-    <div class="тс-число"><b id="тс-слова">0</b><span>{с.words}</span></div>
-    <div class="тс-число"><b id="тс-уникальных">0</b><span>{с.unique}</span></div>
-    <div class="тс-число"><b id="тс-предложения">0</b><span>{с.sentences}</span></div>
-    <div class="тс-число"><b id="тс-строки">0</b><span>{с.lines}</span></div>
-    <div class="тс-число"><b id="тс-абзацы">0</b><span>{с.paras}</span></div>
-    <div class="тс-число"><b id="тс-препинание">0</b><span>{с.punct}</span></div>
+  {/* Одно главное число и список под ним. Восемь одинаковых плиток не давали взгляду
+      разряда: за символами приходят, остальное -- подробности, и выглядеть они должны как
+      подробности. Числа выровнены по правому краю и моноширинные -- столбик читается
+      сверху вниз одним взглядом. */}
+  <div class="тс-итоги">
+    <div class="тс-главное">
+      <b id="тс-символы">0</b>
+      <span>{с.chars}</span>
+      <i><em id="тс-безпробелов">0</em> {с.charsNo}</i>
+    </div>
+
+    <dl class="тс-список">
+      <div><dt>{с.words}</dt><dd id="тс-слова">0</dd></div>
+      <div><dt>{с.unique}</dt><dd id="тс-уникальных">0</dd></div>
+      <div><dt>{с.sentences}</dt><dd id="тс-предложения">0</dd></div>
+      <div><dt>{с.punct}</dt><dd id="тс-препинание">0</dd></div>
+      <div><dt>{с.lines}</dt><dd id="тс-строки">0</dd></div>
+      <div><dt>{с.paras}</dt><dd id="тс-абзацы">0</dd></div>
+      <div class="разрыв"><dt>{с.readAloud}</dt><dd id="тс-вслух">0:00</dd></div>
+      <div><dt>{с.readSilent}</dt><dd id="тс-просебя">0:00</dd></div>
+    </dl>
   </div>
 
   <div class="тс-низ">
     <div class="тс-блок">
-      <div class="тс-заг">{с.readTitle}</div>
-      <div class="тс-чтение">
-        <div><b id="тс-вслух">0:00</b><span>{с.aloud}</span></div>
-        <div><b id="тс-просебя">0:00</b><span>{с.silent}</span></div>
-      </div>
-    </div>
-
-    <div class="тс-блок">
       <div class="тс-заг">{с.limitsTitle}</div>
       <div class="тс-лимиты" id="тс-лимиты"></div>
     </div>
-  </div>
 
   {/* Частота слов -- то, ради чего копирайтер и открывает такой счётчик: увидеть, какое
       слово он повторил двадцать раз, не заметив этого. */}
-  <div class="тс-блок тс-частота-блок">
+    <div class="тс-блок тс-частота-блок">
     <div class="тс-заг-ряд">
       <span class="тс-заг">{с.freqTitle}</span>
       <label class="тс-галка"><input type="checkbox" id="тс-без-коротких" checked><span>{с.freqShort}</span></label>
     </div>
-    <div class="тс-частота" id="тс-частота"></div>
-    <p class="тс-пусто" id="тс-пусто">{с.freqEmpty}</p>
+      <div class="тс-частота" id="тс-частота"></div>
+      <p class="тс-пусто" id="тс-пусто">{с.freqEmpty}</p>
+    </div>
   </div>
 
   <div class="тс-заметки">

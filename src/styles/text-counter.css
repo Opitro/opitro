@@ -25,7 +25,7 @@
 }
 .тс-поле:focus-within { border-color: rgba(74,222,158,.45) }
 .тс-ввод {
-  display: block; width: 100%; min-height: 210px; resize: vertical;
+  display: block; width: 100%; min-height: 168px; resize: vertical;
   padding: 18px 18px 14px; border: 0; background: transparent; color: var(--text);
   font: 400 16px/1.65 var(--ui);
   border-radius: 16px;
@@ -37,51 +37,71 @@
   display: flex; flex-wrap: wrap; align-items: center; gap: 8px;
   padding: 0 14px 14px;
 }
-.тс-кн {
-  font: 600 13px var(--ui); height: 36px; padding: 0 14px; border-radius: 9px; cursor: pointer;
-  background: var(--surface-2); border: 1px solid var(--line); color: var(--muted);
+.тс-зн {
+  display: grid; place-items: center; width: 38px; height: 38px; border-radius: 10px;
+  cursor: pointer; background: transparent; border: 1px solid var(--line);
+  color: rgba(214,219,230,.7);
+  transition: color .15s ease, border-color .15s ease, background .15s ease;
 }
-.тс-кн:hover { color: var(--text); border-color: rgba(255,255,255,.26) }
-.тс-кн.главная { background: #eef1f4; color: #10141a; border-color: #eef1f4 }
-.тс-кн:disabled { opacity: .4; cursor: default }
-.тс-сказ { margin-left: auto; font-size: 12.5px; color: rgba(214,219,230,.55) }
+.тс-зн svg { width: 18px; height: 18px }
+.тс-зн:hover { color: var(--text); border-color: rgba(255,255,255,.3); background: var(--surface-2) }
+.тс-зн:active { transform: translateY(1px) }
+.тс-сказ { margin-right: auto; font-size: 12.5px; color: rgba(214,219,230,.55) }
 
-/* ---- Числа ------------------------------------------------------------------------ */
+/* ---- Числа --------------------------------------------------------------------- */
 
-/* Главное число -- символы: за ним и приходят. Остальные стоят рядом ровным рядом и
-   никуда не деваются, даже пока поле пустое. */
-.тс-числа {
-  display: grid; grid-template-columns: repeat(auto-fit, minmax(112px, 1fr)); gap: 2px;
-  margin-top: 14px; border-radius: 16px; overflow: hidden;
-  background: var(--line);
+/* Разряд вместо кучи: одно главное число слева и опрятный список подробностей справа.
+   Восемь одинаковых плиток не давали взгляду за что зацепиться. */
+.тс-итоги {
+  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
 }
-.тс-число {
-  background: var(--surface); padding: 15px 14px 13px; text-align: left;
+.тс-главное {
+  background: var(--surface); padding: 22px 22px 20px;
+  display: flex; flex-direction: column; justify-content: center;
   font-family: var(--ui);
 }
-.тс-число b {
-  display: block; font-size: 27px; font-weight: 800; line-height: 1.05; color: var(--text);
+.тс-главное b {
+  font-size: 56px; font-weight: 800; line-height: 1; color: var(--accent);
+  font-variant-numeric: tabular-nums; letter-spacing: -.02em;
+}
+.тс-главное span {
+  margin-top: 8px; font-size: 12px; font-weight: 600; letter-spacing: .08em;
+  text-transform: uppercase; color: rgba(214,219,230,.55);
+}
+.тс-главное i {
+  margin-top: 12px; font-style: normal; font-size: 13.5px; color: var(--muted);
+}
+.тс-главное em { font-style: normal; font-weight: 700; color: var(--text);
+  font-variant-numeric: tabular-nums }
+
+/* Список подробностей: подпись слева, число справа. Числа моноширинные и выровнены по
+   правому краю -- столбик читается сверху вниз одним взглядом, а не построчно. */
+.тс-список {
+  background: var(--surface); margin: 0; padding: 14px 20px;
+  display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; align-content: center;
+  font-family: var(--ui);
+}
+.тс-список > div {
+  display: flex; align-items: baseline; gap: 10px;
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05);
+}
+.тс-список > div:nth-last-child(-n+2) { border-bottom: 0 }
+.тс-список dt { flex: 1 1 auto; font-size: 13px; color: var(--muted) }
+.тс-список dd {
+  margin: 0; font-size: 15px; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-.тс-число.главное b { font-size: 34px; color: var(--accent) }
-.тс-число span {
-  display: block; margin-top: 4px; font-size: 11px; font-weight: 600; letter-spacing: .07em;
-  text-transform: uppercase; color: rgba(214,219,230,.55); line-height: 1.35;
-}
+.тс-список .разрыв dt, .тс-список .разрыв ~ div dt { color: rgba(214,219,230,.55) }
 
-/* ---- Чтение и лимиты --------------------------------------------------------------- */
+/* ---- Лимиты и частота ------------------------------------------------------------ */
 
-.тс-низ { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 16px;
+.тс-низ { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
   margin-top: 16px; align-items: start }
 .тс-блок { border: 1px solid var(--line); border-radius: 16px; padding: 15px 16px 16px;
   background: var(--surface) }
 .тс-заг { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
   color: rgba(214,219,230,.5); margin-bottom: 12px }
-
-.тс-чтение { display: flex; gap: 22px; font-family: var(--ui) }
-.тс-чтение div b { display: block; font-size: 21px; font-weight: 800; color: var(--text);
-  font-variant-numeric: tabular-nums }
-.тс-чтение div span { display: block; margin-top: 3px; font-size: 11.5px; color: var(--muted) }
 
 .тс-лимиты { display: flex; flex-direction: column; gap: 11px }
 .тс-лимит { font-family: var(--ui) }
@@ -98,7 +118,7 @@
 
 /* ---- Частота слов ------------------------------------------------------------------ */
 
-.тс-частота-блок { margin-top: 16px }
+.тс-частота-блок { margin-top: 0 }
 .тс-заг-ряд { display: flex; align-items: center; gap: 12px; margin-bottom: 12px }
 .тс-заг-ряд .тс-заг { margin-bottom: 0 }
 .тс-галка { margin-left: auto; display: inline-flex; align-items: center; gap: 7px;
@@ -129,10 +149,13 @@
 .тс-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
 
 @media (max-width: 560px) {
-  .тс-ввод { min-height: 170px; font-size: 15.5px; padding: 15px 15px 12px }
-  .тс-число b { font-size: 23px }
-  .тс-число.главное b { font-size: 29px }
-  .тс-сказ { margin-left: 0; width: 100% }
+  .тс-ввод { min-height: 150px; font-size: 15.5px; padding: 15px 15px 12px }
+  .тс-итоги { grid-template-columns: 1fr }
+  .тс-главное { padding: 18px 18px 16px }
+  .тс-главное b { font-size: 44px }
+  .тс-список { grid-template-columns: 1fr; padding: 10px 18px 14px }
+  .тс-список > div:nth-last-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.05) }
+  .тс-список > div:last-child { border-bottom: 0 }
 }
 @media (prefers-reduced-motion: reduce) {
   .тс-полоса i { transition: none }
