@@ -141,15 +141,18 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <span>{с.chars}</span>
       <i><em id="тс-безпробелов">0</em> {с.charsNo}</i>
     </div>
+    <div class="тс-главное">
+      <b id="тс-слова">0</b>
+      <span>{с.words}</span>
+      <i><em id="тс-уникальных">0</em> {с.unique}</i>
+    </div>
 
     <dl class="тс-список">
-      <div><dt>{с.words}</dt><dd id="тс-слова">0</dd></div>
-      <div><dt>{с.unique}</dt><dd id="тс-уникальных">0</dd></div>
       <div><dt>{с.sentences}</dt><dd id="тс-предложения">0</dd></div>
       <div><dt>{с.punct}</dt><dd id="тс-препинание">0</dd></div>
       <div><dt>{с.lines}</dt><dd id="тс-строки">0</dd></div>
       <div><dt>{с.paras}</dt><dd id="тс-абзацы">0</dd></div>
-      <div class="разрыв"><dt>{с.readAloud}</dt><dd id="тс-вслух">0:00</dd></div>
+      <div><dt>{с.readAloud}</dt><dd id="тс-вслух">0:00</dd></div>
       <div><dt>{с.readSilent}</dt><dd id="тс-просебя">0:00</dd></div>
     </dl>
   </div>
@@ -287,7 +290,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         у.счёт.textContent = осталось >= 0
           ? с.left.replace('{n}', разделитель(осталось))
           : с.over.replace('{n}', разделитель(-осталось));
-        у.к.classList.toggle('близко', осталось >= 0 && осталось <= предел * 0.1);
         у.к.classList.toggle('мимо', осталось < 0);
       }
     }

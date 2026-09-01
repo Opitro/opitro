@@ -50,10 +50,10 @@
 
 /* ---- Числа --------------------------------------------------------------------- */
 
-/* Разряд вместо кучи: одно главное число слева и опрятный список подробностей справа.
-   Восемь одинаковых плиток не давали взгляду за что зацепиться. */
+/* Два главных числа -- символы и слова: за ними приходят одинаково часто, и прятать слова
+   в список мелочей было ошибкой. Остальное идёт подробностями снизу. */
 .тс-итоги {
-  display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
+  display: grid; grid-template-columns: 1fr 1fr;
   gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
 }
 .тс-главное {
@@ -78,21 +78,22 @@
 /* Список подробностей: подпись слева, число справа. Числа моноширинные и выровнены по
    правому краю -- столбик читается сверху вниз одним взглядом, а не построчно. */
 .тс-список {
-  background: var(--surface); margin: 0; padding: 14px 20px;
-  display: grid; grid-template-columns: 1fr 1fr; gap: 0 26px; align-content: center;
+  grid-column: 1 / -1;
+  background: var(--surface); margin: 0; padding: 12px 20px 14px;
+  display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0 26px;
   font-family: var(--ui);
 }
 .тс-список > div {
   display: flex; align-items: baseline; gap: 10px;
   padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.05);
 }
-.тс-список > div:nth-last-child(-n+2) { border-bottom: 0 }
+.тс-список > div:nth-last-child(-n+3) { border-bottom: 0 }
 .тс-список dt { flex: 1 1 auto; font-size: 13px; color: var(--muted) }
 .тс-список dd {
   margin: 0; font-size: 15px; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums;
 }
-.тс-список .разрыв dt, .тс-список .разрыв ~ div dt { color: rgba(214,219,230,.55) }
+.тс-список > div:nth-last-child(-n+2) dt { color: rgba(214,219,230,.55) }
 
 /* ---- Лимиты и частота ------------------------------------------------------------ */
 
@@ -112,9 +113,10 @@
   overflow: hidden }
 .тс-полоса i { display: block; height: 100%; width: 0; border-radius: 3px;
   background: var(--accent); transition: width .18s ease, background .25s ease }
-.тс-лимит.близко .тс-полоса i { background: var(--тревога, #f5c451) }
-.тс-лимит.мимо .тс-полоса i { background: #f2857b }
-.тс-лимит.мимо .тс-лимит-счёт { color: #f2857b }
+/* Не влезло -- тёплый жёлтый, а не красный: красный кричит «ошибка», хотя ничего не сломано,
+   текст просто длиннее лимита. */
+.тс-лимит.мимо .тс-полоса i { background: #f5c451 }
+.тс-лимит.мимо .тс-лимит-счёт { color: #f5c451 }
 
 /* ---- Частота слов ------------------------------------------------------------------ */
 
@@ -150,12 +152,13 @@
 
 @media (max-width: 560px) {
   .тс-ввод { min-height: 150px; font-size: 15.5px; padding: 15px 15px 12px }
-  .тс-итоги { grid-template-columns: 1fr }
-  .тс-главное { padding: 18px 18px 16px }
-  .тс-главное b { font-size: 44px }
-  .тс-список { grid-template-columns: 1fr; padding: 10px 18px 14px }
-  .тс-список > div:nth-last-child(-n+2) { border-bottom: 1px solid rgba(255,255,255,.05) }
-  .тс-список > div:last-child { border-bottom: 0 }
+  .тс-главное { padding: 16px 16px 14px }
+  .тс-главное b { font-size: 38px }
+  .тс-главное span { font-size: 10.5px }
+  .тс-главное i { margin-top: 8px; font-size: 12.5px }
+  .тс-список { grid-template-columns: 1fr 1fr; padding: 10px 16px 12px; gap: 0 18px }
+  .тс-список > div:nth-last-child(-n+3) { border-bottom: 1px solid rgba(255,255,255,.05) }
+  .тс-список > div:nth-last-child(-n+2) { border-bottom: 0 }
 }
 @media (prefers-reduced-motion: reduce) {
   .тс-полоса i { transition: none }
