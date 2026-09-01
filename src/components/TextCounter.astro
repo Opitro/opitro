@@ -17,6 +17,7 @@ const СЛОВА = {
     paste: 'Вставить', copy: 'Копировать', clear: 'Очистить',
     copied: 'Скопировано', cleared: 'Очищено', nothing: 'Текст пуст',
     chars: 'символов с пробелами', charsNo: 'без пробелов', words: 'слов',
+    capChars: 'символов', withSp: 'с пробелами', noSp: 'без пробелов',
     lines: 'строк', paras: 'абзацев', sentences: 'предложений',
     unique: 'уникальных слов', punct: 'знаков препинания',
     freqTitle: 'Какие слова чаще всего', freqShort: 'без коротких слов',
@@ -37,6 +38,7 @@ const СЛОВА = {
     paste: 'Вставити', copy: 'Копіювати', clear: 'Очистити',
     copied: 'Скопійовано', cleared: 'Очищено', nothing: 'Текст порожній',
     chars: 'символів із пробілами', charsNo: 'без пробілів', words: 'слів',
+    capChars: 'символів', withSp: 'із пробілами', noSp: 'без пробілів',
     lines: 'рядків', paras: 'абзаців', sentences: 'речень',
     unique: 'унікальних слів', punct: 'розділових знаків',
     freqTitle: 'Які слова найчастіше', freqShort: 'без коротких слів',
@@ -57,6 +59,7 @@ const СЛОВА = {
     paste: 'Paste', copy: 'Copy', clear: 'Clear',
     copied: 'Copied', cleared: 'Cleared', nothing: 'The text is empty',
     chars: 'characters with spaces', charsNo: 'without spaces', words: 'words',
+    capChars: 'characters', withSp: 'with spaces', noSp: 'without spaces',
     lines: 'lines', paras: 'paragraphs', sentences: 'sentences',
     unique: 'unique words', punct: 'punctuation marks',
     freqTitle: 'Most frequent words', freqShort: 'skip short words',
@@ -77,6 +80,7 @@ const СЛОВА = {
     paste: 'Pegar', copy: 'Copiar', clear: 'Limpiar',
     copied: 'Copiado', cleared: 'Limpiado', nothing: 'El texto está vacío',
     chars: 'caracteres con espacios', charsNo: 'sin espacios', words: 'palabras',
+    capChars: 'caracteres', withSp: 'con espacios', noSp: 'sin espacios',
     lines: 'líneas', paras: 'párrafos', sentences: 'frases',
     unique: 'palabras únicas', punct: 'signos de puntuación',
     freqTitle: 'Palabras más frecuentes', freqShort: 'sin palabras cortas',
@@ -139,10 +143,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       подробности. Числа выровнены по правому краю и моноширинные -- столбик читается
       сверху вниз одним взглядом. */}
   <div class="тс-итоги">
-    <div class="тс-главное">
-      <b id="тс-символы">0</b>
-      <span>{с.chars}</span>
-      <i><em id="тс-безпробелов">0</em> {с.charsNo}</i>
+    {/* Две меры символов -- РАВНЫЕ. «С пробелами» -- то, чем меряют объём работы и лимиты;
+        «без пробелов» -- то, что многие и понимают под словом «символы». Обе правильные,
+        и выбирать за человека, какая ему нужна, было бы самоуправством. */}
+    <div class="тс-главное пара">
+      <span class="тс-шапка">{с.capChars}</span>
+      <div class="тс-две">
+        <div><b id="тс-символы">0</b><span>{с.withSp}</span></div>
+        <div><b id="тс-безпробелов">0</b><span>{с.noSp}</span></div>
+      </div>
     </div>
     <div class="тс-главное">
       <b id="тс-слова">0</b>

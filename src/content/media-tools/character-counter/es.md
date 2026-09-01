@@ -10,8 +10,8 @@ description: "Pega el texto y verás los caracteres con y sin espacios, más pal
 faq:
   - question: ¿Cómo cuento los caracteres de un texto?
     answer: "Pega el texto en el campo: los números se cuentan solos, no hay que pulsar nada. Los caracteres con y sin espacios se muestran por separado; en los encargos suele pedirse «con espacios», pero conviene preguntar, porque en un texto largo la diferencia es de un sexto."
-  - question: ¿Qué diferencia hay entre contar con y sin espacios?
-    answer: "El espacio es un carácter como cualquier otro y normalmente se cuenta. Por eso 200 pulsaciones por minuto equivalen a 40 palabras al medir la velocidad de escritura. Sin espacios se cuenta pocas veces: sobre todo cuando se paga por volumen."
+  - question: ¿Cuál es el número principal, con o sin espacios?
+    answer: "Los dos, por eso están uno al lado del otro y del mismo tamaño. Con espacios se mide el volumen y los límites: los encargos piden caracteres con espacios, y cualquier tope de longitud —una publicación, un SMS, un título— cuenta el espacio como carácter. Sin espacios es la lectura cotidiana de la palabra «caracteres»: solo letras y signos."
   - question: ¿Cómo se cuentan las palabras?
     answer: "Una palabra es cualquier fragmento entre espacios y saltos de línea. El guion no la parte: «bien-estar» es una sola. Los signos de puntuación no se suman a la palabra."
   - question: ¿Qué cuenta como frase o párrafo?
