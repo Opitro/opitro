@@ -3,10 +3,10 @@ toolSlug: polling-rate
 locale: en
 category: device-tests
 tool: polling-rate
-title: Mouse polling rate test — check your hertz online
-h1: Mouse polling rate
+title: Mouse polling rate test — check your Hz online
+h1: Mouse polling rate test
 navName: Polling rate
-description: "Check how many times per second your mouse reports its position. The measurement uses the real events, not the frames of your screen. Free, no sign-up."
+description: "Find your real polling rate — 125, 500, 1000 Hz or higher — and the latency in milliseconds. The numbers move live, with a steadiness chart beside them. Free."
 faq:
   - question: What is a mouse polling rate?
     answer: "It is how many times per second the mouse tells the computer where it is, measured in hertz. Ordinary office mice run at 125 Hz — a report every eight milliseconds. Gaming mice do 500 or 1000, and some recent models 4000 or 8000."
@@ -33,6 +33,7 @@ Move the mouse across the area for a few seconds and the page will show how many
 - **Hertz now** — the rate over the last fraction of a second
 - **Peak** — the best value of the whole run
 - **Average** — across every event; this is your mouse's real rate
+- **Latency** — the flip side of the rate: 1000 Hz means one millisecond between reports, 125 Hz means eight
 - **Samples** — how many movement events were collected; more means a firmer number
 
 The chart shows whether the rate is steady. On a healthy mouse the line is almost flat; dips mean events are being lost on the way.

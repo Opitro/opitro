@@ -15,7 +15,7 @@ const СЛОВА = {
   ru: {
     ready: 'Ведите мышью по этому полю', readySub: 'Двигайте не спеша и не отрывая — числа появятся сами',
     hz: 'герц сейчас',
-    maxHz: 'максимум', avgHz: 'в среднем', samples: 'замеров',
+    maxHz: 'максимум', avgHz: 'в среднем', samples: 'замеров', lag: 'задержка, мс',
     graph: 'Как менялась частота', legNow: 'частота', legAvg: 'среднее',
     again: 'Начать заново',
     hint: 'Ведите мышью по полю несколько секунд',
@@ -31,7 +31,7 @@ const СЛОВА = {
   uk: {
     ready: 'Ведіть мишею по цьому полю', readySub: 'Рухайте неквапливо й не відриваючи — числа з\'являться самі',
     hz: 'герц зараз',
-    maxHz: 'максимум', avgHz: 'у середньому', samples: 'замірів',
+    maxHz: 'максимум', avgHz: 'у середньому', samples: 'замірів', lag: 'затримка, мс',
     graph: 'Як змінювалася частота', legNow: 'частота', legAvg: 'середнє',
     again: 'Почати заново',
     hint: 'Ведіть мишею по полю кілька секунд',
@@ -47,7 +47,7 @@ const СЛОВА = {
   en: {
     ready: 'Move the mouse across this area', readySub: 'Keep moving steadily — the numbers appear on their own',
     hz: 'hertz now',
-    maxHz: 'peak', avgHz: 'average', samples: 'samples',
+    maxHz: 'peak', avgHz: 'average', samples: 'samples', lag: 'latency, ms',
     graph: 'How the rate changed', legNow: 'rate', legAvg: 'average',
     again: 'Start over',
     hint: 'Move the mouse across the area for a few seconds',
@@ -63,7 +63,7 @@ const СЛОВА = {
   es: {
     ready: 'Mueve el ratón por esta zona', readySub: 'Muévelo sin parar y los números aparecerán solos',
     hz: 'hercios ahora',
-    maxHz: 'máximo', avgHz: 'media', samples: 'muestras',
+    maxHz: 'máximo', avgHz: 'media', samples: 'muestras', lag: 'latencia, ms',
     graph: 'Cómo cambió la frecuencia', legNow: 'frecuencia', legAvg: 'media',
     again: 'Empezar de nuevo',
     hint: 'Mueve el ratón por la zona unos segundos',
@@ -100,6 +100,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="чо-плитки">
     <div class="чо-плитка"><b id="чо-макс">0</b><span>{с.maxHz}</span></div>
     <div class="чо-плитка"><b id="чо-сред">0</b><span>{с.avgHz}</span></div>
+    <div class="чо-плитка"><b id="чо-задержка">—</b><span>{с.lag}</span></div>
     <div class="чо-плитка"><b id="чо-замеров">0</b><span>{с.samples}</span></div>
   </div>
 
@@ -193,6 +194,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         предупредили = true;
       }
       $('чо-замеров').textContent = String(времена.length);
+      // Задержка -- обратная сторона частоты: 1000 герц это одна миллисекунда между
+      // докладами, 125 герц -- восемь. Игроки меряют частоту именно ради неё.
+      $('чо-задержка').textContent = среднее ? (1000 / среднее).toFixed(1) : '—';
       рисовать(среднее);
     }
 
@@ -278,6 +282,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       сейчас: $('чо-число').textContent,
       максимум: $('чо-макс').textContent,
       среднее: $('чо-сред').textContent,
+      задержка: $('чо-задержка').textContent,
       замеров: $('чо-замеров').textContent,
     });
   })();

@@ -3,10 +3,10 @@ toolSlug: polling-rate
 locale: es
 category: device-tests
 tool: polling-rate
-title: Frecuencia de sondeo del ratón — comprueba los hercios online
-h1: Frecuencia de sondeo del ratón
+title: Test de frecuencia de sondeo del ratón — comprueba los Hz
+h1: Test de frecuencia de sondeo (Polling Rate)
 navName: Frecuencia de sondeo
-description: "Comprueba cuántas veces por segundo tu ratón informa de su posición. La medida usa los eventos reales, no los fotogramas de la pantalla. Gratis y sin registro."
+description: "Descubre tu frecuencia real —125, 500, 1000 Hz o más— y la latencia en milisegundos. Los números cambian en vivo y al lado hay un gráfico de estabilidad. Gratis."
 faq:
   - question: ¿Qué es la frecuencia de sondeo?
     answer: "Es cuántas veces por segundo el ratón le dice al ordenador dónde está, medido en hercios. Los ratones de oficina funcionan a 125 Hz, es decir, informan cada ocho milisegundos. Los de juego dan 500 o 1000, y algunos modelos recientes 4000 u 8000."
@@ -33,6 +33,7 @@ Mueve el ratón por la zona unos segundos y la página mostrará cuántas veces 
 - **Hercios ahora** — la frecuencia de la última fracción de segundo
 - **Máximo** — el mejor valor de toda la medida
 - **Media** — sobre todos los eventos; esta es la frecuencia real de tu ratón
+- **Latencia** — la otra cara de la frecuencia: 1000 Hz es un milisegundo entre informes; 125 Hz, ocho
 - **Muestras** — cuántos eventos de movimiento se han recogido
 
 El gráfico muestra si la frecuencia es estable. En un ratón sano la línea es casi plana; los bajones significan que se pierden eventos por el camino.
