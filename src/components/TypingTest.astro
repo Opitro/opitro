@@ -41,6 +41,29 @@ const СЛОВА = {
     accSub: 'Доля верных знаков',
     errSub: 'Знаков набрано неверно',
     ranks: ['Новичок', 'Уверенный', 'Слепая печать', 'Мастер', 'Чемпион'],
+    // Прозвище по двум осям: зверь растёт со скоростью, определение говорит о манере --
+    // спешит человек или идёт чисто. Так оно значит хоть что-то, а не выпадает наугад.
+    names: [
+      ['Торопливый Крот', 'Спокойный Крот', 'Аккуратный Крот'],
+      ['Торопливый Ёж', 'Бодрый Ёж', 'Аккуратный Ёж'],
+      ['Резкий Барс', 'Быстрый Барс', 'Точный Барс'],
+      ['Дерзкий Сокол', 'Быстрый Сокол', 'Безупречный Сокол'],
+      ['Неистовый Ястреб', 'Стремительный Ястреб', 'Безупречный Ястреб'],
+    ],
+    pFirst: 'Первая попытка — теперь есть с чем сравнивать.',
+    pFaster: 'Быстрее прошлого раза на {n}.',
+    pSame: 'Ровно как в прошлый раз.',
+    pSlowerAcc: 'Медленнее на {n}, зато точность выше на {m} %.',
+    pSlower: 'В этот раз медленнее на {n} — скорость гуляет от захода к заходу, это нормально.',
+    pClean: 'И ни одной ошибки.',
+    pAccUp: 'Точность выше прошлой на {m} %.',
+    pTipAcc: 'Попробуйте сбавить темп: точность вытянет скорость сама.',
+    pTipKeep: 'Ещё несколько попыток — и станет заметно ровнее.',
+    pTipGood: 'Держите этот темп.',
+    logTitle: 'Ваши последние попытки',
+    logNote: 'Хранится только в этом браузере, от лучшей к худшей.',
+    logClear: 'Стереть',
+    logNow: 'только что',
     rec: 'Рекорд', recNew: 'Личный рекорд!', recWas: 'было',
     own: 'Свой текст', ownTitle: 'Вставьте свой текст — печатать будете именно его',
     ownPlace: 'Письмо, отрывок из книги, конспект — что угодно на любом языке',
@@ -76,6 +99,27 @@ const СЛОВА = {
     accSub: 'Share of correct characters',
     errSub: 'Characters typed wrong',
     ranks: ['Beginner', 'Confident', 'Touch typist', 'Master', 'Champion'],
+    names: [
+      ['Hasty Mole', 'Steady Mole', 'Careful Mole'],
+      ['Hasty Hedgehog', 'Brisk Hedgehog', 'Careful Hedgehog'],
+      ['Reckless Lynx', 'Swift Lynx', 'Precise Lynx'],
+      ['Daring Falcon', 'Swift Falcon', 'Flawless Falcon'],
+      ['Furious Hawk', 'Blazing Hawk', 'Flawless Hawk'],
+    ],
+    pFirst: 'First run — now you have something to measure against.',
+    pFaster: 'Faster than last time by {n}.',
+    pSame: 'Exactly the same as last time.',
+    pSlowerAcc: 'Slower by {n}, but {m} % more accurate.',
+    pSlower: 'Slower by {n} this time — speed wanders from run to run, that is normal.',
+    pClean: 'And not a single mistake.',
+    pAccUp: 'Accuracy up {m} % on last time.',
+    pTipAcc: 'Try easing off: accuracy pulls the speed up by itself.',
+    pTipKeep: 'A few more runs and it will settle down noticeably.',
+    pTipGood: 'Hold that pace.',
+    logTitle: 'Your recent runs',
+    logNote: 'Kept in this browser only, best to worst.',
+    logClear: 'Clear',
+    logNow: 'just now',
     rec: 'Best', recNew: 'Personal best!', recWas: 'was',
     own: 'Your text', ownTitle: 'Paste your own text — that is what you will type',
     ownPlace: 'A letter, a passage from a book, your notes — anything, in any language',
@@ -111,6 +155,27 @@ const СЛОВА = {
     accSub: 'Proporción de caracteres correctos',
     errSub: 'Caracteres escritos mal',
     ranks: ['Principiante', 'Seguro', 'Mecanógrafo', 'Maestro', 'Campeón'],
+    names: [
+      ['Topo Apresurado', 'Topo Sereno', 'Topo Cuidadoso'],
+      ['Erizo Apresurado', 'Erizo Vivaz', 'Erizo Cuidadoso'],
+      ['Lince Impetuoso', 'Lince Veloz', 'Lince Preciso'],
+      ['Halcón Audaz', 'Halcón Veloz', 'Halcón Impecable'],
+      ['Azor Furioso', 'Azor Fulgurante', 'Azor Impecable'],
+    ],
+    pFirst: 'Primer intento: ya tienes con qué compararte.',
+    pFaster: 'Más rápido que la vez anterior en {n}.',
+    pSame: 'Exactamente igual que la vez anterior.',
+    pSlowerAcc: 'Más lento en {n}, pero con {m} % más de precisión.',
+    pSlower: 'Esta vez más lento en {n}: la velocidad va y viene, es normal.',
+    pClean: 'Y ni un solo error.',
+    pAccUp: 'Precisión {m} % mejor que la vez anterior.',
+    pTipAcc: 'Prueba a bajar el ritmo: la precisión sube la velocidad sola.',
+    pTipKeep: 'Unos intentos más y se volverá mucho más parejo.',
+    pTipGood: 'Mantén ese ritmo.',
+    logTitle: 'Tus últimos intentos',
+    logNote: 'Se guarda solo en este navegador, de mejor a peor.',
+    logClear: 'Borrar',
+    logNow: 'ahora mismo',
     rec: 'Récord', recNew: '¡Récord personal!', recWas: 'antes',
     own: 'Tu texto', ownTitle: 'Pega tu propio texto: será el que escribas',
     ownPlace: 'Una carta, un fragmento de un libro, tus apuntes: lo que sea, en cualquier idioma',
@@ -146,6 +211,27 @@ const СЛОВА = {
     accSub: 'Частка правильних знаків',
     errSub: 'Знаків набрано неправильно',
     ranks: ['Новачок', 'Упевнений', 'Сліпий друк', 'Майстер', 'Чемпіон'],
+    names: [
+      ['Квапливий Кріт', 'Спокійний Кріт', 'Акуратний Кріт'],
+      ['Квапливий Їжак', 'Бадьорий Їжак', 'Акуратний Їжак'],
+      ['Різкий Барс', 'Швидкий Барс', 'Точний Барс'],
+      ['Зухвалий Сокіл', 'Швидкий Сокіл', 'Бездоганний Сокіл'],
+      ['Несамовитий Яструб', 'Стрімкий Яструб', 'Бездоганний Яструб'],
+    ],
+    pFirst: 'Перша спроба — тепер є з чим порівнювати.',
+    pFaster: 'Швидше за минулий раз на {n}.',
+    pSame: 'Рівно як минулого разу.',
+    pSlowerAcc: 'Повільніше на {n}, зате точність вища на {m} %.',
+    pSlower: 'Цього разу повільніше на {n} — швидкість гуляє від разу до разу, це нормально.',
+    pClean: 'І жодної помилки.',
+    pAccUp: 'Точність вища за минулу на {m} %.',
+    pTipAcc: 'Спробуйте збавити темп: точність витягне швидкість сама.',
+    pTipKeep: 'Ще кілька спроб — і стане помітно рівніше.',
+    pTipGood: 'Тримайте цей темп.',
+    logTitle: 'Ваші останні спроби',
+    logNote: 'Зберігається лише в цьому браузері, від кращої до гіршої.',
+    logClear: 'Стерти',
+    logNow: 'щойно',
     rec: 'Рекорд', recNew: 'Особистий рекорд!', recWas: 'було',
     own: 'Свій текст', ownTitle: 'Вставте свій текст — саме його ви й набиратимете',
     ownPlace: 'Лист, уривок із книги, конспект — будь-що, будь-якою мовою',
@@ -253,7 +339,22 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         </div>
       </div>
 
+      {/* Слово о том, как прошло именно у вас: сравнение с прошлой попыткой, а не общая
+          похвала. Пустых «отлично!» тут нет -- каждая строка проверяема. */}
+      <div class="tp-praise" id="tp-praise"></div>
+
       <div class="tp-verdict" id="tp-verdict"></div>
+
+      {/* Последние десять попыток, от лучшей к худшей. Всё в этом браузере: никуда не уходит,
+          ни с кем не сравнивается. Появляется только в итоге, поэтому ничего не сдвигает. */}
+      <div class="tp-log" id="tp-log" hidden>
+        <div class="tp-log-top">
+          <span class="tp-log-k" id="tp-log-title"></span>
+          <button type="button" class="tp-log-clear" id="tp-log-clear"></button>
+        </div>
+        <ol class="tp-log-list" id="tp-log-list"></ol>
+        <div class="tp-log-note" id="tp-log-note"></div>
+      </div>
     </div>
   </div>
 
@@ -299,6 +400,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const итогОшибки = document.getElementById('tp-res-err');
     const итогСлова = document.getElementById('tp-verdict');
     const итогРазряд = document.getElementById('tp-rank');
+    const полеПохвалы = document.getElementById('tp-praise');
+    const блокЖурнала = document.getElementById('tp-log');
+    const списокЖурнала = document.getElementById('tp-log-list');
     const отметка = document.getElementById('tp-you');
     const ступени = [...document.querySelectorAll('.tp-step')];
     const кнопкаЗаново = document.getElementById('tp-again');
@@ -324,6 +428,74 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const i = разряд(сл);
       const доля = Math.min(1, Math.max(0, (сл - края[i]) / (края[i + 1] - края[i])));
       return Math.min(99, (i + доля) * 20);
+    }
+
+    // ПРОЗВИЩЕ. Две оси: зверь растёт со скоростью, определение говорит о манере. Человек с
+    // одной и той же скоростью, но разной точностью получает разные прозвища -- и это честно:
+    // манера у них правда разная.
+    const мера = (точность) => (точность < 93 ? 0 : (точность < 98 ? 1 : 2));
+    const прозвище = (разр, точность) => с.names[разр][мера(точность)];
+
+    // ПОХВАЛА. Только проверяемые утверждения: сравнение с прошлой попыткой и совет по делу.
+    // Пустое «отлично!» после 90 знаков с 70 % точности человек не купит, и правильно сделает.
+    function похвала(главное, точность, разр, прошлая) {
+      const части = [];
+      if (!прошлая) части.push(с.pFirst);
+      else {
+        const д = главное - прошлая.главное;
+        const т = точность - прошлая.точность;
+        if (д > 0) части.push(с.pFaster.replace('{n}', д));
+        else if (д === 0) части.push(с.pSame);
+        else if (т > 0) части.push(с.pSlowerAcc.replace('{n}', -д).replace('{m}', т));
+        else части.push(с.pSlower.replace('{n}', -д));
+        if (точность === 100) части.push(с.pClean);
+        else if (т > 0 && д >= 0) части.push(с.pAccUp.replace('{m}', т));
+      }
+      части.push(точность < 93 ? с.pTipAcc : (разр < 2 ? с.pTipKeep : с.pTipGood));
+      return части.join(' ');
+    }
+
+    // ЖУРНАЛ. Последние десять попыток, только в этом браузере: никуда не уходит и ни с кем
+    // не сравнивается. Свой текст сюда не пишется -- в нём свои знаки, сравнение было бы кривым.
+    const ключЖурнала = 'opitro-tp-log-' + язык;
+    function взятьЖурнал() {
+      try { const j = JSON.parse(localStorage.getItem(ключЖурнала) || '[]'); return Array.isArray(j) ? j : []; }
+      catch { return []; }
+    }
+    function записатьВЖурнал(запись) {
+      const ж = взятьЖурнал();
+      ж.unshift(запись);
+      try { localStorage.setItem(ключЖурнала, JSON.stringify(ж.slice(0, 10))); } catch {}
+    }
+    // «5 минут назад» на языке страницы -- Intl умеет это сам, свои таблицы склонений не нужны.
+    const когдаТо = (() => {
+      try { return new Intl.RelativeTimeFormat(язык, { numeric: 'auto' }); } catch { return null; }
+    })();
+    function давноЛи(когда) {
+      const сек = Math.round((Date.now() - когда) / 1000);
+      if (!когдаТо || сек < 60) return с.logNow;
+      if (сек < 3600) return когдаТо.format(-Math.round(сек / 60), 'minute');
+      if (сек < 86400) return когдаТо.format(-Math.round(сек / 3600), 'hour');
+      return когдаТо.format(-Math.round(сек / 86400), 'day');
+    }
+    function показатьЖурнал() {
+      const ж = взятьЖурнал();
+      блокЖурнала.hidden = !ж.length;
+      if (!ж.length) return;
+      const лучшие = [...ж].sort((a, b) => b.главное - a.главное);
+      const куски = document.createDocumentFragment();
+      for (const з2 of лучшие) {
+        const строка = document.createElement('li');
+        строка.className = 'tp-log-row' + (з2.свежая ? ' эта' : '');
+        строка.innerHTML =
+          '<span class="ч"></span><span class="п"></span><span class="д"></span><span class="к"></span>';
+        строка.querySelector('.ч').textContent = з2.главное;
+        строка.querySelector('.п').textContent = з2.прозвище;
+        строка.querySelector('.д').textContent = з2.точность + '% · ' + з2.уровень + ' · ' + з2.секунд + ' ' + с.sec;
+        строка.querySelector('.к').textContent = давноЛи(з2.когда);
+        куски.appendChild(строка);
+      }
+      списокЖурнала.replaceChildren(куски);
     }
 
     // ЛИЧНЫЙ РЕКОРД. Свой на каждое сочетание «уровень + время»: сравнивать минуту лёгкого
@@ -492,10 +664,27 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       // Разряд человек читает первым -- он и стоит первым. Рекорд приписывается рядом, но
       // только настоящий: самый первый заход бить нечего, а «рекорд» на пустом месте -- обман.
       const настоящийРекорд = побит && прежний > 0;
+      const имя = прозвище(разр, точность);
       итогРазряд.textContent = свой ? с.ownBadge
-        : с.ranks[разр] + (настоящийРекорд ? ' · ' + с.recNew + ' ' + с.recWas + ' ' + прежний : '');
+        : имя + (настоящийРекорд ? ' · ' + с.recNew + ' ' + с.recWas + ' ' + прежний : '');
       итогРазряд.classList.toggle('рекорд', настоящийРекорд);
       показатьРекорд();
+
+      // Журнал ведём только по обычным заходам: свой текст с ними несравним.
+      if (!свой) {
+        const прошлая = взятьЖурнал()[0] || null;
+        полеПохвалы.textContent = похвала(главное, точность, разр, прошлая);
+        const жур = взятьЖурнал();
+        жур.forEach((з2) => { delete з2.свежая; });
+        try { localStorage.setItem(ключЖурнала, JSON.stringify(жур)); } catch {}
+        записатьВЖурнал({
+          главное, точность, прозвище: имя, уровень: с[({ easy: 'lvEasy', medium: 'lvMid', hard: 'lvHard' })[уровень]],
+          секунд: длительность, когда: Date.now(), свежая: true,
+        });
+      } else {
+        полеПохвалы.textContent = '';
+      }
+      показатьЖурнал();
 
       полеСкорость.textContent = String(главное);
       полеТочность.textContent = точность + '%';
@@ -607,6 +796,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       заново();
     }
 
+    document.getElementById('tp-log-title').textContent = с.logTitle;
+    document.getElementById('tp-log-note').textContent = с.logNote;
+    const кнопкаСтереть = document.getElementById('tp-log-clear');
+    кнопкаСтереть.textContent = с.logClear;
+    кнопкаСтереть.addEventListener('click', () => {
+      try { localStorage.removeItem(ключЖурнала); } catch {}
+      показатьЖурнал();
+      кнопкаСтереть.blur();
+    });
+
     // Слова живут в отдельном файле: он весит килобайты и грузится сразу, но отдельно от
     // страницы -- разметка успевает показаться раньше.
     import('../lib/typing-words.js').then((м) => {
@@ -622,6 +821,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       точность: полеТочность.textContent,
       итог: итогСкорость.textContent,
       разряд: итогРазряд.textContent,
+      похвала: полеПохвалы.textContent,
+      вЖурнале: взятьЖурнал().length,
       рекорд: полеРекорд.textContent,
       верных: корень.querySelectorAll('.tp-ch.ok').length,
       неверных: корень.querySelectorAll('.tp-ch.bad, .tp-ch.extra').length,

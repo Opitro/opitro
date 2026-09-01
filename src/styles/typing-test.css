@@ -207,8 +207,43 @@
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
 .tp-step.on { color: var(--text) }
 
-.tp-verdict { margin-top: 15px; font-size: 13.5px; line-height: 1.55; color: var(--muted);
+/* Слово о вашей попытке -- ярче общего пояснения: это про вас, а не про разряд вообще. */
+.tp-praise { margin-top: 16px; font-size: 14.5px; line-height: 1.55; color: var(--text);
+  max-width: 62ch; font-weight: 600 }
+.tp-praise:empty { display: none }
+.tp-verdict { margin-top: 8px; font-size: 13.5px; line-height: 1.55; color: var(--muted);
   max-width: 62ch }
+
+/* Последние попытки. Числа моноширинные и выровнены по разряду -- столбик читается сверху
+   вниз одним взглядом, а не построчно. */
+.tp-log { margin-top: 20px; padding-top: 16px; border-top: 1px solid var(--line) }
+.tp-log[hidden] { display: none }
+.tp-log-top { display: flex; align-items: center; gap: 12px; margin-bottom: 10px }
+.tp-log-k { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(214,219,230,.5) }
+.tp-log-clear { margin-left: auto; font-family: inherit; font-size: 12px; font-weight: 600;
+  color: rgba(214,219,230,.5); background: none; border: 0; padding: 2px 4px; cursor: pointer }
+.tp-log-clear:hover { color: var(--text) }
+.tp-log-list { list-style: none; margin: 0; padding: 0; counter-reset: место }
+.tp-log-row { counter-increment: место; display: grid; align-items: baseline;
+  grid-template-columns: 22px 74px 1fr auto; gap: 4px 12px;
+  padding: 7px 8px; border-radius: 8px; font-size: 13px }
+.tp-log-row::before { content: counter(место); font-size: 11px; font-weight: 700;
+  color: rgba(214,219,230,.35); font-variant-numeric: tabular-nums }
+.tp-log-row .ч { font-size: 16px; font-weight: 800; color: var(--text);
+  font-variant-numeric: tabular-nums }
+.tp-log-row .п { color: var(--muted); font-weight: 600 }
+.tp-log-row .д { color: rgba(214,219,230,.5); font-size: 12px; justify-self: end; white-space: nowrap }
+.tp-log-row .к { display: none }
+/* Только что показанная попытка подсвечена -- иначе её приходится искать глазами среди прочих. */
+.tp-log-row.эта { background: color-mix(in srgb, var(--accent) 9%, transparent) }
+.tp-log-row.эта .ч { color: var(--accent) }
+.tp-log-note { margin-top: 9px; font-size: 11.5px; color: rgba(214,219,230,.45) }
+
+@media (max-width: 560px) {
+  .tp-log-row { grid-template-columns: 20px 66px 1fr; gap: 3px 10px }
+  .tp-log-row .д { grid-column: 2 / -1; justify-self: start }
+}
 .tp-verdict b { color: var(--text) }
 
 /* ---- Низ --------------------------------------------------------------------------------- */
