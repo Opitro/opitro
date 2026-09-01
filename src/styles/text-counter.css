@@ -79,29 +79,35 @@
    правому краю -- столбик читается сверху вниз одним взглядом, а не построчно. */
 .тс-список {
   grid-column: 1 / -1;
-  background: var(--surface); margin: 0; padding: 0;
+  /* Еле заметная тёплая подложка: полоса подробностей отделяется от главных чисел даже
+     боковым зрением, но не спорит с ними за внимание. */
+  background: color-mix(in srgb, #f5c451 4%, var(--surface)); margin: 0; padding: 0;
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr));
   font-family: var(--ui);
 }
 /* Тонкие перегородки вместо отдельных плиток: это одна панель прибора, а не шесть карточек. */
 .тс-список > div {
   padding: 15px 10px 16px; text-align: center;
-  border-left: 1px solid rgba(255,255,255,.06);
+  border-left: 1px solid rgba(245,196,81,.14);
 }
 .тс-список > div:first-child { border-left: 0 }
 /* Перегородка потолще там, где меняется смысл: слева -- из чего состоит текст, справа --
    сколько его читать. Разная толщина линии группирует надёжнее любых подписей. */
-.тс-список > div.иное { border-left-color: rgba(255,255,255,.16) }
+.тс-список > div.иное { border-left-color: rgba(245,196,81,.28) }
+/* Подробности набраны тёплым жёлтым, главные числа -- зелёным. Один взгляд на карточку, и
+   уже понятно, где главное, а где уточнения: цвет разделяет разряды быстрее размера.
+   Контраст к фону 10,7 у чисел и 6,9 у подписей при норме 4,5. */
 .тс-список dd {
-  margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
+  margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: #f5c451;
   font-variant-numeric: tabular-nums;
 }
 .тс-список dt {
   margin-top: 5px; font-size: 11px; font-weight: 600; letter-spacing: .05em;
-  color: rgba(214,219,230,.72); line-height: 1.35;
+  color: rgba(245,196,81,.78); line-height: 1.35;
 }
-/* Время чтения -- не про объём, а про восприятие: тише числами, но подпись читаемая. */
-.тс-список > div:nth-last-child(-n+2) dd { color: rgba(240,240,242,.82) }
+/* Время чтения -- не про объём, а про восприятие: тем же цветом, но на полтона тише. */
+.тс-список > div:nth-last-child(-n+2) dd { color: rgba(245,196,81,.82) }
+.тс-список > div:nth-last-child(-n+2) dt { color: rgba(245,196,81,.62) }
 
 /* ---- Лимиты и частота ------------------------------------------------------------ */
 
@@ -167,9 +173,9 @@
   .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)) }
   .тс-список > div { padding: 12px 8px 13px }
   .тс-список > div:nth-child(3n+1) { border-left: 0 }
-  .тс-список > div:nth-child(n+4) { border-top: 1px solid rgba(255,255,255,.06) }
+  .тс-список > div:nth-child(n+4) { border-top: 1px solid rgba(245,196,81,.14) }
   /* На трёх колонках граница смысла проходит по строке, а не по вертикали. */
-  .тс-список > div.иное { border-left-color: rgba(255,255,255,.06) }
+  .тс-список > div.иное { border-left-color: rgba(245,196,81,.14) }
   .тс-список dd { font-size: 18px }
   .тс-список dt { font-size: 10.5px }
 }
