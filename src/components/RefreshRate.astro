@@ -1,0 +1,227 @@
+---
+// ЧАСТОТА ОБНОВЛЕНИЯ ЭКРАНА.
+//
+// Меряется по времени между кадрами, которые выдаёт сам браузер. Другого способа в вебе нет:
+// экран о себе ничего не рассказывает, но кадры он выдаёт ровно с той частотой, с какой
+// обновляется, и промежутки между ними и есть ответ.
+//
+// Частота берётся по МЕДИАНЕ промежутков: один тяжёлый кадр -- и среднее уезжает вниз, а
+// медиана его не замечает. Тот же приём, что на странице про частоту опроса мыши.
+import css from '../styles/refresh-rate.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hz: 'герц · кадров в секунду', measuring: 'Меряем…',
+    peak: 'максимум', frame: 'кадр, мс', dropped: 'пропущено кадров', evenness: 'ровность',
+    graph: 'Время каждого кадра', legFrame: 'кадр', legMid: 'середина',
+    again: 'Замерить заново',
+    hint: 'Не переключайтесь на другие вкладки: в них браузер снижает частоту',
+    hintDone: 'Готово. Для проверки можно замерить ещё раз',
+    n1: 'Экран о себе не рассказывает, поэтому частота меряется по кадрам, которые выдаёт браузер: он рисует ровно с той частотой, с какой обновляется экран.',
+    n2: 'Замер идёт для того экрана, на котором открыто окно. Перетащите окно на другой монитор и замерьте снова — числа будут разными.',
+    n3: 'На ноутбуке от батареи частота часто снижается до 60 герц ради экономии. Подключите питание и повторите замер.',
+    n4: 'У экранов с переменной частотой число будет плавать: они меняют частоту под нагрузку, и это не поломка.',
+  },
+  uk: {
+    hz: 'герц · кадрів за секунду', measuring: 'Міряємо…',
+    peak: 'максимум', frame: 'кадр, мс', dropped: 'пропущено кадрів', evenness: 'рівність',
+    graph: 'Час кожного кадру', legFrame: 'кадр', legMid: 'середина',
+    again: 'Заміряти заново',
+    hint: 'Не перемикайтеся на інші вкладки: у них браузер знижує частоту',
+    hintDone: 'Готово. Для перевірки можна заміряти ще раз',
+    n1: 'Екран про себе не розповідає, тому частота міряється за кадрами, які видає браузер: він малює рівно з тією частотою, з якою оновлюється екран.',
+    n2: 'Замір іде для того екрана, на якому відкрито вікно. Перетягніть вікно на інший монітор і заміряйте знову — числа будуть різними.',
+    n3: 'На ноутбуці від батареї частота часто знижується до 60 герц заради економії. Підключіть живлення й повторіть замір.',
+    n4: 'В екранів зі змінною частотою число плаватиме: вони змінюють частоту під навантаження, і це не поломка.',
+  },
+  en: {
+    hz: 'hertz · frames per second', measuring: 'Measuring…',
+    peak: 'peak', frame: 'frame, ms', dropped: 'dropped frames', evenness: 'steadiness',
+    graph: 'Time of every frame', legFrame: 'frame', legMid: 'middle',
+    again: 'Measure again',
+    hint: 'Stay on this tab: in background tabs the browser slows the frame rate down',
+    hintDone: 'Done. You can measure again to check',
+    n1: 'A screen tells the page nothing about itself, so the rate is measured from the frames the browser produces: it draws at exactly the rate the screen refreshes.',
+    n2: 'The measurement is for the screen the window is on. Drag the window to another monitor and measure again — the numbers will differ.',
+    n3: 'On a laptop running on battery the rate is often dropped to 60 Hz to save power. Plug it in and repeat.',
+    n4: 'On variable refresh rate screens the number will drift: they change the rate with the load, and that is not a fault.',
+  },
+  es: {
+    hz: 'hercios · fotogramas por segundo', measuring: 'Midiendo…',
+    peak: 'máximo', frame: 'fotograma, ms', dropped: 'fotogramas perdidos', evenness: 'estabilidad',
+    graph: 'Tiempo de cada fotograma', legFrame: 'fotograma', legMid: 'centro',
+    again: 'Medir otra vez',
+    hint: 'No cambies de pestaña: en segundo plano el navegador baja la frecuencia',
+    hintDone: 'Listo. Puedes medir otra vez para comprobar',
+    n1: 'La pantalla no cuenta nada de sí misma, así que la frecuencia se mide por los fotogramas del navegador: dibuja exactamente al ritmo al que se refresca la pantalla.',
+    n2: 'La medida corresponde a la pantalla donde está la ventana. Arrástrala a otro monitor y vuelve a medir: los números cambiarán.',
+    n3: 'En un portátil con batería la frecuencia suele bajar a 60 Hz para ahorrar. Conéctalo a la corriente y repite.',
+    n4: 'En pantallas de frecuencia variable el número fluctuará: cambian la frecuencia según la carga, y no es una avería.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="чоэ идёт" data-words={JSON.stringify(с)} data-locale={locale}>
+  {/* Площадка -- экран прибора: тёмная, утопленная, с сеткой и засечками по углам. */}
+  <div class="чоэ-поле">
+    <i class="чоэ-угол лв"></i><i class="чоэ-угол пв"></i>
+    <i class="чоэ-угол лн"></i><i class="чоэ-угол пн"></i>
+
+    <div class="чоэ-число" id="чоэ-число">—</div>
+    <div class="чоэ-гц"><i class="чоэ-огонёк" id="чоэ-огонёк" aria-hidden="true"></i><span id="чоэ-подпись">{с.measuring}</span></div>
+
+    {/* Бегунок проходит дорожку ровно за секунду. Он говорит глазу то, чего не скажет
+        число: идёт ли картинка плавно на самом деле. */}
+    <div class="чоэ-дорожка" aria-hidden="true"><div class="чоэ-бегунок" id="чоэ-бегунок"></div></div>
+  </div>
+
+  <div class="чоэ-плитки">
+    <div class="чоэ-плитка"><b id="чоэ-макс">—</b><span>{с.peak}</span></div>
+    <div class="чоэ-плитка"><b id="чоэ-кадр">—</b><span>{с.frame}</span></div>
+    <div class="чоэ-плитка"><b id="чоэ-ровность">—</b><span>{с.evenness}</span></div>
+    <div class="чоэ-плитка"><b id="чоэ-пропуски">0</b><span>{с.dropped}</span></div>
+  </div>
+
+  <div class="чоэ-блок">
+    <div class="чоэ-заг">{с.graph}</div>
+    <canvas class="чоэ-холст" id="чоэ-график"></canvas>
+    <div class="чоэ-ключ">
+      <span><i style="background:#f2857b"></i>{с.legFrame}</span>
+      <span><i style="background:rgba(255,255,255,.3)"></i>{с.legMid}</span>
+    </div>
+  </div>
+
+  <div class="чоэ-низ">
+    <span class="чоэ-подсказка" id="чоэ-подсказка">{с.hint}</span>
+    <button type="button" class="чоэ-снова" id="чоэ-снова">{с.again}</button>
+  </div>
+
+  <div class="чоэ-заметки">
+    <div class="чоэ-заметка">{с.n1}</div>
+    <div class="чоэ-заметка">{с.n2}</div>
+    <div class="чоэ-заметка">{с.n3}</div>
+    <div class="чоэ-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.чоэ');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    const холст = $('чоэ-график'), бегунок = $('чоэ-бегунок');
+
+    let промежутки = [];      // время каждого кадра в миллисекундах
+    let прошлое = 0, макс = 0, пропущено = 0, началось = 0;
+    let кадр = 0;
+
+    const серединаИз = (м) => {
+      if (!м.length) return 0;
+      const с2 = [...м].sort((a, b) => a - b);
+      return с2[Math.floor(с2.length / 2)];
+    };
+
+    function обновить() {
+      const свежие = промежутки.slice(-180);
+      const середина = серединаИз(свежие);
+      if (!середина) return;
+      const гц = 1000 / середина;
+      $('чоэ-число').textContent = String(Math.round(гц));
+      if (гц > макс) { макс = гц; $('чоэ-макс').textContent = String(Math.round(макс)); }
+      $('чоэ-кадр').textContent = середина.toFixed(1);
+      $('чоэ-пропуски').textContent = String(пропущено);
+      // Ровность: насколько промежутки похожи друг на друга. У исправного экрана они почти
+      // одинаковые; проседания видно и по числу, и по графику.
+      const разброс = Math.sqrt(свежие.reduce((a, b) => a + (b - середина) ** 2, 0) / свежие.length);
+      const ров = Math.max(0, Math.min(100, Math.round((1 - разброс / середина) * 100)));
+      $('чоэ-ровность').textContent = ров + '%';
+      рисовать(свежие, середина);
+    }
+
+    function рисовать(данные, середина) {
+      const к = холст.getContext('2d');
+      const ш = холст.clientWidth, в = холст.clientHeight, м = window.devicePixelRatio || 1;
+      холст.width = ш * м; холст.height = в * м; к.setTransform(м, 0, 0, м, 0, 0);
+      к.clearRect(0, 0, ш, в);
+      if (!данные.length) return;
+      // Ось подобрана вокруг середины: так видно разброс, а не одну прямую под потолком.
+      const верх = Math.max(середина * 2, 8);
+      const x = (i) => 34 + (ш - 42) * (данные.length > 1 ? i / (данные.length - 1) : .5);
+      const y = (v) => в - 16 - (в - 28) * Math.min(1, v / верх);
+
+      к.font = '10px ' + getComputedStyle(document.body).fontFamily;
+      for (let i = 0; i <= 3; i++) {
+        const v = верх * i / 3, yy = Math.round(y(v)) + .5;
+        к.strokeStyle = 'rgba(255,255,255,.07)'; к.lineWidth = 1;
+        к.beginPath(); к.moveTo(34, yy); к.lineTo(ш - 6, yy); к.stroke();
+        if (i) { к.fillStyle = 'rgba(214,219,230,.4)'; к.fillText(v.toFixed(1), 0, yy + 3); }
+      }
+      к.setLineDash([4, 4]); к.strokeStyle = 'rgba(255,255,255,.3)';
+      к.beginPath(); к.moveTo(34, y(середина)); к.lineTo(ш - 6, y(середина)); к.stroke(); к.setLineDash([]);
+      к.beginPath();
+      данные.forEach((v, i) => { const px = x(i), py = y(v); i ? к.lineTo(px, py) : к.moveTo(px, py); });
+      к.strokeStyle = '#f2857b'; к.lineWidth = 2; к.lineJoin = 'round'; к.stroke();
+    }
+
+    function ход(т) {
+      кадр = requestAnimationFrame(ход);
+      if (!началось) началось = т;
+      if (прошлое) {
+        const д = т - прошлое;
+        // Промежутки длиннее полусекунды -- это не экран, это вкладка ушла в фон.
+        if (д > 0.5 && д < 500) {
+          промежутки.push(д);
+          if (промежутки.length > 2000) промежутки = промежутки.slice(-2000);
+          const середина = серединаИз(промежутки.slice(-120));
+          if (середина && д > середина * 1.6) пропущено++;
+        }
+      }
+      прошлое = т;
+
+      // Бегунок идёт по дорожке ровно за секунду -- одинаково на любом экране, поэтому
+      // рывки на нём видно сразу.
+      const доля = ((т - началось) % 1000) / 1000;
+      const дорожка = бегунок.parentElement.clientWidth - бегунок.offsetWidth;
+      бегунок.style.transform = 'translateX(' + (доля * дорожка).toFixed(1) + 'px)';
+
+      if (промежутки.length % 10 === 0) обновить();
+      if (промежутки.length === 90) {
+        $('чоэ-подпись').textContent = с.hz;
+        подсказкаГотово();
+      }
+    }
+    function подсказкаГотово() { $('чоэ-подсказка').textContent = с.hintDone; }
+
+    $('чоэ-снова').addEventListener('click', () => {
+      промежутки = []; прошлое = 0; макс = 0; пропущено = 0; началось = 0;
+      $('чоэ-число').textContent = '—'; $('чоэ-макс').textContent = '—';
+      $('чоэ-кадр').textContent = '—'; $('чоэ-ровность').textContent = '—';
+      $('чоэ-пропуски').textContent = '0';
+      $('чоэ-подпись').textContent = с.measuring;
+      $('чоэ-подсказка').textContent = с.hint;
+      рисовать([], 0);
+      $('чоэ-снова').blur();
+    });
+    // Вкладка ушла в фон -- браузер режет кадры до одного в секунду. Считать это частотой
+    // экрана было бы враньём, поэтому копим заново.
+    document.addEventListener('visibilitychange', () => {
+      if (document.hidden) { прошлое = 0; промежутки = []; }
+    });
+    window.addEventListener('resize', () => обновить());
+    кадр = requestAnimationFrame(ход);
+
+    window.__чоэСостояние = () => ({
+      герц: $('чоэ-число').textContent,
+      максимум: $('чоэ-макс').textContent,
+      кадр: $('чоэ-кадр').textContent,
+      ровность: $('чоэ-ровность').textContent,
+      пропущено: $('чоэ-пропуски').textContent,
+      замеров: промежутки.length,
+    });
+  })();
+</script>
