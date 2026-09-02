@@ -25,22 +25,33 @@
 
 /* ---- Подъём ----------------------------------------------------------------------------- */
 
+/* Стекло вместо плотной плашки: полупрозрачная поверхность с размытием под ней и светлой
+   гранью сверху. На нём подписи разборчивее, чем на плотном тёмном фоне. */
 .сл-поле {
-  position: relative; border-radius: 18px; padding: 24px 22px 22px;
-  border: 1px solid rgba(255,255,255,.07);
-  background:
-    radial-gradient(120% 90% at 50% 40%, rgba(236,95,127,.07), transparent 60%), #0f1116;
-  box-shadow: inset 0 2px 14px rgba(0,0,0,.75), 0 18px 38px -24px rgba(0,0,0,.9);
+  position: relative; border-radius: 20px; padding: 24px 22px 22px; overflow: hidden;
+  background: linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.028));
+  border: 1px solid rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 22px 50px -26px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.14);
   display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
 }
-.сл-число { font: 800 68px/1 var(--ui); color: var(--свой); font-variant-numeric: tabular-nums;
-  letter-spacing: -.03em }
-.сл:not(.идёт):not(.готово) .сл-число { color: rgba(214,219,230,.3) }
+/* Мягкое свечение за числом -- отдельным слоем, чтобы не мылить текст. */
+.сл-поле::before {
+  content: ""; position: absolute; inset: -30%; pointer-events: none;
+  background: radial-gradient(30% 26% at 30% 18%, rgba(88,184,240,.30), transparent 70%),
+    radial-gradient(28% 24% at 76% 22%, rgba(236,95,127,.24), transparent 70%);
+  filter: blur(38px);
+}
+.сл-поле > * { position: relative }
+.сл-число { font: 800 68px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em;
+  text-shadow: 0 0 26px rgba(236,95,127,.7), 0 0 62px rgba(236,95,127,.32) }
+.сл:not(.идёт):not(.готово) .сл-число { color: rgba(214,219,230,.32); text-shadow: none }
 .сл-ед { margin-top: -8px; font: 700 13px var(--ui); color: var(--muted);
   letter-spacing: .06em; text-transform: uppercase }
 /* Место под вывод готово заранее -- страница не дёргается, когда он появляется. */
 .сл-вывод { min-height: 40px; max-width: 44ch; font-size: 13px; line-height: 1.55;
-  color: var(--muted) }
+  color: rgba(226,232,246,.82) }
 .сл-вывод b { color: var(--text) }
 
 .сл-полоса { width: 100%; max-width: 460px; height: 6px; border-radius: 4px;
@@ -50,19 +61,23 @@
 
 .сл-кнопки { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center }
 .сл-го {
-  font: 700 14.5px var(--ui); height: 54px; padding: 0 26px; border-radius: 13px;
-  cursor: pointer; color: #f2f5f9; background: linear-gradient(180deg,#262a33,#15181e);
-  border: 1px solid rgba(255,255,255,.55);
-  box-shadow: 0 4px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.09);
+  font: 700 14.5px var(--ui); height: 52px; padding: 0 26px; border-radius: 14px;
+  cursor: pointer; color: #fff; border: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(135deg, rgba(88,184,240,.92), rgba(236,95,127,.92));
+  box-shadow: 0 0 22px rgba(88,184,240,.42);
+  transition: box-shadow .25s ease, transform .08s ease;
 }
-.сл-го:hover { border-color: #f2f5f9 }
-.сл-го:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.5) }
-.сл-стоп { border-color: rgba(236,95,127,.7); color: var(--свой) }
+.сл-го:hover { box-shadow: 0 0 36px rgba(88,184,240,.7); transform: translateY(-1px) }
+.сл-го:active { transform: translateY(1px) }
+/* Тихая -- для второстепенного действия: она не должна спорить с главной. */
+.сл-го.тихая { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2);
+  box-shadow: none; color: var(--text) }
+.сл-го.тихая:hover { box-shadow: 0 0 20px rgba(255,255,255,.14) }
 
 /* ---- Проверка по частотам ---------------------------------------------------------------- */
 
-.сл-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
-  color: rgba(214,219,230,.5); margin: 18px 0 8px; display: block }
+.сл-к { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(233,237,246,.88); margin: 18px 0 8px; display: block }
 .сл-ухо { display: flex; gap: 8px; margin-bottom: 10px }
 .сл-ухоКн {
   flex: 1; padding: 9px 10px; border-radius: 11px; cursor: pointer; display: flex;
@@ -72,7 +87,7 @@
   transition: border-color .15s ease, color .15s ease;
 }
 .сл-ухоКн.вкл { border-color: rgba(236,95,127,.6); color: var(--свой) }
-.сл-ико { display: flex; line-height: 0; gap: 2px; opacity: .8 }
+.сл-ико { display: flex; line-height: 0; gap: 2px; opacity: .85 }
 /* Ухо с дугами шире, чем было у динамика, поэтому значок чуть выше. */
 .сл-ико svg { width: auto; height: 40px; display: block }
 /* Пока идёт звук в это ухо, дуги вспыхивают по очереди -- та же повадка, что у динамиков. */
@@ -93,10 +108,12 @@
   border-radius: 10px; cursor: pointer; color: var(--text);
   background: linear-gradient(180deg,#23262e,#191b21); border: 1px solid rgba(255,255,255,.12) }
 .сл-малая:hover { border-color: rgba(255,255,255,.28) }
-.сл-мелко { flex: 1; min-width: 200px; font-size: 12px; line-height: 1.5; color: var(--muted) }
+.сл-мелко { flex: 1; min-width: 200px; font-size: 12.5px; line-height: 1.5; color: rgba(226,232,246,.82) }
 
-.сл-проверка { margin-top: 10px; padding: 16px; border-radius: 14px;
-  border: 1px solid var(--line); background: var(--surface);
+.сл-проверка { margin-top: 10px; padding: 18px; border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.022));
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   display: flex; flex-direction: column; align-items: center; gap: 12px }
 /* Место под строку шага стоит всегда: она появляется и исчезает, а страница не дёргается. */
 .сл-шаг { min-height: 18px; font: 700 12.5px var(--ui); color: var(--свой);
@@ -105,23 +122,48 @@
   overflow: hidden }
 .сл-нить i { display: block; height: 100%; width: 100%; background: var(--свой);
   transform: scaleX(0); transform-origin: left; transition: transform .12s linear }
-.сл-слышу { border-color: rgba(236,95,127,.75); color: var(--свой) }
-.сл-слышу[hidden] { display: none }
+/* «Слышу» -- пульсар: во время подъёма звука он дышит и пускает кольца. Так видно, что
+   идёт замер, не отрывая внимания от слуха. */
+.сл-пульсар { position: relative; width: 150px; height: 150px; display: grid; place-items: center }
+.сл-пульсар[hidden] { display: none }
+.сл-кольцо { position: absolute; inset: 12px; border-radius: 50%;
+  border: 1px solid rgba(255,255,255,.35); opacity: 0 }
+.сл.бежит .сл-кольцо { animation: сл-радар 2s ease-out infinite }
+.сл.бежит .сл-к2 { animation-delay: 1s }
+@keyframes сл-радар { 0% { transform: scale(.86); opacity: .6 } 100% { transform: scale(1.5); opacity: 0 } }
+.сл-слышу {
+  position: relative; z-index: 2; width: 126px; height: 126px; border-radius: 50%;
+  cursor: pointer; color: #fff; font: 800 15px var(--ui); border: 1px solid rgba(255,255,255,.3);
+  background: radial-gradient(circle at 50% 35%, rgba(255,255,255,.18), rgba(255,255,255,.04) 70%);
+  box-shadow: 0 0 30px rgba(236,95,127,.4), inset 0 1px 0 rgba(255,255,255,.25);
+  animation: сл-дышит 2.4s ease-in-out infinite;
+}
+@keyframes сл-дышит { 0%,100% { transform: scale(1) } 50% { transform: scale(1.045) } }
+/* Цвет пульсара идёт за ухом: слева синий, справа красный. */
+.сл.левое .сл-слышу { box-shadow: 0 0 34px rgba(88,184,240,.6), inset 0 1px 0 rgba(255,255,255,.25) }
+.сл.правое .сл-слышу { box-shadow: 0 0 34px rgba(236,95,127,.6), inset 0 1px 0 rgba(255,255,255,.25) }
+.сл.левое .сл-шаг { color: var(--ручки) }
+.сл.правое .сл-шаг { color: var(--свой) }
+/* Свечение выбранного уха разное: левое синее, правое красное -- как в аудиологии. */
+.сл-ухоКн[data-ухо="-1"].вкл { border-color: rgba(88,184,240,.6); color: var(--ручки);
+  box-shadow: 0 0 24px rgba(88,184,240,.3), inset 0 0 20px rgba(88,184,240,.1) }
+.сл-ухоКн[data-ухо="1"].вкл { border-color: rgba(236,95,127,.6); color: var(--свой);
+  box-shadow: 0 0 24px rgba(236,95,127,.3), inset 0 0 20px rgba(236,95,127,.1) }
 .сл-график { width: 100%; height: 150px; display: block }
-.сл-ключ { display: flex; gap: 16px; font-size: 11.5px; color: var(--muted) }
+.сл-ключ { display: flex; gap: 16px; font-size: 12px; color: rgba(226,232,246,.85) }
 .сл-ключ[hidden] { display: none }
 .сл-ключ span { display: inline-flex; align-items: center; gap: 6px }
 .сл-ключ i { width: 9px; height: 9px; border-radius: 50% }
 
-.сл-итог { margin-top: 10px; font-size: 13px; line-height: 1.55; color: var(--muted) }
+.сл-итог { margin-top: 10px; font-size: 13px; line-height: 1.55; color: rgba(226,232,246,.82) }
 .сл-итог b { color: var(--text) }
 
-.сл-тише { display: flex; gap: 8px; margin: 16px 0 0; font-size: 12px; line-height: 1.5;
-  color: rgba(214,219,230,.55) }
+.сл-тише { display: flex; gap: 8px; margin: 16px 0 0; font-size: 12.5px; line-height: 1.5;
+  color: rgba(226,232,246,.78) }
 .сл-тише svg { flex: none; width: 14px; height: 14px; margin-top: 2px; color: rgba(245,196,81,.65) }
 
 .сл-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
-.сл-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.сл-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: rgba(226,232,246,.8) }
 .сл-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
 
 @media (max-width: 560px) {
@@ -130,4 +172,7 @@
   .сл-го { width: 100% }
   .сл-ико svg { height: 34px }
 }
-@media (prefers-reduced-motion: reduce) { .сл-полоса i { transition: none } }
+@media (prefers-reduced-motion: reduce) {
+  .сл-полоса i { transition: none }
+  .сл-слышу, .сл.бежит .сл-кольцо { animation: none }
+}
