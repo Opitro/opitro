@@ -1,0 +1,425 @@
+---
+// ТОН-ГЕНЕРАТОР.
+//
+// Простая вещь, у которой легко всё испортить мелочами. Что здесь сделано намеренно:
+//   * ЧАСТОТА -- И ПОКАЗАНИЕ, И ПОЛЕ ВВОДА. Сюда приходят двумя дорогами: «покрутить и
+//     послушать» и «дай ровно 440». Отдельная строка ввода под большим числом означала бы
+//     два места для одного значения.
+//   * ПОЛЗУНОК ЛОГАРИФМИЧЕСКИЙ. На прямом ползунке весь слышимый низ (20-200 Гц) уместился
+//     бы в первый процент хода, и попасть в 50 герц было бы нечем.
+//   * ВСЁ МЕНЯЕТСЯ НА ХОДУ, без пересборки узла: пересборка даёт щелчок, а на высокой
+//     громкости щелчок бьёт по ушам сильнее самого тона.
+//   * НОТА И ОТКЛОНЕНИЕ В ЦЕНТАХ -- потому что половина запросов про тон-генератор это
+//     настройка гитары и проверка слуха, а не физика.
+//
+// ЗВУК НА iPHONE: разряд сессии просится ДО создания узла (иначе боковой беззвучный
+// переключатель глушит Web Audio), плюс держатель сессии. Оба -- общий код сайта.
+import css from '../styles/tone-generator.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const ФОРМЫ = [
+  { имя: 'sine', путь: 'M1 6c3 0 3-5 6-5s3 5 6 5 3-5 6-5 3 5 6 5' },
+  { имя: 'square', путь: 'M1 10V2h6v8h6V2h6v8h6' },
+  { имя: 'sawtooth', путь: 'M1 10l6-8v8l6-8v8l6-8v8' },
+  { имя: 'triangle', путь: 'M1 10l3-8 3 8 3-8 3 8 3-8 3 8 3-8' },
+];
+
+const СЛОВА = {
+  ru: {
+    hz: 'герц', play: 'Играть', stop: 'Остановить',
+    freq: 'Частота', vol: 'Громкость', wave: 'Форма волны', chan: 'Каналы',
+    both: 'Оба', left: 'Левый', right: 'Правый',
+    sine: 'Синус', square: 'Квадрат', sawtooth: 'Пила', triangle: 'Треугольник',
+    ready: 'Готовые частоты',
+    p20: 'предел снизу', p50: 'гул сети', p100: 'бас', p440: 'камертон ля',
+    p1000: 'эталон', p4000: 'самое слышимое', p8000: 'высокие', p15000: 'предел взрослых',
+    caution: 'Начните с тихого и прибавляйте. В наушниках высокие частоты на полной громкости вредны для слуха, а квадрат и пила звучат заметно громче синуса на том же уровне.',
+    n1: 'Синус — чистый тон без призвуков, им проверяют слух и настраивают инструменты. Квадрат и пила звучат резче и громче: у них поверх основной частоты идут призвуки, и для проверки колонок они полезнее, а для слуха — жёстче.',
+    n2: 'Нота и отклонение в центах считаются от ля первой октавы 440 герц. Сто центов — это полутон; настроенной считается струна в пределах пяти центов.',
+    n3: 'Ноутбук и телефон ниже 150–200 герц почти ничего не выдают: маленькому динамику нечем качать воздух. Низкие частоты слушайте на колонках или полноразмерных наушниках.',
+    n4: 'Каналы по одному нужны, чтобы найти, какой наушник или какая колонка молчит. Если звук одинаково слышен на «левом» и «правом», проверьте, не включено ли в системе сведение в моно.',
+    n5: 'Выше 15–16 килогерц большинство взрослых не слышит ничего, и это не поломка динамика. Проверять там имеет смысл только слух, а не технику.',
+  },
+  uk: {
+    hz: 'герц', play: 'Грати', stop: 'Зупинити',
+    freq: 'Частота', vol: 'Гучність', wave: 'Форма хвилі', chan: 'Канали',
+    both: 'Обидва', left: 'Лівий', right: 'Правий',
+    sine: 'Синус', square: 'Квадрат', sawtooth: 'Пилка', triangle: 'Трикутник',
+    ready: 'Готові частоти',
+    p20: 'межа знизу', p50: 'гул мережі', p100: 'бас', p440: 'камертон ля',
+    p1000: 'еталон', p4000: 'найчутніше', p8000: 'високі', p15000: 'межа дорослих',
+    caution: 'Почніть із тихого й додавайте. У навушниках високі частоти на повній гучності шкідливі для слуху, а квадрат і пилка звучать помітно гучніше за синус на тому самому рівні.',
+    n1: 'Синус — чистий тон без призвуків, ним перевіряють слух і настроюють інструменти. Квадрат і пилка звучать різкіше й гучніше: у них поверх основної частоти йдуть призвуки, і для перевірки колонок вони корисніші, а для слуху — жорсткіші.',
+    n2: 'Нота й відхилення в центах рахуються від ля першої октави 440 герц. Сто центів — це півтон; настроєною вважається струна в межах п’яти центів.',
+    n3: 'Ноутбук і телефон нижче 150–200 герц майже нічого не видають: маленькому динаміку нічим гойдати повітря. Низькі частоти слухайте на колонках або повнорозмірних навушниках.',
+    n4: 'Канали по одному потрібні, щоб знайти, який навушник чи яка колонка мовчить. Якщо звук однаково чутно на «лівому» й «правому», перевірте, чи не ввімкнено в системі зведення в моно.',
+    n5: 'Вище 15–16 кілогерц більшість дорослих не чує нічого, і це не поломка динаміка. Перевіряти там має сенс лише слух, а не техніку.',
+  },
+  en: {
+    hz: 'hertz', play: 'Play', stop: 'Stop',
+    freq: 'Frequency', vol: 'Volume', wave: 'Waveform', chan: 'Channels',
+    both: 'Both', left: 'Left', right: 'Right',
+    sine: 'Sine', square: 'Square', sawtooth: 'Sawtooth', triangle: 'Triangle',
+    ready: 'Preset frequencies',
+    p20: 'lower limit', p50: 'mains hum', p100: 'bass', p440: 'concert A',
+    p1000: 'reference', p4000: 'most audible', p8000: 'treble', p15000: 'adult limit',
+    caution: 'Start quiet and work up. In headphones, high frequencies at full volume damage hearing, and square and sawtooth sound noticeably louder than a sine at the same level.',
+    n1: 'A sine is a pure tone with nothing added — it is what hearing tests and instrument tuning use. Square and sawtooth sound harsher and louder because they carry overtones above the fundamental: better for testing speakers, harder on your ears.',
+    n2: 'The note and the deviation in cents are counted from concert A at 440 Hz. A hundred cents is a semitone; a string is considered in tune within about five cents.',
+    n3: 'Laptops and phones produce almost nothing below 150–200 Hz: a small driver has no way to move that much air. Listen to low frequencies on speakers or full-size headphones.',
+    n4: 'The single-channel options are there to find which earpiece or which speaker is silent. If left and right sound identical, check whether the system is downmixing to mono.',
+    n5: 'Above 15–16 kHz most adults hear nothing at all, and that is not a fault in the speaker. Up there the only thing worth testing is hearing, not equipment.',
+  },
+  es: {
+    hz: 'hercios', play: 'Reproducir', stop: 'Parar',
+    freq: 'Frecuencia', vol: 'Volumen', wave: 'Forma de onda', chan: 'Canales',
+    both: 'Ambos', left: 'Izquierdo', right: 'Derecho',
+    sine: 'Seno', square: 'Cuadrada', sawtooth: 'Sierra', triangle: 'Triangular',
+    ready: 'Frecuencias listas',
+    p20: 'límite grave', p50: 'zumbido de red', p100: 'graves', p440: 'la de diapasón',
+    p1000: 'referencia', p4000: 'lo más audible', p8000: 'agudos', p15000: 'límite adulto',
+    caution: 'Empieza bajo y sube poco a poco. Con auriculares, las frecuencias altas a todo volumen dañan el oído, y la cuadrada y la de sierra suenan bastante más fuerte que un seno al mismo nivel.',
+    n1: 'El seno es un tono puro sin añadidos: es el que se usa para probar el oído y afinar instrumentos. La cuadrada y la de sierra suenan más duras y más fuertes porque llevan armónicos por encima del fundamental: van mejor para probar altavoces y peor para los oídos.',
+    n2: 'La nota y la desviación en centésimas se cuentan desde el la de 440 Hz. Cien centésimas son un semitono; una cuerda se considera afinada dentro de unas cinco.',
+    n3: 'Portátiles y móviles no dan casi nada por debajo de 150–200 Hz: un altavoz pequeño no puede mover tanto aire. Escucha las frecuencias bajas en altavoces o auriculares de tamaño completo.',
+    n4: 'Los canales por separado sirven para saber qué auricular o qué altavoz se ha quedado mudo. Si izquierdo y derecho suenan igual, comprueba si el sistema está mezclando a mono.',
+    n5: 'Por encima de 15–16 kHz la mayoría de los adultos no oye nada, y eso no es un fallo del altavoz. Ahí arriba lo único que tiene sentido comprobar es el oído, no el equipo.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const ГОТОВЫЕ = [
+  { гц: 20, что: с.p20 }, { гц: 50, что: с.p50 }, { гц: 100, что: с.p100 },
+  { гц: 440, что: с.p440 }, { гц: 1000, что: с.p1000 }, { гц: 4000, что: с.p4000 },
+  { гц: 8000, что: с.p8000 }, { гц: 15000, что: с.p15000 },
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тг" data-words={JSON.stringify(с)}>
+  <div class="тг-поле">
+    {/* Число -- оно же поле ввода: одно значение, одно место. */}
+    <div class="тг-строка">
+      {/* Шаг в один герц кнопками: ползунком в 440 не попасть, а настройка инструмента
+          именно этого и требует. */}
+      <button type="button" class="тг-шаг" id="тг-меньше" aria-label="−1">−</button>
+      <input type="number" class="тг-ввод" id="тг-ввод" value="440" min="1" max="20000"
+             step="1" inputmode="numeric" aria-label={с.freq} />
+      <span class="тг-ед">{с.hz}</span>
+      <button type="button" class="тг-шаг" id="тг-больше" aria-label="+1">+</button>
+    </div>
+    <div class="тг-нота" id="тг-нота"></div>
+    <canvas class="тг-волна" id="тг-волна"></canvas>
+    <button type="button" class="тг-играть" id="тг-играть">
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакИграть">
+        <path d="M8 5.6v12.8L19 12z"/>
+      </svg>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакСтоп">
+        <rect x="7" y="7" width="10" height="10" rx="1.5"/>
+      </svg>
+      <span id="тг-подпись">{с.play}</span>
+    </button>
+  </div>
+
+  <div class="тг-ручки">
+    <div class="тг-ручка">
+      <span class="тг-к">{с.freq}<em id="тг-эхо">440 {с.hz}</em></span>
+      {/* Ползунок логарифмический: на прямом весь низ уместился бы в первый процент хода. */}
+      <input type="range" id="тг-полза" min="0" max="1000" step="1" value="452"
+             aria-label={с.freq} />
+    </div>
+
+    <div class="тг-ручка">
+      <span class="тг-к">{с.vol}<em id="тг-эхоГр">40 %</em></span>
+      <input type="range" id="тг-громкость" min="0" max="100" step="1" value="40"
+             aria-label={с.vol} />
+    </div>
+
+    <div class="тг-ручка">
+      <span class="тг-к">{с.wave}</span>
+      <div class="тг-чипы" id="тг-формы">
+        {ФОРМЫ.map((ф, i) => (
+          <button type="button" class={`тг-чип${i === 0 ? ' вкл' : ''}`} data-форма={ф.имя}>
+            <svg viewBox="0 0 25 12" fill="none" stroke="currentColor" stroke-width="1.6"
+                 stroke-linejoin="round" aria-hidden="true"><path d={ф.путь}/></svg>
+            {с[ф.имя]}
+          </button>
+        ))}
+      </div>
+    </div>
+
+    <div class="тг-ручка">
+      <span class="тг-к">{с.chan}</span>
+      <div class="тг-чипы" id="тг-каналы">
+        <button type="button" class="тг-чип" data-канал="-1">{с.left}</button>
+        <button type="button" class="тг-чип вкл" data-канал="0">{с.both}</button>
+        <button type="button" class="тг-чип" data-канал="1">{с.right}</button>
+      </div>
+    </div>
+
+    <div class="тг-ручка">
+      <span class="тг-к">{с.ready}</span>
+      <div class="тг-готовые" id="тг-готовые">
+        {ГОТОВЫЕ.map((г) => (
+          <button type="button" class="тг-готовая" data-гц={г.гц}>
+            {г.гц >= 1000 ? (г.гц / 1000) + 'к' : г.гц}<span>{г.что}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <p class="тг-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.caution}</span>
+  </p>
+
+  <div class="тг-заметки">
+    <div class="тг-заметка">{с.n1}</div>
+    <div class="тг-заметка">{с.n2}</div>
+    <div class="тг-заметка">{с.n3}</div>
+    <div class="тг-заметка">{с.n4}</div>
+    <div class="тг-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.тг');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    // Ползунок ходит по слышимому: ниже 20 герц звука нет, и отдавать под это половину
+    // хода незачем. В поле напечатать можно и меньше -- там уже не слух, а ход мембраны.
+    const НИЗ = 20, ВЕРХ = 20000;
+
+    let узел = null, ген = null, громкость = null, панорама = null;
+    let идёт = false, гц = 440, форма = 'sine', канал = 0, уровень = 40;
+    let кадр = 0;
+
+    startKeeper();
+    function открытьСессию() {
+      // ДО создания узла: позже разряд сессии не переучредить.
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+
+    // Ползунок логарифмический: равные шаги ползунка -- равные шаги на слух.
+    const вГерцы = (п) => НИЗ * Math.pow(ВЕРХ / НИЗ, п / 1000);
+    const вПолзунок = (ф) => Math.round(1000 * Math.log(ф / НИЗ) / Math.log(ВЕРХ / НИЗ));
+    // Слух чувствует громкость не линейно: квадрат даёт привычный ход ручки.
+    const вУсиление = (п) => Math.pow(п / 100, 2) * 0.8;
+
+    const НОТЫ = ['C', 'C♯', 'D', 'D♯', 'E', 'F', 'F♯', 'G', 'G♯', 'A', 'A♯', 'B'];
+    function нота(ф) {
+      // Ля первой октавы 440 Гц -- нота номер 69 по общему счёту.
+      const точно = 69 + 12 * Math.log2(ф / 440);
+      const ближняя = Math.round(точно);
+      const центы = Math.round((точно - ближняя) * 100);
+      const имя = НОТЫ[((ближняя % 12) + 12) % 12] + (Math.floor(ближняя / 12) - 1);
+      return { имя, центы };
+    }
+
+    function показать() {
+      $('тг-ввод').value = String(Math.round(гц));
+      $('тг-эхо').textContent = (гц >= 1000 ? (гц / 1000).toFixed(2) + 'к' : Math.round(гц)) + ' ' + с.hz;
+      $('тг-полза').value = String(вПолзунок(Math.max(НИЗ, гц)));
+      // Выше слуха нота бессмысленна, ниже 20 -- тоже: там нет тона, только гул.
+      if (гц >= НИЗ && гц <= 8000) {
+        const н = нота(гц);
+        const знак = н.центы > 0 ? '+' : '';
+        $('тг-нота').innerHTML = '<b>' + н.имя + '</b> · ' + знак + н.центы + ' ¢';
+      } else {
+        $('тг-нота').textContent = '';
+      }
+    }
+
+    function поставитьЧастоту(ф, откуда) {
+      гц = Math.min(ВЕРХ, Math.max(1, ф));
+      // Пока в поле печатают, его нельзя перетирать: курсор уедет в конец и на телефоне
+      // число не ввести. Эта грабля у нас уже была на рингтоне.
+      const печатают = document.activeElement === $('тг-ввод');
+      if (откуда === 'ввод' && печатают) {
+        $('тг-эхо').textContent = (гц >= 1000 ? (гц / 1000).toFixed(2) + 'к' : Math.round(гц)) + ' ' + с.hz;
+        $('тг-полза').value = String(вПолзунок(гц));
+        const н = нота(гц);
+        $('тг-нота').innerHTML = гц <= 8000
+          ? '<b>' + н.имя + '</b> · ' + (н.центы > 0 ? '+' : '') + н.центы + ' ¢' : '';
+      } else {
+        показать();
+      }
+      // На ходу, без пересборки: пересборка даёт щелчок, а он на громком звуке бьёт сильнее
+      // самого тона.
+      if (идёт) { try { ген.frequency.setTargetAtTime(гц, узел.currentTime, 0.01); } catch (e) {} }
+    }
+
+    function пуск() {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (узел.state === 'suspended') узел.resume();
+      const т = узел.currentTime;
+      ген = узел.createOscillator();
+      громкость = узел.createGain();
+      ген.type = форма;
+      ген.frequency.setValueAtTime(гц, т);
+      громкость.gain.setValueAtTime(0.0001, т);
+      громкость.gain.exponentialRampToValueAtTime(Math.max(0.0002, вУсиление(уровень)), т + 0.05);
+      анализатор = узел.createAnalyser();
+      анализатор.fftSize = 8192;
+      буфер = new Float32Array(анализатор.fftSize);
+      ген.connect(громкость);
+      if (узел.createStereoPanner) {
+        панорама = узел.createStereoPanner();
+        панорама.pan.setValueAtTime(канал, т);
+        громкость.connect(панорама); панорама.connect(анализатор);
+      } else {
+        панорама = null;
+        громкость.connect(анализатор);
+      }
+      анализатор.connect(узел.destination);
+      ген.start(т);
+      идёт = true;
+      корень.classList.add('идёт');
+      $('тг-подпись').textContent = с.stop;
+      рисовать();
+    }
+
+    function стоп() {
+      идёт = false;
+      if (ген) {
+        try {
+          const т = узел.currentTime;
+          громкость.gain.cancelScheduledValues(т);
+          громкость.gain.setValueAtTime(громкость.gain.value || 0.0001, т);
+          громкость.gain.exponentialRampToValueAtTime(0.0001, т + 0.03);
+          ген.stop(т + 0.04);
+        } catch (e) {}
+        ген = null;
+      }
+      корень.classList.remove('идёт');
+      $('тг-подпись').textContent = с.play;
+      рисовать();
+    }
+
+    // ---- Осциллограф ----------------------------------------------------------------------
+    // Пока звук идёт, рисуется НАСТОЯЩИЙ сигнал, снятый с выхода: поднял частоту -- волна
+    // сжалась, взял пилу -- появились зубцы. Нарисованная от руки картинка показывала бы
+    // только выбранную форму и врала бы о частоте.
+    // Когда тишина, рисуется идеальная форма выбранной волны: пустая коробка непонятна.
+    const холст = $('тг-волна'), кт = холст.getContext('2d');
+    let анализатор = null, буфер = null;
+    function значение(x) {
+      const т = x - Math.floor(x);
+      if (форма === 'sine') return Math.sin(т * Math.PI * 2);
+      if (форма === 'square') return т < 0.5 ? 1 : -1;
+      if (форма === 'sawtooth') return т * 2 - 1;
+      return т < 0.5 ? т * 4 - 1 : 3 - т * 4;   // triangle
+    }
+    function рисовать() {
+      const мп = window.devicePixelRatio || 1;
+      const ш = Math.round(холст.clientWidth * мп), в = Math.round(холст.clientHeight * мп);
+      if (!ш || !в) return;
+      if (холст.width !== ш || холст.height !== в) { холст.width = ш; холст.height = в; }
+      кт.clearRect(0, 0, ш, в);
+      кт.strokeStyle = идёт ? '#4ade9e' : 'rgba(214,219,230,.32)';
+      кт.lineWidth = Math.max(2, 2 * мп);
+      кт.lineJoin = 'round';
+      кт.beginPath();
+      const амплитуда = в * 0.4;
+      if (идёт && анализатор) {
+        анализатор.getFloatTimeDomainData(буфер);
+        // Показываем около трёх периодов: на весь буфер при 440 герцах пришлось бы два
+        // десятка волн, а при 15 килогерцах -- каша.
+        const сколько = Math.max(32, Math.min(буфер.length,
+          Math.round(3 * узел.sampleRate / Math.max(20, гц))));
+        for (let x = 0; x <= ш; x++) {
+          const i = Math.min(сколько - 1, Math.floor((x / ш) * сколько));
+          const у = в / 2 - Math.max(-1, Math.min(1, буфер[i])) * амплитуда;
+          if (x === 0) кт.moveTo(x, у); else кт.lineTo(x, у);
+        }
+      } else {
+        const волн = 3;
+        for (let x = 0; x <= ш; x++) {
+          const у = в / 2 - значение((x / ш) * волн) * амплитуда * 0.9;
+          if (x === 0) кт.moveTo(x, у); else кт.lineTo(x, у);
+        }
+      }
+      кт.stroke();
+      if (идёт) кадр = requestAnimationFrame(рисовать); else cancelAnimationFrame(кадр);
+    }
+
+    // ---- Ручки --------------------------------------------------------------------------
+    $('тг-играть').addEventListener('click', () => { if (идёт) стоп(); else пуск(); });
+    $('тг-полза').addEventListener('input', (e) => поставитьЧастоту(вГерцы(Number(e.target.value)), 'полза'));
+    $('тг-ввод').addEventListener('input', (e) => {
+      const ч = Number(e.target.value);
+      if (!Number.isFinite(ч) || ч <= 0) return;
+      поставитьЧастоту(ч, 'ввод');
+    });
+    // Ушли из поля -- показываем то, что действительно установлено (с учётом границ).
+    $('тг-ввод').addEventListener('blur', показать);
+    $('тг-меньше').addEventListener('click', () => поставитьЧастоту(Math.round(гц) - 1, 'шаг'));
+    $('тг-больше').addEventListener('click', () => поставитьЧастоту(Math.round(гц) + 1, 'шаг'));
+    $('тг-громкость').addEventListener('input', (e) => {
+      уровень = Number(e.target.value);
+      $('тг-эхоГр').textContent = уровень + ' %';
+      if (идёт) {
+        try { громкость.gain.setTargetAtTime(Math.max(0.0001, вУсиление(уровень)), узел.currentTime, 0.02); } catch (e2) {}
+      }
+    });
+    function выбор(ид, поле, что) {
+      const у = $(ид);
+      у.addEventListener('click', (e) => {
+        const б = e.target.closest('.тг-чип');
+        if (!б) return;
+        у.querySelectorAll('.тг-чип').forEach((к) => к.classList.remove('вкл'));
+        б.classList.add('вкл');
+        что(б.dataset[поле]);
+      });
+    }
+    выбор('тг-формы', 'форма', (з) => {
+      форма = з;
+      // Форму можно менять у живого генератора -- ради этого он и не пересобирается.
+      if (идёт && ген) ген.type = форма;
+      рисовать();
+    });
+    выбор('тг-каналы', 'канал', (з) => {
+      канал = Number(з) || 0;
+      if (идёт && панорама) {
+        try { панорама.pan.setTargetAtTime(канал, узел.currentTime, 0.02); } catch (e) {}
+      }
+    });
+    $('тг-готовые').addEventListener('click', (e) => {
+      const б = e.target.closest('.тг-готовая');
+      if (!б) return;
+      поставитьЧастоту(Number(б.dataset.гц), 'готовая');
+      if (!идёт) пуск();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && идёт) стоп();
+    });
+    window.addEventListener('resize', рисовать);
+
+    показать();
+    $('тг-эхоГр').textContent = уровень + ' %';
+    рисовать();
+
+    window.__тгСостояние = () => ({
+      идёт, гц: Math.round(гц), форма, канал, уровень,
+      нота: $('тг-нота').textContent, эхо: $('тг-эхо').textContent,
+      ползунок: $('тг-полза').value, поле: $('тг-ввод').value,
+      узел: узел ? узел.state : 'нет', тип: ген ? ген.type : null,
+      панорама: панорама ? панорама.pan.value : null,
+    });
+  })();
+</script>
