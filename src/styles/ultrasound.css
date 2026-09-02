@@ -50,8 +50,8 @@
   position: absolute; inset: 0; pointer-events: none; text-align: right; color: transparent;
   z-index: 0;
   font: 800 62px/1 var(--ui); letter-spacing: -.03em; font-variant-numeric: tabular-nums;
-  text-shadow: 0 0 22px rgba(0,217,255,.9), 0 0 50px rgba(0,217,255,.5),
-    0 0 90px rgba(0,217,255,.25);
+  text-shadow: 0 0 22px rgba(0,217,255,.62), 0 0 50px rgba(0,217,255,.34),
+    0 0 90px rgba(0,217,255,.16);
 }
 .уз-ввод {
   position: relative; z-index: 1;
