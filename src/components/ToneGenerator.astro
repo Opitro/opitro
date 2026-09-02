@@ -67,6 +67,31 @@ const ДИНАМИКИ = {
 
 // Волны в два периода и покрупнее: на кнопке без подписи весь смысл несёт линия, и по
 // трём коротким зубцам форму не различить.
+function шестерня(зубцов = 8, Rв = 11.2, Rк = 7.5, дыра = 3.6) {
+  const ц = 12, т = (r, а) => [ц + r * Math.cos(а), ц + r * Math.sin(а)];
+  const шаг = (Math.PI * 2) / зубцов;
+  // Впадины глубже, зуб заметнее сужается кверху: с мелкими впадинами шестерня читается
+  // как ромашка, а не как деталь.
+  const уКорня = шаг * 0.27, уВершины = шаг * 0.155;   // полуширина зуба внизу и вверху
+  let d = '';
+  for (let i = 0; i < зубцов; i++) {
+    const а = i * шаг - Math.PI / 2;
+    const к1 = т(Rк, а - уКорня), в1 = т(Rв, а - уВершины);
+    const в2 = т(Rв, а + уВершины), к2 = т(Rк, а + уКорня);
+    const сл = т(Rк, а + шаг - уКорня);
+    d += (i === 0 ? `M${к1[0].toFixed(2)} ${к1[1].toFixed(2)}` : '');
+    d += `L${в1[0].toFixed(2)} ${в1[1].toFixed(2)}`;
+    d += `A${Rв} ${Rв} 0 0 1 ${в2[0].toFixed(2)} ${в2[1].toFixed(2)}`;
+    d += `L${к2[0].toFixed(2)} ${к2[1].toFixed(2)}`;
+    d += `A${Rк} ${Rк} 0 0 1 ${сл[0].toFixed(2)} ${сл[1].toFixed(2)}`;
+  }
+  d += 'Z';
+  // Отверстие вторым контуром: с правилом evenodd оно вырезается, а не закрашивается.
+  d += `M${ц + дыра} ${ц}A${дыра} ${дыра} 0 1 0 ${ц - дыра} ${ц}A${дыра} ${дыра} 0 1 0 ${ц + дыра} ${ц}Z`;
+  return d;
+}
+const ШЕСТЕРНЯ = шестерня();
+
 const ФОРМЫ = [
   { имя: 'sine', путь: 'M2 11q5-8 10 0t10 0t10 0t10 0' },
   { имя: 'square', путь: 'M2 17V5h10v12h10V5h10v12h10' },
@@ -146,7 +171,7 @@ const ГОТОВЫЕ = [
 
 <style is:inline set:html={css}></style>
 
-<div class="тг" data-words={JSON.stringify(с)}>
+<div class="тг" data-words={JSON.stringify(с)} data-forms={JSON.stringify(ФОРМЫ)}>
   <div class="тг-поле">
     {/* Число -- оно же поле ввода: одно значение, одно место. */}
     <div class="тг-строка">
@@ -160,14 +185,38 @@ const ГОТОВЫЕ = [
     </div>
     <div class="тг-нота" id="тг-нота"></div>
     <canvas class="тг-волна" id="тг-волна"></canvas>
+    <div class="тг-пульт">
+    </div>
     <button type="button" class="тг-играть" id="тг-играть" aria-label={с.play} title={с.play}>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакИграть">
-        <path d="M8.5 5.4v13.2L19.4 12z"/>
+        <path d="M8 5v14l11.5-7z"/>
       </svg>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакСтоп">
-        <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="1.6"/>
+        <rect x="6.8" y="6.8" width="10.4" height="10.4" rx="1.8"/>
       </svg>
     </button>
+    <div class="тг-настройка">
+      <button type="button" class="тг-шестерня" id="тг-шестерня" aria-label={с.wave}
+              title={с.wave} aria-expanded="false" aria-haspopup="true">
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d={ШЕСТЕРНЯ} fill="currentColor" fill-rule="evenodd"/>
+        </svg>
+      </button>
+
+      {/* Всплывающий выбор формы. Появляется НАД кнопкой: под ней на телефоне палец и край
+          экрана. Закрывается выбором, нажатием мимо и клавишей Esc. */}
+      <div class="тг-всплытие" id="тг-всплытие" hidden>
+        {ФОРМЫ.map((ф, i) => (
+          <button type="button" class={`тг-выбор${i === 0 ? ' вкл' : ''}`} data-форма={ф.имя}
+                  aria-label={с[ф.имя]} title={с[ф.имя]}>
+            <svg viewBox="0 0 44 22" fill="none" stroke="currentColor" stroke-width="2.4"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d={ф.путь}/>
+            </svg>
+          </button>
+        ))}
+      </div>
+    </div>
   </div>
 
   <div class="тг-ручки">
@@ -182,23 +231,6 @@ const ГОТОВЫЕ = [
       <span class="тг-к">{с.vol}<em id="тг-эхоГр">40 %</em></span>
       <input type="range" id="тг-громкость" min="0" max="100" step="1" value="40"
              aria-label={с.vol} />
-    </div>
-
-    <div class="тг-ручка">
-      <span class="тг-к">{с.wave}</span>
-      {/* Только значки и всегда в один ряд: с подписями четыре кнопки переносились на
-          телефоне, а перенос ломает ряд пополам и читается как две разные группы. */}
-      <div class="тг-волны" id="тг-формы">
-        {ФОРМЫ.map((ф, i) => (
-          <button type="button" class={`тг-волнаКн${i === 0 ? ' вкл' : ''}`} data-форма={ф.имя}
-                  aria-label={с[ф.имя]} title={с[ф.имя]}>
-            <svg viewBox="0 0 44 22" fill="none" stroke="currentColor" stroke-width="2.2"
-                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
-              <path d={ф.путь}/>
-            </svg>
-          </button>
-        ))}
-      </div>
     </div>
 
     <div class="тг-ручка">
@@ -248,6 +280,7 @@ const ГОТОВЫЕ = [
   const корень = document.querySelector('.тг');
   if (корень) (() => {
     const с = JSON.parse(корень.dataset.words || '{}');
+    const ФОРМЫ = JSON.parse(корень.dataset.forms || '[]');
     const $ = (id) => document.getElementById(id);
     // Ползунок ходит по слышимому: ниже 20 герц звука нет, и отдавать под это половину
     // хода незачем. В поле напечатать можно и меньше -- там уже не слух, а ход мембраны.
@@ -393,18 +426,23 @@ const ГОТОВЫЕ = [
       кт.lineJoin = 'round';
       кт.beginPath();
       const амплитуда = в * 0.4;
+      // Сигнал берём, только если он УЖЕ идёт. Первую секунду после пуска звуковой узел
+      // разгоняется и отдаёт тишину; нарисованная в этот миг прямая линия читается как
+      // «сломалось». Пока тишина -- показываем идеальную форму, ту же, что в покое.
+      let живой = false;
+      let пик = 0, сколько = 0;
       if (идёт && анализатор) {
         анализатор.getFloatTimeDomainData(буфер);
-        // Показываем около трёх периодов: на весь буфер при 440 герцах пришлось бы два
-        // десятка волн, а при 15 килогерцах -- каша.
-        const сколько = Math.max(32, Math.min(буфер.length,
+        сколько = Math.max(32, Math.min(буфер.length,
           Math.round(3 * узел.sampleRate / Math.max(20, гц))));
-        // Размах подгоняем под окно. Иначе на тихой громкости линия почти плоская и
-        // читается как «ничего не идёт», хотя звук есть: осциллограф показывает форму,
-        // а уровень громкости и так написан цифрой рядом.
-        let пик = 0;
         for (let i = 0; i < сколько; i++) { const а = Math.abs(буфер[i]); if (а > пик) пик = а; }
-        const масштаб = пик > 0.0008 ? 0.94 / пик : 0;
+        живой = пик > 0.0008;
+      }
+      if (живой) {
+        // Показываем около трёх периодов: на весь буфер при 440 герцах пришлось бы два
+        // десятка волн, а при 15 килогерцах -- каша. Размах подгоняем под окно: иначе на
+        // тихой громкости линия почти плоская, хотя звук есть.
+        const масштаб = 0.94 / пик;
         for (let x = 0; x <= ш; x++) {
           const i = Math.min(сколько - 1, Math.floor((x / ш) * сколько));
           const зн = Math.max(-1, Math.min(1, буфер[i] * масштаб));
@@ -441,21 +479,41 @@ const ГОТОВЫЕ = [
         try { громкость.gain.setTargetAtTime(Math.max(0.0001, вУсиление(уровень)), узел.currentTime, 0.02); } catch (e2) {}
       }
     });
-    function выбор(ид, поле, что) {
-      const у = $(ид);
-      у.addEventListener('click', (e) => {
-        const б = e.target.closest('.тг-волнаКн');
-        if (!б) return;
-        у.querySelectorAll('.тг-волнаКн').forEach((к) => к.classList.remove('вкл'));
-        б.classList.add('вкл');
-        что(б.dataset[поле]);
-      });
-    }
-    выбор('тг-формы', 'форма', (з) => {
-      форма = з;
-      // Форму можно менять у живого генератора -- ради этого он и не пересобирается.
+    // Нажатие по окну ведёт форму по кругу. Живой генератор её принимает без пересборки --
+    // ради этого он и не пересобирается: пересборка дала бы щелчок.
+    const ПОРЯДОК = ['sine', 'square', 'sawtooth', 'triangle'];
+    function поставитьФорму(имя) {
+      форма = имя;
       if (идёт && ген) ген.type = форма;
+      // Выбранную форму помечаем во всплытии и пишем в подсказку шестерёнки.
+      $('тг-всплытие').querySelectorAll('.тг-выбор').forEach((к) => {
+        к.classList.toggle('вкл', к.dataset.форма === форма);
+      });
+      const кн = $('тг-шестерня');
+      кн.setAttribute('aria-label', с.wave + ': ' + с[форма]);
+      кн.setAttribute('title', с.wave + ': ' + с[форма]);
       рисовать();
+    }
+    const всплытие = $('тг-всплытие'), шестерня = $('тг-шестерня');
+    function открытьВыбор(да) {
+      всплытие.hidden = !да;
+      шестерня.setAttribute('aria-expanded', String(да));
+      шестерня.classList.toggle('открыта', да);
+    }
+    шестерня.addEventListener('click', (e) => {
+      e.stopPropagation();
+      открытьВыбор(всплытие.hidden);
+    });
+    всплытие.addEventListener('click', (e) => {
+      const б = e.target.closest('.тг-выбор');
+      if (!б) return;
+      поставитьФорму(б.dataset.форма);
+      открытьВыбор(false);
+    });
+    // Нажатие мимо и Esc закрывают: иначе список остаётся висеть поверх ручек.
+    document.addEventListener('click', () => { if (!всплытие.hidden) открытьВыбор(false); });
+    window.addEventListener('keydown', (e) => {
+      if (e.key === 'Escape' && !всплытие.hidden) открытьВыбор(false);
     });
     $('тг-каналы').addEventListener('click', (e) => {
       const б = e.target.closest('.тг-динамик');
@@ -479,6 +537,7 @@ const ГОТОВЫЕ = [
     window.addEventListener('resize', рисовать);
 
     показать();
+    поставитьФорму(форма);
     $('тг-эхоГр').textContent = уровень + ' %';
     рисовать();
 
