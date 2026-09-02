@@ -1,0 +1,447 @@
+---
+// ВЫГОРАНИЕ ЭКРАНА: проверка и выравнивание.
+//
+// Два дела, и порядок между ними обязателен. Сначала проверка: ровные заливки, на которых
+// проступает призрак того, что подолгу висело на экране. Потом выравнивание -- медленно
+// ползущие полосы всех цветов на полной яркости.
+//
+// ЧЕСТНОСТЬ. Выгорание и остаточное изображение -- разные вещи, и путать их нельзя:
+//   * остаточное изображение -- временное, сходит само за минуты или часы, и полосы его
+//     правда убирают;
+//   * настоящее выгорание -- это износ самих светодиодов, вещь необратимая. Полосы его не
+//     «лечат»: они лишь немного подгоняют соседние пиксели под уже изношенные, отчего
+//     граница пятна становится менее заметной. Обещать здесь ремонт нельзя.
+// Это сказано и в подписи под кнопкой, и в тексте страницы.
+//
+// Полосы двигаются МЕДЛЕННО, а не мигают. Быстрое мигание тут ни к чему: пикселю важно
+// побывать под каждым цветом, а не переключаться сотню раз в секунду. Медленное движение
+// вдобавок безопасно для светочувствительных людей -- цвет в одной точке меняется примерно
+// раз в секунду.
+import css from '../styles/burn-in.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+// Лесенка серых идёт первой: выгорание виднее всего на ровном сером, а не на цветном.
+const КРАСКИ = [
+  { цвет: '#2b2b2b', имя: { ru: 'Тёмно-серый', uk: 'Темно-сірий', en: 'Dark grey', es: 'Gris oscuro' } },
+  { цвет: '#585858', имя: { ru: 'Серый', uk: 'Сірий', en: 'Grey', es: 'Gris' } },
+  { цвет: '#808080', имя: { ru: 'Средний серый', uk: 'Середній сірий', en: 'Mid grey', es: 'Gris medio' } },
+  { цвет: '#b8b8b8', имя: { ru: 'Светло-серый', uk: 'Світло-сірий', en: 'Light grey', es: 'Gris claro' } },
+  { цвет: '#ffffff', имя: { ru: 'Белый', uk: 'Білий', en: 'White', es: 'Blanco' } },
+  { цвет: '#ff0000', имя: { ru: 'Красный', uk: 'Червоний', en: 'Red', es: 'Rojo' } },
+  { цвет: '#00ff00', имя: { ru: 'Зелёный', uk: 'Зелений', en: 'Green', es: 'Verde' } },
+  { цвет: '#0000ff', имя: { ru: 'Синий', uk: 'Синій', en: 'Blue', es: 'Azul' } },
+  { цвет: '#000000', имя: { ru: 'Чёрный', uk: 'Чорний', en: 'Black', es: 'Negro' } },
+];
+
+const СЛОВА = {
+  ru: {
+    tabCheck: 'Проверить', tabFix: 'Выровнять',
+    checkWhy: 'Экран зальётся ровным цветом. Выгорание проступает на сером и белом: это бледный силуэт того, что подолгу висело на экране — полоса навигации, значки, логотип телеканала. Пройдите все заливки и смотрите под прямым углом.',
+    colors: 'Заливки для проверки',
+    fixWhy: 'Экран займут медленно ползущие полосы всех цветов на полной яркости. Каждый пиксель по очереди побывает под красным, зелёным, синим, белым и чёрным. Поднимите яркость до предела и оставьте работать.',
+    time: 'Сколько выровнять', m: 'мин', ch: 'ч',
+    bell: 'Динь в конце',
+    go: 'Запустить выравнивание',
+    caution: 'Настоящее выгорание необратимо: полосы не восстанавливают экран, а только подгоняют соседние пиксели под изношенные, отчего граница пятна становится менее заметной. Остаточное изображение они убирают полностью.',
+    tipCheck: 'Нажимайте, чтобы сменить заливку · Esc — выход',
+    tipFix: 'Можно отвернуться · Esc — выход',
+    doneT: 'Готово',
+    doneS: 'Посмотрите на экран заливками из проверки. Остаточное изображение обычно уходит за один сеанс; если след остался прежним, это выгорание, и повторять дольше почти бесполезно.',
+    check: 'Проверить экран', again: 'Ещё раз', close: 'Закрыть',
+    k1: 'Остаточное изображение', k1s: 'Бледный след того, что было на экране только что. Сходит сам за минуты или часы, а с полосами — за один сеанс. Бывает на любых экранах, включая обычные ЖК.',
+    k2: 'Выгорание', k2s: 'Стойкий силуэт того, что висело на экране месяцами: полоса навигации, клавиатура, логотип канала. Светодиоды под ним износились сильнее соседних. Это необратимо.',
+    k3: 'Пятна и разводы', k3s: 'Неровная яркость по всему экрану, особенно по краям, — это засветка подсветки, а не выгорание. Встречается на ЖК и к пикселям отношения не имеет.',
+    k4: 'Точки', k4s: 'Одиночная светящаяся или чёрная точка — это не выгорание, а битый или застрявший пиксель. Для них есть отдельная проверка и отдельное лечение.',
+    n1: 'Выгорание бывает у OLED и AMOLED: у них каждый пиксель светится сам и стареет от собственной работы. У обычных ЖК бывает только остаточное изображение, и оно проходит.',
+    n2: 'Синий светодиод стареет быстрее красного и зелёного, поэтому выгоревшее место обычно уходит в желтизну.',
+    n3: 'Проверять лучше при выключенной автояркости и на полной яркости: на тусклом экране слабый след не разглядеть.',
+    n4: 'Лучшее средство от выгорания — не доводить до него: автоскрытие полосы навигации, тёмная тема, гашение экрана и умеренная яркость.',
+  },
+  uk: {
+    tabCheck: 'Перевірити', tabFix: 'Вирівняти',
+    checkWhy: 'Екран заллється рівним кольором. Вигоряння проступає на сірому й білому: це блідий силует того, що довго висіло на екрані — смуга навігації, значки, логотип телеканалу. Пройдіть усі заливки й дивіться під прямим кутом.',
+    colors: 'Заливки для перевірки',
+    fixWhy: 'Екран займуть повільно повзучі смуги всіх кольорів на повній яскравості. Кожен піксель по черзі побуває під червоним, зеленим, синім, білим і чорним. Підніміть яскравість до межі й залиште працювати.',
+    time: 'Скільки вирівнювати', m: 'хв', ch: 'год',
+    bell: 'Дзинь у кінці',
+    go: 'Запустити вирівнювання',
+    caution: 'Справжнє вигоряння незворотне: смуги не відновлюють екран, а лише підганяють сусідні пікселі під зношені, від чого межа плями стає менш помітною. Залишкове зображення вони прибирають повністю.',
+    tipCheck: 'Натискайте, щоб змінити заливку · Esc — вихід',
+    tipFix: 'Можна відвернутися · Esc — вихід',
+    doneT: 'Готово',
+    doneS: 'Подивіться на екран заливками з перевірки. Залишкове зображення зазвичай іде за один сеанс; якщо слід лишився таким самим, це вигоряння, і повторювати довше майже марно.',
+    check: 'Перевірити екран', again: 'Ще раз', close: 'Закрити',
+    k1: 'Залишкове зображення', k1s: 'Блідий слід того, що було на екрані щойно. Сходить сам за хвилини чи години, а зі смугами — за один сеанс. Буває на будь-яких екранах, зокрема на звичайних РК.',
+    k2: 'Вигоряння', k2s: 'Стійкий силует того, що висіло на екрані місяцями: смуга навігації, клавіатура, логотип каналу. Світлодіоди під ним зносилися сильніше за сусідні. Це незворотно.',
+    k3: 'Плями й розводи', k3s: 'Нерівна яскравість по всьому екрану, надто по краях, — це засвітка підсвітки, а не вигоряння. Трапляється на РК і до пікселів стосунку не має.',
+    k4: 'Крапки', k4s: 'Поодинока світна або чорна крапка — це не вигоряння, а битий чи залиплий піксель. Для них є окрема перевірка й окреме лікування.',
+    n1: 'Вигоряння буває в OLED і AMOLED: у них кожен піксель світиться сам і старіє від власної роботи. У звичайних РК буває лише залишкове зображення, і воно минає.',
+    n2: 'Синій світлодіод старіє швидше за червоний і зелений, тому вигоріле місце зазвичай іде в жовтизну.',
+    n3: 'Перевіряти краще з вимкненою автояскравістю й на повній яскравості: на тьмяному екрані слабкий слід не роздивитися.',
+    n4: 'Найкращий засіб від вигоряння — не доводити до нього: автоприховування смуги навігації, темна тема, гасіння екрана й помірна яскравість.',
+  },
+  en: {
+    tabCheck: 'Check', tabFix: 'Even out',
+    checkWhy: 'The screen fills with a flat colour. Burn-in shows up on grey and white: a faint ghost of whatever sat on the screen for a long time — a navigation bar, icons, a TV channel logo. Go through every fill and look straight on.',
+    colors: 'Fills for checking',
+    fixWhy: 'Slow moving bands of every colour will cover the screen at full brightness. Each pixel takes its turn under red, green, blue, white and black. Turn the brightness all the way up and leave it running.',
+    time: 'How long', m: 'min', ch: 'h',
+    bell: 'Chime at the end',
+    go: 'Start evening out',
+    caution: 'Real burn-in is permanent: the bands do not restore the screen, they only age the neighbouring pixels closer to the worn ones so the edge of the patch is less visible. Temporary image retention they clear completely.',
+    tipCheck: 'Tap to change the fill · Esc to leave',
+    tipFix: 'You can look away · Esc to leave',
+    doneT: 'Done',
+    doneS: 'Look the screen over with the check fills. Image retention usually clears in one session; if the mark is exactly as it was, it is burn-in, and running longer will hardly help.',
+    check: 'Check the screen', again: 'Run again', close: 'Close',
+    k1: 'Image retention', k1s: 'A faint trace of what was on screen a moment ago. It fades by itself in minutes or hours, and with the bands in a single session. It happens on any screen, ordinary LCDs included.',
+    k2: 'Burn-in', k2s: 'A permanent ghost of what sat on screen for months: a navigation bar, a keyboard, a channel logo. The emitters under it have aged more than their neighbours. This cannot be undone.',
+    k3: 'Patches and clouding', k3s: 'Uneven brightness across the screen, especially at the edges, is backlight bleed, not burn-in. It happens on LCDs and has nothing to do with pixels.',
+    k4: 'Dots', k4s: 'A single glowing or black dot is not burn-in but a dead or stuck pixel. Those have a test and a fix of their own.',
+    n1: 'Burn-in affects OLED and AMOLED, where every pixel emits its own light and ages from its own work. Ordinary LCDs only get image retention, and that passes.',
+    n2: 'The blue emitter ages faster than red and green, so a burnt-in area usually drifts towards yellow.',
+    n3: 'Check with auto-brightness off and brightness at maximum: a faint mark is invisible on a dim screen.',
+    n4: 'The best cure for burn-in is not getting there: auto-hide the navigation bar, use a dark theme, let the screen sleep and keep brightness moderate.',
+  },
+  es: {
+    tabCheck: 'Comprobar', tabFix: 'Igualar',
+    checkWhy: 'La pantalla se llenará de un color plano. El quemado se ve sobre gris y blanco: es la silueta pálida de lo que estuvo mucho tiempo en pantalla, una barra de navegación, iconos, el logo de un canal. Pasa por todos los rellenos y mira de frente.',
+    colors: 'Rellenos para comprobar',
+    fixWhy: 'Unas bandas de todos los colores recorrerán la pantalla despacio y a brillo máximo. Cada píxel pasará por rojo, verde, azul, blanco y negro. Sube el brillo al máximo y déjalo trabajar.',
+    time: 'Duración', m: 'min', ch: 'h',
+    bell: 'Aviso al terminar',
+    go: 'Empezar a igualar',
+    caution: 'El quemado real es permanente: las bandas no restauran la pantalla, solo envejecen los píxeles vecinos hasta parecerse a los gastados, con lo que el borde de la mancha se nota menos. La retención de imagen temporal sí la eliminan del todo.',
+    tipCheck: 'Toca para cambiar de relleno · Esc para salir',
+    tipFix: 'Puedes apartar la vista · Esc para salir',
+    doneT: 'Listo',
+    doneS: 'Revisa la pantalla con los rellenos de comprobación. La retención de imagen suele irse en una sesión; si la marca sigue igual, es quemado, y alargarlo apenas servirá.',
+    check: 'Comprobar la pantalla', again: 'Otra vez', close: 'Cerrar',
+    k1: 'Retención de imagen', k1s: 'Un rastro pálido de lo que había en pantalla hace un momento. Se va solo en minutos u horas, y con las bandas en una sola sesión. Le pasa a cualquier pantalla, también a las LCD normales.',
+    k2: 'Quemado', k2s: 'La silueta permanente de lo que estuvo meses en pantalla: una barra de navegación, un teclado, el logo de un canal. Los emisores de esa zona se han gastado más que los vecinos. No tiene vuelta atrás.',
+    k3: 'Manchas y nubes', k3s: 'El brillo desigual por la pantalla, sobre todo en los bordes, es fuga de retroiluminación, no quemado. Ocurre en LCD y no tiene que ver con los píxeles.',
+    k4: 'Puntos', k4s: 'Un punto suelto encendido o negro no es quemado, sino un píxel muerto o atascado. Para eso hay una prueba y un arreglo aparte.',
+    n1: 'El quemado afecta a OLED y AMOLED, donde cada píxel emite su propia luz y envejece con su propio uso. Las LCD normales solo sufren retención de imagen, y esa se va.',
+    n2: 'El emisor azul envejece antes que el rojo y el verde, así que la zona quemada suele tirar a amarillo.',
+    n3: 'Comprueba con el brillo automático apagado y el brillo al máximo: una marca leve no se ve en una pantalla apagada.',
+    n4: 'El mejor remedio contra el quemado es no llegar a él: oculta la barra de navegación, usa tema oscuro, deja que la pantalla se apague y no abuses del brillo.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const краски = КРАСКИ.map((к) => ({ цвет: к.цвет, имя: к.имя[locale] || к.имя.ru }));
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="вэ" data-words={JSON.stringify(с)} data-colors={JSON.stringify(краски)}>
+  {/* Два положения одной вещи: сначала смотрят, потом выравнивают. */}
+  <div class="вэ-обойма" role="tablist">
+    <button type="button" class="вэ-дело вкл" id="вэ-дело-проверка" role="tab" aria-selected="true">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" aria-hidden="true">
+        <circle cx="11" cy="11" r="6.5"/><path d="m16 16 4.5 4.5"/>
+      </svg>{с.tabCheck}</button>
+    <button type="button" class="вэ-дело" id="вэ-дело-выравнивание" role="tab" aria-selected="false">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+           stroke-linecap="round" aria-hidden="true">
+        <path d="M4 5v14M9.5 5v14M15 5v14M20.5 5v14"/>
+      </svg>{с.tabFix}</button>
+  </div>
+
+  <div class="вэ-карта">
+    <div class="вэ-лист" id="вэ-лист-проверка">
+      <p class="вэ-объяснение">{с.checkWhy}</p>
+      <div class="вэ-ряд">
+        <span class="вэ-к">{с.colors}</span>
+        <div class="вэ-краски" id="вэ-краски">
+          {краски.map((к, i) => (
+            <button type="button" class="вэ-краска" data-i={i} style={`background:${к.цвет}`}
+                    title={к.имя} aria-label={к.имя}></button>
+          ))}
+        </div>
+      </div>
+    </div>
+
+    <div class="вэ-лист" id="вэ-лист-выравнивание" hidden>
+      <p class="вэ-объяснение">{с.fixWhy}</p>
+      <div class="вэ-ряд">
+        <span class="вэ-к">{с.time}</span>
+        <div class="вэ-чипы" id="вэ-время">
+          <button type="button" class="вэ-чип вкл" data-минут="10">10 {с.m}</button>
+          <button type="button" class="вэ-чип" data-минут="30">30 {с.m}</button>
+          <button type="button" class="вэ-чип" data-минут="60">1 {с.ch}</button>
+          <button type="button" class="вэ-чип" data-минут="120">2 {с.ch}</button>
+        </div>
+      </div>
+      <div class="вэ-пуск">
+        <button type="button" class="вэ-го" id="вэ-го">{с.go}</button>
+        <label class="вэ-галка"><input type="checkbox" id="вэ-звонок" checked /><span>{с.bell}</span></label>
+      </div>
+      {/* Оговорка стоит у кнопки: она про то, чего ждать от нажатия. */}
+      <p class="вэ-тише">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+             stroke-linecap="round" aria-hidden="true">
+          <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+        </svg>
+        <span>{с.caution}</span>
+      </p>
+    </div>
+  </div>
+
+  {/* Что искать: половина обращений про выгорание оказывается не выгоранием. */}
+  <div class="вэ-виды">
+    <div class="вэ-вид"><b><i style="background:#f5c451"></i>{с.k1}</b><span>{с.k1s}</span></div>
+    <div class="вэ-вид"><b><i style="background:#ec5f7f"></i>{с.k2}</b><span>{с.k2s}</span></div>
+    <div class="вэ-вид"><b><i style="background:#60a5fa"></i>{с.k3}</b><span>{с.k3s}</span></div>
+    <div class="вэ-вид"><b><i style="background:#a98cf0"></i>{с.k4}</b><span>{с.k4s}</span></div>
+  </div>
+
+  <div class="вэ-заметки">
+    <div class="вэ-заметка">{с.n1}</div>
+    <div class="вэ-заметка">{с.n2}</div>
+    <div class="вэ-заметка">{с.n3}</div>
+    <div class="вэ-заметка">{с.n4}</div>
+  </div>
+
+  {/* Слой лежит в разметке заранее: полный экран разрешён только прямо из жеста. */}
+  <div class="вэ-слой" id="вэ-слой">
+    <canvas class="вэ-холст" id="вэ-холст"></canvas>
+    <div class="вэ-панель" id="вэ-панель">
+      <span class="вэ-часы" id="вэ-часы" hidden>10:00</span>
+      <span class="вэ-совет" id="вэ-совет">{с.tipCheck}</span>
+    </div>
+    <div class="вэ-итог">
+      <b>{с.doneT}</b>
+      <span>{с.doneS}</span>
+      <div class="вэ-кнопки">
+        <button type="button" class="главная" id="вэ-смотреть">{с.check}</button>
+        <button type="button" id="вэ-ещё">{с.again}</button>
+        <button type="button" id="вэ-закрыть">{с.close}</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.вэ');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const краски = JSON.parse(корень.dataset.colors || '[]');
+    const $ = (id) => document.getElementById(id);
+    const слой = $('вэ-слой'), холст = $('вэ-холст'), кт = холст.getContext('2d');
+    const часы = $('вэ-часы'), совет = $('вэ-совет');
+
+    let минут = 10;
+    let дело = 'проверка';          // что делаем: смотрим или выравниваем
+    let краска = 0;                 // какая заливка показана при проверке
+    let идёт = false, конецВремени = 0, таймерЧасов = 0, таймерТишины = 0;
+    let замок = null, сдвиг = 0, прошлыйМиг = 0;
+
+    // ---- Переключение дела ----------------------------------------------------------
+    function выбратьДело(что) {
+      дело = что;
+      const пров = что === 'проверка';
+      $('вэ-дело-проверка').classList.toggle('вкл', пров);
+      $('вэ-дело-выравнивание').classList.toggle('вкл', !пров);
+      $('вэ-дело-проверка').setAttribute('aria-selected', String(пров));
+      $('вэ-дело-выравнивание').setAttribute('aria-selected', String(!пров));
+      $('вэ-лист-проверка').hidden = !пров;
+      $('вэ-лист-выравнивание').hidden = пров;
+    }
+    $('вэ-дело-проверка').addEventListener('click', () => выбратьДело('проверка'));
+    $('вэ-дело-выравнивание').addEventListener('click', () => выбратьДело('выравнивание'));
+
+    $('вэ-время').addEventListener('click', (e) => {
+      const б = e.target.closest('.вэ-чип');
+      if (!б) return;
+      $('вэ-время').querySelectorAll('.вэ-чип').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      минут = Number(б.dataset.минут) || 10;
+    });
+
+    // ---- Рисование -------------------------------------------------------------------
+    function размерХолста() {
+      const ш = window.innerWidth, в = window.innerHeight;
+      if (холст.width !== ш || холст.height !== в) { холст.width = ш; холст.height = в; }
+    }
+    function залитьРовно() {
+      размерХолста();
+      кт.fillStyle = краски[краска].цвет;
+      кт.fillRect(0, 0, холст.width, холст.height);
+    }
+
+    // Полосы для выравнивания. Широкие и медленные: пикселю важно побывать под каждым
+    // цветом, а не мельтешить. При ширине 140 и скорости 140 точек в секунду цвет в одной
+    // точке меняется примерно раз в секунду -- это не мигание.
+    const ПОЛОСЫ = ['#ff0000', '#00ff00', '#0000ff', '#ffffff', '#000000'];
+    const ШИРИНА = 140, СКОРОСТЬ = 140;
+    function полосы(сейчас) {
+      if (!идёт) return;
+      размерХолста();
+      const шаг = прошлыйМиг ? (сейчас - прошлыйМиг) / 1000 : 0;
+      прошлыйМиг = сейчас;
+      const период = ШИРИНА * ПОЛОСЫ.length;
+      сдвиг = (сдвиг + СКОРОСТЬ * шаг) % период;
+      // Рисуем от -период, чтобы левый край не оставался пустым при любом сдвиге.
+      for (let x = -период; x < холст.width + период; x += ШИРИНА) {
+        const место = x + сдвиг;
+        const номер = Math.round((x + период * 1000) / ШИРИНА) % ПОЛОСЫ.length;
+        кт.fillStyle = ПОЛОСЫ[номер];
+        кт.fillRect(Math.floor(место), 0, Math.ceil(ШИРИНА) + 1, холст.height);
+      }
+      requestAnimationFrame(полосы);
+    }
+
+    // ---- Слой ------------------------------------------------------------------------
+    function разбудитьПанель() {
+      слой.classList.remove('тихо');
+      clearTimeout(таймерТишины);
+      таймерТишины = window.setTimeout(() => слой.classList.add('тихо'), 3500);
+    }
+    function полныйЭкран() {
+      const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
+      if (пуск) { try { const п = пуск.call(слой); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+    }
+    function открыть() {
+      слой.classList.add('on');
+      слой.classList.remove('конец');
+      полныйЭкран();
+      разбудитьПанель();
+    }
+    function закрыть() {
+      идёт = false;
+      clearInterval(таймерЧасов); clearTimeout(таймерТишины);
+      слой.classList.remove('on', 'конец', 'проверка');
+      отпуститьЭкран();
+      if (document.fullscreenElement) {
+        try { const п = document.exitFullscreen(); if (п && п.catch) п.catch(() => {}); } catch (e) {}
+      }
+    }
+
+    // ---- Проверка --------------------------------------------------------------------
+    function смотреть(i) {
+      краска = (i + краски.length) % краски.length;
+      идёт = false;
+      clearInterval(таймерЧасов);
+      слой.classList.add('проверка');
+      часы.hidden = true;
+      совет.textContent = с.tipCheck;
+      открыть();
+      залитьРовно();
+    }
+    $('вэ-краски').addEventListener('click', (e) => {
+      const б = e.target.closest('.вэ-краска');
+      if (б) смотреть(Number(б.dataset.i) || 0);
+    });
+
+    // ---- Выравнивание ----------------------------------------------------------------
+    // Экран не должен уснуть посреди сеанса: два часа без касаний -- и телефон гасит
+    // подсветку вместе со всей затеей.
+    async function держатьЭкран() {
+      try { if ('wakeLock' in navigator) замок = await navigator.wakeLock.request('screen'); }
+      catch (e) { /* браузер не дал -- сеанс всё равно идёт */ }
+    }
+    function отпуститьЭкран() { try { if (замок) { замок.release(); замок = null; } } catch (e) {} }
+
+    let звукУзел = null;
+    function готовитьЗвук() {
+      if (!$('вэ-звонок').checked || звукУзел) return;
+      try { звукУзел = new (window.AudioContext || window.webkitAudioContext)(); } catch (e) {}
+    }
+    function динь() {
+      if (!$('вэ-звонок').checked || !звукУзел) return;
+      try {
+        if (звукУзел.state === 'suspended') звукУзел.resume();
+        const т = звукУзел.currentTime;
+        [880, 1320].forEach((частота, i) => {
+          const о = звукУзел.createOscillator(), г = звукУзел.createGain();
+          о.frequency.value = частота; о.type = 'sine';
+          г.gain.setValueAtTime(0.0001, т + i * 0.16);
+          г.gain.exponentialRampToValueAtTime(0.22, т + i * 0.16 + 0.01);
+          г.gain.exponentialRampToValueAtTime(0.0001, т + i * 0.16 + 0.55);
+          о.connect(г); г.connect(звукУзел.destination);
+          о.start(т + i * 0.16); о.stop(т + i * 0.16 + 0.6);
+        });
+      } catch (e) { /* звук не обязателен: итог виден на экране */ }
+    }
+
+    function времяСтрокой(мс) {
+      const всего = Math.max(0, Math.round(мс / 1000));
+      const м = Math.floor(всего / 60), к = всего % 60;
+      return м + ':' + String(к).padStart(2, '0');
+    }
+    function часыХод() {
+      const осталось = конецВремени - Date.now();
+      часы.textContent = времяСтрокой(осталось);
+      if (осталось <= 0) кончить();
+    }
+    function выравнивать() {
+      слой.classList.remove('проверка');
+      часы.hidden = false;
+      совет.textContent = с.tipFix;
+      открыть();
+      идёт = true; сдвиг = 0; прошлыйМиг = 0;
+      конецВремени = Date.now() + минут * 60000;
+      часыХод();
+      clearInterval(таймерЧасов);
+      таймерЧасов = window.setInterval(часыХод, 500);
+      держатьЭкран();
+      готовитьЗвук();
+      requestAnimationFrame(полосы);
+    }
+    function кончить() {
+      идёт = false;
+      clearInterval(таймерЧасов);
+      кт.fillStyle = '#000';
+      размерХолста();
+      кт.fillRect(0, 0, холст.width, холст.height);
+      слой.classList.add('конец');
+      слой.classList.remove('тихо');
+      отпуститьЭкран();
+      динь();
+    }
+
+    $('вэ-го').addEventListener('click', выравнивать);
+    $('вэ-ещё').addEventListener('click', выравнивать);
+    $('вэ-закрыть').addEventListener('click', закрыть);
+    // Прямо из итога -- к заливкам: смотреть результат надо сразу, а не искать кнопку.
+    $('вэ-смотреть').addEventListener('click', () => смотреть(2));
+
+    // Нажатие по экрану листает заливки, но только в проверке: во время выравнивания
+    // случайное касание не должно сбивать часовой сеанс.
+    слой.addEventListener('click', (e) => {
+      if (e.target.closest('.вэ-итог')) return;
+      if (слой.classList.contains('проверка')) { смотреть(краска + 1); return; }
+      разбудитьПанель();
+    });
+    слой.addEventListener('pointermove', разбудитьПанель);
+
+    window.addEventListener('keydown', (e) => {
+      if (!слой.classList.contains('on')) return;
+      if (e.key === 'Escape') { закрыть(); return; }
+      if (!слой.classList.contains('проверка')) return;
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); смотреть(краска - 1); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault(); смотреть(краска + 1);
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && слой.classList.contains('on')) закрыть();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible' && идёт) держатьЭкран();
+    });
+    window.addEventListener('resize', () => {
+      if (!слой.classList.contains('on')) return;
+      if (слой.classList.contains('проверка')) залитьРовно(); else размерХолста();
+    });
+
+    window.__вэСостояние = () => ({
+      дело, открыт: слой.classList.contains('on'), идёт,
+      проверка: слой.classList.contains('проверка'), конец: слой.classList.contains('конец'),
+      краска: краски[краска] && краски[краска].цвет, минут, часы: часы.textContent,
+      часыВидны: !часы.hidden,
+    });
+  })();
+</script>
