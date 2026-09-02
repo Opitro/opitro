@@ -1,0 +1,362 @@
+---
+// ОЧИСТКА ДИНАМИКА: выгнать воду и вытряхнуть пыль звуком.
+//
+// Работает не «программа», а мембрана: низкий громкий звук качает её с большим ходом, и
+// капля выталкивается наружу, а пыль стряхивается с решётки. Отсюда два разных сигнала:
+//   * ВОДА -- синус, гуляющий от 150 до 250 герц, короткими толчками. Гулять он должен:
+//     у каждого корпуса свой отзыв, и один-единственный тон половине телефонов достанется
+//     мимо. Толчки важнее ровного тона -- ровный капля пересиживает, покачиваясь на месте.
+//     Волна именно СИНУС, а не пила: при одной и той же полной громкости синус даёт
+//     наибольший ход мембраны на нужной низкой частоте, а пила часть силы уводит в
+//     призвуки повыше, где мембрана почти не движется.
+//   * ПЫЛЬ -- проход снизу вверх ПИЛОЙ. Здесь призвуки как раз к месту: пылинки разной
+//     величины срываются на разных частотах, и богатая призвуками волна накрывает больше
+//     размеров за один проход.
+//   * ВИБРАЦИЯ. Где браузер её даёт (Андроид), к воде добавляется тряска мотором: она
+//     качает каплю там, куда звук почти не достаёт. На iPhone браузер вибрацию не даёт,
+//     поэтому обещать её нельзя -- о ней сказано в примечании, а не в заголовке.
+//
+// ЗВУК НА iPHONE. Два правила, каждое из которых уже ломало живой сайт:
+//   1. `navigator.audioSession.type = 'playback'` ДО создания узла -- иначе боковой
+//      беззвучный переключатель глушит Web Audio, и страница молчит. А сюда приходят как
+//      раз с телефоном в чехле и на беззвучном.
+//   2. Держатель сессии (скрытая зацикленная тишина) -- чтобы узел пережил уход экрана.
+// Оба живут в общем коде сайта, здесь только вызываются.
+import css from '../styles/speaker-cleaner.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    mode: 'Что выгоняем', water: 'Вода', dust: 'Пыль',
+    time: 'Сколько', sec: 'с', min: 'мин',
+    go: 'Включить', stop: 'Остановить',
+    hz: 'герц', left: 'осталось',
+    caution: 'Снимите наушники и не подносите телефон к уху: звук идёт на полной громкости. Динамику это не вредит, а вот слуху вблизи — да.',
+    p1: 'Уберите чехол', p1s: 'Чехол закрывает решётку и глушит ход мембраны — с ним вода не выйдет. Промокните телефон снаружи салфеткой.',
+    p2: 'Громкость на максимум', p2s: 'Прибавьте звук до предела кнопками телефона. На тихом звуке мембрана почти не двигается, и толку не будет.',
+    p3: 'Динамиком вниз', p3s: 'Держите телефон динамиком вниз или положите на салфетку решёткой к ней — воде надо куда-то вытекать.',
+    p4: 'Повторите', p4s: 'Один заход редко выгоняет всё. Стряхните телефон, промокните салфеткой и включите ещё раз, пока звук не станет чистым.',
+    n1: 'Способ ничего не гарантирует. Он выталкивает воду из решётки динамика — и не сушит то, что попало внутрь корпуса. Если телефон искупался целиком, звук тут не поможет.',
+    n2: 'Не сушите телефон феном, батареей и рисом. Горячий воздух гонит влагу глубже и плавит клей, а рис ничего не вытягивает и оставляет крахмальную пыль в разъёмах.',
+    n3: 'Хрип и треск после воды могут держаться несколько часов, пока остатки испаряются, — это не поломка. Если через сутки звук не вернулся, дело уже не в воде.',
+    n4: 'Мокрый разъём заряжки — отдельная беда: современные телефоны сами блокируют зарядку до высыхания, и обходить эту защиту нельзя.',
+    n5: 'Звук идёт на полной громкости, но опасности для динамика в нём нет: это обычный тон, а не перегрузка. Опасно только слушать его вблизи уха.',
+    n6: 'На Андроиде к звуку добавляется вибрация — она качает каплю там, куда звук почти не достаёт. На айфоне браузеру вибрация недоступна, и там работает только звук.',
+  },
+  uk: {
+    mode: 'Що виганяємо', water: 'Вода', dust: 'Пил',
+    time: 'Скільки', sec: 'с', min: 'хв',
+    go: 'Увімкнути', stop: 'Зупинити',
+    hz: 'герц', left: 'лишилося',
+    caution: 'Зніміть навушники й не підносьте телефон до вуха: звук іде на повній гучності. Динаміку це не шкодить, а от слуху зблизька — так.',
+    p1: 'Зніміть чохол', p1s: 'Чохол закриває решітку й глушить хід мембрани — з ним вода не вийде. Промокніть телефон іззовні серветкою.',
+    p2: 'Гучність на максимум', p2s: 'Додайте звук до межі кнопками телефона. На тихому звуці мембрана майже не рухається, і користі не буде.',
+    p3: 'Динаміком униз', p3s: 'Тримайте телефон динаміком униз або покладіть на серветку решіткою до неї — воді треба кудись витікати.',
+    p4: 'Повторіть', p4s: 'Один захід рідко виганяє все. Струсіть телефон, промокніть серветкою й увімкніть ще раз, поки звук не стане чистим.',
+    n1: 'Спосіб нічого не гарантує. Він виштовхує воду з решітки динаміка — і не сушить те, що потрапило всередину корпусу. Якщо телефон скупався цілком, звук тут не допоможе.',
+    n2: 'Не сушіть телефон феном, батареєю і рисом. Гаряче повітря жене вологу глибше й плавить клей, а рис нічого не витягує й лишає крохмальний пил у роз’ємах.',
+    n3: 'Хрип і тріск після води можуть триматися кілька годин, поки залишки випаровуються, — це не поломка. Якщо за добу звук не повернувся, річ уже не у воді.',
+    n4: 'Мокрий роз’єм заряджання — окрема біда: сучасні телефони самі блокують заряджання до висихання, і обходити цей захист не можна.',
+    n5: 'Звук іде на повній гучності, але небезпеки для динаміка в ньому немає: це звичайний тон, а не перевантаження. Небезпечно лише слухати його зблизька біля вуха.',
+    n6: 'На Андроїді до звуку додається вібрація — вона качає краплю там, куди звук майже не дістає. На айфоні браузеру вібрація недоступна, і там працює лише звук.',
+  },
+  en: {
+    mode: 'What to remove', water: 'Water', dust: 'Dust',
+    time: 'For how long', sec: 's', min: 'min',
+    go: 'Start', stop: 'Stop',
+    hz: 'hertz', left: 'left',
+    caution: 'Take your headphones off and keep the phone away from your ear: the sound plays at full volume. It does the speaker no harm, but it can harm your hearing up close.',
+    p1: 'Take the case off', p1s: 'A case covers the grille and damps the cone — water will not come out through it. Wipe the outside of the phone dry first.',
+    p2: 'Volume to maximum', p2s: 'Turn the volume all the way up with the phone’s buttons. At a low level the cone barely moves and nothing will happen.',
+    p3: 'Speaker facing down', p3s: 'Hold the phone with the speaker pointing down, or lay it grille-down on a tissue — the water needs somewhere to go.',
+    p4: 'Repeat', p4s: 'One run rarely clears everything. Shake the phone, blot it with a tissue and run it again until the sound is clean.',
+    n1: 'The method guarantees nothing. It pushes water out of the speaker grille; it does not dry out anything that got inside the body. If the phone went for a proper swim, sound will not save it.',
+    n2: 'Do not dry a phone with a hairdryer, a radiator or rice. Hot air drives moisture deeper and softens the adhesive, and rice draws nothing out while leaving starchy dust in the ports.',
+    n3: 'Crackle and distortion can linger for a few hours while the last of the water evaporates — that is not a fault. If the sound has not returned within a day, water is no longer the problem.',
+    n4: 'A wet charging port is a separate matter: modern phones block charging by themselves until it dries, and that protection should not be bypassed.',
+    n5: 'The sound plays at full volume, but there is no danger to the speaker in it: this is an ordinary tone, not an overload. The only risk is listening to it close to your ear.',
+    n6: 'On Android the page adds vibration to the sound — it works the droplet loose where the sound barely reaches. On an iPhone the browser has no access to vibration, so there it is sound alone.',
+  },
+  es: {
+    mode: 'Qué expulsar', water: 'Agua', dust: 'Polvo',
+    time: 'Duración', sec: 's', min: 'min',
+    go: 'Empezar', stop: 'Parar',
+    hz: 'hercios', left: 'restante',
+    caution: 'Quítate los auriculares y no acerques el móvil al oído: el sonido suena a todo volumen. Al altavoz no le hace daño, pero al oído de cerca sí.',
+    p1: 'Quita la funda', p1s: 'La funda tapa la rejilla y frena el movimiento del cono: con ella puesta el agua no sale. Seca antes el móvil por fuera con un pañuelo.',
+    p2: 'Volumen al máximo', p2s: 'Sube el volumen al tope con los botones del móvil. A volumen bajo el cono apenas se mueve y no servirá de nada.',
+    p3: 'Altavoz hacia abajo', p3s: 'Sujeta el móvil con el altavoz hacia abajo, o déjalo con la rejilla sobre un pañuelo: el agua necesita por dónde salir.',
+    p4: 'Repite', p4s: 'Una pasada rara vez lo saca todo. Sacude el móvil, sécalo con un pañuelo y vuelve a ponerlo hasta que el sonido salga limpio.',
+    n1: 'El método no garantiza nada. Empuja el agua fuera de la rejilla del altavoz; no seca lo que haya entrado en el cuerpo del aparato. Si el móvil se ha dado un baño completo, el sonido no lo salvará.',
+    n2: 'No seques el móvil con secador, radiador ni arroz. El aire caliente mete la humedad más adentro y ablanda el adhesivo, y el arroz no extrae nada y deja polvo de almidón en los conectores.',
+    n3: 'Los chasquidos y la distorsión pueden durar unas horas mientras se evapora lo que queda: no es una avería. Si en un día el sonido no ha vuelto, el problema ya no es el agua.',
+    n4: 'Un puerto de carga mojado es otro asunto: los móviles actuales bloquean la carga hasta que se seque, y esa protección no conviene saltársela.',
+    n5: 'El sonido va a todo volumen, pero no supone peligro para el altavoz: es un tono normal, no una sobrecarga. El único riesgo es escucharlo pegado al oído.',
+    n6: 'En Android la página añade vibración al sonido: mueve la gota allí donde el sonido casi no llega. En un iPhone el navegador no tiene acceso a la vibración, así que allí actúa solo el sonido.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="од" data-words={JSON.stringify(с)}>
+  <div class="од-верх">
+    <div class="од-ряд">
+      <span class="од-к">{с.mode}</span>
+      <div class="од-чипы" id="од-режимы">
+        <button type="button" class="од-чип вкл" data-режим="вода">{с.water}</button>
+        <button type="button" class="од-чип" data-режим="пыль">{с.dust}</button>
+      </div>
+    </div>
+    <div class="од-ряд">
+      <span class="од-к">{с.time}</span>
+      <div class="од-чипы" id="од-время">
+        <button type="button" class="од-чип вкл" data-сек="15">15 {с.sec}</button>
+        <button type="button" class="од-чип" data-сек="30">30 {с.sec}</button>
+        <button type="button" class="од-чип" data-сек="60">1 {с.min}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="од-поле">
+    <i class="од-лампа" aria-hidden="true"></i>
+    <div class="од-круг">
+
+    {/* Кнопку во время работы НЕ выключаем: выключенная уходит в прозрачность и читается
+        как сломанная. Она же и останавливает. */}
+    <i class="од-волна од-в1" aria-hidden="true"></i>
+    <i class="од-волна од-в2" aria-hidden="true"></i>
+    <button type="button" class="од-кнопка" id="од-кнопка">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.7"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <path d="M4 9.5h3.2L12 5.4v13.2L7.2 14.5H4z"/>
+        <path d="M15.6 9.4a4 4 0 0 1 0 5.2"/><path d="M18.2 7a7.5 7.5 0 0 1 0 10"/>
+      </svg>
+      <b id="од-подпись">{с.go}</b>
+    </button>
+
+    {/* Место под цифры готово заранее, поэтому в момент запуска ничего не съезжает. */}
+    </div>
+
+    <div class="од-цифры">
+      <span class="од-цифра"><b id="од-частота">—</b><span>{с.hz}</span></span>
+      <span class="од-цифра"><b id="од-остаток">—</b><span>{с.left}</span></span>
+    </div>
+
+    <div class="од-полоса" aria-hidden="true"><i id="од-ход"></i></div>
+  </div>
+
+  <p class="од-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.caution}</span>
+  </p>
+
+  <div class="од-шаги">
+    <div class="од-шаг"><b>1</b><span><strong>{с.p1}.</strong> {с.p1s}</span></div>
+    <div class="од-шаг"><b>2</b><span><strong>{с.p2}.</strong> {с.p2s}</span></div>
+    <div class="од-шаг"><b>3</b><span><strong>{с.p3}.</strong> {с.p3s}</span></div>
+    <div class="од-шаг"><b>4</b><span><strong>{с.p4}.</strong> {с.p4s}</span></div>
+  </div>
+
+  <div class="од-заметки">
+    <div class="од-заметка">{с.n1}</div>
+    <div class="од-заметка">{с.n2}</div>
+    <div class="од-заметка">{с.n3}</div>
+    <div class="од-заметка">{с.n4}</div>
+    <div class="од-заметка">{с.n5}</div>
+    <div class="од-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.од');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+
+    let режим = 'вода', секунд = 15;
+    let узел = null, ген = null, громкость = null;
+    let идёт = false, началось = 0, кадр = 0, замок = null;
+
+    // Держатель звуковой сессии для iOS заводится с первого касания страницы: без него
+    // узел не переживает уход экрана. На других системах ничего не делает.
+    startKeeper();
+
+    function открытьСессию() {
+      // ДО создания узла, иначе разряд сессии уже не переучредить, и боковой беззвучный
+      // переключатель iPhone заглушит звук наглухо.
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+
+    function выбор(ид, поле, куда) {
+      const узелЧипов = $(ид);
+      узелЧипов.addEventListener('click', (e) => {
+        const б = e.target.closest('.од-чип');
+        if (!б) return;
+        узелЧипов.querySelectorAll('.од-чип').forEach((к) => к.classList.remove('вкл'));
+        б.classList.add('вкл');
+        куда(б.dataset[поле]);
+        // Настройку меняют на ходу -- перезапускаем, чтобы не гадать, что сейчас играет.
+        if (идёт) { стоп(); пуск(); }
+      });
+    }
+    выбор('од-режимы', 'режим', (з) => { режим = з; });
+    выбор('од-время', 'сек', (з) => { секунд = Number(з) || 15; });
+
+    // ---- Звук --------------------------------------------------------------------------
+    // Вода: тон гуляет между 150 и 250 герцами короткими толчками. Ровный тон капля
+    // пересиживает, покачиваясь на месте; выталкивают её рывки мембраны, а хождение по
+    // частоте нужно потому, что у каждого корпуса свой отзыв.
+    const ВОДА_НИЗ = 150, ВОДА_ВЕРХ = 250, ВОДА_КАЧАНИЕ = 2;   // секунд на полный проход
+    const ТОЛЧКОВ = 5;   // толчков в секунду
+    // Пыль: проход снизу вверх. У пылинок разной величины своя частота срыва, и один
+    // тон накрывает только часть из них.
+    const ПЫЛЬ_ОТ = 40, ПЫЛЬ_ДО = 12000, ПЫЛЬ_ПРОХОД = 8;   // секунд на проход
+
+    function пуск() {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (узел.state === 'suspended') узел.resume();
+
+      ген = узел.createOscillator();
+      громкость = узел.createGain();
+      const т = узел.currentTime;
+
+      if (режим === 'вода') {
+        ген.type = 'sine';
+        // Частота ходит туда-обратно: вверх за половину качания, вниз за вторую.
+        for (let н = 0; н < секунд; н += ВОДА_КАЧАНИЕ) {
+          ген.frequency.setValueAtTime(ВОДА_НИЗ, т + н);
+          ген.frequency.linearRampToValueAtTime(ВОДА_ВЕРХ, т + н + ВОДА_КАЧАНИЕ / 2);
+          ген.frequency.linearRampToValueAtTime(ВОДА_НИЗ, т + н + ВОДА_КАЧАНИЕ);
+        }
+        // Толчки рисуем самой громкостью: каждый толчок -- быстрый подъём и спад. Резать
+        // насухо нельзя, щелчок на полной громкости слышен как удар.
+        const шаг = 1 / ТОЛЧКОВ;
+        for (let i = 0; i * шаг < секунд + шаг; i++) {
+          const н = т + i * шаг;
+          громкость.gain.setValueAtTime(0.0001, н);
+          громкость.gain.exponentialRampToValueAtTime(0.9, н + 0.012);
+          громкость.gain.setValueAtTime(0.9, н + шаг * 0.55);
+          громкость.gain.exponentialRampToValueAtTime(0.0001, н + шаг * 0.8);
+        }
+      } else {
+        // Пила: её призвуки срывают пылинки тех размеров, до которых чистый тон не достаёт.
+        ген.type = 'sawtooth';
+        громкость.gain.setValueAtTime(0.0001, т);
+        громкость.gain.exponentialRampToValueAtTime(0.85, т + 0.05);
+        // Проходы идут один за другим, пока не выйдет время. Частота меняется по
+        // показателю: на слух это ровный подъём, а линейный почти весь срок сидел бы
+        // в высоких.
+        for (let н = 0; н < секунд; н += ПЫЛЬ_ПРОХОД) {
+          ген.frequency.setValueAtTime(ПЫЛЬ_ОТ, т + н);
+          ген.frequency.exponentialRampToValueAtTime(
+            ПЫЛЬ_ДО, т + Math.min(н + ПЫЛЬ_ПРОХОД, секунд)
+          );
+        }
+        громкость.gain.setValueAtTime(0.85, т + секунд - 0.06);
+        громкость.gain.exponentialRampToValueAtTime(0.0001, т + секунд);
+      }
+
+      ген.connect(громкость); громкость.connect(узел.destination);
+      ген.start(т); ген.stop(т + секунд + 0.05);
+
+      // Вибрация мотором в придачу к звуку -- там, где браузер её даёт. Собираем узор на
+      // весь срок сразу: повторять по таймеру нельзя, вкладка в фоне его придержит.
+      if (режим === 'вода' && navigator.vibrate) {
+        const узор = [];
+        for (let i = 0; i * 0.4 < секунд; i++) узор.push(260, 140);
+        try { navigator.vibrate(узор); } catch (e) {}
+      }
+
+      идёт = true; началось = performance.now();
+      корень.classList.add('идёт');
+      $('од-подпись').textContent = с.stop;
+      держатьЭкран();
+      ход();
+    }
+
+    function стоп() {
+      идёт = false;
+      cancelAnimationFrame(кадр);
+      if (ген) {
+        try {
+          const т = узел.currentTime;
+          громкость.gain.cancelScheduledValues(т);
+          громкость.gain.setValueAtTime(громкость.gain.value || 0.0001, т);
+          // Гасим за двадцать миллисекунд: обрыв на полной громкости даёт щелчок,
+          // который на максимуме звучит как удар по динамику.
+          громкость.gain.exponentialRampToValueAtTime(0.0001, т + 0.02);
+          ген.stop(т + 0.03);
+        } catch (e) {}
+        ген = null;
+      }
+      if (navigator.vibrate) { try { navigator.vibrate(0); } catch (e) {} }
+      корень.classList.remove('идёт');
+      $('од-подпись').textContent = с.go;
+      $('од-частота').textContent = '—';
+      $('од-остаток').textContent = '—';
+      $('од-ход').style.transform = 'scaleX(0)';
+      отпуститьЭкран();
+    }
+
+    function ход() {
+      if (!идёт) return;
+      const прошло = (performance.now() - началось) / 1000;
+      const осталось = Math.max(0, секунд - прошло);
+      $('од-остаток').textContent = Math.ceil(осталось) + ' ' + с.sec;
+      $('од-ход').style.transform = 'scaleX(' + Math.min(1, прошло / секунд) + ')';
+      // Частоту показываем ту же, что звучит: у прохода она считается по тому же закону,
+      // по которому её ведёт сам генератор.
+      let гц;
+      if (режим === 'пыль') {
+        const вПроходе = (прошло % ПЫЛЬ_ПРОХОД) / ПЫЛЬ_ПРОХОД;
+        гц = ПЫЛЬ_ОТ * Math.pow(ПЫЛЬ_ДО / ПЫЛЬ_ОТ, вПроходе);
+      } else {
+        // Тон качается вверх за первую половину и вниз за вторую -- как его ведёт генератор.
+        const вКачании = (прошло % ВОДА_КАЧАНИЕ) / ВОДА_КАЧАНИЕ;
+        const доля = вКачании < 0.5 ? вКачании * 2 : (1 - вКачании) * 2;
+        гц = ВОДА_НИЗ + (ВОДА_ВЕРХ - ВОДА_НИЗ) * доля;
+      }
+      $('од-частота').textContent = гц >= 1000
+        ? (гц / 1000).toFixed(1) + 'к' : String(Math.round(гц));
+      if (осталось <= 0) { стоп(); return; }
+      кадр = requestAnimationFrame(ход);
+    }
+
+    // Экран не должен гаснуть посреди работы: минуту без касаний телефон гасит подсветку,
+    // а вместе с ней человек теряет и остаток времени, и кнопку «остановить».
+    async function держатьЭкран() {
+      try { if ('wakeLock' in navigator) замок = await navigator.wakeLock.request('screen'); }
+      catch (e) {}
+    }
+    function отпуститьЭкран() { try { if (замок) { замок.release(); замок = null; } } catch (e) {} }
+
+    $('од-кнопка').addEventListener('click', () => { if (идёт) стоп(); else пуск(); });
+    // Ушли со страницы -- звук на полной громкости продолжаться не должен.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && идёт) стоп();
+    });
+
+    window.__одСостояние = () => ({
+      идёт, режим, секунд,
+      частота: $('од-частота').textContent, остаток: $('од-остаток').textContent,
+      подпись: $('од-подпись').textContent,
+      узел: узел ? узел.state : 'нет',
+      ход: $('од-ход').style.transform,
+    });
+  })();
+</script>

@@ -1,0 +1,132 @@
+/* СТИЛИ СТРАНИЦЫ «ОЧИСТКА ДИНАМИКА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ОДНА БОЛЬШАЯ КНОПКА. Сюда приходят с мокрым телефоном в руках, часто одной рукой и
+ *      в панике. Промахнуться мимо кнопки нельзя, и она же останавливает.
+ *   2. КНОПКУ НЕ ВЫКЛЮЧАТЬ во время работы: выключенная уходит в прозрачность и читается
+ *      как сломанная. Состояние показывают цвет кольца и лампочка, которая пульсирует
+ *      РАЗМЕРОМ, а не прозрачностью, -- мигающая прозрачность читается как «выключено».
+ *   3. МЕСТО ПОД ЦИФРЫ ЗАРЕЗЕРВИРОВАНО. Частота и остаток появляются на готовом месте,
+ *      страница не дёргается.
+ *
+ * Цвет свой -- голубой: страница про воду, и другого правильного цвета тут нет.
+ */
+
+.од {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #58b8f0;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+/* ---- Настройки ------------------------------------------------------------------------ */
+
+.од-верх { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 16px }
+.од-ряд { display: flex; flex-direction: column; gap: 6px }
+.од-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(214,219,230,.5); padding-left: 2px }
+.од-чипы { display: flex; flex-wrap: wrap; gap: 6px }
+.од-чип {
+  font: 600 13px var(--ui); height: 36px; padding: 0 15px; border-radius: 9px; cursor: pointer;
+  color: var(--muted); background: linear-gradient(180deg,#23262e,#191b21);
+  border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  transition: transform .06s ease, box-shadow .06s ease, color .12s ease;
+}
+.од-чип:hover { color: var(--text) }
+.од-чип:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
+.од-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
+
+/* ---- Площадка с кнопкой ---------------------------------------------------------------- */
+
+.од-поле {
+  position: relative; border-radius: 18px; padding: 30px 22px 26px;
+  border: 1px solid rgba(255,255,255,.07);
+  background:
+    radial-gradient(120% 90% at 50% 40%, rgba(88,184,240,.07), transparent 60%), #0f1116;
+  box-shadow: inset 0 2px 14px rgba(0,0,0,.75), 0 18px 38px -24px rgba(0,0,0,.9);
+  display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
+}
+
+/* Круги расходятся от кнопки, пока идёт работа: на шумной улице звука можно не услышать,
+   а видеть, что инструмент работает, надо. */
+.од-круг { position: relative; display: flex; align-items: center; justify-content: center }
+.од-волна { position: absolute; width: 148px; height: 148px; border-radius: 50%;
+  border: 2px solid rgba(88,184,240,.5); opacity: 0; pointer-events: none }
+.од.идёт .од-волна { animation: од-круги 1.8s ease-out infinite }
+.од.идёт .од-в2 { animation-delay: .9s }
+@keyframes од-круги {
+  0% { transform: scale(1); opacity: .55 }
+  100% { transform: scale(1.8); opacity: 0 }
+}
+
+/* Кнопка круглая и крупная: сюда приходят с мокрым телефоном, часто одной рукой. */
+.од-кнопка {
+  position: relative; width: 148px; height: 148px; border-radius: 50%; cursor: pointer;
+  border: 2px solid rgba(255,255,255,.14); background: linear-gradient(180deg,#23262e,#171920);
+  color: var(--text); display: flex; flex-direction: column; align-items: center;
+  justify-content: center; gap: 7px; font-family: var(--ui);
+  box-shadow: 0 6px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08);
+  transition: border-color .15s ease, box-shadow .15s ease, transform .07s ease;
+}
+.од-кнопка:active { transform: translateY(3px); box-shadow: 0 3px 0 rgba(0,0,0,.5) }
+.од.идёт .од-кнопка { border-color: rgba(88,184,240,.75);
+  box-shadow: 0 6px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.08),
+    0 0 0 6px rgba(88,184,240,.10) }
+.од-кнопка svg { width: 44px; height: 44px; color: var(--свой) }
+.од-кнопка b { font: 700 13.5px var(--ui) }
+
+/* Лампочка пульсирует размером. Мигающая прозрачностью читается как «выключено» -- ровно
+   наоборот тому, что надо сказать. */
+.од-лампа { position: absolute; top: 14px; right: 22px; width: 9px; height: 9px;
+  border-radius: 50%; background: rgba(255,255,255,.15) }
+.од.идёт .од-лампа { background: var(--свой); animation: од-пульс 1s ease-in-out infinite }
+@keyframes од-пульс { 0%,100% { transform: scale(1) } 50% { transform: scale(1.7) } }
+
+/* Место под цифры зарезервировано заранее: иначе страница дёргается в момент запуска. */
+.од-цифры { display: flex; align-items: baseline; justify-content: center; gap: 20px;
+  min-height: 44px }
+.од-цифра { display: flex; flex-direction: column; align-items: center; gap: 2px }
+.од-цифра b { font: 800 24px/1 var(--ui); color: var(--свой); font-variant-numeric: tabular-nums }
+.од-цифра span { font: 600 10.5px var(--ui); letter-spacing: .06em; text-transform: uppercase;
+  color: rgba(214,219,230,.5) }
+.од:not(.идёт) .од-цифра b { color: rgba(214,219,230,.35) }
+
+.од-полоса { width: 100%; max-width: 420px; height: 6px; border-radius: 4px;
+  background: rgba(255,255,255,.07); overflow: hidden }
+.од-полоса i { display: block; height: 100%; width: 100%; background: var(--свой);
+  transform: scaleX(0); transform-origin: left; transition: transform .2s linear }
+
+/* ---- Оговорка и шаги -------------------------------------------------------------------- */
+
+.од-тише { display: flex; gap: 8px; margin: 14px 0 0; font-size: 12px; line-height: 1.5;
+  color: rgba(214,219,230,.55) }
+.од-тише svg { flex: none; width: 14px; height: 14px; margin-top: 2px; color: rgba(245,196,81,.65) }
+
+.од-шаги { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;
+  margin-top: 12px }
+.од-шаг { padding: 13px 14px 14px; border-radius: 12px; background: var(--surface-2);
+  border: 1px solid var(--line) }
+.од-шаг b { display: flex; align-items: center; justify-content: center; width: 22px; height: 22px;
+  border-radius: 50%; font: 700 12px var(--ui); color: #10141a; background: var(--свой);
+  margin-bottom: 8px }
+.од-шаг span { display: block; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+
+.од-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.од-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.од-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 560px) {
+  .од-верх { gap: 14px }
+  .од-поле { padding: 24px 16px 22px }
+  .од-кнопка { width: 132px; height: 132px }
+  .од-волна { width: 132px; height: 132px }
+  .од-кнопка svg { width: 38px; height: 38px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .од.идёт .од-лампа { animation: none }
+  .од.идёт .од-волна { animation: none }
+  .од-полоса i { transition: none }
+}
