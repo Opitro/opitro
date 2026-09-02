@@ -18,6 +18,16 @@ import css from '../styles/tone-generator.css?inline';
 
 const { locale = 'ru' } = Astro.props;
 
+// Динамики -- один в один с тестом звука (AudioTool, SOUND_TEST_ICONS): вид утверждён там,
+// и две страницы про каналы обязаны выглядеть одинаково. Подписей на кнопках нет намеренно,
+// имя канала живёт в aria-label.
+const ДИНАМИК = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path class="тг-в1" d="M15.3 9.3a4 4 0 0 1 0 5.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path class="тг-в2" d="M18 6.9a7.5 7.5 0 0 1 0 10.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+const ДИНАМИКИ = {
+  '-1': '<svg viewBox="0 0 24 24" fill="currentColor"><g transform="translate(24 0) scale(-1 1)">' + ДИНАМИК + '</g></svg>',
+  '0': '<svg viewBox="0 0 52 24" fill="currentColor"><g transform="translate(24 0) scale(-1 1)">' + ДИНАМИК + '</g><g transform="translate(28 0)">' + ДИНАМИК + '</g></svg>',
+  '1': '<svg viewBox="0 0 24 24" fill="currentColor">' + ДИНАМИК + '</svg>',
+};
+
 const ФОРМЫ = [
   { имя: 'sine', путь: 'M1 6c3 0 3-5 6-5s3 5 6 5 3-5 6-5 3 5 6 5' },
   { имя: 'square', путь: 'M1 10V2h6v8h6V2h6v8h6' },
@@ -111,14 +121,13 @@ const ГОТОВЫЕ = [
     </div>
     <div class="тг-нота" id="тг-нота"></div>
     <canvas class="тг-волна" id="тг-волна"></canvas>
-    <button type="button" class="тг-играть" id="тг-играть">
+    <button type="button" class="тг-играть" id="тг-играть" aria-label={с.play} title={с.play}>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакИграть">
-        <path d="M8 5.6v12.8L19 12z"/>
+        <path d="M8.5 5.4v13.2L19.4 12z"/>
       </svg>
       <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="тг-знакСтоп">
-        <rect x="7" y="7" width="10" height="10" rx="1.5"/>
+        <rect x="7.2" y="7.2" width="9.6" height="9.6" rx="1.6"/>
       </svg>
-      <span id="тг-подпись">{с.play}</span>
     </button>
   </div>
 
@@ -151,10 +160,13 @@ const ГОТОВЫЕ = [
 
     <div class="тг-ручка">
       <span class="тг-к">{с.chan}</span>
-      <div class="тг-чипы" id="тг-каналы">
-        <button type="button" class="тг-чип" data-канал="-1">{с.left}</button>
-        <button type="button" class="тг-чип вкл" data-канал="0">{с.both}</button>
-        <button type="button" class="тг-чип" data-канал="1">{с.right}</button>
+      <div class="тг-динамики" id="тг-каналы">
+        {[['-1', с.left], ['0', с.both], ['1', с.right]].map(([к, имя]) => (
+          <button type="button" class={`тг-динамик${к === '0' ? ' вкл' : ''}`} data-канал={к}
+                  aria-label={имя} title={имя}>
+            <span class="тг-ико" set:html={ДИНАМИКИ[к]} />
+          </button>
+        ))}
       </div>
     </div>
 
@@ -290,7 +302,8 @@ const ГОТОВЫЕ = [
       ген.start(т);
       идёт = true;
       корень.classList.add('идёт');
-      $('тг-подпись').textContent = с.stop;
+      const к = $('тг-играть');
+      к.setAttribute('aria-label', с.stop); к.setAttribute('title', с.stop);
       рисовать();
     }
 
@@ -307,7 +320,8 @@ const ГОТОВЫЕ = [
         ген = null;
       }
       корень.classList.remove('идёт');
-      $('тг-подпись').textContent = с.play;
+      const к = $('тг-играть');
+      к.setAttribute('aria-label', с.play); к.setAttribute('title', с.play);
       рисовать();
     }
 
@@ -342,9 +356,16 @@ const ГОТОВЫЕ = [
         // десятка волн, а при 15 килогерцах -- каша.
         const сколько = Math.max(32, Math.min(буфер.length,
           Math.round(3 * узел.sampleRate / Math.max(20, гц))));
+        // Размах подгоняем под окно. Иначе на тихой громкости линия почти плоская и
+        // читается как «ничего не идёт», хотя звук есть: осциллограф показывает форму,
+        // а уровень громкости и так написан цифрой рядом.
+        let пик = 0;
+        for (let i = 0; i < сколько; i++) { const а = Math.abs(буфер[i]); if (а > пик) пик = а; }
+        const масштаб = пик > 0.0008 ? 0.94 / пик : 0;
         for (let x = 0; x <= ш; x++) {
           const i = Math.min(сколько - 1, Math.floor((x / ш) * сколько));
-          const у = в / 2 - Math.max(-1, Math.min(1, буфер[i])) * амплитуда;
+          const зн = Math.max(-1, Math.min(1, буфер[i] * масштаб));
+          const у = в / 2 - зн * амплитуда;
           if (x === 0) кт.moveTo(x, у); else кт.lineTo(x, у);
         }
       } else {
@@ -393,10 +414,14 @@ const ГОТОВЫЕ = [
       if (идёт && ген) ген.type = форма;
       рисовать();
     });
-    выбор('тг-каналы', 'канал', (з) => {
-      канал = Number(з) || 0;
+    $('тг-каналы').addEventListener('click', (e) => {
+      const б = e.target.closest('.тг-динамик');
+      if (!б) return;
+      $('тг-каналы').querySelectorAll('.тг-динамик').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      канал = Number(б.dataset.канал) || 0;
       if (идёт && панорама) {
-        try { панорама.pan.setTargetAtTime(канал, узел.currentTime, 0.02); } catch (e) {}
+        try { панорама.pan.setTargetAtTime(канал, узел.currentTime, 0.02); } catch (e2) {}
       }
     });
     $('тг-готовые').addEventListener('click', (e) => {
