@@ -3,7 +3,7 @@ toolSlug: speaker-cleaner
 locale: en
 category: device-tests
 tool: speaker-cleaner
-title: Speaker cleaner — remove water and dirt from a phone or earbuds
+title: Speaker cleaner online — eject water and dust with sound
 h1: Speaker cleaner for water and dust
 navName: Speaker cleaner
 description: "Eject water and shake dirt out of an iPhone, Samsung or Xiaomi speaker and out of earbuds. Three modes: low pulses, a frequency sweep and ultrasound."

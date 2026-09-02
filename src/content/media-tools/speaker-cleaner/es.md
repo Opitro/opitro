@@ -3,7 +3,7 @@ toolSlug: speaker-cleaner
 locale: es
 category: device-tests
 tool: speaker-cleaner
-title: Limpiar el altavoz de agua y suciedad — iPhone, Samsung, auriculares
+title: Limpiar el altavoz de agua y polvo online — expulsar con sonido
 h1: Limpieza del altavoz de agua y polvo
 navName: Limpiar altavoz
 description: "Expulsa el agua y sacude la suciedad del altavoz de un iPhone, Samsung o Xiaomi y de los auriculares. Tres modos: pulsos graves, barrido y ultrasonido."
