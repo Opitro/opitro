@@ -73,7 +73,15 @@
 }
 .сл-ухоКн.вкл { border-color: rgba(236,95,127,.6); color: var(--свой) }
 .сл-ико { display: flex; line-height: 0; gap: 2px; opacity: .8 }
-.сл-ико svg { width: auto; height: 38px; display: block }
+/* Ухо с дугами шире, чем было у динамика, поэтому значок чуть выше. */
+.сл-ико svg { width: auto; height: 40px; display: block }
+/* Пока идёт звук в это ухо, дуги вспыхивают по очереди -- та же повадка, что у динамиков. */
+.сл-ухоКн.вкл .сл-в1 { animation: сл-волна .36s ease-in-out infinite }
+.сл-ухоКн.вкл .сл-в2 { animation: сл-волна .36s ease-in-out .09s infinite }
+@keyframes сл-волна { 0%,70%,100% { opacity: .18 } 25% { opacity: 1 } }
+@media (prefers-reduced-motion: reduce) {
+  .сл-ухоКн.вкл .сл-в1, .сл-ухоКн.вкл .сл-в2 { animation: none }
+}
 .сл-зеркало { display: block; line-height: 0; transform: scaleX(-1) }
 .сл-ухоКн.вкл .сл-ико { opacity: 1 }
 
@@ -120,6 +128,6 @@
   .сл-поле { padding: 20px 14px 18px }
   .сл-число { font-size: 54px }
   .сл-го { width: 100% }
-  .сл-ико svg { height: 32px }
+  .сл-ико svg { height: 34px }
 }
 @media (prefers-reduced-motion: reduce) { .сл-полоса i { transition: none } }
