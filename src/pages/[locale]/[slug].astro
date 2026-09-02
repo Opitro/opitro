@@ -27,6 +27,7 @@ import StuckPixel from '../../components/StuckPixel.astro';
 import BurnIn from '../../components/BurnIn.astro';
 import ColorTest from '../../components/ColorTest.astro';
 import HdrTest from '../../components/HdrTest.astro';
+import ProjectorTest from '../../components/ProjectorTest.astro';
 import MouseTest from '../../components/MouseTest.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
@@ -316,10 +317,13 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'hdr-test' && (
       <HdrTest locale={entry.data.locale} />
     )}
+    {kind === 'media' && entry.data.tool === 'projector-test' && (
+      <ProjectorTest locale={entry.data.locale} />
+    )}
     {kind === 'media' && entry.data.tool === 'mouse-test' && (
       <MouseTest locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'mouse-test'].includes(entry.data.tool)
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'mouse-test'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

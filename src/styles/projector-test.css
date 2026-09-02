@@ -1,0 +1,100 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ ПРОЕКТОРА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство то же, что у цветов монитора: восемь таблиц карточками, каждая со своим именем
+ * и строкой «что смотреть», по нажатию -- во весь экран. Одна общая «проверка проектора»
+ * бесполезна: человек смотрит на картинку и не знает, что на ней должно быть не так.
+ *
+ * Особенность проектора: смотреть на таблицу и нажимать кнопки приходится из разных мест
+ * комнаты. Поэтому таблицы листаются не только нажатием, но и стрелками с пробелом -- с
+ * пультом-презентером это те же клавиши.
+ *
+ * Цвет свой -- бирюзовый. Все остальные из знака сайта уже заняты соседними страницами про
+ * экран: коралловый у частоты обновления, сиреневый у пикселей, янтарный у выгорания,
+ * розовый у цветов, оранжевый у HDR.
+ */
+
+.пр {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #3fd0c9;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+.пр-совет {
+  display: flex; align-items: flex-start; gap: 11px; padding: 13px 15px; border-radius: 12px;
+  background: var(--surface-2); border: 1px solid var(--line); margin-bottom: 14px;
+  font-size: 12.5px; line-height: 1.55; color: var(--muted);
+}
+.пр-совет svg { flex: none; width: 17px; height: 17px; margin-top: 1px; color: var(--свой) }
+
+/* ---- Таблицы -------------------------------------------------------------------------- */
+
+.пр-сетка { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px }
+.пр-карта {
+  display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden;
+  border-radius: 14px; cursor: pointer; background: var(--surface);
+  border: 1px solid var(--line); font-family: var(--ui);
+  transition: border-color .14s ease, transform .06s ease;
+}
+.пр-карта:hover { border-color: rgba(63,208,201,.5) }
+.пр-карта:active { transform: translateY(1px) }
+.пр-образец { height: 62px; border-bottom: 1px solid var(--line); background: #000 }
+.пр-имя { display: block; padding: 11px 13px 3px; font: 700 13.5px var(--ui); color: var(--text) }
+.пр-что { display: block; padding: 0 13px 13px; font-size: 12px; line-height: 1.5; color: var(--muted) }
+
+/* Образцы -- уменьшенные подобия самих таблиц. Значок не сказал бы, что откроется, а
+   рисовать восемь холстов ради картинки размером со спичечный коробок незачем. */
+.пр-обр-1 {
+  background:
+    repeating-linear-gradient(90deg, #d8d8d8 0 1px, transparent 1px 13px),
+    repeating-linear-gradient(0deg, #d8d8d8 0 1px, transparent 1px 13px), #fff;
+}
+.пр-обр-2 {
+  background:
+    linear-gradient(#fff, #fff) 6px 6px / calc(100% - 12px) 1px no-repeat,
+    linear-gradient(#fff, #fff) 6px calc(100% - 7px) / calc(100% - 12px) 1px no-repeat,
+    linear-gradient(#fff, #fff) 6px 6px / 1px calc(100% - 12px) no-repeat,
+    linear-gradient(#fff, #fff) calc(100% - 7px) 6px / 1px calc(100% - 12px) no-repeat,
+    #000;
+}
+.пр-обр-3 {
+  background:
+    repeating-linear-gradient(90deg, #fff 0 1px, transparent 1px 15px),
+    repeating-linear-gradient(0deg, #fff 0 1px, transparent 1px 15px), #000;
+}
+.пр-обр-4 { background: repeating-linear-gradient(90deg, #fff 0 1px, #000 1px 2px) }
+.пр-обр-5 { background: #fff }
+.пр-обр-6 { background: #808080 }
+.пр-обр-7 { background: #1a1a1a }
+.пр-обр-8 { background: #000 }
+.пр-обр-9 {
+  background:
+    repeating-conic-gradient(#fff 0 25%, #000 0 50%) 0 0 / 32px 32px;
+}
+
+.пр-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.пр-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.пр-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+/* ---- Полный экран --------------------------------------------------------------------- */
+
+.пр-слой { position: fixed; inset: 0; z-index: 9999; display: none; background: #000;
+  cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: manipulation }
+.пр-слой.on { display: block }
+.пр-холст { position: absolute; inset: 0; display: block; width: 100%; height: 100% }
+
+.пр-панель {
+  position: absolute; left: 50%; bottom: 26px; transform: translateX(-50%);
+  display: flex; align-items: center; gap: 13px; padding: 9px 15px; border-radius: 12px;
+  background: rgba(0,0,0,.62); border: 1px solid rgba(255,255,255,.2);
+  color: #e8ecf3; font-size: 13px; max-width: 92vw; transition: opacity .6s ease;
+}
+.пр-слой.тихо .пр-панель { opacity: 0 }
+.пр-номер { font: 800 13px var(--ui); color: var(--свой); font-variant-numeric: tabular-nums }
+.пр-подпись { overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
+
+@media (max-width: 560px) {
+  .пр-панель { bottom: 16px; font-size: 12px; gap: 10px; padding: 8px 12px }
+}
+@media (prefers-reduced-motion: reduce) { .пр-панель { transition: none } }

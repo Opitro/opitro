@@ -1,0 +1,330 @@
+---
+// ТЕСТ ПРОЕКТОРА: восемь таблиц.
+//
+// Проектор проверяют не тем же, чем монитор. У него свои болезни: расфокус по углам, завал
+// геометрии от наклона, расхождение цветов, пятно яркости посередине, пыль на матрице,
+// засветка чёрного и растягивание картинки из чужого разрешения. Под каждую -- своя таблица.
+//
+// Всё рисуется на холсте в НАСТОЯЩИХ точках экрана (умножаем на devicePixelRatio): таблица
+// чёткости состоит из линий толщиной в одну точку, и на холсте другого размера она
+// превратится в серую кашу ещё до того, как её увидит проектор.
+//
+// Листается стрелками и пробелом, а не только нажатием: у проектора экран на стене, а
+// человек с пультом-презентером стоит в другом конце комнаты.
+import css from '../styles/projector-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    tip: 'Стрелки или пробел листают таблицы · Esc — выход',
+    lead: 'Выключите свет, поставьте проектор в родное разрешение и запустите страницу с того устройства, которое к нему подключено. Смотрите на стену с места зрителя, а не от проектора.',
+    t1: 'Сетка для фокуса', t1s: 'Мелкая сетка по всему полю. Наводите резкость так, чтобы линии были одинаково чёткими и в середине, и по углам. Размытые углы — перекос объектива или наклон проектора.',
+    t2: 'Геометрия и края', t2s: 'Рамка, крест и диагонали. Рамка должна совпасть с краями экрана, а стороны — быть прямыми. Сужение сверху или снизу — трапеция от наклона; бочка по сторонам — объектив.',
+    t3: 'Сведение цветов', t3s: 'Тонкие белые линии на чёрном. По краям линий не должно быть цветной каймы: красная или синяя окантовка — расхождение матриц, лечится сведением в меню.',
+    t4: 'Чёткость 1:1', t4s: 'Линии толщиной в одну точку. Если вместо линий видна серая рябь или узор идёт волнами, картинка растягивается — поставьте родное разрешение проектора.',
+    t5: 'Белое поле', t5s: 'Равномерность и грязь. Ищите пятно яркости посередине, тёмные углы и размытые тёмные кружки — так выглядит пыль внутри оптики.',
+    t6: 'Серое поле', t6s: 'На ровном сером видны цветные пятна: зеленоватые и розовые зоны выдают усталость матриц или лампы. Здесь же заметен перекос по цвету между углами.',
+    t7: 'Тёмно-серое поле', t7s: 'Десять процентов яркости. На чёрном проектор не показывает почти ничего, а здесь проступают свечение по краям и пятна от перегретой матрицы или уставшего поляризатора.',
+    t8: 'Чёрное поле', t8s: 'Уровень чёрного и засветка. Чёрное у проекторов серое — это норма. А вот светлая полоса по краю или яркое пятно — рассеянный свет от объектива.',
+    t9: 'Шахматка', t9s: 'Чёрные и белые квадраты вместе. Так виден настоящий контраст: если чёрные клетки заметно светлее, чем на чёрном поле, свет от белых клеток гуляет по комнате.',
+    n1: 'Проверяйте в тёмной комнате. Проектор рисует отражённым светом, и любая лампа съедает контраст сильнее, чем любая настройка.',
+    n2: 'Сначала родное разрешение, потом всё остальное. На чужом разрешении проектор растягивает картинку сам, и проверять резкость бессмысленно.',
+    n3: 'Дайте лампе прогреться минут десять: холодная лампа даёт другой оттенок, и «цветные пятна» иногда уходят сами.',
+    n4: 'Радужные всполохи на движении бывают у проекторов DLP с цветным колесом. Это особенность технологии, а не поломка, и видит её не каждый.',
+    n5: 'Покупаете б/у — смотрите белое и серое поле: пыль внутри, жёлтые или зелёные зоны и заметно потускневшая картинка означают отработавшую лампу или загрязнённый тракт.',
+  },
+  uk: {
+    tip: 'Стрілки або пробіл гортають таблиці · Esc — вихід',
+    lead: 'Вимкніть світло, поставте проєктор у рідну роздільність і запустіть сторінку з того пристрою, який до нього підключено. Дивіться на стіну з місця глядача, а не від проєктора.',
+    t1: 'Сітка для фокуса', t1s: 'Дрібна сітка по всьому полю. Наводьте різкість так, щоб лінії були однаково чіткими і посередині, і по кутах. Розмиті кути — перекіс об’єктива або нахил проєктора.',
+    t2: 'Геометрія і краї', t2s: 'Рамка, хрест і діагоналі. Рамка має збігтися з краями екрана, а сторони — бути прямими. Звуження вгорі чи внизу — трапеція від нахилу; бочка з боків — об’єктив.',
+    t3: 'Зведення кольорів', t3s: 'Тонкі білі лінії на чорному. По краях ліній не має бути кольорової облямівки: червона чи синя окантовка — розходження матриць, лікується зведенням у меню.',
+    t4: 'Чіткість 1:1', t4s: 'Лінії завтовшки в одну точку. Якщо замість ліній видно сіру рябизну або візерунок іде хвилями, картинка розтягується — поставте рідну роздільність проєктора.',
+    t5: 'Біле поле', t5s: 'Рівномірність і бруд. Шукайте пляму яскравості посередині, темні кути й розмиті темні кружечки — так виглядає пил усередині оптики.',
+    t6: 'Сіре поле', t6s: 'На рівному сірому видно кольорові плями: зеленуваті й рожеві зони видають утому матриць або лампи. Тут же помітний перекіс за кольором між кутами.',
+    t7: 'Темно-сіре поле', t7s: 'Десять відсотків яскравості. На чорному проєктор не показує майже нічого, а тут проступають світіння по краях і плями від перегрітої матриці чи втомленого поляризатора.',
+    t8: 'Чорне поле', t8s: 'Рівень чорного і засвітка. Чорне в проєкторів сіре — це норма. А от світла смуга по краю чи яскрава пляма — розсіяне світло від об’єктива.',
+    t9: 'Шахівниця', t9s: 'Чорні й білі квадрати разом. Так видно справжній контраст: якщо чорні клітинки помітно світліші, ніж на чорному полі, світло від білих клітинок гуляє кімнатою.',
+    n1: 'Перевіряйте в темній кімнаті. Проєктор малює відбитим світлом, і будь-яка лампа з’їдає контраст сильніше за будь-яке налаштування.',
+    n2: 'Спершу рідна роздільність, потім усе інше. На чужій роздільності проєктор розтягує картинку сам, і перевіряти різкість немає сенсу.',
+    n3: 'Дайте лампі прогрітися хвилин десять: холодна лампа дає інший відтінок, і «кольорові плями» іноді зникають самі.',
+    n4: 'Райдужні спалахи на русі бувають у проєкторів DLP з кольоровим колесом. Це особливість технології, а не поломка, і бачить її не кожен.',
+    n5: 'Купуєте б/в — дивіться біле й сіре поле: пил усередині, жовті чи зелені зони й помітно потьмяніла картинка означають відпрацьовану лампу або забруднений тракт.',
+  },
+  en: {
+    tip: 'Arrows or space change the chart · Esc to leave',
+    lead: 'Switch the lights off, set the projector to its native resolution and run this page from the device connected to it. Judge the wall from where the audience sits, not from beside the projector.',
+    t1: 'Focus grid', t1s: 'A fine grid across the whole field. Focus so the lines are equally sharp in the middle and in the corners. Soft corners mean a tilted lens or a tilted projector.',
+    t2: 'Geometry and edges', t2s: 'A frame, a cross and diagonals. The frame should line up with the edges of the screen and the sides should be straight. Narrowing at the top or bottom is keystone from tilt; bowed sides are the lens.',
+    t3: 'Convergence', t3s: 'Thin white lines on black. There should be no coloured fringe along them: a red or blue edge means the panels are out of alignment, which the convergence menu can fix.',
+    t4: 'Sharpness 1:1', t4s: 'Lines one pixel wide. If you see grey mush or a wavy moiré instead of lines, the image is being rescaled — set the projector’s native resolution.',
+    t5: 'White field', t5s: 'Uniformity and dirt. Look for a bright hotspot in the middle, dark corners and blurred dark discs — that is how dust inside the optics looks.',
+    t6: 'Grey field', t6s: 'Flat grey reveals colour patches: greenish and pink areas give away tired panels or a tired lamp. It also shows a colour shift between corners.',
+    t7: 'Dark grey field', t7s: 'Ten per cent brightness. On pure black a projector shows almost nothing, but here glow along the edges and patches from an overheated panel or a tired polariser come through.',
+    t8: 'Black field', t8s: 'Black level and stray light. Grey-looking black is normal for a projector. A light band along an edge or a bright patch is scattered light from the lens.',
+    t9: 'Checkerboard', t9s: 'Black and white squares together. This shows real contrast: if the black squares look much lighter than on the black field, light from the white ones is bouncing around the room.',
+    n1: 'Test in a dark room. A projector paints with reflected light, and any lamp in the room eats more contrast than any setting can restore.',
+    n2: 'Native resolution first, everything else after. At any other resolution the projector rescales the image itself and checking sharpness is pointless.',
+    n3: 'Let the lamp warm up for ten minutes: a cold lamp has a different tint, and “colour patches” sometimes disappear on their own.',
+    n4: 'Rainbow flashes on movement happen on DLP projectors with a colour wheel. That is how the technology works rather than a fault, and not everyone sees it.',
+    n5: 'Buying second hand? Watch the white and grey fields: dust inside, yellow or green zones and a visibly dull picture mean a worn lamp or a dirty light path.',
+  },
+  es: {
+    tip: 'Las flechas o el espacio cambian de carta · Esc para salir',
+    lead: 'Apaga las luces, pon el proyector en su resolución nativa y abre esta página desde el aparato conectado a él. Mira la pared desde donde se sienta el público, no desde el proyector.',
+    t1: 'Rejilla de enfoque', t1s: 'Una rejilla fina por todo el campo. Enfoca hasta que las líneas queden igual de nítidas en el centro y en las esquinas. Las esquinas blandas indican objetivo o proyector inclinado.',
+    t2: 'Geometría y bordes', t2s: 'Marco, cruz y diagonales. El marco debe coincidir con los bordes de la pantalla y los lados han de salir rectos. Si se estrecha arriba o abajo es trapecio por inclinación; si los lados se abomban es el objetivo.',
+    t3: 'Convergencia', t3s: 'Líneas blancas finas sobre negro. No debe haber orla de color en sus bordes: un filo rojo o azul significa paneles desalineados, y se corrige en el menú de convergencia.',
+    t4: 'Nitidez 1:1', t4s: 'Líneas de un píxel de grosor. Si en vez de líneas ves una papilla gris o un muaré ondulado, la imagen se está reescalando: pon la resolución nativa del proyector.',
+    t5: 'Campo blanco', t5s: 'Uniformidad y suciedad. Busca un punto caliente en el centro, esquinas oscuras y discos oscuros difuminados: así se ve el polvo dentro de la óptica.',
+    t6: 'Campo gris', t6s: 'El gris plano revela manchas de color: las zonas verdosas y rosadas delatan paneles o lámpara cansados. También se ve la desviación de color entre esquinas.',
+    t7: 'Campo gris oscuro', t7s: 'Un diez por ciento de brillo. Sobre negro puro un proyector no muestra casi nada; aquí sí aparecen el resplandor de los bordes y las manchas de un panel recalentado o un polarizador cansado.',
+    t8: 'Campo negro', t8s: 'Nivel de negro y luz parásita. Que el negro tire a gris es normal en un proyector. Una banda clara en un borde o una mancha brillante es luz dispersa del objetivo.',
+    t9: 'Damero', t9s: 'Cuadros blancos y negros juntos. Así se ve el contraste real: si los cuadros negros salen mucho más claros que en el campo negro, la luz de los blancos rebota por la sala.',
+    n1: 'Comprueba a oscuras. Un proyector pinta con luz reflejada, y cualquier lámpara encendida se come más contraste del que puede recuperar cualquier ajuste.',
+    n2: 'Primero la resolución nativa y luego lo demás. Con cualquier otra, el proyector reescala por su cuenta y comprobar la nitidez no sirve de nada.',
+    n3: 'Deja calentar la lámpara diez minutos: en frío da otro tono y las «manchas de color» a veces se van solas.',
+    n4: 'Los destellos de arcoíris al moverse aparecen en los proyectores DLP con rueda de color. Es propio de la tecnología, no una avería, y no todo el mundo los ve.',
+    n5: '¿Lo compras de segunda mano? Fíjate en el campo blanco y el gris: polvo dentro, zonas amarillas o verdes y una imagen claramente apagada significan lámpara gastada o camino óptico sucio.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const ТАБЛИЦЫ = [
+  { имя: с.t1, что: с.t1s }, { имя: с.t2, что: с.t2s }, { имя: с.t3, что: с.t3s },
+  { имя: с.t4, что: с.t4s }, { имя: с.t5, что: с.t5s }, { имя: с.t6, что: с.t6s },
+  { имя: с.t7, что: с.t7s }, { имя: с.t8, что: с.t8s }, { имя: с.t9, что: с.t9s },
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="пр" data-words={JSON.stringify(с)} data-names={JSON.stringify(ТАБЛИЦЫ.map((т) => т.имя))}>
+  <div class="пр-совет">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+      <rect x="2.5" y="7" width="15" height="10" rx="2"/><path d="M17.5 11.2 21.5 8.6v6.8l-4-2.6z"/>
+    </svg>
+    <span>{с.lead}</span>
+  </div>
+
+  <div class="пр-сетка" id="пр-сетка">
+    {ТАБЛИЦЫ.map((т, i) => (
+      <button type="button" class="пр-карта" data-i={i}>
+        <span class={`пр-образец пр-обр-${i + 1}`}></span>
+        <b class="пр-имя">{т.имя}</b>
+        <span class="пр-что">{т.что}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="пр-заметки">
+    <div class="пр-заметка">{с.n1}</div>
+    <div class="пр-заметка">{с.n2}</div>
+    <div class="пр-заметка">{с.n3}</div>
+    <div class="пр-заметка">{с.n4}</div>
+    <div class="пр-заметка">{с.n5}</div>
+  </div>
+
+  <div class="пр-слой" id="пр-слой">
+    <canvas class="пр-холст" id="пр-холст"></canvas>
+    <div class="пр-панель" id="пр-панель">
+      <span class="пр-номер" id="пр-номер">1 / 9</span>
+      <span class="пр-подпись" id="пр-подпись"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.пр');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const имена = JSON.parse(корень.dataset.names || '[]');
+    const $ = (id) => document.getElementById(id);
+    const слой = $('пр-слой'), холст = $('пр-холст'), кт = холст.getContext('2d');
+
+    let номер = 0, таймерТишины = 0;
+
+    // Настоящие точки экрана, а не умозрительные: таблица чёткости состоит из линий
+    // толщиной в одну точку, и на холсте другого размера она превратится в серую кашу.
+    function размер() {
+      const мп = window.devicePixelRatio || 1;
+      const ш = Math.round(window.innerWidth * мп), в = Math.round(window.innerHeight * мп);
+      if (холст.width !== ш || холст.height !== в) { холст.width = ш; холст.height = в; }
+      return { ш, в, мп };
+    }
+    function залить(цвет) {
+      const { ш, в } = размер();
+      кт.fillStyle = цвет; кт.fillRect(0, 0, ш, в);
+      return { ш, в };
+    }
+
+    // 1. Сетка для фокуса: частая сетка плюс более заметные перекрестия по углам и в
+    //    середине -- именно по ним и наводят резкость.
+    function сеткаФокуса() {
+      const { ш, в } = залить('#ffffff');
+      const шаг = Math.max(24, Math.round(Math.min(ш, в) / 28));
+      кт.strokeStyle = '#000'; кт.lineWidth = 1;
+      кт.beginPath();
+      for (let x = 0; x <= ш; x += шаг) { кт.moveTo(x + 0.5, 0); кт.lineTo(x + 0.5, в); }
+      for (let y = 0; y <= в; y += шаг) { кт.moveTo(0, y + 0.5); кт.lineTo(ш, y + 0.5); }
+      кт.stroke();
+      // Мишень: перекрестие, три вложенных кольца и мелкий текст. По тексту резкость видно
+      // куда вернее, чем по линиям: на линии не разобрать, чуть она размыта или нет, а на
+      // букве размытие заметно сразу.
+      кт.textAlign = 'center'; кт.textBaseline = 'middle';
+      const метка = (x, y, надпись) => {
+        const р = шаг * 1.7;
+        кт.strokeStyle = '#000';
+        кт.lineWidth = Math.max(2, шаг / 12);
+        кт.beginPath();
+        кт.moveTo(x - р, y); кт.lineTo(x + р, y);
+        кт.moveTo(x, y - р); кт.lineTo(x, y + р);
+        кт.stroke();
+        кт.lineWidth = Math.max(1, шаг / 22);
+        [0.4, 0.62, 0.84].forEach((к) => {
+          кт.beginPath(); кт.arc(x, y, р * к, 0, Math.PI * 2); кт.stroke();
+        });
+        кт.fillStyle = '#000';
+        кт.font = 700 + ' ' + Math.round(шаг * 0.5) + 'px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+        // У нижних мишеней подпись уезжает за край экрана, поэтому там она встаёт сверху.
+        кт.fillText(надпись, x, y + (y > в / 2 ? -1 : 1) * р * 1.5);
+      };
+      const о = шаг * 2.4;
+      метка(о, о, 'ФОКУС 1'); метка(ш - о, о, 'ФОКУС 2');
+      метка(о, в - о, 'ФОКУС 3'); метка(ш - о, в - о, 'ФОКУС 4');
+      метка(ш / 2, в / 2, 'ЦЕНТР');
+    }
+
+    // 2. Геометрия: рамка по самому краю, вторая рамка с отступом (по ней видно, не срезает
+    //    ли проектор края), крест и диагонали.
+    function геометрия() {
+      const { ш, в } = залить('#000000');
+      // Рамка зелёная: на тёмной стене её край видно лучше любого другого цвета, и глаз
+      // легко ловит несовпадение с краем полотна.
+      кт.strokeStyle = '#00ff00';
+      кт.lineWidth = Math.max(2, Math.round(Math.min(ш, в) / 400));
+      const п = кт.lineWidth;
+      кт.strokeRect(п / 2, п / 2, ш - п, в - п);
+      // Вторая рамка с отступом: по ней видно, не срезает ли проектор края картинки.
+      const о = Math.round(Math.min(ш, в) * 0.05);
+      кт.strokeStyle = 'rgba(0,255,0,.45)';
+      кт.strokeRect(о, о, ш - о * 2, в - о * 2);
+      кт.strokeStyle = '#fff';
+      кт.beginPath();
+      кт.moveTo(0, 0); кт.lineTo(ш, в); кт.moveTo(ш, 0); кт.lineTo(0, в);
+      кт.moveTo(ш / 2, 0); кт.lineTo(ш / 2, в); кт.moveTo(0, в / 2); кт.lineTo(ш, в / 2);
+      кт.stroke();
+      // Круг во весь экран: чем он больше, тем заметнее, что круг стал овалом. Маленький
+      // кружок в середине искажение по сторонам не покажет вовсе.
+      кт.beginPath();
+      кт.arc(ш / 2, в / 2, Math.min(ш, в) / 2 - п * 2, 0, Math.PI * 2);
+      кт.stroke();
+    }
+
+    // 3. Сведение: тонкие белые линии на чёрном. Расхождение матриц выдаёт себя цветной
+    //    каймой по краю линии, и на белом фоне её не разглядеть.
+    function сведение() {
+      const { ш, в } = залить('#000000');
+      const шаг = Math.max(28, Math.round(Math.min(ш, в) / 22));
+      кт.strokeStyle = '#fff'; кт.lineWidth = 1;
+      кт.beginPath();
+      for (let x = шаг; x < ш; x += шаг) { кт.moveTo(x + 0.5, 0); кт.lineTo(x + 0.5, в); }
+      for (let y = шаг; y < в; y += шаг) { кт.moveTo(0, y + 0.5); кт.lineTo(ш, y + 0.5); }
+      кт.stroke();
+      // Три чистых креста в середине: по ним видно, какая именно матрица ушла.
+      const р = шаг * 1.8, ц = ш / 2, у = в / 2;
+      [['#ff0000', -р * 2.4], ['#00ff00', 0], ['#0000ff', р * 2.4]].forEach(([цвет, сдвиг]) => {
+        кт.strokeStyle = цвет; кт.lineWidth = Math.max(2, шаг / 14);
+        кт.beginPath();
+        кт.moveTo(ц + сдвиг - р, у); кт.lineTo(ц + сдвиг + р, у);
+        кт.moveTo(ц + сдвиг, у - р); кт.lineTo(ц + сдвиг, у + р);
+        кт.stroke();
+      });
+    }
+
+    // 4. Чёткость: линии толщиной ровно в одну точку экрана. Если проектор растягивает
+    //    картинку, вместо линий будет серая рябь или волны.
+    function чёткость() {
+      const { ш, в } = залить('#000000');
+      кт.fillStyle = '#fff';
+      const треть = Math.floor(в / 3);
+      for (let x = 0; x < ш; x += 2) кт.fillRect(x, 0, 1, треть);
+      for (let y = треть; y < треть * 2; y += 2) кт.fillRect(0, y, ш, 1);
+      for (let y = треть * 2; y < в; y++) {
+        for (let x = (y % 2); x < ш; x += 2) кт.fillRect(x, y, 1, 1);
+      }
+    }
+
+    // 8. Шахматка: чёрное и белое одновременно. Так виден настоящий контраст -- свет от
+    //    белых клеток подсвечивает чёрные и всю комнату.
+    function шахматка() {
+      const { ш, в } = залить('#000000');
+      const колонок = 6, рядов = 4;
+      const кш = ш / колонок, кв = в / рядов;
+      кт.fillStyle = '#fff';
+      for (let р = 0; р < рядов; р++) {
+        for (let к = (р % 2); к < колонок; к += 2) {
+          кт.fillRect(Math.round(к * кш), Math.round(р * кв), Math.ceil(кш), Math.ceil(кв));
+        }
+      }
+    }
+
+    const РИСУЮТ = [
+      сеткаФокуса, геометрия, сведение, чёткость,
+      () => залить('#ffffff'), () => залить('#808080'), () => залить('#1a1a1a'),
+      () => залить('#000000'), шахматка,
+    ];
+
+    function показать(i) {
+      номер = (i + РИСУЮТ.length) % РИСУЮТ.length;
+      РИСУЮТ[номер]();
+      $('пр-номер').textContent = (номер + 1) + ' / ' + РИСУЮТ.length;
+      $('пр-подпись').textContent = имена[номер] + ' · ' + с.tip;
+      слой.classList.remove('тихо');
+      clearTimeout(таймерТишины);
+      // Подпись гаснет: светлый прямоугольник на таблице сам похож на засветку.
+      таймерТишины = window.setTimeout(() => слой.classList.add('тихо'), 3000);
+    }
+    function открыть(i) {
+      слой.classList.add('on');
+      показать(i);
+      const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
+      if (пуск) { try { const п = пуск.call(слой); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+    }
+    function закрыть() {
+      слой.classList.remove('on');
+      clearTimeout(таймерТишины);
+      if (document.fullscreenElement) {
+        try { const п = document.exitFullscreen(); if (п && п.catch) п.catch(() => {}); } catch (e) {}
+      }
+    }
+
+    $('пр-сетка').addEventListener('click', (e) => {
+      const б = e.target.closest('.пр-карта');
+      if (б) открыть(Number(б.dataset.i) || 0);
+    });
+    слой.addEventListener('click', () => показать(номер + 1));
+    // Стрелки и пробел -- те же клавиши, что шлёт пульт-презентер: до ноутбука через
+    // комнату не дойдёшь, а таблицу сменить надо.
+    window.addEventListener('keydown', (e) => {
+      if (!слой.classList.contains('on')) return;
+      if (e.key === 'Escape') { закрыть(); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp' || e.key === 'PageUp') {
+        e.preventDefault(); показать(номер - 1); return;
+      }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ' || e.key === 'PageDown') {
+        e.preventDefault(); показать(номер + 1);
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) слой.classList.remove('on');
+    });
+    window.addEventListener('resize', () => { if (слой.classList.contains('on')) показать(номер); });
+
+    window.__прСостояние = () => ({
+      открыт: слой.classList.contains('on'), номер: номер + 1, всего: РИСУЮТ.length,
+      ширина: холст.width, высота: холст.height,
+    });
+  })();
+</script>
