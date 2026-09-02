@@ -1,0 +1,313 @@
+---
+// ЦВЕТА МОНИТОРА: семь проверочных таблиц.
+//
+// Одна общая «проверка цвета» бесполезна: человек смотрит на картинку и не знает, что на ней
+// должно быть не так. Поэтому таблиц семь, у каждой своё имя и своя строка «что смотреть».
+//
+// Чего страница НЕ делает: она не меряет цветовой охват и не калибрует монитор. Охват меряют
+// колориметром, и обещать это в браузере нельзя. Единственное, что честно доступно, --
+// показать sRGB и display-p3 рядом: если экран шире sRGB, разница видна глазом.
+//
+// Таблицы рисуются на холсте по размеру окна, потому что ступени должны быть ровными и
+// упираться в края экрана: полоска фона сбоку сбивает сравнение соседних оттенков.
+import css from '../styles/color-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    gamutWide: 'Браузер сообщает: экран шире sRGB',
+    gamutSrgb: 'Браузер сообщает: обычный sRGB',
+    gamutNote: 'Это слова браузера о вашем экране, а не измерение. Настоящий охват меряют колориметром; здесь его можно только увидеть глазом — на последней таблице.',
+    tip: 'Нажимайте, чтобы сменить таблицу · Esc — выход',
+    t1: 'Ступени серого', t1s: 'Шестнадцать ступеней от чёрного к белому. Все должны отличаться друг от друга, а переходы — быть ровными, без скачков.',
+    t2: 'Тени', t2s: 'Шестнадцать квадратов от 1 до 16 в чёрном поле. Считайте, сколько видите: если первые пять сливаются с фоном, монитор съедает детали в тенях — убавьте яркость чёрного.',
+    t3: 'Света', t3s: 'Шестнадцать квадратов от 239 до 254 в белом поле. Если верхние не отличаются от фона, экран пересвечен и детали в светах теряются.',
+    t4: 'Плавный переход', t4s: 'Ровная растяжка от чёрного к белому. Полосы поперёк — признак дешёвой матрицы на шесть бит или неудачных настроек драйвера.',
+    t5: 'Красный, зелёный, синий', t5s: 'Три растяжки по каналам. Полосы или пятна на одном канале выдают перекос настроек, из-за которого серый уходит в цвет.',
+    t6: 'Чистые цвета', t6s: 'Шесть полос в полную насыщенность. Красный не должен уходить в оранжевый, синий — в фиолетовый, а сами полосы должны быть ровными по всей высоте.',
+    t7: 'Широкий охват', t7s: 'Слева самый красный цвет sRGB, справа — display-p3. Если половины одинаковые, экран обычный. Если правая заметно сочнее, охват шире sRGB.',
+    srgb: 'sRGB', p3: 'display-p3',
+    n1: 'Смотрите под прямым углом и с расстояния вытянутой руки: сбоку матрица меняет и яркость, и оттенок, особенно у ноутбуков.',
+    n2: 'Выключите ночной режим, автояркость и любые «улучшайзеры» в драйвере видеокарты и в телевизоре — иначе вы проверяете их, а не экран.',
+    n3: 'Проверяйте в тёмной комнате или хотя бы без света, падающего на экран: под лампой тёмные ступени не различить в принципе.',
+    n4: 'Страница показывает цвет, но не калибрует его. Настоящую калибровку делают колориметром — программы «на глаз» лишь двигают кривую в драйвере.',
+  },
+  uk: {
+    gamutWide: 'Браузер повідомляє: екран ширший за sRGB',
+    gamutSrgb: 'Браузер повідомляє: звичайний sRGB',
+    gamutNote: 'Це слова браузера про ваш екран, а не вимірювання. Справжній охоплення міряють колориметром; тут його можна лише побачити оком — на останній таблиці.',
+    tip: 'Натискайте, щоб змінити таблицю · Esc — вихід',
+    t1: 'Сходинки сірого', t1s: 'Шістнадцять сходинок від чорного до білого. Усі мають відрізнятися одна від одної, а переходи — бути рівними, без стрибків.',
+    t2: 'Тіні', t2s: 'Шістнадцять квадратів від 1 до 16 у чорному полі. Рахуйте, скільки бачите: якщо перші п’ять зливаються з тлом, монітор з’їдає деталі в тінях — зменште яскравість чорного.',
+    t3: 'Світла', t3s: 'Шістнадцять квадратів від 239 до 254 у білому полі. Якщо верхні не відрізняються від тла, екран пересвічений і деталі у світлах губляться.',
+    t4: 'Плавний перехід', t4s: 'Рівна розтяжка від чорного до білого. Смуги впоперек — ознака дешевої матриці на шість біт або невдалих налаштувань драйвера.',
+    t5: 'Червоний, зелений, синій', t5s: 'Три розтяжки за каналами. Смуги або плями на одному каналі видають перекіс налаштувань, через який сірий іде в колір.',
+    t6: 'Чисті кольори', t6s: 'Шість смуг у повну насиченість. Червоний не має йти в помаранчевий, синій — у фіолетовий, а самі смуги мають бути рівними по всій висоті.',
+    t7: 'Широке охоплення', t7s: 'Ліворуч найчервоніший колір sRGB, праворуч — display-p3. Якщо половини однакові, екран звичайний. Якщо права помітно соковитіша, охоплення ширше за sRGB.',
+    srgb: 'sRGB', p3: 'display-p3',
+    n1: 'Дивіться під прямим кутом і з відстані витягнутої руки: збоку матриця змінює і яскравість, і відтінок, надто в ноутбуків.',
+    n2: 'Вимкніть нічний режим, автояскравість і будь-які «покращувачі» у драйвері відеокарти й у телевізорі — інакше ви перевіряєте їх, а не екран.',
+    n3: 'Перевіряйте в темній кімнаті або хоча б без світла, що падає на екран: під лампою темні сходинки не розрізнити в принципі.',
+    n4: 'Сторінка показує колір, але не калібрує його. Справжнє калібрування роблять колориметром — програми «на око» лише рухають криву в драйвері.',
+  },
+  en: {
+    gamutWide: 'The browser reports: this screen is wider than sRGB',
+    gamutSrgb: 'The browser reports: ordinary sRGB',
+    gamutNote: 'That is what the browser says about your screen, not a measurement. Real gamut is measured with a colorimeter; here you can only see it with your own eyes, on the last chart.',
+    tip: 'Tap to change the chart · Esc to leave',
+    t1: 'Grey steps', t1s: 'Sixteen steps from black to white. Every one should differ from its neighbours, and the progression should be even, with no jumps.',
+    t2: 'Shadows', t2s: 'Sixteen squares from 1 to 16 on a black field. Count how many you can see: if the first five vanish into the background, the monitor is crushing shadow detail — lower the black level.',
+    t3: 'Highlights', t3s: 'Sixteen squares from 239 to 254 on a white field. If the top ones are no different from the background, the screen is blown out and highlight detail is lost.',
+    t4: 'Smooth ramp', t4s: 'An even ramp from black to white. Bands across it point to a cheap six-bit panel or bad driver settings.',
+    t5: 'Red, green, blue', t5s: 'One ramp per channel. Bands or patches on a single channel reveal a skew in the settings that pulls grey towards a colour.',
+    t6: 'Pure colours', t6s: 'Six bars at full saturation. Red should not lean orange nor blue lean purple, and each bar should stay even top to bottom.',
+    t7: 'Wide gamut', t7s: 'On the left the reddest colour sRGB can show, on the right display-p3. If the halves look identical, the screen is ordinary. If the right one is visibly richer, the gamut is wider than sRGB.',
+    srgb: 'sRGB', p3: 'display-p3',
+    n1: 'Look straight on and from arm’s length: at an angle a panel shifts both brightness and hue, laptops especially.',
+    n2: 'Switch off night mode, auto-brightness and every “enhancement” in the graphics driver or the TV — otherwise you are testing those, not the screen.',
+    n3: 'Test in a dark room, or at least with no light falling on the screen: under a lamp the dark steps cannot be told apart at all.',
+    n4: 'This page shows colour, it does not calibrate it. Real calibration needs a colorimeter — by-eye tools only shift the curve in the driver.',
+  },
+  es: {
+    gamutWide: 'El navegador informa: pantalla más amplia que sRGB',
+    gamutSrgb: 'El navegador informa: sRGB normal',
+    gamutNote: 'Eso es lo que dice el navegador de tu pantalla, no una medición. La gama real se mide con un colorímetro; aquí solo puedes verla a ojo, en la última carta.',
+    tip: 'Toca para cambiar de carta · Esc para salir',
+    t1: 'Escalones de gris', t1s: 'Dieciséis escalones del negro al blanco. Todos deben distinguirse entre sí y la progresión ha de ser pareja, sin saltos.',
+    t2: 'Sombras', t2s: 'Dieciséis cuadros del 1 al 16 sobre fondo negro. Cuenta cuántos ves: si los cinco primeros se funden con el fondo, el monitor se come el detalle en sombras; baja el nivel de negro.',
+    t3: 'Luces', t3s: 'Dieciséis cuadros del 239 al 254 sobre fondo blanco. Si los de arriba no se distinguen del fondo, la pantalla está quemada y se pierde el detalle en luces.',
+    t4: 'Degradado suave', t4s: 'Una rampa pareja del negro al blanco. Las bandas transversales delatan un panel barato de seis bits o ajustes de controlador poco afortunados.',
+    t5: 'Rojo, verde, azul', t5s: 'Una rampa por canal. Bandas o manchas en un solo canal revelan un desequilibrio que tira el gris hacia un color.',
+    t6: 'Colores puros', t6s: 'Seis franjas a plena saturación. El rojo no debe tirar a naranja ni el azul a violeta, y cada franja debe verse uniforme de arriba abajo.',
+    t7: 'Gama amplia', t7s: 'A la izquierda el rojo más intenso de sRGB, a la derecha display-p3. Si las mitades se ven iguales, la pantalla es normal. Si la derecha es claramente más viva, la gama supera sRGB.',
+    srgb: 'sRGB', p3: 'display-p3',
+    n1: 'Mira de frente y a la distancia del brazo: de lado el panel cambia brillo y tono, sobre todo en portátiles.',
+    n2: 'Apaga el modo nocturno, el brillo automático y cualquier «mejora» del controlador gráfico o del televisor: si no, estarás probando eso y no la pantalla.',
+    n3: 'Comprueba en una habitación oscura o al menos sin luz sobre la pantalla: bajo una lámpara los escalones oscuros no se distinguen en absoluto.',
+    n4: 'La página muestra el color, no lo calibra. La calibración de verdad se hace con colorímetro; los programas «a ojo» solo mueven la curva del controlador.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Образцы на карточках -- та же заливка в уменьшенном виде, обычным CSS. Рисовать их
+// холстами было бы семь лишних холстов ради картинки размером в спичечный коробок.
+const ОБРАЗЦЫ = [
+  'linear-gradient(90deg,#000 0 12.5%,#242424 0 25%,#484848 0 37.5%,#6c6c6c 0 50%,#909090 0 62.5%,#b4b4b4 0 75%,#d8d8d8 0 87.5%,#fff 0)',
+  'linear-gradient(90deg,#000 0 8%,#060606 0 20%,#000 0 28%,#0c0c0c 0 40%,#000 0 48%,#121212 0 60%,#000 0 68%,#181818 0 80%,#000 0 88%,#1e1e1e 0)',
+  'linear-gradient(90deg,#fff 0 8%,#f4f4f4 0 20%,#fff 0 28%,#f7f7f7 0 40%,#fff 0 48%,#fafafa 0 60%,#fff 0 68%,#fcfcfc 0 80%,#fff 0 88%,#fdfdfd 0)',
+  'linear-gradient(90deg,#000,#fff)',
+  'linear-gradient(180deg,#000,#f00),linear-gradient(90deg,#000,#f00)',
+  'linear-gradient(90deg,#f00 0 16.6%,#ff0 0 33.3%,#0f0 0 50%,#0ff 0 66.6%,#00f 0 83.3%,#f0f 0)',
+  null,   // охват красится классом: ему нужен запасной цвет, а его в одну строку не записать
+];
+const ТАБЛИЦЫ = [
+  { имя: с.t1, что: с.t1s }, { имя: с.t2, что: с.t2s }, { имя: с.t3, что: с.t3s },
+  { имя: с.t4, что: с.t4s }, { имя: с.t5, что: с.t5s }, { имя: с.t6, что: с.t6s },
+  { имя: с.t7, что: с.t7s },
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="цм" data-words={JSON.stringify(с)} data-names={JSON.stringify(ТАБЛИЦЫ.map((т) => т.имя))}>
+  <div class="цм-охват">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" aria-hidden="true">
+      <circle cx="12" cy="12" r="8.5"/><path d="M12 11v5.5" stroke-linecap="round"/><path d="M12 7.6v.1" stroke-linecap="round"/>
+    </svg>
+    <span><b id="цм-охват-итог">…</b><br />{с.gamutNote}</span>
+  </div>
+
+  <div class="цм-сетка" id="цм-сетка">
+    {ТАБЛИЦЫ.map((т, i) => (
+      <button type="button" class="цм-карта" data-i={i}>
+        <span class:list={['цм-образец', !ОБРАЗЦЫ[i] && 'цм-обр-охват']}
+              style={ОБРАЗЦЫ[i] ? `background:${ОБРАЗЦЫ[i]}` : undefined}></span>
+        <b class="цм-имя">{т.имя}</b>
+        <span class="цм-что">{т.что}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="цм-заметки">
+    <div class="цм-заметка">{с.n1}</div>
+    <div class="цм-заметка">{с.n2}</div>
+    <div class="цм-заметка">{с.n3}</div>
+    <div class="цм-заметка">{с.n4}</div>
+  </div>
+
+  {/* Слой лежит в разметке заранее: полный экран разрешён только прямо из жеста. */}
+  <div class="цм-слой" id="цм-слой">
+    <canvas class="цм-холст" id="цм-холст"></canvas>
+    {/* Широкий охват нельзя нарисовать на обычном холсте: он живёт в sRGB и P3 туда
+        не помещается. Поэтому эта таблица -- два обычных прямоугольника. */}
+    <div class="цм-охваты" id="цм-охваты">
+      <div class="цм-половина цм-п-srgb"><span>{с.srgb}</span></div>
+      <div class="цм-половина цм-п-p3"><span>{с.p3}</span></div>
+    </div>
+    <div class="цм-панель" id="цм-панель">
+      <span class="цм-номер" id="цм-номер">1 / 7</span>
+      <span class="цм-подпись" id="цм-подпись"></span>
+    </div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.цм');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const имена = JSON.parse(корень.dataset.names || '[]');
+    const $ = (id) => document.getElementById(id);
+    const слой = $('цм-слой'), холст = $('цм-холст'), кт = холст.getContext('2d');
+    const охваты = $('цм-охваты');
+
+    let номер = 0, таймерТишины = 0;
+
+    // Браузер знает, что он думает об экране. Это не измерение, и так и сказано в тексте,
+    // но для «шире sRGB или нет» этого достаточно.
+    const широкий = window.matchMedia && matchMedia('(color-gamut: p3)').matches;
+    $('цм-охват-итог').textContent = широкий ? с.gamutWide : с.gamutSrgb;
+
+    function размер() {
+      const мп = window.devicePixelRatio || 1;
+      const ш = Math.round(window.innerWidth * мп), в = Math.round(window.innerHeight * мп);
+      if (холст.width !== ш || холст.height !== в) { холст.width = ш; холст.height = в; }
+      return { ш, в, мп };
+    }
+    const серый = (у) => 'rgb(' + у + ',' + у + ',' + у + ')';
+
+    // Квадраты в поле: каждый сравнивается с фоном, а не с соседом. Столбики впритык
+    // обманывают -- глаз ловит границу между ними, даже когда сами оттенки неразличимы.
+    function квадраты(фон, от, шаг, светлыйФон) {
+      const { ш, в, мп } = размер();
+      кт.fillStyle = серый(фон);
+      кт.fillRect(0, 0, ш, в);
+      // Шестнадцать в один ряд -- квадраты размером с ноготь: ширины на них не хватает.
+      // Два ряда по восемь дают вдвое больший квадрат, а сравнивать с фоном от этого
+      // только легче.
+      const вРяду = 8, рядов = 2;
+      const бок = Math.min(ш / (вРяду * 1.62), в / 4.6);
+      const зазор = бок * 0.62, подпись = бок * 0.5;
+      const ширинаРяда = вРяду * бок + (вРяду - 1) * зазор;
+      const высота = рядов * (бок + подпись) + (рядов - 1) * зазор;
+      const слева = (ш - ширинаРяда) / 2, верх = (в - высота) / 2;
+      кт.textAlign = 'center';
+      кт.font = 700 + ' ' + Math.round(бок * 0.22) + 'px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+      for (let i = 0; i < вРяду * рядов; i++) {
+        const у = от + i * шаг;
+        const x = слева + (i % вРяду) * (бок + зазор);
+        const y = верх + Math.floor(i / вРяду) * (бок + подпись + зазор);
+        кт.fillStyle = серый(у);
+        кт.fillRect(Math.round(x), Math.round(y), Math.ceil(бок), Math.ceil(бок));
+        // Число видно всегда, иначе не сказать, до какой ступени вы досчитали.
+        кт.fillStyle = светлыйФон ? 'rgba(0,0,0,.45)' : 'rgba(255,255,255,.42)';
+        кт.fillText(String(у), x + бок / 2, y + бок + подпись * 0.7);
+      }
+    }
+
+    // Ступени с числами. Числа нужны: без них не сказать, сколько ступеней вы различили,
+    // а весь смысл тёмного и светлого конца именно в счёте.
+    function ступени(от, до, шаг, подписи) {
+      const { ш, в, мп } = размер();
+      const всего = Math.floor((до - от) / шаг) + 1;
+      const ширина = ш / всего;
+      кт.textAlign = 'center';
+      кт.font = 700 + ' ' + Math.round(13 * мп) + 'px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+      for (let i = 0; i < всего; i++) {
+        const у = от + i * шаг;
+        кт.fillStyle = серый(у);
+        кт.fillRect(Math.floor(i * ширина), 0, Math.ceil(ширина) + 1, в);
+        if (!подписи) continue;
+        // Подпись всегда контрастна своей ступени, иначе на её же фоне её не видно.
+        кт.fillStyle = у > 127 ? 'rgba(0,0,0,.55)' : 'rgba(255,255,255,.5)';
+        кт.fillText(String(у), (i + 0.5) * ширина, в - 22 * мп);
+      }
+    }
+    function растяжка() {
+      const { ш, в } = размер();
+      const г = кт.createLinearGradient(0, 0, ш, 0);
+      г.addColorStop(0, '#000'); г.addColorStop(1, '#fff');
+      кт.fillStyle = г; кт.fillRect(0, 0, ш, в);
+    }
+    function каналы() {
+      const { ш, в } = размер();
+      [['#ff0000'], ['#00ff00'], ['#0000ff']].forEach((цвет, i) => {
+        const г = кт.createLinearGradient(0, 0, ш, 0);
+        г.addColorStop(0, '#000'); г.addColorStop(1, цвет[0]);
+        кт.fillStyle = г;
+        кт.fillRect(0, Math.floor((в / 3) * i), ш, Math.ceil(в / 3) + 1);
+      });
+    }
+    function чистые() {
+      const { ш, в } = размер();
+      const полосы = ['#ff0000', '#ffff00', '#00ff00', '#00ffff', '#0000ff', '#ff00ff'];
+      const ширина = ш / полосы.length;
+      полосы.forEach((ц, i) => {
+        кт.fillStyle = ц;
+        кт.fillRect(Math.floor(i * ширина), 0, Math.ceil(ширина) + 1, в);
+      });
+    }
+
+    const РИСУЮТ = [
+      () => ступени(0, 255, 17, false),
+      () => квадраты(0, 1, 1, false),
+      () => квадраты(255, 239, 1, true),
+      растяжка,
+      каналы,
+      чистые,
+      null, // широкий охват рисуется не холстом
+    ];
+
+    function показать(i) {
+      номер = (i + РИСУЮТ.length) % РИСУЮТ.length;
+      const охватная = РИСУЮТ[номер] === null;
+      холст.hidden = охватная;
+      охваты.classList.toggle('on', охватная);
+      if (!охватная) РИСУЮТ[номер]();
+      $('цм-номер').textContent = (номер + 1) + ' / ' + РИСУЮТ.length;
+      $('цм-подпись').textContent = имена[номер] + ' · ' + с.tip;
+      слой.classList.remove('тихо');
+      clearTimeout(таймерТишины);
+      // Подсказка гаснет: на заливке не должно остаться ничего, что мешает сравнивать оттенки.
+      таймерТишины = window.setTimeout(() => слой.classList.add('тихо'), 3000);
+    }
+    function открыть(i) {
+      слой.classList.add('on');
+      показать(i);
+      const пуск = слой.requestFullscreen || слой.webkitRequestFullscreen;
+      if (пуск) { try { const п = пуск.call(слой); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+    }
+    function закрыть() {
+      слой.classList.remove('on');
+      clearTimeout(таймерТишины);
+      if (document.fullscreenElement) {
+        try { const п = document.exitFullscreen(); if (п && п.catch) п.catch(() => {}); } catch (e) {}
+      }
+    }
+
+    $('цм-сетка').addEventListener('click', (e) => {
+      const б = e.target.closest('.цм-карта');
+      if (б) открыть(Number(б.dataset.i) || 0);
+    });
+    слой.addEventListener('click', () => показать(номер + 1));
+    window.addEventListener('keydown', (e) => {
+      if (!слой.classList.contains('on')) return;
+      if (e.key === 'Escape') { закрыть(); return; }
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowUp') { e.preventDefault(); показать(номер - 1); return; }
+      if (e.key === 'ArrowRight' || e.key === 'ArrowDown' || e.key === ' ') {
+        e.preventDefault(); показать(номер + 1);
+      }
+    });
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement) слой.classList.remove('on');
+    });
+    // Окно поменяло размер (повернули телефон, вышли из полного экрана) -- таблица должна
+    // перерисоваться, иначе ступени останутся от прежней ширины.
+    window.addEventListener('resize', () => { if (слой.classList.contains('on')) показать(номер); });
+
+    window.__цмСостояние = () => ({
+      открыт: слой.classList.contains('on'), номер: номер + 1, всего: РИСУЮТ.length,
+      холстВиден: !холст.hidden, охватВиден: охваты.classList.contains('on'), широкий,
+    });
+  })();
+</script>
