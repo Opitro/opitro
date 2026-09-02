@@ -1,0 +1,501 @@
+---
+// ТЕСТ СЛУХА ПО ЧАСТОТАМ.
+//
+// Два разных дела на одной странице, и путать их нельзя:
+//   1. ВЕРХНЯЯ ГРАНИЦА. Тон ползёт вверх от 8 килогерц; человек жмёт «перестал слышать», и
+//      число замирает. Это отвечает на вопрос «на сколько лет тянет мой слух» -- верх уходит
+//      с возрастом раньше всего остального.
+//   2. ВЕДОМАЯ ПРОВЕРКА ПО ЧАСТОТАМ. На каждой из семи частот звук поднимается от почти
+//      тишины; человек жмёт «Слышу». Записывается ДОЛЯ подъёма -- насколько громче
+//      пришлось сделать звук, чтобы его поймать. Отвечает на другой вопрос: нет ли провала
+//      на отдельной частоте и не отличаются ли уши между собой.
+//
+// ЧЕСТНОСТЬ. Это НЕ аудиограмма. Аудиограмма меряет, при каком уровне в децибелах человек
+// слышит тон, а уровень задаётся поверенным прибором в тихой комнате. Браузер не знает ни
+// громкости наушников, ни их частотного отклика, ни шума вокруг. Поэтому страница нигде не
+// говорит «у вас потеря слуха» и не рисует график в децибелах. На графике ось называется
+// «тише -- громче», а не «дБ»: подписать долю децибелами значило бы выдумать число, которого
+// у нас нет. По той же причине нет и вывода «обратитесь к специалисту» с кнопкой «скачать
+// для врача»: бумага с выдуманными децибелами хуже, чем никакой бумаги.
+//
+// Подъём идёт по показателю, а не по прямой: слух устроен логарифмически, и на прямой
+// половина времени ушла бы на участок, где ничего не меняется.
+//
+// ЗВУК НА iPHONE: разряд сессии просится ДО создания узла, плюс держатель сессии.
+import css from '../styles/hearing-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+// Лесенка -- стандартный ряд, по которому строят аудиограммы, плюс верхние частоты, на
+// которых обычно и находят возрастную границу.
+const ЧАСТОТЫ = [125, 250, 500, 1000, 2000, 4000, 8000, 12000, 15000, 17000];
+
+const ДИНАМИК = '<path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.3 9.3a4 4 0 0 1 0 5.4" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/><path d="M18 6.9a7.5 7.5 0 0 1 0 10.2" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"/>';
+const ДИНАМИКИ = {
+  '-1': '<span class="сл-зеркало"><svg viewBox="0 0 24 24" fill="currentColor">' + ДИНАМИК + '</svg></span>',
+  '0': '<span class="сл-зеркало"><svg viewBox="0 0 24 24" fill="currentColor">' + ДИНАМИК + '</svg></span><svg viewBox="0 0 24 24" fill="currentColor">' + ДИНАМИК + '</svg>',
+  '1': '<svg viewBox="0 0 24 24" fill="currentColor">' + ДИНАМИК + '</svg>',
+};
+
+const СЛОВА = {
+  ru: {
+    calib: 'Проверить громкость', calibOn: 'Остановить проверку',
+    calibHint: 'Это тон 1000 герц на том уровне, с которого пойдёт проверка. Поставьте громкость так, чтобы он был слышен тихо, но ясно.',
+    run: 'Начать проверку', runStop: 'Прервать', iHear: 'Слышу',
+    step: 'Ухо: {ухо} · {гц} — звук нарастает',
+    missed: 'не услышали',
+    doneRun: 'Готово. Чем ниже точка, тем тише был звук, который вы поймали. Сравнивать имеет смысл свои уши между собой и свои частоты между собой — с чужими числами это не сравнивается.',
+    chartL: 'Левое', chartR: 'Правое', quiet: 'тише', loud: 'громче',
+    hz: 'герц', go: 'Начать подъём', stop: 'Перестал слышать', again: 'Ещё раз',
+    lead: 'Наденьте наушники и поставьте среднюю громкость. Тон пойдёт вверх от 8 килогерц — нажмите, как только перестанете его слышать.',
+    result: 'Ваша верхняя граница — <b>{гц}</b>. Так слышит большинство людей <b>{возраст}</b>.',
+    ladder: 'По частотам — по одному уху, звук нарастает',
+    ear: 'В какое ухо', left: 'Левое', both: 'Оба', right: 'Правое',
+    caution: 'Проверяйте в наушниках и на средней громкости. Высокие частоты на полной громкости вредят слуху, а на колонках телефона верх просто не воспроизводится и результат будет ложным.',
+    a20: 'до 20 лет', a30: 'около 30 лет', a40: 'около 40 лет', a50: 'около 50 лет',
+    a60: '60 лет и старше', aLow: 'ниже обычного для взрослых',
+    n1: 'Это не аудиограмма и не диагноз. Настоящий тест слуха меряет, при каком уровне в децибелах вы слышите тон, и делается поверенным прибором в тихой комнате. Браузер не знает ни громкости ваших наушников, ни того, как они звучат на краях диапазона.',
+    n2: 'Верхняя граница падает с возрастом у всех — это норма, а не болезнь. К тридцати обычно остаётся 16–17 килогерц, к пятидесяти около 12. Терять верх незаметно для речи: разговор укладывается в 300–3400 герц.',
+    n3: 'Дешёвые наушники сами не выдают 17–19 килогерц. Если верх пропал резко и рано, попробуйте другие наушники, прежде чем делать выводы.',
+    n4: 'Разница между ушами важнее самой границы. Если одно ухо слышит частоту, а другое нет — это повод сходить к сурдологу, даже когда оба числа кажутся приличными.',
+    n5: 'Не гоняйте тест на полной громкости и подолгу. Громкий тон на высокой частоте утомляет слух по-настоящему, а неприятного ощущения при этом может не быть.',
+  },
+  uk: {
+    calib: 'Перевірити гучність', calibOn: 'Зупинити перевірку',
+    calibHint: 'Це тон 1000 герц на тому рівні, з якого піде перевірка. Поставте гучність так, щоб він був чутний тихо, але ясно.',
+    run: 'Почати перевірку', runStop: 'Перервати', iHear: 'Чую',
+    step: 'Вухо: {ухо} · {гц} — звук наростає',
+    missed: 'не почули',
+    doneRun: 'Готово. Що нижча точка, то тихішим був звук, який ви впіймали. Порівнювати має сенс свої вуха між собою і свої частоти між собою — із чужими числами це не порівнюється.',
+    chartL: 'Ліве', chartR: 'Праве', quiet: 'тихіше', loud: 'гучніше',
+    hz: 'герц', go: 'Почати підйом', stop: 'Перестав чути', again: 'Ще раз',
+    lead: 'Надіньте навушники й поставте середню гучність. Тон піде вгору від 8 кілогерц — натисніть, щойно перестанете його чути.',
+    result: 'Ваша верхня межа — <b>{гц}</b>. Так чує більшість людей <b>{возраст}</b>.',
+    ladder: 'За частотами — по одному вуху, звук наростає',
+    ear: 'У яке вухо', left: 'Ліве', both: 'Обидва', right: 'Праве',
+    caution: 'Перевіряйте в навушниках і на середній гучності. Високі частоти на повній гучності шкодять слуху, а на колонках телефона верх просто не відтворюється й результат буде хибним.',
+    a20: 'до 20 років', a30: 'близько 30 років', a40: 'близько 40 років', a50: 'близько 50 років',
+    a60: '60 років і старше', aLow: 'нижче за звичайне для дорослих',
+    n1: 'Це не аудіограма й не діагноз. Справжній тест слуху міряє, за якого рівня в децибелах ви чуєте тон, і робиться повіреним приладом у тихій кімнаті. Браузер не знає ні гучності ваших навушників, ні того, як вони звучать на краях діапазону.',
+    n2: 'Верхня межа падає з віком у всіх — це норма, а не хвороба. До тридцяти зазвичай лишається 16–17 кілогерц, до п’ятдесяти близько 12. Втрачати верх непомітно для мови: розмова вкладається в 300–3400 герц.',
+    n3: 'Дешеві навушники самі не видають 17–19 кілогерц. Якщо верх зник різко й рано, спробуйте інші навушники, перш ніж робити висновки.',
+    n4: 'Різниця між вухами важливіша за саму межу. Якщо одне вухо чує частоту, а інше ні — це привід сходити до сурдолога, навіть коли обидва числа здаються пристойними.',
+    n5: 'Не ганяйте тест на повній гучності й подовгу. Гучний тон на високій частоті втомлює слух по-справжньому, а неприємного відчуття при цьому може не бути.',
+  },
+  en: {
+    calib: 'Check the volume', calibOn: 'Stop the check',
+    calibHint: 'This is a 1000 Hz tone at the level the test starts from. Set the volume so it is quiet but clear.',
+    run: 'Start the test', runStop: 'Interrupt', iHear: 'I hear it',
+    step: 'Ear: {ухо} · {гц} — the tone is rising',
+    missed: 'not heard',
+    doneRun: 'Done. The lower the point, the quieter the sound you caught. It makes sense to compare your ears with each other and your own frequencies with each other — not with anyone else’s numbers.',
+    chartL: 'Left', chartR: 'Right', quiet: 'quieter', loud: 'louder',
+    hz: 'hertz', go: 'Start the sweep', stop: 'I stopped hearing it', again: 'Again',
+    lead: 'Put headphones on and set a moderate volume. The tone climbs from 8 kHz — press as soon as you can no longer hear it.',
+    result: 'Your upper limit is <b>{гц}</b>. That is what most people hear <b>{возраст}</b>.',
+    ladder: 'By frequency — one ear at a time, the tone rises',
+    ear: 'Which ear', left: 'Left', both: 'Both', right: 'Right',
+    caution: 'Use headphones at a moderate volume. High frequencies at full volume damage hearing, and a phone speaker does not reproduce the top end at all, so the result would be false.',
+    a20: 'under 20', a30: 'around 30', a40: 'around 40', a50: 'around 50',
+    a60: 'at 60 and over', aLow: 'below the usual adult range',
+    n1: 'This is not an audiogram and not a diagnosis. A real hearing test measures the level in decibels at which you hear a tone, with a calibrated instrument in a quiet room. A browser knows neither the volume of your headphones nor how they behave at the edges of the range.',
+    n2: 'The upper limit falls with age for everyone — that is normal, not an illness. By thirty 16–17 kHz usually remains, by fifty around 12. Losing the top end goes unnoticed in speech: conversation lives between 300 and 3400 Hz.',
+    n3: 'Cheap headphones do not produce 17–19 kHz themselves. If the top end disappears sharply and early, try other headphones before drawing conclusions.',
+    n4: 'A difference between the ears matters more than the limit itself. If one ear hears a frequency and the other does not, that is worth a visit to an audiologist even when both numbers look decent.',
+    n5: 'Do not run the test loud or for long. A loud tone at a high frequency tires hearing for real, and it may not even feel unpleasant while it does.',
+  },
+  es: {
+    calib: 'Comprobar el volumen', calibOn: 'Parar la comprobación',
+    calibHint: 'Es un tono de 1000 Hz al nivel con el que empieza la prueba. Ajusta el volumen para que se oiga bajito pero claro.',
+    run: 'Empezar la prueba', runStop: 'Interrumpir', iHear: 'Lo oigo',
+    step: 'Oído: {ухо} · {гц} — el tono va subiendo',
+    missed: 'no oído',
+    doneRun: 'Listo. Cuanto más abajo está el punto, más flojo era el sonido que captaste. Tiene sentido comparar tus oídos entre sí y tus propias frecuencias entre sí, no con las cifras de otra persona.',
+    chartL: 'Izquierdo', chartR: 'Derecho', quiet: 'más flojo', loud: 'más fuerte',
+    hz: 'hercios', go: 'Empezar el barrido', stop: 'He dejado de oírlo', again: 'Otra vez',
+    lead: 'Ponte auriculares y un volumen medio. El tono sube desde 8 kHz: pulsa en cuanto dejes de oírlo.',
+    result: 'Tu límite superior es <b>{гц}</b>. Así oye la mayoría de la gente <b>{возраст}</b>.',
+    ladder: 'Por frecuencias: un oído cada vez, el tono sube',
+    ear: 'En qué oído', left: 'Izquierdo', both: 'Ambos', right: 'Derecho',
+    caution: 'Hazlo con auriculares y a volumen medio. Las frecuencias altas a todo volumen dañan el oído, y el altavoz de un móvil no reproduce los agudos, así que el resultado sería falso.',
+    a20: 'con menos de 20 años', a30: 'hacia los 30', a40: 'hacia los 40', a50: 'hacia los 50',
+    a60: 'a partir de los 60', aLow: 'por debajo de lo habitual en adultos',
+    n1: 'Esto no es una audiometría ni un diagnóstico. Una prueba de verdad mide a qué nivel en decibelios oyes un tono, con un instrumento calibrado y en una sala silenciosa. El navegador no sabe ni el volumen de tus auriculares ni cómo suenan en los extremos.',
+    n2: 'El límite superior baja con la edad en todo el mundo: es normal, no una enfermedad. Hacia los treinta suelen quedar 16–17 kHz y hacia los cincuenta unos 12. Perder los agudos no afecta al habla: la conversación vive entre 300 y 3400 Hz.',
+    n3: 'Unos auriculares baratos no dan 17–19 kHz por sí solos. Si los agudos desaparecen de golpe y pronto, prueba con otros antes de sacar conclusiones.',
+    n4: 'La diferencia entre oídos importa más que el límite. Si un oído oye una frecuencia y el otro no, conviene ver a un audiólogo aunque ambas cifras parezcan decentes.',
+    n5: 'No lo hagas a todo volumen ni durante mucho rato. Un tono agudo y fuerte cansa el oído de verdad, y puede que ni siquiera resulte molesto mientras lo hace.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="сл" data-words={JSON.stringify(с)}>
+  <div class="сл-поле">
+    <div class="сл-число" id="сл-число">—</div>
+    <div class="сл-ед">{с.hz}</div>
+    <div class="сл-полоса" aria-hidden="true"><i id="сл-ход"></i></div>
+    {/* Место под вывод стоит всегда: иначе страница прыгает в момент ответа. */}
+    <div class="сл-вывод" id="сл-вывод">{с.lead}</div>
+    <div class="сл-кнопки">
+      <button type="button" class="сл-го" id="сл-го">{с.go}</button>
+    </div>
+  </div>
+
+  <span class="сл-к">{с.ear}</span>
+  <div class="сл-ухо" id="сл-уши">
+    {[['-1', с.left], ['0', с.both], ['1', с.right]].map(([к, имя]) => (
+      <button type="button" class={`сл-ухоКн${к === '0' ? ' вкл' : ''}`} data-ухо={к}
+              aria-label={имя} title={имя}>
+        <span class="сл-ико" set:html={ДИНАМИКИ[к]} />
+      </button>
+    ))}
+  </div>
+
+  <span class="сл-к">{с.ladder}</span>
+  {/* Проверка громкости ДО теста: без неё человек начинает с наугад выкрученной ручкой,
+      и первые частоты либо не слышны вовсе, либо бьют по ушам. */}
+  <div class="сл-подготовка">
+    <button type="button" class="сл-малая" id="сл-калибр">{с.calib}</button>
+    <span class="сл-мелко">{с.calibHint}</span>
+  </div>
+
+  <div class="сл-проверка">
+    <div class="сл-шаг" id="сл-шаг"></div>
+    <div class="сл-нить" aria-hidden="true"><i id="сл-нить"></i></div>
+    <div class="сл-кнопки">
+      <button type="button" class="сл-го" id="сл-пуск">{с.run}</button>
+      <button type="button" class="сл-го сл-слышу" id="сл-слышу" hidden>{с.iHear}</button>
+    </div>
+    <canvas class="сл-график" id="сл-график"></canvas>
+    <div class="сл-ключ" id="сл-ключ" hidden>
+      <span><i style="background:#58b8f0"></i>{с.chartL}</span>
+      <span><i style="background:#ec5f7f"></i>{с.chartR}</span>
+    </div>
+  </div>
+  <div class="сл-итог" id="сл-итог"></div>
+
+  <p class="сл-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.caution}</span>
+  </p>
+
+  <div class="сл-заметки">
+    <div class="сл-заметка">{с.n1}</div>
+    <div class="сл-заметка">{с.n2}</div>
+    <div class="сл-заметка">{с.n3}</div>
+    <div class="сл-заметка">{с.n4}</div>
+    <div class="сл-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.сл');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+
+    const ОТ = 8000, ДО = 20000, ПОДЪЁМ = 24;   // секунд на весь подъём
+    const ГРОМКО = 0.28;   // тише обычного: наверху тон режет ухо при той же силе
+
+    let узел = null, ген = null, громкость = null, панорама = null;
+    let идёт = false, началось = 0, кадр = 0;
+    let выборУха = 0;   // что выбрал человек
+    let ухо = 0;        // куда играет прямо сейчас
+
+    startKeeper();
+    function открытьСессию() {
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+
+    function собрать(гц) {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (узел.state === 'suspended') узел.resume();
+      const т = узел.currentTime;
+      ген = узел.createOscillator();
+      громкость = узел.createGain();
+      ген.type = 'sine';
+      ген.frequency.setValueAtTime(гц, т);
+      громкость.gain.setValueAtTime(0.0001, т);
+      громкость.gain.exponentialRampToValueAtTime(ГРОМКО, т + 0.06);
+      ген.connect(громкость);
+      if (узел.createStereoPanner) {
+        панорама = узел.createStereoPanner();
+        панорама.pan.setValueAtTime(ухо, т);
+        громкость.connect(панорама); панорама.connect(узел.destination);
+      } else { панорама = null; громкость.connect(узел.destination); }
+      ген.start(т);
+      return т;
+    }
+    function заглушить() {
+      if (!ген) return;
+      try {
+        const т = узел.currentTime;
+        громкость.gain.cancelScheduledValues(т);
+        громкость.gain.setValueAtTime(громкость.gain.value || 0.0001, т);
+        громкость.gain.exponentialRampToValueAtTime(0.0001, т + 0.03);
+        ген.stop(т + 0.04);
+      } catch (e) {}
+      ген = null;
+    }
+
+    // ---- Подъём ----------------------------------------------------------------------
+    function пуск() {
+      const т = собрать(ОТ);
+      // Вверх по показателю: слух логарифмический, и на прямой почти весь подъём прошёл бы
+      // там, где на слух ничего не меняется.
+      ген.frequency.exponentialRampToValueAtTime(ДО, т + ПОДЪЁМ);
+      ген.stop(т + ПОДЪЁМ + 0.05);
+      идёт = true; началось = performance.now();
+      корень.classList.add('идёт'); корень.classList.remove('готово');
+      $('сл-го').textContent = с.stop;
+      $('сл-го').classList.add('сл-стоп');
+      $('сл-вывод').textContent = с.lead;
+      ход();
+    }
+    function ход() {
+      if (!идёт) return;
+      const прошло = (performance.now() - началось) / 1000;
+      const доля = Math.min(1, прошло / ПОДЪЁМ);
+      const гц = ОТ * Math.pow(ДО / ОТ, доля);
+      $('сл-число').textContent = (гц / 1000).toFixed(1) + 'к';
+      $('сл-ход').style.transform = 'scaleX(' + доля + ')';
+      if (доля >= 1) { стоп(гц); return; }
+      кадр = requestAnimationFrame(ход);
+    }
+    function стоп(гц) {
+      идёт = false;
+      cancelAnimationFrame(кадр);
+      заглушить();
+      корень.classList.remove('идёт'); корень.classList.add('готово');
+      $('сл-го').textContent = с.again;
+      $('сл-го').classList.remove('сл-стоп');
+      const кгц = (гц / 1000).toFixed(1) + 'к ' + с.hz;
+      $('сл-число').textContent = (гц / 1000).toFixed(1) + 'к';
+      $('сл-вывод').innerHTML = с.result.replace('{гц}', кгц).replace('{возраст}', возраст(гц));
+    }
+    // Границы взяты по общей картине: верх уходит с возрастом у всех, и числа тут
+    // приблизительные -- поэтому и написано «так слышит большинство».
+    function возраст(гц) {
+      if (гц >= 17500) return с.a20;
+      if (гц >= 16000) return с.a30;
+      if (гц >= 14000) return с.a40;
+      if (гц >= 12000) return с.a50;
+      if (гц >= 10000) return с.a60;
+      return с.aLow;
+    }
+    $('сл-го').addEventListener('click', () => {
+      if (идёт) {
+        const прошло = (performance.now() - началось) / 1000;
+        стоп(ОТ * Math.pow(ДО / ОТ, Math.min(1, прошло / ПОДЪЁМ)));
+      } else пуск();
+    });
+
+    // ---- Выбор уха ---------------------------------------------------------------------
+    $('сл-уши').addEventListener('click', (e) => {
+      const б = e.target.closest('.сл-ухоКн');
+      if (!б) return;
+      $('сл-уши').querySelectorAll('.сл-ухоКн').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      выборУха = Number(б.dataset.ухо) || 0;
+      if (!бежит) {
+        ухо = выборУха;
+        if (панорама) { try { панорама.pan.setTargetAtTime(ухо, узел.currentTime, 0.02); } catch (e2) {} }
+      }
+    });
+
+    // ---- Проверка громкости ----------------------------------------------------------
+    // Без неё человек начинает с наугад выкрученной ручкой: на тихой первые частоты не
+    // слышны вовсе, на громкой первый же тон бьёт по ушам.
+    let калибр = false;
+    $('сл-калибр').addEventListener('click', () => {
+      if (калибр) { заглушить(); калибр = false; $('сл-калибр').textContent = с.calib; return; }
+      прервать();
+      собрать(1000);
+      калибр = true;
+      $('сл-калибр').textContent = с.calibOn;
+    });
+
+    // ---- Ведомая проверка по частотам --------------------------------------------------
+    // На каждой частоте звук поднимается от почти тишины; человек жмёт «Слышу». Записываем
+    // ДОЛЮ подъёма, а не децибелы: децибелы тут неоткуда взять, а доля честно говорит, на
+    // какой частоте понадобилось громче.
+    const РЯД = [125, 250, 500, 1000, 2000, 4000, 8000];
+    const ПОДЪЁМ_ТОНА = 6;                 // секунд от тишины до полного уровня
+    const ТИХО = 0.0006, ГРОМЧЕ = 0.35;
+    let бежит = false, шаг = 0, порядок = [], началоТона = 0, таймерТона = 0;
+    const итоги = { '-1': {}, '1': {} };
+
+    function прервать() {
+      бежит = false;
+      ухо = выборУха;   // вернуть панораму к тому, что выбрал человек
+      clearTimeout(таймерТона);
+      cancelAnimationFrame(кадр);
+      заглушить();
+      $('сл-слышу').hidden = true;
+      $('сл-пуск').textContent = с.run;
+      $('сл-шаг').textContent = '';
+      $('сл-нить').style.transform = 'scaleX(0)';
+    }
+
+    function имяУха(у) { return у === -1 ? с.left : (у === 1 ? с.right : с.both); }
+
+    function следующий() {
+      if (!бежит) return;
+      if (шаг >= порядок.length) { закончить(); return; }
+      const { у, гц } = порядок[шаг];
+      ухо = у;
+      const т = собрать(гц);
+      // Поднимаем от почти тишины: сама «почти тишина» нужна потому, что от нуля
+      // экспоненциальная кривая не идёт.
+      громкость.gain.cancelScheduledValues(т);
+      громкость.gain.setValueAtTime(ТИХО, т);
+      громкость.gain.exponentialRampToValueAtTime(ГРОМЧЕ, т + ПОДЪЁМ_ТОНА);
+      ген.stop(т + ПОДЪЁМ_ТОНА + 0.05);
+      началоТона = performance.now();
+      $('сл-шаг').textContent = с.step
+        .replace('{ухо}', имяУха(у))
+        .replace('{гц}', гц >= 1000 ? (гц / 1000) + 'к ' + с.hz : гц + ' ' + с.hz);
+      $('сл-слышу').hidden = false;
+      нить();
+      // Не услышал за отведённое время -- записываем «не услышал» и идём дальше.
+      clearTimeout(таймерТона);
+      таймерТона = window.setTimeout(() => отметить(null), ПОДЪЁМ_ТОНА * 1000 + 200);
+    }
+    function нить() {
+      if (!бежит) return;
+      const внутри = (performance.now() - началоТона) / 1000 / ПОДЪЁМ_ТОНА;
+      const всего = (шаг + Math.min(1, внутри)) / порядок.length;
+      $('сл-нить').style.transform = 'scaleX(' + всего + ')';
+      кадр = requestAnimationFrame(нить);
+    }
+    function отметить(доля) {
+      if (!бежит) return;
+      clearTimeout(таймерТона);
+      cancelAnimationFrame(кадр);
+      заглушить();
+      const { у, гц } = порядок[шаг];
+      итоги[String(у)][гц] = доля;
+      шаг++;
+      // Пауза между тонами: без неё ухо тянет прошлый звук на следующий.
+      window.setTimeout(следующий, 450);
+    }
+    $('сл-слышу').addEventListener('click', () => {
+      if (!бежит) return;
+      отметить(Math.min(1, (performance.now() - началоТона) / 1000 / ПОДЪЁМ_ТОНА));
+    });
+
+    $('сл-пуск').addEventListener('click', () => {
+      if (бежит) { прервать(); return; }
+      if (калибр) { заглушить(); калибр = false; $('сл-калибр').textContent = с.calib; }
+      if (идёт) стоп(ОТ);
+      итоги['-1'] = {}; итоги['1'] = {};
+      // «Оба» в ведомой проверке смысла не имеет: сравнить уши можно, только слушая их
+      // по очереди. Поэтому при «обоих» идём сперва левым, потом правым.
+      const уши = выборУха === 0 ? [-1, 1] : [выборУха];
+      порядок = [];
+      уши.forEach((у) => РЯД.forEach((гц) => порядок.push({ у, гц })));
+      шаг = 0; бежит = true;
+      $('сл-пуск').textContent = с.runStop;
+      $('сл-ключ').hidden = true;
+      $('сл-итог').textContent = '';
+      рисоватьГрафик();
+      следующий();
+    });
+
+    function закончить() {
+      бежит = false;
+      ухо = выборУха;
+      $('сл-слышу').hidden = true;
+      $('сл-пуск').textContent = с.run;
+      $('сл-шаг').textContent = '';
+      $('сл-нить').style.transform = 'scaleX(1)';
+      $('сл-ключ').hidden = false;
+      $('сл-итог').textContent = с.doneRun;
+      рисоватьГрафик();
+    }
+
+    // ---- График ------------------------------------------------------------------------
+    // Ось снизу -- частоты, сверху вниз -- насколько громче пришлось сделать звук. Никаких
+    // децибел: их неоткуда взять, и подписывать долю децибелами было бы враньём.
+    const холст = $('сл-график'), кт = холст.getContext('2d');
+    function рисоватьГрафик() {
+      const мп = window.devicePixelRatio || 1;
+      const ш = Math.round(холст.clientWidth * мп), в = Math.round(холст.clientHeight * мп);
+      if (!ш || !в) return;
+      if (холст.width !== ш || холст.height !== в) { холст.width = ш; холст.height = в; }
+      кт.clearRect(0, 0, ш, в);
+      const лево = 34 * мп, низ = в - 20 * мп, верх = 10 * мп, право = ш - 8 * мп;
+      кт.strokeStyle = 'rgba(255,255,255,.09)'; кт.lineWidth = 1;
+      кт.font = 700 + ' ' + Math.round(9 * мп) + 'px -apple-system, BlinkMacSystemFont, Segoe UI, Roboto, sans-serif';
+      кт.fillStyle = 'rgba(214,219,230,.4)';
+      кт.textAlign = 'center';
+      РЯД.forEach((гц, i) => {
+        const x = лево + ((право - лево) * i) / (РЯД.length - 1);
+        кт.beginPath(); кт.moveTo(x, верх); кт.lineTo(x, низ); кт.stroke();
+        кт.fillText(гц >= 1000 ? (гц / 1000) + 'к' : String(гц), x, в - 6 * мп);
+      });
+      кт.textAlign = 'right';
+      [0, 0.5, 1].forEach((д) => {
+        const y = верх + (низ - верх) * д;
+        кт.beginPath(); кт.moveTo(лево, y); кт.lineTo(право, y); кт.stroke();
+      });
+      кт.fillText(с.quiet, лево - 6 * мп, верх + 9 * мп);
+      кт.fillText(с.loud, лево - 6 * мп, низ - 2 * мп);
+      [['-1', '#58b8f0'], ['1', '#ec5f7f']].forEach(([у, цвет]) => {
+        const точки = РЯД.map((гц, i) => {
+          const д = итоги[у][гц];
+          if (д === undefined) return null;
+          const x = лево + ((право - лево) * i) / (РЯД.length - 1);
+          // Не услышал -- точка у самого низа: «даже на полной громкости не поймал».
+          const y = верх + (низ - верх) * (д === null ? 1 : д);
+          return { x, y, мимо: д === null };
+        }).filter(Boolean);
+        if (!точки.length) return;
+        кт.strokeStyle = цвет; кт.lineWidth = 2 * мп;
+        кт.beginPath();
+        точки.forEach((т, i) => { i ? кт.lineTo(т.x, т.y) : кт.moveTo(т.x, т.y); });
+        кт.stroke();
+        точки.forEach((т) => {
+          кт.beginPath(); кт.arc(т.x, т.y, 3.4 * мп, 0, Math.PI * 2);
+          кт.fillStyle = т.мимо ? '#0f1116' : цвет; кт.fill();
+          кт.strokeStyle = цвет; кт.lineWidth = 2 * мп; кт.stroke();
+        });
+      });
+    }
+    window.addEventListener('resize', рисоватьГрафик);
+    рисоватьГрафик();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') {
+        if (идёт) стоп(ОТ);
+        прервать();
+        if (калибр) { калибр = false; $('сл-калибр').textContent = с.calib; }
+      }
+    });
+
+    window.__слСостояние = () => ({
+      идёт, бежит, калибр, ухо, выборУха, шаг, всегоШагов: порядок.length,
+      число: $('сл-число').textContent, кнопка: $('сл-го').textContent,
+      пуск: $('сл-пуск').textContent, слышуВидна: !$('сл-слышу').hidden,
+      строкаШага: $('сл-шаг').textContent,
+      итоги: { левое: итоги['-1'], правое: итоги['1'] },
+      вывод: ($('сл-вывод').textContent || '').slice(0, 40),
+      узел: узел ? узел.state : 'нет', панорама: панорама ? панорама.pan.value : null,
+    });
+  })();
+</script>
