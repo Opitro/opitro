@@ -39,19 +39,22 @@
 }
 .уз-поле > * { position: relative }
 
-/* Свечение сделано ОТДЕЛЬНЫМ размытым пятном позади числа, а не тенью текста. Тень текста
-   у поля ввода браузер обрезает по прямоугольнику самого поля -- вместо ореола выходит
-   голубой квадрат с резкими краями. */
-.уз-строка { position: relative; display: flex; align-items: baseline; justify-content: center;
-  gap: 8px }
-.уз-строка::before {
-  content: ""; position: absolute; left: 50%; top: 52%; width: 78%; max-width: 300px;
-  height: 130px; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
-  background: radial-gradient(closest-side, rgba(0,217,255,.42), rgba(0,217,255,0) 78%);
-  filter: blur(22px);
+/* Свечение по форме цифр. Тень текста прямо на поле ввода не годится -- браузер обрезает
+   отрисовку поля по его прямоугольнику, и вместо ореола выходит голубой квадрат. Поэтому
+   позади поля лежит ВТОРОЙ слой с теми же цифрами: буквы у него прозрачные, видна только
+   их тень, и она в точности повторяет число. Само поле поднято над этим слоем: слой лежит
+   отдельной наложенной плашкой, и без подъёма он рисуется ПОВЕРХ цифр и мылит их. */
+.уз-строка { display: flex; align-items: baseline; justify-content: center; gap: 8px }
+.уз-числоМесто { position: relative; display: inline-block }
+.уз-ореол {
+  position: absolute; inset: 0; pointer-events: none; text-align: right; color: transparent;
+  z-index: 0;
+  font: 800 62px/1 var(--ui); letter-spacing: -.03em; font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 22px rgba(0,217,255,.9), 0 0 50px rgba(0,217,255,.5),
+    0 0 90px rgba(0,217,255,.25);
 }
-.уз-строка > * { position: relative }
 .уз-ввод {
+  position: relative; z-index: 1;
   width: 5.6ch; background: none; border: 0; padding: 0; text-align: right;
   font: 800 62px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
   letter-spacing: -.03em; -moz-appearance: textfield;
@@ -151,7 +154,7 @@
 
 @media (max-width: 560px) {
   .уз-поле { padding: 20px 14px 18px }
-  .уз-ввод { font-size: 48px }
+  .уз-ввод, .уз-ореол { font-size: 48px }
   /* Кнопка остаётся кнопкой, а не полосой во всю ширину: на ней один значок, и растянутая
      на весь экран она выглядит как поле, а не как то, что нажимают. */
   .уз-играть { width: 132px }
