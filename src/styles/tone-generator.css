@@ -91,20 +91,6 @@
 /* Дорожка красится своим цветом: серый ползунок на тёмном читается как выключенный. */
 .тг-ручка input[type="range"] { width: 100%; accent-color: var(--свой); height: 26px }
 
-.тг-чипы { display: flex; flex-wrap: wrap; gap: 6px }
-.тг-чип {
-  font: 600 13px var(--ui); height: 36px; padding: 0 14px; border-radius: 9px; cursor: pointer;
-  color: var(--muted); background: linear-gradient(180deg,#23262e,#191b21);
-  border: 1px solid rgba(255,255,255,.10);
-  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
-  transition: transform .06s ease, box-shadow .06s ease, color .12s ease;
-  display: inline-flex; align-items: center; gap: 7px;
-}
-.тг-чип:hover { color: var(--text) }
-.тг-чип:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
-.тг-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
-  border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
-.тг-чип svg { width: 20px; height: 12px }
 
 /* Каналы -- динамиками, как на тесте звука: там этот вид утверждён. Подписей нет,
    имя канала живёт в aria-label и во всплывающей подсказке. */
@@ -127,6 +113,22 @@
 .тг.идёт .тг-динамик.вкл .тг-в1 { animation: тг-волна .36s ease-in-out infinite }
 .тг.идёт .тг-динамик.вкл .тг-в2 { animation: тг-волна .36s ease-in-out .09s infinite }
 @keyframes тг-волна { 0%,70%,100% { opacity: .18 } 25% { opacity: 1 } }
+
+/* Ряд форм волны: четыре значка без подписей, всегда в одну строку. Держит строку именно
+   min-width: 0 -- без него кнопки считают своей шириной содержимое и разъезжаются. */
+.тг-волны { display: flex; gap: 6px }
+.тг-волнаКн {
+  flex: 1; min-width: 0; height: 52px; border-radius: 11px; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(180deg,#23262e,#191b21); border: 1px solid rgba(255,255,255,.10);
+  box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
+  color: rgba(214,219,230,.5);
+  transition: border-color .15s ease, color .15s ease, transform .06s ease;
+}
+.тг-волнаКн:hover { border-color: rgba(255,255,255,.28); color: var(--text) }
+.тг-волнаКн:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
+.тг-волнаКн.вкл { border-color: rgba(74,222,158,.6); color: var(--свой) }
+.тг-волнаКн svg { width: 100%; max-width: 48px; height: 24px }
 
 /* Готовые частоты: у каждой своё дело, поэтому под числом стоит подпись, а не просто «Гц». */
 .тг-готовые { display: grid; grid-template-columns: repeat(auto-fit, minmax(96px, 1fr)); gap: 6px }

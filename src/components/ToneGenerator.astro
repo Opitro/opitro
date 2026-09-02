@@ -65,11 +65,13 @@ const ДИНАМИКИ = {
   '1': динамик('r', true),
 };
 
+// Волны в два периода и покрупнее: на кнопке без подписи весь смысл несёт линия, и по
+// трём коротким зубцам форму не различить.
 const ФОРМЫ = [
-  { имя: 'sine', путь: 'M1 6c3 0 3-5 6-5s3 5 6 5 3-5 6-5 3 5 6 5' },
-  { имя: 'square', путь: 'M1 10V2h6v8h6V2h6v8h6' },
-  { имя: 'sawtooth', путь: 'M1 10l6-8v8l6-8v8l6-8v8' },
-  { имя: 'triangle', путь: 'M1 10l3-8 3 8 3-8 3 8 3-8 3 8 3-8' },
+  { имя: 'sine', путь: 'M2 11q5-8 10 0t10 0t10 0t10 0' },
+  { имя: 'square', путь: 'M2 17V5h10v12h10V5h10v12h10' },
+  { имя: 'sawtooth', путь: 'M2 17L12 5v12L22 5v12L32 5v12L42 5' },
+  { имя: 'triangle', путь: 'M2 11L7 5l10 12L27 5l10 12 5-6' },
 ];
 
 const СЛОВА = {
@@ -184,12 +186,16 @@ const ГОТОВЫЕ = [
 
     <div class="тг-ручка">
       <span class="тг-к">{с.wave}</span>
-      <div class="тг-чипы" id="тг-формы">
+      {/* Только значки и всегда в один ряд: с подписями четыре кнопки переносились на
+          телефоне, а перенос ломает ряд пополам и читается как две разные группы. */}
+      <div class="тг-волны" id="тг-формы">
         {ФОРМЫ.map((ф, i) => (
-          <button type="button" class={`тг-чип${i === 0 ? ' вкл' : ''}`} data-форма={ф.имя}>
-            <svg viewBox="0 0 25 12" fill="none" stroke="currentColor" stroke-width="1.6"
-                 stroke-linejoin="round" aria-hidden="true"><path d={ф.путь}/></svg>
-            {с[ф.имя]}
+          <button type="button" class={`тг-волнаКн${i === 0 ? ' вкл' : ''}`} data-форма={ф.имя}
+                  aria-label={с[ф.имя]} title={с[ф.имя]}>
+            <svg viewBox="0 0 44 22" fill="none" stroke="currentColor" stroke-width="2.2"
+                 stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+              <path d={ф.путь}/>
+            </svg>
           </button>
         ))}
       </div>
@@ -438,9 +444,9 @@ const ГОТОВЫЕ = [
     function выбор(ид, поле, что) {
       const у = $(ид);
       у.addEventListener('click', (e) => {
-        const б = e.target.closest('.тг-чип');
+        const б = e.target.closest('.тг-волнаКн');
         if (!б) return;
-        у.querySelectorAll('.тг-чип').forEach((к) => к.classList.remove('вкл'));
+        у.querySelectorAll('.тг-волнаКн').forEach((к) => к.classList.remove('вкл'));
         б.classList.add('вкл');
         что(б.dataset[поле]);
       });
