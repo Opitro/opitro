@@ -12,6 +12,10 @@
 //   * ПЫЛЬ -- проход снизу вверх ПИЛОЙ. Здесь призвуки как раз к месту: пылинки разной
 //     величины срываются на разных частотах, и богатая призвуками волна накрывает больше
 //     размеров за один проход.
+//   * УЛЬТРАЗВУК -- проход 14-19 кГц. Название взято потому, что его ищут именно так, но
+//     на странице прямо сказано: настоящий ультразвук (выше 20 кГц) динамик телефона не
+//     выдаёт, а на этих частотах ход мембраны мал. Режим полезен для сеточки наушников,
+//     основную же работу делают низы.
 //   * ВИБРАЦИЯ. Где браузер её даёт (Андроид), к воде добавляется тряска мотором: она
 //     качает каплю там, куда звук почти не достаёт. На iPhone браузер вибрацию не даёт,
 //     поэтому обещать её нельзя -- о ней сказано в примечании, а не в заголовке.
@@ -28,7 +32,10 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    mode: 'Что выгоняем', water: 'Вода', dust: 'Пыль',
+    mode: 'Что выгоняем', water: 'Вода', dust: 'Пыль', ultra: 'Ультразвук',
+    eWater: 'Вода: короткие толчки на 150–250 герцах. Мембрана ходит с большим размахом и выбивает каплю из решётки.',
+    eDust: 'Пыль: медленный проход снизу вверх, от 40 герц до 12 кГц. Пылинки разного размера срываются на разных частотах.',
+    eUltra: 'Ультразвук: 14–19 кГц, предел динамика телефона. Настоящий ультразвук выше 20 кГц он не выдаёт. Помогает от грязи в сеточке; воду выгоняют низкие частоты.',
     time: 'Сколько', sec: 'с', min: 'мин',
     go: 'Включить', stop: 'Остановить',
     hz: 'герц', left: 'осталось',
@@ -45,7 +52,10 @@ const СЛОВА = {
     n6: 'На Андроиде к звуку добавляется вибрация — она качает каплю там, куда звук почти не достаёт. На айфоне браузеру вибрация недоступна, и там работает только звук.',
   },
   uk: {
-    mode: 'Що виганяємо', water: 'Вода', dust: 'Пил',
+    mode: 'Що виганяємо', water: 'Вода', dust: 'Пил', ultra: 'Ультразвук',
+    eWater: 'Вода: короткі поштовхи на 150–250 герцах. Мембрана ходить із великим розмахом і вибиває краплю з решітки.',
+    eDust: 'Пил: повільний прохід знизу вгору, від 40 герц до 12 кГц. Порошинки різного розміру зриваються на різних частотах.',
+    eUltra: 'Ультразвук: 14–19 кГц, межа динаміка телефона. Справжній ультразвук вище 20 кГц він не видає. Допомагає від бруду в сіточці; воду виганяють низькі частоти.',
     time: 'Скільки', sec: 'с', min: 'хв',
     go: 'Увімкнути', stop: 'Зупинити',
     hz: 'герц', left: 'лишилося',
@@ -62,7 +72,10 @@ const СЛОВА = {
     n6: 'На Андроїді до звуку додається вібрація — вона качає краплю там, куди звук майже не дістає. На айфоні браузеру вібрація недоступна, і там працює лише звук.',
   },
   en: {
-    mode: 'What to remove', water: 'Water', dust: 'Dust',
+    mode: 'What to remove', water: 'Water', dust: 'Dust', ultra: 'Ultrasound',
+    eWater: 'Water: short pulses at 150–250 Hz. The cone travels far enough to knock the droplet out of the grille.',
+    eDust: 'Dust: a slow sweep upwards, from 40 Hz to 12 kHz. Particles of different sizes come loose at different frequencies.',
+    eUltra: 'Ultrasound: 14–19 kHz, the limit of a phone speaker. True ultrasound is above 20 kHz and it cannot reach that. Helps with grime in the mesh; water is cleared by the low notes.',
     time: 'For how long', sec: 's', min: 'min',
     go: 'Start', stop: 'Stop',
     hz: 'hertz', left: 'left',
@@ -79,7 +92,10 @@ const СЛОВА = {
     n6: 'On Android the page adds vibration to the sound — it works the droplet loose where the sound barely reaches. On an iPhone the browser has no access to vibration, so there it is sound alone.',
   },
   es: {
-    mode: 'Qué expulsar', water: 'Agua', dust: 'Polvo',
+    mode: 'Qué expulsar', water: 'Agua', dust: 'Polvo', ultra: 'Ultrasonido',
+    eWater: 'Agua: pulsos cortos de 150 a 250 Hz. El cono recorre lo suficiente para expulsar la gota de la rejilla.',
+    eDust: 'Polvo: barrido lento hacia arriba, de 40 Hz a 12 kHz. Las partículas de distinto tamaño se desprenden a distintas frecuencias.',
+    eUltra: 'Ultrasonido: 14–19 kHz, el límite del altavoz de un móvil. El ultrasonido real pasa de 20 kHz y no llega ahí. Va bien con la suciedad de la malla; el agua la sacan los graves.',
     time: 'Duración', sec: 's', min: 'min',
     go: 'Empezar', stop: 'Parar',
     hz: 'hercios', left: 'restante',
@@ -108,6 +124,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="од-чипы" id="од-режимы">
         <button type="button" class="од-чип вкл" data-режим="вода">{с.water}</button>
         <button type="button" class="од-чип" data-режим="пыль">{с.dust}</button>
+        <button type="button" class="од-чип" data-режим="ультразвук">{с.ultra}</button>
       </div>
     </div>
     <div class="од-ряд">
@@ -119,6 +136,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       </div>
     </div>
   </div>
+
+  <p class="од-объяснение" id="од-объяснение">{с.eWater}</p>
 
   <div class="од-поле">
     <i class="од-лампа" aria-hidden="true"></i>
@@ -211,7 +230,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         if (идёт) { стоп(); пуск(); }
       });
     }
-    выбор('од-режимы', 'режим', (з) => { режим = з; });
+    выбор('од-режимы', 'режим', (з) => {
+      режим = з;
+      // Объяснение меняется вместе с режимом: у ультразвука название громкое, и что он
+      // на самом деле делает, человек должен прочитать сразу, а не в примечаниях.
+      $('од-объяснение').textContent =
+        з === 'вода' ? с.eWater : (з === 'пыль' ? с.eDust : с.eUltra);
+    });
     выбор('од-время', 'сек', (з) => { секунд = Number(з) || 15; });
 
     // ---- Звук --------------------------------------------------------------------------
@@ -223,6 +248,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // Пыль: проход снизу вверх. У пылинок разной величины своя частота срыва, и один
     // тон накрывает только часть из них.
     const ПЫЛЬ_ОТ = 40, ПЫЛЬ_ДО = 12000, ПЫЛЬ_ПРОХОД = 8;   // секунд на проход
+    // Ультразвук: самое высокое, что динамик телефона вообще выдаёт. Громкость ниже --
+    // на этих частотах звук режет ухо сильнее при той же силе.
+    const УЗ_НИЗ = 14000, УЗ_ВЕРХ = 19000, УЗ_КАЧАНИЕ = 3, УЗ_ГРОМКОСТЬ = 0.6;
 
     function пуск() {
       открытьСессию();
@@ -253,6 +281,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           громкость.gain.setValueAtTime(0.9, н + шаг * 0.55);
           громкость.gain.exponentialRampToValueAtTime(0.0001, н + шаг * 0.8);
         }
+      } else if (режим === 'ультразвук') {
+        ген.type = 'sine';
+        for (let н = 0; н < секунд; н += УЗ_КАЧАНИЕ) {
+          ген.frequency.setValueAtTime(УЗ_НИЗ, т + н);
+          ген.frequency.linearRampToValueAtTime(УЗ_ВЕРХ, т + н + УЗ_КАЧАНИЕ / 2);
+          ген.frequency.linearRampToValueAtTime(УЗ_НИЗ, т + н + УЗ_КАЧАНИЕ);
+        }
+        громкость.gain.setValueAtTime(0.0001, т);
+        громкость.gain.exponentialRampToValueAtTime(УЗ_ГРОМКОСТЬ, т + 0.05);
+        громкость.gain.setValueAtTime(УЗ_ГРОМКОСТЬ, т + секунд - 0.06);
+        громкость.gain.exponentialRampToValueAtTime(0.0001, т + секунд);
       } else {
         // Пила: её призвуки срывают пылинки тех размеров, до которых чистый тон не достаёт.
         ген.type = 'sawtooth';
@@ -327,9 +366,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         гц = ПЫЛЬ_ОТ * Math.pow(ПЫЛЬ_ДО / ПЫЛЬ_ОТ, вПроходе);
       } else {
         // Тон качается вверх за первую половину и вниз за вторую -- как его ведёт генератор.
-        const вКачании = (прошло % ВОДА_КАЧАНИЕ) / ВОДА_КАЧАНИЕ;
+        const качание = режим === 'ультразвук' ? УЗ_КАЧАНИЕ : ВОДА_КАЧАНИЕ;
+        const низ = режим === 'ультразвук' ? УЗ_НИЗ : ВОДА_НИЗ;
+        const верх = режим === 'ультразвук' ? УЗ_ВЕРХ : ВОДА_ВЕРХ;
+        const вКачании = (прошло % качание) / качание;
         const доля = вКачании < 0.5 ? вКачании * 2 : (1 - вКачании) * 2;
-        гц = ВОДА_НИЗ + (ВОДА_ВЕРХ - ВОДА_НИЗ) * доля;
+        гц = низ + (верх - низ) * доля;
       }
       $('од-частота').textContent = гц >= 1000
         ? (гц / 1000).toFixed(1) + 'к' : String(Math.round(гц));

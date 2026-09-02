@@ -3,10 +3,10 @@ toolSlug: speaker-cleaner
 locale: en
 category: device-tests
 tool: speaker-cleaner
-title: Speaker cleaner online — eject water and dust with sound
+title: Speaker cleaner — remove water and dirt from a phone or earbuds
 h1: Speaker cleaner for water and dust
 navName: Speaker cleaner
-description: "Sound pushes water out of a phone speaker and shakes dust off the grille: low pulses for water, a frequency sweep for dust. Nothing to install."
+description: "Eject water and shake dirt out of an iPhone, Samsung or Xiaomi speaker and out of earbuds. Three modes: low pulses, a frequency sweep and ultrasound."
 faq:
   - question: How does sound push water out?
     answer: "It is not the software doing the work but the speaker cone itself. At a low frequency it moves with a large excursion and pushes the air in the grille; a droplet held there by surface tension is broken loose and comes out. That is why this is short pulses rather than a steady tone: a droplet simply sits out a steady sound, rocking in place, while jolts knock it free. The frequency wanders between 150 and 250 Hz because every phone body responds differently, and a single fixed tone would miss half of them."
@@ -16,6 +16,10 @@ faq:
     answer: Because rice draws nothing out. It cannot pull moisture from a sealed body — there is barely any air inside, and what really dries a phone is time and warmth. What it does do is put starchy dust and small crumbs into the ports and the speaker grille, and getting those out is harder than getting the water out. The advice spread across the internet before anyone tested it.
   - question: Can loud sound damage the speaker?
     answer: "No. This is an ordinary tone at the phone's ordinary volume, not an overload: the phone physically cannot put out more than its amplifier allows, and it already has overload protection built in. The real risk is different — listening to this close to your ear, and above all in headphones. Take headphones off before starting and keep the phone at arm's length."
+  - question: What is the ultrasound mode, and is it really ultrasound?
+    answer: "Not quite, and that deserves an honest answer. True ultrasound starts above 20 kHz, and a phone speaker cannot produce it — neither the cone nor the amplifier goes that far. The mode sweeps 14–19 kHz: the highest a phone will manage, right at the edge of hearing. It is useful against grime in the mesh, while water is cleared by the low notes, because up there the cone barely moves. Note that not everyone can hear it, but dogs and cats hear it perfectly well."
+  - question: Can I clean earbuds this way?
+    answer: "Yes, and it is a common case: earwax and dust build up in the mesh of in-ear buds. But the earbuds must NOT be in your ears — put them mesh-down on a tissue and run the dust or ultrasound mode. Water is cleared from earbuds the same way as from a phone, only their volume is lower, so it takes more passes. Give the mesh a going-over with a dry soft brush too: sound shakes out what is already loose but will not lift grime that has stuck."
   - question: How is the dust mode different from the water mode?
     answer: "In the signal. Water gets low pulses, which is what makes the cone travel far enough to knock the droplet out. Dust gets a slow sweep upwards with a sawtooth wave: particles of different sizes come loose at different frequencies, and a sweep rich in harmonics covers more sizes than any single tone. For dust it is worth running longer — a minute, several times."
   - question: Does it help a laptop speaker or a Bluetooth speaker?
@@ -28,7 +32,7 @@ related:
   - sound-meter
 ---
 
-Take the case off, turn the volume all the way up, point the speaker downwards and press the big button. Fifteen seconds is enough for a first pass; if the sound is still crackly, shake the phone, blot it with a tissue and run it again.
+It works the same on an iPhone, a Samsung, a Xiaomi or any other phone, and on earbuds and speakers too — the sound comes out of whichever speaker needs clearing. Take the case off, turn the volume all the way up, point the speaker downwards and press the big button. Fifteen seconds is enough for a first pass; if the sound is still crackly, shake the phone, blot it with a tissue and run it again.
 
 ## How it works
 
