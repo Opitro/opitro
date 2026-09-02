@@ -1,0 +1,324 @@
+---
+// ТЕСТ САБВУФЕРА.
+//
+// Вопрос, с которым сюда приходят, один: до какой частоты достаёт мой сабвуфер. Ответ даёт
+// проход сверху вниз -- от 120 герц к 20: слушаешь, где звук перестаёт быть звуком и
+// становится сначала хрипом, а потом тишиной. Число герц на экране в этот момент и есть
+// нижняя граница.
+//
+// Отдельная лесенка нот нужна потому, что спорное место надо переслушать: на проходе оно
+// проскакивает за секунду, а на удержанной ноте слышно, тон это или дребезг корпуса.
+//
+// ЧЕСТНОСТЬ. Это не измерение: страница не знает, что выдаёт колонка, она знает только,
+// что послала. Ухо и комната -- часть прибора, и об этом сказано на странице. Ниже 20 герц
+// не идём: там уже не слух, а осязание, и обещать «мой сабвуфер берёт 15 герц» по звуку из
+// браузера нельзя.
+//
+// ЗВУК НА iPHONE: разряд сессии просится ДО создания узла (иначе боковой беззвучный
+// переключатель глушит Web Audio), плюс держатель сессии. Оба -- общий код сайта.
+import css from '../styles/subwoofer-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+// Ноты подобраны по делу: 20-30 -- предел даже хороших сабвуферов, 40-60 -- рабочая полоса
+// домашних, 80-100 -- то, что берёт обычная полочная колонка.
+const НОТЫ = [20, 25, 30, 40, 50, 60, 80, 100];
+
+const СЛОВА = {
+  ru: {
+    hz: 'герц', go: 'Пройти сверху вниз', stop: 'Остановить',
+    notes: 'Отдельные ноты — нажмите и слушайте',
+    manual: 'Своя частота',
+    manualHint: 'Ведите ползунок — тон меняется на ходу. Так ищут ту самую частоту, на которой дребезжит полка или пластик корпуса.',
+    caution: 'Не выкручивайте громкость на максимум. На низких частотах маленькие динамики хрипят и их можно повредить; начните с половины и прибавляйте.',
+    k1: 'Чистый тон', k1s: 'Ровное гудение без призвуков — частота взята. Запомните, на каком числе он ещё чистый: это и есть честная нижняя граница вашей системы.',
+    k2: 'Хрип и дребезг', k2s: 'Динамик пытается, но не справляется: ход мембраны больше, чем позволяет подвес. Дальше вниз можно не идти, ниже будет только хуже.',
+    k3: 'Тишина', k3s: 'Мембрана шевелится, а звука нет — частота ниже возможностей колонки. Кольца на экране идут, значит сигнал уходит; дело не в странице.',
+    k4: 'Гудит не колонка', k4s: 'Дребезжит шкаф, стекло или сам корпус. Отодвиньте колонку от стены и от мебели и повторите — половина «поломок сабвуфера» лечится этим.',
+    n1: 'Это не измерение. Страница знает только, что послала, а что вышло из колонки — не знает: ухо, комната и громкость тоже часть прибора.',
+    n2: 'Ноутбук и телефон низов не выдают вовсе — у них просто нет мембраны нужного размера. Ниже 150–200 герц там тишина, и это норма, а не поломка.',
+    n3: 'Комната решает не меньше колонки. В углу низы гудят и наваливаются, посреди комнаты проваливаются. Слушайте с того места, где обычно сидите.',
+    n4: 'Ниже 20 герц страница не идёт: там уже не слух, а осязание, и по звуку из браузера такое не проверить.',
+    n5: 'Проверяйте на средней громкости. Судить о нижней границе на предельной громкости бессмысленно: усилитель начнёт срезать сигнал раньше, чем сдастся динамик.',
+  },
+  uk: {
+    hz: 'герц', go: 'Пройти згори вниз', stop: 'Зупинити',
+    notes: 'Окремі ноти — натисніть і слухайте',
+    manual: 'Своя частота',
+    manualHint: 'Ведіть повзунок — тон змінюється на ходу. Так шукають ту саму частоту, на якій деренчить полиця або пластик корпусу.',
+    caution: 'Не викручуйте гучність на максимум. На низьких частотах маленькі динаміки хриплять і їх можна пошкодити; почніть із половини й додавайте.',
+    k1: 'Чистий тон', k1s: 'Рівне гудіння без призвуків — частоту взято. Запам’ятайте, на якому числі він ще чистий: це і є чесна нижня межа вашої системи.',
+    k2: 'Хрип і деренчання', k2s: 'Динамік намагається, але не дає ради: хід мембрани більший, ніж дозволяє підвіс. Далі вниз можна не йти, нижче буде тільки гірше.',
+    k3: 'Тиша', k3s: 'Мембрана ворушиться, а звуку немає — частота нижча за можливості колонки. Кільця на екрані йдуть, отже сигнал іде; річ не в сторінці.',
+    k4: 'Гудить не колонка', k4s: 'Деренчить шафа, скло або сам корпус. Відсуньте колонку від стіни й від меблів і повторіть — половина «поломок сабвуфера» лікується цим.',
+    n1: 'Це не вимірювання. Сторінка знає лише, що надіслала, а що вийшло з колонки — не знає: вухо, кімната й гучність теж частина приладу.',
+    n2: 'Ноутбук і телефон низів не видають зовсім — у них просто немає мембрани потрібного розміру. Нижче 150–200 герц там тиша, і це норма, а не поломка.',
+    n3: 'Кімната вирішує не менше за колонку. У кутку низи гудуть і навалюються, посеред кімнати провалюються. Слухайте з того місця, де зазвичай сидите.',
+    n4: 'Нижче 20 герц сторінка не йде: там уже не слух, а дотик, і за звуком із браузера таке не перевірити.',
+    n5: 'Перевіряйте на середній гучності. Судити про нижню межу на граничній гучності безглуздо: підсилювач почне зрізати сигнал раніше, ніж здасться динамік.',
+  },
+  en: {
+    hz: 'hertz', go: 'Sweep from the top down', stop: 'Stop',
+    notes: 'Single notes — press and listen',
+    manual: 'Your own frequency',
+    manualHint: 'Drag the slider and the tone follows. This is how you find the exact frequency at which a shelf or the plastic of the cabinet rattles.',
+    caution: 'Do not turn the volume all the way up. Small speakers distort at low frequencies and can be damaged; start at half and work up.',
+    k1: 'A clean tone', k1s: 'A steady hum with nothing added — the speaker has that frequency. Remember the number where it is still clean: that is the honest lower limit of your system.',
+    k2: 'Buzz and rattle', k2s: 'The driver is trying and failing: the cone wants to travel further than the surround allows. No need to go lower, it only gets worse.',
+    k3: 'Silence', k3s: 'The cone is moving but nothing comes out — the frequency is below what the speaker can do. The rings on screen keep going, so the signal is being sent; the page is not the problem.',
+    k4: 'It is not the speaker humming', k4s: 'A cupboard, a window or the cabinet itself is rattling. Move the speaker away from the wall and the furniture and try again — half of all “broken subwoofers” are cured by this.',
+    n1: 'This is not a measurement. The page knows what it sent, not what came out of the speaker: your ear, the room and the volume are all part of the instrument.',
+    n2: 'A laptop or a phone produces no bass at all — there simply is no cone of the right size. Below 150–200 Hz they go silent, and that is normal rather than a fault.',
+    n3: 'The room matters as much as the speaker. In a corner bass booms and piles up; in the middle of the room it drops out. Listen from where you usually sit.',
+    n4: 'The page does not go below 20 Hz: down there it stops being hearing and becomes touch, and sound from a browser cannot test that.',
+    n5: 'Test at a moderate volume. Judging the lower limit at full volume is pointless: the amplifier will start clipping before the driver gives up.',
+  },
+  es: {
+    hz: 'hercios', go: 'Barrido de arriba abajo', stop: 'Parar',
+    notes: 'Notas sueltas: pulsa y escucha',
+    manual: 'Tu propia frecuencia',
+    manualHint: 'Arrastra el control y el tono lo sigue. Así se encuentra la frecuencia exacta a la que vibra una estantería o el plástico de la caja.',
+    caution: 'No subas el volumen al máximo. En frecuencias bajas los altavoces pequeños distorsionan y se pueden dañar; empieza por la mitad y sube poco a poco.',
+    k1: 'Un tono limpio', k1s: 'Un zumbido parejo y sin añadidos: esa frecuencia la da. Apunta el número en el que todavía suena limpio: ese es el límite inferior honesto de tu equipo.',
+    k2: 'Zumbido y vibración', k2s: 'El altavoz lo intenta y no llega: el cono quiere moverse más de lo que permite la suspensión. No hace falta bajar más, solo empeora.',
+    k3: 'Silencio', k3s: 'El cono se mueve pero no sale nada: la frecuencia está por debajo de lo que puede el altavoz. Los anillos de la pantalla siguen, así que la señal se envía; la página no es el problema.',
+    k4: 'No es el altavoz lo que suena', k4s: 'Vibra un armario, un cristal o la propia caja. Aparta el altavoz de la pared y de los muebles y repite: la mitad de los «subwoofers averiados» se curan así.',
+    n1: 'Esto no es una medición. La página sabe lo que ha enviado, no lo que ha salido del altavoz: tu oído, la sala y el volumen también forman parte del instrumento.',
+    n2: 'Un portátil o un móvil no dan graves en absoluto: no tienen un cono del tamaño necesario. Por debajo de 150–200 Hz se quedan mudos, y eso es normal, no una avería.',
+    n3: 'La sala pesa tanto como el altavoz. En una esquina los graves retumban y se amontonan; en mitad de la habitación se hunden. Escucha desde donde te sientas normalmente.',
+    n4: 'La página no baja de 20 Hz: ahí abajo deja de ser oído y pasa a ser tacto, y eso no se comprueba con el sonido de un navegador.',
+    n5: 'Prueba a volumen medio. Juzgar el límite inferior a todo volumen no sirve: el amplificador empezará a recortar antes de que el altavoz se rinda.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="сб" data-words={JSON.stringify(с)}>
+  <div class="сб-поле">
+    <div class="сб-конус" aria-hidden="true">
+      <i class="сб-кольцо сб-к1"></i><i class="сб-кольцо сб-к2"></i>
+    </div>
+    {/* Место под число готово заранее -- при запуске ничего не съезжает. */}
+    <div class="сб-число" id="сб-число">—</div>
+    <div class="сб-гц">{с.hz}</div>
+    <div class="сб-полоса" aria-hidden="true"><i id="сб-ход"></i></div>
+    <div class="сб-ряд">
+      <button type="button" class="сб-го" id="сб-го">{с.go}</button>
+    </div>
+  </div>
+
+  <span class="сб-к">{с.notes}</span>
+  <div class="сб-ноты" id="сб-ноты">
+    {НОТЫ.map((н) => (
+      <button type="button" class="сб-нота" data-гц={н}>{н}<span>{с.hz}</span></button>
+    ))}
+  </div>
+
+  <span class="сб-к">{с.manual}</span>
+  <div class="сб-ручной">
+    {/* У ползунка своя кнопка: большая кнопка наверху занята проходом, и вешать на неё
+        второе значение -- верный способ запутать. */}
+    <button type="button" class="сб-пуск" id="сб-ручнойПуск" aria-label={с.manual}>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="сб-знакИграть">
+        <path d="M8 5.6v12.8L19 12z"/>
+      </svg>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="сб-знакСтоп">
+        <rect x="7" y="7" width="10" height="10" rx="1.5"/>
+      </svg>
+    </button>
+    <input type="range" id="сб-ползунок" min="20" max="100" step="1" value="40"
+           aria-label={с.manual} />
+    <output class="сб-значение" id="сб-значение">40</output>
+  </div>
+  <p class="сб-подсказка">{с.manualHint}</p>
+
+  <p class="сб-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.caution}</span>
+  </p>
+
+  <div class="сб-что">
+    <div class="сб-строка"><b><i></i>{с.k1}</b><span>{с.k1s}</span></div>
+    <div class="сб-строка"><b><i></i>{с.k2}</b><span>{с.k2s}</span></div>
+    <div class="сб-строка"><b><i></i>{с.k3}</b><span>{с.k3s}</span></div>
+    <div class="сб-строка"><b><i></i>{с.k4}</b><span>{с.k4s}</span></div>
+  </div>
+
+  <div class="сб-заметки">
+    <div class="сб-заметка">{с.n1}</div>
+    <div class="сб-заметка">{с.n2}</div>
+    <div class="сб-заметка">{с.n3}</div>
+    <div class="сб-заметка">{с.n4}</div>
+    <div class="сб-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.сб');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+
+    // Проход идёт вниз и обратно вверх. Вниз ищут предел колонки, вверх ловят дребезг:
+    // мебель и пластик отзываются на своей частоте, и на обратном ходу это слышно вторично,
+    // то есть уже не спутаешь со случайным звуком.
+    const ВЕРХ = 120, НИЗ = 20, ПОЛОВИНА = 15, ПРОХОД = ПОЛОВИНА * 2;
+    const ГРОМКО = 0.5;                        // половина: на низах перегруз слышен раньше
+
+    let узел = null, ген = null, громкость = null;
+    let идёт = false, режим = null, началось = 0, кадр = 0, нотаГц = 0;
+
+    startKeeper();
+    function открытьСессию() {
+      // ДО создания узла: позже разряд сессии не переучредить, и беззвучный переключатель
+      // iPhone заглушит звук наглухо.
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+
+    function завести() {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (узел.state === 'suspended') узел.resume();
+      ген = узел.createOscillator();
+      громкость = узел.createGain();
+      ген.type = 'sine';
+      return узел.currentTime;
+    }
+
+    function пуск(что, гц) {
+      если_идёт_остановить();
+      const т = завести();
+      режим = что;
+      if (что === 'проход') {
+        // Вниз по показателю, а не по прямой: на слух это ровное движение, а по прямой
+        // почти весь проход просидел бы в верхней половине.
+        ген.frequency.setValueAtTime(ВЕРХ, т);
+        ген.frequency.exponentialRampToValueAtTime(НИЗ, т + ПОЛОВИНА);
+        ген.frequency.exponentialRampToValueAtTime(ВЕРХ, т + ПРОХОД);
+      } else {
+        нотаГц = гц;
+        ген.frequency.setValueAtTime(гц, т);
+      }
+      // Мягкий вход: щелчок на низкой частоте бьёт по динамику сильнее самого тона.
+      громкость.gain.setValueAtTime(0.0001, т);
+      громкость.gain.exponentialRampToValueAtTime(ГРОМКО, т + 0.08);
+      ген.connect(громкость); громкость.connect(узел.destination);
+      ген.start(т);
+      // Остановку назначаем ТОЛЬКО ПОСЛЕ start: до запуска генератор её не принимает и
+      // бросает ошибку, а вместе с ней падает и весь остаток запуска -- число не идёт,
+      // кнопка не меняется, и по виду кажется, что просто нет звука.
+      if (что === 'проход') {
+        громкость.gain.setValueAtTime(ГРОМКО, т + ПРОХОД - 0.1);
+        громкость.gain.exponentialRampToValueAtTime(0.0001, т + ПРОХОД);
+        ген.stop(т + ПРОХОД + 0.05);
+      }
+
+      идёт = true; началось = performance.now();
+      корень.classList.add('идёт');
+      корень.classList.toggle('ручной', что === 'ручной');
+      $('сб-го').textContent = что === 'проход' ? с.stop : с.go;
+      пометитьНоту(что === 'нота' ? гц : 0);
+      ход();
+    }
+
+    function если_идёт_остановить() { if (идёт) стоп(true); }
+
+    function стоп(тихо) {
+      идёт = false; режим = null; нотаГц = 0;
+      cancelAnimationFrame(кадр);
+      if (ген) {
+        try {
+          const т = узел.currentTime;
+          громкость.gain.cancelScheduledValues(т);
+          громкость.gain.setValueAtTime(громкость.gain.value || 0.0001, т);
+          громкость.gain.exponentialRampToValueAtTime(0.0001, т + 0.04);
+          ген.stop(т + 0.05);
+        } catch (e) {}
+        ген = null;
+      }
+      корень.classList.remove('идёт', 'ручной');
+      $('сб-го').textContent = с.go;
+      пометитьНоту(0);
+      if (!тихо) {
+        $('сб-число').textContent = '—';
+        $('сб-ход').style.transform = 'scaleX(0)';
+      }
+    }
+
+    function пометитьНоту(гц) {
+      $('сб-ноты').querySelectorAll('.сб-нота').forEach((б) => {
+        б.classList.toggle('вкл', Number(б.dataset.гц) === гц);
+      });
+    }
+
+    function ход() {
+      if (!идёт) return;
+      if (режим === 'нота' || режим === 'ручной') {
+        $('сб-число').textContent = String(нотаГц);
+        $('сб-ход').style.transform = 'scaleX(1)';
+      } else {
+        const прошло = (performance.now() - началось) / 1000;
+        const доля = Math.min(1, прошло / ПРОХОД);
+        // Считаем по тому же закону, по которому ведёт частоту сам генератор: вниз за
+        // первую половину, вверх за вторую.
+        const вПоловине = доля < 0.5 ? доля * 2 : (1 - доля) * 2;
+        const гц = ВЕРХ * Math.pow(НИЗ / ВЕРХ, вПоловине);
+        $('сб-число').textContent = String(Math.round(гц));
+        $('сб-ход').style.transform = 'scaleX(' + доля + ')';
+        if (доля >= 1) { стоп(); return; }
+      }
+      кадр = requestAnimationFrame(ход);
+    }
+
+    $('сб-го').addEventListener('click', () => {
+      if (идёт && режим === 'проход') стоп(); else пуск('проход');
+    });
+    $('сб-ноты').addEventListener('click', (e) => {
+      const б = e.target.closest('.сб-нота');
+      if (!б) return;
+      const гц = Number(б.dataset.гц);
+      // Повторное нажатие по звучащей ноте выключает её -- как на тесте звука.
+      if (идёт && режим === 'нота' && нотаГц === гц) { стоп(); return; }
+      пуск('нота', гц);
+    });
+    // Ползунок: ведёшь -- тон идёт следом. Пересобирать генератор на каждое движение
+    // нельзя, будет треск на каждый шаг; частоту двигаем у живого генератора.
+    const ползунок = $('сб-ползунок');
+    function показатьЗначение() { $('сб-значение').textContent = ползунок.value; }
+    ползунок.addEventListener('input', () => {
+      показатьЗначение();
+      if (идёт && режим === 'ручной') {
+        нотаГц = Number(ползунок.value);
+        try { ген.frequency.setTargetAtTime(нотаГц, узел.currentTime, 0.01); } catch (e) {}
+      }
+    });
+    $('сб-ручнойПуск').addEventListener('click', () => {
+      if (идёт && режим === 'ручной') { стоп(); return; }
+      пуск('ручной', Number(ползунок.value));
+    });
+    показатьЗначение();
+
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && идёт) стоп();
+    });
+
+    window.__сбСостояние = () => ({
+      идёт, режим, нота: нотаГц, число: $('сб-число').textContent,
+      ход: $('сб-ход').style.transform, кнопка: $('сб-го').textContent,
+      узел: узел ? узел.state : 'нет',
+    });
+  })();
+</script>
