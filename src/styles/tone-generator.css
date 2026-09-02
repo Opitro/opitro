@@ -110,7 +110,7 @@
    имя канала живёт в aria-label и во всплывающей подсказке. */
 .тг-динамики { display: flex; flex-wrap: wrap; gap: 8px }
 .тг-динамик {
-  flex: 1; min-width: 92px; padding: 12px 10px; border-radius: 12px; cursor: pointer;
+  flex: 1; min-width: 78px; padding: 9px 10px; border-radius: 11px; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
   background: linear-gradient(180deg,#23262e,#191b21); border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 2px 0 rgba(0,0,0,.55), inset 0 1px 0 rgba(255,255,255,.06);
@@ -119,8 +119,9 @@
 .тг-динамик:hover { border-color: rgba(255,255,255,.28) }
 .тг-динамик:active { transform: translateY(2px); box-shadow: 0 0 0 rgba(0,0,0,.55) }
 .тг-динамик.вкл { border-color: rgba(74,222,158,.6); color: var(--свой) }
-.тг-ико { display: block; line-height: 0; opacity: .8 }
-.тг-ико svg { width: auto; height: 52px; display: block }
+.тг-ико { display: flex; line-height: 0; opacity: .8; gap: 2px; transition: opacity .15s ease }
+.тг-ико svg { width: auto; height: 42px; display: block }
+.тг-зеркало { display: block; line-height: 0; transform: scaleX(-1) }
 .тг-динамик.вкл .тг-ико { opacity: 1 }
 /* У звучащего канала волны вспыхивают по очереди -- та же повадка, что на тесте звука. */
 .тг.идёт .тг-динамик.вкл .тг-в1 { animation: тг-волна .36s ease-in-out infinite }
@@ -150,7 +151,7 @@
 @media (max-width: 560px) {
   .тг-поле { padding: 20px 14px 18px }
   .тг-ввод { font-size: 52px }
-  .тг-ико svg { height: 42px }
+  .тг-ико svg { height: 36px }
 }
 @media (prefers-reduced-motion: reduce) {
   .тг.идёт .тг-динамик.вкл .тг-в1, .тг.идёт .тг-динамик.вкл .тг-в2 { animation: none }
