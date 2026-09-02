@@ -1,0 +1,374 @@
+---
+// ЗАДЕРЖКА ЗВУКА.
+//
+// Браузер не может измерить задержку сам: он не знает, когда звук физически долетел из
+// наушника до уха. Поэтому меряет человек, а страница даёт ему точный инструмент.
+//
+// КАК ЭТО РАБОТАЕТ. По кругу идёт луч; на верхней метке он даёт вспышку, и в тот же миг
+// щёлкает звук. Если наушники беспроводные, щелчок приходит позже вспышки. Ползунок
+// сдвигает ЗВУК ВПЕРЁД: чем больше сдвиг, тем раньше уходит щелчок. Когда вспышка и щелчок
+// совпали, сдвиг равен задержке.
+//
+// Луч, а не простая мигалка: по нему видно, КОГДА будет вспышка, и глаз успевает
+// подготовиться. По внезапному миганию совпадение ловится вдвое хуже.
+//
+// Звук ставится по часам звукового узла, а картинка -- по часам страницы. Это разные часы,
+// поэтому в начале они спариваются один раз (t0Узла и t0Часов), и дальше каждый удар
+// считается от своей пары. Гнать звук по requestAnimationFrame нельзя: кадры плывут, и
+// щелчок начинает дышать вокруг доли на десятки миллисекунд -- как раз того порядка, что
+// мы меряем.
+import css from '../styles/audio-delay.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    ms: 'миллисекунд', latency: 'Задержка звукового тракта',
+    noLatency: 'браузер не отвечает',
+    latencyNote: 'Это то, что браузер знает о себе: сколько звук идёт от страницы до выхода устройства. Задержку экрана и беспроводных наушников он так не видит — её ловит проверка ниже.',
+    start: 'Запустить радар', stop: 'Остановить', fix: 'Зафиксировать',
+    offset: 'Сдвиг звука', ear: 'Куда щёлкать',
+    left: 'Левый', both: 'Оба', right: 'Правый',
+    hint: 'Смотрите на луч. На верхней метке — вспышка и щелчок. Двигайте ползунок, пока они не совпадут.',
+    v1: 'Проводной звук: годится и для игр', v2: 'Хороший Bluetooth: для видео незаметно',
+    v3: 'Заметный рассинхрон: дешёвый кодек или старый Bluetooth',
+    fixed: 'Ваша задержка — <b>{мс}</b>. {что}',
+    f1: 'Для игр это нормально: шаги и выстрелы слышны вовремя.',
+    f2: 'Для видео незаметно, для стрельбы в играх уже мешает.',
+    f3: 'Видео можно смотреть — плееры сами двигают дорожку. В играх и на живом инструменте так играть нельзя.',
+    k1: 'Проводные наушники', k1s: 'Обычно 5–40 мс. Задержку даёт сама звуковая карта и буфер, и она почти всегда ниже порога заметности.',
+    k2: 'Bluetooth', k2s: 'От 120 до 300 мс на обычном SBC и AAC. aptX Low Latency и LE Audio опускают до 40–80, но их должны поддерживать оба устройства.',
+    k3: 'Телевизор', k3s: 'Обработка картинки добавляет свои десятки миллисекунд. В меню обычно есть «игровой режим» и ручная подстройка звука.',
+    k4: 'Разные уши', k4s: 'Если левый и правый наушник дают разную задержку, звук расплывается. Прогоните проверку отдельно на каждом.',
+    n1: 'Браузер не может измерить это сам: он не знает, когда звук долетел до вашего уха. Число сверху — задержка его собственного тракта, всё остальное меряет человек, и в результат входит скорость вашей реакции глазом.',
+    n2: 'Мерьте несколько раз и берите среднее. Разброс в 20–30 миллисекунд между попытками — обычное дело.',
+    n3: 'Плееры и видеосервисы двигают звуковую дорожку сами, поэтому кино с задержкой смотреть можно. Игры и живая музыка так не умеют — там задержка слышна как есть.',
+    n4: 'На Android и в наушниках с aptX задержку иногда можно поправить в настройках. На iPhone управлять ей нельзя, и остаётся выбирать наушники.',
+    n5: 'Если задержка разная в левом и правом ухе, дело не в источнике, а в самих наушниках: у половинок разошлась синхронизация. Помогает сброс и повторное подключение.',
+  },
+  uk: {
+    ms: 'мілісекунд', latency: 'Затримка звукового тракту',
+    noLatency: 'браузер не відповідає',
+    latencyNote: 'Це те, що браузер знає про себе: скільки звук іде від сторінки до виходу пристрою. Затримку екрана й бездротових навушників він так не бачить — її ловить перевірка нижче.',
+    start: 'Запустити радар', stop: 'Зупинити', fix: 'Зафіксувати',
+    offset: 'Зсув звуку', ear: 'Куди клацати',
+    left: 'Лівий', both: 'Обидва', right: 'Правий',
+    hint: 'Дивіться на промінь. На верхній мітці — спалах і клацання. Рухайте повзунок, поки вони не збігнуться.',
+    v1: 'Дротовий звук: годиться і для ігор', v2: 'Добрий Bluetooth: для відео непомітно',
+    v3: 'Помітний розсинхрон: дешевий кодек або старий Bluetooth',
+    fixed: 'Ваша затримка — <b>{мс}</b>. {что}',
+    f1: 'Для ігор це нормально: кроки й постріли чути вчасно.',
+    f2: 'Для відео непомітно, для стрільби в іграх уже заважає.',
+    f3: 'Відео дивитися можна — плеєри самі рухають доріжку. В іграх і на живому інструменті так грати не можна.',
+    k1: 'Дротові навушники', k1s: 'Зазвичай 5–40 мс. Затримку дає сама звукова карта й буфер, і вона майже завжди нижча за поріг помітності.',
+    k2: 'Bluetooth', k2s: 'Від 120 до 300 мс на звичайному SBC і AAC. aptX Low Latency і LE Audio опускають до 40–80, але їх мають підтримувати обидва пристрої.',
+    k3: 'Телевізор', k3s: 'Обробка картинки додає свої десятки мілісекунд. У меню зазвичай є «ігровий режим» і ручне підстроювання звуку.',
+    k4: 'Різні вуха', k4s: 'Якщо лівий і правий навушник дають різну затримку, звук розпливається. Проженіть перевірку окремо на кожному.',
+    n1: 'Браузер не може виміряти це сам: він не знає, коли звук долетів до вашого вуха. Число згори — затримка його власного тракту, усе інше міряє людина, і в результат входить швидкість вашої реакції оком.',
+    n2: 'Міряйте кілька разів і беріть середнє. Розкид у 20–30 мілісекунд між спробами — звична річ.',
+    n3: 'Плеєри й відеосервіси рухають звукову доріжку самі, тому кіно із затримкою дивитися можна. Ігри й жива музика так не вміють — там затримка чутна як є.',
+    n4: 'На Android і в навушниках з aptX затримку іноді можна виправити в налаштуваннях. На iPhone керувати нею не можна, і лишається обирати навушники.',
+    n5: 'Якщо затримка різна в лівому й правому вусі, річ не в джерелі, а в самих навушниках: у половинок розійшлася синхронізація. Допомагає скидання й повторне підключення.',
+  },
+  en: {
+    ms: 'milliseconds', latency: 'Audio path latency',
+    noLatency: 'the browser gives no answer',
+    latencyNote: 'This is what the browser knows about itself: how long sound takes from the page to the device output. It cannot see the delay of your screen or wireless headphones — the test below catches that.',
+    start: 'Start the radar', stop: 'Stop', fix: 'Lock it in',
+    offset: 'Audio offset', ear: 'Which side clicks',
+    left: 'Left', both: 'Both', right: 'Right',
+    hint: 'Watch the beam. At the top mark it flashes and clicks. Move the slider until the two coincide.',
+    v1: 'Wired sound: fine for games too', v2: 'Good Bluetooth: unnoticeable for video',
+    v3: 'Clear lip-sync error: cheap codec or old Bluetooth',
+    fixed: 'Your delay is <b>{мс}</b>. {что}',
+    f1: 'Fine for games: footsteps and shots arrive on time.',
+    f2: 'Unnoticeable on video, already a problem for shooting in games.',
+    f3: 'Video is watchable — players shift the audio track themselves. Games and live instruments cannot.',
+    k1: 'Wired headphones', k1s: 'Usually 5–40 ms. It comes from the sound card and its buffer, and it is almost always below the threshold of noticing.',
+    k2: 'Bluetooth', k2s: 'From 120 to 300 ms on ordinary SBC and AAC. aptX Low Latency and LE Audio bring it down to 40–80, but both devices have to support them.',
+    k3: 'A TV', k3s: 'Picture processing adds tens of milliseconds of its own. The menu usually has a game mode and a manual audio offset.',
+    k4: 'Ears that differ', k4s: 'If the left and right earbud have different delays, the sound smears. Run the test on each one separately.',
+    n1: 'A browser cannot measure this on its own: it does not know when the sound reached your ear. The figure at the top is the latency of its own path; everything else is measured by you, and your visual reaction time is part of the result.',
+    n2: 'Measure several times and take the average. A spread of 20–30 milliseconds between attempts is normal.',
+    n3: 'Players and video services shift the audio track themselves, so films remain watchable. Games and live music cannot do that — there the delay is heard as it is.',
+    n4: 'On Android and with aptX headphones the delay can sometimes be corrected in settings. On an iPhone there is no control over it, so the choice of headphones is all you have.',
+    n5: 'If the delay differs between left and right, the source is not to blame — the earbuds have drifted out of sync with each other. A reset and re-pairing usually fixes it.',
+  },
+  es: {
+    ms: 'milisegundos', latency: 'Latencia de la ruta de audio',
+    noLatency: 'el navegador no responde',
+    latencyNote: 'Esto es lo que el navegador sabe de sí mismo: cuánto tarda el sonido desde la página hasta la salida del aparato. No ve el retraso de tu pantalla ni de unos auriculares inalámbricos: eso lo capta la prueba de abajo.',
+    start: 'Arrancar el radar', stop: 'Parar', fix: 'Fijar',
+    offset: 'Desfase del sonido', ear: 'Por dónde suena',
+    left: 'Izquierdo', both: 'Ambos', right: 'Derecho',
+    hint: 'Mira el haz. En la marca superior hay destello y clic. Mueve el control hasta que coincidan.',
+    v1: 'Sonido por cable: vale también para juegos', v2: 'Buen Bluetooth: imperceptible en vídeo',
+    v3: 'Desincronía clara: códec barato o Bluetooth antiguo',
+    fixed: 'Tu retraso es de <b>{мс}</b>. {что}',
+    f1: 'Bien para juegos: pasos y disparos llegan a tiempo.',
+    f2: 'Imperceptible en vídeo, ya molesto para disparar en juegos.',
+    f3: 'El vídeo se puede ver: los reproductores desplazan la pista de audio solos. Los juegos y un instrumento en directo no pueden.',
+    k1: 'Auriculares con cable', k1s: 'Normalmente 5–40 ms. Viene de la tarjeta de sonido y su búfer, y casi siempre queda por debajo del umbral de percepción.',
+    k2: 'Bluetooth', k2s: 'De 120 a 300 ms con SBC y AAC corrientes. aptX Low Latency y LE Audio bajan a 40–80, pero los dos aparatos deben admitirlos.',
+    k3: 'Un televisor', k3s: 'El procesado de imagen añade sus propias decenas de milisegundos. En el menú suele haber modo juego y un ajuste manual del audio.',
+    k4: 'Oídos distintos', k4s: 'Si el auricular izquierdo y el derecho tienen retrasos distintos, el sonido se emborrona. Haz la prueba con cada uno por separado.',
+    n1: 'Un navegador no puede medir esto por su cuenta: no sabe cuándo el sonido llegó a tu oído. La cifra de arriba es la latencia de su propia ruta; lo demás lo mides tú, y tu tiempo de reacción visual forma parte del resultado.',
+    n2: 'Mide varias veces y quédate con la media. Una dispersión de 20 a 30 milisegundos entre intentos es normal.',
+    n3: 'Los reproductores y los servicios de vídeo desplazan la pista de audio ellos mismos, así que el cine se puede ver. Los juegos y la música en directo no pueden: allí el retraso se oye tal cual.',
+    n4: 'En Android y con auriculares aptX el retraso a veces se corrige en los ajustes. En un iPhone no hay control sobre él y solo queda elegir bien los auriculares.',
+    n5: 'Si el retraso difiere entre izquierdo y derecho, la culpa no es de la fuente: los auriculares se han desincronizado entre sí. Un reinicio y volver a emparejarlos suele bastar.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="зд" data-words={JSON.stringify(с)}>
+  <div class="зд-поле">
+    <div class="зд-число нет" id="зд-число">—</div>
+    <div class="зд-ед">{с.latency} · {с.ms}</div>
+    <div class="зд-под">{с.latencyNote}</div>
+  </div>
+
+  <span class="зд-к">{с.ear}</span>
+  {/* Каналы -- отдельный ряд компактных кнопок: они настройка, а не действие, и на
+      телефоне не должны растягиваться во всю ширину, как главная кнопка. */}
+  <div class="зд-каналы" id="зд-каналы">
+    <button type="button" class="зд-канал" data-канал="-1">{с.left}</button>
+    <button type="button" class="зд-канал вкл" data-канал="0">{с.both}</button>
+    <button type="button" class="зд-канал" data-канал="1">{с.right}</button>
+  </div>
+
+  <div class="зд-стенд">
+    {/* Луч, а не мигалка: по нему видно, когда будет вспышка, и глаз успевает подготовиться. */}
+    <canvas class="зд-радар" id="зд-радар"></canvas>
+
+    <div class="зд-ручка">
+      <span class="зд-строка">{с.offset}<em id="зд-эхо">0 мс</em></span>
+      <input type="range" id="зд-ползунок" min="0" max="500" step="5" value="0"
+             aria-label={с.offset} />
+    </div>
+
+    <div class="зд-итог" id="зд-итог">{с.hint}</div>
+
+    <div class="зд-кнопки">
+      <button type="button" class="зд-го" id="зд-пуск">{с.start}</button>
+      <button type="button" class="зд-го тихая" id="зд-фикс">{с.fix}</button>
+    </div>
+  </div>
+
+  <p class="зд-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.n1}</span>
+  </p>
+
+  <div class="зд-что">
+    <div class="зд-строка2"><b>{с.k1}</b><span>{с.k1s}</span></div>
+    <div class="зд-строка2"><b>{с.k2}</b><span>{с.k2s}</span></div>
+    <div class="зд-строка2"><b>{с.k3}</b><span>{с.k3s}</span></div>
+    <div class="зд-строка2"><b>{с.k4}</b><span>{с.k4s}</span></div>
+  </div>
+
+  <div class="зд-заметки">
+    <div class="зд-заметка">{с.n2}</div>
+    <div class="зд-заметка">{с.n3}</div>
+    <div class="зд-заметка">{с.n4}</div>
+    <div class="зд-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.зд');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (id) => document.getElementById(id);
+    const ПЕРИОД = 1.2;          // секунда с небольшим -- успеть и увидеть, и услышать
+    const ВПЕРЁД = 0.5;          // на сколько вперёд раскладываем щелчки
+
+    let узел = null, панорама = null;
+    let идёт = false, сдвиг = 0, канал = 0;
+    let t0Узла = 0, t0Часов = 0, следующийУдар = 0, кадр = 0, таймер = 0;
+
+    startKeeper();
+    function открытьСессию() {
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+
+    // ---- Звук ---------------------------------------------------------------------------
+    function завести() {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+        if (узел.createStereoPanner) {
+          панорама = узел.createStereoPanner();
+          панорама.pan.setValueAtTime(канал, узел.currentTime);
+          панорама.connect(узел.destination);
+        } else панорама = null;
+      }
+      if (узел.state === 'suspended') узел.resume();
+    }
+    // Щелчок короткий и резкий: по длинному звуку момент начала на слух не поймать.
+    function щелчок(когда) {
+      const ген = узел.createOscillator(), гр = узел.createGain();
+      ген.type = 'square';
+      ген.frequency.setValueAtTime(1800, когда);
+      гр.gain.setValueAtTime(0.0001, когда);
+      гр.gain.exponentialRampToValueAtTime(0.5, когда + 0.001);
+      гр.gain.exponentialRampToValueAtTime(0.0001, когда + 0.02);
+      ген.connect(гр);
+      гр.connect(панорама || узел.destination);
+      ген.start(когда); ген.stop(когда + 0.03);
+    }
+    // Раскладываем удары заранее, по часам звукового узла. Гнать их по кадрам нельзя:
+    // кадры плывут, и щелчок задышит вокруг доли -- на те самые десятки миллисекунд,
+    // которые мы и меряем.
+    function раскладка() {
+      if (!идёт) return;
+      while (t0Узла + следующийУдар * ПЕРИОД - сдвиг / 1000 < узел.currentTime + ВПЕРЁД) {
+        const когда = t0Узла + следующийУдар * ПЕРИОД - сдвиг / 1000;
+        if (когда > узел.currentTime) щелчок(когда);
+        следующийУдар++;
+      }
+      показатьЗадержку();
+      таймер = window.setTimeout(раскладка, 120);
+    }
+
+    // ---- Радар --------------------------------------------------------------------------
+    const холст = $('зд-радар'), кт = холст.getContext('2d');
+    function рисовать() {
+      const мп = window.devicePixelRatio || 1;
+      const б = холст.clientWidth;
+      if (!б) return;
+      const р = Math.round(б * мп);
+      if (холст.width !== р) { холст.width = р; холст.height = р; }
+      const ц = р / 2, радиус = р * 0.44;
+      кт.clearRect(0, 0, р, р);
+
+      // Доля оборота: считаем по часам страницы -- картинка живёт по ним.
+      const доля = идёт ? (((performance.now() - t0Часов) / (ПЕРИОД * 1000)) % 1 + 1) % 1 : 0;
+      // Вспышка держится недолго, иначе момент размазывается.
+      const вспышка = идёт && доля < 0.055 ? 1 - доля / 0.055 : 0;
+
+      кт.strokeStyle = 'rgba(255,255,255,.10)'; кт.lineWidth = мп;
+      [1, 0.72, 0.44].forEach((к) => {
+        кт.beginPath(); кт.arc(ц, ц, радиус * к, 0, Math.PI * 2); кт.stroke();
+      });
+      // Метки по кругу: полный оборот -- 1200 миллисекунд, подписи через 200.
+      кт.textAlign = 'center'; кт.textBaseline = 'middle';
+      кт.font = 700 + ' ' + Math.round(9 * мп) + 'px -apple-system, BlinkMacSystemFont, Segoe UI, sans-serif';
+      for (let m = 0; m < 1200; m += 100) {
+        const у = (m / 1200) * Math.PI * 2 - Math.PI / 2;
+        const дл = m % 200 === 0 ? 0.09 : 0.05;
+        кт.strokeStyle = m === 0 ? 'rgba(57,255,20,.75)' : 'rgba(255,255,255,.16)';
+        кт.lineWidth = (m === 0 ? 2 : 1) * мп;
+        кт.beginPath();
+        кт.moveTo(ц + Math.cos(у) * радиус, ц + Math.sin(у) * радиус);
+        кт.lineTo(ц + Math.cos(у) * радиус * (1 - дл), ц + Math.sin(у) * радиус * (1 - дл));
+        кт.stroke();
+        if (m % 200 === 0) {
+          кт.fillStyle = 'rgba(226,232,246,.5)';
+          кт.fillText(String(m), ц + Math.cos(у) * радиус * 0.84, ц + Math.sin(у) * радиус * 0.84);
+        }
+      }
+      // Луч.
+      if (идёт) {
+        const у = доля * Math.PI * 2 - Math.PI / 2;
+        const град = кт.createLinearGradient(ц, ц, ц + Math.cos(у) * радиус, ц + Math.sin(у) * радиус);
+        град.addColorStop(0, 'rgba(57,255,20,0)');
+        град.addColorStop(1, 'rgba(57,255,20,.95)');
+        кт.strokeStyle = град; кт.lineWidth = 3 * мп; кт.lineCap = 'round';
+        кт.beginPath(); кт.moveTo(ц, ц); кт.lineTo(ц + Math.cos(у) * радиус, ц + Math.sin(у) * радиус);
+        кт.stroke();
+      }
+      // Вспышка на верхней метке.
+      if (вспышка > 0) {
+        кт.save();
+        кт.globalAlpha = вспышка;
+        const г = кт.createRadialGradient(ц, ц, 0, ц, ц, радиус);
+        г.addColorStop(0, 'rgba(57,255,20,.55)'); г.addColorStop(1, 'rgba(57,255,20,0)');
+        кт.fillStyle = г; кт.beginPath(); кт.arc(ц, ц, радиус, 0, Math.PI * 2); кт.fill();
+        кт.fillStyle = '#eaffe2';
+        кт.beginPath(); кт.arc(ц, ц - радиус, 6 * мп, 0, Math.PI * 2); кт.fill();
+        кт.restore();
+      }
+      кадр = requestAnimationFrame(рисовать);
+    }
+
+    // ---- Управление ----------------------------------------------------------------------
+    function пуск() {
+      завести();
+      // Спариваем часы один раз: дальше и звук, и картинка считаются каждый от своей пары.
+      t0Узла = узел.currentTime + 0.3;
+      t0Часов = performance.now() + 300;
+      следующийУдар = 0;
+      идёт = true;
+      $('зд-пуск').textContent = с.stop;
+      показатьЗадержку();
+      раскладка();
+    }
+    function стоп() {
+      идёт = false;
+      clearTimeout(таймер);
+      $('зд-пуск').textContent = с.start;
+    }
+    // Задержку собственного тракта браузер знает сам -- показываем, как только узел ожил.
+    function показатьЗадержку() {
+      const ч = $('зд-число');
+      const л = узел && (узел.outputLatency || узел.baseLatency);
+      if (typeof л === 'number' && л > 0) {
+        ч.textContent = Math.round(л * 1000);
+        ч.classList.remove('нет');
+      } else {
+        ч.textContent = с.noLatency;
+        ч.classList.add('нет');
+      }
+    }
+    function оценка(мс) {
+      return мс < 50 ? с.v1 : (мс < 150 ? с.v2 : с.v3);
+    }
+    $('зд-ползунок').addEventListener('input', (e) => {
+      сдвиг = Number(e.target.value) || 0;
+      $('зд-эхо').textContent = сдвиг + ' мс';
+      $('зд-итог').textContent = оценка(сдвиг);
+      // Уже разложенные щелчки отменить нельзя, поэтому раскладываем заново с нового места.
+      следующийУдар = Math.ceil((узел ? (узел.currentTime - t0Узла) / ПЕРИОД : 0) + 0.5);
+    });
+    $('зд-пуск').addEventListener('click', () => { if (идёт) стоп(); else пуск(); });
+    $('зд-фикс').addEventListener('click', () => {
+      стоп();
+      const что = сдвиг < 50 ? с.f1 : (сдвиг < 150 ? с.f2 : с.f3);
+      $('зд-итог').innerHTML = с.fixed.replace('{мс}', сдвиг + ' ' + с.ms).replace('{что}', что);
+    });
+    $('зд-каналы').addEventListener('click', (e) => {
+      const б = e.target.closest('.зд-канал');
+      if (!б) return;
+      $('зд-каналы').querySelectorAll('.зд-канал').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      канал = Number(б.dataset.канал) || 0;
+      if (панорама) { try { панорама.pan.setTargetAtTime(канал, узел.currentTime, 0.01); } catch (e2) {} }
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && идёт) стоп();
+    });
+    window.addEventListener('resize', () => { if (!идёт) рисовать(); });
+
+    рисовать();
+
+    window.__здСостояние = () => ({
+      идёт, сдвиг, канал, число: $('зд-число').textContent,
+      эхо: $('зд-эхо').textContent, итог: ($('зд-итог').textContent || '').slice(0, 60),
+      узел: узел ? узел.state : 'нет', панорама: панорама ? панорама.pan.value : null,
+      задержкаТракта: узел ? (узел.outputLatency || узел.baseLatency || 0) : null,
+    });
+  })();
+</script>

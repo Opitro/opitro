@@ -1,0 +1,125 @@
+/* СТИЛИ СТРАНИЦЫ «ЗАДЕРЖКА ЗВУКА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ДВА РАЗНЫХ ОТВЕТА. Сверху -- то, что браузер знает сам: задержка звукового тракта в
+ *      миллисекундах. Ниже -- проверка глазом и ухом: вспышка и щелчок, а человек ползунком
+ *      сводит их вместе. Первое -- число прибора, второе -- то, что человек правда видит и
+ *      слышит, вместе с задержкой экрана, которую браузеру взять неоткуда.
+ *   2. ВСПЫШКА КРУПНАЯ И ПО ЦЕНТРУ. Смотреть надо на неё, а не бегать глазами по экрану.
+ *   3. МЕСТО ПОД ЧИСЛА ЗАРЕЗЕРВИРОВАНО, страница не дёргается.
+ *
+ * Цвет свой -- кислотно-зелёный: его просил владелец, и он к месту -- так подсвечивают
+ * приборы в звуковой технике и в игровых гарнитурах, а страница как раз про них.
+ */
+
+.зд {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #39ff14;
+  --ручки: #58b8f0;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+/* ---- Что говорит браузер ---------------------------------------------------------------- */
+
+.зд-поле {
+  position: relative; border-radius: 20px; padding: 24px 22px 22px; overflow: hidden;
+  background: linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.028));
+  border: 1px solid rgba(255,255,255,.12);
+  -webkit-backdrop-filter: blur(16px); backdrop-filter: blur(16px);
+  box-shadow: 0 22px 50px -26px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.14);
+  display: flex; flex-direction: column; align-items: center; gap: 10px; text-align: center;
+}
+.зд-поле::before {
+  content: ""; position: absolute; inset: -30%; pointer-events: none;
+  background: radial-gradient(30% 26% at 28% 18%, rgba(57,255,20,.22), transparent 70%),
+    radial-gradient(28% 24% at 76% 24%, rgba(88,184,240,.24), transparent 70%);
+  filter: blur(38px);
+}
+.зд-поле > * { position: relative }
+.зд-число { font: 800 66px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em; text-shadow: 0 0 24px rgba(57,255,20,.6), 0 0 56px rgba(57,255,20,.28) }
+.зд-число.нет { color: rgba(226,232,246,.35); text-shadow: none; font-size: 34px }
+.зд-ед { margin-top: -6px; font: 700 11px var(--ui); letter-spacing: .16em;
+  text-transform: uppercase; color: rgba(226,232,246,.8) }
+.зд-под { max-width: 46ch; font-size: 13px; line-height: 1.6; color: rgba(226,232,246,.82) }
+.зд-под b { color: #fff }
+
+/* ---- Вспышка и щелчок -------------------------------------------------------------------- */
+
+.зд-к { display: block; margin: 20px 0 8px; font: 700 10.5px var(--ui); letter-spacing: .15em;
+  text-transform: uppercase; color: rgba(233,237,246,.88) }
+
+.зд-стенд { padding: 20px 18px; border-radius: 18px;
+  border: 1px solid rgba(255,255,255,.12);
+  background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.022));
+  -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
+  display: flex; flex-direction: column; align-items: center; gap: 16px }
+
+/* Радар: луч идёт по кругу и на верхней метке даёт вспышку вместе со щелчком. Луч важнее
+   простой мигалки -- по нему видно, когда вспышка будет, и глаз успевает подготовиться.
+   Совпадение ловится куда точнее, чем по внезапному миганию. */
+.зд-радар { width: 100%; max-width: 260px; aspect-ratio: 1; display: block }
+
+.зд-ручка { width: 100%; max-width: 460px; display: flex; flex-direction: column; gap: 7px }
+.зд-строка { display: flex; justify-content: space-between; align-items: baseline;
+  font: 700 10.5px var(--ui); letter-spacing: .14em; text-transform: uppercase;
+  color: rgba(233,237,246,.88) }
+.зд-строка em { font-style: normal; letter-spacing: 0; text-transform: none; font-size: 15px;
+  color: var(--ручки); font-weight: 800; font-variant-numeric: tabular-nums }
+.зд-ручка input[type="range"] { width: 100%; accent-color: var(--ручки); height: 26px }
+
+.зд-каналы { display: flex; gap: 6px }
+.зд-канал {
+  flex: 1; min-width: 0; font: 600 13px var(--ui); height: 40px; border-radius: 10px;
+  cursor: pointer; color: rgba(226,232,246,.6);
+  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+  transition: color .15s ease, border-color .15s ease, box-shadow .2s ease;
+}
+.зд-канал:hover { color: var(--text) }
+.зд-канал.вкл { color: var(--свой); border-color: rgba(57,255,20,.55);
+  box-shadow: 0 0 18px rgba(57,255,20,.18), inset 0 0 16px rgba(57,255,20,.08) }
+
+.зд-кнопки { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center }
+.зд-го {
+  font: 700 14px var(--ui); height: 52px; padding: 0 26px; border-radius: 14px; cursor: pointer;
+  color: #fff; border: 1px solid rgba(255,255,255,.22);
+  background: linear-gradient(135deg, rgba(57,255,20,.85), rgba(0,214,120,.9));
+  box-shadow: 0 0 22px rgba(57,255,20,.4); color: #06210b;
+  transition: box-shadow .25s ease, transform .08s ease;
+}
+.зд-го:hover { box-shadow: 0 0 38px rgba(57,255,20,.7); transform: translateY(-1px) }
+.зд-го:active { transform: translateY(1px) }
+.зд-го.тихая { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2);
+  box-shadow: none; color: var(--text) }
+.зд-го.тихая:hover { box-shadow: 0 0 20px rgba(255,255,255,.14) }
+
+/* Место под самую длинную строку: подсказка, оценка и итог разной длины, и без запаса
+   стенд менял высоту на два десятка точек прямо под пальцем. */
+.зд-итог { min-height: 84px; max-width: 46ch; text-align: center; font-size: 13px;
+  line-height: 1.6; color: rgba(226,232,246,.82) }
+.зд-итог b { color: #fff }
+
+.зд-тише { display: flex; gap: 8px; margin: 16px 0 0; font-size: 12.5px; line-height: 1.5;
+  color: rgba(226,232,246,.78) }
+.зд-тише svg { flex: none; width: 14px; height: 14px; margin-top: 2px; color: rgba(245,196,81,.8) }
+
+.зд-что { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 8px;
+  margin-top: 12px }
+.зд-строка2 { padding: 13px 14px 14px; border-radius: 12px; background: var(--surface-2);
+  border: 1px solid var(--line) }
+.зд-строка2 b { display: block; font: 700 13.5px var(--ui); color: var(--text); margin-bottom: 6px }
+.зд-строка2 span { display: block; font-size: 12.5px; line-height: 1.5; color: rgba(226,232,246,.8) }
+
+.зд-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.зд-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: rgba(226,232,246,.8) }
+.зд-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 560px) {
+  .зд-поле { padding: 20px 14px 18px }
+  .зд-число { font-size: 52px }
+  .зд-круг { width: 112px; height: 112px }
+  .зд-го { width: 100% }
+}
+@media (prefers-reduced-motion: reduce) { .зд-круг { transition: none } }
