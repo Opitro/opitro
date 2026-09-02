@@ -1,0 +1,314 @@
+---
+// ПРОВЕРКА HDR.
+//
+// Показать настоящий HDR веб-страница не может: для этого нужен HDR-файл -- видео или
+// картинка с расширенным диапазоном, а обычные цвета CSS живут в обычном диапазоне и ярче
+// белого не станут. Поэтому страница не притворяется, что «показывает HDR», а спрашивает
+// браузер о том, что он правда знает, и честно об этом пишет.
+//
+// Спрашиваем две разные вещи, и путать их нельзя:
+//   1. ЭКРАН -- медиазапросы dynamic-range и video-dynamic-range. Они отвечают, включён ли
+//      расширенный диапазон прямо сейчас. Это ровно тот вопрос, с которым сюда приходят.
+//   2. ВИДЕО -- navigator.mediaCapabilities.decodingInfo с подсказками про кривую передачи
+//      (PQ и HLG) и охват rec2020. Он отвечает, умеет ли браузер декодировать HDR10, HLG,
+//      AV1 и Dolby Vision. Бывает HDR-монитор и браузер, который HDR10 не декодирует, --
+//      отсюда половина жалоб «в ютубе нет HDR».
+//
+// Медиазапросы живые: человек включает HDR в настройках системы, возвращается на вкладку --
+// и строки меняются сами, без перезагрузки.
+import css from '../styles/hdr-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    yes: 'HDR включён', no: 'HDR не включён', unknown: 'Проверяем…',
+    yesS: 'Браузер сообщает, что этот экран сейчас работает в расширенном диапазоне. Ниже — подробности и то, какие форматы HDR-видео браузер умеет декодировать.',
+    noS: 'Браузер сообщает, что расширенного диапазона на этом экране сейчас нет. Так бывает и когда экран не умеет HDR, и когда умеет, но HDR выключен в настройках системы.',
+    screen: 'Экран', screenNote: 'что браузер знает о текущем экране',
+    video: 'HDR-видео', videoNote: 'какие форматы браузер умеет декодировать',
+    s1: 'Расширенный диапазон', s1s: 'Главный ответ. Браузер говорит «да» только если экран работает в HDR прямо сейчас.',
+    s2: 'HDR в видео', s2s: 'Отдельный ответ для видео: у некоторых экранов HDR включается только на видео, а не на всём подряд.',
+    s3: 'Цветовой охват', s3s: 'sRGB — обычный, p3 — широкий, rec2020 — самый широкий. HDR почти всегда идёт вместе с широким охватом.',
+    s4: 'Глубина цвета', s4s: 'Сколько бит на точку сообщает система. Для HDR нужно больше восьми на канал, то есть больше 24 всего.',
+    v1: 'HDR10 · HEVC Main10', v1s: 'Самый распространённый HDR: диски, приставки, большинство фильмов.',
+    v2: 'HLG · HEVC', v2s: 'Формат для телевещания и камер. Его же используют многие телефоны при съёмке.',
+    v3: 'HDR10 · AV1', v3s: 'Открытый формат. На нём идёт HDR в YouTube и в части стриминга.',
+    v4: 'HDR10 · VP9 Profile 2', v4s: 'Старый формат YouTube для HDR, ещё встречается.',
+    v5: 'Dolby Vision', v5s: 'Формат с покадровыми данными. В браузерах поддерживается редко — чаще только в Safari и в приложениях.',
+    ok: 'да', nope: 'нет', none: 'браузер не отвечает', bits: 'бит',
+    again: 'Проверить снова',
+    hint: 'Включили HDR в настройках системы — вернитесь на вкладку, строки обновятся сами',
+    n1: 'Страница ничего не измеряет. Всё, что здесь показано, — ответы браузера; яркость в нитах и настоящий контраст веб-страница узнать не может.',
+    n2: 'В Windows HDR включается в «Параметры → Система → Дисплей → HDR». После включения обычная картинка часто выглядит блёкло — это нормально, поправьте ползунок яркости SDR в тех же настройках.',
+    n3: 'На маке HDR включается сам на поддерживаемых экранах. Внешнему монитору может не хватать кабеля: для HDR нужен HDMI 2.0 и выше или DisplayPort 1.4.',
+    n4: 'Ответ «нет» у видео чаще всего означает, что формат не поддерживает браузер, а не экран. Попробуйте другой браузер: у Chrome, Safari и Firefox наборы разные.',
+    n5: 'Если HDR включён, а картинка кажется тусклой или пересвеченной, проверьте цветопередачу отдельно — там видно, не срезает ли экран детали в тенях и светах.',
+  },
+  uk: {
+    yes: 'HDR увімкнено', no: 'HDR не увімкнено', unknown: 'Перевіряємо…',
+    yesS: 'Браузер повідомляє, що цей екран зараз працює в розширеному діапазоні. Нижче — подробиці й те, які формати HDR-відео браузер уміє декодувати.',
+    noS: 'Браузер повідомляє, що розширеного діапазону на цьому екрані зараз немає. Так буває і коли екран не вміє HDR, і коли вміє, але HDR вимкнено в налаштуваннях системи.',
+    screen: 'Екран', screenNote: 'що браузер знає про поточний екран',
+    video: 'HDR-відео', videoNote: 'які формати браузер уміє декодувати',
+    s1: 'Розширений діапазон', s1s: 'Головна відповідь. Браузер каже «так» лише якщо екран працює в HDR просто зараз.',
+    s2: 'HDR у відео', s2s: 'Окрема відповідь для відео: у деяких екранів HDR вмикається тільки на відео, а не на всьому.',
+    s3: 'Колірне охоплення', s3s: 'sRGB — звичайне, p3 — широке, rec2020 — найширше. HDR майже завжди йде разом із широким охопленням.',
+    s4: 'Глибина кольору', s4s: 'Скільки біт на точку повідомляє система. Для HDR потрібно більше восьми на канал, тобто більше 24 загалом.',
+    v1: 'HDR10 · HEVC Main10', v1s: 'Найпоширеніший HDR: диски, приставки, більшість фільмів.',
+    v2: 'HLG · HEVC', v2s: 'Формат для телемовлення й камер. Його ж використовують багато телефонів під час зйомки.',
+    v3: 'HDR10 · AV1', v3s: 'Відкритий формат. На ньому йде HDR у YouTube і в частині стримінгу.',
+    v4: 'HDR10 · VP9 Profile 2', v4s: 'Старий формат YouTube для HDR, ще трапляється.',
+    v5: 'Dolby Vision', v5s: 'Формат із покадровими даними. У браузерах підтримується рідко — частіше лише в Safari та в застосунках.',
+    ok: 'так', nope: 'ні', none: 'браузер не відповідає', bits: 'біт',
+    again: 'Перевірити знову',
+    hint: 'Увімкнули HDR у налаштуваннях системи — поверніться на вкладку, рядки оновляться самі',
+    n1: 'Сторінка нічого не вимірює. Усе, що тут показано, — відповіді браузера; яскравість у нітах і справжній контраст вебсторінка дізнатися не може.',
+    n2: 'У Windows HDR вмикається в «Параметри → Система → Дисплей → HDR». Після ввімкнення звичайна картинка часто виглядає блякло — це нормально, підправте повзунок яскравості SDR у тих самих налаштуваннях.',
+    n3: 'На маку HDR вмикається сам на підтримуваних екранах. Зовнішньому монітору може бракувати кабелю: для HDR потрібен HDMI 2.0 і вище або DisplayPort 1.4.',
+    n4: 'Відповідь «ні» у відео найчастіше означає, що формат не підтримує браузер, а не екран. Спробуйте інший браузер: у Chrome, Safari і Firefox набори різні.',
+    n5: 'Якщо HDR увімкнено, а картинка здається тьмяною чи пересвіченою, перевірте кольоропередачу окремо — там видно, чи не зрізає екран деталі в тінях і світлах.',
+  },
+  en: {
+    yes: 'HDR is on', no: 'HDR is off', unknown: 'Checking…',
+    yesS: 'The browser reports that this screen is running in high dynamic range right now. Below are the details and which HDR video formats the browser can decode.',
+    noS: 'The browser reports no high dynamic range on this screen right now. That happens both when the screen cannot do HDR and when it can but HDR is switched off in the system settings.',
+    screen: 'Screen', screenNote: 'what the browser knows about the current screen',
+    video: 'HDR video', videoNote: 'which formats the browser can decode',
+    s1: 'High dynamic range', s1s: 'The main answer. The browser says yes only when the screen is in HDR at this moment.',
+    s2: 'HDR for video', s2s: 'A separate answer for video: some screens switch to HDR only for video rather than for everything.',
+    s3: 'Colour gamut', s3s: 'sRGB is ordinary, p3 is wide, rec2020 is the widest. HDR almost always comes together with a wide gamut.',
+    s4: 'Colour depth', s4s: 'How many bits per pixel the system reports. HDR needs more than eight per channel, that is more than 24 in total.',
+    v1: 'HDR10 · HEVC Main10', v1s: 'The most common HDR: discs, consoles, most films.',
+    v2: 'HLG · HEVC', v2s: 'The broadcast and camera format. Many phones use it when recording.',
+    v3: 'HDR10 · AV1', v3s: 'The open format. YouTube and part of streaming deliver HDR with it.',
+    v4: 'HDR10 · VP9 Profile 2', v4s: 'YouTube’s older HDR format, still around.',
+    v5: 'Dolby Vision', v5s: 'A format with per-frame data. Rarely supported in browsers — mostly Safari and native apps.',
+    ok: 'yes', nope: 'no', none: 'browser gives no answer', bits: 'bit',
+    again: 'Check again',
+    hint: 'Turned HDR on in system settings? Come back to this tab and the rows update themselves',
+    n1: 'This page measures nothing. Everything here is the browser’s own answer; brightness in nits and real contrast cannot be learned by a web page.',
+    n2: 'In Windows, HDR lives in Settings → System → Display → HDR. After switching it on ordinary content often looks washed out — that is normal, adjust the SDR brightness slider in the same place.',
+    n3: 'On a Mac HDR turns itself on for supported screens. An external monitor may be short of cable: HDR needs HDMI 2.0 or newer, or DisplayPort 1.4.',
+    n4: 'A “no” under video usually means the browser lacks the format, not the screen. Try another browser: Chrome, Safari and Firefox each support a different set.',
+    n5: 'If HDR is on but the picture looks dull or blown out, check colour separately — that shows whether the screen is clipping detail in shadows and highlights.',
+  },
+  es: {
+    yes: 'HDR activado', no: 'HDR desactivado', unknown: 'Comprobando…',
+    yesS: 'El navegador informa de que esta pantalla funciona ahora mismo en alto rango dinámico. Debajo están los detalles y los formatos de vídeo HDR que el navegador puede decodificar.',
+    noS: 'El navegador informa de que ahora no hay alto rango dinámico en esta pantalla. Pasa tanto cuando la pantalla no admite HDR como cuando sí lo admite pero está desactivado en el sistema.',
+    screen: 'Pantalla', screenNote: 'lo que el navegador sabe de la pantalla actual',
+    video: 'Vídeo HDR', videoNote: 'qué formatos puede decodificar el navegador',
+    s1: 'Alto rango dinámico', s1s: 'La respuesta principal. El navegador dice que sí solo si la pantalla está en HDR en este momento.',
+    s2: 'HDR en vídeo', s2s: 'Respuesta aparte para el vídeo: algunas pantallas activan el HDR solo con vídeo y no con todo lo demás.',
+    s3: 'Gama de color', s3s: 'sRGB es la normal, p3 es amplia y rec2020 la más amplia. El HDR casi siempre viene con gama amplia.',
+    s4: 'Profundidad de color', s4s: 'Cuántos bits por punto informa el sistema. Para HDR hacen falta más de ocho por canal, es decir más de 24 en total.',
+    v1: 'HDR10 · HEVC Main10', v1s: 'El HDR más extendido: discos, consolas y la mayoría de películas.',
+    v2: 'HLG · HEVC', v2s: 'El formato de la televisión y las cámaras. Muchos móviles graban así.',
+    v3: 'HDR10 · AV1', v3s: 'El formato abierto. Con él llega el HDR de YouTube y de parte del streaming.',
+    v4: 'HDR10 · VP9 Profile 2', v4s: 'El formato HDR antiguo de YouTube, todavía presente.',
+    v5: 'Dolby Vision', v5s: 'Formato con datos fotograma a fotograma. En navegadores se admite poco: sobre todo Safari y aplicaciones nativas.',
+    ok: 'sí', nope: 'no', none: 'el navegador no responde', bits: 'bits',
+    again: 'Comprobar otra vez',
+    hint: '¿Has activado el HDR en el sistema? Vuelve a esta pestaña y las filas se actualizan solas',
+    n1: 'Esta página no mide nada. Todo lo que ves son respuestas del navegador; el brillo en nits y el contraste real no los puede averiguar una página web.',
+    n2: 'En Windows el HDR está en Configuración → Sistema → Pantalla → HDR. Al activarlo el contenido normal suele verse deslavado: es normal, ajusta el control de brillo SDR en ese mismo sitio.',
+    n3: 'En un Mac el HDR se activa solo en las pantallas compatibles. A un monitor externo puede faltarle cable: el HDR pide HDMI 2.0 o superior, o DisplayPort 1.4.',
+    n4: 'Un «no» en el vídeo suele significar que al navegador le falta el formato, no a la pantalla. Prueba otro navegador: Chrome, Safari y Firefox admiten conjuntos distintos.',
+    n5: 'Si el HDR está activo y aun así la imagen se ve apagada o quemada, revisa el color aparte: allí se ve si la pantalla recorta detalle en sombras y luces.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ЭКРАН = [
+  { ключ: 'range', имя: с.s1, что: с.s1s },
+  { ключ: 'video', имя: с.s2, что: с.s2s },
+  { ключ: 'gamut', имя: с.s3, что: с.s3s },
+  { ключ: 'depth', имя: с.s4, что: с.s4s },
+];
+const ВИДЕО = [
+  { ключ: 'hdr10', имя: с.v1, что: с.v1s },
+  { ключ: 'hlg', имя: с.v2, что: с.v2s },
+  { ключ: 'av1', имя: с.v3, что: с.v3s },
+  { ключ: 'vp9', имя: с.v4, что: с.v4s },
+  { ключ: 'dv', имя: с.v5, что: с.v5s },
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="хд" id="хд" data-words={JSON.stringify(с)}>
+  <div class="хд-вердикт">
+    <span class="хд-круг">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+           stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <circle cx="12" cy="12" r="4.2"/>
+        <path d="M12 2.6v2.6M12 18.8v2.6M2.6 12h2.6M18.8 12h2.6M5.4 5.4l1.9 1.9M16.7 16.7l1.9 1.9M18.6 5.4l-1.9 1.9M7.3 16.7l-1.9 1.9"/>
+      </svg>
+    </span>
+    <span class="хд-слова">
+      <b id="хд-итог">{с.unknown}</b>
+      <span id="хд-итог-под"></span>
+    </span>
+  </div>
+
+  <div class="хд-блок">
+    <div class="хд-заг">{с.screen} <i>{с.screenNote}</i></div>
+    {ЭКРАН.map((р) => (
+      <div class="хд-строка" data-строка={р.ключ}>
+        {/* Два значка: галочка для «да» и прочерк для остального. Серая галочка на строке
+            «нет» читается как «да, но бледное» -- смысл прямо противоположный нужному. */}
+        <svg class="хд-знак да-знак" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><polyline points="8.2 12.4 11 15 15.8 9.4"/>
+        </svg>
+        <svg class="хд-знак нет-знак" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M8.4 12h7.2"/>
+        </svg>
+        <span class="хд-текст"><b>{р.имя}</b><span>{р.что}</span></span>
+        <span class="хд-ответ тихий" data-ответ={р.ключ}>…</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="хд-блок">
+    <div class="хд-заг">{с.video} <i>{с.videoNote}</i></div>
+    {ВИДЕО.map((р) => (
+      <div class="хд-строка" data-строка={р.ключ}>
+        {/* Два значка: галочка для «да» и прочерк для остального. Серая галочка на строке
+            «нет» читается как «да, но бледное» -- смысл прямо противоположный нужному. */}
+        <svg class="хд-знак да-знак" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><polyline points="8.2 12.4 11 15 15.8 9.4"/>
+        </svg>
+        <svg class="хд-знак нет-знак" viewBox="0 0 24 24" fill="none" stroke="currentColor"
+             stroke-width="2.2" stroke-linecap="round" aria-hidden="true">
+          <circle cx="12" cy="12" r="9"/><path d="M8.4 12h7.2"/>
+        </svg>
+        <span class="хд-текст"><b>{р.имя}</b><span>{р.что}</span></span>
+        <span class="хд-ответ тихий" data-ответ={р.ключ}>…</span>
+      </div>
+    ))}
+  </div>
+
+  <div class="хд-низ">
+    <span class="хд-подсказка">{с.hint}</span>
+    <button type="button" class="хд-снова" id="хд-снова">{с.again}</button>
+  </div>
+
+  <div class="хд-заметки">
+    <div class="хд-заметка">{с.n1}</div>
+    <div class="хд-заметка">{с.n2}</div>
+    <div class="хд-заметка">{с.n3}</div>
+    <div class="хд-заметка">{с.n4}</div>
+    <div class="хд-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.getElementById('хд');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const строка = (к) => корень.querySelector('[data-строка="' + к + '"]');
+    const ответ = (к) => корень.querySelector('[data-ответ="' + к + '"]');
+
+    function поставить(к, да, текст) {
+      const с1 = строка(к), о = ответ(к);
+      if (!с1 || !о) return;
+      с1.classList.toggle('да', да === true);
+      о.textContent = текст;
+      // Приглушаем ответ, когда сказать нечего: тогда оранжевым отмечено только то,
+      // что браузер правда подтвердил.
+      о.classList.toggle('тихий', да !== true);
+    }
+
+    // ---- Экран ------------------------------------------------------------------------
+    // Медиазапросы живые: человек включает HDR в настройках системы и возвращается на
+    // вкладку -- строки меняются сами, без перезагрузки.
+    const спросить = (запрос) => {
+      if (!window.matchMedia) return null;
+      const м = matchMedia(запрос);
+      // Браузер, который запроса не знает, отвечает media === 'not all'.
+      return м.media === 'not all' ? null : м;
+    };
+    const мДиапазон = спросить('(dynamic-range: high)');
+    const мВидео = спросить('(video-dynamic-range: high)');
+    const мP3 = спросить('(color-gamut: p3)');
+    const м2020 = спросить('(color-gamut: rec2020)');
+
+    function экран() {
+      const есть = !!(мДиапазон && мДиапазон.matches);
+      корень.classList.toggle('есть', есть);
+      document.getElementById('хд-итог').textContent = есть ? с.yes : с.no;
+      document.getElementById('хд-итог-под').textContent = есть ? с.yesS : с.noS;
+
+      поставить('range', мДиапазон ? мДиапазон.matches : null,
+        мДиапазон ? (мДиапазон.matches ? с.ok : с.nope) : с.none);
+      поставить('video', мВидео ? мВидео.matches : null,
+        мВидео ? (мВидео.matches ? с.ok : с.nope) : с.none);
+
+      const охват = м2020 && м2020.matches ? 'rec2020' : (мP3 && мP3.matches ? 'display-p3' : 'sRGB');
+      поставить('gamut', охват !== 'sRGB', мP3 ? охват : с.none);
+
+      const бит = window.screen && screen.colorDepth;
+      поставить('depth', typeof бит === 'number' && бит > 24, бит ? бит + ' ' + с.bits : с.none);
+    }
+    [мДиапазон, мВидео, мP3, м2020].forEach((м) => {
+      if (м && м.addEventListener) м.addEventListener('change', экран);
+    });
+    экран();
+
+    // ---- Видео ------------------------------------------------------------------------
+    // Спрашиваем не просто «есть ли кодек», а «есть ли кодек с кривой передачи PQ или HLG
+    // и охватом rec2020» -- то есть именно HDR, а не обычное видео тем же кодеком.
+    const ФОРМАТЫ = [
+      { ключ: 'hdr10', тип: 'video/mp4; codecs="hvc1.2.4.L153.B0"', кривая: 'pq' },
+      { ключ: 'hlg', тип: 'video/mp4; codecs="hvc1.2.4.L153.B0"', кривая: 'hlg' },
+      { ключ: 'av1', тип: 'video/mp4; codecs="av01.0.08M.10.0.110.09.16.09.0"', кривая: 'pq' },
+      { ключ: 'vp9', тип: 'video/webm; codecs="vp09.02.10.10.01.09.16.09.01"', кривая: 'pq' },
+      { ключ: 'dv', тип: 'video/mp4; codecs="dvh1.05.06"', кривая: 'pq' },
+    ];
+    async function видео() {
+      const мк = navigator.mediaCapabilities;
+      if (!мк || !мк.decodingInfo) {
+        ФОРМАТЫ.forEach((ф) => поставить(ф.ключ, null, с.none));
+        return;
+      }
+      for (const ф of ФОРМАТЫ) {
+        let умеет = null;
+        try {
+          const итог = await мк.decodingInfo({
+            type: 'file',
+            video: {
+              contentType: ф.тип, width: 3840, height: 2160,
+              bitrate: 20000000, framerate: 30,
+              transferFunction: ф.кривая, colorGamut: 'rec2020', hdrMetadataType: 'smpteSt2086',
+            },
+          });
+          умеет = !!итог.supported;
+        } catch (e) {
+          // Браузер, который не знает подсказок про HDR, бросает ошибку. Это не «нет
+          // поддержки», а «ответа нет», и написать надо именно так.
+          умеет = null;
+        }
+        поставить(ф.ключ, умеет, умеет === null ? с.none : (умеет ? с.ok : с.nope));
+      }
+    }
+    видео();
+
+    document.getElementById('хд-снова').addEventListener('click', () => { экран(); видео(); });
+    // Вернулись на вкладку после похода в настройки системы -- пересчитываем.
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState === 'visible') экран();
+    });
+
+    window.__хдСостояние = () => {
+      const из = {};
+      корень.querySelectorAll('[data-ответ]').forEach((о) => {
+        из[о.dataset.ответ] = { ответ: о.textContent, да: о.closest('.хд-строка').classList.contains('да') };
+      });
+      return { итог: document.getElementById('хд-итог').textContent, есть: корень.classList.contains('есть'), строки: из };
+    };
+  })();
+</script>

@@ -1,0 +1,87 @@
+/* СТИЛИ СТРАНИЦЫ «ПРОВЕРКА HDR».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ВЕРДИКТ ПЕРВЫМ И КРУПНО. Человек пришёл с одним вопросом -- «работает у меня HDR или
+ *      нет». Ответ стоит наверху одной строкой, подробности ниже.
+ *   2. ДВА СПИСКА, А НЕ ОДИН. Экран и видео -- разные вещи: бывает HDR-монитор и браузер,
+ *      который не умеет декодировать HDR10, и наоборот.
+ *   3. НИЧЕГО НЕ ИЗМЕРЯЕТСЯ. Всё, что здесь есть, -- ответы браузера. Так и написано;
+ *      яркость в нитах веб-страница узнать не может.
+ *
+ * Цвет свой -- оранжевый. Последний свободный из знака сайта: зелёный занят везде, синий у
+ * мыши, коралловый у частоты обновления, сиреневый у пикселей, янтарный у выгорания,
+ * розовый у цветов монитора.
+ */
+
+.хд {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #f0915a;
+  --да: #4ade9e;
+  --нет: rgba(214,219,230,.45);
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+/* ---- Вердикт ---------------------------------------------------------------------------- */
+
+.хд-вердикт {
+  display: flex; align-items: center; gap: 16px; padding: 20px 22px; border-radius: 16px;
+  background: var(--surface); border: 1px solid var(--line);
+}
+/* Кружок со значком: состояние читается раньше слов. */
+.хд-круг { flex: none; width: 52px; height: 52px; border-radius: 50%; display: flex;
+  align-items: center; justify-content: center; background: rgba(214,219,230,.08) }
+.хд-круг svg { width: 26px; height: 26px; color: var(--нет) }
+.хд.есть .хд-круг { background: rgba(74,222,158,.13) }
+.хд.есть .хд-круг svg { color: var(--да) }
+.хд-слова { display: flex; flex-direction: column; gap: 4px; min-width: 0 }
+.хд-слова b { font: 800 20px var(--ui); color: var(--text) }
+.хд.есть .хд-слова b { color: var(--да) }
+.хд-слова span { font-size: 13px; line-height: 1.55; color: var(--muted) }
+
+/* ---- Списки ------------------------------------------------------------------------------ */
+
+.хд-блок { margin-top: 12px; padding: 6px 16px 8px; border-radius: 16px;
+  border: 1px solid var(--line); background: var(--surface) }
+.хд-заг { display: flex; align-items: baseline; gap: 9px; padding: 12px 0 4px;
+  font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
+  color: rgba(214,219,230,.5) }
+.хд-заг i { font-style: normal; letter-spacing: 0; text-transform: none; font-weight: 500;
+  font-size: 11.5px; color: rgba(214,219,230,.4) }
+
+.хд-строка { display: flex; align-items: flex-start; gap: 12px; padding: 11px 0;
+  border-top: 1px solid rgba(255,255,255,.055) }
+.хд-строка:first-of-type { border-top: 0 }
+/* Значок состояния занимает место всегда, поэтому строки не дёргаются, пока идёт проверка.
+   Галочка показывается только на подтверждённых строках, на остальных -- прочерк. */
+.хд-знак { flex: none; width: 18px; height: 18px; margin-top: 1px; color: var(--нет) }
+.хд-знак.да-знак { display: none }
+.хд-строка.да .хд-знак.да-знак { display: block; color: var(--да) }
+.хд-строка.да .хд-знак.нет-знак { display: none }
+.хд-текст { flex: 1; min-width: 0; display: flex; flex-direction: column; gap: 3px }
+.хд-текст b { font: 600 13.5px var(--ui); color: var(--text) }
+.хд-текст span { font-size: 12px; line-height: 1.5; color: var(--muted) }
+/* Ответ прижат вправо и моноширинный: значения разной длины не должны сдвигать строку. */
+.хд-ответ { flex: none; font: 700 13px var(--ui); color: var(--свой); text-align: right;
+  font-variant-numeric: tabular-nums; padding-top: 1px; max-width: 42% }
+.хд-ответ.тихий { color: rgba(214,219,230,.45); font-weight: 600 }
+
+.хд-низ { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px }
+.хд-снова { font: 700 13.5px var(--ui); height: 38px; padding: 0 18px; border-radius: 10px;
+  cursor: pointer; background: var(--surface-2); border: 1px solid var(--line); color: var(--text) }
+.хд-снова:hover { border-color: rgba(255,255,255,.26) }
+.хд-подсказка { font-size: 12.5px; color: var(--muted) }
+
+.хд-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.хд-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
+.хд-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
+
+@media (max-width: 560px) {
+  .хд-вердикт { padding: 16px }
+  .хд-круг { width: 44px; height: 44px }
+  .хд-слова b { font-size: 17px }
+  .хд-строка { flex-wrap: wrap }
+  .хд-ответ { max-width: none; width: 100%; text-align: left; padding-left: 30px }
+  .хд-снова { width: 100% }
+}
