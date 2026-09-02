@@ -1,0 +1,366 @@
+---
+// ГЕНЕРАТОР ВЫСОКИХ ЧАСТОТ («ультразвук»).
+//
+// Слово «ультразвук» ищут часто, и страница отвечает на этот запрос -- но не притворяется
+// тем, чем не является. Настоящий ультразвук начинается выше 20 килогерц, и динамик
+// телефона его не выдаёт: ни мембраны нужной жёсткости, ни усилителя. Здесь 8-20 килогерц,
+// то есть верхний край слышимого, и это сказано на самой странице, а не мелким шрифтом.
+//
+// ЛАМПОЧКА ОБЯЗАТЕЛЬНА. На 17-19 килогерцах взрослый обычно не слышит ничего. Без видимого
+// признака работы страница выглядит сломанной -- ровно та беда, из-за которой мы убрали
+// такой режим с очистки динамика.
+//
+// ПРЕРЫВИСТЫЙ РЕЖИМ не украшение: ровный высокий тон ухо перестаёт замечать через несколько
+// секунд (слуховая адаптация), а рывки замечаются снова и снова.
+import css from '../styles/ultrasound.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+// 17400 -- знаменитый «москит»: тон, который ставили у магазинов, чтобы разгонять
+// подростков. Взрослые его уже не слышат.
+const ГОТОВЫЕ = [8000, 12000, 15000, 16000, 17400, 18000, 20000, 22000];
+
+const СЛОВА = {
+  ru: {
+    khz: 'килогерц', play: 'Включить', on: 'Идёт',
+    freq: 'Частота', vol: 'Громкость', mode: 'Как звучит',
+    steady: 'Ровно', pulse: 'Рывками', wobble: 'Плавает',
+    ready: 'Готовые частоты',
+    p8: 'слышат все', p12: 'предел после 50', p15: 'предел после 40', p16: 'до 30 лет',
+    p174: 'тон «москит»', p18: 'до 20 лет', p20: 'край слышимого', p22: 'за краем слуха',
+    w8: 'почти все, включая пожилых', w12: 'люди примерно до пятидесяти',
+    w15: 'люди примерно до сорока', w16: 'люди примерно до тридцати',
+    w174: 'подростки и молодёжь до двадцати пяти', w18: 'люди примерно до двадцати',
+    w20: 'единицы, и то в полной тишине', w22: 'разве что животные, и то если динамик это вообще выдаёт',
+    who: 'На <b>{кгц}</b> звук обычно слышат <b>{кто}</b>. Если вы не слышите ничего — это не поломка страницы и не повод волноваться.',
+    caution: 'Начните с тихого. Высокие частоты на большой громкости вредят слуху по-настоящему, а неприятного ощущения при этом может не быть. И помните: собаки и кошки слышат этот звук отлично, даже когда вы — уже нет.',
+    k1: 'Что здесь на самом деле', k1s: 'Высокие частоты от 8 до 20 килогерц — верхний край человеческого слуха. Настоящий ультразвук начинается выше 20, и динамик телефона или ноутбука его не выдаёт вовсе.',
+    k2: 'Свисток для собаки', k2s: 'Собаки слышат примерно до 45 килогерц, так что 18–20 они слышат прекрасно. Но настоящий свисток уходит выше и бьёт точнее; телефон даст лишь верхний край.',
+    k3: 'Звук «от комаров»', k3s: 'Отпугивание комаров высокими частотами в проверках не работает: самку кровь интересует независимо от того, что звучит рядом. Приложения с таким обещанием проверялись не раз.',
+    k4: 'Почему не слышно', k4s: 'Верх уходит с возрастом у всех: к тридцати обычно остаётся 16–17 килогерц. Плюс дешёвые наушники и динамики сами не выдают 18–20, даже если ваш слух в порядке.',
+    n1: 'Страница не делает ультразвук. Она даёт самые высокие частоты, какие может выдать ваше устройство, — это верхний край слышимого, а не то, что выше него.',
+    n2: 'Если ничего не слышно, попробуйте частоту пониже: 12–14 килогерц слышат почти все взрослые. Не слышите и их — дело, скорее всего, в наушниках или в громкости.',
+    n3: 'Прерывистый режим заметнее ровного: ухо привыкает к постоянному тону за несколько секунд и перестаёт его замечать.',
+    n4: 'Проверить свой предел слуха по-человечески можно на отдельной странице — там тон плавно идёт вверх, и вы отмечаете, где он пропал.',
+    n5: 'Не включайте это в комнате с животными и с маленькими детьми: дети слышат выше взрослых, а собаки и кошки — намного выше, и звук для них громкий.',
+  },
+  uk: {
+    khz: 'кілогерц', play: 'Увімкнути', on: 'Іде',
+    freq: 'Частота', vol: 'Гучність', mode: 'Як звучить',
+    steady: 'Рівно', pulse: 'Ривками', wobble: 'Плаває',
+    ready: 'Готові частоти',
+    p8: 'чують усі', p12: 'межа після 50', p15: 'межа після 40', p16: 'до 30 років',
+    p174: 'тон «москіт»', p18: 'до 20 років', p20: 'край чутного', p22: 'за краєм слуху',
+    w8: 'майже всі, включно з літніми', w12: 'люди приблизно до п\u2019ятдесяти',
+    w15: 'люди приблизно до сорока', w16: 'люди приблизно до тридцяти',
+    w174: 'підлітки й молодь до двадцяти п\u2019яти', w18: 'люди приблизно до двадцяти',
+    w20: 'одиниці, та й то в цілковитій тиші', w22: 'хіба що тварини, та й то якщо динамік це взагалі видає',
+    who: 'На <b>{кгц}</b> звук зазвичай чують <b>{кто}</b>. Якщо ви не чуєте нічого — це не поломка сторінки й не привід хвилюватися.',
+    caution: 'Почніть із тихого. Високі частоти на великій гучності шкодять слуху по-справжньому, а неприємного відчуття при цьому може не бути. І пам’ятайте: собаки й коти чують цей звук чудово, навіть коли ви — вже ні.',
+    k1: 'Що тут насправді', k1s: 'Високі частоти від 8 до 20 кілогерц — верхній край людського слуху. Справжній ультразвук починається вище 20, і динамік телефона чи ноутбука його не видає взагалі.',
+    k2: 'Свисток для собаки', k2s: 'Собаки чують приблизно до 45 кілогерц, тож 18–20 вони чують чудово. Але справжній свисток іде вище й б’є точніше; телефон дасть лише верхній край.',
+    k3: 'Звук «від комарів»', k3s: 'Відлякування комарів високими частотами в перевірках не працює: самку цікавить кров незалежно від того, що звучить поруч. Застосунки з такою обіцянкою перевіряли не раз.',
+    k4: 'Чому не чути', k4s: 'Верх іде з віком у всіх: до тридцяти зазвичай лишається 16–17 кілогерц. Плюс дешеві навушники й динаміки самі не видають 18–20, навіть якщо ваш слух у порядку.',
+    n1: 'Сторінка не робить ультразвук. Вона дає найвищі частоти, які може видати ваш пристрій, — це верхній край чутного, а не те, що вище за нього.',
+    n2: 'Якщо нічого не чути, спробуйте частоту нижче: 12–14 кілогерц чують майже всі дорослі. Не чуєте й їх — річ, найімовірніше, у навушниках або в гучності.',
+    n3: 'Уривчастий режим помітніший за рівний: вухо звикає до постійного тону за кілька секунд і перестає його помічати.',
+    n4: 'Перевірити свою межу слуху по-людськи можна на окремій сторінці — там тон плавно йде вгору, і ви відмічаєте, де він зник.',
+    n5: 'Не вмикайте це в кімнаті з тваринами й маленькими дітьми: діти чують вище за дорослих, а собаки й коти — набагато вище, і звук для них гучний.',
+  },
+  en: {
+    khz: 'kilohertz', play: 'Turn on', on: 'Playing',
+    freq: 'Frequency', vol: 'Volume', mode: 'How it sounds',
+    steady: 'Steady', pulse: 'Pulsed', wobble: 'Wobbling',
+    ready: 'Preset frequencies',
+    p8: 'everyone', p12: 'the limit past 50', p15: 'the limit past 40', p16: 'under 30',
+    p174: 'the mosquito tone', p18: 'under 20', p20: 'the edge of hearing', p22: 'beyond hearing',
+    w8: 'almost everyone, the elderly included', w12: 'people up to about fifty',
+    w15: 'people up to about forty', w16: 'people up to about thirty',
+    w174: 'teenagers and young adults up to twenty-five', w18: 'people up to about twenty',
+    w20: 'a rare few, and only in complete silence', w22: 'perhaps animals, and only if the speaker produces it at all',
+    who: 'At <b>{кгц}</b> the sound is usually heard by <b>{кто}</b>. If you hear nothing, the page is not broken and there is nothing to worry about.',
+    caution: 'Start quiet. High frequencies at high volume genuinely damage hearing, and it may not even feel unpleasant while they do. And remember: dogs and cats hear this perfectly well even when you no longer can.',
+    k1: 'What this actually is', k1s: 'High frequencies from 8 to 20 kHz — the upper edge of human hearing. True ultrasound starts above 20, and a phone or laptop speaker cannot produce it at all.',
+    k2: 'A dog whistle', k2s: 'Dogs hear up to roughly 45 kHz, so 18–20 is easy for them. A real whistle goes higher and carries better, though; a phone only gives you the top edge.',
+    k3: 'The “mosquito repellent” sound', k3s: 'Repelling mosquitoes with high frequencies does not work in tests: a female is after blood regardless of what is playing nearby. Apps promising it have been checked more than once.',
+    k4: 'Why you hear nothing', k4s: 'The top end goes with age for everyone: by thirty 16–17 kHz usually remains. On top of that, cheap headphones and speakers do not produce 18–20 themselves, even if your hearing is fine.',
+    n1: 'This page does not make ultrasound. It gives the highest frequencies your device can produce — the upper edge of the audible range, not what lies above it.',
+    n2: 'If you hear nothing, try a lower frequency: almost every adult hears 12–14 kHz. If those are silent too, the headphones or the volume are the likely cause.',
+    n3: 'The pulsed mode is easier to notice than a steady one: the ear adapts to a constant tone within seconds and stops registering it.',
+    n4: 'To find your own hearing limit properly there is a separate page, where the tone rises smoothly and you mark the point where it disappears.',
+    n5: 'Do not run this in a room with pets or small children: children hear higher than adults, and dogs and cats far higher — for them the sound is loud.',
+  },
+  es: {
+    khz: 'kilohercios', play: 'Encender', on: 'Sonando',
+    freq: 'Frecuencia', vol: 'Volumen', mode: 'Cómo suena',
+    steady: 'Continuo', pulse: 'Intermitente', wobble: 'Ondulante',
+    ready: 'Frecuencias listas',
+    p8: 'todo el mundo', p12: 'el límite tras los 50', p15: 'el límite tras los 40', p16: 'menores de 30',
+    p174: 'el tono «mosquito»', p18: 'menores de 20', p20: 'el borde de lo audible', p22: 'fuera del oído',
+    w8: 'casi todo el mundo, mayores incluidos', w12: 'gente de hasta unos cincuenta',
+    w15: 'gente de hasta unos cuarenta', w16: 'gente de hasta unos treinta',
+    w174: 'adolescentes y jóvenes de hasta veinticinco', w18: 'gente de hasta unos veinte',
+    w20: 'unos pocos, y solo en silencio absoluto', w22: 'quizá los animales, y solo si el altavoz llega a producirlo',
+    who: 'A <b>{кгц}</b> el sonido lo suele oír <b>{кто}</b>. Si no oyes nada, la página no está rota ni hay de qué preocuparse.',
+    caution: 'Empieza bajo. Las frecuencias altas a volumen alto dañan el oído de verdad, y puede que ni siquiera resulte molesto mientras lo hacen. Y recuerda: los perros y los gatos lo oyen perfectamente aunque tú ya no.',
+    k1: 'Qué es esto en realidad', k1s: 'Frecuencias altas de 8 a 20 kHz, el borde superior del oído humano. El ultrasonido de verdad empieza por encima de 20, y el altavoz de un móvil o un portátil no llega ahí.',
+    k2: 'Silbato para perros', k2s: 'Los perros oyen hasta unos 45 kHz, así que 18–20 lo captan sin problema. Un silbato de verdad sube más y llega más lejos; un móvil solo da el borde superior.',
+    k3: 'El sonido «antimosquitos»', k3s: 'Espantar mosquitos con frecuencias altas no funciona en las pruebas: a la hembra le interesa la sangre al margen de lo que suene cerca. Las aplicaciones que lo prometen se han comprobado más de una vez.',
+    k4: 'Por qué no se oye', k4s: 'Los agudos se pierden con la edad en todo el mundo: hacia los treinta quedan 16–17 kHz. Además, los auriculares y altavoces baratos no dan 18–20 por sí solos aunque tu oído esté bien.',
+    n1: 'Esta página no genera ultrasonido. Da las frecuencias más altas que puede producir tu aparato: el borde superior de lo audible, no lo que está por encima.',
+    n2: 'Si no oyes nada, prueba una frecuencia más baja: casi cualquier adulto oye 12–14 kHz. Si tampoco esas suenan, lo más probable es que sean los auriculares o el volumen.',
+    n3: 'El modo intermitente se nota más que el continuo: el oído se adapta a un tono constante en segundos y deja de registrarlo.',
+    n4: 'Para encontrar tu propio límite auditivo hay una página aparte, donde el tono sube poco a poco y marcas dónde desaparece.',
+    n5: 'No lo pongas en una habitación con animales o niños pequeños: los niños oyen más agudo que los adultos y los perros y gatos mucho más; para ellos el sonido es fuerte.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const ПОДПИСИ = { 8000: с.p8, 12000: с.p12, 15000: с.p15, 16000: с.p16,
+  17400: с.p174, 18000: с.p18, 20000: с.p20, 22000: с.p22 };
+// Отдельно -- то, что подставляется в предложение: ярлык на кнопке в фразу не встаёт.
+const КТО = { 8000: с.w8, 12000: с.w12, 15000: с.w15, 16000: с.w16,
+  17400: с.w174, 18000: с.w18, 20000: с.w20, 22000: с.w22 };
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="уз" data-words={JSON.stringify(с)} data-who={JSON.stringify(КТО)}
+     data-decimal={locale === 'en' ? '.' : ','}>
+  <div class="уз-поле">
+    {/* Лампочка обязательна: на этих частотах взрослый часто не слышит ничего, и без
+        видимого признака работы страница выглядит сломанной. */}
+    <span class="уз-лампа"><i></i><span id="уз-лампа">{с.on}</span></span>
+
+    <div class="уз-строка">
+      <input type="number" class="уз-ввод" id="уз-ввод" value="15.0" min="8" max="22"
+             step="0.1" inputmode="decimal" aria-label={с.freq} />
+      <span class="уз-ед">{с.khz}</span>
+    </div>
+    <div class="уз-кто" id="уз-кто"></div>
+    <button type="button" class="уз-играть" id="уз-играть" aria-label={с.play} title={с.play}>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="уз-знакИграть">
+        <path d="M8 5v14l11.5-7z"/>
+      </svg>
+      <svg viewBox="0 0 24 24" fill="currentColor" aria-hidden="true" class="уз-знакСтоп">
+        <rect x="6.8" y="6.8" width="10.4" height="10.4" rx="1.8"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="уз-ручки">
+    <div class="уз-ручка">
+      <span class="уз-к">{с.freq}<em id="уз-эхо">15.0 {с.khz}</em></span>
+      <input type="range" id="уз-полза" min="8000" max="22000" step="50" value="15000"
+             aria-label={с.freq} />
+    </div>
+
+    <div class="уз-ручка">
+      <span class="уз-к">{с.vol}<em id="уз-эхоГр">20 %</em></span>
+      <input type="range" id="уз-громкость" min="0" max="100" step="1" value="20"
+             aria-label={с.vol} />
+    </div>
+
+    <div class="уз-ручка">
+      <span class="уз-к">{с.mode}</span>
+      <div class="уз-чипы" id="уз-режимы">
+        <button type="button" class="уз-чип вкл" data-режим="ровно">{с.steady}</button>
+        <button type="button" class="уз-чип" data-режим="рывками">{с.pulse}</button>
+        <button type="button" class="уз-чип" data-режим="плавает">{с.wobble}</button>
+      </div>
+    </div>
+
+    <div class="уз-ручка">
+      <span class="уз-к">{с.ready}</span>
+      <div class="уз-готовые" id="уз-готовые">
+        {ГОТОВЫЕ.map((гц) => (
+          <button type="button" class="уз-готовая" data-гц={гц}>
+            {гц === 17400 ? '17,4к' : (гц / 1000).toFixed(0) + 'к'}<span>{ПОДПИСИ[гц]}</span>
+          </button>
+        ))}
+      </div>
+    </div>
+  </div>
+
+  <p class="уз-тише">
+    <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9"
+         stroke-linecap="round" aria-hidden="true">
+      <path d="M12 3.8 2.6 20h18.8L12 3.8z"/><path d="M12 10v4.2"/><path d="M12 17.4v.1"/>
+    </svg>
+    <span>{с.caution}</span>
+  </p>
+
+  <div class="уз-что">
+    <div class="уз-строка2"><b>{с.k1}</b><span>{с.k1s}</span></div>
+    <div class="уз-строка2"><b>{с.k2}</b><span>{с.k2s}</span></div>
+    <div class="уз-строка2"><b>{с.k3}</b><span>{с.k3s}</span></div>
+    <div class="уз-строка2"><b>{с.k4}</b><span>{с.k4s}</span></div>
+  </div>
+
+  <div class="уз-заметки">
+    <div class="уз-заметка">{с.n1}</div>
+    <div class="уз-заметка">{с.n2}</div>
+    <div class="уз-заметка">{с.n3}</div>
+    <div class="уз-заметка">{с.n4}</div>
+    <div class="уз-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { startKeeper } from '../lib/ios-keeper.js';
+
+  const корень = document.querySelector('.уз');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const КТО = JSON.parse(корень.dataset.who || '{}');
+    const ЗАПЯТАЯ = корень.dataset.decimal || ',';
+    const $ = (id) => document.getElementById(id);
+    const НИЗ = 8000, ВЕРХ = 22000;
+
+    let узел = null, ген = null, громкость = null, качалка = null, качГромкость = null;
+    let плавун = null, плавунГлубина = null;
+    let идёт = false, гц = 15000, уровень = 20, режим = 'ровно';
+
+    startKeeper();
+    function открытьСессию() {
+      try {
+        if (navigator.audioSession && navigator.audioSession.type !== 'playback') {
+          navigator.audioSession.type = 'playback';
+        }
+      } catch (e) {}
+    }
+    // Уровень по слуху не линеен, и на высоких частотах особенно: квадрат даёт привычный ход.
+    const вУсиление = (п) => Math.pow(п / 100, 2) * 0.7;
+
+    function ктоСлышит() {
+      // Ближайшая готовая частота задаёт подпись: между 16 и 17 килогерцами разница в
+      // возрасте невелика, и дробить её мельче незачем.
+      const ключи = Object.keys(КТО).map(Number).sort((a, b) => a - b);
+      let ближ = ключи[0];
+      ключи.forEach((к) => { if (Math.abs(к - гц) < Math.abs(ближ - гц)) ближ = к; });
+      return КТО[ближ];
+    }
+    function показать(откуда) {
+      const кгц = (гц / 1000).toFixed(1).replace('.', ЗАПЯТАЯ);
+      // В поле ввода остаётся точка: с запятой браузер не примет число.
+      if (откуда !== 'ввод' || document.activeElement !== $('уз-ввод')) {
+        $('уз-ввод').value = (гц / 1000).toFixed(1);
+      }
+      $('уз-эхо').textContent = кгц + ' ' + с.khz;
+      $('уз-полза').value = String(Math.round(гц));
+      $('уз-кто').innerHTML = с.who
+        .replace('{кгц}', кгц + ' ' + с.khz)
+        .replace('{кто}', ктоСлышит());
+    }
+    function поставитьЧастоту(ч, откуда) {
+      гц = Math.min(ВЕРХ, Math.max(НИЗ, ч));
+      показать(откуда);
+      if (идёт) { try { ген.frequency.setTargetAtTime(гц, узел.currentTime, 0.01); } catch (e) {} }
+    }
+
+    function пуск() {
+      открытьСессию();
+      if (!узел || узел.state === 'closed') {
+        узел = new (window.AudioContext || window.webkitAudioContext)();
+      }
+      if (узел.state === 'suspended') узел.resume();
+      const т = узел.currentTime;
+      ген = узел.createOscillator();
+      громкость = узел.createGain();
+      ген.type = 'sine';
+      ген.frequency.setValueAtTime(гц, т);
+      громкость.gain.setValueAtTime(0.0001, т);
+      громкость.gain.exponentialRampToValueAtTime(Math.max(0.0002, вУсиление(уровень)), т + 0.05);
+      ген.connect(громкость);
+      // Прерывистый режим -- отдельный медленный генератор, который качает громкость.
+      // Ухо привыкает к ровному высокому тону за секунды и перестаёт его замечать.
+      качалка = узел.createOscillator();
+      качГромкость = узел.createGain();
+      качалка.type = 'square';
+      качалка.frequency.setValueAtTime(3, т);
+      качГромкость.gain.setValueAtTime(режим === 'рывками' ? 0.5 : 0, т);
+      качалка.connect(качГромкость);
+      качГромкость.connect(громкость.gain);
+      // Плавающий тон: медленный синус водит саму частоту вокруг выбранной.
+      плавун = узел.createOscillator();
+      плавунГлубина = узел.createGain();
+      плавун.type = 'sine';
+      плавун.frequency.setValueAtTime(0.4, т);
+      плавунГлубина.gain.setValueAtTime(режим === 'плавает' ? 1800 : 0, т);
+      плавун.connect(плавунГлубина);
+      плавунГлубина.connect(ген.frequency);
+      плавун.start(т);
+      громкость.connect(узел.destination);
+      ген.start(т); качалка.start(т);
+      идёт = true;
+      корень.classList.add('идёт');
+      $('уз-играть').setAttribute('aria-label', с.on);
+    }
+    function стоп() {
+      идёт = false;
+      if (ген) {
+        try {
+          const т = узел.currentTime;
+          громкость.gain.cancelScheduledValues(т);
+          громкость.gain.setValueAtTime(громкость.gain.value || 0.0001, т);
+          громкость.gain.exponentialRampToValueAtTime(0.0001, т + 0.03);
+          ген.stop(т + 0.04); качалка.stop(т + 0.04);
+          if (плавун) плавун.stop(т + 0.04);
+        } catch (e) {}
+        ген = null; качалка = null; плавун = null;
+      }
+      корень.classList.remove('идёт');
+      $('уз-играть').setAttribute('aria-label', с.play);
+    }
+
+    $('уз-играть').addEventListener('click', () => { if (идёт) стоп(); else пуск(); });
+    $('уз-полза').addEventListener('input', (e) => поставитьЧастоту(Number(e.target.value), 'полза'));
+    $('уз-ввод').addEventListener('input', (e) => {
+      const ч = Number(e.target.value) * 1000;
+      if (!Number.isFinite(ч) || ч <= 0) return;
+      поставитьЧастоту(ч, 'ввод');
+    });
+    $('уз-ввод').addEventListener('blur', () => показать());
+    $('уз-громкость').addEventListener('input', (e) => {
+      уровень = Number(e.target.value);
+      $('уз-эхоГр').textContent = уровень + ' %';
+      if (идёт) {
+        try { громкость.gain.setTargetAtTime(Math.max(0.0001, вУсиление(уровень)), узел.currentTime, 0.02); }
+        catch (e2) {}
+      }
+    });
+    $('уз-режимы').addEventListener('click', (e) => {
+      const б = e.target.closest('.уз-чип');
+      if (!б) return;
+      $('уз-режимы').querySelectorAll('.уз-чип').forEach((к) => к.classList.remove('вкл'));
+      б.classList.add('вкл');
+      режим = б.dataset.режим || 'ровно';
+      // Меняем на ходу: обе качалки уже подключены, им достаточно поменять размах.
+      if (идёт && качГромкость) {
+        try {
+          качГромкость.gain.setTargetAtTime(режим === 'рывками' ? 0.5 : 0, узел.currentTime, 0.02);
+          плавунГлубина.gain.setTargetAtTime(режим === 'плавает' ? 1800 : 0, узел.currentTime, 0.05);
+        } catch (e2) {}
+      }
+    });
+    $('уз-готовые').addEventListener('click', (e) => {
+      const б = e.target.closest('.уз-готовая');
+      if (!б) return;
+      поставитьЧастоту(Number(б.dataset.гц), 'готовая');
+      if (!идёт) пуск();
+    });
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible' && идёт) стоп();
+    });
+
+    показать();
+
+    window.__узСостояние = () => ({
+      идёт, гц: Math.round(гц), уровень, режим,
+      поле: $('уз-ввод').value, эхо: $('уз-эхо').textContent,
+      ползунок: $('уз-полза').value, кто: ($('уз-кто').textContent || '').slice(0, 48),
+      узел: узел ? узел.state : 'нет',
+      качание: качГромкость ? качГромкость.gain.value : null,
+      плавание: плавунГлубина ? плавунГлубина.gain.value : null,
+    });
+  })();
+</script>
