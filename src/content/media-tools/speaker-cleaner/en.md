@@ -6,7 +6,7 @@ tool: speaker-cleaner
 title: Speaker cleaner online — eject water and dust with sound
 h1: Speaker cleaner for water and dust
 navName: Speaker cleaner
-description: "Eject water and shake dirt out of an iPhone, Samsung or Xiaomi speaker and out of earbuds. Low pulses for water, a sweep almost to ultrasound for grime."
+description: "Sound removes water from a phone speaker and shakes dust out of the grille — on an iPhone, a Samsung, a Xiaomi or earbuds. Low pulses and a sweep near ultrasound."
 faq:
   - question: How does sound push water out?
     answer: "It is not the software doing the work but the speaker cone itself. At a low frequency it moves with a large excursion and pushes the air in the grille; a droplet held there by surface tension is broken loose and comes out. That is why this is short pulses rather than a steady tone: a droplet simply sits out a steady sound, rocking in place, while jolts knock it free. The frequency wanders between 150 and 250 Hz because every phone body responds differently, and a single fixed tone would miss half of them."
@@ -32,7 +32,7 @@ related:
   - sound-meter
 ---
 
-It works the same on an iPhone, a Samsung, a Xiaomi or any other phone, and on earbuds and speakers too — the sound comes out of whichever speaker needs clearing. Take the case off, turn the volume all the way up, point the speaker downwards and press the big button. Fifteen seconds is enough for a first pass; if the sound is still crackly, shake the phone, blot it with a tissue and run it again.
+You can remove water from the speaker of any phone — an iPhone, a Samsung, a Xiaomi or anything else — and from earbuds and speakers as well: the sound comes out of the very place it has to clear. Take the case off, turn the volume all the way up, point the speaker downwards and press the big button. Fifteen seconds is enough for a first pass; if the sound is still crackly, shake the phone, blot it with a tissue and run it again.
 
 ## How it works
 

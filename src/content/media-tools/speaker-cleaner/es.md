@@ -6,7 +6,7 @@ tool: speaker-cleaner
 title: Limpiar el altavoz de agua y polvo online — expulsar con sonido
 h1: Limpieza del altavoz de agua y polvo
 navName: Limpiar altavoz
-description: "Expulsa el agua y sacude la suciedad del altavoz de un iPhone, Samsung o Xiaomi y de los auriculares. Pulsos graves y barrido casi hasta el ultrasonido."
+description: "El sonido elimina el agua del altavoz del móvil y sacude la suciedad de la rejilla, en un iPhone, un Samsung, un Xiaomi o unos auriculares. Sin instalar nada."
 faq:
   - question: ¿Cómo expulsa el sonido el agua?
     answer: "Lo que trabaja no es el programa, sino el propio cono del altavoz. A baja frecuencia se mueve con mucho recorrido y empuja el aire de la rejilla; la gota, que se sostiene ahí por tensión superficial, se desprende y sale. Por eso aquí no hay un tono continuo sino pulsos cortos: un sonido constante la gota se lo aguanta balanceándose, mientras que los tirones la expulsan. La frecuencia además oscila entre 150 y 250 Hz porque cada carcasa responde distinto y un tono fijo fallaría en la mitad de los móviles."
@@ -32,7 +32,7 @@ related:
   - sound-meter
 ---
 
-Funciona igual en un iPhone, un Samsung, un Xiaomi o cualquier otro móvil, y también en auriculares y altavoces: el sonido sale del altavoz que haya que limpiar. Quítale la funda, sube el volumen al máximo, orienta el altavoz hacia abajo y pulsa el botón grande. Quince segundos bastan para una primera pasada; si el sonido sigue rasposo, sacude el móvil, sécalo con un pañuelo y repite.
+Puedes eliminar el agua del altavoz de cualquier móvil —un iPhone, un Samsung, un Xiaomi o el que sea— y también de unos auriculares o un altavoz: el sonido sale justo de donde hay que sacarla. Quítale la funda, sube el volumen al máximo, orienta el altavoz hacia abajo y pulsa el botón grande. Quince segundos bastan para una primera pasada; si el sonido sigue rasposo, sacude el móvil, sécalo con un pañuelo y repite.
 
 ## Cómo funciona
 
