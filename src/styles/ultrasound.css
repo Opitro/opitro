@@ -10,13 +10,15 @@
  *   3. ОГОВОРКА У КНОПКИ, а не в подвале: страница про звук, который слышат не все, и
  *      человек должен знать это ДО нажатия, иначе решит, что сломано.
  *
- * Цвет свой -- электрический фиолетовый: его просил владелец, и он к месту -- так метят
- * то, что за краем видимого и слышимого.
+ * Цвет свой -- спокойный бирюзовый, и его немного. Кричащий неон с сильным свечением
+ * владелец забраковал: «слишком иишно». Правило теперь такое -- содержимое белое, цвет
+ * только на мелочах (точка лампочки, кнопка пуска, обводка при наведении), свечение
+ * слабое и только за крупным числом.
  */
 
 .уз {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --свой: #bd00ff;
+  --свой: #3fd0c9;
   --ручки: #58b8f0;
   max-width: 760px; margin: 0 auto; font-family: var(--ui);
 }
@@ -31,8 +33,8 @@
 }
 .уз-поле::before {
   content: ""; position: absolute; inset: -30%; pointer-events: none;
-  background: radial-gradient(30% 26% at 30% 18%, rgba(189,0,255,.30), transparent 70%),
-    radial-gradient(28% 24% at 76% 24%, rgba(88,184,240,.2), transparent 70%);
+  background: radial-gradient(30% 26% at 30% 18%, rgba(63,208,201,.13), transparent 70%),
+    radial-gradient(28% 24% at 76% 24%, rgba(88,184,240,.10), transparent 70%);
   filter: blur(38px);
 }
 .уз-поле > * { position: relative }
@@ -42,12 +44,12 @@
   width: 5.6ch; background: none; border: 0; padding: 0; text-align: right;
   font: 800 62px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
   letter-spacing: -.03em; -moz-appearance: textfield;
-  text-shadow: 0 0 26px rgba(189,0,255,.75), 0 0 62px rgba(189,0,255,.35);
+  text-shadow: 0 0 22px rgba(63,208,201,.28);
 }
 .уз-ввод::-webkit-outer-spin-button, .уз-ввод::-webkit-inner-spin-button {
   -webkit-appearance: none; margin: 0;
 }
-.уз-ввод:focus { outline: none; box-shadow: 0 3px 0 rgba(189,0,255,.8) }
+.уз-ввод:focus { outline: none; box-shadow: 0 3px 0 rgba(63,208,201,.85) }
 .уз-ед { font: 700 13px var(--ui); color: rgba(226,232,246,.8) }
 /* Место под строку «слышат обычно…» стоит всегда: она меняется, а страница не дёргается. */
 .уз-кто { min-height: 40px; max-width: 44ch; font-size: 13px; line-height: 1.55;
@@ -56,14 +58,16 @@
 
 .уз-играть {
   width: 132px; height: 56px; border-radius: 14px; cursor: pointer;
-  display: inline-flex; align-items: center; justify-content: center; color: #fff;
-  border: 1px solid rgba(255,255,255,.22);
-  background: linear-gradient(135deg, rgba(189,0,255,.9), rgba(88,120,255,.9));
-  box-shadow: 0 0 22px rgba(189,0,255,.45);
+  display: inline-flex; align-items: center; justify-content: center; color: var(--свой);
+  border: 1px solid rgba(255,255,255,.24);
+  background: linear-gradient(180deg, #2f3a3d, #1a2124);
+  box-shadow: 0 4px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.1);
   transition: box-shadow .25s ease, transform .08s ease;
 }
-.уз-играть:hover { box-shadow: 0 0 38px rgba(189,0,255,.8); transform: translateY(-1px) }
-.уз-играть:active { transform: translateY(1px) }
+.уз-играть:hover { border-color: rgba(255,255,255,.42) }
+.уз-играть:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.5) }
+/* Пока звук идёт, обводка загорается своим цветом -- этого хватает, кричать не надо. */
+.уз.идёт .уз-играть { border-color: rgba(63,208,201,.75) }
 .уз-играть svg { width: 30px; height: 30px }
 .уз-знакСтоп { display: none }
 .уз.идёт .уз-знакИграть { display: none }
@@ -72,10 +76,11 @@
 /* Лампочка «звук идёт»: на этих частотах половина людей не слышит ничего, и без неё
    страница выглядит сломанной. Пульсирует размером, а не прозрачностью. */
 .уз-лампа { position: absolute; top: 14px; right: 18px; display: inline-flex; align-items: center;
-  gap: 8px; font: 700 10px var(--ui); letter-spacing: .12em; text-transform: uppercase;
-  color: rgba(226,232,246,.5) }
+  gap: 8px; font: 700 10.5px var(--ui); letter-spacing: .12em; text-transform: uppercase;
+  color: rgba(226,232,246,.55) }
 .уз-лампа i { width: 9px; height: 9px; border-radius: 50%; background: rgba(255,255,255,.16) }
-.уз.идёт .уз-лампа { color: var(--свой) }
+/* Слово белое, цветная только точка: фиолетовые буквы на тёмном съедали чёткость. */
+.уз.идёт .уз-лампа { color: #fff }
 .уз.идёт .уз-лампа i { background: var(--свой); animation: уз-пульс 1s ease-in-out infinite }
 @keyframes уз-пульс { 0%,100% { transform: scale(1) } 50% { transform: scale(1.8) } }
 
@@ -89,25 +94,33 @@
 
 .уз-чипы { display: flex; gap: 6px }
 .уз-чип {
-  flex: 1; min-width: 0; font: 600 13px var(--ui); height: 42px; border-radius: 11px;
-  cursor: pointer; color: rgba(226,232,246,.6);
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
-  transition: color .15s ease, border-color .15s ease, box-shadow .2s ease;
+  flex: 1; min-width: 0; font: 600 13.5px var(--ui); height: 44px; border-radius: 11px;
+  cursor: pointer; color: rgba(233,237,246,.85);
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16);
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
-.уз-чип:hover { color: var(--text) }
-.уз-чип.вкл { color: var(--свой); border-color: rgba(189,0,255,.65);
-  box-shadow: 0 0 18px rgba(189,0,255,.25), inset 0 0 16px rgba(189,0,255,.1) }
+.уз-чип:hover { color: #fff; border-color: rgba(255,255,255,.32) }
+/* Выбранное -- светлая плашка с тёмными буквами: читается при любом фоне и не спорит
+   со свечением вокруг. */
+.уз-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.6); font-weight: 700 }
 
 .уз-готовые { display: grid; grid-template-columns: repeat(auto-fit, minmax(104px, 1fr)); gap: 6px }
 .уз-готовая {
-  height: 54px; border-radius: 11px; cursor: pointer; color: var(--text);
-  background: rgba(255,255,255,.05); border: 1px solid rgba(255,255,255,.12);
+  height: 56px; border-radius: 11px; cursor: pointer; color: #eef2fb;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16);
   display: flex; flex-direction: column; align-items: center; justify-content: center; gap: 2px;
   font: 700 15px var(--ui); font-variant-numeric: tabular-nums;
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
 }
-.уз-готовая:hover { border-color: rgba(255,255,255,.28) }
+.уз-готовая:hover { border-color: rgba(255,255,255,.32) }
 .уз-готовая span { font: 600 9.5px var(--ui); letter-spacing: .03em; text-transform: uppercase;
-  color: rgba(226,232,246,.6) }
+  color: rgba(226,232,246,.72) }
+/* Выбранная частота помечается так же, как выбранный режим: светлой плашкой. Раньше
+   выбор не показывался вовсе -- нажал и не понял, что нажал. */
+.уз-готовая.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.6) }
+.уз-готовая.вкл span { color: rgba(16,20,26,.6) }
 
 .уз-тише { display: flex; gap: 8px; margin: 14px 0 0; font-size: 12.5px; line-height: 1.5;
   color: rgba(226,232,246,.78) }
@@ -127,6 +140,8 @@
 @media (max-width: 560px) {
   .уз-поле { padding: 20px 14px 18px }
   .уз-ввод { font-size: 48px }
-  .уз-играть { width: 100% }
+  /* Кнопка остаётся кнопкой, а не полосой во всю ширину: на ней один значок, и растянутая
+     на весь экран она выглядит как поле, а не как то, что нажимают. */
+  .уз-играть { width: 132px }
 }
 @media (prefers-reduced-motion: reduce) { .уз.идёт .уз-лампа i { animation: none } }
