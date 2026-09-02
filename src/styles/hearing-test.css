@@ -143,6 +143,30 @@
   animation: сл-дышит 2.4s ease-in-out infinite;
 }
 @keyframes сл-дышит { 0%,100% { transform: scale(1) } 50% { transform: scale(1.045) } }
+/* Отклик на нажатие: кнопка проваливается и тут же вспыхивает белым, а поверх идёт
+   расходящееся кольцо. Без отклика человек не понимает, засчитали его или нет: звук
+   просто прекращается, а это может значить и «записано», и «сломалось». */
+.сл-слышу.принято {
+  animation: сл-принято .42s ease-out;
+  border-color: #fff; color: #fff;
+  box-shadow: 0 0 44px rgba(255,255,255,.55), inset 0 1px 0 rgba(255,255,255,.4);
+}
+@keyframes сл-принято {
+  0% { transform: scale(.9) }
+  45% { transform: scale(1.06) }
+  100% { transform: scale(1) }
+}
+/* Вместо галочки -- расходящееся кольцо: отклик виден боковым зрением и не закрывает
+   слово на кнопке. */
+.сл-слышу.принято::after {
+  content: ""; position: absolute; inset: -6px; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.85); pointer-events: none;
+  animation: сл-всплеск .42s ease-out;
+}
+@keyframes сл-всплеск {
+  0% { opacity: .9; transform: scale(.92) }
+  100% { opacity: 0; transform: scale(1.35) }
+}
 /* Цвет пульсара идёт за ухом: слева синий, справа красный. */
 .сл.левое .сл-слышу { box-shadow: 0 0 34px rgba(59,156,255,.55), inset 0 1px 0 rgba(255,255,255,.25) }
 .сл.правое .сл-слышу { box-shadow: 0 0 34px rgba(255,77,109,.55), inset 0 1px 0 rgba(255,255,255,.25) }
@@ -181,4 +205,5 @@
 @media (prefers-reduced-motion: reduce) {
   .сл-полоса i { transition: none }
   .сл-слышу, .сл.бежит .сл-кольцо { animation: none }
+  .сл-слышу.принято, .сл-слышу.принято::after { animation: none }
 }
