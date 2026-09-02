@@ -10,15 +10,15 @@
  *   3. ОГОВОРКА У КНОПКИ, а не в подвале: страница про звук, который слышат не все, и
  *      человек должен знать это ДО нажатия, иначе решит, что сломано.
  *
- * Цвет свой -- спокойный бирюзовый, и его немного. Кричащий неон с сильным свечением
- * владелец забраковал: «слишком иишно». Правило теперь такое -- содержимое белое, цвет
- * только на мелочах (точка лампочки, кнопка пуска, обводка при наведении), свечение
- * слабое и только за крупным числом.
+ * Цвет свой -- голубой из знака сайта. Кричащий фиолетовый неон владелец забраковал
+ * («слишком иишно»), но само свечение ему нравилось, поэтому правило такое: содержимое
+ * белое, цвет только на мелочах -- и ОДНО заметное свечение за крупным числом. Свечение
+ * ровно в одном месте не делает страницу неоновой, а делает главное главным.
  */
 
 .уз {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
-  --свой: #3fd0c9;
+  --свой: #00d9ff;
   --ручки: #58b8f0;
   max-width: 760px; margin: 0 auto; font-family: var(--ui);
 }
@@ -33,7 +33,7 @@
 }
 .уз-поле::before {
   content: ""; position: absolute; inset: -30%; pointer-events: none;
-  background: radial-gradient(30% 26% at 30% 18%, rgba(63,208,201,.13), transparent 70%),
+  background: radial-gradient(30% 26% at 30% 18%, rgba(0,217,255,.16), transparent 70%),
     radial-gradient(28% 24% at 76% 24%, rgba(88,184,240,.10), transparent 70%);
   filter: blur(38px);
 }
@@ -44,12 +44,12 @@
   width: 5.6ch; background: none; border: 0; padding: 0; text-align: right;
   font: 800 62px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
   letter-spacing: -.03em; -moz-appearance: textfield;
-  text-shadow: 0 0 22px rgba(63,208,201,.28);
+  text-shadow: 0 0 26px rgba(0,217,255,.62), 0 0 62px rgba(0,217,255,.3);
 }
 .уз-ввод::-webkit-outer-spin-button, .уз-ввод::-webkit-inner-spin-button {
   -webkit-appearance: none; margin: 0;
 }
-.уз-ввод:focus { outline: none; box-shadow: 0 3px 0 rgba(63,208,201,.85) }
+.уз-ввод:focus { outline: none; box-shadow: 0 3px 0 rgba(0,217,255,.85) }
 .уз-ед { font: 700 13px var(--ui); color: rgba(226,232,246,.8) }
 /* Место под строку «слышат обычно…». Запаса в две строки не хватало: у разных частот
    подпись разной длины, и при выборе панель прыгала на два десятка точек вместе со всем,
@@ -69,7 +69,7 @@
 .уз-играть:hover { border-color: rgba(255,255,255,.42) }
 .уз-играть:active { transform: translateY(2px); box-shadow: 0 2px 0 rgba(0,0,0,.5) }
 /* Пока звук идёт, обводка загорается своим цветом -- этого хватает, кричать не надо. */
-.уз.идёт .уз-играть { border-color: rgba(63,208,201,.75) }
+.уз.идёт .уз-играть { border-color: rgba(0,217,255,.75) }
 .уз-играть svg { width: 30px; height: 30px }
 .уз-знакСтоп { display: none }
 .уз.идёт .уз-знакИграть { display: none }
