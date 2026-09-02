@@ -39,12 +39,22 @@
 }
 .уз-поле > * { position: relative }
 
-.уз-строка { display: flex; align-items: baseline; justify-content: center; gap: 8px }
+/* Свечение сделано ОТДЕЛЬНЫМ размытым пятном позади числа, а не тенью текста. Тень текста
+   у поля ввода браузер обрезает по прямоугольнику самого поля -- вместо ореола выходит
+   голубой квадрат с резкими краями. */
+.уз-строка { position: relative; display: flex; align-items: baseline; justify-content: center;
+  gap: 8px }
+.уз-строка::before {
+  content: ""; position: absolute; left: 50%; top: 52%; width: 78%; max-width: 300px;
+  height: 130px; transform: translate(-50%, -50%); border-radius: 50%; pointer-events: none;
+  background: radial-gradient(closest-side, rgba(0,217,255,.42), rgba(0,217,255,0) 78%);
+  filter: blur(22px);
+}
+.уз-строка > * { position: relative }
 .уз-ввод {
   width: 5.6ch; background: none; border: 0; padding: 0; text-align: right;
   font: 800 62px/1 var(--ui); color: #fff; font-variant-numeric: tabular-nums;
   letter-spacing: -.03em; -moz-appearance: textfield;
-  text-shadow: 0 0 26px rgba(0,217,255,.62), 0 0 62px rgba(0,217,255,.3);
 }
 .уз-ввод::-webkit-outer-spin-button, .уз-ввод::-webkit-inner-spin-button {
   -webkit-appearance: none; margin: 0;
