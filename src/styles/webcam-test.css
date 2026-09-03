@@ -1,0 +1,83 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ КАМЕРЫ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- сервисная панель того же языка, что у геймпада, датчиков и вибрации: чёрный фон,
+ * тонкие линии, моноширинные цифры. Соседние страницы одной рубрики должны узнаваться
+ * с первого взгляда.
+ *
+ * Устройство:
+ *   1. ДО РАЗРЕШЕНИЯ -- пустая рамка и одна кнопка. Камера не включается сама: браузер
+ *      не даст, да и человек не должен видеть себя без своего согласия.
+ *   2. СЛЕВА КАРТИНКА, СПРАВА ЧИСЛА. Картинка без рамок и эффектов -- на ней ищут пятна,
+ *      муть и полосы, и любое украшение здесь мешает.
+ *   3. ЧИСЛА ЖИВЫЕ. Частота кадров пересчитывается на ходу: у веб-камер она падает в
+ *      темноте вдвое, и увидеть это можно только вживую.
+ */
+
+.кам {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы: #ffffff;
+  --буквы2: #a9b0ba;
+  --линия: rgba(255,255,255,.18);
+  font-family: var(--ui);
+}
+
+/* ---- До разрешения ---------------------------------------------------------------------- */
+
+.кам-вход { background: #000; border: 1px solid var(--линия); border-radius: 14px;
+  padding: 52px 18px; text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 14px }
+.кам-вход p { margin: 0; max-width: 46ch; font: 400 13.5px/1.6 var(--ui); color: var(--буквы2) }
+.кам-включить {
+  font: 500 14px var(--ui); height: 46px; padding: 0 26px; border-radius: 8px; cursor: pointer;
+  color: var(--буквы); background: #000; border: 1px solid #fff;
+  transition: background .15s ease, color .15s ease;
+}
+.кам-включить:hover { background: #fff; color: #000 }
+.кам.идёт .кам-вход { display: none }
+.кам:not(.идёт) .кам-работа { display: none }
+
+/* Ошибка доступа: не «сломано», а объяснение, что именно случилось. */
+.кам-беда { display: none; margin-top: 12px; padding: 12px 13px; border-radius: 10px;
+  border: 1px solid rgba(255,154,168,.5); font: 400 13px/1.55 var(--ui); color: #ffd9df;
+  max-width: 52ch }
+.кам-беда.видна { display: block }
+
+/* ---- Работа ----------------------------------------------------------------------------- */
+
+.кам-работа { display: grid; grid-template-columns: minmax(0, 1.25fr) minmax(0, 1fr); gap: 10px }
+
+.кам-экран { background: #000; border: 1px solid var(--линия); border-radius: 12px;
+  overflow: hidden; display: flex; flex-direction: column }
+.кам-экран video { display: block; width: 100%; height: auto; background: #000 }
+.кам-экран video.зеркало { transform: scaleX(-1) }
+.кам-под { display: flex; flex-wrap: wrap; gap: 6px; padding: 8px; border-top: 1px solid var(--линия) }
+.кам-мелкая {
+  flex: 0 0 auto; font: 400 12.5px var(--ui); height: 34px; padding: 0 13px; border-radius: 7px;
+  cursor: pointer; color: var(--буквы); background: #000; border: 1px solid var(--линия);
+}
+.кам-мелкая:hover { border-color: #fff }
+.кам-мелкая.вкл { background: #fff; color: #000; border-color: #fff }
+
+.кам-числа { background: #000; border: 1px solid var(--линия); border-radius: 12px;
+  padding: 12px 14px }
+.кам-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.07) }
+.кам-строка:last-child { border-bottom: 0 }
+.кам-строка .н { font: 400 12px var(--ui); color: var(--буквы2) }
+.кам-строка .з { font: 500 12.5px var(--цифры); color: var(--буквы); text-align: right;
+  font-variant-numeric: tabular-nums; word-break: break-word }
+.кам-строка .з.плохо { color: #ff9aa8 }
+
+.кам-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.кам-итог b { color: var(--буквы); font-weight: 600 }
+
+.кам-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.кам-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.кам-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+
+@media (max-width: 700px) {
+  .кам-работа { grid-template-columns: 1fr }
+}

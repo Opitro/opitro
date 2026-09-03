@@ -1,0 +1,323 @@
+---
+// ТЕСТ КАМЕРЫ -- своя страница со своим кодом и стилями.
+//
+// Что делаем:
+//   * ПОКАЗЫВАЕМ КАРТИНКУ без рамок и эффектов: на ней ищут муть, пятна и полосы.
+//   * СЧИТАЕМ НАСТОЯЩИЕ КАДРЫ через requestVideoFrameCallback -- это кадры самой камеры,
+//     а не кадры экрана. Веб-камера, заявленная как тридцать кадров, в темноте честно
+//     проседает вдвое, и увидеть это можно только замером.
+//   * ПОКАЗЫВАЕМ РАЗРЕШЕНИЕ И ПРОПОРЦИИ, запросив у камеры её максимум (ideal 1920x1080).
+//   * ЗЕРКАЛО И СНИМОК -- то, ради чего люди чаще всего и открывают такую страницу.
+//
+// ЧЕСТНОСТЬ. Кодек живого потока назвать нельзя: getUserMedia отдаёт готовые кадры, никакого
+// сжатия между камерой и страницей нет. Поэтому строки «кодек» здесь не будет -- вместо неё
+// показываем то, что камера действительно сообщает: имя устройства и заявленную частоту.
+//
+// Поток никуда не уходит: он живёт в памяти вкладки, снимок делается тем же браузером.
+import css from '../styles/webcam-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    lead: 'Для начала проверки разрешите браузеру доступ к камере. Картинка останется на вашем устройстве.',
+    start: 'Включить камеру',
+    mirror: 'Отразить зеркально', shot: 'Сделать снимок', swap: 'Другая камера', stop: 'Выключить',
+    rStatus: 'Состояние', rDevice: 'Камера', rRes: 'Разрешение', rFps: 'Частота кадров',
+    rSaid: 'Заявлено камерой', rRatio: 'Пропорции', rPrivacy: 'Приватность',
+    on: 'работает', off: 'выключена',
+    local: 'локально, без отправки',
+    steady: 'стабильно', drop: 'проседает',
+    hint: 'Смотрите на картинку: муть по краям, цветные пятна и полосы видны сразу. Числа справа обновляются на ходу — прикройте камеру ладонью наполовину и увидите, как падает частота кадров.',
+    eDenied: 'Доступ к камере запрещён. Разрешение спрашивается один раз: если вы отказали, снимите запрет в настройках сайта — в адресной строке слева есть значок камеры.',
+    eNone: 'Камера не найдена. Проверьте, что она подключена, а на ноутбуке — что не закрыта шторкой и не отключена в настройках системы.',
+    eBusy: 'Камера занята другой программой. Закройте видеозвонки и приложения камеры и попробуйте снова — большинство камер умеют работать только с одной программой сразу.',
+    eOther: 'Камеру включить не удалось. Попробуйте перезагрузить страницу; если не поможет — другой браузер.',
+    n1: 'Заявленная частота кадров и настоящая — разные вещи. Почти любая веб-камера при слабом свете сама снижает частоту вдвое, чтобы кадр не был тёмным. Здесь считаются настоящие кадры, поэтому число падает вместе со светом — это не поломка, а так работает камера.',
+    n2: 'Разрешение мы просим максимальное, но выдаёт его камера. Если вместо 1920 × 1080 стоит 1280 × 720, значит, столько камера и умеет — или столько ей разрешила система.',
+    n3: 'Кодек у живого потока назвать невозможно: браузер получает от камеры готовые кадры, и никакого сжатия между ней и страницей нет. Сжатие появляется потом — в записи или в видеозвонке.',
+    n4: 'Картинка не уходит с вашего устройства. Она живёт в памяти вкладки, снимок делает сам браузер, и ни один кадр никуда не отправляется и нигде не сохраняется.',
+    n5: 'Если камера занята другой программой, браузер её не получит. Видеозвонки часто держат камеру даже свёрнутыми — закройте их полностью.',
+  },
+  en: {
+    lead: 'To start the test, allow the browser to use your camera. The picture stays on your device.',
+    start: 'Turn the camera on',
+    mirror: 'Mirror the image', shot: 'Take a photo', swap: 'Other camera', stop: 'Turn off',
+    rStatus: 'Status', rDevice: 'Camera', rRes: 'Resolution', rFps: 'Frame rate',
+    rSaid: 'Claimed by the camera', rRatio: 'Aspect ratio', rPrivacy: 'Privacy',
+    on: 'running', off: 'off',
+    local: 'local, nothing is sent',
+    steady: 'steady', drop: 'dropping',
+    hint: 'Watch the picture: haze at the edges, coloured blotches and banding show up at once. The numbers update live — cover half the lens with your hand and watch the frame rate fall.',
+    eDenied: 'Camera access was denied. Permission is asked once: if you refused, clear the block in the site settings — there is a camera icon on the left of the address bar.',
+    eNone: 'No camera found. Check that it is plugged in, and on a laptop that the privacy shutter is open and the camera is not disabled in system settings.',
+    eBusy: 'The camera is busy in another program. Close video calls and camera apps and try again — most cameras can serve only one program at a time.',
+    eOther: 'The camera could not be started. Try reloading the page; if that does not help, try another browser.',
+    n1: 'The claimed frame rate and the real one are different things. Almost any webcam halves its rate in dim light so the picture is not too dark. Here the real frames are counted, so the number falls with the light — that is how a camera works, not a fault.',
+    n2: 'We ask for the maximum resolution, but the camera decides. If you see 1280 × 720 instead of 1920 × 1080, that is what the camera can do — or what the system allows it.',
+    n3: 'A live stream has no codec to name: the browser receives ready-made frames from the camera and nothing is compressed between them. Compression appears later — in a recording or a video call.',
+    n4: 'The picture never leaves your device. It lives in the tab’s memory, the snapshot is made by the browser itself, and no frame is sent or stored anywhere.',
+    n5: 'If the camera is held by another program, the browser will not get it. Video-call apps often keep the camera even when minimised — close them fully.',
+  },
+  es: {
+    lead: 'Para empezar la prueba, permite al navegador usar tu cámara. La imagen se queda en tu dispositivo.',
+    start: 'Encender la cámara',
+    mirror: 'Reflejar la imagen', shot: 'Hacer una foto', swap: 'Otra cámara', stop: 'Apagar',
+    rStatus: 'Estado', rDevice: 'Cámara', rRes: 'Resolución', rFps: 'Fotogramas',
+    rSaid: 'Declarado por la cámara', rRatio: 'Proporción', rPrivacy: 'Privacidad',
+    on: 'funcionando', off: 'apagada',
+    local: 'local, no se envía nada',
+    steady: 'estable', drop: 'cae',
+    hint: 'Mira la imagen: la neblina en los bordes, las manchas de color y las bandas se ven enseguida. Las cifras se actualizan en vivo: tapa media lente con la mano y verás caer los fotogramas.',
+    eDenied: 'Acceso a la cámara denegado. El permiso se pide una vez: si lo rechazaste, quita el bloqueo en los ajustes del sitio — hay un icono de cámara a la izquierda de la barra de direcciones.',
+    eNone: 'No se encontró ninguna cámara. Comprueba que esté conectada y, en un portátil, que la tapa de privacidad esté abierta y la cámara no esté desactivada en el sistema.',
+    eBusy: 'La cámara está ocupada por otro programa. Cierra las videollamadas y las aplicaciones de cámara e inténtalo de nuevo: la mayoría solo admite un programa a la vez.',
+    eOther: 'No se pudo iniciar la cámara. Prueba a recargar la página; si no funciona, prueba otro navegador.',
+    n1: 'Los fotogramas declarados y los reales son cosas distintas. Casi cualquier webcam reduce a la mitad su tasa con poca luz para que la imagen no salga oscura. Aquí se cuentan los fotogramas reales, así que la cifra baja con la luz: así funciona una cámara, no es una avería.',
+    n2: 'Pedimos la resolución máxima, pero decide la cámara. Si ves 1280 × 720 en vez de 1920 × 1080, eso es lo que da la cámara, o lo que le permite el sistema.',
+    n3: 'Un flujo en vivo no tiene códec que nombrar: el navegador recibe fotogramas ya listos de la cámara y entre ambos no hay compresión. La compresión aparece después, en una grabación o en una videollamada.',
+    n4: 'La imagen no sale de tu dispositivo. Vive en la memoria de la pestaña, la foto la hace el propio navegador y ningún fotograma se envía ni se guarda en ninguna parte.',
+    n5: 'Si otro programa tiene la cámara, el navegador no la conseguirá. Las aplicaciones de videollamada suelen retenerla incluso minimizadas: ciérralas del todo.',
+  },
+  uk: {
+    lead: 'Щоб почати перевірку, дозвольте браузеру доступ до камери. Зображення лишиться на вашому пристрої.',
+    start: 'Увімкнути камеру',
+    mirror: 'Відзеркалити', shot: 'Зробити знімок', swap: 'Інша камера', stop: 'Вимкнути',
+    rStatus: 'Стан', rDevice: 'Камера', rRes: 'Роздільність', rFps: 'Частота кадрів',
+    rSaid: 'Заявлено камерою', rRatio: 'Пропорції', rPrivacy: 'Приватність',
+    on: 'працює', off: 'вимкнена',
+    local: 'локально, без надсилання',
+    steady: 'стабільно', drop: 'просідає',
+    hint: 'Дивіться на зображення: муть по краях, кольорові плями й смуги видно одразу. Числа праворуч оновлюються на ходу — прикрийте камеру долонею наполовину й побачите, як падає частота кадрів.',
+    eDenied: 'Доступ до камери заборонено. Дозвіл питають один раз: якщо ви відмовили, зніміть заборону в налаштуваннях сайту — в адресному рядку ліворуч є значок камери.',
+    eNone: 'Камеру не знайдено. Перевірте, що вона під’єднана, а на ноутбуці — що не закрита шторкою й не вимкнена в налаштуваннях системи.',
+    eBusy: 'Камеру зайняла інша програма. Закрийте відеодзвінки та застосунки камери й спробуйте знову — більшість камер працюють лише з однією програмою за раз.',
+    eOther: 'Камеру ввімкнути не вдалося. Спробуйте перезавантажити сторінку; якщо не допоможе — інший браузер.',
+    n1: 'Заявлена частота кадрів і справжня — різні речі. Майже будь-яка вебкамера при слабкому світлі сама знижує частоту вдвічі, щоб кадр не був темним. Тут рахуються справжні кадри, тому число падає разом зі світлом — це не поломка, а так працює камера.',
+    n2: 'Роздільність ми просимо максимальну, але видає її камера. Якщо замість 1920 × 1080 стоїть 1280 × 720, отже, стільки камера й уміє — або стільки їй дозволила система.',
+    n3: 'Кодек у живого потоку назвати неможливо: браузер отримує від камери готові кадри, і жодного стиснення між ними немає. Стиснення з’являється потім — у записі або у відеодзвінку.',
+    n4: 'Зображення не йде з вашого пристрою. Воно живе в пам’яті вкладки, знімок робить сам браузер, і жоден кадр нікуди не надсилається й ніде не зберігається.',
+    n5: 'Якщо камеру тримає інша програма, браузер її не отримає. Застосунки відеодзвінків часто тримають камеру навіть згорнутими — закрийте їх повністю.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="кам" data-words={JSON.stringify(с)}>
+  <div class="кам-вход">
+    <p>{с.lead}</p>
+    <button type="button" class="кам-включить" id="кам-включить">{с.start}</button>
+    <div class="кам-беда" id="кам-беда"></div>
+  </div>
+
+  <div class="кам-работа">
+    <div class="кам-экран">
+      <video id="кам-видео" playsinline autoplay muted></video>
+      <div class="кам-под">
+        <button type="button" class="кам-мелкая" id="кам-зеркало">{с.mirror}</button>
+        <button type="button" class="кам-мелкая" id="кам-снимок">{с.shot}</button>
+        <button type="button" class="кам-мелкая кам-скрыт" id="кам-другая" hidden>{с.swap}</button>
+        <button type="button" class="кам-мелкая" id="кам-выкл">{с.stop}</button>
+      </div>
+    </div>
+
+    <div class="кам-числа">
+      <div class="кам-строка"><span class="н">{с.rStatus}</span><span class="з" id="кам-состояние">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rDevice}</span><span class="з" id="кам-имя">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rRes}</span><span class="з" id="кам-размер">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rRatio}</span><span class="з" id="кам-пропорции">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rFps}</span><span class="з" id="кам-кадры">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rSaid}</span><span class="з" id="кам-заявлено">—</span></div>
+      <div class="кам-строка"><span class="н">{с.rPrivacy}</span><span class="з">{с.local}</span></div>
+    </div>
+  </div>
+
+  <div class="кам-итог" id="кам-итог"></div>
+
+  <div class="кам-заметки">
+    <div class="кам-заметка">{с.n1}</div>
+    <div class="кам-заметка">{с.n2}</div>
+    <div class="кам-заметка">{с.n3}</div>
+    <div class="кам-заметка">{с.n4}</div>
+    <div class="кам-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.кам');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const видео = $('кам-видео');
+
+    let поток = null, кадрыЗапрос = null, счётКадров = 0, секунда = 0, лицом = 'user';
+
+    function сокращённо(ш, в) {
+      // Пропорции приводим к простому виду: 1920×1080 -- это 16:9, а не «1.78».
+      const общий = (a, b) => (b ? общий(b, a % b) : a);
+      if (!ш || !в) return '—';
+      const д = общий(ш, в);
+      return (ш / д) + ':' + (в / д);
+    }
+
+    function числа() {
+      const дорожка = поток && поток.getVideoTracks()[0];
+      if (!дорожка) return;
+      const н = дорожка.getSettings ? дорожка.getSettings() : {};
+      const ш = видео.videoWidth || н.width || 0;
+      const в = видео.videoHeight || н.height || 0;
+      $('кам-размер').textContent = ш && в ? `${ш} × ${в}` : '—';
+      $('кам-пропорции').textContent = сокращённо(ш, в);
+      $('кам-имя').textContent = дорожка.label || '—';
+      $('кам-заявлено').textContent = н.frameRate ? Math.round(н.frameRate) + ' fps' : '—';
+    }
+
+    // Считаем КАДРЫ КАМЕРЫ, а не кадры экрана: requestVideoFrameCallback вызывается на каждый
+    // новый кадр потока. Там, где его нет, честно считаем по кадрам отрисовки -- и тогда
+    // число ограничено экраном, о чём сказано в заметках.
+    function считатьКадры() {
+      счётКадров++;
+      const сейчас = performance.now();
+      if (!секунда) секунда = сейчас;
+      if (сейчас - секунда >= 1000) {
+        const кс = Math.round((счётКадров * 1000) / (сейчас - секунда));
+        const дорожка = поток && поток.getVideoTracks()[0];
+        const заявлено = дорожка && дорожка.getSettings ? дорожка.getSettings().frameRate : null;
+        const поле = $('кам-кадры');
+        // «Проседает» -- это когда настоящих кадров заметно меньше обещанных: у веб-камер
+        // так бывает в темноте, и человек должен понимать, что это не поломка.
+        const мало = заявлено && кс < заявлено * 0.75;
+        поле.textContent = кс + ' fps · ' + (мало ? с.drop : с.steady);
+        поле.className = 'з' + (мало ? ' плохо' : '');
+        счётКадров = 0; секунда = сейчас;
+      }
+      следующийКадр();
+    }
+
+    function следующийКадр() {
+      if (!поток) return;
+      if (видео.requestVideoFrameCallback) кадрыЗапрос = видео.requestVideoFrameCallback(считатьКадры);
+      else кадрыЗапрос = requestAnimationFrame(считатьКадры);
+    }
+
+    async function показатьКнопкуСмены() {
+      // Кнопка второй камеры нужна только там, где вторая камера есть. На телефоне это
+      // главное действие страницы: фронтальную и основную проверяют по очереди.
+      try {
+        const все = await navigator.mediaDevices.enumerateDevices();
+        const камер = все.filter((у) => у.kind === 'videoinput').length;
+        $('кам-другая').hidden = камер < 2;
+      } catch (ошибка) {}
+    }
+
+    async function включить() {
+      $('кам-беда').classList.remove('видна');
+      try {
+        // Просим максимум: без этого браузер выдаёт своё умолчание, и камера покажется
+        // хуже, чем она есть.
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { width: { ideal: 1920 }, height: { ideal: 1080 }, facingMode: лицом },
+          audio: false,
+        });
+      } catch (ошибка) {
+        const имя = ошибка && ошибка.name;
+        const текст = имя === 'NotAllowedError' || имя === 'SecurityError' ? с.eDenied
+          : имя === 'NotFoundError' || имя === 'OverconstrainedError' ? с.eNone
+          : имя === 'NotReadableError' || имя === 'AbortError' ? с.eBusy
+          : с.eOther;
+        const плашка = $('кам-беда');
+        плашка.textContent = текст;
+        плашка.classList.add('видна');
+        return;
+      }
+      видео.srcObject = поток;
+      корень.classList.add('идёт');
+      $('кам-состояние').textContent = с.on;
+      $('кам-итог').innerHTML = с.hint;
+      try { await видео.play(); } catch (ошибка) {}
+      числа();
+      // Размер кадра известен не сразу: у потока сначала нули.
+      видео.addEventListener('loadedmetadata', числа, { once: true });
+      setTimeout(числа, 700);
+      секунда = 0; счётКадров = 0;
+      следующийКадр();
+      показатьКнопкуСмены();
+    }
+
+    function выключить() {
+      остановить();
+      корень.classList.remove('идёт');
+      $('кам-состояние').textContent = с.off;
+      $('кам-итог').innerHTML = '';
+    }
+
+    // Дорожки надо гасить явно: иначе лампочка камеры продолжает гореть, и человек
+    // справедливо решит, что мы за ним подсматриваем.
+    function остановить() {
+      if (!поток) return;
+      поток.getTracks().forEach((д) => д.stop());
+      поток = null;
+      видео.srcObject = null;
+      if (кадрыЗапрос != null) {
+        if (видео.cancelVideoFrameCallback) видео.cancelVideoFrameCallback(кадрыЗапрос);
+        else cancelAnimationFrame(кадрыЗапрос);
+        кадрыЗапрос = null;
+      }
+    }
+
+    $('кам-включить').addEventListener('click', включить);
+    $('кам-выкл').addEventListener('click', выключить);
+
+    $('кам-зеркало').addEventListener('click', () => {
+      const вкл = видео.classList.toggle('зеркало');
+      $('кам-зеркало').classList.toggle('вкл', вкл);
+    });
+
+    $('кам-другая').addEventListener('click', async () => {
+      лицом = лицом === 'user' ? 'environment' : 'user';
+      остановить();
+      await включить();
+    });
+
+    // Снимок делает сам браузер: кадр рисуется на холст в памяти и сразу отдаётся файлом.
+    // Никуда, кроме вашего диска, он не уходит.
+    $('кам-снимок').addEventListener('click', () => {
+      if (!видео.videoWidth) return;
+      const холст = document.createElement('canvas');
+      холст.width = видео.videoWidth;
+      холст.height = видео.videoHeight;
+      const кисть = холст.getContext('2d');
+      if (видео.classList.contains('зеркало')) {
+        // Снимок сохраняем таким, каким человек его видит: отражённый экран -- отражённый файл.
+        кисть.translate(холст.width, 0);
+        кисть.scale(-1, 1);
+      }
+      кисть.drawImage(видео, 0, 0, холст.width, холст.height);
+      холст.toBlob((капля) => {
+        if (!капля) return;
+        const адрес = URL.createObjectURL(капля);
+        const ссылка = document.createElement('a');
+        ссылка.href = адрес;
+        ссылка.download = 'opitro-camera.png';
+        ссылка.click();
+        setTimeout(() => URL.revokeObjectURL(адрес), 4000);
+      }, 'image/png');
+    });
+
+    window.addEventListener('pagehide', остановить);
+
+    window.__камСостояние = () => ({
+      идёт: корень.classList.contains('идёт'),
+      состояние: $('кам-состояние').textContent,
+      имя: $('кам-имя').textContent,
+      размер: $('кам-размер').textContent,
+      пропорции: $('кам-пропорции').textContent,
+      кадры: $('кам-кадры').textContent,
+      заявлено: $('кам-заявлено').textContent,
+      зеркало: видео.classList.contains('зеркало'),
+      беда: $('кам-беда').classList.contains('видна') ? $('кам-беда').textContent : '',
+    });
+  })();
+</script>
