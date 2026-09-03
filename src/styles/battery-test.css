@@ -29,7 +29,16 @@
 .бт-нет { display: none; margin-bottom: 12px; padding: 13px 14px; border-radius: 10px;
   border: 1px solid rgba(255,154,168,.5); font: 400 13px/1.6 var(--ui); color: #ffd9df }
 .бт.без .бт-нет { display: block }
-.бт.без .бт-панель, .бт.без .бт-нагрузка { display: none }
+/* Без доступа прячем только то, чего действительно нет: график заряда и живые числа.
+   Сама панель, контур батареи и замер под нагрузкой остаются -- на айфоне страница
+   обязана работать, просто заряд человек смотрит глазами. */
+.бт.без .бт-график, .бт.без .бт-число { display: none }
+.бт.без .бт-строка .з { color: var(--буквы2) }
+/* Внутри контура вместо заливки -- строгая надпись о том, кто закрыл доступ. */
+.бт-заглушка { display: none; height: 100%; align-items: center; justify-content: center;
+  text-align: center; padding: 0 8px; font: 400 11px/1.35 var(--цифры); color: var(--буквы2) }
+.бт.без .бт-заглушка { display: flex }
+.бт.без .бт-заряд { display: none }
 
 .бт-панель { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px }
 .бт-окно { background: #000; border: 1px solid var(--линия); border-radius: 12px;

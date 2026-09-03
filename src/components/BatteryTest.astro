@@ -33,6 +33,11 @@ const СЛОВА = {
     start: 'Запустить замер', stop: 'Остановить',
     running: 'Идёт замер… осталось {n}',
     hint: 'Отключите зарядку, иначе расход мерить не на чем. Замер нагружает процессор и честно тратит немного заряда — это плата за точность.',
+    iosBlock: 'Доступ заблокирован iOS',
+    otherBlock: 'Браузер закрыл доступ',
+    iosCard: 'Политика безопасности Apple запрещает браузерам читать состояние батареи: по уровню заряда сайты научились скрытно узнавать посетителя. Износ аккумулятора iPhone смотрят в системе: Настройки → Аккумулятор → Состояние аккумулятора и зарядка. Замер расхода ниже работает и здесь — просто заряд придётся посмотреть своими глазами.',
+    manualBefore: 'Запомните нынешний заряд телефона и запустите замер. Браузер здесь заряд не видит, поэтому сравните числа сами: до и после.',
+    manualAfter: 'Прошло {t} под полной нагрузкой. Посмотрите заряд: если ушло больше <b>{n}%</b>, расход выше обычного для исправной батареи. Это ещё не диагноз — настоящий износ смотрят в настройках телефона.',
     resShort: 'Замер длился всего {t} — для оценки этого мало. Из такого куска расход в час не пересчитать: ошибка будет в разы. Дайте замеру отработать хотя бы минуту.',
     resNone: 'За {t} заряд не изменился ни на процент. Это хороший знак, но для оценки нужно дольше: возьмите срок побольше и повторите.',
     resRate: 'Под нагрузкой уходит <b>{r}% в час</b>. При таком расходе полного заряда хватит примерно на <b>{h}</b>. Это скорость расхода, а не износ: износ браузеру не сообщают.',
@@ -54,6 +59,11 @@ const СЛОВА = {
     start: 'Start the measurement', stop: 'Stop',
     running: 'Measuring… {n} left',
     hint: 'Unplug the charger, otherwise there is no drain to measure. The test loads the processor and honestly spends a little charge — that is the price of accuracy.',
+    iosBlock: 'Blocked by iOS',
+    otherBlock: 'Blocked by the browser',
+    iosCard: 'Apple’s security policy forbids browsers from reading battery status: sites learned to recognise visitors covertly by their charge level. iPhone battery wear is read in the system: Settings → Battery → Battery Health & Charging. The drain measurement below still works here — you just read the charge with your own eyes.',
+    manualBefore: 'Note your current charge and start the run. The browser cannot see the level here, so compare the numbers yourself: before and after.',
+    manualAfter: 'That was {t} under full load. Check the charge: losing more than <b>{n}%</b> is above what a healthy battery uses. It is not a diagnosis yet — real wear is read in the phone’s settings.',
     resShort: 'The run lasted only {t} — too little to judge. An hourly rate cannot be extrapolated from such a slice: the error would be several-fold. Let the measurement run for at least a minute.',
     resNone: 'Over {t} the charge did not move by a single percent. That is a good sign, but the estimate needs longer: pick a longer run and repeat.',
     resRate: 'Under load it uses <b>{r}% per hour</b>. At that rate a full charge lasts about <b>{h}</b>. This is drain speed, not wear: wear is never reported to a browser.',
@@ -75,6 +85,11 @@ const СЛОВА = {
     start: 'Iniciar la medición', stop: 'Detener',
     running: 'Midiendo… quedan {n}',
     hint: 'Desenchufa el cargador o no habrá consumo que medir. La prueba carga el procesador y gasta algo de batería: es el precio de la precisión.',
+    iosBlock: 'Bloqueado por iOS',
+    otherBlock: 'Bloqueado por el navegador',
+    iosCard: 'La política de seguridad de Apple prohíbe a los navegadores leer el estado de la batería: los sitios aprendieron a reconocer visitantes en secreto por su nivel de carga. El desgaste del iPhone se consulta en el sistema: Ajustes → Batería → Estado de la batería y carga. La medición de consumo de abajo sigue funcionando aquí: solo tendrás que mirar la carga con tus propios ojos.',
+    manualBefore: 'Apunta la carga actual y lanza la medición. Aquí el navegador no ve el nivel, así que compara tú mismo: antes y después.',
+    manualAfter: 'Han pasado {t} a plena carga. Mira la batería: perder más de un <b>{n}%</b> está por encima de lo que gasta una batería sana. Todavía no es un diagnóstico: el desgaste real se consulta en los ajustes del teléfono.',
     resShort: 'La medición duró solo {t}: demasiado poco para juzgar. De un tramo así no se puede extrapolar un consumo por hora, el error sería de varias veces. Deja correr la medición al menos un minuto.',
     resNone: 'En {t} la carga no bajó ni un punto. Es buena señal, pero para estimar hace falta más tiempo: elige una duración mayor y repite.',
     resRate: 'Bajo carga consume <b>{r}% por hora</b>. A ese ritmo una carga completa dura unas <b>{h}</b>. Esto es velocidad de consumo, no desgaste: el desgaste nunca se le comunica al navegador.',
@@ -96,6 +111,11 @@ const СЛОВА = {
     start: 'Запустити замір', stop: 'Зупинити',
     running: 'Триває замір… лишилося {n}',
     hint: 'Вимкніть зарядку, інакше витрату міряти нема на чому. Замір навантажує процесор і чесно витрачає трохи заряду — це плата за точність.',
+    iosBlock: 'Доступ заблоковано iOS',
+    otherBlock: 'Браузер закрив доступ',
+    iosCard: 'Політика безпеки Apple забороняє браузерам читати стан батареї: за рівнем заряду сайти навчилися приховано впізнавати відвідувача. Знос акумулятора iPhone дивляться в системі: Налаштування → Акумулятор → Стан акумулятора та заряджання. Замір витрати нижче працює й тут — просто заряд доведеться подивитися своїми очима.',
+    manualBefore: 'Запам’ятайте нинішній заряд телефона й запустіть замір. Браузер тут заряд не бачить, тому порівняйте числа самі: до і після.',
+    manualAfter: 'Минуло {t} під повним навантаженням. Подивіться заряд: якщо пішло більше ніж <b>{n}%</b>, витрата вища за звичайну для справної батареї. Це ще не діагноз — справжній знос дивляться в налаштуваннях телефона.',
     resShort: 'Замір тривав лише {t} — для оцінки цього замало. З такого шматка витрату за годину не перерахувати: похибка буде в рази. Дайте заміру відпрацювати хоча б хвилину.',
     resNone: 'За {t} заряд не змінився ані на відсоток. Це добрий знак, але для оцінки треба довше: візьміть більший строк і повторіть.',
     resRate: 'Під навантаженням іде <b>{r}% за годину</b>. За такої витрати повного заряду вистачить приблизно на <b>{h}</b>. Це швидкість витрати, а не знос: знос браузеру не повідомляють.',
@@ -129,6 +149,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="бт-окно бт-вид">
       <div class="бт-корпус">
         <div class="бт-заряд" id="бт-полоса"></div>
+        <div class="бт-заглушка" id="бт-заглушка"></div>
         <div class="бт-молния">⚡</div>
       </div>
       <div class="бт-число" id="бт-число">—</div>
@@ -170,6 +191,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     let мин = 3;
     let рабочие = [];            // потоки нагрузки
     let замерДо = 0, замерТик = null, началоЗамера = 0, зарядНаСтарте = 0;
+    // Айфон отличаем от прочих браузеров без доступа: причина закрытия разная, и человеку
+    // надо назвать именно его случай.
+    const айфон = /iPad|iPhone|iPod/.test(navigator.userAgent)
+      || (navigator.platform === 'MacIntel' && navigator.maxTouchPoints > 1);
 
     function время(секунд) {
       if (!isFinite(секунд) || секунд <= 0) return с.unknown;
@@ -298,9 +323,42 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       стопЗамер(с.resRate.replace('{r}', вЧас.toFixed(1)).replace('{h}', хватит));
     }
 
+    // Замер вслепую: браузер заряда не видит, но нагрузку дать может. Человек смотрит
+    // проценты сам -- до и после. Порог берём от времени: исправный телефон под полной
+    // нагрузкой тратит около процента в минуту.
+    function итогВслепую() {
+      const прошло = (performance.now() - началоЗамера) / 1000;
+      // Тот же порог, что и при живых данных: за минуту заряд не успевает измениться
+      // настолько, чтобы человеку было что сравнивать.
+      if (прошло < 60) {
+        стопЗамер(с.resShort.replace('{t}', Math.round(прошло) + ' ' + с.sec));
+        return;
+      }
+      const порог = Math.max(1, Math.round(прошло / 60));
+      стопЗамер(с.manualAfter.replace('{t}', время(прошло)).replace('{n}', порог));
+    }
+
     $('бт-пуск').addEventListener('click', () => {
-      if (замерДо) { стопЗамер(''); итогЗамера(); return; }
-      if (!батарея) return;
+      if (замерДо) {
+        стопЗамер('');
+        батарея ? итогЗамера() : итогВслепую();
+        return;
+      }
+      if (!батарея) {
+        началоЗамера = performance.now();
+        замерДо = началоЗамера + мин * 60000;
+        нагрузить();
+        $('бт-пуск').classList.add('идёт');
+        $('бт-пуск').textContent = с.stop;
+        const тикВслепую = () => {
+          const осталось = Math.max(0, замерДо - performance.now());
+          $('бт-итог').innerHTML = с.running.replace('{n}', время(осталось / 1000));
+          if (осталось <= 0) итогВслепую();
+        };
+        тикВслепую();
+        замерТик = setInterval(тикВслепую, 1000);
+        return;
+      }
       if (батарея.charging) { $('бт-итог').innerHTML = с.resCharging; return; }
       зарядНаСтарте = батарея.level;
       началоЗамера = performance.now();
@@ -329,6 +387,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     if (typeof navigator.getBattery !== 'function') {
       корень.classList.add('без');
+      $('бт-заглушка').textContent = айфон ? с.iosBlock : с.otherBlock;
+      if (айфон) $('бт-нет').innerHTML = с.iosCard;
+      // Живых чисел нет, но замер работает -- и подсказка внизу должна быть про него,
+      // а не про то, чего здесь не будет.
+      // В строках прочерк, а не пять одинаковых надписей: причина уже названа дважды --
+      // в карточке сверху и внутри контура батареи.
+      for (const и of ['бт-питание', 'бт-заряд', 'бт-доПолной', 'бт-осталось', 'бт-расход']) {
+        $(и).textContent = '—';
+      }
+      $('бт-итог').innerHTML = с.manualBefore;
     } else {
       navigator.getBattery().then((б) => {
         батарея = б;
