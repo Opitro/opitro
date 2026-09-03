@@ -1,0 +1,117 @@
+/* СТИЛИ СТРАНИЦЫ «ДАТЧИКИ ТЕЛЕФОНА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид задан владельцем: диагностическая панель. Чёрный фон, тонкие линии, моноширинные
+ * цифры -- у них одинаковая ширина знаков, и меняющееся число не дёргает строку.
+ *
+ * Устройство:
+ *   1. СНАЧАЛА РАЗРЕШЕНИЕ. На айфоне датчики движения без явного нажатия не отдаются вовсе,
+ *      поэтому первое, что видит человек, -- одна кнопка, а не мёртвая панель с прочерками.
+ *   2. ЧЕТЫРЕ КАРТОЧКИ: ускорение, положение, компас, свет. У каждой своя строка состояния,
+ *      и в ней честно написано, чего именно не хватает: датчика, разрешения или доступа.
+ *   3. КАЖДЫЙ ПРИБОР ПОКАЗЫВАЕТ СЕБЯ САМ. Шкалы для осей, мишень для наклона, стрелка для
+ *      компаса, крупное число для света. Цифры дублируют картинку, а не заменяют её.
+ */
+
+.дт {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы: #ffffff;
+  --буквы2: #a9b0ba;
+  --линия: rgba(255,255,255,.18);
+  font-family: var(--ui);
+}
+
+/* ---- Запрос доступа --------------------------------------------------------------------- */
+
+.дт-вход { background: #000; border: 1px solid var(--линия); border-radius: 14px;
+  padding: 44px 18px; text-align: center; display: flex; flex-direction: column;
+  align-items: center; gap: 14px }
+.дт-вход p { margin: 0; max-width: 52ch; font: 400 13.5px/1.6 var(--ui); color: var(--буквы2) }
+.дт-вход b { display: block; font: 500 15px var(--ui); color: var(--буквы) }
+.дт-дать {
+  font: 500 14px var(--ui); height: 46px; padding: 0 24px; border-radius: 8px; cursor: pointer;
+  color: var(--буквы); background: #000; border: 1px solid #fff;
+  transition: background .15s ease, color .15s ease;
+}
+.дт-дать:hover { background: #fff; color: #000 }
+.дт.впущены .дт-вход { display: none }
+.дт:not(.впущены) .дт-панель { display: none }
+
+/* ---- Панель ----------------------------------------------------------------------------- */
+
+.дт-панель { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 8px }
+.дт-карта { background: #000; border: 1px solid var(--линия); border-radius: 12px;
+  padding: 14px 14px 13px; display: flex; flex-direction: column; gap: 10px }
+.дт-шапка { display: flex; align-items: baseline; justify-content: space-between; gap: 10px }
+.дт-шапка b { font: 500 13px var(--ui); color: var(--буквы) }
+.дт-шапка span { font: 400 10.5px var(--цифры); color: var(--буквы2); text-align: right }
+.дт-шапка span.плохо { color: #ff9aa8 }
+
+/* Оси ускорения: три шкалы с нулём посередине. Ноль посередине, потому что ускорение
+   бывает и отрицательным, а шкала от края читалась бы как «мало» при сильном толчке назад. */
+.дт-оси { display: flex; flex-direction: column; gap: 8px }
+.дт-ось { display: grid; grid-template-columns: 16px 1fr 76px; align-items: center; gap: 8px }
+.дт-ось .и { font: 500 11px var(--цифры); color: var(--буквы2) }
+.дт-ось .з { font: 500 12px var(--цифры); color: var(--буквы); text-align: right;
+  font-variant-numeric: tabular-nums }
+.дт-шкала { position: relative; height: 8px; border: 1px solid var(--линия); border-radius: 2px }
+.дт-шкала::before { content: ""; position: absolute; left: 50%; top: 0; bottom: 0; width: 1px;
+  background: rgba(255,255,255,.28) }
+.дт-шкала i { position: absolute; top: 0; bottom: 0; left: 50%; width: 0; background: #fff }
+
+/* Мишень наклона: точка обязана лечь в перекрестие, если телефон лежит на столе ровно. */
+.дт-мишень { position: relative; width: 118px; height: 118px; margin: 0 auto; border-radius: 50%;
+  border: 1px solid var(--линия) }
+.дт-мишень::before, .дт-мишень::after { content: ""; position: absolute;
+  background: rgba(255,255,255,.14) }
+.дт-мишень::before { left: 0; right: 0; top: 50%; height: 1px }
+.дт-мишень::after { top: 0; bottom: 0; left: 50%; width: 1px }
+.дт-мишень u { position: absolute; left: 50%; top: 50%; width: 42px; height: 42px;
+  margin: -21px 0 0 -21px; border-radius: 50%; border: 1px dashed rgba(255,255,255,.2) }
+.дт-точка { position: absolute; left: 50%; top: 50%; width: 10px; height: 10px; margin: -5px 0 0 -5px;
+  border-radius: 50%; background: #fff }
+
+/* Компас: круг с делениями и одна стрелка. Крутится стрелка, а не круг: человеку нужно
+   направление на север, а не вращающийся циферблат. */
+.дт-компас { position: relative; width: 118px; height: 118px; margin: 0 auto; border-radius: 50%;
+  border: 1px solid var(--линия) }
+.дт-компас .с { position: absolute; left: 50%; top: 4px; transform: translateX(-50%);
+  font: 500 10px var(--цифры); color: var(--буквы2) }
+.дт-стрелка { position: absolute; left: 50%; top: 50%; width: 2px; height: 48px;
+  margin: -48px 0 0 -1px; transform-origin: 50% 100%; background: #fff }
+.дт-риски { position: absolute; inset: 0; border-radius: 50% }
+.дт-риски i { position: absolute; left: 50%; top: 0; width: 1px; height: 7px; margin-left: -.5px;
+  background: rgba(255,255,255,.28); transform-origin: 50% 59px }
+
+.дт-крупно { font: 600 34px/1 var(--цифры); color: var(--буквы); text-align: center;
+  font-variant-numeric: tabular-nums }
+.дт-крупно small { font: 400 12px var(--ui); color: var(--буквы2); margin-left: 6px }
+.дт-полоса { height: 8px; border: 1px solid var(--линия); border-radius: 2px; overflow: hidden }
+.дт-полоса i { display: block; height: 100%; width: 0; background: #fff }
+
+.дт-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 10px;
+  font: 400 11.5px var(--ui); color: var(--буквы2) }
+.дт-строка em { font-style: normal; font: 500 12.5px var(--цифры); color: var(--буквы);
+  font-variant-numeric: tabular-nums }
+
+.дт-нет { font: 400 12px/1.5 var(--ui); color: var(--буквы2) }
+
+.дт-действия { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 12px }
+.дт-действие {
+  flex: 0 0 auto; font: 500 13.5px var(--ui); height: 42px; padding: 0 20px; border-radius: 8px;
+  cursor: pointer; color: var(--буквы); border: 1px solid var(--линия); background: #000;
+}
+.дт-действие:hover { border-color: #fff }
+
+.дт-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.дт-итог b { color: var(--буквы); font-weight: 600 }
+
+.дт-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.дт-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.дт-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+
+@media (max-width: 700px) {
+  .дт-панель { grid-template-columns: 1fr }
+}

@@ -1,0 +1,364 @@
+---
+// ДАТЧИКИ ТЕЛЕФОНА -- своя страница со своим кодом и стилями.
+//
+// Четыре прибора:
+//   * УСКОРЕНИЕ (акселерометр) -- три оси. Лежащий на столе телефон обязан показывать по Z
+//     около 9,8: это сила тяжести, и она же -- готовая проверка исправности датчика.
+//   * ПОЛОЖЕНИЕ (гироскоп) -- наклон и крен точкой на мишени. Ровно лежит -- точка в центре.
+//   * КОМПАС -- стрелка на север. На айфоне азимут приходит отдельным полем
+//     webkitCompassHeading, на андроиде -- событием deviceorientationabsolute.
+//   * СВЕТ -- люксметр. Доступ к нему браузеры почти везде закрыли, и это надо честно
+//     написать, а не рисовать вечный прочерк.
+//
+// Разрешение: на айфоне датчики движения не отдаются вообще, пока человек сам не нажмёт
+// кнопку -- DeviceMotionEvent.requestPermission(). Поэтому первое, что видно, -- кнопка.
+//
+// Состояние каждого прибора пишется словами: «нет данных», «датчика нет», «браузер закрыл
+// доступ». Прочерк без объяснения человек читает как поломку своего телефона.
+import css from '../styles/phone-sensors.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    lead: 'Датчики движения браузер отдаёт только по вашему разрешению',
+    leadSub: 'Нажмите кнопку — телефон спросит согласие, и приборы оживут. На компьютере датчиков движения обычно нет вовсе, и страница честно об этом скажет.',
+    give: 'Предоставить доступ к датчикам',
+    acc: 'Ускорение', accSub: 'акселерометр, м/с²',
+    ori: 'Положение', oriSub: 'гироскоп, градусы',
+    comp: 'Компас', compSub: 'магнитометр',
+    light: 'Освещённость', lightSub: 'люксметр',
+    pitch: 'Наклон вперёд', roll: 'Крен вбок', turn: 'Поворот',
+    heading: 'Азимут', field: 'Магнитное поле',
+    waiting: 'ждём данных', noSensor: 'датчика нет', denied: 'доступ закрыт',
+    blocked: 'браузер закрыл доступ', live: 'идут данные',
+    lightNo: 'Люксметр закрыт в браузерах из-за приватности: по яркости вокруг можно узнать, где вы находитесь. Доступ к нему есть только у приложений телефона.',
+    compNo: 'Азимут не приходит. На андроиде помогает включить компас в настройках, а силу магнитного поля браузеры не отдают почти нигде.',
+    accNo: 'Данных от акселерометра нет. На компьютере его обычно нет вовсе; на телефоне проверьте, что страница открыта по защищённому соединению.',
+    reset: 'Обнулить наибольшие',
+    peak: 'Наибольшее ускорение',
+    hint: 'Положите телефон на стол: по оси Z должно быть около 9,8 — это сила тяжести, а точка наклона должна встать в центр. Встряхните телефон — шкалы дрогнут.',
+    n1: 'Лежащий на ровном столе телефон показывает по оси Z около 9,8 метра на секунду в квадрате. Это сила тяжести, и она же лучшая проверка акселерометра: если число заметно другое, датчик врёт.',
+    n2: 'Точка наклона у лежащего телефона обязана стоять в центре мишени. Стоит в стороне — гироскоп сбит; чаще всего лечится калибровкой в настройках телефона, а не ремонтом.',
+    n3: 'Компас в браузере знает только азимут, и то не всегда: на айфоне он приходит отдельным полем, на андроиде — отдельным событием. Силу магнитного поля в микротеслах браузеры не отдают почти нигде — это не поломка вашего телефона.',
+    n4: 'Люксметр браузеры закрыли намеренно: по освещённости вокруг можно догадаться, где человек находится и что он делает. Замерить свет со страницы нельзя ни в одном популярном браузере.',
+    n5: 'Датчики движения работают только по защищённому соединению и только после вашего согласия. Если приборы молчат, начните с перезагрузки страницы и повторного разрешения.',
+  },
+  en: {
+    lead: 'The browser only hands over motion sensors with your permission',
+    leadSub: 'Press the button — the phone will ask for consent and the gauges come alive. A computer usually has no motion sensors at all, and the page will say so honestly.',
+    give: 'Grant access to the sensors',
+    acc: 'Acceleration', accSub: 'accelerometer, m/s²',
+    ori: 'Orientation', oriSub: 'gyroscope, degrees',
+    comp: 'Compass', compSub: 'magnetometer',
+    light: 'Ambient light', lightSub: 'lux meter',
+    pitch: 'Pitch', roll: 'Roll', turn: 'Yaw',
+    heading: 'Heading', field: 'Magnetic field',
+    waiting: 'waiting for data', noSensor: 'no such sensor', denied: 'access denied',
+    blocked: 'blocked by the browser', live: 'data flowing',
+    lightNo: 'The lux meter is blocked in browsers for privacy: ambient brightness can reveal where you are. Only phone apps still have access to it.',
+    compNo: 'No heading is arriving. On Android, enabling the compass in settings usually helps; magnetic field strength is not exposed by browsers almost anywhere.',
+    accNo: 'No accelerometer data. A computer usually has none at all; on a phone, check that the page is open over a secure connection.',
+    reset: 'Reset the peaks',
+    peak: 'Peak acceleration',
+    hint: 'Lay the phone on a table: the Z axis should read about 9.8 — that is gravity — and the tilt dot should sit in the centre. Shake the phone and the bars will jump.',
+    n1: 'A phone lying flat reads about 9.8 metres per second squared on the Z axis. That is gravity, and it is the best accelerometer check there is: a markedly different number means the sensor is lying.',
+    n2: 'With the phone lying flat, the tilt dot must sit in the centre of the target. Off to one side means the gyroscope is off — usually cured by calibration in the phone’s settings rather than by repair.',
+    n3: 'A browser compass knows only the heading, and not always: on iPhone it arrives as a separate field, on Android as a separate event. Magnetic field strength in microteslas is not exposed almost anywhere — that is not a fault of your phone.',
+    n4: 'Browsers blocked the lux meter deliberately: ambient light can hint at where a person is and what they are doing. Measuring light from a web page is impossible in every popular browser.',
+    n5: 'Motion sensors work only over a secure connection and only after your consent. If the gauges stay silent, reload the page and grant permission again.',
+  },
+  es: {
+    lead: 'El navegador solo entrega los sensores de movimiento con tu permiso',
+    leadSub: 'Pulsa el botón: el teléfono pedirá tu consentimiento y los indicadores cobrarán vida. Un ordenador normalmente no tiene sensores de movimiento, y la página lo dirá con honestidad.',
+    give: 'Conceder acceso a los sensores',
+    acc: 'Aceleración', accSub: 'acelerómetro, m/s²',
+    ori: 'Orientación', oriSub: 'giroscopio, grados',
+    comp: 'Brújula', compSub: 'magnetómetro',
+    light: 'Luz ambiental', lightSub: 'luxómetro',
+    pitch: 'Cabeceo', roll: 'Alabeo', turn: 'Guiñada',
+    heading: 'Rumbo', field: 'Campo magnético',
+    waiting: 'esperando datos', noSensor: 'no hay sensor', denied: 'acceso denegado',
+    blocked: 'bloqueado por el navegador', live: 'datos en curso',
+    lightNo: 'El luxómetro está bloqueado en los navegadores por privacidad: el brillo del entorno puede revelar dónde estás. Solo las aplicaciones del teléfono conservan el acceso.',
+    compNo: 'No llega el rumbo. En Android suele ayudar activar la brújula en los ajustes; la intensidad del campo magnético casi ningún navegador la entrega.',
+    accNo: 'No hay datos del acelerómetro. Un ordenador suele no tenerlo; en un móvil, comprueba que la página esté abierta por conexión segura.',
+    reset: 'Poner a cero los máximos',
+    peak: 'Aceleración máxima',
+    hint: 'Deja el móvil sobre la mesa: el eje Z debe marcar unos 9,8 —la gravedad— y el punto de inclinación debe quedar en el centro. Agita el móvil y las barras saltarán.',
+    n1: 'Un móvil en horizontal marca unos 9,8 metros por segundo al cuadrado en el eje Z. Es la gravedad, y es la mejor comprobación posible del acelerómetro: una cifra muy distinta significa que el sensor miente.',
+    n2: 'Con el móvil apoyado en plano, el punto de inclinación debe quedar en el centro de la diana. Si se va a un lado, el giroscopio está descalibrado: suele arreglarse calibrando en los ajustes, no reparando.',
+    n3: 'La brújula del navegador solo conoce el rumbo, y no siempre: en el iPhone llega como campo aparte y en Android como evento aparte. La intensidad del campo magnético en microteslas casi ningún navegador la expone; no es una avería de tu móvil.',
+    n4: 'Los navegadores bloquearon el luxómetro a propósito: la luz ambiental insinúa dónde está una persona y qué hace. Medir la luz desde una página es imposible en todos los navegadores populares.',
+    n5: 'Los sensores de movimiento funcionan solo por conexión segura y solo tras tu consentimiento. Si los indicadores siguen mudos, recarga la página y concede el permiso otra vez.',
+  },
+  uk: {
+    lead: 'Датчики руху браузер віддає лише з вашого дозволу',
+    leadSub: 'Натисніть кнопку — телефон запитає згоду, і прилади оживуть. На комп’ютері датчиків руху зазвичай немає зовсім, і сторінка чесно про це скаже.',
+    give: 'Надати доступ до датчиків',
+    acc: 'Прискорення', accSub: 'акселерометр, м/с²',
+    ori: 'Положення', oriSub: 'гіроскоп, градуси',
+    comp: 'Компас', compSub: 'магнітометр',
+    light: 'Освітленість', lightSub: 'люксметр',
+    pitch: 'Нахил уперед', roll: 'Крен убік', turn: 'Поворот',
+    heading: 'Азимут', field: 'Магнітне поле',
+    waiting: 'чекаємо даних', noSensor: 'датчика немає', denied: 'доступ закрито',
+    blocked: 'браузер закрив доступ', live: 'дані йдуть',
+    lightNo: 'Люксметр закрито в браузерах через приватність: за яскравістю довкола можна дізнатися, де ви. Доступ до нього мають лише програми телефона.',
+    compNo: 'Азимут не приходить. На андроїді допомагає ввімкнути компас у налаштуваннях, а силу магнітного поля браузери не віддають майже ніде.',
+    accNo: 'Даних від акселерометра немає. На комп’ютері його зазвичай немає зовсім; на телефоні перевірте, що сторінку відкрито захищеним з’єднанням.',
+    reset: 'Обнулити найбільші',
+    peak: 'Найбільше прискорення',
+    hint: 'Покладіть телефон на стіл: по осі Z має бути близько 9,8 — це сила тяжіння, а точка нахилу має стати в центр. Струсніть телефон — шкали здригнуться.',
+    n1: 'Телефон, що лежить на рівному столі, показує по осі Z близько 9,8 метра на секунду в квадраті. Це сила тяжіння, і вона ж найкраща перевірка акселерометра: якщо число помітно інше, датчик бреше.',
+    n2: 'Точка нахилу в телефона, що лежить, має стояти в центрі мішені. Стоїть збоку — гіроскоп збито; найчастіше лікується калібруванням у налаштуваннях телефона, а не ремонтом.',
+    n3: 'Компас у браузері знає лише азимут, та й то не завжди: на айфоні він приходить окремим полем, на андроїді — окремою подією. Силу магнітного поля в мікротеслах браузери не віддають майже ніде — це не поломка вашого телефона.',
+    n4: 'Люксметр браузери закрили навмисне: за освітленістю довкола можна здогадатися, де людина і що вона робить. Виміряти світло зі сторінки не можна в жодному популярному браузері.',
+    n5: 'Датчики руху працюють лише захищеним з’єднанням і лише після вашої згоди. Якщо прилади мовчать, почніть із перезавантаження сторінки й повторного дозволу.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дт" data-words={JSON.stringify(с)}>
+  <div class="дт-вход">
+    <b>{с.lead}</b>
+    <p>{с.leadSub}</p>
+    <button type="button" class="дт-дать" id="дт-дать">{с.give}</button>
+  </div>
+
+  <div class="дт-панель">
+    <!-- Ускорение -->
+    <div class="дт-карта">
+      <div class="дт-шапка"><b>{с.acc}</b><span id="дт-состАкс">{с.waiting}</span></div>
+      <div class="дт-оси">
+        <div class="дт-ось"><span class="и">X</span><span class="дт-шкала"><i id="дт-шX"></i></span><span class="з" id="дт-X">0.00</span></div>
+        <div class="дт-ось"><span class="и">Y</span><span class="дт-шкала"><i id="дт-шY"></i></span><span class="з" id="дт-Y">0.00</span></div>
+        <div class="дт-ось"><span class="и">Z</span><span class="дт-шкала"><i id="дт-шZ"></i></span><span class="з" id="дт-Z">0.00</span></div>
+      </div>
+      <div class="дт-строка">{с.peak}<em id="дт-пик">0.00</em></div>
+      <div class="дт-нет" id="дт-нетАкс" hidden>{с.accNo}</div>
+    </div>
+
+    <!-- Положение -->
+    <div class="дт-карта">
+      <div class="дт-шапка"><b>{с.ori}</b><span id="дт-состОр">{с.waiting}</span></div>
+      <div class="дт-мишень"><u></u><i class="дт-точка" id="дт-точка"></i></div>
+      <div class="дт-строка">{с.pitch}<em id="дт-бета">0.0°</em></div>
+      <div class="дт-строка">{с.roll}<em id="дт-гамма">0.0°</em></div>
+      <div class="дт-строка">{с.turn}<em id="дт-альфа">0.0°</em></div>
+    </div>
+
+    <!-- Компас -->
+    <div class="дт-карта">
+      <div class="дт-шапка"><b>{с.comp}</b><span id="дт-состКом">{с.waiting}</span></div>
+      <div class="дт-компас" id="дт-компас"><span class="с">N</span><i class="дт-стрелка" id="дт-стрелка"></i></div>
+      <div class="дт-строка">{с.heading}<em id="дт-азимут">—</em></div>
+      <div class="дт-строка">{с.field}<em id="дт-поле">—</em></div>
+      <div class="дт-нет" id="дт-нетКом" hidden>{с.compNo}</div>
+    </div>
+
+    <!-- Свет -->
+    <div class="дт-карта">
+      <div class="дт-шапка"><b>{с.light}</b><span id="дт-состСвет">{с.waiting}</span></div>
+      <div class="дт-крупно"><span id="дт-люкс">—</span><small>lux</small></div>
+      <div class="дт-полоса"><i id="дт-свет"></i></div>
+      <div class="дт-нет" id="дт-нетСвет" hidden>{с.lightNo}</div>
+    </div>
+  </div>
+
+  <div class="дт-действия">
+    <button type="button" class="дт-действие" id="дт-сброс">{с.reset}</button>
+  </div>
+
+  <div class="дт-итог" id="дт-итог"></div>
+
+  <div class="дт-заметки">
+    <div class="дт-заметка">{с.n1}</div>
+    <div class="дт-заметка">{с.n2}</div>
+    <div class="дт-заметка">{с.n3}</div>
+    <div class="дт-заметка">{с.n4}</div>
+    <div class="дт-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.дт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    let пик = 0;
+    let шлиДвижение = false, шлиПоворот = false, шлиАзимут = false;
+
+    // Риски компаса рисуются кодом: тридцать шесть штук руками в разметке -- это тридцать
+    // шесть строк, которые никто никогда не прочтёт.
+    (() => {
+      const круг = $('дт-компас');
+      const риски = document.createElement('span');
+      риски.className = 'дт-риски';
+      for (let у = 0; у < 360; у += 30) {
+        const и = document.createElement('i');
+        и.style.transform = `rotate(${у}deg)`;
+        риски.appendChild(и);
+      }
+      круг.insertBefore(риски, круг.firstChild);
+    })();
+
+    function шкала(поле, значение) {
+      // Ноль посередине: ускорение бывает и отрицательным, и шкала от края врала бы про знак.
+      // Двадцать метров в секунду за секунду -- край: это уже сильная встряска.
+      const доля = Math.max(-1, Math.min(1, значение / 20));
+      const э = $(поле);
+      э.style.width = Math.abs(доля * 50) + '%';
+      э.style.left = доля < 0 ? (50 + доля * 50) + '%' : '50%';
+    }
+
+    function движение(e) {
+      const у = e.accelerationIncludingGravity || e.acceleration;
+      if (!у || (у.x == null && у.y == null && у.z == null)) return;
+      шлиДвижение = true;
+      $('дт-состАкс').textContent = с.live;
+      $('дт-нетАкс').hidden = true;
+      const [x, y, z] = [у.x || 0, у.y || 0, у.z || 0];
+      $('дт-X').textContent = x.toFixed(2);
+      $('дт-Y').textContent = y.toFixed(2);
+      $('дт-Z').textContent = z.toFixed(2);
+      шкала('дт-шX', x); шкала('дт-шY', y); шкала('дт-шZ', z);
+      const сила = Math.hypot(x, y, z);
+      if (сила > пик) { пик = сила; $('дт-пик').textContent = пик.toFixed(2); }
+    }
+
+    function поворот(e) {
+      if (e.beta == null && e.gamma == null && e.alpha == null) return;
+      шлиПоворот = true;
+      $('дт-состОр').textContent = с.live;
+      const бета = e.beta || 0, гамма = e.gamma || 0;
+      $('дт-бета').textContent = бета.toFixed(1) + '°';
+      $('дт-гамма').textContent = гамма.toFixed(1) + '°';
+      $('дт-альфа').textContent = (e.alpha || 0).toFixed(1) + '°';
+      // Точка ходит по мишени радиусом 54. Полный вылет -- на 45 градусах наклона: дальше
+      // человек уже держит телефон стоймя, и подробности там не нужны.
+      const x = Math.max(-1, Math.min(1, гамма / 45)) * 54;
+      const y = Math.max(-1, Math.min(1, бета / 45)) * 54;
+      $('дт-точка').style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
+
+      // Азимут: на айфоне отдельным полем, на андроиде -- из абсолютного поворота.
+      let азимут = null;
+      if (typeof e.webkitCompassHeading === 'number') азимут = e.webkitCompassHeading;
+      else if (e.absolute && typeof e.alpha === 'number') азимут = (360 - e.alpha) % 360;
+      if (азимут != null && !Number.isNaN(азимут)) {
+        шлиАзимут = true;
+        $('дт-состКом').textContent = с.live;
+        $('дт-нетКом').hidden = true;
+        $('дт-азимут').textContent = Math.round(азимут) + '°';
+        $('дт-стрелка').style.transform = `rotate(${(-азимут).toFixed(1)}deg)`;
+      }
+    }
+
+    function слушать() {
+      window.addEventListener('devicemotion', движение);
+      window.addEventListener('deviceorientation', поворот);
+      // Отдельное событие: на андроиде только оно даёт азимут относительно севера.
+      window.addEventListener('deviceorientationabsolute', поворот);
+      корень.classList.add('впущены');
+      $('дт-итог').innerHTML = с.hint;
+      светомер();
+      магнит();
+      // Через две секунды молчание перестаёт быть ожиданием и становится ответом.
+      setTimeout(() => {
+        if (!шлиДвижение) { $('дт-состАкс').textContent = с.noSensor;
+          $('дт-состАкс').classList.add('плохо'); $('дт-нетАкс').hidden = false; }
+        if (!шлиПоворот) { $('дт-состОр').textContent = с.noSensor;
+          $('дт-состОр').classList.add('плохо'); }
+        if (!шлиАзимут) { $('дт-состКом').textContent = с.noSensor;
+          $('дт-состКом').classList.add('плохо'); $('дт-нетКом').hidden = false; }
+      }, 2000);
+    }
+
+    // Люксметр закрыт почти везде -- и сказать об этом надо словами, а не вечным прочерком.
+    function светомер() {
+      if (typeof window.AmbientLightSensor !== 'function') {
+        $('дт-состСвет').textContent = с.blocked;
+        $('дт-состСвет').classList.add('плохо');
+        $('дт-нетСвет').hidden = false;
+        return;
+      }
+      try {
+        const датчик = new window.AmbientLightSensor({ frequency: 5 });
+        датчик.addEventListener('reading', () => {
+          $('дт-состСвет').textContent = с.live;
+          $('дт-люкс').textContent = Math.round(датчик.illuminance);
+          // Тысяча люксов -- уже яркий день в комнате; выше шкала всё равно упирается.
+          $('дт-свет').style.width = Math.min(100, (датчик.illuminance / 1000) * 100) + '%';
+        });
+        датчик.addEventListener('error', () => {
+          $('дт-состСвет').textContent = с.denied;
+          $('дт-состСвет').classList.add('плохо');
+          $('дт-нетСвет').hidden = false;
+        });
+        датчик.start();
+      } catch (ошибка) {
+        $('дт-состСвет').textContent = с.blocked;
+        $('дт-состСвет').classList.add('плохо');
+        $('дт-нетСвет').hidden = false;
+      }
+    }
+
+    // Сила магнитного поля в микротеслах: есть только там, где браузер даёт Magnetometer.
+    function магнит() {
+      if (typeof window.Magnetometer !== 'function') return;
+      try {
+        const датчик = new window.Magnetometer({ frequency: 5 });
+        датчик.addEventListener('reading', () => {
+          const сила = Math.hypot(датчик.x || 0, датчик.y || 0, датчик.z || 0);
+          $('дт-поле').textContent = сила.toFixed(1) + ' µT';
+        });
+        датчик.start();
+      } catch (ошибка) {}
+    }
+
+    $('дт-дать').addEventListener('click', async () => {
+      // На айфоне без явного нажатия датчики движения не отдаются вовсе.
+      const спросить = [];
+      if (window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission === 'function') {
+        спросить.push(window.DeviceMotionEvent.requestPermission());
+      }
+      if (window.DeviceOrientationEvent && typeof window.DeviceOrientationEvent.requestPermission === 'function') {
+        спросить.push(window.DeviceOrientationEvent.requestPermission());
+      }
+      if (спросить.length) {
+        try {
+          const ответы = await Promise.all(спросить);
+          if (ответы.some((о) => о !== 'granted')) {
+            $('дт-состАкс').textContent = с.denied;
+            $('дт-состОр').textContent = с.denied;
+          }
+        } catch (ошибка) {}
+      }
+      слушать();
+    });
+
+    $('дт-сброс').addEventListener('click', () => {
+      пик = 0;
+      $('дт-пик').textContent = '0.00';
+      $('дт-сброс').blur();
+    });
+
+    window.__дтСостояние = () => ({
+      впущены: корень.classList.contains('впущены'),
+      движение: шлиДвижение, поворот: шлиПоворот, азимут: шлиАзимут,
+      оси: [$('дт-X').textContent, $('дт-Y').textContent, $('дт-Z').textContent],
+      шкалаZ: $('дт-шZ').style.width + ' от ' + $('дт-шZ').style.left,
+      пик: $('дт-пик').textContent,
+      углы: [$('дт-бета').textContent, $('дт-гамма').textContent, $('дт-альфа').textContent],
+      точка: $('дт-точка').style.transform,
+      компас: [$('дт-азимут').textContent, $('дт-стрелка').style.transform, $('дт-поле').textContent],
+      состояния: [$('дт-состАкс').textContent, $('дт-состОр').textContent,
+                  $('дт-состКом').textContent, $('дт-состСвет').textContent],
+      светПояснение: !$('дт-нетСвет').hidden,
+    });
+  })();
+</script>
