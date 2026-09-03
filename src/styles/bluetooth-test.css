@@ -1,0 +1,75 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ BLUETOOTH».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- панель управления сетевым оборудованием: чёрный фон, графитовое окно, тонкие серые
+ * линии, всё моноширинным шрифтом. Та же семья, что у геймпада, датчиков, вибрации, камеры
+ * и батареи.
+ *
+ * Устройство:
+ *   1. СТРОКИ СОСТОЯНИЯ сверху: браузер, адаптер, защита. Сразу видно, есть ли чем работать.
+ *   2. ОДНА КНОПКА -- вызов системного окна выбора. Список устройств рисует браузер, не мы:
+ *      страница не имеет права видеть, что вокруг, пока человек сам не укажет устройство.
+ *   3. ТАБЛИЦА ВЫБРАННОГО: имя, номер, состояние, подключение и заряд, если устройство
+ *      его отдаёт.
+ */
+
+.бл {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы: #ffffff;
+  --буквы2: #a1a1aa;
+  --линия: #27272a;
+  font-family: var(--цифры);
+}
+
+.бл-окно { background: #09090b; border: 1px solid var(--линия); border-radius: 12px;
+  padding: 20px 18px }
+
+.бл-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid #18181b; font-size: 12.5px }
+.бл-строка:last-of-type { border-bottom: 0 }
+.бл-строка .н { color: var(--буквы2) }
+.бл-строка .з { color: var(--буквы); text-align: right }
+.бл-строка .з.плохо { color: #ff9aa8 }
+
+.бл-искать {
+  display: block; width: 100%; margin: 14px 0 0; padding: 13px 16px; border-radius: 6px;
+  cursor: pointer; font: 600 14px var(--цифры); color: #fff; background: #000;
+  border: 1px solid #fff; transition: background .12s ease, color .12s ease;
+}
+.бл-искать:hover { background: #fff; color: #000 }
+.бл-искать.ищем { background: #27272a; border-style: dashed; color: var(--буквы2) }
+
+/* Список выбранного. Заголовок мелкий и заглавными -- это служебная таблица, а не раздел. */
+.бл-к { display: block; margin: 18px 0 8px; font-size: 12px; letter-spacing: .1em;
+  text-transform: uppercase; color: var(--буквы2) }
+.бл-список { display: flex; flex-direction: column }
+.бл-у { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 11px 0;
+  border-bottom: 1px solid #18181b }
+.бл-у:last-child { border-bottom: 0 }
+.бл-имя { font-size: 14px; color: #fff }
+.бл-ид { font-size: 13px; color: var(--буквы2); word-break: break-all }
+.бл-значок { padding: 2px 7px; border-radius: 3px; font-size: 11px; letter-spacing: .06em;
+  background: #fff; color: #000 }
+.бл-заряд { font-size: 13px; color: var(--буквы2) }
+.бл-кнопка {
+  margin-left: auto; padding: 7px 12px; border-radius: 5px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #000; border: 1px solid var(--линия);
+}
+.бл-кнопка:hover { border-color: #fff }
+.бл-кнопка[disabled] { cursor: default; color: var(--буквы2); border-color: #18181b }
+
+.бл-пусто { padding: 11px 0; font-size: 13px; color: var(--буквы2) }
+
+/* Сервисный режим для браузеров без Web Bluetooth. Не «ошибка», а объяснение. */
+.бл-нет { display: none; font-size: 13px; line-height: 1.65; color: var(--буквы2) }
+.бл.без .бл-нет { display: block }
+.бл.без .бл-искать, .бл.без .бл-к, .бл.без .бл-список { display: none }
+
+.бл-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.бл-итог b { color: var(--буквы) }
+
+.бл-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.бл-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+.бл-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }

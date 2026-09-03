@@ -1,0 +1,267 @@
+---
+// ТЕСТ BLUETOOTH -- своя страница со своим кодом и стилями.
+//
+// Что делаем:
+//   * ПРОВЕРЯЕМ БРАУЗЕР И АДАПТЕР. navigator.bluetooth есть только в браузерах на Chromium;
+//     getAvailability() отвечает, есть ли в устройстве сам модуль.
+//   * ОТКРЫВАЕМ СИСТЕМНОЕ ОКНО ВЫБОРА через requestDevice({acceptAllDevices}). Список
+//     ближних устройств рисует БРАУЗЕР, а не страница.
+//   * ПОКАЗЫВАЕМ ВЫБРАННОЕ: имя, номер, состояние связи; по кнопке соединяемся и, если
+//     устройство отдаёт стандартную службу батареи, показываем заряд.
+//
+// ГЛАВНАЯ ЧЕСТНОСТЬ, о которой молчат другие такие страницы:
+//   1. Сайт НЕ МОЖЕТ просканировать эфир и вывести список соседних устройств. Он видит
+//      ровно одно -- то, которое человек сам выбрал в окне браузера. Так устроена защита:
+//      иначе любой сайт составлял бы карту вашей техники.
+//   2. Web Bluetooth видит только устройства Bluetooth Low Energy в режиме объявления.
+//      Обычные наушники, колонки и клавиатуры работают на классическом Bluetooth и в окне
+//      выбора не появятся -- это не поломка адаптера.
+import css from '../styles/bluetooth-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    rBrowser: 'Браузер', rAdapter: 'Адаптер', rProto: 'Протокол', rPrivacy: 'Конфиденциальность',
+    ok: 'поддерживает Web Bluetooth', no: 'Web Bluetooth недоступен',
+    adOn: 'активен', adOff: 'не найден или выключен', adUnknown: 'браузер не сообщает',
+    proto: 'Bluetooth Low Energy', local: 'локальный запуск, данные не отправляются',
+    scan: 'Начать сканирование устройств', scanning: 'Поиск устройств…',
+    listTitle: 'Выбранные устройства',
+    empty: 'Пока ничего не выбрано. Нажмите кнопку — браузер сам покажет, что есть поблизости.',
+    connect: 'Подключиться', disconnect: 'Отключить', connected: 'CONNECTED',
+    available: 'доступно', busy: 'соединяем…',
+    battery: 'заряд',
+    hint: 'Список ближних устройств рисует браузер в своём окне — сайт не имеет права видеть эфир сам. В списке ниже появится только то, что вы выберете.',
+    cancelled: 'Окно выбора закрыто без выбора — это не ошибка.',
+    failed: 'Подключиться не удалось. Устройство могло уйти из радиуса, уснуть или уже быть занято другой программой.',
+    noApi: 'Этот браузер закрывает Web Bluetooth. Для проверки возьмите Chrome, Edge или Opera на компьютере либо на Android. В Safari и на айфоне Web Bluetooth нет вовсе, в Firefox его отключили: разработчики этих браузеров считают, что доступ к радиомодулю позволяет скрытно опознавать посетителя по набору его устройств.',
+    n1: 'Сайт не может просканировать эфир и составить список ваших устройств. Он видит ровно одно — то, которое вы сами выбрали в окне браузера. Это не ограничение страницы, а защита: иначе любой сайт составлял бы карту вашей техники и узнавал бы вас по ней.',
+    n2: 'В окне выбора видны только устройства Bluetooth Low Energy, которые прямо сейчас объявляют о себе. Обычные наушники, колонки, мыши и клавиатуры работают на классическом Bluetooth, и в этом окне их не будет — это не поломка адаптера. Так проверяют фитнес-браслеты, датчики, метки и умную технику.',
+    n3: 'Если строка «адаптер» говорит «не найден или выключен», Bluetooth выключен в системе или его нет в компьютере. Включите модуль и обновите страницу.',
+    n4: 'Заряд показывается только у устройств со стандартной службой батареи. Многие производители используют свои закрытые службы, и тогда заряд виден только фирменной программе — браузеру его не отдают.',
+    n5: 'Всё происходит на вашем устройстве. Страница не получает доступ ни к файлам, ни к контактам, ни к списку сопряжений, а всё, что вы выбрали, стирается из памяти при закрытии вкладки.',
+  },
+  en: {
+    rBrowser: 'Browser', rAdapter: 'Adapter', rProto: 'Protocol', rPrivacy: 'Privacy',
+    ok: 'supports Web Bluetooth', no: 'Web Bluetooth unavailable',
+    adOn: 'active', adOff: 'not found or switched off', adUnknown: 'not reported',
+    proto: 'Bluetooth Low Energy', local: 'local run, nothing is sent',
+    scan: 'Scan for devices', scanning: 'Looking for devices…',
+    listTitle: 'Selected devices',
+    empty: 'Nothing selected yet. Press the button and the browser will show what is nearby.',
+    connect: 'Connect', disconnect: 'Disconnect', connected: 'CONNECTED',
+    available: 'available', busy: 'connecting…',
+    battery: 'battery',
+    hint: 'The list of nearby devices is drawn by the browser in its own dialog — a site is not allowed to see the airwaves itself. Only what you pick will appear below.',
+    cancelled: 'The chooser was closed without a selection — that is not an error.',
+    failed: 'Connection failed. The device may have moved out of range, gone to sleep, or already be taken by another program.',
+    noApi: 'This browser blocks Web Bluetooth. Use Chrome, Edge or Opera on a computer or on Android. Safari and iPhone have no Web Bluetooth at all, and Firefox disabled it: the makers of those browsers consider radio access a way to identify visitors covertly by the set of devices they own.',
+    n1: 'A site cannot scan the airwaves and compile a list of your devices. It sees exactly one — the device you picked yourself in the browser dialog. That is not a limitation of this page but a protection: otherwise any site could map your hardware and recognise you by it.',
+    n2: 'The chooser shows only Bluetooth Low Energy devices that are advertising right now. Ordinary headphones, speakers, mice and keyboards use classic Bluetooth and will not appear there — that is not a broken adapter. This is how you check fitness bands, sensors, tags and smart-home gear.',
+    n3: 'If the adapter row says “not found or switched off”, Bluetooth is off in the system or the computer has none. Switch the module on and reload the page.',
+    n4: 'Battery level appears only for devices exposing the standard battery service. Many makers use their own private services, and then only their app can read the level — the browser never gets it.',
+    n5: 'Everything happens on your device. The page gets no access to your files, contacts or pairing history, and everything you picked is wiped from memory when the tab closes.',
+  },
+  es: {
+    rBrowser: 'Navegador', rAdapter: 'Adaptador', rProto: 'Protocolo', rPrivacy: 'Privacidad',
+    ok: 'admite Web Bluetooth', no: 'Web Bluetooth no disponible',
+    adOn: 'activo', adOff: 'no encontrado o apagado', adUnknown: 'no lo informa',
+    proto: 'Bluetooth Low Energy', local: 'ejecución local, no se envía nada',
+    scan: 'Buscar dispositivos', scanning: 'Buscando dispositivos…',
+    listTitle: 'Dispositivos seleccionados',
+    empty: 'Todavía no hay nada seleccionado. Pulsa el botón y el navegador mostrará lo que hay cerca.',
+    connect: 'Conectar', disconnect: 'Desconectar', connected: 'CONNECTED',
+    available: 'disponible', busy: 'conectando…',
+    battery: 'batería',
+    hint: 'La lista de dispositivos cercanos la dibuja el navegador en su propio cuadro: un sitio no puede ver el aire por su cuenta. Abajo solo aparecerá lo que tú elijas.',
+    cancelled: 'El cuadro se cerró sin elegir nada; no es un error.',
+    failed: 'No se pudo conectar. El dispositivo puede haberse alejado, haberse dormido o estar ocupado por otro programa.',
+    noApi: 'Este navegador bloquea Web Bluetooth. Usa Chrome, Edge u Opera en un ordenador o en Android. Safari y el iPhone no tienen Web Bluetooth en absoluto, y Firefox lo desactivó: sus desarrolladores consideran que el acceso al módulo de radio permite identificar en secreto a un visitante por el conjunto de sus dispositivos.',
+    n1: 'Un sitio no puede escanear el aire ni componer una lista de tus dispositivos. Ve exactamente uno: el que tú elegiste en el cuadro del navegador. No es una limitación de esta página, sino una protección: de lo contrario cualquier sitio cartografiaría tu equipo y te reconocería por él.',
+    n2: 'En el cuadro solo salen dispositivos Bluetooth Low Energy que estén anunciándose ahora mismo. Los auriculares, altavoces, ratones y teclados normales usan Bluetooth clásico y no aparecerán: no es un adaptador roto. Así se comprueban pulseras, sensores, etiquetas y domótica.',
+    n3: 'Si la fila del adaptador dice «no encontrado o apagado», el Bluetooth está desactivado en el sistema o el equipo no lo tiene. Enciéndelo y recarga la página.',
+    n4: 'El nivel de batería solo aparece en dispositivos con el servicio estándar de batería. Muchos fabricantes usan servicios privados y entonces solo su aplicación lee el nivel: al navegador no se lo dan.',
+    n5: 'Todo ocurre en tu dispositivo. La página no accede a tus archivos, contactos ni al historial de emparejamientos, y todo lo que elijas se borra de la memoria al cerrar la pestaña.',
+  },
+  uk: {
+    rBrowser: 'Браузер', rAdapter: 'Адаптер', rProto: 'Протокол', rPrivacy: 'Конфіденційність',
+    ok: 'підтримує Web Bluetooth', no: 'Web Bluetooth недоступний',
+    adOn: 'активний', adOff: 'не знайдено або вимкнено', adUnknown: 'браузер не повідомляє',
+    proto: 'Bluetooth Low Energy', local: 'локальний запуск, дані не надсилаються',
+    scan: 'Почати сканування пристроїв', scanning: 'Пошук пристроїв…',
+    listTitle: 'Вибрані пристрої',
+    empty: 'Поки нічого не вибрано. Натисніть кнопку — браузер сам покаже, що є поблизу.',
+    connect: 'Підключитися', disconnect: 'Відключити', connected: 'CONNECTED',
+    available: 'доступно', busy: 'з’єднуємо…',
+    battery: 'заряд',
+    hint: 'Список ближніх пристроїв малює браузер у своєму вікні — сайт не має права бачити ефір сам. У списку нижче з’явиться лише те, що ви оберете.',
+    cancelled: 'Вікно вибору закрито без вибору — це не помилка.',
+    failed: 'Підключитися не вдалося. Пристрій міг вийти з радіуса, заснути або вже бути зайнятим іншою програмою.',
+    noApi: 'Цей браузер закриває Web Bluetooth. Для перевірки візьміть Chrome, Edge або Opera на комп’ютері чи на Android. У Safari та на айфоні Web Bluetooth немає зовсім, у Firefox його вимкнули: розробники цих браузерів вважають, що доступ до радіомодуля дозволяє приховано впізнавати відвідувача за набором його пристроїв.',
+    n1: 'Сайт не може просканувати ефір і скласти список ваших пристроїв. Він бачить рівно один — той, який ви самі обрали у вікні браузера. Це не обмеження сторінки, а захист: інакше будь-який сайт складав би карту вашої техніки й упізнавав вас за нею.',
+    n2: 'У вікні вибору видно лише пристрої Bluetooth Low Energy, які просто зараз оголошують про себе. Звичайні навушники, колонки, миші й клавіатури працюють на класичному Bluetooth, і в цьому вікні їх не буде — це не поломка адаптера. Так перевіряють фітнес-браслети, датчики, мітки й розумну техніку.',
+    n3: 'Якщо рядок «адаптер» каже «не знайдено або вимкнено», Bluetooth вимкнено в системі або його немає в комп’ютері. Увімкніть модуль і оновіть сторінку.',
+    n4: 'Заряд показується лише в пристроїв зі стандартною службою батареї. Багато виробників використовують свої закриті служби, і тоді заряд бачить лише фірмова програма — браузеру його не віддають.',
+    n5: 'Усе відбувається на вашому пристрої. Сторінка не отримує доступ ні до файлів, ні до контактів, ні до списку сполучень, а все, що ви обрали, стирається з пам’яті при закритті вкладки.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="бл" data-words={JSON.stringify(с)}>
+  <div class="бл-окно">
+    <div class="бл-строка"><span class="н">{с.rBrowser}</span><span class="з" id="бл-браузер">—</span></div>
+    <div class="бл-строка"><span class="н">{с.rAdapter}</span><span class="з" id="бл-адаптер">—</span></div>
+    <div class="бл-строка"><span class="н">{с.rProto}</span><span class="з">{с.proto}</span></div>
+    <div class="бл-строка"><span class="н">{с.rPrivacy}</span><span class="з">{с.local}</span></div>
+
+    <div class="бл-нет" id="бл-нет">{с.noApi}</div>
+
+    <button type="button" class="бл-искать" id="бл-искать">{с.scan}</button>
+
+    <span class="бл-к">{с.listTitle}</span>
+    <div class="бл-список" id="бл-список">
+      <div class="бл-пусто" id="бл-пусто">{с.empty}</div>
+    </div>
+  </div>
+
+  <div class="бл-итог" id="бл-итог">{с.hint}</div>
+
+  <div class="бл-заметки">
+    <div class="бл-заметка">{с.n1}</div>
+    <div class="бл-заметка">{с.n2}</div>
+    <div class="бл-заметка">{с.n3}</div>
+    <div class="бл-заметка">{с.n4}</div>
+    <div class="бл-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.бл');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const есть = !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
+    const выбранные = new Map();     // id -> {устройство, узел}
+
+    $('бл-браузер').textContent = есть ? с.ok : с.no;
+    $('бл-браузер').classList.toggle('плохо', !есть);
+    if (!есть) {
+      корень.classList.add('без');
+      $('бл-адаптер').textContent = с.adUnknown;
+      $('бл-итог').textContent = '';
+    } else if (navigator.bluetooth.getAvailability) {
+      navigator.bluetooth.getAvailability().then((живой) => {
+        $('бл-адаптер').textContent = живой ? с.adOn : с.adOff;
+        $('бл-адаптер').classList.toggle('плохо', !живой);
+      }).catch(() => { $('бл-адаптер').textContent = с.adUnknown; });
+    } else {
+      $('бл-адаптер').textContent = с.adUnknown;
+    }
+
+    function строка(устройство) {
+      const узел = document.createElement('div');
+      узел.className = 'бл-у';
+      const имя = document.createElement('span');
+      имя.className = 'бл-имя';
+      имя.textContent = устройство.name || '(без имени)';
+      const ид = document.createElement('span');
+      ид.className = 'бл-ид';
+      // Номер устройства длинный и для человека бесполезен целиком -- показываем начало.
+      ид.textContent = 'ID: ' + String(устройство.id || '').slice(0, 10) + '…';
+      const состояние = document.createElement('span');
+      состояние.className = 'бл-заряд';
+      состояние.textContent = с.available;
+      const кнопка = document.createElement('button');
+      кнопка.type = 'button';
+      кнопка.className = 'бл-кнопка';
+      кнопка.textContent = с.connect;
+      узел.append(имя, ид, состояние, кнопка);
+      $('бл-список').appendChild(узел);
+      $('бл-пусто').hidden = true;
+
+      function значок(показать) {
+        let з = узел.querySelector('.бл-значок');
+        if (показать && !з) {
+          з = document.createElement('span');
+          з.className = 'бл-значок';
+          з.textContent = с.connected;
+          имя.after(з);
+        } else if (!показать && з) з.remove();
+      }
+
+      кнопка.addEventListener('click', async () => {
+        if (устройство.gatt && устройство.gatt.connected) {
+          устройство.gatt.disconnect();
+          значок(false);
+          состояние.textContent = с.available;
+          кнопка.textContent = с.connect;
+          return;
+        }
+        кнопка.disabled = true;
+        состояние.textContent = с.busy;
+        try {
+          const сервер = await устройство.gatt.connect();
+          значок(true);
+          кнопка.textContent = с.disconnect;
+          состояние.textContent = '';
+          // Стандартная служба батареи есть далеко не у всех: у многих производителей
+          // она своя и закрытая. Поэтому пробуем, но молчим при отказе.
+          try {
+            const служба = await сервер.getPrimaryService('battery_service');
+            const черта = await служба.getCharacteristic('battery_level');
+            const значение = await черта.readValue();
+            состояние.textContent = с.battery + ': ' + значение.getUint8(0) + '%';
+          } catch (ошибка) { состояние.textContent = ''; }
+        } catch (ошибка) {
+          состояние.textContent = '';
+          $('бл-итог').textContent = с.failed;
+        }
+        кнопка.disabled = false;
+      });
+
+      устройство.addEventListener('gattserverdisconnected', () => {
+        значок(false);
+        состояние.textContent = с.available;
+        кнопка.textContent = с.connect;
+      });
+      return узел;
+    }
+
+    $('бл-искать').addEventListener('click', async () => {
+      const кнопка = $('бл-искать');
+      кнопка.classList.add('ищем');
+      кнопка.textContent = с.scanning;
+      try {
+        // Окно выбора рисует браузер. Служба батареи заявляется заранее -- иначе после
+        // соединения читать её будет нельзя.
+        const устройство = await navigator.bluetooth.requestDevice({
+          acceptAllDevices: true,
+          optionalServices: ['battery_service', 'device_information'],
+        });
+        if (!выбранные.has(устройство.id)) {
+          выбранные.set(устройство.id, { устройство, узел: строка(устройство) });
+        }
+        $('бл-итог').textContent = с.hint;
+      } catch (ошибка) {
+        // Закрытое окно выбора -- это NotFoundError, и ошибкой он не является.
+        $('бл-итог').textContent = (ошибка && ошибка.name === 'NotFoundError') ? с.cancelled : с.failed;
+      }
+      кнопка.classList.remove('ищем');
+      кнопка.textContent = с.scan;
+    });
+
+    window.__блСостояние = () => ({
+      есть, браузер: $('бл-браузер').textContent, адаптер: $('бл-адаптер').textContent,
+      устройств: выбранные.size,
+      строки: [...document.querySelectorAll('.бл-у')].map((э) => э.textContent),
+      значков: document.querySelectorAll('.бл-значок').length,
+      пустоВидно: !$('бл-пусто').hidden,
+      кнопка: $('бл-искать').textContent,
+      итог: $('бл-итог').textContent,
+    });
+  })();
+</script>
