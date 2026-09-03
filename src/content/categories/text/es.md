@@ -1,7 +1,7 @@
 ---
 catSlug: text
 locale: es
-name: Texto
+name: Herramientas de texto
 blurb: Contar caracteres, limpiar, poner en orden
 title: Herramientas de texto online — contador de caracteres, mayúsculas, espacios
 h1: Trabajar con texto

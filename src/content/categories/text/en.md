@@ -1,7 +1,7 @@
 ---
 catSlug: text
 locale: en
-name: Text
+name: Text Tools
 blurb: Count characters, tidy up, strip the extras
 title: Online text tools — character counter, case, spaces
 h1: Working with text
