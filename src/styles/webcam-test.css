@@ -26,7 +26,12 @@
 
 /* ---- До разрешения ---------------------------------------------------------------------- */
 
-.кам-вход { background: #000; border: 1px solid var(--линия); border-radius: 14px;
+/* Окна СВЕТЛЕЕ страницы, а не темнее: фон сайта #0e0f11, и чернота панелей читалась как
+   продолжение страницы. Чёрным остаётся только .кам-экран -- там чернота осмысленна,
+   это подложка кадра. */
+.кам-вход { background: linear-gradient(180deg, #1a1c22, #15171c);
+  border: 1px solid var(--линия); border-radius: 14px;
+  box-shadow: 0 18px 40px -28px #000, inset 0 1px 0 rgba(255,255,255,.05);
   padding: 52px 18px; text-align: center; display: flex; flex-direction: column;
   align-items: center; gap: 14px }
 .кам-вход p { margin: 0; max-width: 46ch; font: 400 13.5px/1.6 var(--ui); color: var(--буквы2) }
@@ -61,8 +66,9 @@
 .кам-мелкая:hover { border-color: #fff }
 .кам-мелкая.вкл { background: #fff; color: #000; border-color: #fff }
 
-.кам-числа { background: #000; border: 1px solid var(--линия); border-radius: 12px;
-  padding: 12px 14px }
+.кам-числа { background: linear-gradient(180deg, #1a1c22, #15171c);
+  border: 1px solid var(--линия); border-radius: 12px; padding: 12px 14px;
+  box-shadow: 0 18px 40px -28px #000, inset 0 1px 0 rgba(255,255,255,.05) }
 .кам-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
   padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.07) }
 .кам-строка:last-child { border-bottom: 0 }
