@@ -23,11 +23,17 @@
   font-family: var(--цифры);
 }
 
-.бл-окно { background: #09090b; border: 1px solid var(--линия); border-radius: 12px;
-  padding: 20px 18px }
+/* Окно СВЕТЛЕЕ страницы, а не темнее. Фон сайта -- #0e0f11, и прежние #09090b читались
+   как та же чернота: панель растворялась, границы не было видно вовсе. Теперь она чуть
+   светлее фона, с заметной рамкой и тенью, которая отделяет её от страницы. */
+.бл-окно {
+  background: linear-gradient(180deg, #1a1c22, #15171c);
+  border: 1px solid rgba(255,255,255,.16); border-radius: 12px; padding: 20px 18px;
+  box-shadow: 0 18px 40px -28px #000, inset 0 1px 0 rgba(255,255,255,.05);
+}
 
 .бл-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
-  padding: 7px 0; border-bottom: 1px solid #18181b; font-size: 12.5px }
+  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.08); font-size: 12.5px }
 .бл-строка:last-of-type { border-bottom: 0 }
 .бл-строка .н { color: var(--буквы2) }
 .бл-строка .з { color: var(--буквы); text-align: right }
@@ -46,7 +52,7 @@
   text-transform: uppercase; color: var(--буквы2) }
 .бл-список { display: flex; flex-direction: column }
 .бл-у { display: flex; flex-wrap: wrap; align-items: center; gap: 8px 10px; padding: 11px 0;
-  border-bottom: 1px solid #18181b }
+  border-bottom: 1px solid rgba(255,255,255,.08) }
 .бл-у:last-child { border-bottom: 0 }
 .бл-имя { font-size: 14px; color: #fff }
 .бл-ид { font-size: 13px; color: var(--буквы2); word-break: break-all }
