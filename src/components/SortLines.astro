@@ -1,0 +1,267 @@
+---
+// СОРТИРОВКА СТРОК.
+//
+// Пять порядков: по алфавиту в обе стороны, по числам, по длине и вперемешку. Плюс два
+// переключателя: не смотреть на регистр и выбросить пустые строки.
+//
+// СРАВНИВАЕМ ЧЕРЕЗ Intl.Collator, а не оператором «меньше». Простое сравнение строк идёт по
+// номерам знаков в таблице, и кириллица тогда встаёт после латиницы, «Ё» улетает в конец
+// алфавита, а «я» оказывается раньше «А». Collator знает правила языка страницы и ставит
+// буквы так, как их ставит словарь.
+//
+// ПО ЧИСЛАМ -- отдельный порядок, а не «алфавит с числами». Человек, у которого список
+// «10, 2, 1», ждёт 1, 2, 10, а не 1, 10, 2. Строки, в которых числа нет вовсе, уходят вниз
+// и сохраняют между собой алфавитный порядок: терять их нельзя, а мешать с числами незачем.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/sort-lines.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте ваш список сюда (каждый элемент с новой строки)…',
+    lines: 'Всего строк',
+    ignoreCase: 'Игнорировать регистр', dropEmpty: 'Удалить пустые строки',
+    az: 'По алфавиту А-Я', za: 'По алфавиту Я-А', num: 'По числам',
+    len: 'По длине (рост)', shuffle: 'Перемешать',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!',
+    clearAll: 'Очистить', undo: 'Отменить',
+    nothing: 'Поле пустое', same: 'Порядок не изменился',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: 'Буквы сравниваются по правилам языка, а не по номерам знаков в таблице. Поэтому «Ё» встаёт рядом с «Е», как в словаре, а не улетает в конец списка, и кириллица не уезжает вслед за латиницей.',
+    n2: '«По числам» ставит 2 перед 10, а не после единицы: число читается целиком, а не по цифрам. Строки, в которых числа нет вовсе, уходят вниз и там сохраняют алфавитный порядок — потерять их нельзя.',
+    n3: '«Игнорировать регистр» влияет только на сравнение: сами строки остаются как были. Без него все заглавные собираются вверху списка отдельной кучей.',
+    n4: '«Перемешать» тасует строки честно, а не сортирует по случайному числу: у такого способа порядок получается по-настоящему случайным, без перекоса в начало списка.',
+    n5: 'Список никуда не отправляется: сортировка идёт прямо в вашем браузере, страница ничего не сохраняет.',
+  },
+  uk: {
+    place: 'Вставте ваш список сюди (кожен елемент з нового рядка)…',
+    lines: 'Усього рядків',
+    ignoreCase: 'Ігнорувати регістр', dropEmpty: 'Видалити порожні рядки',
+    az: 'За алфавітом А-Я', za: 'За алфавітом Я-А', num: 'За числами',
+    len: 'За довжиною (зростання)', shuffle: 'Перемішати',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!',
+    clearAll: 'Очистити', undo: 'Скасувати',
+    nothing: 'Поле порожнє', same: 'Порядок не змінився',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: 'Літери порівнюються за правилами мови, а не за номерами знаків у таблиці. Тому «Ґ» стоїть на своєму місці, а кирилиця не їде слідом за латиницею.',
+    n2: '«За числами» ставить 2 перед 10, а не після одиниці: число читається цілком, а не по цифрах. Рядки, у яких числа немає зовсім, ідуть униз і там зберігають алфавітний порядок — загубити їх не можна.',
+    n3: '«Ігнорувати регістр» впливає лише на порівняння: самі рядки лишаються як були. Без нього всі великі літери збираються вгорі списку окремою купою.',
+    n4: '«Перемішати» тасує рядки чесно, а не сортує за випадковим числом: у такого способу порядок виходить справді випадковим, без перекосу на початок списку.',
+    n5: 'Список нікуди не надсилається: сортування йде просто у вашому браузері, сторінка нічого не зберігає.',
+  },
+  en: {
+    place: 'Paste your list here (one item per line)…',
+    lines: 'Lines in total',
+    ignoreCase: 'Ignore case', dropEmpty: 'Remove blank lines',
+    az: 'Alphabetically A-Z', za: 'Alphabetically Z-A', num: 'By numbers',
+    len: 'By length (shortest first)', shuffle: 'Shuffle',
+    copyBig: 'Copy the result', copiedBig: 'Copied!',
+    clearAll: 'Clear', undo: 'Undo',
+    nothing: 'The field is empty', same: 'The order did not change',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: 'Letters are compared by the rules of the language, not by their numbers in a character table. That is why accented letters sit in their proper place instead of being exiled to the end of the list.',
+    n2: '“By numbers” puts 2 before 10 rather than after 1: the number is read whole, not digit by digit. Lines with no number at all move to the bottom and keep their alphabetical order there — losing them is not an option.',
+    n3: '“Ignore case” affects only the comparison: the lines themselves stay as they were. Without it every capitalised line gathers at the top in a heap of its own.',
+    n4: '“Shuffle” deals the lines honestly rather than sorting them by a random number: only that way is the order genuinely random, with no bias towards the top.',
+    n5: 'The list is never sent anywhere: sorting happens inside your browser and the page stores nothing.',
+  },
+  es: {
+    place: 'Pega aquí tu lista (un elemento por línea)…',
+    lines: 'Líneas en total',
+    ignoreCase: 'Ignorar mayúsculas', dropEmpty: 'Eliminar líneas vacías',
+    az: 'Alfabéticamente A-Z', za: 'Alfabéticamente Z-A', num: 'Por números',
+    len: 'Por longitud (ascendente)', shuffle: 'Mezclar',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!',
+    clearAll: 'Limpiar', undo: 'Deshacer',
+    nothing: 'El campo está vacío', same: 'El orden no ha cambiado',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: 'Las letras se comparan según las reglas del idioma, no por su número en una tabla de caracteres. Por eso la «ñ» va entre la «n» y la «o», y no al final de la lista.',
+    n2: '«Por números» pone el 2 antes del 10 y no detrás del 1: el número se lee entero, no dígito a dígito. Las líneas sin número alguno bajan al final y allí conservan el orden alfabético; perderlas no es una opción.',
+    n3: '«Ignorar mayúsculas» afecta solo a la comparación: las líneas se quedan tal cual. Sin esa opción, todas las que empiezan por mayúscula se amontonan arriba.',
+    n4: '«Mezclar» baraja las líneas de verdad en vez de ordenarlas por un número aleatorio: solo así el orden sale realmente al azar, sin favorecer el principio de la lista.',
+    n5: 'La lista no se envía a ninguna parte: el orden se calcula en tu navegador y la página no guarda nada.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ср" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="ср-поле">
+    <textarea class="ср-ввод" id="ср-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    <div class="ср-счётчики">
+      <span>{с.lines}: <b id="ср-строк">0</b></span>
+      <span class="ср-сказ" id="ср-сказ"></span>
+    </div>
+  </div>
+
+  <div class="ср-выборы">
+    <label class="ср-выбор"><input type="checkbox" id="ср-регистр" checked><i></i>{с.ignoreCase}</label>
+    <label class="ср-выбор"><input type="checkbox" id="ср-пустые"><i></i>{с.dropEmpty}</label>
+  </div>
+
+  <div class="ср-кнопки">
+    <button type="button" class="ср-кнопка" data-п="az">{с.az}</button>
+    <button type="button" class="ср-кнопка" data-п="za">{с.za}</button>
+    <button type="button" class="ср-кнопка" data-п="num">{с.num}</button>
+    <button type="button" class="ср-кнопка" data-п="len">{с.len}</button>
+    <button type="button" class="ср-кнопка" data-п="shuffle">{с.shuffle}</button>
+  </div>
+
+  <div class="ср-низ">
+    <button type="button" class="ср-кнопка главная" id="ср-копировать">{с.copyBig}</button>
+    <button type="button" class="ср-простая" id="ср-очистить">{с.clearAll}</button>
+    <button type="button" class="ср-простая" id="ср-отменить" disabled>{с.undo}</button>
+  </div>
+
+  <div class="ср-заметки">
+    <div class="ср-заметка">{с.n1}</div>
+    <div class="ср-заметка">{с.n2}</div>
+    <div class="ср-заметка">{с.n3}</div>
+    <div class="ср-заметка">{с.n4}</div>
+    <div class="ср-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.ср');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const поле = $('ср-ввод');
+    const история = [];
+
+    function сказать(текст) {
+      const э = $('ср-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    function счёт() {
+      const т = поле.value;
+      $('ср-строк').textContent = т === '' ? 0 : т.split('\n').length;
+    }
+
+    // Сравнение по правилам языка. sensitivity: 'base' -- когда регистр не важен: тогда
+    // «Абрикос» и «абрикос» считаются одинаковыми и не разъезжаются по разным концам.
+    function судья() {
+      const безРегистра = $('ср-регистр').checked;
+      return new Intl.Collator(язык, {
+        numeric: false,
+        sensitivity: безРегистра ? 'base' : 'variant',
+      });
+    }
+
+    // Первое число в строке. Нужно именно первое, а не любое: в списке «дом 10, кв 2»
+    // человек сортирует по дому.
+    function число(строка) {
+      const найдено = строка.match(/-?\d+(?:[.,]\d+)?/);
+      if (!найдено) return null;
+      return parseFloat(найдено[0].replace(',', '.'));
+    }
+
+    const ПОРЯДКИ = {
+      az: (строки) => { const к = судья(); return [...строки].sort((а, б) => к.compare(а, б)); },
+      za: (строки) => { const к = судья(); return [...строки].sort((а, б) => к.compare(б, а)); },
+      len: (строки) => {
+        const к = судья();
+        // При равной длине -- по алфавиту: иначе одинаково длинные строки встают как попало.
+        return [...строки].sort((а, б) => а.length - б.length || к.compare(а, б));
+      },
+      num: (строки) => {
+        const к = судья();
+        return [...строки].sort((а, б) => {
+          const ча = число(а), чб = число(б);
+          // Строки без чисел -- вниз, между собой по алфавиту. Выбрасывать их нельзя:
+          // человек их не для того вставлял.
+          if (ча === null && чб === null) return к.compare(а, б);
+          if (ча === null) return 1;
+          if (чб === null) return -1;
+          return ча - чб || к.compare(а, б);
+        });
+      },
+      // Тасование Фишера -- Йетса: каждый порядок равновероятен. Сортировка по случайному
+      // числу таким свойством не обладает и заметно тянет часть строк к началу.
+      shuffle: (строки) => {
+        const к = [...строки];
+        for (let i = к.length - 1; i > 0; i--) {
+          const j = Math.floor(Math.random() * (i + 1));
+          [к[i], к[j]] = [к[j], к[i]];
+        }
+        return к;
+      },
+    };
+
+    function применить(имя, кнопка) {
+      const было = поле.value;
+      if (!было.trim()) { сказать(с.nothing); return; }
+      let строки = было.split('\n');
+      // Пустые строки убираем ДО сортировки: иначе они собираются в начале или в конце
+      // кучей и мешают смотреть на список.
+      if ($('ср-пустые').checked) строки = строки.filter((с_) => с_.trim() !== '');
+      const стало = ПОРЯДКИ[имя](строки).join('\n');
+      if (стало === было) { сказать(с.same); return; }
+      история.push(было);
+      if (история.length > 20) история.shift();
+      поле.value = стало;
+      $('ср-отменить').disabled = false;
+      корень.querySelectorAll('.ср-кнопка[data-п]').forEach((к) => к.classList.toggle('сделан', к === кнопка));
+      счёт();
+    }
+
+    корень.querySelectorAll('.ср-кнопка[data-п]').forEach((к) => {
+      к.addEventListener('click', () => применить(к.dataset.п, к));
+    });
+
+    $('ср-отменить').addEventListener('click', () => {
+      const было = история.pop();
+      if (было == null) return;
+      поле.value = было;
+      $('ср-отменить').disabled = история.length === 0;
+      корень.querySelectorAll('.ср-кнопка[data-п]').forEach((к) => к.classList.remove('сделан'));
+      счёт();
+    });
+
+    $('ср-копировать').addEventListener('click', async () => {
+      const кнопка = $('ср-копировать');
+      if (!поле.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(поле.value); вышло = true; }
+      catch (ошибка) {
+        поле.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('ср-очистить').addEventListener('click', () => {
+      if (!поле.value) { сказать(с.nothing); return; }
+      история.push(поле.value);
+      поле.value = '';
+      $('ср-отменить').disabled = false;
+      корень.querySelectorAll('.ср-кнопка[data-п]').forEach((к) => к.classList.remove('сделан'));
+      счёт();
+    });
+
+    поле.addEventListener('input', () => {
+      счёт();
+      корень.querySelectorAll('.ср-кнопка[data-п]').forEach((к) => к.classList.remove('сделан'));
+    });
+    счёт();
+
+    window.__срСостояние = () => ({
+      текст: поле.value, строк: $('ср-строк').textContent,
+      регистр: $('ср-регистр').checked, пустые: $('ср-пустые').checked,
+      история: история.length, сказано: $('ср-сказ').textContent,
+    });
+  })();
+</script>
