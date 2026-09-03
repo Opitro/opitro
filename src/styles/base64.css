@@ -81,6 +81,7 @@
   font-variant-numeric: tabular-nums;
 }
 .б64-счётчики b { color: #fff; font-weight: 500 }
+
 .б64-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .б64-сказ.видно { opacity: 1 }
 

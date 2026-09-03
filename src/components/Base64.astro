@@ -29,7 +29,7 @@ const СЛОВА = {
     placeDec: 'Вставьте строку Base64 — она развернётся в текст…',
     resEnc: 'Строка Base64 появится здесь…', resDec: 'Исходный текст появится здесь…',
     chars: 'Знаков', bytes: 'Байтов', out: 'На выходе',
-    modeEnc: 'Режим: текст → Base64', modeDec: 'Режим: Base64 → текст',
+    mode: 'Режим', modeEnc: 'текст → Base64', modeDec: 'Base64 → текст',
     hintDec: 'Похоже на Base64 — развернуть в текст?',
     hintEnc: 'Похоже на обычный текст — закодировать?',
     errChars: 'Это не Base64: в строке есть знаки, которых в этом формате не бывает.',
@@ -50,7 +50,7 @@ const СЛОВА = {
     placeDec: 'Вставте рядок Base64 — він розгорнеться в текст…',
     resEnc: 'Рядок Base64 з’явиться тут…', resDec: 'Вихідний текст з’явиться тут…',
     chars: 'Знаків', bytes: 'Байтів', out: 'На виході',
-    modeEnc: 'Режим: текст → Base64', modeDec: 'Режим: Base64 → текст',
+    mode: 'Режим', modeEnc: 'текст → Base64', modeDec: 'Base64 → текст',
     hintDec: 'Схоже на Base64 — розгорнути в текст?',
     hintEnc: 'Схоже на звичайний текст — закодувати?',
     errChars: 'Це не Base64: у рядку є знаки, яких у цьому форматі не буває.',
@@ -71,7 +71,7 @@ const СЛОВА = {
     placeDec: 'Paste a Base64 string — it will unfold into text…',
     resEnc: 'The Base64 string will appear here…', resDec: 'The original text will appear here…',
     chars: 'Characters', bytes: 'Bytes', out: 'Output',
-    modeEnc: 'Mode: text → Base64', modeDec: 'Mode: Base64 → text',
+    mode: 'Mode', modeEnc: 'text → Base64', modeDec: 'Base64 → text',
     hintDec: 'Looks like Base64 — decode it?',
     hintEnc: 'Looks like plain text — encode it?',
     errChars: 'This is not Base64: the string contains characters the format never uses.',
@@ -92,7 +92,7 @@ const СЛОВА = {
     placeDec: 'Pega una cadena Base64: se convertirá en texto…',
     resEnc: 'La cadena Base64 aparecerá aquí…', resDec: 'El texto original aparecerá aquí…',
     chars: 'Caracteres', bytes: 'Bytes', out: 'Salida',
-    modeEnc: 'Modo: texto → Base64', modeDec: 'Modo: Base64 → texto',
+    mode: 'Modo', modeEnc: 'texto → Base64', modeDec: 'Base64 → texto',
     hintDec: 'Parece Base64: ¿lo descodificamos?',
     hintEnc: 'Parece texto normal: ¿lo codificamos?',
     errChars: 'Esto no es Base64: la cadena tiene caracteres que este formato nunca usa.',
@@ -130,7 +130,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <textarea class="б64-ввод" id="б64-вывод" placeholder={с.resEnc} readonly></textarea>
     </div>
     <div class="б64-счётчики">
-      <span id="б64-режим-подпись">{с.modeEnc}</span>
+      <span>{с.mode}: <b id="б64-режим-подпись">{с.modeEnc}</b></span>
       <span>{с.chars}: <b id="б64-знаков">0</b></span>
       <span>{с.bytes}: <b id="б64-байтов">0</b></span>
       <span>{с.out}: <b id="б64-выход">0</b></span>

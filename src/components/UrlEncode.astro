@@ -30,9 +30,10 @@ const СЛОВА = {
     placeDec: 'Вставьте закодированную ссылку — она развернётся…',
     resEnc: 'Закодированная строка появится здесь…', resDec: 'Читаемый текст появится здесь…',
     chars: 'Знаков', bytes: 'Байтов', out: 'На выходе',
-    modeEncWhole: 'Режим: текст → URL, ссылка целиком',
-    modeEncPart: 'Режим: текст → URL, одно значение',
-    modeDec: 'Режим: URL → текст',
+    mode: 'Режим',
+    modeEncWhole: 'текст → URL, ссылка целиком',
+    modeEncPart: 'текст → URL, одно значение',
+    modeDec: 'URL → текст',
     hintDec: 'Похоже на закодированную ссылку — развернуть?',
     hintEnc: 'Похоже на обычный текст — закодировать?',
     errBroken: 'Ошибка: в строке оборванная %-последовательность. После знака % должны идти ровно две шестнадцатеричные цифры — например %20 или %D0.',
@@ -52,9 +53,10 @@ const СЛОВА = {
     placeDec: 'Вставте закодоване посилання — воно розгорнеться…',
     resEnc: 'Закодований рядок з’явиться тут…', resDec: 'Читабельний текст з’явиться тут…',
     chars: 'Знаків', bytes: 'Байтів', out: 'На виході',
-    modeEncWhole: 'Режим: текст → URL, посилання цілком',
-    modeEncPart: 'Режим: текст → URL, одне значення',
-    modeDec: 'Режим: URL → текст',
+    mode: 'Режим',
+    modeEncWhole: 'текст → URL, посилання цілком',
+    modeEncPart: 'текст → URL, одне значення',
+    modeDec: 'URL → текст',
     hintDec: 'Схоже на закодоване посилання — розгорнути?',
     hintEnc: 'Схоже на звичайний текст — закодувати?',
     errBroken: 'Помилка: у рядку обірвана %-послідовність. Після знака % мають іти рівно дві шістнадцяткові цифри — наприклад %20 або %D0.',
@@ -74,9 +76,10 @@ const СЛОВА = {
     placeDec: 'Paste an encoded link — it will unfold…',
     resEnc: 'The encoded string will appear here…', resDec: 'The readable text will appear here…',
     chars: 'Characters', bytes: 'Bytes', out: 'Output',
-    modeEncWhole: 'Mode: text → URL, whole link',
-    modeEncPart: 'Mode: text → URL, single value',
-    modeDec: 'Mode: URL → text',
+    mode: 'Mode',
+    modeEncWhole: 'text → URL, whole link',
+    modeEncPart: 'text → URL, single value',
+    modeDec: 'URL → text',
     hintDec: 'Looks like an encoded link — decode it?',
     hintEnc: 'Looks like plain text — encode it?',
     errBroken: 'Error: the string has a broken % sequence. A % must be followed by exactly two hexadecimal digits — for example %20 or %D0.',
@@ -96,9 +99,10 @@ const СЛОВА = {
     placeDec: 'Pega un enlace codificado: se desplegará…',
     resEnc: 'La cadena codificada aparecerá aquí…', resDec: 'El texto legible aparecerá aquí…',
     chars: 'Caracteres', bytes: 'Bytes', out: 'Salida',
-    modeEncWhole: 'Modo: texto → URL, enlace entero',
-    modeEncPart: 'Modo: texto → URL, un solo valor',
-    modeDec: 'Modo: URL → texto',
+    mode: 'Modo',
+    modeEncWhole: 'texto → URL, enlace entero',
+    modeEncPart: 'texto → URL, un solo valor',
+    modeDec: 'URL → texto',
     hintDec: 'Parece un enlace codificado: ¿lo desplegamos?',
     hintEnc: 'Parece texto normal: ¿lo codificamos?',
     errBroken: 'Error: la cadena tiene una secuencia % rota. Tras el signo % deben ir exactamente dos dígitos hexadecimales, por ejemplo %20 o %D0.',
@@ -140,7 +144,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <textarea class="урл-ввод" id="урл-вывод" placeholder={с.resEnc} readonly></textarea>
     </div>
     <div class="урл-счётчики">
-      <span id="урл-режим-подпись">{с.modeEncWhole}</span>
+      <span>{с.mode}: <b id="урл-режим-подпись">{с.modeEncWhole}</b></span>
       <span>{с.chars}: <b id="урл-знаков">0</b></span>
       <span>{с.bytes}: <b id="урл-байтов">0</b></span>
       <span>{с.out}: <b id="урл-выход">0</b></span>

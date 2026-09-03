@@ -69,6 +69,7 @@
   font-variant-numeric: tabular-nums;
 }
 .урл-счётчики b { color: #fff; font-weight: 500 }
+
 .урл-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .урл-сказ.видно { opacity: 1 }
 
