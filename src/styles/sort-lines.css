@@ -38,10 +38,13 @@
 .ср-ввод::placeholder { color: #52525b }
 
 /* Счётчики отделены от поля чертой: это отчёт о поле, а не часть его. */
+/* ПОДПИСИ ЗЕЛЁНЫЕ, ЧИСЛА БЕЛЫЕ. Подпись говорит, ЧТО измеряется, и она одна и та же
+   всегда; число меняется на каждой букве. Разведя их цветом, глаз перестаёт перечитывать
+   подписи и ловит только цифры. Зелёный здесь уместен: это пояснение, а не действие. */
 .ср-счётчики {
   display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
   padding: 9px 16px; border-top: 1px solid rgba(255,255,255,.08);
-  font: 400 12px var(--цифры); color: var(--буквы2); font-variant-numeric: tabular-nums;
+  font: 400 12px var(--цифры); color: var(--accent); font-variant-numeric: tabular-nums;
 }
 .ср-счётчики b { color: #fff; font-weight: 500 }
 .ср-сказ { margin-left: auto; color: #4ade9e; opacity: 0; transition: opacity .2s }

@@ -95,7 +95,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="дб-счётчики">
       <span>{с.was}: <b id="дб-было">0</b></span>
       <span>{с.now}: <b id="дб-стало">0</b></span>
-      <span class="дб-убрано" id="дб-убрано">{с.removed}: 0</span>
+      <span class="дб-убрано" id="дб-убрано">{с.removed}: <b id="дб-убрано-число">0</b></span>
       <span class="дб-сказ" id="дб-сказ"></span>
     </div>
   </div>
@@ -152,7 +152,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('дб-было').textContent = былоСтрок;
       $('дб-стало').textContent = стало;
       const у = $('дб-убрано');
-      у.textContent = с.removed + ': ' + убрано;
+      document.getElementById('дб-убрано-число').textContent = убрано;
       у.classList.toggle('есть', убрано > 0);
     }
 

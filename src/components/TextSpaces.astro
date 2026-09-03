@@ -89,7 +89,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="пр-счётчики">
       <span>{с.was}: <b id="пр-было">0</b></span>
       <span>{с.now}: <b id="пр-стало">0</b></span>
-      <span class="пр-убрано" id="пр-убрано">{с.removed}: 0</span>
+      <span class="пр-убрано" id="пр-убрано">{с.removed}: <b id="пр-убрано-число">0</b></span>
       <span class="пр-сказ" id="пр-сказ"></span>
     </div>
   </div>
@@ -141,7 +141,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('пр-было').textContent = былоЗнаков;
       $('пр-стало').textContent = стало;
       const поле2 = $('пр-убрано');
-      поле2.textContent = с.removed + ': ' + убрано;
+      document.getElementById('пр-убрано-число').textContent = убрано;
       цветУбрано(поле2, убрано > 0);
     }
     function цветУбрано(узел, есть) { узел.classList.toggle("есть", есть); }
