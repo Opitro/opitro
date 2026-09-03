@@ -1,0 +1,364 @@
+---
+// ТРАНСЛИТЕРАЦИЯ ТЕКСТА.
+//
+// Три стандарта, и все три настоящие, а не «примерно так пишут»:
+//   * ПАСПОРТ (ICAO Doc 9303) -- то, чем заполняют загранпаспорта. У русского и украинского
+//     правила РАЗНЫЕ, поэтому язык определяется по буквам: наличие і, ї, є, ґ означает
+//     украинский. В украинском правиле есть тонкость, о которой забывают почти все такие
+//     страницы: в НАЧАЛЕ слова я, ю, є, ї, й пишутся иначе, чем в середине (Яна -> Yana,
+//     Мар'яна -> Marina... точнее Mariana). Мы её соблюдаем.
+//   * ISO 9 -- научная система, где каждой букве отвечает ровно одна латинская с надстрочными
+//     знаками. Единственная из трёх, которая разворачивается обратно БЕЗ потерь.
+//   * URL -- адрес страницы: только строчные, пробелы в дефис, лишнее выброшено.
+//
+// ОБРАТНЫЙ ПЕРЕВОД ЧЕСТНО ПРИБЛИЗИТЕЛЬНЫЙ, кроме ISO 9. «sh» -- это ш или с+х? «zh» -- ж или
+// з+х? Без словаря языка это неразрешимо, и мы прямо пишем об этом на странице, а не делаем
+// вид, что вернули текст в точности.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/translit.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    dir: 'Направление', std: 'Стандарт', swap: 'Поменять направление',
+    cyrLat: 'Кириллица → латиница', latCyr: 'Латиница → кириллица',
+    stdUrl: 'URL / адрес страницы', stdIcao: 'Паспорт (ICAO)', stdIso: 'ISO 9 (научная)',
+    place: 'Введите текст для транслитерации…',
+    result: 'Результат транслитерации появится здесь…',
+    chars: 'Знаков', noSp: 'Без пробелов', words: 'Слов', mode: 'Язык',
+    ru: 'Русский', uk: 'Украинский', auto: 'Определить сам',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Паспорт (ICAO)</b> — то, чем заполняют загранпаспорта и авиабилеты. Если сверяете написание имени с документом, берите этот стандарт: «Юлия» станет «Iuliia», а не «Yulia», как пишут в интернете.',
+    n2: 'У русского и украинского правила ICAO разные, и язык определяется по буквам: если в тексте есть і, ї, є или ґ, включается украинское правило. В нём буквы я, ю, є, ї, й в НАЧАЛЕ слова пишутся иначе, чем в середине: «Яна» → «Yana», но «Мар’яна» → «Mariana».',
+    n3: '<b>ISO 9</b> — научная система с надстрочными знаками (ж → ž, ш → š). Она единственная из трёх разворачивается обратно без потерь: каждой букве отвечает ровно одна латинская.',
+    n4: 'Обратный перевод с латиницы приблизителен во всём, кроме ISO 9. «sh» — это ш или с+х? «zh» — ж или з+х? Без словаря языка это неразрешимо, и мы не станем притворяться, что вернули текст в точности.',
+    n5: 'Текст никуда не отправляется: перевод идёт прямо в вашем браузере. Ни имена, ни номера документов страница не сохраняет и никуда не передаёт.',
+  },
+  uk: {
+    dir: 'Напрямок', std: 'Стандарт', swap: 'Змінити напрямок',
+    cyrLat: 'Кирилиця → латиниця', latCyr: 'Латиниця → кирилиця',
+    stdUrl: 'URL / адреса сторінки', stdIcao: 'Паспорт (ICAO)', stdIso: 'ISO 9 (наукова)',
+    place: 'Введіть текст для транслітерації…',
+    result: 'Результат транслітерації з’явиться тут…',
+    chars: 'Знаків', noSp: 'Без пробілів', words: 'Слів', mode: 'Мова',
+    ru: 'Російська', uk: 'Українська', auto: 'Визначити саму',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Паспорт (ICAO)</b> — те, чим заповнюють закордонні паспорти й авіаквитки. Якщо звіряєте написання імені з документом, беріть цей стандарт.',
+    n2: 'У російської та української правила ICAO різні, і мова визначається за літерами: якщо в тексті є і, ї, є або ґ, вмикається українське правило. У ньому літери я, ю, є, ї, й на ПОЧАТКУ слова пишуться інакше, ніж усередині: «Яна» → «Yana», але «Мар’яна» → «Mariana».',
+    n3: '<b>ISO 9</b> — наукова система з надрядковими знаками (ж → ž, ш → š). Вона єдина з трьох розгортається назад без втрат: кожній літері відповідає рівно одна латинська.',
+    n4: 'Зворотний переклад із латиниці приблизний у всьому, крім ISO 9. «sh» — це ш чи с+х? «zh» — ж чи з+х? Без словника мови це нерозв’язно, і ми не вдаватимемо, що повернули текст точно.',
+    n5: 'Текст нікуди не надсилається: переклад іде просто у вашому браузері. Ні імена, ні номери документів сторінка не зберігає й нікуди не передає.',
+  },
+  en: {
+    dir: 'Direction', std: 'Standard', swap: 'Swap direction',
+    cyrLat: 'Cyrillic → Latin', latCyr: 'Latin → Cyrillic',
+    stdUrl: 'URL / page address', stdIcao: 'Passport (ICAO)', stdIso: 'ISO 9 (scholarly)',
+    place: 'Enter the text to transliterate…',
+    result: 'The transliteration will appear here…',
+    chars: 'Characters', noSp: 'Without spaces', words: 'Words', mode: 'Language',
+    ru: 'Russian', uk: 'Ukrainian', auto: 'Detect it',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>Passport (ICAO)</b> is what fills passports and air tickets. If you are checking a name against a document, use this standard: “Юлия” becomes “Iuliia”, not the “Yulia” you see online.',
+    n2: 'Russian and Ukrainian ICAO rules differ, and the language is detected from the letters: і, ї, є or ґ switch on the Ukrainian rule. There, я, ю, є, ї and й are written differently at the START of a word than inside it: “Яна” → “Yana”, but “Мар’яна” → “Mariana”.',
+    n3: '<b>ISO 9</b> is the scholarly system with diacritics (ж → ž, ш → š). It is the only one of the three that converts back without loss: exactly one Latin letter per Cyrillic one.',
+    n4: 'Converting back from Latin is approximate in everything except ISO 9. Is “sh” ш or с+х? Is “zh” ж or з+х? Without a dictionary of the language this cannot be resolved, and we will not pretend the text came back exactly.',
+    n5: 'The text is never sent anywhere: conversion happens inside your browser. Neither names nor document numbers are stored or passed on.',
+  },
+  es: {
+    dir: 'Dirección', std: 'Estándar', swap: 'Cambiar la dirección',
+    cyrLat: 'Cirílico → latino', latCyr: 'Latino → cirílico',
+    stdUrl: 'URL / dirección de página', stdIcao: 'Pasaporte (ICAO)', stdIso: 'ISO 9 (científica)',
+    place: 'Escribe el texto para transliterar…',
+    result: 'La transliteración aparecerá aquí…',
+    chars: 'Caracteres', noSp: 'Sin espacios', words: 'Palabras', mode: 'Idioma',
+    ru: 'Ruso', uk: 'Ucraniano', auto: 'Detectarlo solo',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Pasaporte (ICAO)</b> es lo que se usa en pasaportes y billetes de avión. Si comparas la grafía de un nombre con un documento, usa este estándar.',
+    n2: 'Las reglas ICAO del ruso y del ucraniano son distintas y el idioma se detecta por las letras: і, ї, є o ґ activan la regla ucraniana. Allí я, ю, є, ї y й se escriben distinto al PRINCIPIO de palabra que en el interior.',
+    n3: '<b>ISO 9</b> es el sistema científico con signos diacríticos (ж → ž, ш → š). Es el único de los tres que se revierte sin pérdidas: una letra latina exacta por cada cirílica.',
+    n4: 'La conversión inversa desde el latino es aproximada salvo en ISO 9. ¿«sh» es ш o с+х? ¿«zh» es ж o з+х? Sin un diccionario del idioma no tiene solución, y no vamos a fingir que el texto ha vuelto exacto.',
+    n5: 'El texto no se envía a ninguna parte: la conversión ocurre en tu navegador. Ni nombres ni números de documento se guardan ni se transmiten.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тл" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="тл-верх">
+    <span class="тл-пара">
+      <span class="тл-к">{с.dir}:</span>
+      <select class="тл-выбор" id="тл-направление" aria-label={с.dir}>
+        <option value="cyr">{с.cyrLat}</option>
+        <option value="lat">{с.latCyr}</option>
+      </select>
+      <button type="button" class="тл-реверс" id="тл-реверс" title={с.swap} aria-label={с.swap}>⇄</button>
+    </span>
+    <span class="тл-пара">
+      <span class="тл-к">{с.std}:</span>
+      <select class="тл-выбор" id="тл-стандарт" aria-label={с.std}>
+        <option value="url">{с.stdUrl}</option>
+        <option value="icao">{с.stdIcao}</option>
+        <option value="iso">{с.stdIso}</option>
+      </select>
+    </span>
+    {/* Язык выбирается ЯВНО, потому что по буквам его угадать нельзя: «Яна», «Гончар» и
+        «Мартинюк» пишутся одинаково в обоих языках, а правила для них разные.
+
+        По умолчанию стоит «определить сам», и это не отговорка: он смотрит на буквы, а
+        когда их не хватает -- берёт язык страницы. Жёстко ставить язык страницы нельзя:
+        тогда украинское имя на русской странице перевелось бы русскими правилами даже
+        при явных і, ї, є. */}
+    <span class="тл-пара">
+      <span class="тл-к">{с.mode}:</span>
+      <select class="тл-выбор" id="тл-язык-выбор" aria-label={с.mode}>
+        <option value="auto">{с.auto}</option>
+        <option value="ru">{с.ru}</option>
+        <option value="uk">{с.uk}</option>
+      </select>
+    </span>
+  </div>
+
+  <div class="тл-пара-полей">
+    <div class="тл-поле">
+      <textarea class="тл-ввод" id="тл-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="тл-поле тл-вывод">
+      <textarea class="тл-ввод" id="тл-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="тл-счётчики">
+      <span>{с.chars}: <b id="тл-знаков">0</b></span>
+      <span>{с.noSp}: <b id="тл-безПробелов">0</b></span>
+      <span>{с.words}: <b id="тл-слов">0</b></span>
+      <span class="тл-сказ" id="тл-сказ"></span>
+    </div>
+  </div>
+
+  <div class="тл-низ">
+    <button type="button" class="тл-кнопка" id="тл-копировать">{с.copyBig}</button>
+    <button type="button" class="тл-простая" id="тл-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="тл-заметки">
+    <div class="тл-заметка" set:html={с.n1}></div>
+    <div class="тл-заметка">{с.n2}</div>
+    <div class="тл-заметка" set:html={с.n3}></div>
+    <div class="тл-заметка">{с.n4}</div>
+    <div class="тл-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.тл');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('тл-ввод');
+    const вывод = $('тл-вывод');
+
+    /* ---- Таблицы ---------------------------------------------------------------------- */
+
+    // ПАСПОРТ, русский (ICAO Doc 9303, приложение 9). Именно так пишут в загранпаспортах
+    // с 2014 года: Юлия -> Iuliia, Сергей -> Sergei.
+    const ПАСПОРТ_РУ = {
+      а:'a', б:'b', в:'v', г:'g', д:'d', е:'e', ё:'e', ж:'zh', з:'z', и:'i', й:'i', к:'k',
+      л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t', у:'u', ф:'f', х:'kh', ц:'ts',
+      ч:'ch', ш:'sh', щ:'shch', ъ:'ie', ы:'y', ь:'', э:'e', ю:'iu', я:'ia',
+    };
+    // ПАСПОРТ, украинский (постановление КМУ № 55 от 2010). Пять букв пишутся по-разному
+    // в начале слова и внутри него -- это и есть та тонкость, которую пропускают почти все.
+    const ПАСПОРТ_УК = {
+      а:'a', б:'b', в:'v', г:'h', ґ:'g', д:'d', е:'e', є:'ie', ж:'zh', з:'z', и:'y', і:'i',
+      ї:'i', й:'i', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t', у:'u',
+      ф:'f', х:'kh', ц:'ts', ч:'ch', ш:'sh', щ:'shch', ь:'', ю:'iu', я:'ia',
+      // Апостроф в украинском не транслитерируется. Начертаний у него три, и человек
+      // вставляет любое из них.
+      'ʼ':'', "'":'', '\u2019':'',
+    };
+    const ПАСПОРТ_УК_НАЧАЛО = { є:'ye', ї:'yi', й:'y', ю:'yu', я:'ya' };
+
+    // ISO 9 (равно ГОСТ 7.79-2000, система А). Одна буква -- один знак, поэтому обратный
+    // перевод по ней точен.
+    const ИСО = {
+      а:'a', б:'b', в:'v', г:'g', ґ:'g̀', д:'d', е:'e', ё:'ë', є:'ê', ж:'ž', з:'z',
+      и:'i', і:'ì', ї:'ï', й:'j', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s',
+      т:'t', у:'u', ф:'f', х:'h', ц:'c', ч:'č', ш:'š', щ:'ŝ', ъ:'ʺ', ы:'y', ь:'ʹ', э:'è',
+      ю:'û', я:'â',
+    };
+
+    // URL: простая латиница без надстрочных знаков, всё лишнее выбрасывается позже.
+    const АДРЕС = {
+      а:'a', б:'b', в:'v', г:'g', ґ:'g', д:'d', е:'e', ё:'e', є:'ye', ж:'zh', з:'z', и:'i',
+      і:'i', ї:'yi', й:'y', к:'k', л:'l', м:'m', н:'n', о:'o', п:'p', р:'r', с:'s', т:'t',
+      у:'u', ф:'f', х:'h', ц:'ts', ч:'ch', ш:'sh', щ:'sch', ъ:'', ы:'y', ь:'', э:'e',
+      ю:'yu', я:'ya',
+    };
+
+    // Украинский узнаём по его собственным буквам -- но только когда человек не выбрал язык
+    // сам. Буквы решают не всё: «Яна» и «Гончар» одинаковы в обоих языках, а правила разные.
+    const УКРАИНСКИЕ = /[іїєґ]/i;
+    const языкСтраницы = корень.dataset.locale === 'uk' ? 'uk' : 'ru';
+
+    function какойЯзык(текст) {
+      const выбран = $('тл-язык-выбор').value;
+      if (выбран !== 'auto') return выбран;
+      if (УКРАИНСКИЕ.test(текст)) return 'uk';
+      return языкСтраницы;
+    }
+
+    function большая(латиница, былаЗаглавной, следующаяЗаглавная) {
+      if (!былаЗаглавной || !латиница) return латиница;
+      // «ЩЕРБАКОВ» целиком заглавными -> SHCHERBAKOV, а «Щербаков» -> Shcherbakov.
+      return следующаяЗаглавная ? латиница.toUpperCase()
+        : латиница[0].toUpperCase() + латиница.slice(1);
+    }
+
+    function вЛатиницу(текст, стандарт) {
+      const украинский = какойЯзык(текст) === 'uk';
+      const таблица = стандарт === 'iso' ? ИСО
+        : стандарт === 'icao' ? (украинский ? ПАСПОРТ_УК : ПАСПОРТ_РУ)
+        : АДРЕС;
+      let итог = '';
+      for (let i = 0; i < текст.length; i++) {
+        const знак = текст[i];
+        const мал = знак.toLowerCase();
+        const заглавная = знак !== мал;
+        let замена = таблица[мал];
+        if (замена === undefined) { итог += знак; continue; }
+        // Начало слова: перед буквой либо ничего, либо не буква.
+        const до = i === 0 ? '' : текст[i - 1];
+        const началоСлова = i === 0 || !/[\p{L}ʼ'\u2019]/u.test(до);
+        if (стандарт === 'icao' && украинский && началоСлова && ПАСПОРТ_УК_НАЧАЛО[мал]) {
+          замена = ПАСПОРТ_УК_НАЧАЛО[мал];
+        }
+        const следующая = текст[i + 1] || '';
+        итог += большая(замена, заглавная, следующая !== '' && следующая === следующая.toUpperCase()
+          && следующая !== следующая.toLowerCase());
+      }
+      if (стандарт === 'url') {
+        итог = итог.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')   // всё, что не буква и не цифра, становится дефисом
+          .replace(/^-+|-+$/g, '')       // дефисы по краям не нужны
+          .replace(/-{2,}/g, '-');       // и подряд тоже
+      }
+      return итог;
+    }
+
+    // Обратная таблица: длинные сочетания первыми, иначе «shch» разберётся как «sh»+«ch».
+    function обратная(стандарт, украинский) {
+      const прямая = стандарт === 'iso' ? ИСО
+        : стандарт === 'icao' ? (украинский ? ПАСПОРТ_УК : ПАСПОРТ_РУ)
+        : АДРЕС;
+      const пары = [];
+      for (const [кир, лат] of Object.entries(прямая)) {
+        if (!лат) continue;             // ь и ъ в паспорте пустые -- обратно их не вернуть
+        пары.push([лат, кир]);
+      }
+      if (стандарт === 'icao' && украинский) {
+        for (const [кир, лат] of Object.entries(ПАСПОРТ_УК_НАЧАЛО)) пары.push([лат, кир]);
+      }
+      пары.sort((а, б) => б[0].length - а[0].length);
+      return пары;
+    }
+
+    function вКириллицу(текст, стандарт) {
+      const выбран = $('тл-язык-выбор').value;
+      const украинский = выбран !== 'auto' ? выбран === 'uk'
+        : (стандарт === 'iso' ? /[ìïê]/i.test(текст) : /\b(ye|yi)/i.test(текст) || языкСтраницы === 'uk');
+      const пары = обратная(стандарт, украинский);
+      let итог = '', i = 0;
+      while (i < текст.length) {
+        let нашли = false;
+        for (const [лат, кир] of пары) {
+          const кусок = текст.substr(i, лат.length);
+          if (кусок.toLowerCase() === лат.toLowerCase()) {
+            const заглавная = кусок[0] !== кусок[0].toLowerCase();
+            итог += заглавная ? кир.toUpperCase() : кир;
+            i += лат.length;
+            нашли = true;
+            break;
+          }
+        }
+        if (!нашли) { итог += текст[i]; i++; }
+      }
+      return итог;
+    }
+
+    /* ---- Работа ------------------------------------------------------------------------ */
+
+    function перевести() {
+      const текст = ввод.value;
+      const направление = $('тл-направление').value;
+      const стандарт = $('тл-стандарт').value;
+      вывод.value = направление === 'cyr' ? вЛатиницу(текст, стандарт) : вКириллицу(текст, стандарт);
+
+      $('тл-знаков').textContent = текст.length;
+      $('тл-безПробелов').textContent = текст.replace(/\s/g, '').length;
+      const кусок = текст.trim();
+      $('тл-слов').textContent = кусок ? кусок.split(/\s+/).length : 0;
+      // Когда язык определяется сам, показываем в самом выборе, что вышло: иначе
+      // человек не знает, по каким правилам его сейчас перевели.
+      const сам = $('тл-язык-выбор').querySelector('option[value="auto"]');
+      сам.textContent = кусок ? с.auto + ' — ' + (какойЯзык(текст) === 'uk' ? с.uk : с.ru) : с.auto;
+    }
+
+    function сказать(текст) {
+      const э = $('тл-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', перевести);
+    $('тл-направление').addEventListener('change', перевести);
+    $('тл-стандарт').addEventListener('change', перевести);
+    $('тл-язык-выбор').addEventListener('change', перевести);
+
+    $('тл-реверс').addEventListener('click', () => {
+      const п = $('тл-направление');
+      п.value = п.value === 'cyr' ? 'lat' : 'cyr';
+      // Готовый перевод становится новым вводом: человек нажал «поменять» ровно за этим.
+      if (вывод.value) ввод.value = вывод.value;
+      перевести();
+    });
+
+    $('тл-копировать').addEventListener('click', async () => {
+      const кнопка = $('тл-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('тл-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      перевести();
+      ввод.focus();
+    });
+
+    перевести();
+
+    window.__тлСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      направление: $('тл-направление').value, стандарт: $('тл-стандарт').value,
+      язык: $('тл-язык-выбор').value,
+      числа: [$('тл-знаков').textContent, $('тл-безПробелов').textContent,
+              $('тл-слов').textContent, $('тл-язык-выбор').value],
+    });
+  })();
+</script>
