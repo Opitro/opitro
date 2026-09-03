@@ -27,16 +27,18 @@
 /* Направление -- две кнопки, а не угадывание: слово «test» тоже правильный Base64, и молча
    развернуть его в мусор было бы враньём. Выбранная остаётся подсвеченной. */
 .б64-режимы { display: inline-flex; gap: 6px }
+/* Кнопка ПОДНЯТА от страницы: на фоне #0e0f11 прозрачная кнопка с серой рамкой
+   почти не видна. Буквы белые -- приглушённых подписей на кнопках быть не должно. */
 .б64-режим {
   height: 38px; padding: 0 15px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
-  border: 1px solid #333; transition: border-color .15s, color .15s, background .15s;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
 }
-.б64-режим:hover { border-color: #fff; color: #fff }
-/* Выбранная кнопка: зелёная рамка и зелёные буквы. Тёмный текст на сплошной
-   зелёной заливке владелец уже забраковал -- он плохо читается. */
+.б64-режим:hover { border-color: #fff; background: #23272f }
+/* Выбранная -- ТОЛЬКО обводка и зелёные буквы, без заливки: владелец забраковал
+   и тёмный текст на зелёном, и сам зелёный фон под кнопкой. */
 .б64-режим.выбран { border-color: var(--accent); color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 700 }
+  font-weight: 700 }
 .б64-режим.выбран:hover { border-color: var(--accent); color: var(--accent) }
 
 .б64-выбор { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
@@ -62,12 +64,12 @@
   font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
 }
 .б64-ввод:focus { outline: none }
-.б64-ввод::placeholder { color: #52525b }
+.б64-ввод::placeholder { color: #7d848f }
 
 /* Поле вывода темнее поля ввода. */
 .б64-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
-.б64-вывод textarea { color: #d4d4d8; cursor: text }
-.б64-вывод textarea::placeholder { color: #3f3f46 }
+.б64-вывод textarea { color: #fff; cursor: text }
+.б64-вывод textarea::placeholder { color: #7d848f }
 /* Разбор не удался -- текст ошибки прямо в поле вывода, розовым, а не серым. */
 .б64-вывод.беда { border-color: rgba(255,154,168,.45) }
 .б64-вывод.беда textarea { color: var(--беда) }
@@ -101,17 +103,17 @@
 .б64-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
 .б64-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
-  border: 1px solid #333; transition: border-color .15s, color .15s;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
 }
-.б64-простая:hover { border-color: #fff; color: #fff }
+.б64-простая:hover { border-color: #fff; background: #23272f }
 
 .б64-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
    фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
    на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
 .б64-заметка { position: relative; padding-left: 18px;
-  font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+  font: 400 13px/1.55 var(--ui); color: #fff }
 .б64-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
   color: rgba(255,255,255,.4) }
 .б64-заметка b { color: #fff; font-weight: 600 }

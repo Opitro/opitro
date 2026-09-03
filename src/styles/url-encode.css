@@ -26,16 +26,18 @@
 
 /* Направление -- две кнопки, а не угадывание. Выбранная остаётся подсвеченной. */
 .урл-режимы, .урл-охваты { display: inline-flex; gap: 6px }
+/* Кнопка ПОДНЯТА от страницы: на фоне #0e0f11 прозрачная кнопка с серой рамкой
+   почти не видна. Буквы белые -- приглушённых подписей на кнопках быть не должно. */
 .урл-режим {
   height: 38px; padding: 0 15px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
-  border: 1px solid #333; transition: border-color .15s, color .15s, background .15s;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
 }
-.урл-режим:hover { border-color: #fff; color: #fff }
-/* Выбранная кнопка: зелёная рамка и зелёные буквы. Тёмный текст на сплошной
-   зелёной заливке владелец уже забраковал -- он плохо читается. */
+.урл-режим:hover { border-color: #fff; background: #23272f }
+/* Выбранная -- ТОЛЬКО обводка и зелёные буквы, без заливки: владелец забраковал
+   и тёмный текст на зелёном, и сам зелёный фон под кнопкой. */
 .урл-режим.выбран { border-color: var(--accent); color: var(--accent);
-  background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 700 }
+  font-weight: 700 }
 .урл-режим.выбран:hover { border-color: var(--accent); color: var(--accent) }
 
 /* Охват относится только к кодированию. При разборе он ни на что не влияет, поэтому прячется
@@ -53,11 +55,11 @@
   font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
 }
 .урл-ввод:focus { outline: none }
-.урл-ввод::placeholder { color: #52525b }
+.урл-ввод::placeholder { color: #7d848f }
 
 .урл-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
-.урл-вывод textarea { color: #d4d4d8; cursor: text }
-.урл-вывод textarea::placeholder { color: #3f3f46 }
+.урл-вывод textarea { color: #fff; cursor: text }
+.урл-вывод textarea::placeholder { color: #7d848f }
 .урл-вывод.беда { border-color: rgba(255,154,168,.45) }
 .урл-вывод.беда textarea { color: var(--беда) }
 
@@ -89,17 +91,17 @@
 .урл-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
 .урл-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
-  border: 1px solid #333; transition: border-color .15s, color .15s;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
 }
-.урл-простая:hover { border-color: #fff; color: #fff }
+.урл-простая:hover { border-color: #fff; background: #23272f }
 
 .урл-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
    фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
    на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
 .урл-заметка { position: relative; padding-left: 18px;
-  font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+  font: 400 13px/1.55 var(--ui); color: #fff }
 .урл-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
   color: rgba(255,255,255,.4) }
 .урл-заметка b { color: #fff; font-weight: 600 }
