@@ -22,7 +22,9 @@
   --свой: #58b8f0;
   --буквы: #f2f5fa;
   --буквы2: #cfd8e6;
-  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+  /* Ширина НЕ ограничивается: страница уже держит свою колонку, а свой предел в 760 точек
+     делал инструмент уже текста под ним -- на широком экране видна ступенька. */
+  font-family: var(--ui);
 }
 
 .мт-подсказка { margin: 0 0 12px; text-align: center; font: 400 14px/1.55 var(--ui);
@@ -83,17 +85,23 @@
   font-variant-numeric: tabular-nums }
 .мт-число .н.свой { color: var(--свой) }
 
-.мт-кнопки { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.мт-кнопки { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-top: 12px }
+/* Кнопка -- по своему тексту: растянутая во всю ширину полоса читается как поле, а не как
+   то, что нажимают. */
 .мт-кнопка {
-  flex: 1; min-width: 150px; font: 600 14px var(--ui); height: 48px; border-radius: 12px;
+  flex: 0 0 auto; font: 600 14px var(--ui); height: 44px; padding: 0 22px; border-radius: 12px;
   cursor: pointer; color: var(--буквы); border: 1px solid rgba(255,255,255,.24);
   background: rgba(255,255,255,.06);
   transition: border-color .15s ease, transform .08s ease;
 }
 .мт-кнопка:hover { border-color: rgba(255,255,255,.45) }
 .мт-кнопка:active { transform: translateY(1px) }
-.мт-кнопка.главная { color: #07253a; border-color: transparent;
-  background: linear-gradient(180deg, #7ccbfa, #3ba0e0) }
+/* Белые буквы на тёмном со своей обводкой: тёмный текст на светлой заливке читается плохо. */
+.мт-кнопка.главная { color: var(--буквы); border-color: var(--свой);
+  background: linear-gradient(180deg, #1b2733, #141b22);
+  box-shadow: 0 0 0 1px rgba(88,184,240,.18) }
+.мт-кнопка.главная:hover { border-color: #9ad8ff }
 
 /* Место под самую длинную строку занято заранее -- иначе страница дёргается ровно тогда,
    когда человек держит на ней десять пальцев. */
@@ -111,5 +119,4 @@
   .мт-палец { width: 72px; height: 72px; margin: -36px 0 0 -36px; font-size: 23px }
   .мт-числа { grid-template-columns: 1fr 1fr }
   .мт-число:last-child { grid-column: 1 / -1 }
-  .мт-кнопка { min-width: 0 }
 }

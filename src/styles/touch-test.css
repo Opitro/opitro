@@ -28,12 +28,18 @@
      второстепенного. Оба непрозрачные. */
   --буквы: #f2f5fa;
   --буквы2: #cfd8e6;
-  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+  /* Ширина НЕ ограничивается: страница уже держит свою колонку, а собственный предел
+     в 760 точек делал инструмент уже текста под ним -- на широком экране была видна
+     ступенька между блоками. */
+  font-family: var(--ui);
 }
 
-.тс-режимы { display: flex; gap: 6px; margin-bottom: 12px }
+.тс-режимы { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
+  margin-bottom: 12px }
+/* Переключатель режимов -- две маленькие кнопки по своему тексту. Растянутые на всю ширину
+   они читались как две большие плашки-разделы, а не как выбор одного из двух. */
 .тс-режим {
-  flex: 1; min-width: 0; font: 400 14px var(--ui); height: 44px; border-radius: 11px;
+  flex: 0 0 auto; font: 400 13px var(--ui); height: 34px; padding: 0 14px; border-radius: 9px;
   cursor: pointer; color: var(--буквы);
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.22);
   transition: background .15s ease, color .15s ease, border-color .15s ease;
@@ -104,17 +110,24 @@
 .тс-число .н.хорошо { color: var(--свой) }
 .тс-число .н.плохо { color: #ff7b8f }
 
-.тс-кнопки { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.тс-кнопки { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center;
+  margin-top: 12px }
+/* Кнопка -- по своему тексту, а не во всю ширину: растянутая полоса читается как поле,
+   а не как то, что нажимают. */
 .тс-кнопка {
-  flex: 1; min-width: 150px; font: 600 14px var(--ui); height: 48px; border-radius: 12px;
+  flex: 0 0 auto; font: 600 14px var(--ui); height: 44px; padding: 0 22px; border-radius: 12px;
   cursor: pointer; color: var(--буквы); border: 1px solid rgba(255,255,255,.24);
   background: rgba(255,255,255,.06);
   transition: border-color .15s ease, transform .08s ease;
 }
 .тс-кнопка:hover { border-color: rgba(255,255,255,.45) }
 .тс-кнопка:active { transform: translateY(1px) }
-.тс-кнопка.главная { color: #06231e; border-color: transparent;
-  background: linear-gradient(180deg, #4df0d3, #17c9a8) }
+/* Главная кнопка -- белые буквы на тёмном со своей обводкой. Тёмный текст на светло-зелёной
+   заливке владелец забраковал: читается плохо, и заливка тянет на себя всё внимание. */
+.тс-кнопка.главная { color: var(--буквы); border-color: var(--свой);
+  background: linear-gradient(180deg, #1d2a2c, #141b1d);
+  box-shadow: 0 0 0 1px rgba(46,230,197,.18) }
+.тс-кнопка.главная:hover { border-color: #6ff0da }
 
 /* ---- Покой ------------------------------------------------------------------------------- */
 
@@ -137,6 +150,12 @@
   background: rgba(255,255,255,.14); overflow: hidden }
 .тс-полоса i { display: block; height: 100%; width: 0; border-radius: 2px;
   background: var(--свой); transition: width 1s linear }
+/* Счёт призраков живёт в самом окне, а не в отдельной плашке под ним: смотреть в покое
+   надо в одно место, и лишняя коробка под пустым полем выглядела заплаткой. */
+.тс-счёт { margin-top: 10px; font: 400 13px var(--ui); color: var(--буквы2) }
+.тс-счёт b { margin-left: 6px; font: 700 20px var(--ui); color: var(--буквы);
+  font-variant-numeric: tabular-nums; vertical-align: -2px }
+.тс-счёт b.плохо { color: #ff7b8f }
 
 .тс-скрыт { display: none !important }
 
@@ -150,7 +169,6 @@
   .тс-площадка { height: 300px }
   .тс-числа { grid-template-columns: 1fr 1fr }
   .тс-число:last-child { grid-column: 1 / -1 }
-  .тс-кнопка { min-width: 0 }
   .тс-часы { font-size: 52px }
 }
 @media (prefers-reduced-motion: reduce) { .тс-клетка { transition: none } }

@@ -121,6 +121,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       {/* Полоска времени: без неё в покое человек пятнадцать секунд смотрит на пустое поле
           и не понимает, идёт проверка или уже кончилась. */}
       <div class="тс-полоса"><i id="тс-полосаЛиния"></i></div>
+      <div class="тс-счёт">{с.ghosts}<b id="тс-призраки">0</b></div>
     </div>
   </div>
 
@@ -128,10 +129,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="тс-число"><span class="к">{с.covered}</span><span class="н" id="тс-доля">0%</span></div>
     <div class="тс-число"><span class="к">{с.rest}</span><span class="н" id="тс-осталось">—</span></div>
     <div class="тс-число"><span class="к">{с.fingers}</span><span class="н" id="тс-пальцев">0</span></div>
-  </div>
-
-  <div class="тс-числа тс-скрыт" id="тс-числаПокой">
-    <div class="тс-число" style="grid-column:1/-1"><span class="к">{с.ghosts}</span><span class="н" id="тс-призраки">0</span></div>
   </div>
 
   <div class="тс-кнопки">
@@ -348,7 +345,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('тс-надпись').classList.toggle('тс-скрыт', !сетчатый);
       $('тс-покойПоле').classList.toggle('тс-скрыт', сетчатый);
       $('тс-числа').classList.toggle('тс-скрыт', !сетчатый);
-      $('тс-числаПокой').classList.toggle('тс-скрыт', сетчатый);
       $('тс-весь').classList.toggle('тс-скрыт', !сетчатый);
       $('тс-заново').classList.toggle('тс-скрыт', !сетчатый);
       $('тс-пуск').classList.toggle('тс-скрыт', сетчатый);
@@ -356,7 +352,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (сетчатый) { сбросить(false); } else {
         призраков = 0;
         $('тс-призраки').textContent = '0';
-        $('тс-призраки').className = 'н';
+        $('тс-призраки').className = '';
         $('тс-часы').textContent = String(ПОКОЙ);
         $('тс-покойТекст').textContent = с.dont;
         полоса(0);
@@ -368,14 +364,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       призраков++;
       const поле = $('тс-призраки');
       поле.textContent = String(призраков);
-      поле.className = 'н плохо';
+      поле.className = 'плохо';
     }
 
     function пускПокой() {
       призраков = 0;
       осталосьСекунд = ПОКОЙ;
       $('тс-призраки').textContent = '0';
-      $('тс-призраки').className = 'н';
+      $('тс-призраки').className = '';
       $('тс-часы').textContent = String(ПОКОЙ);
       $('тс-итог').innerHTML = '';
       $('тс-пуск').textContent = с.stop;
