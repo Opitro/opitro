@@ -1,0 +1,259 @@
+---
+// ВРЕМЯ ЧТЕНИЯ ТЕКСТА.
+//
+// Считаем слова и делим на скорость. Сама скорость -- вещь приблизительная, и делать вид,
+// что «02:45» -- точный ответ, нечестно. Поэтому:
+//   -- скорость выбирает человек: неспешно / обычно / быстро;
+//   -- рядом с числом всегда написано, из какой скорости оно получено;
+//   -- время округляем вверх до полминуты и не обещаем секундной точности.
+//
+// Скорости взяты по крупной сводке исследований (Brysbaert, 2019): про себя взрослый читает
+// в среднем около 240 слов в минуту, вслух -- около 180. Русские слова длиннее английских,
+// поэтому для кириллицы берём числа ниже: определяем это по самому тексту.
+//
+// Слова считаем не через split(/\s+/) вслепую: у пустой строки такой способ даёт одно слово.
+// Текст никуда не уходит: всё делается в браузере.
+import css from '../styles/reading-time.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    speed: 'Скорость', slow: 'Неспешно', normal: 'Обычно', fast: 'Быстро',
+    place: 'Вставьте текст — статью, доклад или сценарий…',
+    silent: 'Про себя', aloud: 'Вслух',
+    wpm: 'слов в минуту', words: 'Слов', chars: 'Знаков', sentences: 'Предложений',
+    less: 'меньше минуты',
+    hint: 'Это оценка, а не секундомер: скорость чтения у разных людей отличается вдвое. Для доклада берите запас — вслух с паузами и оговорками выходит дольше.',
+    empty: 'Вставьте текст, и время появится здесь.',
+    cyr: 'Кириллица: слова длиннее, скорость ниже',
+    clearAll: 'Очистить всё', copyBig: 'Копировать отчёт', copiedBig: 'Скопировано!',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    report: 'Слов: {w}, знаков: {c}. Про себя — {s}, вслух — {a}.',
+    n1: '<b>Про себя и вслух — разные скорости.</b> Глазами взрослый читает примерно вдвое быстрее, чем произносит. Поэтому для статьи смотрите верхнюю карточку, а для доклада или озвучки — нижнюю.',
+    n2: '<b>Для кириллицы скорость взята ниже.</b> Русское слово в среднем длиннее английского, и то же число слов читается дольше. Страница сама смотрит, каких букв в тексте больше, и берёт подходящий счёт — переключать ничего не нужно.',
+    n3: 'Это <b>оценка, а не секундомер</b>. Скорость чтения у разных людей отличается вдвое, а сложный текст с числами и терминами идёт медленнее простого. Три кнопки наверху и нужны, чтобы подставить свою скорость вместо средней.',
+    n4: 'Для доклада <b>берите запас</b>: живая речь идёт с паузами, оговорками и ответами на вопросы. Практика радиоведущих — прибавлять к расчётному времени примерно десятую часть.',
+    n5: 'Всё считается в вашем браузере. Текст никуда не отправляется и нигде не сохраняется.',
+  },
+  uk: {
+    speed: 'Швидкість', slow: 'Неквапливо', normal: 'Звичайно', fast: 'Швидко',
+    place: 'Вставте текст — статтю, доповідь або сценарій…',
+    silent: 'Про себе', aloud: 'Уголос',
+    wpm: 'слів на хвилину', words: 'Слів', chars: 'Знаків', sentences: 'Речень',
+    less: 'менше хвилини',
+    hint: 'Це оцінка, а не секундомір: швидкість читання в різних людей відрізняється вдвічі. Для доповіді беріть запас — уголос із паузами виходить довше.',
+    empty: 'Вставте текст, і час з’явиться тут.',
+    cyr: 'Кирилиця: слова довші, швидкість нижча',
+    clearAll: 'Очистити все', copyBig: 'Копіювати звіт', copiedBig: 'Скопійовано!',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    report: 'Слів: {w}, знаків: {c}. Про себе — {s}, уголос — {a}.',
+    n1: '<b>Про себе й уголос — різні швидкості.</b> Очима доросла людина читає приблизно вдвічі швидше, ніж вимовляє. Тому для статті дивіться верхню картку, а для доповіді чи озвучення — нижню.',
+    n2: '<b>Для кирилиці швидкість узято нижчу.</b> Українське слово в середньому довше за англійське, і та сама кількість слів читається довше. Сторінка сама дивиться, яких літер у тексті більше, і бере відповідний лік — перемикати нічого не треба.',
+    n3: 'Це <b>оцінка, а не секундомір</b>. Швидкість читання в різних людей відрізняється вдвічі, а складний текст із числами й термінами йде повільніше за простий. Три кнопки нагорі й потрібні, щоб підставити свою швидкість замість середньої.',
+    n4: 'Для доповіді <b>беріть запас</b>: жива мова йде з паузами, застереженнями й відповідями на запитання. Практика радіоведучих — додавати до розрахункового часу приблизно десяту частину.',
+    n5: 'Усе рахується у вашому браузері. Текст нікуди не надсилається і ніде не зберігається.',
+  },
+  en: {
+    speed: 'Speed', slow: 'Unhurried', normal: 'Average', fast: 'Fast',
+    place: 'Paste your text — an article, a talk or a script…',
+    silent: 'Silently', aloud: 'Aloud',
+    wpm: 'words per minute', words: 'Words', chars: 'Characters', sentences: 'Sentences',
+    less: 'under a minute',
+    hint: 'This is an estimate, not a stopwatch: reading speed varies twofold between people. For a talk, leave some slack — speaking aloud with pauses takes longer.',
+    empty: 'Paste some text and the time will appear here.',
+    cyr: 'Cyrillic: longer words, lower speed',
+    clearAll: 'Clear everything', copyBig: 'Copy the summary', copiedBig: 'Copied!',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    report: 'Words: {w}, characters: {c}. Silently — {s}, aloud — {a}.',
+    n1: '<b>Silent reading and speaking are different speeds.</b> An adult reads with their eyes about twice as fast as they speak. So for an article look at the top card, and for a talk or a voice-over at the bottom one.',
+    n2: '<b>Cyrillic gets a lower speed.</b> A Russian word is longer on average than an English one, so the same number of words takes more time. The page looks at which letters dominate your text and picks the right count — nothing to switch.',
+    n3: 'This is <b>an estimate, not a stopwatch</b>. Reading speed varies twofold between people, and dense text full of numbers and terms goes slower than plain prose. The three buttons above exist so you can put in your own speed instead of the average.',
+    n4: 'For a talk, <b>leave slack</b>: live speech comes with pauses, asides and questions. The broadcaster rule of thumb is to add about a tenth to the calculated time.',
+    n5: 'Everything is computed in your browser. The text is never sent anywhere and never stored.',
+  },
+  es: {
+    speed: 'Velocidad', slow: 'Sin prisa', normal: 'Normal', fast: 'Rápido',
+    place: 'Pega tu texto: un artículo, una charla o un guion…',
+    silent: 'En silencio', aloud: 'En voz alta',
+    wpm: 'palabras por minuto', words: 'Palabras', chars: 'Caracteres', sentences: 'Frases',
+    less: 'menos de un minuto',
+    hint: 'Es una estimación, no un cronómetro: la velocidad de lectura varía al doble entre personas. Para una charla, deja margen: en voz alta y con pausas se tarda más.',
+    empty: 'Pega un texto y el tiempo aparecerá aquí.',
+    cyr: 'Cirílico: palabras más largas, velocidad menor',
+    clearAll: 'Limpiar todo', copyBig: 'Copiar el resumen', copiedBig: '¡Copiado!',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    report: 'Palabras: {w}, caracteres: {c}. En silencio, {s}; en voz alta, {a}.',
+    n1: '<b>Leer en silencio y hablar son velocidades distintas.</b> Un adulto lee con los ojos casi el doble de rápido de lo que habla. Para un artículo mira la tarjeta de arriba; para una charla o una locución, la de abajo.',
+    n2: '<b>Al cirílico se le aplica una velocidad menor.</b> Una palabra rusa es de media más larga que una inglesa, así que el mismo número de palabras lleva más tiempo. La página mira qué letras predominan en tu texto y elige el cálculo adecuado: no hay nada que cambiar.',
+    n3: 'Es <b>una estimación, no un cronómetro</b>. La velocidad de lectura varía al doble entre personas, y un texto denso de cifras y términos va más lento que la prosa sencilla. Los tres botones de arriba están para que pongas tu propia velocidad en lugar de la media.',
+    n4: 'Para una charla, <b>deja margen</b>: el habla real lleva pausas, incisos y preguntas. La regla de los locutores es sumar alrededor de una décima parte al tiempo calculado.',
+    n5: 'Todo se calcula en tu navegador. El texto no se envía a ningún sitio ni se guarda.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="чт" data-words={JSON.stringify(с)}>
+  <div class="чт-верх">
+    <span class="чт-подпись">{с.speed}:</span>
+    <div class="чт-кнопки" role="group">
+      <button type="button" class="чт-выбор" id="чт-медленно">{с.slow}</button>
+      <button type="button" class="чт-выбор выбран" id="чт-обычно">{с.normal}</button>
+      <button type="button" class="чт-выбор" id="чт-быстро">{с.fast}</button>
+    </div>
+  </div>
+
+  <div class="чт-поле">
+    <textarea class="чт-ввод" id="чт-ввод" placeholder={с.place} spellcheck="false"></textarea>
+  </div>
+
+  <div class="чт-счётчики">
+    <span>{с.words}: <b id="чт-слов">0</b></span>
+    <span>{с.chars}: <b id="чт-знаков">0</b></span>
+    <span>{с.sentences}: <b id="чт-предложений">0</b></span>
+    <span class="чт-сказ" id="чт-сказ"></span>
+  </div>
+
+  <div class="чт-карточки">
+    <div class="чт-карта">
+      <span class="чт-имя">{с.silent}</span>
+      <span class="чт-время" id="чт-время-глазами">—</span>
+      <span class="чт-скорость" id="чт-скорость-глазами"></span>
+    </div>
+    <div class="чт-карта">
+      <span class="чт-имя">{с.aloud}</span>
+      <span class="чт-время" id="чт-время-вслух">—</span>
+      <span class="чт-скорость" id="чт-скорость-вслух"></span>
+    </div>
+  </div>
+
+  <div class="чт-вывод-строка" id="чт-строка">{с.empty}</div>
+
+  <div class="чт-низ">
+    <button type="button" class="чт-кнопка" id="чт-копировать">{с.copyBig}</button>
+    <button type="button" class="чт-простая" id="чт-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="чт-заметки">
+    <div class="чт-заметка" set:html={с.n1}></div>
+    <div class="чт-заметка" set:html={с.n2}></div>
+    <div class="чт-заметка" set:html={с.n3}></div>
+    <div class="чт-заметка" set:html={с.n4}></div>
+    <div class="чт-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.чт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('чт-ввод');
+
+    // Слов в минуту. Числа -- по крупной сводке исследований чтения: про себя взрослый читает
+    // около 240 слов в минуту, вслух около 180. Для кириллицы берём ниже: русское слово в
+    // среднем длиннее английского, и та же сотня слов читается дольше.
+    const СКОРОСТИ = {
+      лат: { медленно: [180, 130], обычно: [240, 180], быстро: [320, 210] },
+      кир: { медленно: [140, 110], обычно: [190, 150], быстро: [260, 180] },
+    };
+    let темп = 'обычно';
+
+    function считать(текст) {
+      const очищенный = текст.trim();
+      // split(/\s+/) у пустой строки даёт массив из одной пустой строки -- то есть «одно
+      // слово» там, где нет ни одного. Поэтому проверяем пустоту отдельно.
+      const слова = очищенный ? очищенный.split(/\s+/).length : 0;
+      const предложения = очищенный
+        ? (очищенный.match(/[^.!?…]+[.!?…]+|[^.!?…]+$/g) || []).filter((к) => /\S/.test(к)).length
+        : 0;
+      // Какого письма в тексте больше -- по нему и берём скорость.
+      const кир = (текст.match(/[а-яёіїєґА-ЯЁІЇЄҐ]/g) || []).length;
+      const лат = (текст.match(/[a-zA-Z]/g) || []).length;
+      return { слова, предложения, знаки: [...текст].length, кириллица: кир > лат };
+    }
+
+    function времяВид(минуты) {
+      if (минуты <= 0) return '—';
+      if (минуты < 1) return с.less;
+      const всего = Math.round(минуты * 60);
+      const м = Math.floor(всего / 60);
+      const сек = всего % 60;
+      return `${м}:${String(сек).padStart(2, '0')}`;
+    }
+
+    function пересчитать() {
+      const текст = ввод.value;
+      const { слова, предложения, знаки, кириллица } = считать(текст);
+      const [глазами, вслух] = СКОРОСТИ[кириллица ? 'кир' : 'лат'][темп];
+
+      $('чт-слов').textContent = String(слова);
+      $('чт-знаков').textContent = String(знаки);
+      $('чт-предложений').textContent = String(предложения);
+
+      const тГлазами = времяВид(слова / глазами);
+      const тВслух = времяВид(слова / вслух);
+      $('чт-время-глазами').textContent = тГлазами;
+      $('чт-время-вслух').textContent = тВслух;
+      $('чт-скорость-глазами').textContent = `${глазами} ${с.wpm}`;
+      $('чт-скорость-вслух').textContent = `${вслух} ${с.wpm}`;
+      $('чт-строка').textContent = слова ? с.hint : с.empty;
+    }
+
+    function поставитьТемп(имя, кнопка) {
+      темп = имя;
+      for (const и of ['чт-медленно', 'чт-обычно', 'чт-быстро']) {
+        $(и).classList.toggle('выбран', и === кнопка);
+      }
+      пересчитать();
+    }
+
+    function сказать(текст) {
+      const э = $('чт-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('чт-медленно').addEventListener('click', () => поставитьТемп('медленно', 'чт-медленно'));
+    $('чт-обычно').addEventListener('click', () => поставитьТемп('обычно', 'чт-обычно'));
+    $('чт-быстро').addEventListener('click', () => поставитьТемп('быстро', 'чт-быстро'));
+
+    $('чт-копировать').addEventListener('click', async () => {
+      const кнопка = $('чт-копировать');
+      if (!ввод.value.trim()) { сказать(с.nothing); return; }
+      const отчёт = с.report
+        .replace('{w}', $('чт-слов').textContent)
+        .replace('{c}', $('чт-знаков').textContent)
+        .replace('{s}', $('чт-время-глазами').textContent)
+        .replace('{a}', $('чт-время-вслух').textContent);
+      let вышло = false;
+      try { await navigator.clipboard.writeText(отчёт); вышло = true; }
+      catch (ошибка) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('чт-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__чтСостояние = () => ({
+      слов: $('чт-слов').textContent, знаков: $('чт-знаков').textContent,
+      предложений: $('чт-предложений').textContent,
+      глазами: $('чт-время-глазами').textContent, вслух: $('чт-время-вслух').textContent,
+      скоростьГлазами: $('чт-скорость-глазами').textContent, темп,
+    });
+  })();
+</script>

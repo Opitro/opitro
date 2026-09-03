@@ -1,0 +1,287 @@
+---
+// ГЕНЕРАТОР LOREM IPSUM.
+//
+// Текст собирается из словаря классической «рыбы» -- искажённого отрывка Цицерона, которым
+// наборщики пользуются с шестнадцатого века. Слова настоящие латинские, но связного смысла
+// в них нет, и это ровно то, что нужно: макет должен проверяться на длине и ритме строк,
+// а не читаться.
+//
+// Три места, где такой генератор обычно делают небрежно, и все три здесь учтены:
+//   1. Предложения одинаковой длины выдают подделку с первого взгляда. Длина берётся
+//      случайной в разумных пределах, как в живом наборе.
+//   2. Первое слово предложения с заглавной, в конце точка -- иначе «рыба» не проверяет
+//      строчные и прописные в макете.
+//   3. Количество ограничено сверху: тысяча абзацев подвесила бы вкладку, и попросить их
+//      можно только по ошибке.
+//
+// Ничего никуда не уходит: текст рождается в браузере, страница ничего не отправляет.
+import css from '../styles/lorem-ipsum.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    unit: 'Считать в', paras: 'Абзацах', sentences: 'Предложениях', words: 'Словах',
+    count: 'Сколько', classic: 'Начинать с «Lorem ipsum dolor sit amet»',
+    make: 'Создать заново', copyBig: 'Копировать результат', copiedBig: 'Скопировано!',
+    clearAll: 'Очистить', chars: 'Знаков', wordsN: 'Слов', parasN: 'Абзацев',
+    nothing: 'Текста нет', copyFail: 'Браузер не дал скопировать — выделите текст и нажмите Ctrl+C',
+    empty: 'Нажмите «Создать заново» — текст появится здесь.',
+    n1: '<b>Это не бессмыслица, а искажённый Цицерон.</b> «Рыба» пошла от трактата «О пределах добра и зла», написанного в 45 году до нашей эры. Наборщики шестнадцатого века перемешали слова так, чтобы текст перестал читаться, но сохранил вид настоящей латыни.',
+    n2: '<b>Зачем нужен текст без смысла.</b> Осмысленный текст в макете отвлекает: заказчик начинает читать и спорить о словах вместо того, чтобы смотреть на вёрстку. «Рыба» держит внимание там, где надо — на длине строк, на отступах и на ритме абзацев.',
+    n3: 'Предложения здесь <b>разной длины</b>, как в живом наборе. Одинаковые по длине фразы сразу выдают подделку и плохо проверяют перенос строк.',
+    n4: 'Классическое начало «Lorem ipsum dolor sit amet» включено по умолчанию — по нему текст узнают с первого взгляда. Снимите галочку, если нужен просто набор слов без знакомого зачина.',
+    n5: 'Текст рождается прямо в вашем браузере, ничего не скачивается и никуда не отправляется.',
+  },
+  uk: {
+    unit: 'Рахувати в', paras: 'Абзацах', sentences: 'Реченнях', words: 'Словах',
+    count: 'Скільки', classic: 'Починати з «Lorem ipsum dolor sit amet»',
+    make: 'Створити заново', copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!',
+    clearAll: 'Очистити', chars: 'Знаків', wordsN: 'Слів', parasN: 'Абзаців',
+    nothing: 'Тексту немає', copyFail: 'Браузер не дав скопіювати — виділіть текст і натисніть Ctrl+C',
+    empty: 'Натисніть «Створити заново» — текст з’явиться тут.',
+    n1: '<b>Це не абищо, а спотворений Цицерон.</b> «Риба» пішла від трактату «Про межі добра і зла», написаного 45 року до нашої ери. Складачі шістнадцятого століття перемішали слова так, щоб текст перестав читатися, але зберіг вигляд справжньої латини.',
+    n2: '<b>Навіщо потрібен текст без змісту.</b> Осмислений текст у макеті відволікає: замовник починає читати й сперечатися про слова замість того, щоб дивитися на верстку. «Риба» тримає увагу там, де треба — на довжині рядків, на відступах і на ритмі абзаців.',
+    n3: 'Речення тут <b>різної довжини</b>, як у живому наборі. Однакові за довжиною фрази одразу видають підробку й погано перевіряють перенесення рядків.',
+    n4: 'Класичний початок «Lorem ipsum dolor sit amet» увімкнено за замовчуванням — за ним текст упізнають із першого погляду. Зніміть галочку, якщо потрібен просто набір слів без знайомого зачину.',
+    n5: 'Текст народжується просто у вашому браузері, нічого не завантажується й нікуди не надсилається.',
+  },
+  en: {
+    unit: 'Count in', paras: 'Paragraphs', sentences: 'Sentences', words: 'Words',
+    count: 'How many', classic: 'Start with “Lorem ipsum dolor sit amet”',
+    make: 'Generate again', copyBig: 'Copy the result', copiedBig: 'Copied!',
+    clearAll: 'Clear', chars: 'Characters', wordsN: 'Words', parasN: 'Paragraphs',
+    nothing: 'There is no text', copyFail: 'The browser refused to copy — select the text and press Ctrl+C',
+    empty: 'Press “Generate again” and the text will appear here.',
+    n1: '<b>This is not gibberish but a mangled Cicero.</b> The filler comes from “On the Ends of Good and Evil”, written in 45 BC. Sixteenth-century typesetters scrambled the words so the text stopped reading as language while still looking like real Latin.',
+    n2: '<b>Why meaningless text is useful.</b> Meaningful text in a mock-up distracts: the client starts reading and arguing about wording instead of looking at the layout. Filler keeps attention where it belongs — on line length, spacing and the rhythm of paragraphs.',
+    n3: 'The sentences here are <b>of varying length</b>, as in real typesetting. Sentences of equal length give the fake away at once and test line breaking poorly.',
+    n4: 'The classic opening “Lorem ipsum dolor sit amet” is on by default — it is what makes the text recognisable at a glance. Turn it off if you just want a run of words without the familiar start.',
+    n5: 'The text is generated right in your browser; nothing is downloaded and nothing is sent anywhere.',
+  },
+  es: {
+    unit: 'Contar en', paras: 'Párrafos', sentences: 'Frases', words: 'Palabras',
+    count: 'Cuántos', classic: 'Empezar por «Lorem ipsum dolor sit amet»',
+    make: 'Generar de nuevo', copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!',
+    clearAll: 'Limpiar', chars: 'Caracteres', wordsN: 'Palabras', parasN: 'Párrafos',
+    nothing: 'No hay texto', copyFail: 'El navegador no dejó copiar: selecciona el texto y pulsa Ctrl+C',
+    empty: 'Pulsa «Generar de nuevo» y el texto aparecerá aquí.',
+    n1: '<b>No es un galimatías, sino un Cicerón deformado.</b> El relleno viene del tratado «Sobre los fines de los bienes y los males», escrito en el año 45 a. C. Los cajistas del siglo XVI barajaron las palabras para que el texto dejara de leerse pero siguiera pareciendo latín de verdad.',
+    n2: '<b>Para qué sirve un texto sin sentido.</b> Un texto con significado distrae en una maqueta: el cliente empieza a leerlo y a discutir las palabras en lugar de mirar el diseño. El relleno mantiene la atención donde debe estar: en la longitud de las líneas, los márgenes y el ritmo de los párrafos.',
+    n3: 'Aquí las frases son <b>de distinta longitud</b>, como en la composición real. Las frases de igual longitud delatan el truco enseguida y prueban mal los saltos de línea.',
+    n4: 'El comienzo clásico «Lorem ipsum dolor sit amet» viene activado: es lo que hace reconocible el texto de un vistazo. Quita la marca si solo quieres una tirada de palabras sin el arranque de siempre.',
+    n5: 'El texto se genera en tu propio navegador; no se descarga nada ni se envía nada a ninguna parte.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ли" data-words={JSON.stringify(с)}>
+  <div class="ли-верх">
+    <span class="ли-подпись">{с.unit}:</span>
+    <div class="ли-кнопки" role="group">
+      <button type="button" class="ли-выбор выбран" id="ли-абзацы">{с.paras}</button>
+      <button type="button" class="ли-выбор" id="ли-предложения">{с.sentences}</button>
+      <button type="button" class="ли-выбор" id="ли-слова">{с.words}</button>
+    </div>
+    <span class="ли-подпись">{с.count}:</span>
+    <div class="ли-счёт">
+      <button type="button" class="ли-шаг" id="ли-меньше" aria-label="−">−</button>
+      <input class="ли-число" id="ли-сколько" type="number" min="1" max="200" value="3"
+        inputmode="numeric">
+      <button type="button" class="ли-шаг" id="ли-больше" aria-label="+">+</button>
+    </div>
+  </div>
+
+  <div class="ли-верх">
+    <label class="ли-галка"><input type="checkbox" id="ли-классика" checked><i></i>{с.classic}</label>
+  </div>
+
+  <div class="ли-текст пусто" id="ли-текст"><p>{с.empty}</p></div>
+
+  <div class="ли-счётчики">
+    <span>{с.parasN}: <b id="ли-абзацев">0</b></span>
+    <span>{с.wordsN}: <b id="ли-слов">0</b></span>
+    <span>{с.chars}: <b id="ли-знаков">0</b></span>
+    <span class="ли-сказ" id="ли-сказ"></span>
+  </div>
+
+  <div class="ли-низ">
+    <button type="button" class="ли-кнопка" id="ли-копировать">{с.copyBig}</button>
+    <button type="button" class="ли-простая" id="ли-создать">{с.make}</button>
+    <button type="button" class="ли-простая" id="ли-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="ли-заметки">
+    <div class="ли-заметка" set:html={с.n1}></div>
+    <div class="ли-заметка" set:html={с.n2}></div>
+    <div class="ли-заметка" set:html={с.n3}></div>
+    <div class="ли-заметка">{с.n4}</div>
+    <div class="ли-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.ли');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const окно = $('ли-текст');
+
+    // Словарь классической «рыбы»: слова из искажённого отрывка Цицерона.
+    const СЛОВАРЬ = ('lorem ipsum dolor sit amet consectetur adipiscing elit sed do eiusmod tempor '
+      + 'incididunt ut labore et dolore magna aliqua enim ad minim veniam quis nostrud exercitation '
+      + 'ullamco laboris nisi aliquip ex ea commodo consequat duis aute irure in reprehenderit '
+      + 'voluptate velit esse cillum eu fugiat nulla pariatur excepteur sint occaecat cupidatat non '
+      + 'proident sunt culpa qui officia deserunt mollit anim id est laborum at vero eos accusamus '
+      + 'iusto odio dignissimos ducimus blanditiis praesentium voluptatum deleniti atque corrupti '
+      + 'quos dolores quas molestias excepturi occaecati cupiditate similique mollitia animi harum '
+      + 'quidem rerum facilis expedita distinctio nam libero tempore cum soluta nobis eligendi optio '
+      + 'cumque nihil impedit minus quod maxime placeat facere possimus omnis assumenda repellendus '
+      + 'temporibus autem quibusdam officiis debitis necessitatibus saepe eveniet voluptates '
+      + 'repudiandae recusandae itaque earum hic tenetur sapiente delectus reiciendis voluptatibus '
+      + 'maiores alias perferendis doloribus asperiores repellat').split(' ');
+    const ЗАЧИН = 'lorem ipsum dolor sit amet consectetur adipiscing elit'.split(' ');
+    const ПРЕДЕЛ = 200;   // выше -- только по ошибке, а вкладке от этого тяжело
+
+    let единица = 'абзацы';
+
+    const случайно = (от, до) => от + Math.floor(Math.random() * (до - от + 1));
+    const слово = () => СЛОВАРЬ[Math.floor(Math.random() * СЛОВАРЬ.length)];
+
+    // Предложение: заглавная в начале, точка в конце, длина случайная. Одинаковые по длине
+    // фразы сразу выдают подделку и плохо проверяют перенос строк в макете.
+    function предложение(зачин) {
+      const длина = случайно(6, 16);
+      const слова = зачин ? [...ЗАЧИН] : [];
+      while (слова.length < длина) слова.push(слово());
+      слова.length = Math.max(длина, зачин ? ЗАЧИН.length : длина);
+
+      // Запятая в середине длинной фразы -- ради живого ритма, а не украшения. Ставим её
+      // прямо к слову, а не склейкой строк: так не появится пробел перед запятой.
+      if (слова.length > 10) {
+        const место = случайно(4, слова.length - 4);
+        слова[место] = слова[место] + ',';
+      }
+      const текст = слова.join(' ');
+      return текст.charAt(0).toUpperCase() + текст.slice(1) + '.';
+    }
+
+    function абзац(зачин) {
+      const сколько = случайно(3, 6);
+      const части = [];
+      for (let и = 0; и < сколько; и++) части.push(предложение(зачин && и === 0));
+      return части.join(' ');
+    }
+
+    function собрать() {
+      const сколько = Math.min(ПРЕДЕЛ, Math.max(1, parseInt($('ли-сколько').value, 10) || 1));
+      const классика = $('ли-классика').checked;
+      const абзацы = [];
+
+      if (единица === 'абзацы') {
+        for (let и = 0; и < сколько; и++) абзацы.push(абзац(классика && и === 0));
+      } else if (единица === 'предложения') {
+        const части = [];
+        for (let и = 0; и < сколько; и++) части.push(предложение(классика && и === 0));
+        абзацы.push(части.join(' '));
+      } else {
+        const слова = классика ? [...ЗАЧИН] : [];
+        while (слова.length < сколько) слова.push(слово());
+        слова.length = сколько;
+        const текст = слова.join(' ');
+        абзацы.push(текст.charAt(0).toUpperCase() + текст.slice(1));
+      }
+      показать(абзацы);
+    }
+
+    function показать(абзацы) {
+      окно.classList.remove('пусто');
+      окно.replaceChildren(...абзацы.map((т) => {
+        const п = document.createElement('p');
+        п.textContent = т;
+        return п;
+      }));
+      const весь = абзацы.join('\n\n');
+      $('ли-абзацев').textContent = String(абзацы.length);
+      $('ли-слов').textContent = String(весь.trim() ? весь.trim().split(/\s+/).length : 0);
+      $('ли-знаков').textContent = String([...весь].length);
+    }
+
+    function очистить() {
+      окно.classList.add('пусто');
+      const п = document.createElement('p');
+      п.textContent = с.empty;
+      окно.replaceChildren(п);
+      $('ли-абзацев').textContent = '0';
+      $('ли-слов').textContent = '0';
+      $('ли-знаков').textContent = '0';
+    }
+
+    function поставитьЕдиницу(имя, кнопка) {
+      единица = имя;
+      for (const и of ['ли-абзацы', 'ли-предложения', 'ли-слова']) {
+        $(и).classList.toggle('выбран', и === кнопка);
+      }
+      // У слов счёт другого порядка: три абзаца осмысленно, три слова -- нет.
+      $('ли-сколько').value = имя === 'слова' ? '50' : '3';
+      собрать();
+    }
+
+    function сдвинуть(на) {
+      const поле = $('ли-сколько');
+      const было = Math.max(1, parseInt(поле.value, 10) || 1);
+      поле.value = String(Math.min(ПРЕДЕЛ, Math.max(1, было + на)));
+      обновитьШаги();
+      собрать();
+    }
+    function обновитьШаги() {
+      const н = Math.max(1, parseInt($('ли-сколько').value, 10) || 1);
+      $('ли-меньше').disabled = н <= 1;
+      $('ли-больше').disabled = н >= ПРЕДЕЛ;
+    }
+
+    function сказать(текст) {
+      const э = $('ли-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    $('ли-абзацы').addEventListener('click', () => поставитьЕдиницу('абзацы', 'ли-абзацы'));
+    $('ли-предложения').addEventListener('click', () => поставитьЕдиницу('предложения', 'ли-предложения'));
+    $('ли-слова').addEventListener('click', () => поставитьЕдиницу('слова', 'ли-слова'));
+    $('ли-меньше').addEventListener('click', () => сдвинуть(-1));
+    $('ли-больше').addEventListener('click', () => сдвинуть(1));
+    $('ли-сколько').addEventListener('input', () => { обновитьШаги(); собрать(); });
+    $('ли-классика').addEventListener('change', собрать);
+    $('ли-создать').addEventListener('click', собрать);
+    $('ли-очистить').addEventListener('click', очистить);
+
+    $('ли-копировать').addEventListener('click', async () => {
+      const кнопка = $('ли-копировать');
+      if (окно.classList.contains('пусто')) { сказать(с.nothing); return; }
+      const текст = [...окно.querySelectorAll('p')].map((п) => п.textContent).join('\n\n');
+      let вышло = false;
+      try { await navigator.clipboard.writeText(текст); вышло = true; }
+      catch (ошибка) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    обновитьШаги();
+    собрать();
+
+    window.__лиСостояние = () => ({
+      единица, сколько: $('ли-сколько').value, классика: $('ли-классика').checked,
+      абзацев: $('ли-абзацев').textContent, слов: $('ли-слов').textContent,
+      знаков: $('ли-знаков').textContent, пусто: окно.classList.contains('пусто'),
+      первый: (окно.querySelector('p') || {}).textContent || '',
+    });
+  })();
+</script>

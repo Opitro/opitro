@@ -1,0 +1,204 @@
+---
+// РЕВЕРС ТЕКСТА: по буквам, по словам, по строкам.
+//
+// ГЛАВНАЯ ЛОВУШКА -- ПОБУКВЕННЫЙ ПЕРЕВОРОТ. Способ, который советуют повсюду,
+// text.split('').reverse().join(''), режет строку не по буквам, а по половинкам внутренней
+// записи. На обычной латинице разницы не видно, а дальше начинается порча:
+//   -- эмодзи 🎧 хранится двумя половинками, и перевёрнутая строка выдаёт «уу» -- знак,
+//      которого не существует;
+//   -- семья 👨‍👩‍👧 -- это три человечка, склеенные невидимым знаком, и она рассыпается;
+//   -- «й» и «ё» из некоторых источников приходят как «и» плюс отдельная дужка, и дужка
+//      уезжает к соседней букве.
+//
+// Поэтому режем по НАСТОЯЩИМ буквам: Intl.Segmenter умеет это в любом нынешнем браузере.
+// Там, где его нет, отступаем к перебору по знакам Юникода -- он спасает хотя бы эмодзи.
+//
+// Текст никуда не уходит: всё делается в браузере.
+import css from '../styles/text-reverse.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    how: 'Переворачивать', letters: 'По буквам', words: 'По словам', lines: 'По строкам',
+    place: 'Введите текст…', result: 'Перевёрнутый текст появится здесь…',
+    chars: 'Знаков', wordsN: 'Слов', linesN: 'Строк',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>По буквам</b> — вся строка задом наперёд: «Привет» становится «тевирП». <b>По словам</b> — слова меняются местами, но каждое читается как обычно. <b>По строкам</b> — первая строка становится последней, удобно для перевёрнутых списков.',
+    n2: '<b>Эмодзи и составные буквы не рассыпаются.</b> Обычный способ переворота режет строку не по буквам, а по половинкам внутренней записи: 🎧 распадается на два несуществующих знака, а семья из трёх человечков разваливается. Мы режем по настоящим буквам, поэтому 🎧 остаётся 🎧.',
+    n3: 'Перевёрнутый текст <b>не читается зеркально</b> в буквальном смысле: буквы остаются обычными, просто идут в обратном порядке. Настоящее зеркальное отражение делается шрифтом или поворотом, а не перестановкой знаков.',
+    n4: 'Переворот <b>обратим</b>: примените его к результату ещё раз и получите исходный текст. Это верно для всех трёх способов.',
+    n5: 'Всё считается в вашем браузере. Текст никуда не отправляется и нигде не сохраняется.',
+  },
+  uk: {
+    how: 'Перевертати', letters: 'За літерами', words: 'За словами', lines: 'За рядками',
+    place: 'Введіть текст…', result: 'Перевернутий текст з’явиться тут…',
+    chars: 'Знаків', wordsN: 'Слів', linesN: 'Рядків',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>За літерами</b> — увесь рядок задом наперед: «Привіт» стає «тівирП». <b>За словами</b> — слова міняються місцями, але кожне читається як завжди. <b>За рядками</b> — перший рядок стає останнім, зручно для перевернутих списків.',
+    n2: '<b>Емодзі та складені літери не розсипаються.</b> Звичайний спосіб перевороту ріже рядок не за літерами, а за половинками внутрішнього запису: 🎧 розпадається на два неіснуючі знаки, а сім’я з трьох чоловічків розвалюється. Ми ріжемо за справжніми літерами, тому 🎧 лишається 🎧.',
+    n3: 'Перевернутий текст <b>не читається дзеркально</b> в буквальному сенсі: літери лишаються звичайними, просто йдуть у зворотному порядку. Справжнє дзеркальне відображення роблять шрифтом або поворотом, а не перестановкою знаків.',
+    n4: 'Переворот <b>зворотний</b>: застосуйте його до результату ще раз і отримаєте вихідний текст. Це вірно для всіх трьох способів.',
+    n5: 'Усе рахується у вашому браузері. Текст нікуди не надсилається і ніде не зберігається.',
+  },
+  en: {
+    how: 'Reverse', letters: 'By letters', words: 'By words', lines: 'By lines',
+    place: 'Enter your text…', result: 'The reversed text will appear here…',
+    chars: 'Characters', wordsN: 'Words', linesN: 'Lines',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>By letters</b> — the whole string backwards: “Hello” becomes “olleH”. <b>By words</b> — the words swap places while each one still reads normally. <b>By lines</b> — the first line becomes the last, handy for flipping lists.',
+    n2: '<b>Emoji and composed letters do not fall apart.</b> The usual way of reversing cuts the string not by letters but by halves of its internal storage: 🎧 splits into two characters that do not exist, and a family of three figures disintegrates. We cut by real letters, so 🎧 stays 🎧.',
+    n3: 'Reversed text is <b>not mirrored</b> in the literal sense: the letters stay normal, they simply come in the opposite order. A true mirror image is made with a font or a rotation, not by rearranging characters.',
+    n4: 'Reversing is <b>its own undo</b>: apply it to the result once more and the original text comes back. That holds for all three modes.',
+    n5: 'Everything is computed in your browser. The text is never sent anywhere and never stored.',
+  },
+  es: {
+    how: 'Invertir', letters: 'Por letras', words: 'Por palabras', lines: 'Por líneas',
+    place: 'Escribe tu texto…', result: 'El texto invertido aparecerá aquí…',
+    chars: 'Caracteres', wordsN: 'Palabras', linesN: 'Líneas',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Por letras</b>: toda la cadena al revés, «Hola» pasa a «aloH». <b>Por palabras</b>: las palabras cambian de sitio pero cada una se lee con normalidad. <b>Por líneas</b>: la primera línea pasa a ser la última, práctico para dar la vuelta a una lista.',
+    n2: '<b>Los emojis y las letras compuestas no se rompen.</b> La forma habitual de invertir corta la cadena no por letras sino por mitades de su almacenamiento interno: 🎧 se parte en dos signos que no existen y una familia de tres figuras se desmonta. Nosotros cortamos por letras de verdad, así que 🎧 sigue siendo 🎧.',
+    n3: 'El texto invertido <b>no está en espejo</b> en sentido literal: las letras siguen siendo normales, solo van en orden contrario. Un reflejo de verdad se hace con una tipografía o girando el texto, no reordenando caracteres.',
+    n4: 'La inversión <b>se deshace sola</b>: aplícala otra vez al resultado y vuelve el texto original. Vale para los tres modos.',
+    n5: 'Todo se calcula en tu navegador. El texto no se envía a ningún sitio ni se guarda.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="рв" data-words={JSON.stringify(с)}>
+  <div class="рв-верх">
+    <span class="рв-подпись">{с.how}:</span>
+    <div class="рв-кнопки" role="group">
+      <button type="button" class="рв-выбор выбран" id="рв-буквы">{с.letters}</button>
+      <button type="button" class="рв-выбор" id="рв-слова">{с.words}</button>
+      <button type="button" class="рв-выбор" id="рв-строки">{с.lines}</button>
+    </div>
+  </div>
+
+  <div class="рв-пара-полей">
+    <div class="рв-поле">
+      <textarea class="рв-ввод" id="рв-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="рв-поле рв-вывод">
+      <textarea class="рв-ввод" id="рв-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="рв-счётчики">
+      <span>{с.chars}: <b id="рв-знаков">0</b></span>
+      <span>{с.wordsN}: <b id="рв-слов">0</b></span>
+      <span>{с.linesN}: <b id="рв-строк">0</b></span>
+      <span class="рв-сказ" id="рв-сказ"></span>
+    </div>
+  </div>
+
+  <div class="рв-низ">
+    <button type="button" class="рв-кнопка" id="рв-копировать">{с.copyBig}</button>
+    <button type="button" class="рв-простая" id="рв-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="рв-заметки">
+    <div class="рв-заметка" set:html={с.n1}></div>
+    <div class="рв-заметка" set:html={с.n2}></div>
+    <div class="рв-заметка" set:html={с.n3}></div>
+    <div class="рв-заметка" set:html={с.n4}></div>
+    <div class="рв-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.рв');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('рв-ввод');
+    const вывод = $('рв-вывод');
+    let способ = 'буквы';
+
+    // Резак по НАСТОЯЩИМ буквам. split('') режет по половинкам внутренней записи и портит
+    // эмодзи и составные буквы; Intl.Segmenter знает, где кончается буква на самом деле.
+    const резак = (typeof Intl !== 'undefined' && Intl.Segmenter)
+      ? new Intl.Segmenter(undefined, { granularity: 'grapheme' })
+      : null;
+
+    function буквы(строка) {
+      if (резак) return [...резак.segment(строка)].map((к) => к.segment);
+      return [...строка];   // запасной путь: спасает хотя бы эмодзи из двух половинок
+    }
+
+    function перевернуть(текст) {
+      if (способ === 'буквы') return буквы(текст).reverse().join('');
+      if (способ === 'слова') {
+        // Пробелы и переносы сохраняем как есть: иначе абзац склеился бы в одну строку.
+        return текст.split(/(\s+)/).reverse().join('');
+      }
+      // По строкам: переносы могут быть и в виде двух знаков -- разбираем оба вида.
+      return текст.split(/\r\n|\r|\n/).reverse().join('\n');
+    }
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      вывод.value = исходный ? перевернуть(исходный) : '';
+      const обрезанный = исходный.trim();
+      $('рв-знаков').textContent = String(буквы(исходный).length);
+      $('рв-слов').textContent = String(обрезанный ? обрезанный.split(/\s+/).length : 0);
+      $('рв-строк').textContent = String(исходный ? исходный.split(/\r\n|\r|\n/).length : 0);
+    }
+
+    function поставитьСпособ(имя, кнопка) {
+      способ = имя;
+      for (const и of ['рв-буквы', 'рв-слова', 'рв-строки']) {
+        $(и).classList.toggle('выбран', и === кнопка);
+      }
+      пересчитать();
+    }
+
+    function сказать(текст) {
+      const э = $('рв-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('рв-буквы').addEventListener('click', () => поставитьСпособ('буквы', 'рв-буквы'));
+    $('рв-слова').addEventListener('click', () => поставитьСпособ('слова', 'рв-слова'));
+    $('рв-строки').addEventListener('click', () => поставитьСпособ('строки', 'рв-строки'));
+
+    $('рв-копировать').addEventListener('click', async () => {
+      const кнопка = $('рв-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('рв-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__рвСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value, способ,
+      знаков: $('рв-знаков').textContent, слов: $('рв-слов').textContent,
+      строк: $('рв-строк').textContent, резакЕсть: Boolean(резак),
+    });
+  })();
+</script>

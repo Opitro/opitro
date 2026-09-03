@@ -1,0 +1,268 @@
+---
+// УДАЛЕНИЕ HTML-ТЕГОВ.
+//
+// ПОЧЕМУ НЕ ВЫРЕЗАЕМ УГЛОВЫЕ СКОБКИ ПРАВИЛАМИ. Способ из спецификации -- убрать всё между
+// «<» и «>» -- разваливается на живой вёрстке:
+//   -- <a title="цена < 5">: первая же «>» внутри кавычек обрывает тег не там, и в текст
+//      попадает мусор, а часть настоящего текста пропадает;
+//   -- <!-- комментарий с <br> внутри --> вырезается наполовину;
+//   -- &nbsp; и &amp; остаются как есть, и вместо пробелов человек получает «&nbsp;».
+//
+// Поэтому разметку разбирает сам браузер: DOMParser строит из неё ОТДЕЛЬНЫЙ документ,
+// не связанный со страницей. Это и надёжно, и безопасно -- в таком документе ничего не
+// выполняется: <script> остаётся мёртвым текстом, картинки не загружаются.
+//
+// ВТОРАЯ ЛОВУШКА -- СКЛЕЙКА СЛОВ. Простое взятие текста из документа превращает
+// <p>первый</p><p>второй</p> в «первыйвторой». Поэтому блочные теги и <br> заменяем на
+// переносы строк до того, как забрать текст.
+//
+// Ничего никуда не уходит: разбор идёт в браузере, страница ничего не отправляет.
+import css from '../styles/html-strip.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    keepLines: 'Сохранять деление на абзацы', keepLinks: 'Оставлять адреса ссылок',
+    place: 'Вставьте HTML — разметку страницы, письмо или кусок шаблона…',
+    result: 'Чистый текст появится здесь…',
+    tags: 'Убрано тегов', before: 'Было знаков', after: 'Стало', less: 'Короче на',
+    copyBig: 'Копировать чистый текст', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Разметку разбирает сам браузер</b>, а не самодельные правила. Правило «убрать всё между угловыми скобками» разваливается на живой вёрстке: в <code>&lt;a title="цена &lt; 5"&gt;</code> первая же скобка внутри кавычек обрывает тег не там, и часть текста пропадает.',
+    n2: '<b>Содержимое &lt;script&gt; и &lt;style&gt; вырезается целиком</b>, вместе с кодом внутри. Иначе к чистому тексту примешались бы строки программы и правила оформления — их видно на многих сайтах-очистителях.',
+    n3: '<b>Спецсимволы разворачиваются в обычные знаки</b>: <code>&amp;nbsp;</code> становится пробелом, <code>&amp;lt;</code> — угловой скобкой, <code>&amp;amp;</code> — амперсандом. Это делает тот же разбор, отдельного шага не требуется.',
+    n4: '<b>Слова не склеиваются.</b> Простое взятие текста превращает <code>&lt;p&gt;первый&lt;/p&gt;&lt;p&gt;второй&lt;/p&gt;</code> в «первыйвторой». Абзацы, заголовки, пункты списков и <code>&lt;br&gt;</code> заменяются переносами строк — переключатель наверху этим и управляет.',
+    n5: '<b>Ничего не выполняется.</b> Разметка разбирается в отдельном документе, не связанном со страницей: программы внутри не запускаются, картинки не загружаются, запросы никуда не уходят. Чужой код можно вставлять без опаски.',
+    n6: 'Всё делается в вашем браузере. Ни разметка, ни полученный текст никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    keepLines: 'Зберігати поділ на абзаци', keepLinks: 'Лишати адреси посилань',
+    place: 'Вставте HTML — розмітку сторінки, лист або шматок шаблону…',
+    result: 'Чистий текст з’явиться тут…',
+    tags: 'Прибрано тегів', before: 'Було знаків', after: 'Стало', less: 'Коротше на',
+    copyBig: 'Копіювати чистий текст', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Розмітку розбирає сам браузер</b>, а не саморобні правила. Правило «прибрати все між кутовими дужками» розвалюється на живій верстці: у <code>&lt;a title="ціна &lt; 5"&gt;</code> перша ж дужка всередині лапок обриває тег не там, і частина тексту зникає.',
+    n2: '<b>Вміст &lt;script&gt; і &lt;style&gt; вирізається цілком</b>, разом із кодом усередині. Інакше до чистого тексту домішалися б рядки програми та правила оформлення — це видно на багатьох сайтах-очищувачах.',
+    n3: '<b>Спецсимволи розгортаються у звичайні знаки</b>: <code>&amp;nbsp;</code> стає пробілом, <code>&amp;lt;</code> — кутовою дужкою, <code>&amp;amp;</code> — амперсандом. Це робить той самий розбір, окремого кроку не потрібно.',
+    n4: '<b>Слова не склеюються.</b> Просте взяття тексту перетворює <code>&lt;p&gt;перший&lt;/p&gt;&lt;p&gt;другий&lt;/p&gt;</code> на «першийдругий». Абзаци, заголовки, пункти списків і <code>&lt;br&gt;</code> замінюються переносами рядків — перемикач нагорі цим і керує.',
+    n5: '<b>Нічого не виконується.</b> Розмітка розбирається в окремому документі, не пов’язаному зі сторінкою: програми всередині не запускаються, картинки не завантажуються, запити нікуди не йдуть. Чужий код можна вставляти без остраху.',
+    n6: 'Усе робиться у вашому браузері. Ні розмітка, ні отриманий текст нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    keepLines: 'Keep the split into paragraphs', keepLinks: 'Keep link addresses',
+    place: 'Paste HTML — page markup, an email or a chunk of a template…',
+    result: 'The clean text will appear here…',
+    tags: 'Tags removed', before: 'Characters before', after: 'After', less: 'Shorter by',
+    copyBig: 'Copy the clean text', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>The markup is parsed by the browser itself</b>, not by home-made rules. The rule “delete everything between angle brackets” falls apart on real markup: in <code>&lt;a title="price &lt; 5"&gt;</code> the first bracket inside the quotes ends the tag in the wrong place and part of the text disappears.',
+    n2: '<b>The contents of &lt;script&gt; and &lt;style&gt; are cut out entirely</b>, code and all. Otherwise lines of program and styling rules would end up mixed into the clean text — you can see that happen on many stripper sites.',
+    n3: '<b>Entities are turned back into ordinary characters</b>: <code>&amp;nbsp;</code> becomes a space, <code>&amp;lt;</code> an angle bracket, <code>&amp;amp;</code> an ampersand. The same parsing pass does it; no separate step is needed.',
+    n4: '<b>Words do not run together.</b> Simply taking the text turns <code>&lt;p&gt;first&lt;/p&gt;&lt;p&gt;second&lt;/p&gt;</code> into “firstsecond”. Paragraphs, headings, list items and <code>&lt;br&gt;</code> become line breaks — that is what the switch above controls.',
+    n5: '<b>Nothing is executed.</b> The markup is parsed into a separate document unconnected to this page: programs inside do not run, images are not fetched, no requests go out. You can paste code written by someone else without worry.',
+    n6: 'Everything happens in your browser. Neither the markup nor the resulting text is sent anywhere or stored.',
+  },
+  es: {
+    keepLines: 'Conservar la división en párrafos', keepLinks: 'Conservar las direcciones de los enlaces',
+    place: 'Pega HTML: el código de una página, un correo o un trozo de plantilla…',
+    result: 'El texto limpio aparecerá aquí…',
+    tags: 'Etiquetas quitadas', before: 'Caracteres antes', after: 'Después', less: 'Más corto en',
+    copyBig: 'Copiar el texto limpio', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>El código lo analiza el propio navegador</b>, no unas reglas caseras. La regla «borrar todo lo que hay entre corchetes angulares» se desmonta con código real: en <code>&lt;a title="precio &lt; 5"&gt;</code> el primer signo dentro de las comillas corta la etiqueta donde no toca y parte del texto desaparece.',
+    n2: '<b>El contenido de &lt;script&gt; y &lt;style&gt; se elimina entero</b>, con su código dentro. Si no, al texto limpio se le colarían líneas de programa y reglas de estilo, algo que se ve en muchas webs limpiadoras.',
+    n3: '<b>Las entidades vuelven a ser caracteres normales</b>: <code>&amp;nbsp;</code> pasa a espacio, <code>&amp;lt;</code> a corchete angular y <code>&amp;amp;</code> a ampersand. Lo hace el mismo análisis; no hace falta un paso aparte.',
+    n4: '<b>Las palabras no se pegan.</b> Tomar el texto sin más convierte <code>&lt;p&gt;primero&lt;/p&gt;&lt;p&gt;segundo&lt;/p&gt;</code> en «primerosegundo». Los párrafos, los títulos, los elementos de lista y <code>&lt;br&gt;</code> se convierten en saltos de línea: eso es lo que controla el interruptor de arriba.',
+    n5: '<b>No se ejecuta nada.</b> El código se analiza en un documento aparte, sin conexión con esta página: los programas de dentro no se ejecutan, las imágenes no se descargan y no sale ninguna petición. Puedes pegar código ajeno sin miedo.',
+    n6: 'Todo ocurre en tu navegador. Ni el código ni el texto resultante se envían a ningún sitio ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="хтм" data-words={JSON.stringify(с)}>
+  <div class="хтм-верх">
+    <label class="хтм-галка"><input type="checkbox" id="хтм-абзацы" checked><i></i>{с.keepLines}</label>
+    <label class="хтм-галка"><input type="checkbox" id="хтм-ссылки"><i></i>{с.keepLinks}</label>
+  </div>
+
+  <div class="хтм-пара-полей">
+    <div class="хтм-поле">
+      <textarea class="хтм-ввод" id="хтм-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="хтм-поле хтм-вывод">
+      <textarea class="хтм-ввод" id="хтм-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="хтм-счётчики">
+      <span>{с.tags}: <b id="хтм-тегов">0</b></span>
+      <span>{с.before}: <b id="хтм-было">0</b></span>
+      <span>{с.after}: <b id="хтм-стало">0</b></span>
+      <span>{с.less}: <b id="хтм-короче">0%</b></span>
+      <span class="хтм-сказ" id="хтм-сказ"></span>
+    </div>
+  </div>
+
+  <div class="хтм-низ">
+    <button type="button" class="хтм-кнопка" id="хтм-копировать">{с.copyBig}</button>
+    <button type="button" class="хтм-простая" id="хтм-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="хтм-заметки">
+    <div class="хтм-заметка" set:html={с.n1}></div>
+    <div class="хтм-заметка" set:html={с.n2}></div>
+    <div class="хтм-заметка" set:html={с.n3}></div>
+    <div class="хтм-заметка" set:html={с.n4}></div>
+    <div class="хтм-заметка" set:html={с.n5}></div>
+    <div class="хтм-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.хтм');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('хтм-ввод');
+    const вывод = $('хтм-вывод');
+
+    // Теги, после которых в тексте начинается новая строка. Без этого <p>а</p><p>б</p>
+    // превратилось бы в «аб».
+    //
+    // Разделителей ДВА, и это важно. Абзац от абзаца отделяется пустой строкой, как в любом
+    // человеческом тексте. А пункты списка и ячейки таблицы -- обычным переносом: список,
+    // у которого между пунктами зияет пустая строка, читается как набор обрывков.
+    const АБЗАЦНЫЕ = new Set(['ADDRESS', 'ARTICLE', 'ASIDE', 'BLOCKQUOTE', 'DIV', 'FIELDSET',
+      'FIGCAPTION', 'FIGURE', 'FOOTER', 'FORM', 'H1', 'H2', 'H3', 'H4', 'H5', 'H6', 'HEADER',
+      'HR', 'MAIN', 'NAV', 'P', 'PRE', 'SECTION', 'TABLE', 'OL', 'UL', 'DL']);
+    const СТРОЧНЫЕ = new Set(['LI', 'TR', 'TD', 'TH', 'DT', 'DD', 'THEAD', 'TBODY', 'TFOOT']);
+    // Знаки, которых в человеческом тексте не бывает: ставим их как метки границ.
+    const АБЗАЦ = '\u0002';
+    const СТРОКА = '\u0001';
+
+    function очистить(разметка) {
+      // Разметку разбирает сам браузер, в ОТДЕЛЬНОМ документе: он не связан со страницей,
+      // и внутри него ничего не выполняется -- ни программы, ни загрузка картинок.
+      const док = new DOMParser().parseFromString(разметка, 'text/html');
+      const тегов = док.body ? док.body.getElementsByTagName('*').length : 0;
+
+      // Программы и правила оформления убираем вместе с содержимым: иначе их строки
+      // примешаются к чистому тексту.
+      for (const мусор of [...док.querySelectorAll('script, style, noscript, template')]) {
+        мусор.remove();
+      }
+
+      if ($('хтм-ссылки').checked) {
+        for (const ссылка of [...док.querySelectorAll('a[href]')]) {
+          const адрес = ссылка.getAttribute('href');
+          if (адрес && !адрес.startsWith('#') && !адрес.startsWith('javascript:')) {
+            ссылка.append(document.createTextNode(` (${адрес})`));
+          }
+        }
+      }
+
+      const абзацы = $('хтм-абзацы').checked;
+      if (абзацы) {
+        // Ставим МЕТКИ, а не сразу переносы. Переносами не обойтись: у двух соседних пунктов
+        // списка перенос стоит и в конце первого, и в начале второго -- выходит пустая строка,
+        // и список читается как набор обрывков. Метки же можно сложить: где рядом встретились
+        // и абзацная, и строчная, побеждает абзацная, а лишнее схлопывается.
+        for (const узел of [...док.body.querySelectorAll('br')]) {
+          узел.replaceWith(document.createTextNode(СТРОКА));
+        }
+        // В <pre> переносы значимы: это уже готовое расположение строк, его нельзя терять.
+        for (const узел of [...док.body.querySelectorAll('pre')]) {
+          узел.textContent = (узел.textContent || '').replace(/\r\n|\r|\n/g, СТРОКА);
+        }
+        for (const узел of [...док.body.querySelectorAll('*')]) {
+          const метка = АБЗАЦНЫЕ.has(узел.tagName) ? АБЗАЦ
+            : (СТРОЧНЫЕ.has(узел.tagName) ? СТРОКА : '');
+          if (!метка) continue;
+          узел.append(document.createTextNode(метка));
+          узел.prepend(document.createTextNode(метка));
+        }
+      }
+
+      let текст = док.body ? док.body.textContent || '' : '';
+      // Неразрывный пробел разворачивается разбором как есть -- превращаем его в обычный.
+      текст = текст.replace(/\u00A0/g, ' ');
+
+      if (абзацы) {
+        // Любая вереница из меток и пробелов схлопывается в один разделитель: пустую строку,
+        // если среди меток была абзацная, иначе обычный перенос.
+        текст = текст.replace(/[\u0001\u0002\s]+/g, (кусок) => {
+          if (кусок.includes(АБЗАЦ)) return '\n\n';
+          if (кусок.includes(СТРОКА)) return '\n';
+          return ' ';
+        }).trim();
+      } else {
+        текст = текст.replace(/[\u0001\u0002\s]+/g, ' ').trim();
+      }
+      return { текст, тегов };
+    }
+
+    function пересчитать() {
+      const разметка = ввод.value;
+      if (!разметка.trim()) {
+        вывод.value = '';
+        for (const [и, з] of [['хтм-тегов', '0'], ['хтм-было', '0'], ['хтм-стало', '0'],
+                              ['хтм-короче', '0%']]) $(и).textContent = з;
+        return;
+      }
+      const { текст, тегов } = очистить(разметка);
+      вывод.value = текст;
+      const было = [...разметка].length;
+      const стало = [...текст].length;
+      $('хтм-тегов').textContent = String(тегов);
+      $('хтм-было').textContent = String(было);
+      $('хтм-стало').textContent = String(стало);
+      $('хтм-короче').textContent = было
+        ? `${Math.max(0, Math.round((1 - стало / было) * 100))}%` : '0%';
+    }
+
+    function сказать(текст) {
+      const э = $('хтм-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('хтм-абзацы').addEventListener('change', пересчитать);
+    $('хтм-ссылки').addEventListener('change', пересчитать);
+
+    $('хтм-копировать').addEventListener('click', async () => {
+      const кнопка = $('хтм-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('хтм-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__хтмСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      абзацы: $('хтм-абзацы').checked, ссылки: $('хтм-ссылки').checked,
+      тегов: $('хтм-тегов').textContent, было: $('хтм-было').textContent,
+      стало: $('хтм-стало').textContent, короче: $('хтм-короче').textContent,
+    });
+  })();
+</script>
