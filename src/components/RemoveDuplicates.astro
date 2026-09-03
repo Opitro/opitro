@@ -1,0 +1,238 @@
+---
+// УДАЛЕНИЕ ПОВТОРОВ СТРОК.
+//
+// Три переключателя решают, что считать одинаковым: регистр, пробелы по краям и пустые
+// строки. Без них человек не понимает, почему «яблоко» и «яблоко » остались обе.
+//
+// ПОРЯДОК СОХРАНЯЕТСЯ. Оставляем ПЕРВОЕ вхождение каждой строки и не трогаем расположение
+// остальных: список после чистки должен выглядеть тем же списком. Кому нужен алфавит, тот
+// идёт на соседнюю страницу сортировки.
+//
+// СРАВНИВАЕМ ПО КЛЮЧУ, А ХРАНИМ ОРИГИНАЛ. Если регистр игнорируется, «Яблоко» и «яблоко»
+// одинаковы, но в списке остаётся та строка, которая встретилась первой -- со своим
+// регистром и своими пробелами. Приводить текст к нижнему регистру нельзя: человек просил
+// убрать дубли, а не переписать ему список.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/remove-duplicates.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте ваш список сюда (каждый элемент с новой строки)…',
+    was: 'Исходно строк', now: 'Уникальных', removed: 'Удалено',
+    ignoreCase: 'Игнорировать регистр', dropEmpty: 'Удалить пустые строки',
+    ignoreSpaces: 'Игнорировать пробелы по краям',
+    run: 'Убрать дубликаты',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!',
+    clearAll: 'Очистить всё', undo: 'Отменить',
+    nothing: 'Поле пустое', clean: 'Повторов не нашлось',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: 'Порядок списка сохраняется: остаётся первое вхождение каждой строки, остальные исчезают. Список после чистки выглядит тем же списком — если нужен алфавит, отсортируйте его на соседней странице.',
+    n2: '«Игнорировать пробелы по краям» — переключатель, из-за которого чаще всего кажется, что страница не работает. Строки «яблоко» и «яблоко » выглядят одинаково, но различаются невидимым пробелом, и без этого переключателя обе останутся.',
+    n3: 'Регистр и пробелы влияют только на сравнение. В списке остаётся та строка, которая встретилась первой, — со своим регистром и своими пробелами: вы просили убрать повторы, а не переписать список.',
+    n4: 'Пустые строки считаются обычными строками и тоже сводятся к одной. Если они не нужны вовсе, включите «удалить пустые строки» — тогда они исчезнут целиком.',
+    n5: 'Список никуда не отправляется: чистка идёт прямо в вашем браузере, страница ничего не сохраняет.',
+  },
+  uk: {
+    place: 'Вставте ваш список сюди (кожен елемент з нового рядка)…',
+    was: 'Початково рядків', now: 'Унікальних', removed: 'Видалено',
+    ignoreCase: 'Ігнорувати регістр', dropEmpty: 'Видалити порожні рядки',
+    ignoreSpaces: 'Ігнорувати пробіли по краях',
+    run: 'Прибрати дублікати',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!',
+    clearAll: 'Очистити все', undo: 'Скасувати',
+    nothing: 'Поле порожнє', clean: 'Повторів не знайшлося',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: 'Порядок списку зберігається: лишається перше входження кожного рядка, решта зникає. Список після чистки має вигляд того самого списку — якщо потрібен алфавіт, відсортуйте його на сусідній сторінці.',
+    n2: '«Ігнорувати пробіли по краях» — перемикач, через який найчастіше здається, що сторінка не працює. Рядки «яблуко» і «яблуко » виглядають однаково, але різняться невидимим пробілом, і без цього перемикача обидва лишаться.',
+    n3: 'Регістр і пробіли впливають лише на порівняння. У списку лишається той рядок, який трапився першим, — зі своїм регістром і своїми пробілами: ви просили прибрати повтори, а не переписати список.',
+    n4: 'Порожні рядки вважаються звичайними рядками й теж зводяться до одного. Якщо вони не потрібні зовсім, увімкніть «видалити порожні рядки» — тоді вони зникнуть цілком.',
+    n5: 'Список нікуди не надсилається: чистка йде просто у вашому браузері, сторінка нічого не зберігає.',
+  },
+  en: {
+    place: 'Paste your list here (one item per line)…',
+    was: 'Lines before', now: 'Unique', removed: 'Removed',
+    ignoreCase: 'Ignore case', dropEmpty: 'Remove blank lines',
+    ignoreSpaces: 'Ignore spaces at the edges',
+    run: 'Remove duplicates',
+    copyBig: 'Copy the result', copiedBig: 'Copied!',
+    clearAll: 'Clear everything', undo: 'Undo',
+    nothing: 'The field is empty', clean: 'No duplicates were found',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: 'The order of the list is kept: the first occurrence of every line stays and the rest go. The cleaned list still looks like the same list — if you want it alphabetical, sort it on the neighbouring page.',
+    n2: '“Ignore spaces at the edges” is the switch that most often makes people think the page is broken. “apple” and “apple ” look identical but differ by an invisible space, and without this switch both survive.',
+    n3: 'Case and spaces affect the comparison only. The line that stays is the one that came first — with its own case and its own spaces: you asked to remove repeats, not to rewrite the list.',
+    n4: 'Blank lines count as ordinary lines and collapse to one as well. If you do not want them at all, switch on “remove blank lines” and they disappear entirely.',
+    n5: 'The list is never sent anywhere: the cleaning happens inside your browser and the page stores nothing.',
+  },
+  es: {
+    place: 'Pega aquí tu lista (un elemento por línea)…',
+    was: 'Líneas iniciales', now: 'Únicas', removed: 'Eliminadas',
+    ignoreCase: 'Ignorar mayúsculas', dropEmpty: 'Eliminar líneas vacías',
+    ignoreSpaces: 'Ignorar espacios en los bordes',
+    run: 'Quitar duplicados',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!',
+    clearAll: 'Limpiar todo', undo: 'Deshacer',
+    nothing: 'El campo está vacío', clean: 'No se han encontrado repetidos',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: 'El orden de la lista se conserva: se queda la primera aparición de cada línea y el resto desaparece. La lista limpia sigue pareciendo la misma lista; si la quieres alfabética, ordénala en la página vecina.',
+    n2: '«Ignorar espacios en los bordes» es el interruptor que más veces hace pensar que la página no funciona. «manzana» y «manzana » se ven iguales pero se diferencian por un espacio invisible, y sin él sobreviven las dos.',
+    n3: 'Las mayúsculas y los espacios solo afectan a la comparación. Se queda la línea que apareció primero, con sus mayúsculas y sus espacios: pediste quitar repetidos, no reescribir la lista.',
+    n4: 'Las líneas vacías cuentan como líneas normales y también se reducen a una. Si no las quieres en absoluto, activa «eliminar líneas vacías» y desaparecerán del todo.',
+    n5: 'La lista no se envía a ninguna parte: la limpieza ocurre en tu navegador y la página no guarda nada.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дб" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="дб-поле">
+    <textarea class="дб-ввод" id="дб-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    <div class="дб-счётчики">
+      <span>{с.was}: <b id="дб-было">0</b></span>
+      <span>{с.now}: <b id="дб-стало">0</b></span>
+      <span class="дб-убрано" id="дб-убрано">{с.removed}: 0</span>
+      <span class="дб-сказ" id="дб-сказ"></span>
+    </div>
+  </div>
+
+  <div class="дб-выборы">
+    <label class="дб-выбор"><input type="checkbox" id="дб-регистр" checked><i></i>{с.ignoreCase}</label>
+    <label class="дб-выбор"><input type="checkbox" id="дб-пробелы" checked><i></i>{с.ignoreSpaces}</label>
+    <label class="дб-выбор"><input type="checkbox" id="дб-пустые"><i></i>{с.dropEmpty}</label>
+  </div>
+
+  <div class="дб-кнопки">
+    <button type="button" class="дб-кнопка действие" id="дб-убрать">{с.run}</button>
+  </div>
+
+  <div class="дб-низ">
+    <button type="button" class="дб-кнопка главная" id="дб-копировать">{с.copyBig}</button>
+    <button type="button" class="дб-простая" id="дб-очистить">{с.clearAll}</button>
+    <button type="button" class="дб-простая" id="дб-отменить" disabled>{с.undo}</button>
+  </div>
+
+  <div class="дб-заметки">
+    <div class="дб-заметка">{с.n1}</div>
+    <div class="дб-заметка">{с.n2}</div>
+    <div class="дб-заметка">{с.n3}</div>
+    <div class="дб-заметка">{с.n4}</div>
+    <div class="дб-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.дб');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const поле = $('дб-ввод');
+    const история = [];
+    // Строк в тексте, который человек вставил. От него считается «удалено».
+    let былоСтрок = 0;
+
+    function сказать(текст) {
+      const э = $('дб-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    const строкВПоле = () => (поле.value === '' ? 0 : поле.value.split('\n').length);
+
+    function числа() {
+      const стало = строкВПоле();
+      const убрано = Math.max(0, былоСтрок - стало);
+      $('дб-было').textContent = былоСтрок;
+      $('дб-стало').textContent = стало;
+      const у = $('дб-убрано');
+      у.textContent = с.removed + ': ' + убрано;
+      у.classList.toggle('есть', убрано > 0);
+    }
+
+    // Ключ сравнения. Сама строка от него не меняется -- он нужен только чтобы решить,
+    // одинаковы ли две строки.
+    function ключ(строка) {
+      let к = строка;
+      if ($('дб-пробелы').checked) к = к.trim();
+      // toLocaleLowerCase, а не toLowerCase: в разных языках буквы переходят по-разному.
+      if ($('дб-регистр').checked) к = к.toLocaleLowerCase(язык);
+      return к;
+    }
+
+    function убрать() {
+      const было = поле.value;
+      if (!было.trim()) { сказать(с.nothing); return; }
+      let строки = было.split('\n');
+      if ($('дб-пустые').checked) строки = строки.filter((с_) => с_.trim() !== '');
+      const виделись = new Set();
+      const итог = [];
+      for (const строка of строки) {
+        const к = ключ(строка);
+        if (виделись.has(к)) continue;
+        виделись.add(к);
+        // Кладём ОРИГИНАЛ, а не ключ: список должен остаться списком человека.
+        итог.push(строка);
+      }
+      const стало = итог.join('\n');
+      if (стало === было) { сказать(с.clean); return; }
+      история.push(было);
+      if (история.length > 20) история.shift();
+      поле.value = стало;
+      $('дб-отменить').disabled = false;
+      числа();
+    }
+
+    $('дб-убрать').addEventListener('click', убрать);
+
+    $('дб-отменить').addEventListener('click', () => {
+      const было = история.pop();
+      if (было == null) return;
+      поле.value = было;
+      $('дб-отменить').disabled = история.length === 0;
+      числа();
+    });
+
+    $('дб-копировать').addEventListener('click', async () => {
+      const кнопка = $('дб-копировать');
+      if (!поле.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(поле.value); вышло = true; }
+      catch (ошибка) {
+        поле.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('дб-очистить').addEventListener('click', () => {
+      if (!поле.value) { сказать(с.nothing); return; }
+      история.push(поле.value);
+      поле.value = '';
+      былоСтрок = 0;
+      $('дб-отменить').disabled = false;
+      числа();
+    });
+
+    // Человек тронул текст сам -- отсчёт «исходно строк» начинается заново.
+    поле.addEventListener('input', () => { былоСтрок = строкВПоле(); числа(); });
+    числа();
+
+    window.__дбСостояние = () => ({
+      текст: поле.value,
+      числа: [$('дб-было').textContent, $('дб-стало').textContent, $('дб-убрано').textContent],
+      подсвечено: $('дб-убрано').classList.contains('есть'),
+      выборы: [$('дб-регистр').checked, $('дб-пробелы').checked, $('дб-пустые').checked],
+      история: история.length, сказано: $('дб-сказ').textContent,
+    });
+  })();
+</script>
