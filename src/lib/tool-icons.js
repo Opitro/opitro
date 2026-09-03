@@ -26,11 +26,66 @@ const I = {
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
   temp: '<path d="M14 14.8V4a2 2 0 1 0-4 0v10.8a4.5 4.5 0 1 0 4 0z"/>',
   tool: '<rect x="3" y="3" width="7" height="7" rx="1.5"/><rect x="14" y="3" width="7" height="7" rx="1.5"/><rect x="3" y="14" width="7" height="7" rx="1.5"/><rect x="14" y="14" width="7" height="7" rx="1.5"/>',
+
+  // Проверки устройств. Тридцать пять страниц рубрики раньше делили один общий значок из
+  // четырёх квадратиков -- страница выглядела списком одинаковых кнопок. Теперь у каждой
+  // семьи свой рисунок и свой цвет.
+  screen: '<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M9 21h6M12 17v4"/>',
+  pixel: '<rect x="2.5" y="4" width="19" height="13" rx="2"/><path d="M9 21h6M12 17v4"/><rect x="9" y="8.5" width="3" height="3" rx=".6" fill="currentColor" stroke="none"/>',
+  palette: '<circle cx="12" cy="12" r="9"/><circle cx="8.5" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="7.6" r="1.3" fill="currentColor" stroke="none"/><circle cx="15.5" cy="10" r="1.3" fill="currentColor" stroke="none"/><circle cx="12" cy="15" r="1.6" fill="currentColor" stroke="none"/>',
+  refresh: '<path d="M20 12a8 8 0 1 1-2.6-5.9"/><path d="M20 4v5h-5"/>',
+  sun: '<circle cx="12" cy="12" r="4"/><path d="M12 2v2M12 20v2M2 12h2M20 12h2M5 5l1.5 1.5M17.5 17.5L19 19M19 5l-1.5 1.5M6.5 17.5L5 19"/>',
+  projector: '<rect x="2.5" y="7" width="14" height="10" rx="2"/><circle cx="9.5" cy="12" r="2.6"/><path d="M17 10l4.5-2.5v9L17 14"/>',
+  speaker: '<rect x="6" y="2.5" width="12" height="19" rx="2.5"/><circle cx="12" cy="15" r="3.4"/><circle cx="12" cy="6.5" r="1.3"/>',
+  ear: '<path d="M7 9a5 5 0 0 1 10 0c0 3-3 4-3 6.5A3.5 3.5 0 0 1 10.5 19"/><path d="M10.5 9.5a1.8 1.8 0 0 1 3.5.6"/>',
+  sine: '<path d="M2 12c3-8 5 8 8 0s5 8 8 0"/>',
+  waves: '<path d="M4 12a3 3 0 0 1 0-4M7.5 14a7 7 0 0 1 0-8M11 16a11 11 0 0 1 0-12"/><path d="M15 8h6M15 12h6M15 16h6"/>',
+  keyboard: '<rect x="2" y="6" width="20" height="12" rx="2"/><path d="M6 10h.01M10 10h.01M14 10h.01M18 10h.01M8 14h8"/>',
+  mouse: '<rect x="7" y="2.5" width="10" height="19" rx="5"/><path d="M12 6.5v4"/>',
+  cursor: '<path d="M6 3l13 8-6 1.5L10 19z"/>',
+  keys: '<rect x="3" y="8" width="6" height="6" rx="1.5"/><rect x="15" y="8" width="6" height="6" rx="1.5"/><path d="M9 11h6"/>',
+  touch: '<path d="M9 11V5.5a2 2 0 1 1 4 0V13"/><path d="M13 10.5a2 2 0 1 1 4 0V16a5 5 0 0 1-5 5h-1.2a4 4 0 0 1-3.2-1.6L5 15.5a1.8 1.8 0 0 1 2.6-2.4L9 14.5"/>',
+  multitouch: '<circle cx="7.5" cy="9" r="3"/><circle cx="16.5" cy="15" r="3"/><path d="M7.5 12v6M16.5 12V6"/>',
+  stylus: '<path d="M4 20l3-1 11-11-2-2L5 17z"/><path d="M14.5 5.5l2 2"/><path d="M4 20l1-3"/>',
+  gamepad: '<path d="M6 8h12a4 4 0 0 1 3.9 3.1l.8 4A3 3 0 0 1 17.8 18l-1.4-2H7.6l-1.4 2a3 3 0 0 1-4.9-2.9l.8-4A4 4 0 0 1 6 8z"/><path d="M7 11.5v2M6 12.5h2"/><circle cx="16.5" cy="11.6" r=".8" fill="currentColor" stroke="none"/><circle cx="18.4" cy="13.4" r=".8" fill="currentColor" stroke="none"/>',
+  compass: '<circle cx="12" cy="12" r="9"/><path d="M15.5 8.5l-2 5-5 2 2-5z"/>',
+  vibro: '<rect x="8" y="4" width="8" height="16" rx="2"/><path d="M4 9v6M2 10.5v3M20 9v6M22 10.5v3"/>',
+  camera: '<rect x="2.5" y="6.5" width="19" height="13" rx="2.5"/><circle cx="12" cy="13" r="3.6"/><path d="M8.5 6.5l1.4-2.2h4.2l1.4 2.2"/>',
+  battery: '<rect x="2.5" y="7" width="16" height="10" rx="2.5"/><path d="M21.5 10.5v3"/><rect x="5" y="9.5" width="7" height="5" rx="1" fill="currentColor" stroke="none"/>',
+  bluetooth: '<path d="M7.5 7.5l9 9-4.5 4V3l4.5 4-9 9"/>',
+  codec: '<rect x="2.5" y="5" width="19" height="14" rx="2"/><path d="M2.5 9h19M6 5v4M10 5v4M14 5v4M18 5v4"/>',
 };
 
 // Порядок важен: первое совпадение выигрывает, поэтому частное стоит выше общего --
 // "remove-silence" должен попасть в резку, а не в шум по слову "silence".
 const RULES = [
+  // Проверки устройств -- первыми: их имена содержат слова из общих правил ниже
+  // («speaker-cleaner» иначе ушёл бы в громкость, «tone-generator» -- в ноты).
+  [/dead-pixel|stuck-pixel/, 'pixel'],
+  [/burn-in|monitor-color/, 'palette'],
+  [/refresh-rate/, 'refresh'],
+  [/hdr-test/, 'sun'],
+  [/projector/, 'projector'],
+  [/speaker-cleaner|subwoofer|sound-test/, 'speaker'],
+  [/hearing-test/, 'ear'],
+  [/tone-generator/, 'sine'],
+  [/ultrasound/, 'waves'],
+  [/audio-delay/, 'refresh'],
+  [/sound-meter|mic-test|mic-noise/, 'mic'],
+  [/keyboard-test|key-rollover|key-chatter/, 'keyboard'],
+  [/mouse-test|polling-rate/, 'mouse'],
+  [/click-speed/, 'cursor'],
+  [/typing/, 'keys'],
+  [/touchscreen/, 'touch'],
+  [/multi-touch/, 'multitouch'],
+  [/stylus/, 'stylus'],
+  [/gamepad/, 'gamepad'],
+  [/phone-sensors/, 'compass'],
+  [/vibration-test/, 'vibro'],
+  [/webcam/, 'camera'],
+  [/battery-test/, 'battery'],
+  [/bluetooth/, 'bluetooth'],
+  [/codecs/, 'codec'],
   // Голос стоит ПЕРЕД резкой: «split-vocal» содержит «split», и без этого страница про вокал
   // получала ножницы.
   [/vocal|remove-music|voice-changer/, 'mic'],
@@ -51,8 +106,34 @@ const RULES = [
 
 const BY_CATEGORY = { length: 'ruler', weight: 'weight', volume: 'beaker', temperature: 'temp', audio: 'wave' };
 
+// ЦВЕТ ЗНАЧКА -- по его рисунку, а не по рубрике. Владелец: «сейчас все значки зелёные и
+// они сливаются». Цвет берётся от того, что нарисовано: экран синий, солнце жёлтое, камера
+// красная, батарея зелёная. Один зелёный на всю страницу превращал тридцать пять разных
+// проверок в один сплошной список.
+const ЦВЕТА = {
+  cut: '#9fb6cf', merge: '#a78bfa', volume: '#4ade9e', noise: '#ffd166', mic: '#ff7b8f',
+  notes: '#c084fc', speed: '#ff9f5a', convert: '#58b8f0', wave: '#2ee6c5', sliders: '#a3e635',
+  video: '#f87171', bell: '#ffc247', text: '#cbd5e1', ruler: '#60a5fa', weight: '#eab308',
+  beaker: '#38bdf8', temp: '#fb7185', tool: '#94a3b8',
+  screen: '#58b8f0', pixel: '#a78bfa', palette: '#f472b6', refresh: '#2ee6c5', sun: '#ffd166',
+  projector: '#ff9f5a', speaker: '#4ade9e', ear: '#7dd3fc', sine: '#a3e635', waves: '#00d9ff',
+  keyboard: '#94a3b8', mouse: '#c084fc', cursor: '#ffc247', keys: '#86efac', touch: '#2ee6c5',
+  multitouch: '#58b8f0', stylus: '#00f0ff', gamepad: '#7c8cff', compass: '#34d399',
+  vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
+};
+
+/** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */
+function семья(slug = '', category = '') {
+  for (const [rx, name] of RULES) if (rx.test(slug)) return name;
+  return BY_CATEGORY[category] || 'tool';
+}
+
+/** Цвет плашки под значком -- по тому, что на значке нарисовано. */
+export function colorFor(slug = '', category = '') {
+  return ЦВЕТА[семья(slug, category)] || ЦВЕТА.tool;
+}
+
 /** Значок для инструмента: сначала по роду действия, потом по категории, в крайнем случае общий. */
 export function iconFor(slug = '', category = '') {
-  for (const [rx, name] of RULES) if (rx.test(slug)) return I[name];
-  return I[BY_CATEGORY[category]] || I.tool;
+  return I[семья(slug, category)] || I.tool;
 }

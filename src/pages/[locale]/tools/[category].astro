@@ -6,7 +6,7 @@ import TemperatureUniversalConverter from '../../../components/TemperatureUniver
 import AdSlot from '../../../components/AdSlot.astro';
 import { t as translate } from '../../../lib/ui-strings.js';
 import { поПолкам } from '../../../lib/tool-groups.js';
-import { iconFor } from '../../../lib/tool-icons.js';
+import { iconFor, colorFor } from '../../../lib/tool-icons.js';
 
 export async function getStaticPaths() {
   const locales = ['en', 'ru', 'es', 'uk'];
@@ -291,7 +291,9 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
             <div class="all-tools-grid" style={`--shelf: ${п.цвет}`}>
               {п.инструменты.map((t) => (
                 <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-                  <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+                  <span class="tc-плашка" style={`--цвет: ${colorFor(t.data.toolSlug, t.data.category)}`}>
+                    <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+                  </span>
                   <span class="tc-name">{t.data.navName || t.data.h1}</span>
                 </a>
               ))}
@@ -303,7 +305,9 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
       <div class="all-tools-grid">
         {tools.map((t) => (
           <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-            <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+            <span class="tc-плашка" style={`--цвет: ${colorFor(t.data.toolSlug, t.data.category)}`}>
+              <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
+            </span>
             <span class="tc-name">{t.data.navName || t.data.h1}</span>
           </a>
         ))}
@@ -346,4 +350,21 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   .shelf-name::after{content:"";flex:1;height:1px;
     background:linear-gradient(90deg,color-mix(in srgb,var(--shelf,var(--accent)) 38%,transparent),rgba(255,255,255,.06))}
   .shelf-name b{color:rgba(214,219,230,.5);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
+
+  /* ПЛАШКА ПОД ЗНАЧКОМ. Раньше значки были одного зелёного цвета и без подложки: тридцать
+     пять разных проверок читались как один сплошной список. Теперь у каждого инструмента
+     своя плашка, а её цвет взят от того, что нарисовано на значке (см. colorFor). Цвет
+     задаётся переменной --цвет прямо в разметке, поэтому одного правила хватает на все
+     плитки сразу. */
+  .tc-плашка{flex:none;display:inline-flex;align-items:center;justify-content:center;
+    width:32px;height:32px;border-radius:9px;
+    background:color-mix(in srgb,var(--цвет) 16%,transparent);
+    border:1px solid color-mix(in srgb,var(--цвет) 30%,transparent);
+    transition:background .2s,border-color .2s}
+  /* Значок внутри плашки берёт её цвет, а не цвет полки. */
+  .tc-плашка .tc-ico{color:var(--цвет);width:17px;height:17px}
+  .tool-card:hover .tc-плашка{background:color-mix(in srgb,var(--цвет) 26%,transparent);
+    border-color:color-mix(in srgb,var(--цвет) 55%,transparent)}
+  /* Плитка стала выше на высоту плашки -- поле подгоняем, чтобы ряды не выглядели тесно. */
+  .all-tools-grid .tool-card{padding:10px 12px;gap:11px}
 </style>
