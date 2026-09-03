@@ -4,7 +4,7 @@ locale: en
 category: device-tests
 tool: gamepad-test
 title: "Gamepad Tester Online — Check Controller Drift & Input Lag"
-h1: Online Gamepad & Controller Tester
+h1: Gamepad & Controller Tester
 navName: Gamepad test
 description: "Online tool to test Xbox, PlayStation, Nintendo Switch and PC controllers. Check joystick drift, axis precision, buttons, triggers and vibration right in your browser."
 faq:

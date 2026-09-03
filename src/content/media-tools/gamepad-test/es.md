@@ -4,7 +4,7 @@ locale: es
 category: device-tests
 tool: gamepad-test
 title: "Probador de gamepad online — test de joystick, drift y latencia"
-h1: Test de gamepad y controlador online
+h1: Test de gamepad y controlador
 navName: Test de gamepad
 description: "Herramienta online para probar mandos de Xbox, PlayStation, Nintendo Switch y PC. Comprueba el drift de los joysticks, la precisión de los ejes, los botones, los gatillos y la vibración."
 faq:
