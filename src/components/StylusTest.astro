@@ -1,0 +1,439 @@
+---
+// ТЕСТ СТИЛУСА -- своя страница со своим кодом и стилями.
+//
+// Проверяем то, ради чего перо покупают:
+//   * НАЖИМ -- толщина линии идёт за силой нажатия (маркер). Понятно без чисел.
+//   * НАКЛОН -- карандашом: наклонил перо, след стал шире и бледнее, как боком грифеля.
+//   * ПОВОРОТ, БОКОВАЯ КНОПКА, ЛАСТИК, НАВЕДЕНИЕ -- отдельными признаками: их отдают не все
+//     перья, и «не загорелось» здесь значит «не видели», а не «сломано».
+//   * ТОЧЕК В СЕКУНДУ -- сколько замеров пера доходит до страницы. Считаются склеенные
+//     события (getCoalescedEvents), а не кадры: именно от их числа зависит гладкость линии.
+//
+// Честность в двух местах:
+//   1. У пальца и мыши поле нажима равно ровно 0,5 -- это «нажима нет», а не половина силы.
+//      Признак нажима засчитывается только перу и только при отклонении от этой половины.
+//   2. Число точек в секунду -- это НЕ паспортная частота пера. Мы честно называем то, что
+//      считаем: сколько замеров дошло до браузера.
+import css from '../styles/stylus-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hint: 'Обведите бледные образцы пером, меняя силу нажатия. Маркер проверяет нажим, карандаш — наклон. Приборы справа живут вместе с пером, а признаки внизу загораются, когда страница их увидела.',
+    label: 'Обведите образцы пером',
+    pencil: 'Карандаш', marker: 'Маркер', eraser: 'Ластик', clear: 'Очистить',
+    kind: 'Чем рисуете', press: 'Нажим', tilt: 'Наклон', rate: 'Точек в секунду',
+    pen: 'перо', finger: 'палец', mouse: 'мышь', none: '—',
+    fPress: 'Нажим', fTilt: 'Наклон', fTwist: 'Поворот',
+    fBtn: 'Боковая кнопка', fEraser: 'Ластик', fHover: 'Наведение',
+    wait: 'Проведите первую линию — приборы оживут, а признаки начнут загораться.',
+    isPen: 'Это перо. Загорелось признаков: {n} из шести. Незагоревшиеся попробуйте вызвать: наклоните перо, поверните его вокруг оси, нажмите боковую кнопку, переверните ластиком вниз.',
+    isAll: 'Перо в полном порядке: страница увидела все шесть признаков — нажим, наклон, поворот, боковую кнопку, ластик и наведение.',
+    isFinger: 'Сейчас рисует палец, а не перо. Нажим от пальца браузеру не приходит вовсе — для проверки стилуса возьмите перо.',
+    isMouse: 'Сейчас рисует мышь. Ни нажима, ни наклона у неё нет и быть не может — для проверки стилуса нужно перо.',
+    n1: 'У пальца и мыши браузер всегда показывает нажим 0,5. Это не «половина силы», а «настоящего нажима нет»: признак засчитывается только перу и только когда число от этой половины отличается.',
+    n2: 'Точки в секунду — это сколько замеров пера дошло до страницы, а не паспортная частота стилуса. Число зависит и от пера, и от экрана, и от браузера; от него же зависит гладкость линии. Ровные 60 обычно значат, что замеры пришли по кадрам экрана, а не чаще.',
+    n3: 'Наклон и поворот отдают не все перья. Apple Pencil даёт наклон, но не поворот; у перьев Wacom поворот есть только у отдельных моделей. Незагоревшийся признак сам по себе поломкой не является.',
+    n4: 'На компьютере с Windows нажим часто не доходит до браузера, пока в настройках планшета не включён Windows Ink. Если линия ровная, а перо точно с нажимом — проверьте эту настройку, прежде чем винить перо.',
+    n5: 'Дрожание линии и увод у краёв видно только на образце: обведите круг и спираль и посмотрите, повторяет ли след рисунок. По чистому листу этого не понять — сравнивать не с чем.',
+  },
+  en: {
+    hint: 'Trace the faint templates with your pen, varying the pressure. The marker tests pressure, the pencil tests tilt. The gauges live with the pen, and the features below light up once the page has seen them.',
+    label: 'Trace the templates with your pen',
+    pencil: 'Pencil', marker: 'Marker', eraser: 'Eraser', clear: 'Clear',
+    kind: 'Drawing with', press: 'Pressure', tilt: 'Tilt', rate: 'Points per second',
+    pen: 'pen', finger: 'finger', mouse: 'mouse', none: '—',
+    fPress: 'Pressure', fTilt: 'Tilt', fTwist: 'Twist',
+    fBtn: 'Barrel button', fEraser: 'Eraser', fHover: 'Hover',
+    wait: 'Draw your first stroke — the gauges will come alive and the features will start lighting up.',
+    isPen: 'This is a pen. Features seen so far: {n} of six. To trigger the rest, tilt the pen, roll it around its axis, press the barrel button, and flip it eraser-down.',
+    isAll: 'The pen is in perfect order: the page has seen all six features — pressure, tilt, twist, barrel button, eraser and hover.',
+    isFinger: 'A finger is drawing, not a pen. A finger sends no pressure to the browser at all — use a pen to test a stylus.',
+    isMouse: 'A mouse is drawing. It has neither pressure nor tilt and never will — testing a stylus needs a pen.',
+    n1: 'For a finger and a mouse the browser always reports a pressure of 0.5. That is not “half strength”, it is “no real pressure here”: the feature counts only for a pen and only when the value differs from that half.',
+    n2: 'Points per second is how many pen samples reached the page, not the stylus’s rated report rate. It depends on the pen, the screen and the browser — and line smoothness depends on it too. A steady 60 usually means samples arrived once per screen frame and no faster.',
+    n3: 'Not every pen reports tilt and twist. The Apple Pencil reports tilt but not twist; among Wacom pens, twist exists only on particular models. A feature that never lights up is not a fault by itself.',
+    n4: 'On Windows, pressure often never reaches the browser until Windows Ink is enabled in the tablet settings. If your line stays flat and the pen definitely supports pressure, check that setting before blaming the pen.',
+    n5: 'Jitter and edge drift only show up against a template: trace the circle and the spiral and see whether the stroke follows the drawing. A blank sheet tells you nothing — there is nothing to compare with.',
+  },
+  es: {
+    hint: 'Repasa las plantillas tenues con el lápiz variando la presión. El marcador prueba la presión; el lápiz, la inclinación. Los indicadores viven con el lápiz y las funciones de abajo se encienden cuando la página las ve.',
+    label: 'Repasa las plantillas con el lápiz',
+    pencil: 'Lápiz', marker: 'Marcador', eraser: 'Borrador', clear: 'Limpiar',
+    kind: 'Dibujas con', press: 'Presión', tilt: 'Inclinación', rate: 'Puntos por segundo',
+    pen: 'lápiz', finger: 'dedo', mouse: 'ratón', none: '—',
+    fPress: 'Presión', fTilt: 'Inclinación', fTwist: 'Giro',
+    fBtn: 'Botón lateral', fEraser: 'Borrador', fHover: 'Proximidad',
+    wait: 'Haz el primer trazo: los indicadores cobrarán vida y las funciones empezarán a encenderse.',
+    isPen: 'Esto es un lápiz. Funciones vistas: {n} de seis. Para provocar las demás, inclínalo, gíralo sobre su eje, pulsa el botón lateral y dale la vuelta con el borrador hacia abajo.',
+    isAll: 'El lápiz está perfecto: la página ha visto las seis funciones — presión, inclinación, giro, botón lateral, borrador y proximidad.',
+    isFinger: 'Está dibujando un dedo, no un lápiz. Un dedo no envía presión alguna al navegador: para probar el lápiz, usa el lápiz.',
+    isMouse: 'Está dibujando un ratón. No tiene presión ni inclinación ni las tendrá: para probar un lápiz hace falta un lápiz.',
+    n1: 'Con el dedo y el ratón el navegador informa siempre de una presión de 0,5. No es «media fuerza», es «aquí no hay presión real»: la función solo cuenta con lápiz y solo cuando el valor se aparta de esa mitad.',
+    n2: 'Los puntos por segundo son las muestras del lápiz que llegaron a la página, no la frecuencia nominal del stylus. Dependen del lápiz, de la pantalla y del navegador, y de ellos depende la suavidad del trazo. Un 60 constante suele significar que las muestras llegaron una por fotograma y no más rápido.',
+    n3: 'No todos los lápices informan de inclinación y giro. El Apple Pencil da inclinación pero no giro; entre los Wacom, el giro solo existe en modelos concretos. Una función que no se enciende no es, por sí sola, una avería.',
+    n4: 'En Windows la presión a menudo no llega al navegador mientras no esté activado Windows Ink en la configuración de la tableta. Si la línea sale plana y el lápiz sí tiene presión, revisa ese ajuste antes de culpar al lápiz.',
+    n5: 'El temblor y la desviación en los bordes solo se ven sobre una plantilla: repasa el círculo y la espiral y mira si el trazo sigue al dibujo. Una hoja en blanco no dice nada: no hay con qué comparar.',
+  },
+  uk: {
+    hint: 'Обведіть бліді зразки пером, змінюючи силу натискання. Маркер перевіряє натиск, олівець — нахил. Прилади живуть разом із пером, а ознаки внизу загоряються, коли сторінка їх побачила.',
+    label: 'Обведіть зразки пером',
+    pencil: 'Олівець', marker: 'Маркер', eraser: 'Гумка', clear: 'Очистити',
+    kind: 'Чим малюєте', press: 'Натиск', tilt: 'Нахил', rate: 'Точок за секунду',
+    pen: 'перо', finger: 'палець', mouse: 'миша', none: '—',
+    fPress: 'Натиск', fTilt: 'Нахил', fTwist: 'Поворот',
+    fBtn: 'Бічна кнопка', fEraser: 'Гумка', fHover: 'Наведення',
+    wait: 'Проведіть першу лінію — прилади оживуть, а ознаки почнуть загорятися.',
+    isPen: 'Це перо. Загорілося ознак: {n} із шести. Незагорілі спробуйте викликати: нахиліть перо, поверніть його навколо осі, натисніть бічну кнопку, переверніть гумкою вниз.',
+    isAll: 'Перо в повному порядку: сторінка побачила всі шість ознак — натиск, нахил, поворот, бічну кнопку, гумку й наведення.',
+    isFinger: 'Зараз малює палець, а не перо. Натиск від пальця браузеру не приходить зовсім — для перевірки стилуса візьміть перо.',
+    isMouse: 'Зараз малює миша. Ні натиску, ні нахилу в неї немає і бути не може — для перевірки стилуса потрібне перо.',
+    n1: 'Для пальця й миші браузер завжди показує натиск 0,5. Це не «половина сили», а «справжнього натиску немає»: ознака зараховується лише перу і лише коли число від цієї половини відрізняється.',
+    n2: 'Точки за секунду — це скільки замірів пера дійшло до сторінки, а не паспортна частота стилуса. Число залежить і від пера, і від екрана, і від браузера; від нього ж залежить гладкість лінії. Рівні 60 зазвичай означають, що заміри прийшли по кадрах екрана, а не частіше.',
+    n3: 'Нахил і поворот віддають не всі пера. Apple Pencil дає нахил, але не поворот; у перах Wacom поворот є лише в окремих моделей. Незагоріла ознака сама по собі поломкою не є.',
+    n4: 'На комп’ютері з Windows натиск часто не доходить до браузера, поки в налаштуваннях планшета не ввімкнено Windows Ink. Якщо лінія рівна, а перо точно з натиском — перевірте це налаштування, перш ніж винити перо.',
+    n5: 'Тремтіння лінії та увід біля країв видно лише на зразку: обведіть коло і спіраль і подивіться, чи повторює слід малюнок. По чистому аркушу цього не зрозуміти — немає з чим порівняти.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ЗНАЧКИ = {
+  pencil: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20l4-1 10-10-3-3L5 16z"/><path d="M14 6l3 3"/></svg>',
+  marker: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M9 20H5l-1-4 9-9 5 5-9 8z"/><path d="M13 7l4 4"/></svg>',
+  eraser: '<svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M6 19h12"/><path d="M8.5 17l-3.5-3.5a2 2 0 0 1 0-2.8l7-7a2 2 0 0 1 2.8 0l3.5 3.5a2 2 0 0 1 0 2.8L14 17z"/></svg>',
+};
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ст" data-words={JSON.stringify(с)}>
+  <p class="ст-подсказка">{с.hint}</p>
+
+  <div class="ст-лист" id="ст-лист">
+    <canvas class="ст-подложка" id="ст-подложка"></canvas>
+    <canvas class="ст-холст" id="ст-холст"></canvas>
+    <div class="ст-тень" id="ст-тень"></div>
+    <div class="ст-надпись" id="ст-надпись">{с.label}</div>
+  </div>
+
+  <div class="ст-инструменты" id="ст-инструменты">
+    <button type="button" class="ст-и вкл" data-и="маркер"><span set:html={ЗНАЧКИ.marker} />{с.marker}</button>
+    <button type="button" class="ст-и" data-и="карандаш"><span set:html={ЗНАЧКИ.pencil} />{с.pencil}</button>
+    <button type="button" class="ст-и" data-и="ластик"><span set:html={ЗНАЧКИ.eraser} />{с.eraser}</button>
+  </div>
+
+  <div class="ст-приборы">
+    <div class="ст-прибор">
+      <span class="к">{с.kind}</span>
+      <span class="н слово" id="ст-тип">{с.none}</span>
+    </div>
+    <div class="ст-прибор">
+      <span class="к">{с.press}</span>
+      <span class="н свой" id="ст-нажим">—</span>
+      <span class="ст-столб"><i id="ст-столб"></i></span>
+    </div>
+    <div class="ст-прибор">
+      <span class="к">{с.tilt}</span>
+      <span class="ст-круг"><i class="ст-стрелка" id="ст-стрелка"></i></span>
+      <span class="н" id="ст-наклон" style="font-size:15px">—</span>
+    </div>
+    <div class="ст-прибор">
+      <span class="к">{с.rate}</span>
+      <span class="н свой" id="ст-частота">—</span>
+    </div>
+  </div>
+
+  <div class="ст-признаки" id="ст-признаки">
+    <span class="ст-признак" data-п="нажим"><i></i>{с.fPress}</span>
+    <span class="ст-признак" data-п="наклон"><i></i>{с.fTilt}</span>
+    <span class="ст-признак" data-п="поворот"><i></i>{с.fTwist}</span>
+    <span class="ст-признак" data-п="кнопка"><i></i>{с.fBtn}</span>
+    <span class="ст-признак" data-п="ластик"><i></i>{с.fEraser}</span>
+    <span class="ст-признак" data-п="наведение"><i></i>{с.fHover}</span>
+  </div>
+
+  <div class="ст-кнопки">
+    <button type="button" class="ст-кнопка главная" id="ст-очистить">{с.clear}</button>
+  </div>
+
+  <div class="ст-итог" id="ст-итог"></div>
+
+  <div class="ст-заметки">
+    <div class="ст-заметка">{с.n1}</div>
+    <div class="ст-заметка">{с.n2}</div>
+    <div class="ст-заметка">{с.n3}</div>
+    <div class="ст-заметка">{с.n4}</div>
+    <div class="ст-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.ст');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const лист = $('ст-лист');
+    const холст = $('ст-холст');
+    const кисть = холст.getContext('2d');
+    const подложка = $('ст-подложка');
+    const фон = подложка.getContext('2d');
+    const тень = $('ст-тень');
+
+    const признаки = new Map();
+    корень.querySelectorAll('.ст-признак').forEach((э) => признаки.set(э.dataset.п, э));
+    const виделось = new Set();
+    let последнийТип = '';
+    let инструмент = 'маркер';
+
+    /* ---- Холсты --------------------------------------------------------------------- */
+
+    function готовить() {
+      const п = лист.getBoundingClientRect();
+      const плотность = Math.min(window.devicePixelRatio || 1, 2);
+      // Нарисованное сохраняется: стирать чужой рисунок из-за поворота телефона обидно.
+      const было = холст.width ? кисть.getImageData(0, 0, холст.width, холст.height) : null;
+      for (const к of [холст, подложка]) {
+        к.width = Math.round(п.width * плотность);
+        к.height = Math.round(п.height * плотность);
+      }
+      if (было) кисть.putImageData(было, 0, 0);
+      кисть.setTransform(плотность, 0, 0, плотность, 0, 0);
+      кисть.lineCap = 'round';
+      кисть.lineJoin = 'round';
+      фон.setTransform(плотность, 0, 0, плотность, 0, 0);
+      рисоватьПодложку(п.width, п.height);
+    }
+
+    // Подложка: точечная сетка и три образца. Дрожание линии и увод у краёв видно только
+    // при обводке -- по чистому листу сравнивать не с чем.
+    function рисоватьПодложку(ш, в) {
+      фон.clearRect(0, 0, ш, в);
+      фон.fillStyle = 'rgba(0,240,255,.16)';
+      for (let x = 24; x < ш; x += 24) {
+        for (let y = 24; y < в; y += 24) { фон.fillRect(x, y, 1, 1); }
+      }
+      фон.strokeStyle = 'rgba(0,240,255,.30)';
+      фон.lineWidth = 1;
+      фон.setLineDash([5, 6]);
+      const цx = ш * 0.28, цy = в * 0.5, р = Math.min(ш, в) * 0.3;
+      фон.beginPath(); фон.arc(цx, цy, р, 0, Math.PI * 2); фон.stroke();
+      // Спираль -- самая честная проверка дрожания: кривизна меняется всё время, и рука
+      // не может «доехать по памяти».
+      const сx = ш * 0.68, сy = в * 0.42, сР = Math.min(ш, в) * 0.26;
+      фон.beginPath();
+      for (let t = 0; t <= Math.PI * 6; t += 0.05) {
+        const r = (t / (Math.PI * 6)) * сР;
+        const x = сx + Math.cos(t) * r, y = сy + Math.sin(t) * r;
+        t ? фон.lineTo(x, y) : фон.moveTo(x, y);
+      }
+      фон.stroke();
+      фон.beginPath(); фон.moveTo(ш * 0.12, в * 0.9); фон.lineTo(ш * 0.88, в * 0.9); фон.stroke();
+      фон.setLineDash([]);
+    }
+
+    /* ---- Признаки и приборы ---------------------------------------------------------- */
+
+    function отметить(имя) {
+      if (виделось.has(имя)) return;
+      виделось.add(имя);
+      const э = признаки.get(имя);
+      if (э) э.classList.add('есть');
+      итог();
+    }
+
+    function итог() {
+      const поле = $('ст-итог');
+      if (!последнийТип) { поле.innerHTML = с.wait; return; }
+      if (последнийТип === 'pen') {
+        // Когда нашлись все шесть, звать «вызвать незагоревшиеся» уже некуда.
+        поле.innerHTML = виделось.size >= 6 ? с.isAll
+          : с.isPen.replace('{n}', `<b class="свой">${виделось.size}</b>`);
+      }
+      else if (последнийТип === 'touch') поле.innerHTML = с.isFinger;
+      else поле.innerHTML = с.isMouse;
+    }
+
+    // Считаем СКЛЕЕННЫЕ замеры, а не события: браузер отдаёт их пачкой раз в кадр, и по
+    // событиям вышло бы ровно 60 у любого пера. Число называем тем, что оно есть, --
+    // сколько точек дошло до страницы.
+    const замеры = [];
+    function засчитать(сколько) {
+      const т = performance.now();
+      for (let i = 0; i < сколько; i++) замеры.push(т);
+      while (замеры.length && т - замеры[0] > 1000) замеры.shift();
+    }
+    setInterval(() => {
+      const т = performance.now();
+      while (замеры.length && т - замеры[0] > 1000) замеры.shift();
+      $('ст-частота').textContent = замеры.length > 8 ? String(замеры.length) : '—';
+    }, 250);
+
+    // У пальца и мыши нажим всегда ровно 0,5 -- это «нажима нет», а не половина силы.
+    function настоящийНажим(e) {
+      return e.pointerType === 'pen' && Math.abs(e.pressure - 0.5) > 0.02;
+    }
+
+    function приборы(e) {
+      const перо = e.pointerType === 'pen';
+      const полеТипа = $('ст-тип');
+      полеТипа.textContent = перо ? с.pen : e.pointerType === 'touch' ? с.finger : с.mouse;
+      полеТипа.className = 'н слово' + (перо ? ' свой' : '');
+      if (последнийТип !== e.pointerType) { последнийТип = e.pointerType; итог(); }
+
+      const доля = перо ? e.pressure : 0;
+      $('ст-нажим').textContent = перо ? Math.round(e.pressure * 100) + '%' : '—';
+      $('ст-столб').style.width = Math.round(доля * 100) + '%';
+
+      const тx = e.tiltX || 0, тy = e.tiltY || 0;
+      const наклон = Math.round(Math.min(90, Math.hypot(тx, тy)));
+      $('ст-наклон').textContent = перо ? наклон + '°' : '—';
+      // Стрелка смотрит туда же, куда наклонено перо, и ложится тем сильнее, чем больше угол.
+      const куда = Math.round(Math.atan2(тx, -тy) * 180 / Math.PI);
+      $('ст-стрелка').style.transform = `rotate(${перо ? куда : 0}deg) scaleY(${перо ? 0.35 + наклон / 140 : 1})`;
+
+      if (настоящийНажим(e)) отметить('нажим');
+      if (перо && наклон > 5) отметить('наклон');
+      if (перо && Math.abs(e.twist || 0) > 3) отметить('поворот');
+      if (e.buttons & 2) отметить('кнопка');
+      if (перо && (e.buttons & 32)) отметить('ластик');
+    }
+
+    /* ---- Рисование ------------------------------------------------------------------- */
+
+    const следы = new Map();
+
+    лист.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      // Захват в защите: браузер бросает ошибку, если указателя с таким номером уже нет
+      // (палец сняли, перо ушло с экрана). Без защиты она обрывала бы весь обработчик, и
+      // приборы с признаками не обновлялись бы вовсе.
+      try { лист.setPointerCapture(e.pointerId); } catch (ошибка) {}
+      лист.classList.add('рисовали');
+      тень.classList.remove('видна');
+      const п = лист.getBoundingClientRect();
+      следы.set(e.pointerId, { x: e.clientX - п.left, y: e.clientY - п.top });
+      приборы(e);
+    });
+
+    лист.addEventListener('pointermove', (e) => {
+      const п = лист.getBoundingClientRect();
+      // Перо над листом: касания ещё нет, а место уже известно. Это и есть наведение.
+      if (e.pointerType === 'pen' && e.buttons === 0) {
+        тень.style.left = (e.clientX - п.left) + 'px';
+        тень.style.top = (e.clientY - п.top) + 'px';
+        тень.classList.add('видна');
+        отметить('наведение');
+        приборы(e);
+        return;
+      }
+      const было = следы.get(e.pointerId);
+      if (!было) return;
+      приборы(e);
+
+      const стираем = инструмент === 'ластик' || (e.pointerType === 'pen' && (e.buttons & 32));
+      const шаги = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      const список = шаги.length ? шаги : [e];
+      засчитать(список.length);
+      кисть.globalCompositeOperation = стираем ? 'destination-out' : 'source-over';
+      let прошлое = было;
+      if (инструмент === 'карандаш' && !стираем) {
+        // Карандаш кладётся боком: чем сильнее наклон, тем шире и бледнее след. Пачка
+        // замеров рисуется ОДНИМ путём: отрезками по одному прозрачный след ложился бы
+        // сам на себя внахлёст, и линия выглядела бы низкой бусов, а не штрихом.
+        const последний = список[список.length - 1];
+        const угол = Math.min(90, Math.hypot(последний.tiltX || 0, последний.tiltY || 0));
+        кисть.lineWidth = 1.5 + (угол / 90) * 16;
+        // Бледность берётся ЦВЕТОМ, а не прозрачностью. Прозрачный след ложится сам на себя
+        // на стыках отрезков, и линия выходит цепочкой бусин вместо штриха. Фон листа тёмный,
+        // поэтому серый читается как более бледный ничуть не хуже.
+        const серость = Math.round(242 - (угол / 90) * 130);
+        кисть.strokeStyle = `rgb(${серость},${серость + 6},${серость + 14})`;
+        кисть.beginPath();
+        кисть.moveTo(прошлое.x, прошлое.y);
+        for (const ш of список) {
+          прошлое = { x: ш.clientX - п.left, y: ш.clientY - п.top };
+          кисть.lineTo(прошлое.x, прошлое.y);
+        }
+        кисть.stroke();
+      } else {
+        for (const ш of список) {
+          const т = { x: ш.clientX - п.left, y: ш.clientY - п.top };
+          const сила = настоящийНажим(ш) ? ш.pressure : 0.35;
+          // Толщина маркера идёт за нажимом покапельно, поэтому каждый отрезок свой.
+          // Наложения не видно: след непрозрачный.
+          кисть.lineWidth = стираем ? 24 : 1 + сила * 13;
+          кисть.strokeStyle = (ш.buttons & 2) ? '#00f0ff' : '#f2f5fa';
+          кисть.beginPath();
+          кисть.moveTo(прошлое.x, прошлое.y);
+          кисть.lineTo(т.x, т.y);
+          кисть.stroke();
+          прошлое = т;
+        }
+      }
+      кисть.globalCompositeOperation = 'source-over';
+      следы.set(e.pointerId, прошлое);
+    });
+
+    const отпустить = (e) => { следы.delete(e.pointerId); };
+    лист.addEventListener('pointerup', отпустить);
+    лист.addEventListener('pointercancel', отпустить);
+    лист.addEventListener('pointerleave', (e) => { отпустить(e); тень.classList.remove('видна'); });
+    лист.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    корень.querySelectorAll('.ст-и').forEach((к) => {
+      к.addEventListener('click', () => {
+        инструмент = к.dataset.и;
+        корень.querySelectorAll('.ст-и').forEach((д) => д.classList.toggle('вкл', д === к));
+      });
+    });
+
+    $('ст-очистить').addEventListener('click', () => {
+      кисть.clearRect(0, 0, холст.width, холст.height);
+      лист.classList.remove('рисовали');
+      $('ст-очистить').blur();
+    });
+
+    // МЕСТО ПОД СТРОКУ ИТОГА. Текстов четыре, они разной длины и на разной ширине окна
+    // переносятся по-разному -- числом такой запас не угадать ни для одного языка.
+    const полеИтога = $('ст-итог');
+    function местоПодИтог() {
+      const было = полеИтога.innerHTML;
+      полеИтога.style.minHeight = '0px';
+      let самый = 0;
+      for (const т of [с.wait, с.isPen.replace('{n}', '5'), с.isAll, с.isFinger, с.isMouse]) {
+        полеИтога.innerHTML = т;
+        самый = Math.max(самый, полеИтога.offsetHeight);
+      }
+      полеИтога.innerHTML = было;
+      полеИтога.style.minHeight = самый + 'px';
+    }
+
+    готовить();
+    итог();
+    местоПодИтог();
+    let пересчёт = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(пересчёт);
+      пересчёт = setTimeout(() => { готовить(); местоПодИтог(); }, 200);
+    });
+
+    window.__стСостояние = () => ({
+      тип: последнийТип, инструмент, виделось: [...виделось],
+      нажим: $('ст-нажим').textContent, наклон: $('ст-наклон').textContent,
+      частота: $('ст-частота').textContent, устройство: $('ст-тип').textContent,
+      столб: $('ст-столб').style.width, стрелка: $('ст-стрелка').style.transform,
+      итог: полеИтога.textContent,
+      нарисовано: (() => {
+        const d = кисть.getImageData(0, 0, холст.width, холст.height).data;
+        let н = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 10) н++;
+        return н;
+      })(),
+      образцы: (() => {
+        const d = фон.getImageData(0, 0, подложка.width, подложка.height).data;
+        let н = 0; for (let i = 3; i < d.length; i += 4) if (d[i] > 10) н++;
+        return н;
+      })(),
+    });
+  })();
+</script>

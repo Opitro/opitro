@@ -275,7 +275,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     площадка.addEventListener('pointerdown', (e) => {
       if (режим !== 'сетка') return;
-      площадка.setPointerCapture(e.pointerId);
+      // Захват в защите: если указателя с таким номером уже нет, браузер бросает ошибку,
+      // и она обрывала бы обработчик вместе с закраской клеток.
+      try { площадка.setPointerCapture(e.pointerId); } catch (ошибка) {}
       площадка.classList.add('тронуто');
       const т = точка(e);
       следы.set(e.pointerId, т);

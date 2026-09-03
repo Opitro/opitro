@@ -169,7 +169,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       e.preventDefault();
       if (e.pointerType === 'mouse') былоМыши = true;
       if (пальцы.has(e.pointerId)) return;
-      площадка.setPointerCapture(e.pointerId);
+      // Захват в защите: ошибка на исчезнувшем указателе оборвала бы обработчик, и кружок
+      // под пальцем не появился бы.
+      try { площадка.setPointerCapture(e.pointerId); } catch (ошибка) {}
       const номер = взятьНомер();
       const т = место(e);
       const узел = document.createElement('div');
