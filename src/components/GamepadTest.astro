@@ -1,0 +1,365 @@
+---
+// ТЕСТ ГЕЙМПАДА -- своя страница со своим кодом и стилями.
+//
+// Проверяем то, что ломается:
+//   * КНОПКИ -- каждая инвертируется под пальцем и остаётся помеченной как пройденная.
+//   * СТИКИ -- точка ходит по мишени с перекрестием; числа с пятью знаками, потому что
+//     дрейф живёт как раз в тысячных и не виден на двух знаках.
+//   * КУРКИ -- вертикальными полосами: у них есть промежуточные значения.
+//   * ДРЕЙФ -- главная поломка. Ловится бездействием: стики отпущены, а числа не ноль.
+//   * ВИБРАЦИЯ -- где браузер её умеет.
+//
+// ЧЕГО ЗДЕСЬ НЕТ: частоты опроса геймпада и задержки ввода в миллисекундах. Браузер отдаёт
+// состояние геймпада ровно раз в кадр экрана, поэтому «1000 Гц» со страницы получить
+// неоткуда: любое такое число описывало бы монитор, а не геймпад. Вместо выдумки показываем
+// то, что действительно считаем, -- сколько раз в секунду страница получает состояние, --
+// и прямо подписываем, что это частота браузера.
+import css from '../styles/gamepad-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    wait: 'Нажмите любую кнопку на геймпаде, чтобы начать проверку',
+    waitSub: 'Браузер намеренно прячет геймпады от страниц, пока вы сами не нажмёте кнопку, — это правило безопасности, а не поломка. Подойдёт и провод, и Bluetooth.',
+    map: 'Раскладка', mapStd: 'стандартная', mapOther: 'нестандартная',
+    upd: 'Обновлений в секунду', updHint: 'частота браузера',
+    lstick: 'Левый стик', rstick: 'Правый стик', ltrig: 'Левый курок', rtrig: 'Правый курок',
+    driftRow: 'Наибольший увод',
+    drift: 'Проверить дрейф', driftOn: 'Не трогайте стики… {n}',
+    rumble: 'Проверить вибрацию', reset: 'Сбросить пройденные',
+    hint: 'Нажимайте кнопки и ведите стиками. Нажатая кнопка становится белой, пройденная остаётся обведённой.',
+    d0: 'Дрейфа нет: за пять секунд стики не сдвинулись ни на сотую.',
+    dSmall: 'Небольшой увод — {n}. Так ведут себя почти все стики, игре это не мешает.',
+    dBig: 'Заметный дрейф — {n}. Это и есть та поломка, из-за которой персонаж идёт сам: стик отпущен, а геймпад шлёт движение.',
+    noRumble: 'Вибрацию этот браузер или этот геймпад не отдаёт. В Safari её нет ни у одного геймпада.',
+    n1: 'Браузер не покажет геймпад, пока вы не нажмёте на нём кнопку. Пустая страница до нажатия — это правило безопасности, а не поломка геймпада.',
+    n2: 'Дрейф стика — самая частая поломка геймпадов. Отпустите стики и запустите проверку: если числа не возвращаются к нулю, стик шлёт движение сам. До сотых долей уводит почти каждый стик, и это норма; беда начинается ближе к десятой.',
+    n3: 'Задержку ввода и частоту опроса геймпада со страницы измерить нельзя, и мы не станем делать вид, что можем. Браузер отдаёт состояние ровно раз в кадр экрана — поэтому «обновлений в секунду» здесь описывает браузер и монитор, а не геймпад. Число 1000 Гц, которое пишут в характеристиках, проверяется только своей программой производителя.',
+    n4: 'Курки на хороших геймпадах аналоговые: полоса должна заполняться плавно, а не прыгать из нуля в сто. Рывки и ступеньки — верный признак изношенного курка.',
+    n5: 'Раскладка «стандартная» означает, что браузер разложил кнопки по общепринятым местам. Если написано иначе, номера кнопок могут не совпадать с надписями на корпусе — это особенность геймпада, а не ошибка проверки.',
+  },
+  en: {
+    wait: 'Press any button on the gamepad to begin',
+    waitSub: 'Browsers deliberately hide gamepads from pages until you press a button yourself — a safety rule, not a fault. Cable and Bluetooth both work.',
+    map: 'Mapping', mapStd: 'standard', mapOther: 'non-standard',
+    upd: 'Updates per second', updHint: 'the browser’s rate',
+    lstick: 'Left stick', rstick: 'Right stick', ltrig: 'Left trigger', rtrig: 'Right trigger',
+    driftRow: 'Largest wander',
+    drift: 'Test drift', driftOn: 'Hands off the sticks… {n}',
+    rumble: 'Test vibration', reset: 'Clear the marks',
+    hint: 'Press the buttons and move the sticks. A pressed button turns white; one already tried keeps its outline.',
+    d0: 'No drift: in five seconds the sticks did not move by a hundredth.',
+    dSmall: 'Slight wander — {n}. Almost every stick behaves like this and play is unaffected.',
+    dBig: 'Clear drift — {n}. This is the fault that makes a character walk off on its own: the stick is released and the pad keeps sending movement.',
+    noRumble: 'This browser or this gamepad does not offer vibration. Safari has none for any gamepad.',
+    n1: 'A browser will not reveal a gamepad until you press a button on it. An empty page before that press is a safety rule, not a broken pad.',
+    n2: 'Stick drift is the most common gamepad fault. Let go of the sticks and run the test: if the numbers never return to zero, the stick is sending movement by itself. Almost every stick wanders by hundredths and that is normal; trouble starts closer to a tenth.',
+    n3: 'Input lag and a pad’s polling rate cannot be measured from a web page, and we will not pretend otherwise. The browser reports the state exactly once per screen frame — so “updates per second” here describes the browser and the monitor, not the gamepad. The 1000 Hz on the box can only be verified with the manufacturer’s own software.',
+    n4: 'Triggers on good pads are analogue: the bar should fill smoothly rather than jump from zero to a hundred. Steps and jumps are a sure sign of a worn trigger.',
+    n5: 'A “standard” mapping means the browser laid the buttons out in the usual places. If it says otherwise, button numbers may not match the labels on the body — a trait of the pad, not an error in the test.',
+  },
+  es: {
+    wait: 'Pulsa cualquier botón del mando para empezar',
+    waitSub: 'Los navegadores ocultan los mandos a las páginas hasta que pulsas un botón: es una regla de seguridad, no una avería. Sirve tanto por cable como por Bluetooth.',
+    map: 'Disposición', mapStd: 'estándar', mapOther: 'no estándar',
+    upd: 'Actualizaciones por segundo', updHint: 'frecuencia del navegador',
+    lstick: 'Stick izquierdo', rstick: 'Stick derecho', ltrig: 'Gatillo izquierdo', rtrig: 'Gatillo derecho',
+    driftRow: 'Desvío máximo',
+    drift: 'Probar el drift', driftOn: 'No toques los sticks… {n}',
+    rumble: 'Probar la vibración', reset: 'Borrar las marcas',
+    hint: 'Pulsa los botones y mueve los sticks. El botón pulsado se vuelve blanco; el ya probado conserva su contorno.',
+    d0: 'Sin drift: en cinco segundos los sticks no se movieron ni una centésima.',
+    dSmall: 'Desvío leve: {n}. Así se comporta casi cualquier stick y no afecta al juego.',
+    dBig: 'Drift claro: {n}. Es la avería que hace que el personaje ande solo: el stick está suelto y el mando sigue enviando movimiento.',
+    noRumble: 'Este navegador o este mando no ofrece vibración. En Safari no la hay con ningún mando.',
+    n1: 'El navegador no mostrará el mando hasta que pulses un botón en él. La página vacía antes de esa pulsación es una regla de seguridad, no un mando roto.',
+    n2: 'El drift del stick es la avería más frecuente. Suelta los sticks y lanza la prueba: si los números no vuelven a cero, el stick envía movimiento solo. Casi todos se desvían unas centésimas y eso es normal; el problema empieza cerca de una décima.',
+    n3: 'La latencia y la frecuencia de sondeo del mando no se pueden medir desde una página web, y no vamos a fingir lo contrario. El navegador entrega el estado exactamente una vez por fotograma, así que «actualizaciones por segundo» describe aquí al navegador y al monitor, no al mando. Los 1000 Hz de la caja solo se comprueban con el programa del fabricante.',
+    n4: 'Los gatillos de los buenos mandos son analógicos: la barra debe llenarse con suavidad y no saltar de cero a cien. Los saltos delatan un gatillo desgastado.',
+    n5: 'Una disposición «estándar» significa que el navegador colocó los botones en los sitios habituales. Si indica otra cosa, los números pueden no coincidir con las letras del mando: es rasgo del aparato, no error de la prueba.',
+  },
+  uk: {
+    wait: 'Натисніть будь-яку кнопку на геймпаді, щоб почати перевірку',
+    waitSub: 'Браузер навмисне ховає геймпади від сторінок, поки ви самі не натиснете кнопку, — це правило безпеки, а не поломка. Підійде і дріт, і Bluetooth.',
+    map: 'Розкладка', mapStd: 'стандартна', mapOther: 'нестандартна',
+    upd: 'Оновлень за секунду', updHint: 'частота браузера',
+    lstick: 'Лівий стик', rstick: 'Правий стик', ltrig: 'Лівий курок', rtrig: 'Правий курок',
+    driftRow: 'Найбільший увід',
+    drift: 'Перевірити дрейф', driftOn: 'Не чіпайте стики… {n}',
+    rumble: 'Перевірити вібрацію', reset: 'Скинути пройдені',
+    hint: 'Натискайте кнопки й ведіть стиками. Натиснута кнопка стає білою, пройдена лишається обведеною.',
+    d0: 'Дрейфу немає: за п’ять секунд стики не зрушили ні на соту.',
+    dSmall: 'Невеликий увід — {n}. Так поводяться майже всі стики, грі це не заважає.',
+    dBig: 'Помітний дрейф — {n}. Це і є та поломка, через яку персонаж іде сам: стик відпущено, а геймпад шле рух.',
+    noRumble: 'Вібрацію цей браузер або цей геймпад не віддає. У Safari її немає в жодного геймпада.',
+    n1: 'Браузер не покаже геймпад, поки ви не натиснете на ньому кнопку. Порожня сторінка до натискання — це правило безпеки, а не поломка геймпада.',
+    n2: 'Дрейф стика — найчастіша поломка геймпадів. Відпустіть стики й запустіть перевірку: якщо числа не повертаються до нуля, стик шле рух сам. До сотих доль уводить майже кожен стик, і це норма; біда починається ближче до десятої.',
+    n3: 'Затримку введення й частоту опитування геймпада зі сторінки виміряти не можна, і ми не вдаватимемо, що можемо. Браузер віддає стан рівно раз на кадр екрана — тому «оновлень за секунду» тут описує браузер і монітор, а не геймпад. Число 1000 Гц із характеристик перевіряється лише фірмовою програмою виробника.',
+    n4: 'Курки на добрих геймпадах аналогові: смуга має заповнюватися плавно, а не стрибати з нуля в сто. Ривки та сходинки — певна ознака зношеного курка.',
+    n5: 'Розкладка «стандартна» означає, що браузер розклав кнопки по загальноприйнятих місцях. Якщо написано інакше, номери кнопок можуть не збігатися з написами на корпусі — це особливість геймпада, а не помилка перевірки.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="гп" data-words={JSON.stringify(с)}>
+  <div class="гп-окно">
+    <div class="гп-ждём">
+      {с.wait}
+      <small>{с.waitSub}</small>
+    </div>
+
+    <div class="гп-работа">
+      <div class="гп-строки">
+        <div class="гп-модель" id="гп-модель">—</div>
+        <div class="гп-строка"><span class="н">{с.map}</span><span class="з" id="гп-раскладка">—</span></div>
+        <div class="гп-строка"><span class="н">{с.upd} <small style="opacity:.85">· {с.updHint}</small></span><span class="з" id="гп-обновления">—</span></div>
+        <div class="гп-строка"><span class="н">{с.lstick}</span><span class="з" id="гп-числа0">0.00000 · 0.00000</span></div>
+        <div class="гп-строка"><span class="н">{с.rstick}</span><span class="з" id="гп-числа1">0.00000 · 0.00000</span></div>
+        <div class="гп-строка"><span class="н">{с.ltrig}</span><span class="з" id="гп-курок0">0%</span></div>
+        <div class="гп-строка"><span class="н">{с.rtrig}</span><span class="з" id="гп-курок1">0%</span></div>
+        <div class="гп-строка"><span class="н">{с.driftRow}</span><span class="з" id="гп-увод">—</span></div>
+      </div>
+
+      <div class="гп-схема">
+        <div class="гп-мишени">
+          <div class="гп-мишень">
+            <span class="п">{с.lstick}</span>
+            <span class="гп-круг" id="гп-поле0"><i class="гп-точка" id="гп-точка0"></i></span>
+          </div>
+          <div class="гп-курки">
+            <div class="гп-курок">
+              <span class="п">L</span>
+              <span class="гп-столб"><i id="гп-полоса0"></i></span>
+              <span class="з" id="гп-курокМал0">0</span>
+            </div>
+            <div class="гп-курок">
+              <span class="п">R</span>
+              <span class="гп-столб"><i id="гп-полоса1"></i></span>
+              <span class="з" id="гп-курокМал1">0</span>
+            </div>
+          </div>
+          <div class="гп-мишень">
+            <span class="п">{с.rstick}</span>
+            <span class="гп-круг" id="гп-поле1"><i class="гп-точка" id="гп-точка1"></i></span>
+          </div>
+        </div>
+        <div class="гп-кнопки" id="гп-кнопки"></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="гп-действия">
+    <button type="button" class="гп-действие главная" id="гп-дрейф">{с.drift}</button>
+    <button type="button" class="гп-действие" id="гп-вибро">{с.rumble}</button>
+    <button type="button" class="гп-действие" id="гп-сброс">{с.reset}</button>
+  </div>
+
+  <div class="гп-итог" id="гп-итог"></div>
+
+  <div class="гп-заметки">
+    <div class="гп-заметка">{с.n1}</div>
+    <div class="гп-заметка">{с.n2}</div>
+    <div class="гп-заметка">{с.n3}</div>
+    <div class="гп-заметка">{с.n4}</div>
+    <div class="гп-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.гп');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    // Имена кнопок для стандартной раскладки. Буквы на корпусе у всех разные (у одних
+    // крестик, у других A), поэтому названия нейтральные -- по месту, а не по надписи.
+    const ИМЕНА = ['Нижняя', 'Правая', 'Левая', 'Верхняя', 'Левый бампер', 'Правый бампер',
+      'Левый курок', 'Правый курок', 'Выбор', 'Старт', 'Левый стик', 'Правый стик',
+      'Крестовина ↑', 'Крестовина ↓', 'Крестовина ←', 'Крестовина →', 'Домой'];
+
+    let номер = null;
+    let ячейки = [];
+    let пройдено = new Set();
+    let дрейфДо = 0, дрейфМакс = 0, дрейфТик = null;
+    let кадров = 0, секунда = performance.now();
+
+    function геймпад() {
+      const все = navigator.getGamepads ? navigator.getGamepads() : [];
+      if (номер != null && все[номер]) return все[номер];
+      for (const г of все) if (г) { номер = г.index; return г; }
+      return null;
+    }
+
+    function построить(г) {
+      const обломок = document.createDocumentFragment();
+      ячейки = [];
+      г.buttons.forEach((_, i) => {
+        const э = document.createElement('div');
+        э.className = 'гп-кнопка';
+        const имя = (г.mapping === 'standard' && ИМЕНА[i]) ? ИМЕНА[i] : ('№ ' + i);
+        э.innerHTML = '<span></span><em></em>';
+        э.firstChild.textContent = имя;
+        обломок.appendChild(э);
+        ячейки.push(э);
+      });
+      $('гп-кнопки').replaceChildren(обломок);
+      $('гп-модель').textContent = г.id || '—';
+      $('гп-раскладка').textContent = г.mapping === 'standard' ? с.mapStd : с.mapOther;
+      корень.classList.add('есть');
+      if (!$('гп-итог').textContent.trim()) $('гп-итог').innerHTML = с.hint;
+    }
+
+    function стик(поле, точка, x, y, нажат) {
+      // Точка ходит по мишени радиусом 49 -- половина круга минус её собственный размер.
+      $(точка).style.transform = `translate(${(x * 49).toFixed(1)}px, ${(y * 49).toFixed(1)}px)`;
+      $(поле).classList.toggle('нажат', !!нажат);
+    }
+
+    function шаг() {
+      const г = геймпад();
+      const сейчас = performance.now();
+      кадров++;
+      if (сейчас - секунда >= 1000) {
+        // Это частота БРАУЗЕРА, а не геймпада: состояние приходит раз в кадр экрана.
+        // Так и подписано в строке рядом.
+        if (корень.classList.contains('есть')) $('гп-обновления').textContent = кадров;
+        кадров = 0; секунда = сейчас;
+      }
+      if (!г) { requestAnimationFrame(шаг); return; }
+      if (!ячейки.length || ячейки.length !== г.buttons.length) построить(г);
+
+      г.buttons.forEach((к, i) => {
+        const э = ячейки[i];
+        if (!э) return;
+        const жмут = к.pressed || к.value > 0.12;
+        э.classList.toggle('жмут', жмут);
+        if (жмут) пройдено.add(i);
+        э.classList.toggle('была', пройдено.has(i) && !жмут);
+        // Число показываем только у аналоговых: у обычной кнопки оно всегда 0 или 1 и
+        // только зря мельтешит.
+        э.querySelector('em').textContent = (к.value > 0.02 && к.value < 0.98)
+          ? к.value.toFixed(2) : '';
+      });
+
+      const о = г.axes;
+      const п = (з) => (з || 0).toFixed(5);
+      стик('гп-поле0', 'гп-точка0', о[0] || 0, о[1] || 0, г.buttons[10] && г.buttons[10].pressed);
+      стик('гп-поле1', 'гп-точка1', о[2] || 0, о[3] || 0, г.buttons[11] && г.buttons[11].pressed);
+      // Пять знаков не для красоты: дрейф начинается в тысячных, и на двух знаках его
+      // просто не видно.
+      $('гп-числа0').textContent = п(о[0]) + ' · ' + п(о[1]);
+      $('гп-числа1').textContent = п(о[2]) + ' · ' + п(о[3]);
+
+      for (const [и, к] of [[0, 6], [1, 7]]) {
+        const з = г.buttons[к] ? г.buttons[к].value : 0;
+        const проц = Math.round(з * 100);
+        $('гп-курок' + и).textContent = проц + '%';
+        $('гп-курокМал' + и).textContent = проц;
+        $('гп-полоса' + и).style.height = проц + '%';
+      }
+
+      if (дрейфДо) {
+        for (const з of о) дрейфМакс = Math.max(дрейфМакс, Math.abs(з || 0));
+        $('гп-увод').textContent = дрейфМакс.toFixed(5);
+        if (сейчас >= дрейфДо) итогДрейфа();
+      }
+      requestAnimationFrame(шаг);
+    }
+
+    /* ---- Дрейф ---------------------------------------------------------------------- */
+
+    function итогДрейфа() {
+      дрейфДо = 0;
+      clearInterval(дрейфТик); дрейфТик = null;
+      $('гп-дрейф').disabled = false;
+      $('гп-дрейф').textContent = с.drift;
+      const ч = дрейфМакс.toFixed(3);
+      const поле = $('гп-итог');
+      const строка = $('гп-увод');
+      строка.textContent = дрейфМакс.toFixed(5);
+      строка.classList.toggle('тревога', дрейфМакс >= 0.10);
+      if (дрейфМакс < 0.02) поле.innerHTML = `<b>${с.d0}</b>`;
+      else if (дрейфМакс < 0.10) поле.innerHTML = с.dSmall.replace('{n}', `<b>${ч}</b>`);
+      else поле.innerHTML = с.dBig.replace('{n}', `<b class="плохо">${ч}</b>`);
+    }
+
+    $('гп-дрейф').addEventListener('click', () => {
+      дрейфМакс = 0;
+      дрейфДо = performance.now() + 5000;
+      const кнопка = $('гп-дрейф');
+      кнопка.disabled = true;
+      let осталось = 5;
+      кнопка.textContent = с.driftOn.replace('{n}', осталось);
+      дрейфТик = setInterval(() => {
+        осталось--;
+        кнопка.textContent = с.driftOn.replace('{n}', Math.max(0, осталось));
+      }, 1000);
+      $('гп-итог').innerHTML = с.hint;
+    });
+
+    $('гп-вибро').addEventListener('click', async () => {
+      const г = геймпад();
+      const мотор = г && (г.vibrationActuator || (г.hapticActuators && г.hapticActuators[0]));
+      if (!мотор || !мотор.playEffect) { $('гп-итог').innerHTML = с.noRumble; return; }
+      try {
+        await мотор.playEffect('dual-rumble', {
+          duration: 700, startDelay: 0, strongMagnitude: 1, weakMagnitude: 1,
+        });
+      } catch (ошибка) { $('гп-итог').innerHTML = с.noRumble; }
+    });
+
+    $('гп-сброс').addEventListener('click', () => {
+      пройдено = new Set();
+      ячейки.forEach((э) => э.classList.remove('была'));
+      $('гп-итог').innerHTML = с.hint;
+      $('гп-сброс').blur();
+    });
+
+    // МЕСТО ПОД СТРОКУ ОТВЕТА. Текстов пять, они разной длины и на разной ширине окна
+    // переносятся по-разному -- числом такой запас не угадать ни для одного языка.
+    const полеИтога = $('гп-итог');
+    function местоПодИтог() {
+      const было = полеИтога.innerHTML;
+      полеИтога.style.minHeight = '0px';
+      let самый = 0;
+      for (const т of [с.hint, с.d0, с.dSmall.replace('{n}', '0.050'),
+                       с.dBig.replace('{n}', '0.250'), с.noRumble]) {
+        полеИтога.innerHTML = т;
+        самый = Math.max(самый, полеИтога.offsetHeight);
+      }
+      полеИтога.innerHTML = было;
+      полеИтога.style.minHeight = самый + 'px';
+    }
+
+    window.addEventListener('gamepadconnected', (e) => { номер = e.gamepad.index; });
+    window.addEventListener('gamepaddisconnected', () => {
+      номер = null; ячейки = []; корень.classList.remove('есть');
+    });
+
+    местоПодИтог();
+    let пересчёт = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(пересчёт); пересчёт = setTimeout(местоПодИтог, 200);
+    });
+    requestAnimationFrame(шаг);
+
+    window.__гпСостояние = () => ({
+      есть: корень.classList.contains('есть'),
+      модель: $('гп-модель').textContent, раскладка: $('гп-раскладка').textContent,
+      обновлений: $('гп-обновления').textContent,
+      кнопок: ячейки.length,
+      жмут: ячейки.filter((э) => э.classList.contains('жмут')).length,
+      пройдено: [...пройдено],
+      стик0: $('гп-числа0').textContent, стик1: $('гп-числа1').textContent,
+      точка0: $('гп-точка0').style.transform,
+      курки: [$('гп-курок0').textContent, $('гп-курок1').textContent],
+      полоса0: $('гп-полоса0').style.height,
+      увод: $('гп-увод').textContent,
+      итог: полеИтога.textContent, дрейфИдёт: !!дрейфДо,
+    });
+  })();
+</script>

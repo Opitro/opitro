@@ -1,0 +1,123 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ ГЕЙМПАДА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид задан владельцем: строгий чёрный инструмент без картинок и украшений. Фон чёрный,
+ * буквы белые, второстепенное -- серым, линии тонкие. Нажатая кнопка не «подсвечивается»,
+ * а ИНВЕРТИРУЕТСЯ: белая плашка, чёрные буквы. На чёрном это самый заметный сигнал из
+ * возможных, и он не требует ни одного лишнего цвета.
+ *
+ * Устройство:
+ *   1. ОЖИДАНИЕ -- одна строка. Браузер не отдаёт геймпад, пока на нём не нажали кнопку;
+ *      это правило безопасности, и человеку надо сказать ровно это, а не рисовать пустую
+ *      таблицу.
+ *   2. СЛЕВА ТЕЛЕМЕТРИЯ -- строки «название: значение», цифры меняются на месте.
+ *   3. СПРАВА СХЕМА -- две мишени с перекрестием под стики и сетка кнопок. В покое точка
+ *      обязана стоять ровно в перекрестии; сдвинулась -- виден дрейф.
+ *   4. КУРКИ -- вертикальными полосами: у них есть промежуточные значения, и заполнение
+ *      снизу вверх читается как «глубина нажатия».
+ */
+
+.гп {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  /* Серый второстепенный, но не приглушённый до нечитаемости: плотный светло-серый вместо
+     полупрозрачности. */
+  --буквы: #ffffff;
+  --буквы2: #a9b0ba;
+  --линия: rgba(255,255,255,.18);
+  font-family: var(--ui);
+}
+
+.гп-окно { background: #000; border: 1px solid var(--линия); border-radius: 14px;
+  padding: 18px 16px }
+
+/* ---- Ожидание ------------------------------------------------------------------------- */
+
+.гп-ждём { padding: 46px 16px; text-align: center; font: 300 15px/1.6 var(--ui);
+  color: var(--буквы) }
+.гп-ждём small { display: block; margin-top: 10px; max-width: 52ch; margin-inline: auto;
+  font: 400 12.5px/1.55 var(--ui); color: var(--буквы2) }
+.гп.есть .гп-ждём { display: none }
+.гп:not(.есть) .гп-работа { display: none }
+
+/* ---- Две зоны -------------------------------------------------------------------------- */
+
+.гп-работа { display: grid; grid-template-columns: minmax(0, 0.9fr) minmax(0, 1.1fr); gap: 10px }
+
+.гп-строки { display: flex; flex-direction: column; gap: 0 }
+.гп-модель { font: 600 15px/1.35 var(--ui); color: var(--буквы); word-break: break-word;
+  padding-bottom: 10px; border-bottom: 1px solid var(--линия); margin-bottom: 10px }
+.гп-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 6px 0; border-bottom: 1px solid rgba(255,255,255,.07) }
+.гп-строка:last-child { border-bottom: 0 }
+.гп-строка .н { font: 400 12px var(--ui); color: var(--буквы2) }
+.гп-строка .з { font: 500 13px var(--цифры); color: var(--буквы); font-variant-numeric: tabular-nums;
+  text-align: right }
+.гп-строка .з.тревога { color: #ff9aa8 }
+
+/* ---- Схема ----------------------------------------------------------------------------- */
+
+.гп-схема { display: flex; flex-direction: column; gap: 12px }
+.гп-мишени { display: flex; gap: 10px; align-items: flex-start; justify-content: center }
+
+.гп-мишень { display: flex; flex-direction: column; align-items: center; gap: 6px }
+.гп-мишень .п { font: 400 10.5px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--буквы2) }
+/* Мишень: круг и перекрестие. В покое точка стоит ровно в центре -- это и есть проверка. */
+.гп-круг { position: relative; width: 108px; height: 108px; border-radius: 50%;
+  border: 1px solid var(--линия) }
+.гп-круг::before, .гп-круг::after { content: ""; position: absolute; background: rgba(255,255,255,.14) }
+.гп-круг::before { left: 0; right: 0; top: 50%; height: 1px }
+.гп-круг::after { top: 0; bottom: 0; left: 50%; width: 1px }
+.гп-точка { position: absolute; left: 50%; top: 50%; width: 9px; height: 9px; margin: -4.5px 0 0 -4.5px;
+  border-radius: 50%; background: #fff }
+.гп-круг.нажат { border-color: #fff }
+
+/* Курки -- вертикальные полосы рядом со схемой, заполняются снизу вверх. */
+.гп-курки { display: flex; gap: 8px; align-items: flex-end }
+.гп-курок { display: flex; flex-direction: column; align-items: center; gap: 6px }
+.гп-курок .п { font: 400 10.5px var(--ui); color: var(--буквы2) }
+.гп-курок .з { font: 500 12px var(--цифры); color: var(--буквы); font-variant-numeric: tabular-nums }
+.гп-столб { position: relative; width: 16px; height: 84px; border: 1px solid var(--линия);
+  border-radius: 3px; overflow: hidden }
+.гп-столб i { position: absolute; left: 0; right: 0; bottom: 0; height: 0; background: #fff }
+
+.гп-кнопки { display: grid; grid-template-columns: repeat(auto-fill, minmax(96px, 1fr)); gap: 4px }
+.гп-кнопка {
+  display: flex; align-items: center; justify-content: space-between; gap: 6px;
+  padding: 7px 9px; border-radius: 6px; border: 1px solid var(--линия);
+  font: 400 11.5px var(--ui); color: var(--буквы); background: #000;
+}
+.гп-кнопка em { font-style: normal; font: 500 10.5px var(--цифры); color: var(--буквы2);
+  font-variant-numeric: tabular-nums }
+/* Нажатая кнопка инвертируется -- белая плашка с чёрными буквами. */
+.гп-кнопка.жмут { background: #fff; color: #000; border-color: #fff }
+.гп-кнопка.жмут em { color: #000 }
+.гп-кнопка.была { border-color: rgba(255,255,255,.5) }
+
+/* ---- Действия и ответ ------------------------------------------------------------------ */
+
+.гп-действия { display: flex; flex-wrap: wrap; gap: 8px; justify-content: center; margin-top: 14px }
+.гп-действие {
+  flex: 0 0 auto; font: 500 13.5px var(--ui); height: 42px; padding: 0 20px; border-radius: 8px;
+  cursor: pointer; color: var(--буквы); border: 1px solid var(--линия); background: #000;
+  transition: border-color .15s ease, transform .08s ease;
+}
+.гп-действие:hover { border-color: #fff }
+.гп-действие:active { transform: translateY(1px) }
+.гп-действие.главная { border-color: #fff }
+.гп-действие[disabled] { cursor: default; border-color: rgba(255,255,255,.12); color: var(--буквы2) }
+
+.гп-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.гп-итог b { color: var(--буквы); font-weight: 600 }
+.гп-итог .плохо { color: #ff9aa8; font-weight: 600 }
+
+.гп-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.гп-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.гп-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+
+@media (max-width: 700px) {
+  .гп-работа { grid-template-columns: 1fr }
+  .гп-мишени { flex-wrap: wrap }
+}
