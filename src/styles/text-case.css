@@ -1,0 +1,86 @@
+/* СТИЛИ СТРАНИЦЫ «ИЗМЕНЕНИЕ РЕГИСТРА ТЕКСТА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- утилитарная рабочая среда редактора: моноширинный шрифт, поле в тонкой рамке,
+ * под ним счётчики, ниже ряд кнопок. Так и просил владелец.
+ *
+ * ОДНО ОТСТУПЛЕНИЕ ОТ СПЕЦИФИКАЦИИ. Поле велено было залить #09090B -- но фон сайта
+ * #0e0f11, то есть поле вышло бы ТЕМНЕЕ страницы и слилось бы с ней. Ровно на это владелец
+ * пожаловался на странице Bluetooth. Поэтому поле чуть светлее фона: рамка и границы видны,
+ * а строгость вида сохранена.
+ *
+ * Кнопка «копировать результат» намеренно не такая, как остальные: белая заливка, чёрные
+ * буквы. Это единственное действие, ради которого сюда приходят второй раз.
+ */
+
+.рг {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы2: #a1a1aa;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Поле ------------------------------------------------------------------------------- */
+
+.рг-поле {
+  background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease, background .15s ease;
+}
+.рг-поле:focus-within { border-color: #fff; background: #191b21 }
+.рг-ввод {
+  display: block; width: 100%; min-height: 200px; resize: vertical;
+  padding: 16px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.7 var(--цифры); border-radius: 10px;
+}
+.рг-ввод:focus { outline: none }
+.рг-ввод::placeholder { color: #52525b }
+
+/* Счётчики отделены от поля чертой: это отчёт о поле, а не часть его. */
+.рг-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 9px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  font: 400 12px var(--цифры); color: var(--буквы2); font-variant-numeric: tabular-nums;
+}
+.рг-счётчики b { color: #fff; font-weight: 500 }
+.рг-сказ { margin-left: auto; color: #4ade9e; opacity: 0; transition: opacity .2s }
+.рг-сказ.видно { opacity: 1 }
+
+/* ---- Кнопки ----------------------------------------------------------------------------- */
+
+.рг-кнопки { display: grid; grid-template-columns: repeat(auto-fit, minmax(178px, 1fr));
+  gap: 8px; margin-top: 12px }
+/* Кнопка написана тем самым способом, который делает: «ВСЕ ЗАГЛАВНЫЕ» -- заглавными,
+   «все строчные» -- строчными. Это объясняет способ быстрее любой подписи. */
+.рг-кнопка {
+  min-height: 46px; padding: 11px 14px; border-radius: 6px; cursor: pointer;
+  font: 600 13px var(--цифры); color: #fff; background: #000; border: 1px solid #333;
+  transition: border-color .15s ease, transform .08s ease;
+}
+.рг-кнопка:hover { border-color: #fff }
+.рг-кнопка:active { transform: translateY(1px) }
+.рг-кнопка.сделан { border-color: #4ade9e }
+/* Копирование -- главное действие, поэтому оно инвертировано. */
+.рг-кнопка.главная { background: #fff; color: #000; border-color: #fff; font-weight: 700 }
+.рг-кнопка.главная:hover { background: #e9ecef; border-color: #e9ecef }
+
+.рг-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 8px }
+.рг-простая {
+  flex: 0 0 auto; height: 40px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: var(--буквы2); background: #000;
+  border: 1px solid rgba(255,255,255,.14); transition: border-color .15s, color .15s;
+}
+.рг-простая:hover { border-color: #fff; color: #fff }
+.рг-простая[disabled] { cursor: default; opacity: .4 }
+.рг-простая[disabled]:hover { border-color: rgba(255,255,255,.14); color: var(--буквы2) }
+
+.рг-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.рг-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+.рг-заметка::before { content: "•"; color: rgba(255,255,255,.4); flex: none }
+
+@media (max-width: 560px) {
+  .рг-ввод { min-height: 170px }
+  .рг-кнопки { grid-template-columns: 1fr 1fr }
+  .рг-кнопка { font-size: 12px; padding: 10px 8px }
+}

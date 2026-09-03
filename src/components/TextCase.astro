@@ -1,0 +1,253 @@
+---
+// ИЗМЕНИТЬ РЕГИСТР ТЕКСТА.
+//
+// Пять способов: ВЕРХНИЙ, нижний, Каждое Слово, Как в предложении и иНВЕРСИЯ. Замена идёт
+// прямо в поле -- человек вставил текст, нажал и забрал. Отдельного окна вывода нет: лишний
+// шаг «скопировать из другого поля» здесь никому не нужен.
+//
+// ОТМЕНА ОБЯЗАТЕЛЬНА. Замена стирает исходный текст, и без отмены одно неверное нажатие
+// уничтожает чужую работу. Помним двадцать шагов назад.
+//
+// Регистр меняем с учётом языка страницы (toLocaleUpperCase): в разных языках буквы
+// переходят по-разному, и общий перевод для них неверен.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/text-case.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте или напишите текст, потом выберите способ',
+    paste: 'Вставить', copy: 'Копировать', clear: 'Очистить',
+    copied: 'Скопировано', pasted: 'Вставлено', cleared: 'Очищено', nothing: 'Поле пустое',
+    upper: 'ВЕРХНИЙ РЕГИСТР', lower: 'нижний регистр', title: 'Каждое Слово С Заглавной',
+    sentence: 'Как в предложении', toggle: 'иНВЕРСИЯ рЕГИСТРА',
+    undo: 'Отменить', chars: 'Символы', noSp: 'Без пробелов', words: 'Слова',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '«Каждое Слово С Заглавной» не знает, где имя собственное, а где предлог: получится «Иван Ушёл В Лес». Для заголовков это норма, для обычного текста лучше «как в предложении».',
+    n2: '«Как в предложении» делит текст по точке, восклицательному и вопросительному знаку и по переносу строки. Сокращения вроде «т. д.» он примет за конец предложения — это неизбежно без словаря.',
+    n3: 'Нижний регистр портит аббревиатуры: «США» станет «сша», и вернуть их обратно сможет только человек. Если в тексте есть сокращения, проверьте их после замены.',
+    n4: 'Отмена возвращает двадцать последних замен. Пока вы не ушли со страницы, любую можно откатить.',
+    n5: 'Текст никуда не отправляется: замена происходит прямо в вашем браузере, страница ничего не сохраняет.',
+  },
+  uk: {
+    place: 'Вставте або напишіть текст, потім оберіть спосіб',
+    paste: 'Вставити', copy: 'Копіювати', clear: 'Очистити',
+    copied: 'Скопійовано', pasted: 'Вставлено', cleared: 'Очищено', nothing: 'Поле порожнє',
+    upper: 'ВЕРХНІЙ РЕГІСТР', lower: 'нижній регістр', title: 'Кожне Слово З Великої',
+    sentence: 'Як у реченні', toggle: 'іНВЕРСІЯ рЕГІСТРУ',
+    undo: 'Скасувати', chars: 'Символи', noSp: 'Без пробілів', words: 'Слова',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '«Кожне Слово З Великої» не знає, де власна назва, а де прийменник: вийде «Іван Пішов У Ліс». Для заголовків це норма, для звичайного тексту краще «як у реченні».',
+    n2: '«Як у реченні» ділить текст за крапкою, знаком оклику й питання та за переносом рядка. Скорочення на кшталт «т. д.» він прийме за кінець речення — це неминуче без словника.',
+    n3: 'Нижній регістр псує абревіатури: «США» стане «сша», і повернути їх зможе лише людина. Якщо в тексті є скорочення, перевірте їх після заміни.',
+    n4: 'Скасування повертає двадцять останніх замін. Поки ви не пішли зі сторінки, будь-яку можна відкотити.',
+    n5: 'Текст нікуди не надсилається: заміна відбувається просто у вашому браузері, сторінка нічого не зберігає.',
+  },
+  en: {
+    place: 'Paste or type your text, then pick a style',
+    paste: 'Paste', copy: 'Copy', clear: 'Clear',
+    copied: 'Copied', pasted: 'Pasted', cleared: 'Cleared', nothing: 'The field is empty',
+    upper: 'UPPER CASE', lower: 'lower case', title: 'Capitalise Each Word',
+    sentence: 'Sentence case', toggle: 'tOGGLE cASE',
+    undo: 'Undo', chars: 'Characters', noSp: 'Without spaces', words: 'Words',
+    copyBig: 'Copy the result', copiedBig: 'Copied!',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '“Capitalise Each Word” does not know a name from a preposition: you get “John Went To The Woods”. Fine for headings, but for ordinary text sentence case reads better.',
+    n2: '“Sentence case” splits the text on full stops, exclamation and question marks and on line breaks. Abbreviations such as “e. g.” will be taken for the end of a sentence — unavoidable without a dictionary.',
+    n3: 'Lower case ruins abbreviations: “USA” becomes “usa”, and only a human can put them back. If your text has abbreviations, check them after the change.',
+    n4: 'Undo goes back through the last twenty changes. Until you leave the page, anything can be rolled back.',
+    n5: 'The text is never sent anywhere: the change happens inside your browser and the page stores nothing.',
+  },
+  es: {
+    place: 'Pega o escribe el texto y elige un estilo',
+    paste: 'Pegar', copy: 'Copiar', clear: 'Limpiar',
+    copied: 'Copiado', pasted: 'Pegado', cleared: 'Limpiado', nothing: 'El campo está vacío',
+    upper: 'MAYÚSCULAS', lower: 'minúsculas', title: 'Cada Palabra En Mayúscula',
+    sentence: 'Como en una frase', toggle: 'iNVERTIR mAYÚSCULAS',
+    undo: 'Deshacer', chars: 'Caracteres', noSp: 'Sin espacios', words: 'Palabras',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '«Cada Palabra En Mayúscula» no distingue un nombre propio de una preposición: saldrá «Juan Fue Al Bosque». Para titulares vale; para texto corriente se lee mejor «como en una frase».',
+    n2: '«Como en una frase» divide el texto por el punto, la exclamación, la interrogación y el salto de línea. Abreviaturas como «etc.» las tomará por fin de frase: es inevitable sin diccionario.',
+    n3: 'Las minúsculas estropean las siglas: «EE. UU.» pasa a «ee. uu.», y solo una persona puede devolverlas. Si tu texto lleva siglas, revísalas después del cambio.',
+    n4: 'Deshacer retrocede los últimos veinte cambios. Mientras no salgas de la página, todo se puede revertir.',
+    n5: 'El texto no se envía a ninguna parte: el cambio ocurre en tu navegador y la página no guarda nada.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="рг" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="рг-поле">
+    <textarea class="рг-ввод" id="рг-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    <div class="рг-счётчики">
+      <span>{с.chars}: <b id="рг-знаков">0</b></span>
+      <span>{с.noSp}: <b id="рг-безПробелов">0</b></span>
+      <span>{с.words}: <b id="рг-слов">0</b></span>
+      <span class="рг-сказ" id="рг-сказ"></span>
+    </div>
+  </div>
+
+  <div class="рг-кнопки">
+    <button type="button" class="рг-кнопка" data-с="upper">{с.upper}</button>
+    <button type="button" class="рг-кнопка" data-с="lower">{с.lower}</button>
+    <button type="button" class="рг-кнопка" data-с="sentence">{с.sentence}</button>
+    <button type="button" class="рг-кнопка" data-с="title">{с.title}</button>
+    <button type="button" class="рг-кнопка" data-с="toggle">{с.toggle}</button>
+    <button type="button" class="рг-кнопка главная" id="рг-копировать">{с.copyBig}</button>
+  </div>
+
+  <div class="рг-низ">
+    <button type="button" class="рг-простая" id="рг-вставить">{с.paste}</button>
+    <button type="button" class="рг-простая" id="рг-очистить">{с.clear}</button>
+    <button type="button" class="рг-простая" id="рг-отменить" disabled>{с.undo}</button>
+  </div>
+
+  <div class="рг-заметки">
+    <div class="рг-заметка">{с.n1}</div>
+    <div class="рг-заметка">{с.n2}</div>
+    <div class="рг-заметка">{с.n3}</div>
+    <div class="рг-заметка">{с.n4}</div>
+    <div class="рг-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.рг');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const поле = $('рг-ввод');
+    const история = [];
+
+    function сказать(текст) {
+      const э = $('рг-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1600);
+    }
+
+    function счёт() {
+      const т = поле.value;
+      $('рг-знаков').textContent = т.length;
+      // Пробелами считаем и переносы строк с табуляцией: для «без пробелов» важно ровно то,
+      // что человек видит как пустое место.
+      $('рг-безПробелов').textContent = т.replace(/\s/g, '').length;
+      const кусок = т.trim();
+      $('рг-слов').textContent = кусок ? кусок.split(/\s+/).length : 0;
+    }
+
+    const ВЕРХ = (т) => т.toLocaleUpperCase(язык);
+    const НИЗ = (т) => т.toLocaleLowerCase(язык);
+
+    const СПОСОБЫ = {
+      upper: ВЕРХ,
+      lower: НИЗ,
+      // Первая буква КАЖДОГО слова. Границей слова считаем пробел, перенос, скобку, кавычку
+      // и дефис: «из-за» -- одно слово, но в заголовке обе части пишут с большой.
+      title: (т) => НИЗ(т).replace(/(^|[\s"«(\[\-—/])(\p{L})/gu, (_, до, буква) => до + ВЕРХ(буква)),
+      // Первая буква каждого предложения. Границы -- точка, восклицательный и вопросительный
+      // знак, многоточие и перенос строки.
+      // Между границей предложения и первой буквой могут стоять знаки, которые буквой не
+      // являются: испанские «¿» и «¡», кавычки, скобки. Заглавной должна стать первая
+      // БУКВА, а не первый знак, иначе «¿si?» так и останется строчным.
+      sentence: (т) => НИЗ(т).replace(/(^|[.!?…]+\s+|\n\s*)([¿¡"«'‘“(\[]*)(\p{L})/gu,
+        (_, до, знаки, буква) => до + знаки + ВЕРХ(буква)),
+      // Каждая буква меняется на противоположную: заглавная становится строчной и наоборот.
+      toggle: (т) => [...т].map((з) => {
+        const в = ВЕРХ(з);
+        return з === в ? НИЗ(з) : в;
+      }).join(''),
+    };
+
+    function применить(имя, кнопка) {
+      const было = поле.value;
+      if (!было) { сказать(с.nothing); return; }
+      const стало = СПОСОБЫ[имя](было);
+      if (стало === было) return;
+      // Двадцати шагов хватает: дальше человек всё равно вставит текст заново.
+      история.push(было);
+      if (история.length > 20) история.shift();
+      поле.value = стало;
+      $('рг-отменить').disabled = false;
+      корень.querySelectorAll('.рг-кнопка[data-с]').forEach((к) => к.classList.toggle('сделан', к === кнопка));
+      счёт();
+    }
+
+    корень.querySelectorAll('.рг-кнопка[data-с]').forEach((к) => {
+      к.addEventListener('click', () => применить(к.dataset.с, к));
+    });
+
+    $('рг-отменить').addEventListener('click', () => {
+      const было = история.pop();
+      if (было == null) return;
+      поле.value = было;
+      $('рг-отменить').disabled = история.length === 0;
+      корень.querySelectorAll('.рг-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+      счёт();
+    });
+
+    $('рг-копировать').addEventListener('click', async () => {
+      const кнопка = $('рг-копировать');
+      if (!поле.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(поле.value); вышло = true; }
+      catch (ошибка) {
+        // Буфер закрыт (нет разрешения, страница не в фокусе) -- пробуем старый способ:
+        // выделить и скопировать командой. Он работает там, где новый уже нет.
+        поле.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      // Ответ пишем на самой кнопке: человек смотрит на неё, а не на строку счётчиков.
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('рг-вставить').addEventListener('click', async () => {
+      try {
+        const текст = await navigator.clipboard.readText();
+        if (!текст) return;
+        история.push(поле.value);
+        поле.value = текст;
+        $('рг-отменить').disabled = false;
+        счёт();
+        сказать(с.pasted);
+      } catch (ошибка) { поле.focus(); }
+    });
+
+    $('рг-очистить').addEventListener('click', () => {
+      if (!поле.value) { сказать(с.nothing); return; }
+      история.push(поле.value);
+      поле.value = '';
+      $('рг-отменить').disabled = false;
+      корень.querySelectorAll('.рг-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+      счёт();
+      сказать(с.cleared);
+    });
+
+    поле.addEventListener('input', () => {
+      счёт();
+      корень.querySelectorAll('.рг-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+    });
+    счёт();
+
+    window.__ргСостояние = () => ({
+      текст: поле.value,
+      история: история.length, отменаДоступна: !$('рг-отменить').disabled,
+      сделан: [...корень.querySelectorAll('.рг-кнопка.сделан')].map((к) => к.dataset.с),
+      кнопкаКопировать: $('рг-копировать').textContent,
+      числа: [$('рг-знаков').textContent, $('рг-безПробелов').textContent, $('рг-слов').textContent],
+    });
+  })();
+</script>
