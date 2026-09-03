@@ -356,15 +356,11 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
      своя плашка, а её цвет взят от того, что нарисовано на значке (см. colorFor). Цвет
      задаётся переменной --цвет прямо в разметке, поэтому одного правила хватает на все
      плитки сразу. */
+  /* Сейчас плашки НЕТ: цветной только сам значок. Владелец смотрит оба вида и выбирает.
+     Обёртка оставлена намеренно -- она держит цвет и место, поэтому вернуть плашку можно
+     тремя строками, не трогая разметку. */
   .tc-плашка{flex:none;display:inline-flex;align-items:center;justify-content:center;
-    width:32px;height:32px;border-radius:9px;
-    background:color-mix(in srgb,var(--цвет) 16%,transparent);
-    border:1px solid color-mix(in srgb,var(--цвет) 30%,transparent);
-    transition:background .2s,border-color .2s}
-  /* Значок внутри плашки берёт её цвет, а не цвет полки. */
-  .tc-плашка .tc-ico{color:var(--цвет);width:17px;height:17px}
-  .tool-card:hover .tc-плашка{background:color-mix(in srgb,var(--цвет) 26%,transparent);
-    border-color:color-mix(in srgb,var(--цвет) 55%,transparent)}
-  /* Плитка стала выше на высоту плашки -- поле подгоняем, чтобы ряды не выглядели тесно. */
-  .all-tools-grid .tool-card{padding:10px 12px;gap:11px}
+    width:22px;height:22px}
+  .tc-плашка .tc-ico{color:var(--цвет);width:19px;height:19px}
+  .all-tools-grid .tool-card{padding:12px 13px;gap:10px}
 </style>
