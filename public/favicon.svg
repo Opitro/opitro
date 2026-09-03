@@ -1,7 +1,10 @@
-<svg viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
-  <rect width="32" height="32" rx="8" fill="#15161a"/>
-  <rect x="3" y="3" width="12" height="12" rx="3" fill="#FFD23F"/>
-  <rect x="17" y="3" width="12" height="12" rx="3" fill="#FF3D7F"/>
-  <rect x="3" y="17" width="12" height="12" rx="3" fill="#00D9FF"/>
-  <rect x="17" y="17" width="12" height="12" rx="3" fill="#4ADE9E"/>
+<svg width="32" height="32" viewBox="0 0 32 32" xmlns="http://www.w3.org/2000/svg">
+  <!-- Фона нет намеренно: на вкладке и в выдаче поиска значок стоит на чужом фоне, и чёрная
+       подложка выглядела заплаткой. Квадраты подросли до полей в две точки: без рамки вокруг
+       им можно занять больше места. Внимание: двойное тире внутри комментария XML запрещено,
+       и с ним браузер считает весь файл сломанным. -->
+  <rect x="2" y="2" width="13" height="13" rx="3.4" fill="#FFD23F"/>
+  <rect x="17" y="2" width="13" height="13" rx="3.4" fill="#FF3D7F"/>
+  <rect x="2" y="17" width="13" height="13" rx="3.4" fill="#00D9FF"/>
+  <rect x="17" y="17" width="13" height="13" rx="3.4" fill="#4ADE9E"/>
 </svg>
