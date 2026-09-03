@@ -1,0 +1,156 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ ТАЧСКРИНА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ПЛОЩАДКА С КЛЕТКАМИ. Человек водит пальцем, клетки закрашиваются. Тёмная клетка
+ *      после честного прохода -- и есть мёртвая зона. Ничего считать и понимать не надо:
+ *      что не закрасилось, то и не работает.
+ *   2. СЛЕД ПОВЕРХ КЛЕТОК. Клетки говорят «где», линия говорит «как»: рывки и разрывы видно
+ *      только на непрерывной линии, по клеткам их не поймать.
+ *   3. ВО ВЕСЬ ЭКРАН. Мёртвые зоны живут у краёв, а в окне страницы до края не дотянуться.
+ *      Без этой кнопки проверка проверяет не то место.
+ *   4. ПОКОЙ ОТДЕЛЬНО. Призрачные касания ловятся бездействием, а не касанием, поэтому это
+ *      не режим внутри проверки, а своя короткая проверка на пятнадцать секунд.
+ *
+ * ТЕКСТ ЧЁТКИЙ, НЕ ПРИГЛУШЁННЫЙ. Полупрозрачных букв здесь нет ни одной: цвет задаётся
+ * плотным, а разница между главным и второстепенным берётся начертанием и размером.
+ * Мелкие подписи -- тонким шрифтом: тонкое читается легче жирного и выглядит спокойнее.
+ *
+ * Цвет свой -- бирюзовый: он одинаково хорошо читается и на тёмной клетке, и на закрашенной,
+ * а зелёного на сайте и так довольно.
+ */
+
+.тс {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #2ee6c5;
+  /* Две плотные ступени вместо прозрачностей: белый для главного, светло-серый для
+     второстепенного. Оба непрозрачные. */
+  --буквы: #f2f5fa;
+  --буквы2: #cfd8e6;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+.тс-режимы { display: flex; gap: 6px; margin-bottom: 12px }
+.тс-режим {
+  flex: 1; min-width: 0; font: 400 14px var(--ui); height: 44px; border-radius: 11px;
+  cursor: pointer; color: var(--буквы);
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.22);
+  transition: background .15s ease, color .15s ease, border-color .15s ease;
+}
+.тс-режим:hover { border-color: rgba(255,255,255,.45) }
+/* Выбранное -- светлая плашка с тёмными буквами: так же помечен выбор на соседних
+   страницах, и читается он при любом фоне. */
+.тс-режим.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
+  border-color: rgba(255,255,255,.6); font-weight: 600 }
+
+.тс-подсказка { margin: 0 0 12px; text-align: center; font: 400 14px/1.55 var(--ui);
+  color: var(--буквы2) }
+.тс-подсказка b { color: var(--буквы); font-weight: 600 }
+
+/* ---- Площадка ---------------------------------------------------------------------------- */
+
+.тс-площадка {
+  position: relative; width: 100%; height: 340px; border-radius: 18px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  background: linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+  /* Без этого палец не рисует, а листает страницу -- проверка становится невозможной. */
+  touch-action: none; -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent; cursor: crosshair;
+}
+/* Во весь экран площадка ложится поверх всего окна. Полноэкранный режим браузера просят
+   отдельно -- он убирает панели, но на айфоне его для обычных узлов нет, а накрыть окно
+   собой мы можем везде. */
+.тс-площадка.везде {
+  position: fixed; inset: 0; z-index: 9999; width: 100vw; height: 100dvh;
+  border-radius: 0; border: 0; background: #0b0e13;
+}
+
+.тс-сетка { position: absolute; inset: 0; display: grid; gap: 1px; padding: 1px }
+.тс-клетка { background: rgba(255,255,255,.05); border-radius: 2px;
+  transition: background .12s linear }
+.тс-клетка.есть { background: rgba(46,230,197,.34) }
+
+.тс-след { position: absolute; inset: 0; width: 100%; height: 100%; pointer-events: none }
+
+/* Надпись лежит на клетках, поэтому у неё обводка тенью: без неё светлые буквы на светлой
+   закрашенной клетке пропадали бы, а приглушать их нельзя. */
+.тс-надпись {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); pointer-events: none;
+  text-align: center; font: 400 15px/1.6 var(--ui); color: var(--буквы);
+  text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 12px rgba(0,0,0,.6);
+  padding: 0 24px; transition: opacity .2s ease;
+}
+.тс-площадка.тронуто .тс-надпись { opacity: 0 }
+
+/* Выход из полного экрана. Кнопка нужна всегда: клавиши Esc на телефоне нет. */
+.тс-выход {
+  position: absolute; top: 12px; right: 12px; display: none; z-index: 2;
+  font: 600 13px var(--ui); height: 38px; padding: 0 16px; border-radius: 10px; cursor: pointer;
+  color: #10141a; background: rgba(255,255,255,.94); border: 0;
+}
+.тс-площадка.везде .тс-выход { display: block }
+
+/* ---- Числа ------------------------------------------------------------------------------- */
+
+.тс-числа { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px }
+.тс-число { padding: 12px 10px 11px; border-radius: 12px; text-align: center;
+  background: var(--surface-2); border: 1px solid var(--line) }
+/* Подпись тонкая и плотная по цвету: разница с числом берётся размером, а не приглушением. */
+.тс-число .к { display: block; font: 400 10.5px var(--ui); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--буквы2) }
+.тс-число .н { display: block; margin-top: 4px; font: 700 24px/1.1 var(--ui); color: var(--буквы);
+  font-variant-numeric: tabular-nums }
+.тс-число .н.хорошо { color: var(--свой) }
+.тс-число .н.плохо { color: #ff7b8f }
+
+.тс-кнопки { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.тс-кнопка {
+  flex: 1; min-width: 150px; font: 600 14px var(--ui); height: 48px; border-radius: 12px;
+  cursor: pointer; color: var(--буквы); border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.06);
+  transition: border-color .15s ease, transform .08s ease;
+}
+.тс-кнопка:hover { border-color: rgba(255,255,255,.45) }
+.тс-кнопка:active { transform: translateY(1px) }
+.тс-кнопка.главная { color: #06231e; border-color: transparent;
+  background: linear-gradient(180deg, #4df0d3, #17c9a8) }
+
+/* ---- Покой ------------------------------------------------------------------------------- */
+
+/* Место под самую длинную строку итога занято заранее: без запаса страница прыгала на два
+   десятка точек ровно в тот миг, когда человек смотрит на счётчик. */
+.тс-итог { min-height: 46px; margin-top: 12px; text-align: center; font: 400 13.5px/1.6 var(--ui);
+  color: var(--буквы2) }
+.тс-итог b { color: var(--буквы); font-weight: 600 }
+.тс-итог .плохо { color: #ff7b8f; font-weight: 600 }
+.тс-итог .хорошо { color: var(--свой); font-weight: 600 }
+
+.тс-часы { font: 700 62px/1 var(--ui); color: var(--буквы); font-variant-numeric: tabular-nums;
+  letter-spacing: -.03em }
+.тс-покойПоле { display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 8px; height: 100%; text-align: center; padding: 0 20px }
+.тс-покойПоле .п { font: 400 14px/1.55 var(--ui); color: var(--буквы2); max-width: 40ch }
+/* Полоска времени под счётом. Ширина её меняется раз в секунду, плавность берётся
+   переходом -- считать кадры ради полоски не нужно. */
+.тс-полоса { width: 78%; max-width: 300px; height: 4px; border-radius: 2px; margin-top: 6px;
+  background: rgba(255,255,255,.14); overflow: hidden }
+.тс-полоса i { display: block; height: 100%; width: 0; border-radius: 2px;
+  background: var(--свой); transition: width 1s linear }
+
+.тс-скрыт { display: none !important }
+
+/* ---- Хвост ------------------------------------------------------------------------------- */
+
+.тс-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.тс-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.тс-заметка::before { content: "•"; color: var(--свой); flex: none }
+
+@media (max-width: 560px) {
+  .тс-площадка { height: 300px }
+  .тс-числа { grid-template-columns: 1fr 1fr }
+  .тс-число:last-child { grid-column: 1 / -1 }
+  .тс-кнопка { min-width: 0 }
+  .тс-часы { font-size: 52px }
+}
+@media (prefers-reduced-motion: reduce) { .тс-клетка { transition: none } }

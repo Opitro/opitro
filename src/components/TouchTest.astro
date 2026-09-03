@@ -1,0 +1,442 @@
+---
+// ТЕСТ ТАЧСКРИНА -- своя страница со своим кодом и стилями.
+//
+// Проверяем то, что ломается у сенсорного экрана на самом деле:
+//   * МЁРТВЫЕ ЗОНЫ -- участок, где касание не доходит вовсе. Ловится закрашиванием клеток:
+//     что осталось тёмным после честного прохода, то и не работает.
+//   * РАЗРЫВЫ И РЫВКИ -- линия под пальцем прыгает или пропадает. Видно только по следу,
+//     поэтому след рисуется поверх клеток, а не вместо них.
+//   * ПРИЗРАЧНЫЕ КАСАНИЯ -- экран нажимает сам. Ловится бездействием, а не касанием,
+//     поэтому вынесено в отдельный режим с обратным отсчётом.
+//
+// Чего здесь НЕТ и не будет: частоты опроса сенсора. Браузер отдаёт касания уже
+// обработанными системой, и любое число, названное со страницы, было бы выдумкой.
+//
+// Работаем на pointer-событиях: одним кодом закрыты палец, стилус и мышь. Их же хватает,
+// чтобы честно показать, сколько касаний экран держит одновременно.
+import css from '../styles/touch-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    m1: 'Мёртвые зоны', m2: 'Призрачные касания',
+    hint1: 'Ведите пальцем по всей площадке, не отрывая руки. Клетка, которая не закрасилась, — место, где экран вас не почувствовал.',
+    hint2: 'Положите устройство на стол и уберите руки. Пятнадцать секунд страница считает касания, которых быть не должно.',
+    label: 'Ведите пальцем по площадке',
+    covered: 'Закрашено', rest: 'Осталось клеток', fingers: 'Пальцев сразу',
+    full: 'Во весь экран', exit: 'Выйти', again: 'Заново',
+    start: 'Начать проверку', stop: 'Остановить',
+    dont: 'Не касайтесь экрана', ghosts: 'Касаний без пальца',
+    partial: 'Осталось {n} клеток. Пропуск — это ещё не поломка: пройдите их ещё раз, помедленнее.',
+    done: 'Вся площадка закрашена — мёртвых зон здесь нет.',
+    big: 'Площадка стала больше, клетки пересчитаны — проверка начата заново.',
+    res0: 'Чисто: за пятнадцать секунд экран не нажал ни разу.',
+    resN: 'Экран нажал сам — {n}. Это призрачные касания.',
+    n1: 'Мёртвые зоны почти всегда живут у самых краёв, а в окне страницы до края не дотянуться — для этого и есть кнопка «во весь экран».',
+    n2: 'Прежде чем считать сенсор сломанным, снимите чехол и плёнку, вытрите экран и руки насухо: мокрый палец и толстая плёнка дают ровно ту же картину.',
+    n3: 'Частоту опроса сенсора со страницы не измерить: браузер отдаёт касания уже обработанными системой. Здесь проверяется, где экран чувствует, а где нет.',
+    n4: 'Если экран нажимает сам, чаще всего виноваты треснувшее стекло, отошедший шлейф после падения или дешёвая зарядка — помехи от неё экран принимает за палец. Отключите зарядку и проверьте ещё раз.',
+  },
+  en: {
+    m1: 'Dead zones', m2: 'Ghost touches',
+    hint1: 'Drag your finger across the whole pad without lifting it. A cell that stays dark is a spot where the screen did not feel you.',
+    hint2: 'Put the device on a table and take your hands off. For fifteen seconds the page counts touches that should not happen.',
+    label: 'Drag your finger across the pad',
+    covered: 'Covered', rest: 'Cells left', fingers: 'Fingers at once',
+    full: 'Full screen', exit: 'Exit', again: 'Start over',
+    start: 'Start the watch', stop: 'Stop',
+    dont: 'Do not touch the screen', ghosts: 'Touches with no finger',
+    partial: '{n} cells left. A miss is not a fault yet — go over them again, more slowly.',
+    done: 'The whole pad is covered — no dead zones here.',
+    big: 'The pad got bigger and the cells were recounted — the test started over.',
+    res0: 'Clean: in fifteen seconds the screen never fired.',
+    resN: 'The screen fired on its own — {n}. Those are ghost touches.',
+    n1: 'Dead zones almost always sit right at the edges, and inside a page window you cannot reach the edge — that is what the full-screen button is for.',
+    n2: 'Before calling the digitiser dead, take off the case and the film, and wipe the screen and your hands dry: a wet finger and a thick film look exactly the same.',
+    n3: 'The touch sampling rate cannot be measured from a page: the browser hands over touches already processed by the system. What is tested here is where the screen feels and where it does not.',
+    n4: 'When the screen fires on its own, the usual culprits are cracked glass, a loose cable after a drop, or a cheap charger — the screen reads its interference as a finger. Unplug the charger and run the watch again.',
+  },
+  es: {
+    m1: 'Zonas muertas', m2: 'Toques fantasma',
+    hint1: 'Desliza el dedo por toda la superficie sin levantarlo. La casilla que no se pinta es el punto donde la pantalla no te sintió.',
+    hint2: 'Deja el aparato sobre la mesa y aparta las manos. Durante quince segundos la página cuenta los toques que no deberían existir.',
+    label: 'Desliza el dedo por la superficie',
+    covered: 'Pintado', rest: 'Casillas restantes', fingers: 'Dedos a la vez',
+    full: 'Pantalla completa', exit: 'Salir', again: 'Empezar de nuevo',
+    start: 'Empezar la vigilancia', stop: 'Detener',
+    dont: 'No toques la pantalla', ghosts: 'Toques sin dedo',
+    partial: 'Quedan {n} casillas. Un hueco todavía no es una avería: repásalas más despacio.',
+    done: 'Toda la superficie está pintada: aquí no hay zonas muertas.',
+    big: 'La superficie creció y las casillas se recalcularon: la prueba empieza de nuevo.',
+    res0: 'Limpio: en quince segundos la pantalla no se disparó ni una vez.',
+    resN: 'La pantalla se disparó sola: {n}. Son toques fantasma.',
+    n1: 'Las zonas muertas casi siempre viven justo en los bordes, y dentro de la ventana de la página no se llega al borde: para eso está el botón de pantalla completa.',
+    n2: 'Antes de dar el digitalizador por muerto, quita la funda y el protector y seca la pantalla y las manos: un dedo mojado y una lámina gruesa dan exactamente la misma imagen.',
+    n3: 'La frecuencia de muestreo del sensor no se puede medir desde una página: el navegador entrega los toques ya procesados por el sistema. Aquí se comprueba dónde siente la pantalla y dónde no.',
+    n4: 'Cuando la pantalla se dispara sola, lo habitual es el cristal roto, un cable suelto tras una caída o un cargador barato: la pantalla toma sus interferencias por un dedo. Desenchufa el cargador y repite la vigilancia.',
+  },
+  uk: {
+    m1: 'Мертві зони', m2: 'Примарні дотики',
+    hint1: 'Ведіть пальцем по всьому майданчику, не відриваючи руки. Клітинка, яка не зафарбувалася, — місце, де екран вас не відчув.',
+    hint2: 'Покладіть пристрій на стіл і приберіть руки. П’ятнадцять секунд сторінка рахує дотики, яких бути не повинно.',
+    label: 'Ведіть пальцем по майданчику',
+    covered: 'Зафарбовано', rest: 'Лишилося клітинок', fingers: 'Пальців одразу',
+    full: 'На весь екран', exit: 'Вийти', again: 'Спочатку',
+    start: 'Почати перевірку', stop: 'Зупинити',
+    dont: 'Не торкайтеся екрана', ghosts: 'Дотиків без пальця',
+    partial: 'Лишилося {n} клітинок. Пропуск — це ще не поломка: пройдіть їх ще раз, повільніше.',
+    done: 'Увесь майданчик зафарбовано — мертвих зон тут немає.',
+    big: 'Майданчик побільшав, клітинки перераховано — перевірку почато спочатку.',
+    res0: 'Чисто: за п’ятнадцять секунд екран не натиснув жодного разу.',
+    resN: 'Екран натиснув сам — {n}. Це примарні дотики.',
+    n1: 'Мертві зони майже завжди живуть біля самих країв, а у вікні сторінки до краю не дотягнутися — для цього й є кнопка «на весь екран».',
+    n2: 'Перш ніж вважати сенсор зламаним, зніміть чохол і плівку, витріть екран і руки насухо: мокрий палець і товста плівка дають рівно таку саму картину.',
+    n3: 'Частоту опитування сенсора зі сторінки не виміряти: браузер віддає дотики вже обробленими системою. Тут перевіряється, де екран відчуває, а де ні.',
+    n4: 'Якщо екран натискає сам, найчастіше винні тріснуте скло, відхідний шлейф після падіння або дешева зарядка — завади від неї екран приймає за палець. Вимкніть зарядку й перевірте ще раз.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тс" data-words={JSON.stringify(с)}>
+  <div class="тс-режимы" id="тс-режимы">
+    <button type="button" class="тс-режим вкл" data-р="сетка">{с.m1}</button>
+    <button type="button" class="тс-режим" data-р="покой">{с.m2}</button>
+  </div>
+
+  <p class="тс-подсказка" id="тс-подсказка">{с.hint1}</p>
+
+  <div class="тс-площадка" id="тс-площадка">
+    <div class="тс-сетка" id="тс-сетка"></div>
+    <canvas class="тс-след" id="тс-след"></canvas>
+    <div class="тс-надпись" id="тс-надпись">{с.label}</div>
+    <button type="button" class="тс-выход" id="тс-выход">{с.exit}</button>
+
+    <div class="тс-покойПоле тс-скрыт" id="тс-покойПоле">
+      <div class="тс-часы" id="тс-часы">15</div>
+      <div class="п" id="тс-покойТекст">{с.dont}</div>
+      {/* Полоска времени: без неё в покое человек пятнадцать секунд смотрит на пустое поле
+          и не понимает, идёт проверка или уже кончилась. */}
+      <div class="тс-полоса"><i id="тс-полосаЛиния"></i></div>
+    </div>
+  </div>
+
+  <div class="тс-числа" id="тс-числа">
+    <div class="тс-число"><span class="к">{с.covered}</span><span class="н" id="тс-доля">0%</span></div>
+    <div class="тс-число"><span class="к">{с.rest}</span><span class="н" id="тс-осталось">—</span></div>
+    <div class="тс-число"><span class="к">{с.fingers}</span><span class="н" id="тс-пальцев">0</span></div>
+  </div>
+
+  <div class="тс-числа тс-скрыт" id="тс-числаПокой">
+    <div class="тс-число" style="grid-column:1/-1"><span class="к">{с.ghosts}</span><span class="н" id="тс-призраки">0</span></div>
+  </div>
+
+  <div class="тс-кнопки">
+    <button type="button" class="тс-кнопка главная" id="тс-весь">{с.full}</button>
+    <button type="button" class="тс-кнопка" id="тс-заново">{с.again}</button>
+    <button type="button" class="тс-кнопка главная тс-скрыт" id="тс-пуск">{с.start}</button>
+  </div>
+
+  <div class="тс-итог" id="тс-итог"></div>
+
+  <div class="тс-заметки">
+    <div class="тс-заметка">{с.n1}</div>
+    <div class="тс-заметка">{с.n2}</div>
+    <div class="тс-заметка">{с.n3}</div>
+    <div class="тс-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.тс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const площадка = $('тс-площадка');
+    const сетка = $('тс-сетка');
+    const канва = $('тс-след');
+    const кисть = канва.getContext('2d');
+
+    // Клетка около сорока точек: палец накрывает примерно столько, и на клетках такого
+    // размера мёртвая зона в один-два сантиметра видна сразу, а мельче -- уже не пропуск
+    // сенсора, а дрожь руки.
+    const КЛЕТКА = 42;
+    const ПОКОЙ = 15;
+
+    let колонок = 0, строк = 0, всего = 0;
+    let закрашено = new Set();
+    let максПальцев = 0;
+    const следы = new Map();       // указатель -> прошлая точка
+    let режим = 'сетка';
+    let часы = null, осталосьСекунд = 0, призраков = 0, ловим = false;
+
+    /* ---- Сетка ---------------------------------------------------------------------- */
+
+    function строитьСетку() {
+      const п = площадка.getBoundingClientRect();
+      колонок = Math.max(4, Math.round(п.width / КЛЕТКА));
+      строк = Math.max(4, Math.round(п.height / КЛЕТКА));
+      всего = колонок * строк;
+      сетка.style.gridTemplateColumns = `repeat(${колонок}, 1fr)`;
+      сетка.style.gridTemplateRows = `repeat(${строк}, 1fr)`;
+      // Клетки строятся разом через обломок документа: по одной на тысяче штук браузер
+      // перекладывал бы страницу тысячу раз.
+      const обломок = document.createDocumentFragment();
+      for (let i = 0; i < всего; i++) {
+        const к = document.createElement('div');
+        к.className = 'тс-клетка';
+        обломок.appendChild(к);
+      }
+      сетка.replaceChildren(обломок);
+      готовитьКанву();
+      сбросить(false);
+    }
+
+    function готовитьКанву() {
+      const п = площадка.getBoundingClientRect();
+      const плотность = Math.min(window.devicePixelRatio || 1, 2);
+      канва.width = Math.round(п.width * плотность);
+      канва.height = Math.round(п.height * плотность);
+      кисть.setTransform(плотность, 0, 0, плотность, 0, 0);
+      кисть.lineCap = 'round';
+      кисть.lineJoin = 'round';
+      кисть.lineWidth = 2.5;
+    }
+
+    function сбросить(мягко) {
+      закрашено = new Set();
+      максПальцев = 0;
+      следы.clear();
+      сетка.querySelectorAll('.есть').forEach((к) => к.classList.remove('есть'));
+      кисть.clearRect(0, 0, канва.width, канва.height);
+      площадка.classList.remove('тронуто');
+      $('тс-доля').textContent = '0%';
+      $('тс-доля').className = 'н';
+      $('тс-осталось').textContent = String(всего);
+      $('тс-пальцев').textContent = '0';
+      $('тс-итог').innerHTML = мягко ? `<b>${с.big}</b>` : '';
+    }
+
+    /* ---- Касание -------------------------------------------------------------------- */
+
+    // Цвета следа по порядку пальцев: одинаковым цветом две линии не различить, а на
+    // многопальцевом ведении важно видеть, что их правда две. Первый -- белый: он идёт
+    // поверх закрашенных клеток, а бирюзовый по бирюзовому не читался вовсе.
+    const ЦВЕТА = ['#ffffff', '#58b8f0', '#ffd166', '#ff6b81', '#a06bff'];
+
+    function отметить(x, y) {
+      const к = Math.floor((x / площадка.clientWidth) * колонок);
+      const с_ = Math.floor((y / площадка.clientHeight) * строк);
+      if (к < 0 || с_ < 0 || к >= колонок || с_ >= строк) return;
+      const номер = с_ * колонок + к;
+      if (закрашено.has(номер)) return;
+      закрашено.add(номер);
+      const клетка = сетка.children[номер];
+      if (клетка) клетка.classList.add('есть');
+    }
+
+    // Между двумя событиями палец успевает пройти десятки точек. Без досчёта промежутка
+    // быстрый мах оставлял бы пунктир из клеток -- и целые здоровые полосы выглядели бы
+    // мёртвыми.
+    function отметитьОтрезок(x1, y1, x2, y2) {
+      const шагов = Math.ceil(Math.hypot(x2 - x1, y2 - y1) / (КЛЕТКА / 2));
+      for (let i = 0; i <= шагов; i++) {
+        const д = шагов ? i / шагов : 0;
+        отметить(x1 + (x2 - x1) * д, y1 + (y2 - y1) * д);
+      }
+    }
+
+    function числа() {
+      const доля = всего ? Math.round((закрашено.size / всего) * 100) : 0;
+      const поле = $('тс-доля');
+      поле.textContent = доля + '%';
+      поле.className = 'н' + (доля === 100 ? ' хорошо' : '');
+      const хвост = всего - закрашено.size;
+      $('тс-осталось').textContent = String(хвост);
+      $('тс-пальцев').textContent = String(максПальцев);
+      $('тс-итог').innerHTML = хвост === 0
+        ? `<b class="хорошо">${с.done}</b>`
+        : (закрашено.size ? с.partial.replace('{n}', `<b>${хвост}</b>`) : '');
+    }
+
+    function точка(e) {
+      const п = площадка.getBoundingClientRect();
+      return { x: e.clientX - п.left, y: e.clientY - п.top };
+    }
+
+    площадка.addEventListener('pointerdown', (e) => {
+      if (режим !== 'сетка') return;
+      площадка.setPointerCapture(e.pointerId);
+      площадка.classList.add('тронуто');
+      const т = точка(e);
+      следы.set(e.pointerId, т);
+      максПальцев = Math.max(максПальцев, следы.size);
+      отметить(т.x, т.y);
+      числа();
+    });
+
+    площадка.addEventListener('pointermove', (e) => {
+      if (режим !== 'сетка') return;
+      const было = следы.get(e.pointerId);
+      if (!было) return;
+      // Браузер склеивает несколько замеров в одно событие. Разобранные обратно, они дают
+      // ровную линию вместо ломаной -- и разрыв в следе тогда правда означает разрыв.
+      const шаги = e.getCoalescedEvents ? e.getCoalescedEvents() : [e];
+      const цвет = ЦВЕТА[[...следы.keys()].indexOf(e.pointerId) % ЦВЕТА.length];
+      кисть.strokeStyle = цвет;
+      кисть.beginPath();
+      кисть.moveTo(было.x, было.y);
+      let прошлое = было;
+      for (const ш of (шаги.length ? шаги : [e])) {
+        const т = точка(ш);
+        кисть.lineTo(т.x, т.y);
+        отметитьОтрезок(прошлое.x, прошлое.y, т.x, т.y);
+        прошлое = т;
+      }
+      кисть.stroke();
+      следы.set(e.pointerId, прошлое);
+      числа();
+    });
+
+    const отпустить = (e) => { следы.delete(e.pointerId); };
+    площадка.addEventListener('pointerup', отпустить);
+    площадка.addEventListener('pointercancel', отпустить);
+    площадка.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    /* ---- Во весь экран -------------------------------------------------------------- */
+
+    function вВесьЭкран() {
+      площадка.classList.add('везде');
+      const пуск = площадка.requestFullscreen || площадка.webkitRequestFullscreen;
+      // Полный экран -- попытка: на айфоне его для обычных узлов нет, но накрыть окно собой
+      // площадка может везде, и до краёв окна человек всё равно дотянется.
+      if (пуск) { try { const п = пуск.call(площадка); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+      requestAnimationFrame(() => requestAnimationFrame(() => { строитьСетку(); сбросить(true); }));
+    }
+
+    function изВсегоЭкрана() {
+      площадка.classList.remove('везде');
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        const стоп = document.exitFullscreen || document.webkitExitFullscreen;
+        if (стоп) { try { const п = стоп.call(document); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+      }
+      requestAnimationFrame(() => requestAnimationFrame(() => { строитьСетку(); сбросить(true); }));
+    }
+
+    $('тс-весь').addEventListener('click', вВесьЭкран);
+    $('тс-выход').addEventListener('click', изВсегоЭкрана);
+    $('тс-заново').addEventListener('click', () => сбросить(false));
+    // Выход по Esc и системной кнопке: браузер сам гасит полный экран, класс надо снять
+    // следом, иначе площадка останется поверх страницы.
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && площадка.classList.contains('везде')) изВсегоЭкрана();
+    });
+
+    /* ---- Покой ---------------------------------------------------------------------- */
+
+    function режимНа(имя) {
+      режим = имя;
+      стопПокой();
+      корень.querySelectorAll('.тс-режим').forEach((к) => к.classList.toggle('вкл', к.dataset.р === имя));
+      const сетчатый = имя === 'сетка';
+      $('тс-подсказка').textContent = сетчатый ? с.hint1 : с.hint2;
+      сетка.classList.toggle('тс-скрыт', !сетчатый);
+      канва.classList.toggle('тс-скрыт', !сетчатый);
+      $('тс-надпись').classList.toggle('тс-скрыт', !сетчатый);
+      $('тс-покойПоле').classList.toggle('тс-скрыт', сетчатый);
+      $('тс-числа').classList.toggle('тс-скрыт', !сетчатый);
+      $('тс-числаПокой').classList.toggle('тс-скрыт', сетчатый);
+      $('тс-весь').classList.toggle('тс-скрыт', !сетчатый);
+      $('тс-заново').classList.toggle('тс-скрыт', !сетчатый);
+      $('тс-пуск').classList.toggle('тс-скрыт', сетчатый);
+      $('тс-итог').innerHTML = '';
+      if (сетчатый) { сбросить(false); } else {
+        призраков = 0;
+        $('тс-призраки').textContent = '0';
+        $('тс-призраки').className = 'н';
+        $('тс-часы').textContent = String(ПОКОЙ);
+        $('тс-покойТекст').textContent = с.dont;
+        полоса(0);
+      }
+    }
+
+    function считатьПризрак() {
+      if (!ловим) return;
+      призраков++;
+      const поле = $('тс-призраки');
+      поле.textContent = String(призраков);
+      поле.className = 'н плохо';
+    }
+
+    function пускПокой() {
+      призраков = 0;
+      осталосьСекунд = ПОКОЙ;
+      $('тс-призраки').textContent = '0';
+      $('тс-призраки').className = 'н';
+      $('тс-часы').textContent = String(ПОКОЙ);
+      $('тс-итог').innerHTML = '';
+      $('тс-пуск').textContent = с.stop;
+      полоса(1);
+      // Полсекунды форы: нажатие на саму кнопку «начать» -- это касание, и без форы
+      // проверка засчитывала бы его себе.
+      setTimeout(() => { ловим = true; }, 500);
+      часы = setInterval(() => {
+        осталосьСекунд--;
+        $('тс-часы').textContent = String(Math.max(0, осталосьСекунд));
+        полоса(Math.max(0, осталосьСекунд) / ПОКОЙ);
+        if (осталосьСекунд <= 0) итогПокой();
+      }, 1000);
+    }
+
+    function полоса(доля) {
+      const л = $('тс-полосаЛиния');
+      if (л) л.style.width = Math.round(доля * 100) + '%';
+    }
+
+    function стопПокой() {
+      ловим = false;
+      if (часы) { clearInterval(часы); часы = null; }
+      $('тс-пуск').textContent = с.start;
+    }
+
+    function итогПокой() {
+      стопПокой();
+      полоса(0);
+      $('тс-часы').textContent = '0';
+      $('тс-итог').innerHTML = призраков === 0
+        ? `<b class="хорошо">${с.res0}</b>`
+        : с.resN.replace('{n}', `<b class="плохо">${призраков}</b>`);
+    }
+
+    $('тс-пуск').addEventListener('click', () => { часы ? (стопПокой(), $('тс-часы').textContent = String(ПОКОЙ)) : пускПокой(); });
+    // Ловим по всему окну, а не по площадке: экран нажимает сам где придётся, и ждать
+    // призрака ровно в рамке было бы глупо.
+    window.addEventListener('pointerdown', считатьПризрак, true);
+
+    корень.querySelectorAll('.тс-режим').forEach((к) => {
+      к.addEventListener('click', () => режимНа(к.dataset.р));
+    });
+
+    /* ---- Пуск ----------------------------------------------------------------------- */
+
+    строитьСетку();
+    let перестройка = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(перестройка);
+      перестройка = setTimeout(() => {
+        if (режим !== 'сетка') return;
+        строитьСетку();
+        сбросить(true);
+      }, 250);
+    });
+
+    window.__тсСостояние = () => ({
+      колонок, строк, всего, закрашено: закрашено.size, максПальцев, режим, призраков,
+      доля: $('тс-доля').textContent, итог: $('тс-итог').textContent,
+      весьЭкран: площадка.classList.contains('везде'),
+    });
+  })();
+</script>
