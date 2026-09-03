@@ -1,0 +1,151 @@
+/* СТИЛИ СТРАНИЦЫ «СРАВНЕНИЕ ДВУХ ТЕКСТОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных текстовых инструментов, все решения уже утверждены:
+ * поля светлее фона, кнопки подняты и с белыми буквами, выбранное помечено только зелёной
+ * обводкой, в строке отчёта подпись зелёная, значение белое.
+ *
+ * ЦВЕТА ОТЛИЧИЙ. Подсветка идёт ФОНОМ, а буквы остаются белыми: цветные буквы на тёмном
+ * читаются хуже, а на длинном тексте утомляют. Совпавшие строки не приглушаем до серости --
+ * они чуть тише белого, но остаются читаемыми: человек часто читает не правки, а текст
+ * вокруг них.
+ */
+
+.дф {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --убрано-фон: #3a1a20;
+  --убрано-знак: #ff9aa8;
+  --добавлено-фон: #143024;
+  --добавлено-знак: #4ade9e;
+  font-family: var(--цифры);
+}
+
+/* ---- Настройки сверху -------------------------------------------------------------------- */
+
+.дф-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  margin-bottom: 10px }
+.дф-подпись { font: 400 12px var(--цифры); color: var(--accent) }
+
+.дф-кнопки { display: inline-flex; gap: 6px }
+.дф-выбор {
+  height: 38px; padding: 0 15px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.дф-выбор:hover { border-color: #fff; background: #23272f }
+.дф-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.дф-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+.дф-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.дф-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.дф-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.дф-галка:hover i { border-color: #fff }
+.дф-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.дф-галка input:checked + i { border-color: var(--accent) }
+.дф-галка input:checked + i::after { transform: scale(1) }
+.дф-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Два поля ввода ------------------------------------------------------------------------ */
+
+.дф-пара { display: grid; grid-template-columns: 1fr; gap: 10px }
+.дф-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.дф-поле:focus-within { border-color: #fff }
+.дф-имя { display: block; padding: 9px 14px 0; font: 400 11px var(--ui);
+  letter-spacing: .08em; text-transform: uppercase; color: var(--accent) }
+.дф-ввод {
+  display: block; width: 100%; min-height: 170px; resize: vertical;
+  padding: 8px 14px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13.5px/1.65 var(--цифры); border-radius: 0 0 10px 10px; overflow-wrap: anywhere;
+}
+.дф-ввод:focus { outline: none }
+.дф-ввод::placeholder { color: #7d848f }
+
+.дф-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 9px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.дф-счётчики b { color: #fff; font-weight: 500 }
+.дф-счётчики .убрано b { color: var(--убрано-знак) }
+.дф-счётчики .добавлено b { color: var(--добавлено-знак) }
+.дф-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.дф-сказ.видно { opacity: 1 }
+
+/* ---- Окно с отличиями ---------------------------------------------------------------------- */
+
+/* Место под окно держится постоянным с самого начала: без этого страница дёргалась бы на
+   каждой букве, ведь сравнение идёт на лету. */
+.дф-итог { min-height: 190px; border: 1px solid var(--линия); border-radius: 10px;
+  background: #0b0c0f; overflow: auto; max-height: 620px }
+.дф-пусто { display: flex; align-items: center; justify-content: center; min-height: 188px;
+  padding: 0 20px; text-align: center; font: 400 13px/1.6 var(--ui); color: #fff }
+
+/* Один поток: удалённое и добавленное идут подряд, как в истории правок. */
+.дф-поток { padding: 12px 14px; font: 400 13.5px/1.7 var(--цифры); color: #dbe2ec;
+  white-space: pre-wrap; overflow-wrap: anywhere }
+
+/* Две колонки: слева было, справа стало. Разделительная черта посередине. */
+.дф-колонки { display: grid; grid-template-columns: 1fr 1fr }
+.дф-колонка { padding: 12px 14px; font: 400 13.5px/1.7 var(--цифры); color: #dbe2ec;
+  white-space: pre-wrap; overflow-wrap: anywhere; min-width: 0 }
+.дф-колонка + .дф-колонка { border-left: 1px solid var(--линия) }
+.дф-шапка { position: sticky; top: 0; z-index: 1; padding: 8px 14px; background: #14161b;
+  border-bottom: 1px solid var(--линия); font: 400 11px var(--ui); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
+
+/* Строки в построчном виде. Знак слева стоит в своей колонке, поэтому текст не съезжает. */
+.дф-строка { display: flex; gap: 10px; padding: 1px 14px }
+.дф-строка .знак { flex: none; width: 10px; text-align: center; font-weight: 700 }
+.дф-строка .тело { flex: 1 1 auto; min-width: 0; white-space: pre-wrap; overflow-wrap: anywhere }
+.дф-строка.удалено { background: var(--убрано-фон) }
+.дф-строка.удалено .знак { color: var(--убрано-знак) }
+.дф-строка.добавлено { background: var(--добавлено-фон) }
+.дф-строка.добавлено .знак { color: var(--добавлено-знак) }
+.дф-строка.пустая { min-height: 23px }
+
+/* Куски внутри строки -- для сравнения по словам. */
+.дф-убрано { background: var(--убрано-фон); color: #fff; text-decoration: line-through;
+  text-decoration-color: var(--убрано-знак); border-radius: 3px; padding: 1px 2px }
+.дф-добавлено { background: var(--добавлено-фон); color: #fff; border-radius: 3px;
+  padding: 1px 2px }
+
+.дф-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px }
+.дф-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.дф-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.дф-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.дф-простая:hover { border-color: #fff; background: #23272f }
+
+.дф-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.дф-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.дф-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.дф-заметка b { color: #fff; font-weight: 600 }
+
+@media (min-width: 820px) {
+  .дф-пара { grid-template-columns: 1fr 1fr }
+}
+@media (max-width: 700px) {
+  /* На узком экране две колонки не помещаются: показываем один поток. */
+  .дф-колонки { grid-template-columns: 1fr }
+  .дф-колонка + .дф-колонка { border-left: 0; border-top: 1px solid var(--линия) }
+}
+@media (max-width: 560px) {
+  .дф-ввод { min-height: 140px }
+  .дф-кнопки { width: 100% }
+  .дф-выбор { flex: 1 1 0; padding: 0 8px }
+}

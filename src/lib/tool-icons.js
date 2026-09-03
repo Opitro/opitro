@@ -28,6 +28,7 @@ const I = {
   filler: '<path d="M4 6h16M4 10h16M4 14h11M4 18h7"/>',
   flip: '<path d="M12 3v18"/><path d="M8.5 7.5L5 11l3.5 3.5"/><path d="M15.5 7.5L19 11l-3.5 3.5"/>',
   broom: '<path d="M14.5 3.5l6 6"/><path d="M17.5 6.5l-8 8"/><path d="M9.5 14.5l-5 5h9l3-3-4-2z"/>',
+  diff: '<path d="M4 4h6v16H4zM14 4h6v16h-6"/><path d="M6 9h2M6 13h2M16 9h2M16 15h2"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -108,6 +109,7 @@ const RULES = [
   [/equalizer/, 'sliders'],
   [/video/, 'video'],
   [/ringtone/, 'bell'],
+  [/text-diff/, 'diff'],
   [/reading-time/, 'clock'],
   [/lorem-ipsum/, 'filler'],
   [/text-reverse/, 'flip'],
@@ -136,6 +138,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
+  diff: '#a78bfa',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */
