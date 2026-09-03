@@ -34,12 +34,14 @@
   font-family: var(--ui);
 }
 
-.тс-режимы { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
-  margin-bottom: 12px }
-/* Переключатель режимов -- две маленькие кнопки по своему тексту. Растянутые на всю ширину
-   они читались как две большие плашки-разделы, а не как выбор одного из двух. */
+/* Переключатель режимов -- две маленькие кнопки ОДНОЙ ширины. Ширина берётся не с потолка:
+   сетка из колонок в одну долю под ограничением по содержимому делает обе колонки равными
+   самой длинной надписи. Кнопки остаются по тексту (не во всю ширину) и при этом
+   симметричны. */
+.тс-режимы { display: grid; grid-auto-flow: column; grid-auto-columns: minmax(0, 1fr);
+  gap: 6px; width: fit-content; max-width: 100%; margin: 0 auto 12px }
 .тс-режим {
-  flex: 0 0 auto; font: 400 13px var(--ui); height: 34px; padding: 0 14px; border-radius: 9px;
+  font: 400 13px/1.2 var(--ui); min-height: 34px; padding: 7px 14px; border-radius: 9px;
   cursor: pointer; color: var(--буквы);
   background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.22);
   transition: background .15s ease, color .15s ease, border-color .15s ease;
@@ -144,6 +146,15 @@
 .тс-покойПоле { display: flex; flex-direction: column; align-items: center; justify-content: center;
   gap: 8px; height: 100%; text-align: center; padding: 0 20px }
 .тс-покойПоле .п { font: 400 14px/1.55 var(--ui); color: var(--буквы2); max-width: 40ch }
+/* Вводная внутри окна. Место под ней не резервируется намеренно: содержимое окна выровнено
+   по центру, высота окна постоянна, и исчезновение текста ничего не двигает. */
+.тс-вводная { max-width: 40ch; margin-bottom: 4px; font: 400 14px/1.55 var(--ui);
+  color: var(--буквы2) }
+/* Ответ в окне. Крупнее вводной, но не крупнее числа: это итог, а не заголовок. */
+.тс-исход { max-width: 34ch; font: 400 16px/1.5 var(--ui); color: var(--буквы2) }
+.тс-исход b { font-weight: 700 }
+.тс-исход .хорошо { color: var(--свой) }
+.тс-исход .плохо { color: #ff7b8f }
 /* Полоска времени под счётом. Ширина её меняется раз в секунду, плавность берётся
    переходом -- считать кадры ради полоски не нужно. */
 .тс-полоса { width: 78%; max-width: 300px; height: 4px; border-radius: 2px; margin-top: 6px;
