@@ -1,0 +1,117 @@
+/* СТИЛИ СТРАНИЦЫ «КОДИРОВАНИЕ И ДЕКОДИРОВАНИЕ URL».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид тот же, что у остальных текстовых инструментов: сверху направление и охват, потом поле
+ * ввода, строка отчёта, поле вывода, кнопки.
+ *
+ * Поля СВЕТЛЕЕ фона страницы (#0e0f11), а не чёрные, как было в спецификации: чёрная панель
+ * на тёмной странице сливается. Поле вывода темнее поля ввода: «здесь пишут» и «отсюда
+ * забирают» различаются светлотой.
+ */
+
+.урл {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы2: #a1a1aa;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Направление и охват ------------------------------------------------------------------ */
+
+.урл-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  margin-bottom: 10px }
+
+/* Направление -- две кнопки, а не угадывание. Выбранная остаётся подсвеченной. */
+.урл-режимы, .урл-охваты { display: inline-flex; gap: 6px }
+.урл-режим {
+  height: 38px; padding: 0 15px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
+  border: 1px solid #333; transition: border-color .15s, color .15s, background .15s;
+}
+.урл-режим:hover { border-color: #fff; color: #fff }
+/* Выбранная кнопка: зелёная рамка и зелёные буквы. Тёмный текст на сплошной
+   зелёной заливке владелец уже забраковал -- он плохо читается. */
+.урл-режим.выбран { border-color: var(--accent); color: var(--accent);
+  background: color-mix(in srgb, var(--accent) 14%, transparent); font-weight: 700 }
+.урл-режим.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Охват относится только к кодированию. При разборе он ни на что не влияет, поэтому прячется
+   -- но место под него остаётся занятым, иначе строка прыгала бы при смене направления. */
+.урл-охват-обёртка { display: inline-flex; align-items: center; gap: 10px }
+.урл-охват-обёртка.скрыт { visibility: hidden }
+.урл-подпись { font: 400 12px var(--цифры); color: var(--accent) }
+
+.урл-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.урл-поле:focus-within { border-color: #fff }
+.урл-ввод {
+  display: block; width: 100%; min-height: 150px; resize: vertical;
+  padding: 15px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
+}
+.урл-ввод:focus { outline: none }
+.урл-ввод::placeholder { color: #52525b }
+
+.урл-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
+.урл-вывод textarea { color: #d4d4d8; cursor: text }
+.урл-вывод textarea::placeholder { color: #3f3f46 }
+.урл-вывод.беда { border-color: rgba(255,154,168,.45) }
+.урл-вывод.беда textarea { color: var(--беда) }
+
+.урл-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.урл-счётчики b { color: #fff; font-weight: 500 }
+.урл-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.урл-сказ.видно { opacity: 1 }
+
+/* Подсказка о неверном направлении. Не переключает сама -- предлагает. Место под неё
+   зарезервировано всегда, поэтому появление ничего не сдвигает. */
+.урл-намёк { min-height: 26px; display: flex; align-items: center }
+.урл-намёк button {
+  display: none; padding: 5px 11px; border-radius: 6px; cursor: pointer;
+  font: 400 12px var(--цифры); color: #ffe08a; background: transparent;
+  border: 1px dashed rgba(255,224,138,.5); transition: border-color .15s, color .15s;
+}
+.урл-намёк.видно button { display: inline-block }
+.урл-намёк button:hover { border-color: #ffe08a; color: #fff }
+
+.урл-низ { display: flex; flex-wrap: wrap; gap: 8px }
+.урл-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.урл-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.урл-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: var(--буквы2); background: transparent;
+  border: 1px solid #333; transition: border-color .15s, color .15s;
+}
+.урл-простая:hover { border-color: #fff; color: #fff }
+
+.урл-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
+   фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
+   на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
+.урл-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+.урл-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.урл-заметка b { color: #fff; font-weight: 600 }
+.урл-заметка code { font: 400 12.5px var(--цифры); color: #fff }
+
+@media (min-width: 900px) {
+  .урл-пара-полей { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; align-items: start }
+  .урл-счётчики { grid-column: 1 / -1; padding-top: 0 }
+}
+@media (max-width: 560px) {
+  .урл-ввод { min-height: 130px }
+  .урл-режимы, .урл-охваты { width: 100% }
+  .урл-охват-обёртка { width: 100%; flex-wrap: wrap; gap: 6px }
+  .урл-режим { flex: 1 1 0; padding: 0 8px }
+}

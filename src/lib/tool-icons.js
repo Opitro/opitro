@@ -21,6 +21,8 @@ const I = {
   video: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M10 9.5l5 2.5-5 2.5z"/>',
   bell: '<path d="M18 9a6 6 0 1 0-12 0c0 5-2 6-2 6h16s-2-1-2-6"/><path d="M10.3 21a2 2 0 0 0 3.4 0"/>',
   text: '<path d="M4 6h16M4 12h12M4 18h8"/>',
+  code: '<path d="M8.5 7.5L4 12l4.5 4.5M15.5 7.5L20 12l-4.5 4.5M13.5 5l-3 14"/>',
+  link: '<path d="M10 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M14 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1.5-1.5"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -101,6 +103,8 @@ const RULES = [
   [/equalizer/, 'sliders'],
   [/video/, 'video'],
   [/ringtone/, 'bell'],
+  [/base64/, 'code'],
+  [/url-encode/, 'link'],
   [/text|subtitle/, 'text'],
 ];
 
@@ -120,6 +124,7 @@ const ЦВЕТА = {
   keyboard: '#94a3b8', mouse: '#c084fc', cursor: '#ffc247', keys: '#86efac', touch: '#2ee6c5',
   multitouch: '#58b8f0', stylus: '#00f0ff', gamepad: '#7c8cff', compass: '#34d399',
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
+  code: '#fbbf24', link: '#22d3ee',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */

@@ -1,0 +1,319 @@
+---
+// КОДИРОВАНИЕ И ДЕКОДИРОВАНИЕ BASE64.
+//
+// ТРИ МЕСТА, ГДЕ ПРОСТОЕ РЕШЕНИЕ ВРЁТ, и все три здесь учтены:
+//
+//   1. btoa() понимает только байты 0..255. Русский текст в него не лезет, браузер ругается
+//      «characters outside of the Latin1 range». Классический обход -- btoa(unescape(
+//      encodeURIComponent(s))) -- работает, но держится на unescape, который из языка давно
+//      выброшен. Мы берём TextEncoder: он и есть тот самый UTF-8, только честно названный.
+//
+//   2. Направление НЕ угадывается. Слово «test» -- правильный Base64 (развернётся в мусор
+//      «µë-»), и молча его развернуть значило бы соврать. Поэтому две кнопки, а рядом
+//      подсказка: если введённое похоже на другое направление, страница ПРЕДЛАГАЕТ
+//      переключиться, но не делает этого сама.
+//
+//   3. Разобранные байты -- не всегда текст. Base64 картинки разберётся без единой ошибки,
+//      а текстом не окажется. TextDecoder со строгим режимом это ловит, и мы говорим прямо:
+//      строка верная, но внутри двоичные данные, а не буквы.
+//
+// Ничего никуда не уходит: всё делается в браузере, страница не отправляет и не хранит строк.
+import css from '../styles/base64.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    toB64: 'Текст → Base64', toText: 'Base64 → текст', urlSafe: 'Безопасный для ссылок вид',
+    placeEnc: 'Введите текст — он превратится в Base64…',
+    placeDec: 'Вставьте строку Base64 — она развернётся в текст…',
+    resEnc: 'Строка Base64 появится здесь…', resDec: 'Исходный текст появится здесь…',
+    chars: 'Знаков', bytes: 'Байтов', out: 'На выходе',
+    modeEnc: 'Режим: текст → Base64', modeDec: 'Режим: Base64 → текст',
+    hintDec: 'Похоже на Base64 — развернуть в текст?',
+    hintEnc: 'Похоже на обычный текст — закодировать?',
+    errChars: 'Это не Base64: в строке есть знаки, которых в этом формате не бывает.',
+    errLen: 'Это не Base64: строка оборвана — такой длины у правильной строки не бывает.',
+    errBin: 'Строка разобралась верно, но внутри не текст, а двоичные данные ({n} байт). Так выглядит закодированная картинка или файл — буквами их не показать.',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: 'Base64 — это <b>не шифрование</b>, а способ записи. Строку разворачивает обратно кто угодно и без всякого ключа, поэтому прятать в ней пароли бессмысленно: она скрывает данные ровно так же, как конверт из стекла.',
+    n2: 'Русский текст кодируется правильно: он переводится в UTF-8 современным способом, а не через давно выброшенную из языка функцию. Поэтому «Привет» и любые смайлы проходят без ошибки про Latin1.',
+    n3: '<b>Направление мы не угадываем.</b> Слово «test» — тоже правильный Base64, и молча развернуть его в мусор было бы враньём. Кнопки решают направление, а страница лишь подсказывает, если введённое похоже на другое.',
+    n4: 'Безопасный для ссылок вид меняет «+» на «-», «/» на «_» и убирает знаки «=» на конце. Так записывают части токенов JWT и данные внутри адреса страницы. При обратном разборе принимаются оба вида — и обычный, и безопасный.',
+    n5: 'Кодированная строка длиннее исходной примерно на треть: четыре знака Base64 хранят три байта. Это плата за то, что данные проходят там, где ждут только простые латинские буквы.',
+    n6: 'Всё считается в вашем браузере. Ни строки, ни токены никуда не отправляются, нигде не сохраняются и после закрытия вкладки не остаются.',
+  },
+  uk: {
+    toB64: 'Текст → Base64', toText: 'Base64 → текст', urlSafe: 'Безпечний для посилань вигляд',
+    placeEnc: 'Введіть текст — він перетвориться на Base64…',
+    placeDec: 'Вставте рядок Base64 — він розгорнеться в текст…',
+    resEnc: 'Рядок Base64 з’явиться тут…', resDec: 'Вихідний текст з’явиться тут…',
+    chars: 'Знаків', bytes: 'Байтів', out: 'На виході',
+    modeEnc: 'Режим: текст → Base64', modeDec: 'Режим: Base64 → текст',
+    hintDec: 'Схоже на Base64 — розгорнути в текст?',
+    hintEnc: 'Схоже на звичайний текст — закодувати?',
+    errChars: 'Це не Base64: у рядку є знаки, яких у цьому форматі не буває.',
+    errLen: 'Це не Base64: рядок обірвано — такої довжини у правильного рядка не буває.',
+    errBin: 'Рядок розібрався правильно, але всередині не текст, а двійкові дані ({n} байт). Так виглядає закодована картинка або файл — літерами їх не показати.',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: 'Base64 — це <b>не шифрування</b>, а спосіб запису. Рядок розгортає назад будь-хто й без жодного ключа, тому ховати в ньому паролі безглуздо: він приховує дані так само, як конверт зі скла.',
+    n2: 'Український текст кодується правильно: він переводиться в UTF-8 сучасним способом, а не через давно викинуту з мови функцію. Тому «Привіт» і будь-які смайли проходять без помилки про Latin1.',
+    n3: '<b>Напрямок ми не вгадуємо.</b> Слово «test» — теж правильний Base64, і мовчки розгорнути його на сміття було б неправдою. Кнопки вирішують напрямок, а сторінка лише підказує, якщо введене схоже на інше.',
+    n4: 'Безпечний для посилань вигляд змінює «+» на «-», «/» на «_» і прибирає знаки «=» наприкінці. Так записують частини токенів JWT і дані всередині адреси сторінки. При зворотному розборі приймаються обидва види — і звичайний, і безпечний.',
+    n5: 'Кодований рядок довший за вихідний приблизно на третину: чотири знаки Base64 зберігають три байти. Це плата за те, що дані проходять там, де чекають лише прості латинські літери.',
+    n6: 'Усе рахується у вашому браузері. Ні рядки, ні токени нікуди не надсилаються, ніде не зберігаються і після закриття вкладки не лишаються.',
+  },
+  en: {
+    toB64: 'Text → Base64', toText: 'Base64 → text', urlSafe: 'URL-safe form',
+    placeEnc: 'Enter text — it will turn into Base64…',
+    placeDec: 'Paste a Base64 string — it will unfold into text…',
+    resEnc: 'The Base64 string will appear here…', resDec: 'The original text will appear here…',
+    chars: 'Characters', bytes: 'Bytes', out: 'Output',
+    modeEnc: 'Mode: text → Base64', modeDec: 'Mode: Base64 → text',
+    hintDec: 'Looks like Base64 — decode it?',
+    hintEnc: 'Looks like plain text — encode it?',
+    errChars: 'This is not Base64: the string contains characters the format never uses.',
+    errLen: 'This is not Base64: the string is cut short — a valid one is never this length.',
+    errBin: 'The string decoded correctly, but what is inside is not text — it is binary data ({n} bytes). That is what an encoded image or file looks like; letters cannot show it.',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: 'Base64 is <b>not encryption</b>, it is a way of writing things down. Anyone can unfold the string back without a key, so hiding passwords in it is pointless: it conceals data about as well as a glass envelope.',
+    n2: 'Non-Latin text encodes correctly: it is converted to UTF-8 the modern way rather than through a function long dropped from the language. So “Привет” and any emoji pass without the Latin1 error.',
+    n3: '<b>We do not guess the direction.</b> The word “test” is itself valid Base64, and silently unfolding it into garbage would be a lie. The buttons decide the direction; the page only offers a hint when your input looks like the other one.',
+    n4: 'The URL-safe form turns “+” into “-”, “/” into “_” and drops the “=” signs at the end. That is how parts of JWT tokens and data inside a page address are written. Decoding accepts both forms, plain and URL-safe.',
+    n5: 'An encoded string is about a third longer than the original: four Base64 characters hold three bytes. That is the price of passing through channels that expect only plain Latin letters.',
+    n6: 'Everything is computed in your browser. No strings and no tokens are sent anywhere, nothing is stored, and nothing survives closing the tab.',
+  },
+  es: {
+    toB64: 'Texto → Base64', toText: 'Base64 → texto', urlSafe: 'Forma segura para enlaces',
+    placeEnc: 'Escribe el texto: se convertirá en Base64…',
+    placeDec: 'Pega una cadena Base64: se convertirá en texto…',
+    resEnc: 'La cadena Base64 aparecerá aquí…', resDec: 'El texto original aparecerá aquí…',
+    chars: 'Caracteres', bytes: 'Bytes', out: 'Salida',
+    modeEnc: 'Modo: texto → Base64', modeDec: 'Modo: Base64 → texto',
+    hintDec: 'Parece Base64: ¿lo descodificamos?',
+    hintEnc: 'Parece texto normal: ¿lo codificamos?',
+    errChars: 'Esto no es Base64: la cadena tiene caracteres que este formato nunca usa.',
+    errLen: 'Esto no es Base64: la cadena está cortada, una válida nunca tiene esa longitud.',
+    errBin: 'La cadena se descodificó bien, pero dentro no hay texto sino datos binarios ({n} bytes). Así se ve una imagen o un archivo codificado: con letras no se puede mostrar.',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: 'Base64 <b>no es cifrado</b>, es una forma de escribir. Cualquiera puede deshacer la cadena sin ninguna clave, así que esconder contraseñas ahí no sirve de nada: oculta los datos igual que un sobre de cristal.',
+    n2: 'El texto con acentos y eñes se codifica bien: se pasa a UTF-8 por la vía moderna y no con una función retirada hace años del lenguaje. Por eso «Año» y cualquier emoji pasan sin el error de Latin1.',
+    n3: '<b>La dirección no se adivina.</b> La palabra «test» también es Base64 válido, y convertirla en basura sin avisar sería mentir. Los botones deciden la dirección; la página solo sugiere cuando lo escrito parece de la otra.',
+    n4: 'La forma segura para enlaces cambia «+» por «-», «/» por «_» y quita los «=» del final. Así se escriben partes de los tokens JWT y los datos dentro de una dirección web. Al descodificar se aceptan las dos formas.',
+    n5: 'La cadena codificada es un tercio más larga que el original: cuatro caracteres Base64 guardan tres bytes. Ese es el precio de pasar por canales que solo esperan letras latinas simples.',
+    n6: 'Todo se calcula en tu navegador. Ni las cadenas ni los tokens se envían a ningún sitio, no se guardan y no sobreviven al cierre de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="б64" data-words={JSON.stringify(с)}>
+  <div class="б64-верх">
+    <div class="б64-режимы" role="group">
+      <button type="button" class="б64-режим выбран" id="б64-в-код" aria-pressed="true">{с.toB64}</button>
+      <button type="button" class="б64-режим" id="б64-в-текст" aria-pressed="false">{с.toText}</button>
+    </div>
+    <label class="б64-выбор"><input type="checkbox" id="б64-ссылка"><i></i>{с.urlSafe}</label>
+  </div>
+
+  <div class="б64-пара-полей">
+    <div class="б64-поле">
+      <textarea class="б64-ввод" id="б64-ввод" placeholder={с.placeEnc} spellcheck="false"></textarea>
+    </div>
+    <div class="б64-поле б64-вывод" id="б64-обёртка">
+      <textarea class="б64-ввод" id="б64-вывод" placeholder={с.resEnc} readonly></textarea>
+    </div>
+    <div class="б64-счётчики">
+      <span id="б64-режим-подпись">{с.modeEnc}</span>
+      <span>{с.chars}: <b id="б64-знаков">0</b></span>
+      <span>{с.bytes}: <b id="б64-байтов">0</b></span>
+      <span>{с.out}: <b id="б64-выход">0</b></span>
+      <span class="б64-сказ" id="б64-сказ"></span>
+    </div>
+  </div>
+
+  <div class="б64-намёк" id="б64-намёк">
+    <button type="button" id="б64-намёк-кнопка"></button>
+  </div>
+
+  <div class="б64-низ">
+    <button type="button" class="б64-кнопка" id="б64-копировать">{с.copyBig}</button>
+    <button type="button" class="б64-простая" id="б64-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="б64-заметки">
+    <div class="б64-заметка" set:html={с.n1}></div>
+    <div class="б64-заметка">{с.n2}</div>
+    <div class="б64-заметка" set:html={с.n3}></div>
+    <div class="б64-заметка">{с.n4}</div>
+    <div class="б64-заметка">{с.n5}</div>
+    <div class="б64-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.б64');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('б64-ввод');
+    const вывод = $('б64-вывод');
+    const обёртка = $('б64-обёртка');
+    const намёк = $('б64-намёк');
+    const намёкКнопка = $('б64-намёк-кнопка');
+    let кодируем = true;
+
+    /* ---- Само преобразование ------------------------------------------------------------ */
+
+    // btoa() принимает только байты 0..255, поэтому текст сначала переводим в UTF-8.
+    // TextEncoder -- это и есть UTF-8, только честно названный; unescape, на котором держится
+    // старый обходной приём, из языка давно выброшен.
+    function вБазу(текст, безопасно) {
+      const байты = new TextEncoder().encode(текст);
+      let двоичная = '';
+      const ШАГ = 0x8000;   // большие строки собираем кусками: иначе стек не выдержит
+      for (let н = 0; н < байты.length; н += ШАГ) {
+        двоичная += String.fromCharCode.apply(null, байты.subarray(н, н + ШАГ));
+      }
+      let итог = btoa(двоичная);
+      if (безопасно) итог = итог.replace(/\+/g, '-').replace(/\//g, '_').replace(/=+$/, '');
+      return итог;
+    }
+
+    function изБазы(строка) {
+      // Переносы строк приходят вместе со строкой из письма или из терминала -- это не мусор.
+      let ч = строка.replace(/\s+/g, '');
+      // Принимаем оба вида -- обычный и безопасный для ссылок.
+      ч = ч.replace(/-/g, '+').replace(/_/g, '/').replace(/=+$/, '');
+      if (!/^[A-Za-z0-9+/]*$/.test(ч)) throw { вид: 'знаки' };
+      // Длина правильной строки при делении на 4 не даёт остатка 1: такого просто не бывает.
+      const остаток = ч.length % 4;
+      if (остаток === 1) throw { вид: 'длина' };
+      if (остаток) ч += '='.repeat(4 - остаток);
+
+      let двоичная;
+      try { двоичная = atob(ч); } catch (е) { throw { вид: 'знаки' }; }
+      const байты = Uint8Array.from(двоичная, (з) => з.charCodeAt(0));
+      // Строка может быть верной, а внутри -- картинка. Строгий разбор это ловит.
+      try { return new TextDecoder('utf-8', { fatal: true }).decode(байты); }
+      catch (е) { throw { вид: 'двоичное', байтов: байты.length }; }
+    }
+
+    /* ---- Угадывание НЕ делаем, но подсказываем ------------------------------------------ */
+
+    function похожеНаБазу(строка) {
+      const ч = строка.replace(/\s+/g, '');
+      if (ч.length < 8) return false;
+      if (!/^[A-Za-z0-9+/_-]+={0,2}$/.test(ч)) return false;
+      if (ч.replace(/=+$/, '').length % 4 === 1) return false;
+      // Обычный текст из одних латинских букв тоже подойдёт под эти правила, поэтому просим
+      // хоть какой-то признак записи: цифру, знак или заглавную посреди слова.
+      return /[0-9+/_=-]/.test(ч) || /[a-z][A-Z]/.test(ч);
+    }
+
+    function показатьНамёк() {
+      const текст = ввод.value.trim();
+      let нужен = false;
+      if (текст) {
+        нужен = кодируем ? похожеНаБазу(текст) : /[^A-Za-z0-9+/=_\s-]/.test(текст);
+      }
+      намёк.classList.toggle('видно', нужен);
+      намёкКнопка.textContent = кодируем ? с.hintDec : с.hintEnc;
+    }
+
+    /* ---- Отчёт -------------------------------------------------------------------------- */
+
+    function перевести() {
+      const исходный = ввод.value;
+      обёртка.classList.remove('беда');
+
+      if (!исходный) {
+        вывод.value = '';
+      } else if (кодируем) {
+        вывод.value = вБазу(исходный, $('б64-ссылка').checked);
+      } else {
+        try {
+          вывод.value = изБазы(исходный);
+        } catch (беда) {
+          обёртка.classList.add('беда');
+          вывод.value = беда.вид === 'знаки' ? с.errChars
+            : беда.вид === 'длина' ? с.errLen
+            : с.errBin.replace('{n}', String(беда.байтов));
+        }
+      }
+
+      const беда = обёртка.classList.contains('беда');
+      // «Байтов» -- это всегда вес САМИХ данных, а не той стороны, где их записали строкой:
+      // при кодировании это вход, при разборе -- то, что вышло. Иначе счётчик мерил бы длину
+      // записи, а не размер того, что в ней лежит.
+      const данные = кодируем ? исходный : (беда ? '' : вывод.value);
+      $('б64-знаков').textContent = String([...исходный].length);
+      $('б64-байтов').textContent = String(new TextEncoder().encode(данные).length);
+      $('б64-выход').textContent = беда ? '0' : String([...вывод.value].length);
+      показатьНамёк();
+    }
+
+    function поставитьРежим(вКод) {
+      кодируем = вКод;
+      $('б64-в-код').classList.toggle('выбран', вКод);
+      $('б64-в-текст').classList.toggle('выбран', !вКод);
+      $('б64-в-код').setAttribute('aria-pressed', String(вКод));
+      $('б64-в-текст').setAttribute('aria-pressed', String(!вКод));
+      ввод.placeholder = вКод ? с.placeEnc : с.placeDec;
+      вывод.placeholder = вКод ? с.resEnc : с.resDec;
+      $('б64-режим-подпись').textContent = вКод ? с.modeEnc : с.modeDec;
+      перевести();
+    }
+
+    function сказать(текст) {
+      const э = $('б64-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', перевести);
+    $('б64-ссылка').addEventListener('change', перевести);
+    $('б64-в-код').addEventListener('click', () => поставитьРежим(true));
+    $('б64-в-текст').addEventListener('click', () => поставитьРежим(false));
+    намёкКнопка.addEventListener('click', () => поставитьРежим(!кодируем));
+
+    $('б64-копировать').addEventListener('click', async () => {
+      const кнопка = $('б64-копировать');
+      if (!вывод.value || обёртка.classList.contains('беда')) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('б64-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      перевести();
+      ввод.focus();
+    });
+
+    перевести();
+
+    window.__б64Состояние = () => ({
+      ввод: ввод.value, вывод: вывод.value, кодируем,
+      ссылка: $('б64-ссылка').checked, беда: обёртка.classList.contains('беда'),
+      знаков: $('б64-знаков').textContent, байтов: $('б64-байтов').textContent,
+      выход: $('б64-выход').textContent,
+      намёк: намёк.classList.contains('видно') ? намёкКнопка.textContent : '',
+    });
+  })();
+</script>

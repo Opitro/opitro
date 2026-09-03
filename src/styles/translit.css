@@ -87,8 +87,13 @@
 .тл-простая:hover { border-color: #fff; color: #fff }
 
 .тл-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
-.тл-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
-.тл-заметка::before { content: "•"; color: rgba(255,255,255,.4); flex: none }
+/* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
+   фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
+   на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
+.тл-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #cfd8e6 }
+.тл-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
 .тл-заметка b { color: #fff; font-weight: 600 }
 
 @media (min-width: 900px) {

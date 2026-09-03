@@ -1,0 +1,306 @@
+---
+// КОДИРОВАНИЕ И ДЕКОДИРОВАНИЕ URL (percent-encoding).
+//
+// ЧЕТЫРЕ МЕСТА, ГДЕ ПРОСТОЕ РЕШЕНИЕ ВРЁТ, и все четыре здесь учтены:
+//
+//   1. Два разных кодирования решают разные задачи, и путать их нельзя. encodeURI бережёт
+//      служебные знаки адреса (: / ? & = #) -- им кодируют ссылку целиком. encodeURIComponent
+//      кодирует всё -- им кодируют ОДНО значение, которое кладут внутрь чужого адреса.
+//      Отсюда переключатель охвата, а не один невнятный флажок.
+//
+//   2. Разбираем всегда decodeURIComponent, даже если кодировали целую ссылку: decodeURI
+//      намеренно не разворачивает %2F и %3F, и «обратный ход» вышел бы неполным.
+//
+//   3. Битая %-последовательность роняет разбор с ошибкой. Ловим и говорим по-человечески,
+//      а не оставляем пустое поле.
+//
+//   4. encodeURIComponent НЕ кодирует ! ' ( ) * -- по нынешнему стандарту адресов эти знаки
+//      служебные. Там, где это важно, нужен строгий вид; про это сказано прямо в заметках.
+//
+// Ничего никуда не уходит: всё делается в браузере, страница не отправляет и не хранит строк.
+import css from '../styles/url-encode.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    toUrl: 'Текст → URL', toText: 'URL → текст',
+    scope: 'Что кодируем:', whole: 'Ссылку целиком', part: 'Одно значение',
+    placeEnc: 'Введите ссылку или текст…',
+    placeDec: 'Вставьте закодированную ссылку — она развернётся…',
+    resEnc: 'Закодированная строка появится здесь…', resDec: 'Читаемый текст появится здесь…',
+    chars: 'Знаков', bytes: 'Байтов', out: 'На выходе',
+    modeEncWhole: 'Режим: текст → URL, ссылка целиком',
+    modeEncPart: 'Режим: текст → URL, одно значение',
+    modeDec: 'Режим: URL → текст',
+    hintDec: 'Похоже на закодированную ссылку — развернуть?',
+    hintEnc: 'Похоже на обычный текст — закодировать?',
+    errBroken: 'Ошибка: в строке оборванная %-последовательность. После знака % должны идти ровно две шестнадцатеричные цифры — например %20 или %D0.',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Ссылку целиком</b> — служебные знаки адреса остаются на месте: <code>: / ? &amp; = #</code>. Кириллица и пробелы кодируются, ссылка остаётся рабочей и кликабельной. Так готовят адрес к отправке в письме или сообщении.',
+    n2: '<b>Одно значение</b> — кодируется всё подряд, включая <code>://</code> и <code>&amp;</code>. Это нужно, когда один адрес кладут внутрь другого: <code>?next=https%3A%2F%2Fopitro.com</code>. Без этого чужой знак <code>&amp;</code> разорвал бы запрос пополам.',
+    n3: 'Разбор всегда полный. Обратный ход делается тем способом, который разворачивает и <code>%2F</code>, и <code>%3F</code> — иначе «раскодированная» ссылка осталась бы наполовину в кодах.',
+    n4: 'Русская буква занимает <b>два байта</b>, поэтому в адресе превращается в две пары: «я» → <code>%D1%8F</code>. Оттого адреса с кириллицей и выглядят такими длинными.',
+    n5: 'Знаки <code>! \' ( ) *</code> при кодировании значения остаются как есть: по нынешнему стандарту адресов они служебные и в кодировании не нуждаются. Некоторые старые системы всё же просят их закодировать — тогда это делают отдельно.',
+    n6: 'Всё считается в вашем браузере. Ссылки, токены и параметры запросов никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    toUrl: 'Текст → URL', toText: 'URL → текст',
+    scope: 'Що кодуємо:', whole: 'Посилання цілком', part: 'Одне значення',
+    placeEnc: 'Введіть посилання або текст…',
+    placeDec: 'Вставте закодоване посилання — воно розгорнеться…',
+    resEnc: 'Закодований рядок з’явиться тут…', resDec: 'Читабельний текст з’явиться тут…',
+    chars: 'Знаків', bytes: 'Байтів', out: 'На виході',
+    modeEncWhole: 'Режим: текст → URL, посилання цілком',
+    modeEncPart: 'Режим: текст → URL, одне значення',
+    modeDec: 'Режим: URL → текст',
+    hintDec: 'Схоже на закодоване посилання — розгорнути?',
+    hintEnc: 'Схоже на звичайний текст — закодувати?',
+    errBroken: 'Помилка: у рядку обірвана %-послідовність. Після знака % мають іти рівно дві шістнадцяткові цифри — наприклад %20 або %D0.',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Посилання цілком</b> — службові знаки адреси лишаються на місці: <code>: / ? &amp; = #</code>. Кирилиця й пробіли кодуються, посилання лишається робочим. Так готують адресу до надсилання в листі чи повідомленні.',
+    n2: '<b>Одне значення</b> — кодується все поспіль, разом із <code>://</code> та <code>&amp;</code>. Це потрібно, коли одну адресу кладуть усередину іншої: <code>?next=https%3A%2F%2Fopitro.com</code>. Без цього чужий знак <code>&amp;</code> розірвав би запит навпіл.',
+    n3: 'Розбір завжди повний. Зворотний хід робиться тим способом, який розгортає і <code>%2F</code>, і <code>%3F</code> — інакше «розкодоване» посилання лишилося б наполовину в кодах.',
+    n4: 'Українська літера займає <b>два байти</b>, тому в адресі перетворюється на дві пари: «я» → <code>%D1%8F</code>. Через це адреси з кирилицею й виглядають такими довгими.',
+    n5: 'Знаки <code>! \' ( ) *</code> при кодуванні значення лишаються як є: за нинішнім стандартом адрес вони службові й кодування не потребують. Деякі старі системи все ж просять їх закодувати — тоді це роблять окремо.',
+    n6: 'Усе рахується у вашому браузері. Посилання, токени й параметри запитів нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    toUrl: 'Text → URL', toText: 'URL → text',
+    scope: 'What to encode:', whole: 'A whole link', part: 'A single value',
+    placeEnc: 'Enter a link or text…',
+    placeDec: 'Paste an encoded link — it will unfold…',
+    resEnc: 'The encoded string will appear here…', resDec: 'The readable text will appear here…',
+    chars: 'Characters', bytes: 'Bytes', out: 'Output',
+    modeEncWhole: 'Mode: text → URL, whole link',
+    modeEncPart: 'Mode: text → URL, single value',
+    modeDec: 'Mode: URL → text',
+    hintDec: 'Looks like an encoded link — decode it?',
+    hintEnc: 'Looks like plain text — encode it?',
+    errBroken: 'Error: the string has a broken % sequence. A % must be followed by exactly two hexadecimal digits — for example %20 or %D0.',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>A whole link</b> — the structural characters of an address stay put: <code>: / ? &amp; = #</code>. Spaces and non-Latin letters get encoded, and the link keeps working and stays clickable. This is how you prepare an address for an email or a message.',
+    n2: '<b>A single value</b> — everything is encoded, including <code>://</code> and <code>&amp;</code>. You need this when one address goes inside another: <code>?next=https%3A%2F%2Fopitro.com</code>. Without it a stray <code>&amp;</code> would tear the query in half.',
+    n3: 'Decoding is always complete. The reverse pass uses the method that also unfolds <code>%2F</code> and <code>%3F</code> — otherwise a “decoded” link would stay half in codes.',
+    n4: 'A Cyrillic letter takes <b>two bytes</b>, so in an address it becomes two pairs: “я” → <code>%D1%8F</code>. That is why addresses with non-Latin text look so long.',
+    n5: 'The characters <code>! \' ( ) *</code> stay as they are when encoding a value: under the current address standard they are structural and need no encoding. Some older systems still ask for them to be encoded — that is done separately.',
+    n6: 'Everything is computed in your browser. Links, tokens and query parameters are never sent anywhere and never stored.',
+  },
+  es: {
+    toUrl: 'Texto → URL', toText: 'URL → texto',
+    scope: 'Qué codificar:', whole: 'Un enlace entero', part: 'Un solo valor',
+    placeEnc: 'Escribe un enlace o un texto…',
+    placeDec: 'Pega un enlace codificado: se desplegará…',
+    resEnc: 'La cadena codificada aparecerá aquí…', resDec: 'El texto legible aparecerá aquí…',
+    chars: 'Caracteres', bytes: 'Bytes', out: 'Salida',
+    modeEncWhole: 'Modo: texto → URL, enlace entero',
+    modeEncPart: 'Modo: texto → URL, un solo valor',
+    modeDec: 'Modo: URL → texto',
+    hintDec: 'Parece un enlace codificado: ¿lo desplegamos?',
+    hintEnc: 'Parece texto normal: ¿lo codificamos?',
+    errBroken: 'Error: la cadena tiene una secuencia % rota. Tras el signo % deben ir exactamente dos dígitos hexadecimales, por ejemplo %20 o %D0.',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Un enlace entero</b>: los caracteres estructurales de la dirección se quedan donde están: <code>: / ? &amp; = #</code>. Los espacios y las letras con acento sí se codifican, y el enlace sigue funcionando. Así se prepara una dirección para enviarla por correo o por mensaje.',
+    n2: '<b>Un solo valor</b>: se codifica absolutamente todo, incluidos <code>://</code> y <code>&amp;</code>. Hace falta cuando una dirección va dentro de otra: <code>?next=https%3A%2F%2Fopitro.com</code>. Sin eso, un <code>&amp;</code> ajeno partiría la consulta en dos.',
+    n3: 'La descodificación siempre es completa. La vuelta se hace con el método que también despliega <code>%2F</code> y <code>%3F</code>; si no, el enlace «descodificado» se quedaría a medias.',
+    n4: 'Una letra cirílica ocupa <b>dos bytes</b>, así que en una dirección se convierte en dos pares: «я» → <code>%D1%8F</code>. Por eso las direcciones con alfabetos no latinos salen tan largas.',
+    n5: 'Los caracteres <code>! \' ( ) *</code> se quedan igual al codificar un valor: para el estándar actual de direcciones son estructurales y no necesitan codificarse. Algunos sistemas antiguos sí los piden codificados; eso se hace aparte.',
+    n6: 'Todo se calcula en tu navegador. Los enlaces, los tokens y los parámetros de consulta no se envían a ningún sitio ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="урл" data-words={JSON.stringify(с)}>
+  <div class="урл-верх">
+    <div class="урл-режимы" role="group">
+      <button type="button" class="урл-режим выбран" id="урл-в-код" aria-pressed="true">{с.toUrl}</button>
+      <button type="button" class="урл-режим" id="урл-в-текст" aria-pressed="false">{с.toText}</button>
+    </div>
+    <div class="урл-охват-обёртка" id="урл-охват-обёртка">
+      <span class="урл-подпись">{с.scope}</span>
+      <div class="урл-охваты" role="group">
+        <button type="button" class="урл-режим выбран" id="урл-целиком" aria-pressed="true">{с.whole}</button>
+        <button type="button" class="урл-режим" id="урл-значение" aria-pressed="false">{с.part}</button>
+      </div>
+    </div>
+  </div>
+
+  <div class="урл-пара-полей">
+    <div class="урл-поле">
+      <textarea class="урл-ввод" id="урл-ввод" placeholder={с.placeEnc} spellcheck="false"></textarea>
+    </div>
+    <div class="урл-поле урл-вывод" id="урл-обёртка">
+      <textarea class="урл-ввод" id="урл-вывод" placeholder={с.resEnc} readonly></textarea>
+    </div>
+    <div class="урл-счётчики">
+      <span id="урл-режим-подпись">{с.modeEncWhole}</span>
+      <span>{с.chars}: <b id="урл-знаков">0</b></span>
+      <span>{с.bytes}: <b id="урл-байтов">0</b></span>
+      <span>{с.out}: <b id="урл-выход">0</b></span>
+      <span class="урл-сказ" id="урл-сказ"></span>
+    </div>
+  </div>
+
+  <div class="урл-намёк" id="урл-намёк">
+    <button type="button" id="урл-намёк-кнопка"></button>
+  </div>
+
+  <div class="урл-низ">
+    <button type="button" class="урл-кнопка" id="урл-копировать">{с.copyBig}</button>
+    <button type="button" class="урл-простая" id="урл-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="урл-заметки">
+    <div class="урл-заметка" set:html={с.n1}></div>
+    <div class="урл-заметка" set:html={с.n2}></div>
+    <div class="урл-заметка" set:html={с.n3}></div>
+    <div class="урл-заметка" set:html={с.n4}></div>
+    <div class="урл-заметка" set:html={с.n5}></div>
+    <div class="урл-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.урл');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('урл-ввод');
+    const вывод = $('урл-вывод');
+    const обёртка = $('урл-обёртка');
+    const охватОбёртка = $('урл-охват-обёртка');
+    const намёк = $('урл-намёк');
+    const намёкКнопка = $('урл-намёк-кнопка');
+    let кодируем = true;
+    let целиком = true;
+
+    // Разбираем всегда полным способом. decodeURI намеренно НЕ разворачивает %2F и %3F --
+    // с ним «раскодированная» ссылка осталась бы наполовину в кодах.
+    function разобрать(строка) {
+      try { return decodeURIComponent(строка); }
+      catch (е) { throw { вид: 'битая' }; }
+    }
+
+    function перевести() {
+      const исходный = ввод.value;
+      обёртка.classList.remove('беда');
+
+      if (!исходный) {
+        вывод.value = '';
+      } else if (кодируем) {
+        // encodeURI бережёт служебные знаки адреса, encodeURIComponent кодирует всё.
+        вывод.value = целиком ? encodeURI(исходный) : encodeURIComponent(исходный);
+      } else {
+        try {
+          вывод.value = разобрать(исходный);
+        } catch (беда) {
+          обёртка.classList.add('беда');
+          вывод.value = с.errBroken;
+        }
+      }
+
+      const беда = обёртка.classList.contains('беда');
+      // «Байтов» -- вес самих данных: при кодировании это вход, при разборе -- то, что вышло.
+      const данные = кодируем ? исходный : (беда ? '' : вывод.value);
+      $('урл-знаков').textContent = String([...исходный].length);
+      $('урл-байтов').textContent = String(new TextEncoder().encode(данные).length);
+      $('урл-выход').textContent = беда ? '0' : String([...вывод.value].length);
+      показатьНамёк();
+    }
+
+    // Направление не угадываем -- только предлагаем сменить.
+    function показатьНамёк() {
+      const текст = ввод.value.trim();
+      let нужен = false;
+      if (текст) {
+        нужен = кодируем ? /%[0-9A-Fa-f]{2}/.test(текст) : !/%/.test(текст);
+      }
+      намёк.classList.toggle('видно', нужен);
+      намёкКнопка.textContent = кодируем ? с.hintDec : с.hintEnc;
+    }
+
+    function подписать() {
+      $('урл-режим-подпись').textContent = !кодируем ? с.modeDec
+        : (целиком ? с.modeEncWhole : с.modeEncPart);
+    }
+
+    function поставитьРежим(вКод) {
+      кодируем = вКод;
+      $('урл-в-код').classList.toggle('выбран', вКод);
+      $('урл-в-текст').classList.toggle('выбран', !вКод);
+      $('урл-в-код').setAttribute('aria-pressed', String(вКод));
+      $('урл-в-текст').setAttribute('aria-pressed', String(!вКод));
+      // При разборе охват ни на что не влияет. Прячем его, но место оставляем занятым:
+      // иначе строка настроек прыгала бы при каждой смене направления.
+      охватОбёртка.classList.toggle('скрыт', !вКод);
+      ввод.placeholder = вКод ? с.placeEnc : с.placeDec;
+      вывод.placeholder = вКод ? с.resEnc : с.resDec;
+      подписать();
+      перевести();
+    }
+
+    function поставитьОхват(весь) {
+      целиком = весь;
+      $('урл-целиком').classList.toggle('выбран', весь);
+      $('урл-значение').classList.toggle('выбран', !весь);
+      $('урл-целиком').setAttribute('aria-pressed', String(весь));
+      $('урл-значение').setAttribute('aria-pressed', String(!весь));
+      подписать();
+      перевести();
+    }
+
+    function сказать(текст) {
+      const э = $('урл-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', перевести);
+    $('урл-в-код').addEventListener('click', () => поставитьРежим(true));
+    $('урл-в-текст').addEventListener('click', () => поставитьРежим(false));
+    $('урл-целиком').addEventListener('click', () => поставитьОхват(true));
+    $('урл-значение').addEventListener('click', () => поставитьОхват(false));
+    намёкКнопка.addEventListener('click', () => поставитьРежим(!кодируем));
+
+    $('урл-копировать').addEventListener('click', async () => {
+      const кнопка = $('урл-копировать');
+      if (!вывод.value || обёртка.classList.contains('беда')) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('урл-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      перевести();
+      ввод.focus();
+    });
+
+    перевести();
+
+    window.__урлСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value, кодируем, целиком,
+      беда: обёртка.classList.contains('беда'),
+      знаков: $('урл-знаков').textContent, байтов: $('урл-байтов').textContent,
+      выход: $('урл-выход').textContent,
+      охватВиден: !охватОбёртка.classList.contains('скрыт'),
+      намёк: намёк.classList.contains('видно') ? намёкКнопка.textContent : '',
+    });
+  })();
+</script>

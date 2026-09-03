@@ -109,8 +109,13 @@
 .бт-итог .плохо { color: #ff9aa8; font-weight: 600 }
 
 .бт-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
-.бт-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
-.бт-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+/* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
+   фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
+   на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
+.бт-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.бт-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.45) }
 .бт-заметка b { color: var(--буквы); font-weight: 600 }
 
 @media (max-width: 700px) {
