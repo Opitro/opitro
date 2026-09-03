@@ -1,0 +1,251 @@
+---
+// ТЕСТ МУЛЬТИТАЧА -- своя страница со своим кодом и стилями.
+//
+// Отвечаем на один вопрос: сколько касаний экран держит одновременно и не теряет ли он их.
+// Под каждым пальцем -- свой кружок со своим номером; пропал кружок, а палец на месте --
+// значит, касание потеряно. Это и есть поломка, которую ищут.
+//
+// Рядом с намеренным числом стоит ЗАЯВЛЕННОЕ: navigator.maxTouchPoints. Система обещает
+// столько-то, а экран держит столько-то -- и расхождение говорит больше, чем любое из чисел
+// по отдельности. Само обещание проверкой не считается: браузер берёт его у драйвера, а не
+// у стекла.
+import css from '../styles/multi-touch.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    hint: 'Поставьте на площадку сразу несколько пальцев. Под каждым появится свой кружок со своим номером — так видно, сколько касаний экран держит и не теряет ли он их.',
+    label: 'Поставьте пальцы на площадку',
+    now: 'Пальцев сейчас', best: 'Больше всего сразу', said: 'Заявлено системой',
+    full: 'Во весь экран', exit: 'Выйти', again: 'Сбросить рекорд',
+    none: 'Система ничего не обещает — похоже, сенсорного экрана здесь нет.',
+    wait: 'Поставьте пальцы и посчитайте кружки: их должно быть столько же, сколько пальцев.',
+    ok: 'Экран удержал {n} — ровно столько, сколько обещала система.',
+    less: 'Экран удержал {n}, а система обещает {m}. Поставьте пальцы ещё раз, подальше друг от друга: сведённые вплотную касания экран считает за одно.',
+    more: 'Экран удержал {n} — больше, чем обещала система ({m}). Обещанию верить не обязательно, пальцам можно.',
+    mouse: 'Указатель здесь один: это мышь или перо. Мультитач проверяют пальцами на сенсорном экране.',
+    n1: 'Пальцы надо ставить врозь. Два касания вплотную экран честно считает за одно широкое — это не поломка, а то, как устроено ёмкостное стекло.',
+    n2: 'Заявленное число браузер берёт у системы, а не у стекла: это обещание драйвера. Верить стоит тому, сколько кружков вы увидели своими глазами.',
+    n3: 'Пять касаний держит любой современный телефон, десять — большинство планшетов и сенсорных ноутбуков. Если экран теряет второй или третий палец, дело обычно в треснувшем стекле или шлейфе.',
+    n4: 'Пальцы под мокрыми руками, толстой плёнкой или в перчатках экран теряет чаще. Прежде чем судить о поломке, вытрите руки и снимите плёнку.',
+  },
+  en: {
+    hint: 'Put several fingers on the pad at once. Each one gets its own numbered circle, so you can see how many touches the screen holds and whether it loses any.',
+    label: 'Put your fingers on the pad',
+    now: 'Fingers now', best: 'Most at once', said: 'Claimed by the system',
+    full: 'Full screen', exit: 'Exit', again: 'Reset the record',
+    none: 'The system claims nothing — it looks like there is no touchscreen here.',
+    wait: 'Put your fingers down and count the circles: there should be exactly as many as fingers.',
+    ok: 'The screen held {n} — exactly as many as the system claimed.',
+    less: 'The screen held {n} while the system claims {m}. Try again with your fingers further apart: touches placed side by side are counted as one.',
+    more: 'The screen held {n} — more than the system claimed ({m}). The claim is optional; your fingers are not.',
+    mouse: 'There is only one pointer here: a mouse or a pen. Multi-touch is tested with fingers on a touchscreen.',
+    n1: 'Keep the fingers apart. Two touches pressed together are honestly counted as one wide one — that is how capacitive glass works, not a fault.',
+    n2: 'The claimed number comes from the system, not from the glass: it is the driver’s promise. Trust the circles you saw with your own eyes.',
+    n3: 'Five touches are held by any modern phone, ten by most tablets and touch laptops. A screen that loses the second or third finger usually has cracked glass or a bad cable.',
+    n4: 'Wet hands, a thick protector or gloves make the screen lose fingers more often. Dry your hands and take the film off before blaming the hardware.',
+  },
+  es: {
+    hint: 'Pon varios dedos a la vez sobre la superficie. Cada uno recibe su círculo numerado, así se ve cuántos toques aguanta la pantalla y si pierde alguno.',
+    label: 'Pon los dedos sobre la superficie',
+    now: 'Dedos ahora', best: 'Máximo a la vez', said: 'Declarado por el sistema',
+    full: 'Pantalla completa', exit: 'Salir', again: 'Reiniciar el récord',
+    none: 'El sistema no declara nada: parece que aquí no hay pantalla táctil.',
+    wait: 'Pon los dedos y cuenta los círculos: deben ser tantos como dedos.',
+    ok: 'La pantalla aguantó {n}, exactamente lo que declaraba el sistema.',
+    less: 'La pantalla aguantó {n} y el sistema declara {m}. Repite con los dedos más separados: dos toques juntos se cuentan como uno.',
+    more: 'La pantalla aguantó {n}, más de lo que declaraba el sistema ({m}). La declaración es opcional; tus dedos no.',
+    mouse: 'Aquí solo hay un puntero: un ratón o un lápiz. El multitáctil se prueba con los dedos en una pantalla táctil.',
+    n1: 'Separa los dedos. Dos toques pegados se cuentan honestamente como uno ancho: así funciona el cristal capacitivo, no es una avería.',
+    n2: 'El número declarado lo da el sistema, no el cristal: es la promesa del controlador. Fíate de los círculos que has visto con tus ojos.',
+    n3: 'Cinco toques los aguanta cualquier móvil moderno; diez, la mayoría de tabletas y portátiles táctiles. Si la pantalla pierde el segundo o el tercer dedo, suele ser cristal roto o un cable en mal estado.',
+    n4: 'Con las manos mojadas, un protector grueso o guantes la pantalla pierde dedos más a menudo. Sécate las manos y quita la lámina antes de culpar al aparato.',
+  },
+  uk: {
+    hint: 'Поставте на майданчик одразу кілька пальців. Під кожним з’явиться свій кружок зі своїм номером — так видно, скільки дотиків екран тримає і чи не губить їх.',
+    label: 'Поставте пальці на майданчик',
+    now: 'Пальців зараз', best: 'Найбільше одразу', said: 'Заявлено системою',
+    full: 'На весь екран', exit: 'Вийти', again: 'Скинути рекорд',
+    none: 'Система нічого не обіцяє — схоже, сенсорного екрана тут немає.',
+    wait: 'Поставте пальці й полічіть кружки: їх має бути стільки ж, скільки пальців.',
+    ok: 'Екран утримав {n} — рівно стільки, скільки обіцяла система.',
+    less: 'Екран утримав {n}, а система обіцяє {m}. Поставте пальці ще раз, далі один від одного: зведені впритул дотики екран рахує за один.',
+    more: 'Екран утримав {n} — більше, ніж обіцяла система ({m}). Обіцянці вірити не обов’язково, пальцям можна.',
+    mouse: 'Вказівник тут один: це миша або перо. Мультитач перевіряють пальцями на сенсорному екрані.',
+    n1: 'Пальці треба ставити нарізно. Два дотики впритул екран чесно рахує за один широкий — це не поломка, а те, як влаштоване ємнісне скло.',
+    n2: 'Заявлене число браузер бере в системи, а не у скла: це обіцянка драйвера. Вірити варто тому, скільки кружків ви побачили на власні очі.',
+    n3: 'П’ять дотиків тримає будь-який сучасний телефон, десять — більшість планшетів і сенсорних ноутбуків. Якщо екран губить другий чи третій палець, справа зазвичай у тріснутому склі або шлейфі.',
+    n4: 'Пальці під мокрими руками, товстою плівкою чи в рукавичках екран губить частіше. Перш ніж судити про поломку, витріть руки і зніміть плівку.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="мт" data-words={JSON.stringify(с)}>
+  <p class="мт-подсказка">{с.hint}</p>
+
+  <div class="мт-площадка" id="мт-площадка">
+    <div class="мт-надпись" id="мт-надпись">{с.label}</div>
+    <button type="button" class="мт-выход" id="мт-выход">{с.exit}</button>
+  </div>
+
+  <div class="мт-числа">
+    <div class="мт-число"><span class="к">{с.now}</span><span class="н" id="мт-сейчас">0</span></div>
+    <div class="мт-число"><span class="к">{с.best}</span><span class="н свой" id="мт-рекорд">0</span></div>
+    <div class="мт-число"><span class="к">{с.said}</span><span class="н" id="мт-заявлено">—</span></div>
+  </div>
+
+  <div class="мт-кнопки">
+    <button type="button" class="мт-кнопка главная" id="мт-весь">{с.full}</button>
+    <button type="button" class="мт-кнопка" id="мт-сброс">{с.again}</button>
+  </div>
+
+  <div class="мт-итог" id="мт-итог"></div>
+
+  <div class="мт-заметки">
+    <div class="мт-заметка">{с.n1}</div>
+    <div class="мт-заметка">{с.n2}</div>
+    <div class="мт-заметка">{с.n3}</div>
+    <div class="мт-заметка">{с.n4}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.мт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const площадка = $('мт-площадка');
+
+    // Цвета кружков по номеру пальца. Десять штук -- по числу пальцев на руках, дальше
+    // повторяются: экран, держащий больше десяти касаний, встречается реже, чем человек
+    // с одиннадцатью пальцами.
+    const ЦВЕТА = ['#58b8f0','#2ee6c5','#ffd166','#ff7b8f','#a06bff',
+                   '#4dd07a','#ff9f5a','#7ec8ff','#f06fd0','#c9d64f'];
+
+    const пальцы = new Map();      // указатель -> {узел, номер}
+    const занятые = new Set();     // выданные номера
+    let рекорд = 0, былоМыши = false;
+
+    const заявлено = (typeof navigator.maxTouchPoints === 'number' && navigator.maxTouchPoints > 0)
+      ? navigator.maxTouchPoints : 0;
+    $('мт-заявлено').textContent = заявлено ? String(заявлено) : '—';
+
+    // Номера выдаются наименьшие свободные: если убрать средний палец, остальные не должны
+    // перенумеровываться -- иначе кажется, что экран потерял и пересобрал все касания.
+    function взятьНомер() {
+      for (let н = 1; ; н++) if (!занятые.has(н)) { занятые.add(н); return н; }
+    }
+
+    function место(e) {
+      const п = площадка.getBoundingClientRect();
+      return { x: e.clientX - п.left, y: e.clientY - п.top };
+    }
+
+    function итог() {
+      const поле = $('мт-итог');
+      if (былоМыши && рекорд <= 1) { поле.innerHTML = с.mouse; return; }
+      if (!рекорд) { поле.innerHTML = заявлено ? с.wait : с.none; return; }
+      if (!заявлено) { поле.innerHTML = с.wait; return; }
+      if (рекорд === заявлено) поле.innerHTML = с.ok.replace('{n}', `<b class="свой">${рекорд}</b>`);
+      else if (рекорд < заявлено)
+        поле.innerHTML = с.less.replace('{n}', `<b>${рекорд}</b>`).replace('{m}', `<b>${заявлено}</b>`);
+      else
+        поле.innerHTML = с.more.replace('{n}', `<b class="свой">${рекорд}</b>`).replace('{m}', `<b>${заявлено}</b>`);
+    }
+
+    function числа() {
+      $('мт-сейчас').textContent = String(пальцы.size);
+      рекорд = Math.max(рекорд, пальцы.size);
+      $('мт-рекорд').textContent = String(рекорд);
+      площадка.classList.toggle('занято', пальцы.size > 0);
+      итог();
+    }
+
+    площадка.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (e.pointerType === 'mouse') былоМыши = true;
+      if (пальцы.has(e.pointerId)) return;
+      площадка.setPointerCapture(e.pointerId);
+      const номер = взятьНомер();
+      const т = место(e);
+      const узел = document.createElement('div');
+      узел.className = 'мт-палец';
+      узел.style.background = ЦВЕТА[(номер - 1) % ЦВЕТА.length];
+      узел.style.left = т.x + 'px';
+      узел.style.top = т.y + 'px';
+      узел.textContent = String(номер);
+      const подпись = document.createElement('span');
+      подпись.className = 'кс';
+      подпись.textContent = Math.round(т.x) + ' × ' + Math.round(т.y);
+      узел.appendChild(подпись);
+      площадка.appendChild(узел);
+      пальцы.set(e.pointerId, { узел, номер, подпись });
+      числа();
+    });
+
+    площадка.addEventListener('pointermove', (e) => {
+      const п = пальцы.get(e.pointerId);
+      if (!п) return;
+      const т = место(e);
+      п.узел.style.left = т.x + 'px';
+      п.узел.style.top = т.y + 'px';
+      п.подпись.textContent = Math.round(т.x) + ' × ' + Math.round(т.y);
+    });
+
+    function убрать(e) {
+      const п = пальцы.get(e.pointerId);
+      if (!п) return;
+      п.узел.remove();
+      занятые.delete(п.номер);
+      пальцы.delete(e.pointerId);
+      числа();
+    }
+    площадка.addEventListener('pointerup', убрать);
+    площадка.addEventListener('pointercancel', убрать);
+    площадка.addEventListener('pointerleave', убрать);
+    площадка.addEventListener('contextmenu', (e) => e.preventDefault());
+
+    /* ---- Во весь экран -------------------------------------------------------------- */
+
+    function вВесьЭкран() {
+      площадка.classList.add('везде');
+      // Полный экран -- попытка: на айфоне его для обычных узлов нет, но накрыть окно собой
+      // площадка может везде, а десять пальцев в маленькую рамку и не поместятся.
+      const пуск = площадка.requestFullscreen || площадка.webkitRequestFullscreen;
+      if (пуск) { try { const п = пуск.call(площадка); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+    }
+    function изВсегоЭкрана() {
+      площадка.classList.remove('везде');
+      if (document.fullscreenElement || document.webkitFullscreenElement) {
+        const стоп = document.exitFullscreen || document.webkitExitFullscreen;
+        if (стоп) { try { const п = стоп.call(document); if (п && п.catch) п.catch(() => {}); } catch (e) {} }
+      }
+    }
+    $('мт-весь').addEventListener('click', вВесьЭкран);
+    $('мт-выход').addEventListener('click', изВсегоЭкрана);
+    document.addEventListener('fullscreenchange', () => {
+      if (!document.fullscreenElement && площадка.classList.contains('везде')) изВсегоЭкрана();
+    });
+
+    $('мт-сброс').addEventListener('click', () => {
+      рекорд = пальцы.size;
+      $('мт-рекорд').textContent = String(рекорд);
+      итог();
+      $('мт-сброс').blur();
+    });
+
+    итог();
+
+    window.__мтСостояние = () => ({
+      сейчас: пальцы.size, рекорд, заявлено,
+      кружков: площадка.querySelectorAll('.мт-палец').length,
+      номера: [...пальцы.values()].map((п) => п.номер),
+      итог: $('мт-итог').textContent,
+      весьЭкран: площадка.classList.contains('везде'),
+    });
+  })();
+</script>

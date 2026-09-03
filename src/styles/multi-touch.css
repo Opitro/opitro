@@ -1,0 +1,115 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ МУЛЬТИТАЧА».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Устройство:
+ *   1. ПЛОЩАДКА С КРУЖКАМИ. Под каждым пальцем -- свой кружок со своим номером и цветом.
+ *      Пропал кружок, а палец на месте -- экран потерял касание, и это видно сразу.
+ *   2. ДВА ЧИСЛА РЯДОМ: сколько экран ДЕРЖИТ сейчас и сколько он ОБЕЩАЛ системе. Обещание
+ *      без проверки ничего не стоит, проверка без обещания непонятна -- нужны оба.
+ *   3. РЕКОРД ОТДЕЛЬНО. Убрать разом десять пальцев и успеть посмотреть на счётчик нельзя,
+ *      поэтому наибольшее число запоминается и остаётся на виду.
+ *
+ * ТЕКСТ ЧЁТКИЙ, НЕ ПРИГЛУШЁННЫЙ: полупрозрачных букв нет, разница берётся размером и
+ * начертанием. Мелкие подписи -- тонкие.
+ *
+ * Цвет свой -- синий: кружки на площадке и так разноцветные, и рамка вокруг них должна быть
+ * спокойной, иначе рябит.
+ */
+
+.мт {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --свой: #58b8f0;
+  --буквы: #f2f5fa;
+  --буквы2: #cfd8e6;
+  max-width: 760px; margin: 0 auto; font-family: var(--ui);
+}
+
+.мт-подсказка { margin: 0 0 12px; text-align: center; font: 400 14px/1.55 var(--ui);
+  color: var(--буквы2) }
+.мт-подсказка b { color: var(--буквы); font-weight: 600 }
+
+.мт-площадка {
+  position: relative; width: 100%; height: 360px; border-radius: 18px; overflow: hidden;
+  border: 1px solid rgba(255,255,255,.14);
+  background:
+    radial-gradient(60% 50% at 50% 0%, rgba(88,184,240,.10), transparent 70%),
+    linear-gradient(160deg, rgba(255,255,255,.055), rgba(255,255,255,.02));
+  /* Иначе палец не ставится, а листает страницу, и второй палец сразу превращается в
+     жест увеличения -- проверять было бы нечего. */
+  touch-action: none; -webkit-user-select: none; user-select: none;
+  -webkit-tap-highlight-color: transparent; cursor: crosshair;
+}
+.мт-площадка.везде {
+  position: fixed; inset: 0; z-index: 9999; width: 100vw; height: 100dvh;
+  border-radius: 0; border: 0; background: #0b0e13;
+}
+
+/* Кружок пальца. Размер крупный намеренно: под настоящим пальцем кружок должен быть виден
+   вокруг него, а не под ним. */
+.мт-палец {
+  position: absolute; width: 84px; height: 84px; margin: -42px 0 0 -42px; border-radius: 50%;
+  display: flex; align-items: center; justify-content: center; pointer-events: none;
+  font: 700 26px var(--ui); color: #0b0e13;
+  border: 2px solid rgba(255,255,255,.9);
+  box-shadow: 0 0 0 6px rgba(255,255,255,.08);
+}
+.мт-палец .кс { position: absolute; bottom: -22px; font: 400 11px var(--ui); color: var(--буквы);
+  white-space: nowrap; text-shadow: 0 1px 3px rgba(0,0,0,.9) }
+
+/* Надпись на пустой площадке. Обводка тенью, а не приглушение: буквы должны читаться и
+   когда под ними окажется цветной кружок. */
+.мт-надпись {
+  position: absolute; left: 50%; top: 50%; transform: translate(-50%,-50%); pointer-events: none;
+  text-align: center; font: 400 15px/1.6 var(--ui); color: var(--буквы); padding: 0 24px;
+  text-shadow: 0 1px 3px rgba(0,0,0,.85), 0 0 12px rgba(0,0,0,.6);
+  transition: opacity .2s ease;
+}
+.мт-площадка.занято .мт-надпись { opacity: 0 }
+
+.мт-выход {
+  position: absolute; top: 12px; right: 12px; display: none; z-index: 2;
+  font: 600 13px var(--ui); height: 38px; padding: 0 16px; border-radius: 10px; cursor: pointer;
+  color: #10141a; background: rgba(255,255,255,.94); border: 0;
+}
+.мт-площадка.везде .мт-выход { display: block }
+
+.мт-числа { display: grid; grid-template-columns: repeat(3, 1fr); gap: 8px; margin-top: 12px }
+.мт-число { padding: 12px 10px 11px; border-radius: 12px; text-align: center;
+  background: var(--surface-2); border: 1px solid var(--line) }
+.мт-число .к { display: block; font: 400 10.5px var(--ui); letter-spacing: .1em;
+  text-transform: uppercase; color: var(--буквы2) }
+.мт-число .н { display: block; margin-top: 4px; font: 700 24px/1.1 var(--ui); color: var(--буквы);
+  font-variant-numeric: tabular-nums }
+.мт-число .н.свой { color: var(--свой) }
+
+.мт-кнопки { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.мт-кнопка {
+  flex: 1; min-width: 150px; font: 600 14px var(--ui); height: 48px; border-radius: 12px;
+  cursor: pointer; color: var(--буквы); border: 1px solid rgba(255,255,255,.24);
+  background: rgba(255,255,255,.06);
+  transition: border-color .15s ease, transform .08s ease;
+}
+.мт-кнопка:hover { border-color: rgba(255,255,255,.45) }
+.мт-кнопка:active { transform: translateY(1px) }
+.мт-кнопка.главная { color: #07253a; border-color: transparent;
+  background: linear-gradient(180deg, #7ccbfa, #3ba0e0) }
+
+/* Место под самую длинную строку занято заранее -- иначе страница дёргается ровно тогда,
+   когда человек держит на ней десять пальцев. */
+.мт-итог { min-height: 46px; margin-top: 12px; text-align: center; font: 400 13.5px/1.6 var(--ui);
+  color: var(--буквы2) }
+.мт-итог b { color: var(--буквы); font-weight: 600 }
+.мт-итог .свой { color: var(--свой); font-weight: 600 }
+
+.мт-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.мт-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.мт-заметка::before { content: "•"; color: var(--свой); flex: none }
+
+@media (max-width: 560px) {
+  .мт-площадка { height: 330px }
+  .мт-палец { width: 72px; height: 72px; margin: -36px 0 0 -36px; font-size: 23px }
+  .мт-числа { grid-template-columns: 1fr 1fr }
+  .мт-число:last-child { grid-column: 1 / -1 }
+  .мт-кнопка { min-width: 0 }
+}
