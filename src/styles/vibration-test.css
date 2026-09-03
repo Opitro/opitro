@@ -1,0 +1,96 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ ВИБРАЦИИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- сервисная панель: чёрный фон, тонкие белые линии, никаких украшений. Тот же язык,
+ * что у геймпада и датчиков: это соседние страницы одной рубрики, и человек должен узнавать
+ * их с первого взгляда.
+ *
+ * Устройство:
+ *   1. НЕПРЕРЫВНАЯ ВИБРАЦИЯ -- одна крупная кнопка. Ею проверяют сам мотор: работает ли,
+ *      не трещит ли, не глохнет ли под нагрузкой.
+ *   2. ГОТОВЫЕ РИТМЫ -- звонок, уведомление, тройной щелчок, взрыв. Ими проверяют не мотор,
+ *      а то, как он отрабатывает короткие импульсы: изношенный мотор их «съедает».
+ *   3. СВОЙ РИТМ -- человек выстукивает его пальцем, страница повторяет.
+ *   4. ЛЕНТА -- показывает заданный ритм во времени. Она рисует то, что ОТПРАВЛЕНО мотору:
+ *      услышать мотор браузер не может, и делать вид, что это замер, нельзя.
+ */
+
+.вб {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы: #ffffff;
+  --буквы2: #a9b0ba;
+  --линия: rgba(255,255,255,.18);
+  font-family: var(--ui);
+}
+
+.вб-окно { background: #000; border: 1px solid var(--линия); border-radius: 14px;
+  padding: 16px 14px 14px }
+
+/* Предупреждение для айфона. Не «ошибка», а объяснение: мотор цел, доступ закрыт. */
+.вб-нельзя { display: none; margin-bottom: 12px; padding: 12px 13px; border-radius: 10px;
+  border: 1px solid rgba(255,154,168,.5); font: 400 13px/1.55 var(--ui); color: #ffd9df }
+.вб.без .вб-нельзя { display: block }
+
+.вб-верх { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px }
+
+.вб-пуск {
+  width: 100%; min-height: 92px; border-radius: 10px; cursor: pointer;
+  font: 500 15px var(--ui); color: var(--буквы); background: #000;
+  border: 1px solid var(--линия); transition: border-color .12s ease;
+}
+.вб-пуск:hover { border-color: #fff }
+.вб-пуск.идёт { border-color: #fff; border-width: 2px }
+.вб-пуск[disabled] { cursor: default; color: var(--буквы2); border-color: rgba(255,255,255,.12) }
+
+.вб-ритмы { display: flex; flex-direction: column; gap: 6px }
+.вб-ритм {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 10px 12px; border-radius: 8px; cursor: pointer; text-align: left;
+  font: 400 13px var(--ui); color: var(--буквы); background: #000; border: 1px solid var(--линия);
+}
+.вб-ритм em { font-style: normal; font: 500 11px var(--цифры); color: var(--буквы2) }
+.вб-ритм:hover { border-color: #fff }
+.вб-ритм.идёт { border-color: #fff; border-width: 2px }
+.вб-ритм[disabled] { cursor: default; color: var(--буквы2) }
+
+/* Лента ритма. Осциллографом её называть нельзя -- она показывает не замер, а посланную
+   команду; надпись под ней говорит об этом прямо. */
+.вб-лента { margin-top: 10px; border: 1px solid var(--линия); border-radius: 10px;
+  overflow: hidden }
+.вб-лента canvas { display: block; width: 100%; height: 96px }
+.вб-подпись { margin-top: 6px; font: 400 11.5px/1.5 var(--ui); color: var(--буквы2);
+  text-align: center }
+
+/* Свой ритм: по площадке стучат пальцем, длина нажатия становится длиной импульса. */
+.вб-свой { margin-top: 10px; display: grid; grid-template-columns: minmax(0, 1fr) auto auto;
+  gap: 8px; align-items: stretch }
+.вб-площадка {
+  min-height: 62px; border-radius: 10px; border: 1px dashed var(--линия); background: #000;
+  color: var(--буквы); font: 400 13px var(--ui); cursor: pointer; touch-action: none;
+  display: flex; align-items: center; justify-content: center; text-align: center; padding: 0 12px;
+}
+.вб-площадка.пишем { border-style: solid; border-color: #fff }
+.вб-мелкая {
+  padding: 0 16px; border-radius: 8px; cursor: pointer; font: 500 13px var(--ui);
+  color: var(--буквы); background: #000; border: 1px solid var(--линия);
+}
+.вб-мелкая:hover { border-color: #fff }
+.вб-мелкая[disabled] { cursor: default; color: var(--буквы2); border-color: rgba(255,255,255,.12) }
+
+.вб-статус { margin-top: 12px; padding-top: 10px; border-top: 1px solid rgba(255,255,255,.1);
+  display: flex; flex-wrap: wrap; gap: 6px 18px; justify-content: space-between;
+  font: 400 11px var(--цифры); color: var(--буквы2) }
+
+.вб-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.вб-итог b { color: var(--буквы); font-weight: 600 }
+
+.вб-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.вб-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.вб-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+
+@media (max-width: 700px) {
+  .вб-верх { grid-template-columns: 1fr }
+  .вб-свой { grid-template-columns: 1fr; }
+}

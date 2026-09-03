@@ -1,0 +1,335 @@
+---
+// ТЕСТ ВИБРАЦИИ -- своя страница со своим кодом и стилями.
+//
+// Что делаем:
+//   * НЕПРЕРЫВНАЯ ВИБРАЦИЯ -- проверка самого мотора под нагрузкой.
+//   * ГОТОВЫЕ РИТМЫ -- звонок, уведомление, тройной щелчок, взрыв. Короткие импульсы
+//     изношенный мотор «съедает», и это слышно и чувствуется сразу.
+//   * СВОЙ РИТМ -- человек выстукивает его по площадке, длина нажатия становится длиной
+//     импульса, промежуток -- паузой.
+//   * ЛЕНТА -- рисует ритм во времени.
+//
+// ЧЕСТНОСТЬ. Браузер умеет только ОТПРАВИТЬ команду мотору. Он не слышит мотор, не знает
+// его силы и не может проверить, отработал ли тот на самом деле. Поэтому лента подписана
+// как «команда мотору», а не как замер, и силу вибрации мы нигде не обещаем.
+//
+// АЙФОН. В Safari (а значит, и во всех браузерах на айфоне) navigator.vibrate нет вовсе --
+// доступ закрыт из соображений приватности. Это надо сказать прямо, иначе человек решит,
+// что у него сломан мотор.
+import css from '../styles/vibration-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    noApi: 'Этот браузер не даёт странице доступ к вибромотору. На айфоне его нет ни в одном браузере — Apple закрыла вибрацию для сайтов, и мотор тут ни при чём. Проверка работает на телефонах с Android.',
+    run: 'Запустить непрерывную вибрацию', stop: 'Остановить',
+    rhythms: 'Готовые ритмы',
+    rCall: 'Входящий звонок', rNote: 'Уведомление', rClick: 'Тройной щелчок', rBoom: 'Взрыв в игре',
+    tape: 'Лента ритма',
+    tapeSub: 'Лента показывает команду, отправленную мотору, а не замер вибрации: услышать мотор браузер не умеет.',
+    padIdle: 'Выстучите свой ритм по этой площадке', padRec: 'Пишем… отпустите и стучите дальше',
+    padDone: 'Записано импульсов: {n}',
+    play: 'Проиграть', clear: 'Стереть',
+    stApi: 'Доступ к мотору', stOn: 'есть', stOff: 'закрыт',
+    stLocal: 'Всё считается на вашем устройстве, ничего никуда не отправляется',
+    hint: 'Начните с непрерывной вибрации: она проверяет сам мотор. Потом попробуйте короткие ритмы — изношенный мотор их скрадывает.',
+    n1: 'Браузер умеет только отправить мотору команду. Ни силы вибрации, ни того, отработал ли мотор на самом деле, он не знает — поэтому здесь нет числа «сила отклика» и не будет: выдумывать его нечестно.',
+    n2: 'На айфоне вибрация из браузера недоступна вообще: Apple закрыла её для сайтов. Это не поломка телефона и не ошибка страницы — на iPhone проверить вибромотор можно только через приложение или сервисное меню.',
+    n3: 'Короткие импульсы — главная проверка. Мотор с изношенным грузиком раскручивается медленнее, и щелчки в сорок-сто миллисекунд он либо скрадывает, либо превращает в слабое гудение.',
+    n4: 'Браузер может укоротить или отменить вибрацию: во время звонка, при экономии заряда или когда страница уходит в фон. Если вибрация оборвалась сама, вернитесь на страницу и повторите.',
+    n5: 'Если мотор трещит, гремит или дребезжит при непрерывной вибрации, дело обычно в разболтанном креплении или попавшей внутрь пыли. Полная тишина при работающей команде — оборванный шлейф или сгоревший мотор.',
+  },
+  en: {
+    noApi: 'This browser does not give a page access to the vibration motor. On iPhone no browser does — Apple closed vibration to websites, and your motor has nothing to do with it. The test works on Android phones.',
+    run: 'Start continuous vibration', stop: 'Stop',
+    rhythms: 'Ready-made patterns',
+    rCall: 'Incoming call', rNote: 'Notification', rClick: 'Triple click', rBoom: 'Explosion in a game',
+    tape: 'Pattern tape',
+    tapeSub: 'The tape shows the command sent to the motor, not a measurement of the vibration: a browser cannot hear the motor.',
+    padIdle: 'Tap your own rhythm on this pad', padRec: 'Recording… release and keep tapping',
+    padDone: 'Pulses recorded: {n}',
+    play: 'Play', clear: 'Clear',
+    stApi: 'Motor access', stOn: 'available', stOff: 'blocked',
+    stLocal: 'Everything runs on your device; nothing is sent anywhere',
+    hint: 'Start with continuous vibration — that tests the motor itself. Then try the short patterns: a worn motor swallows them.',
+    n1: 'A browser can only send the motor a command. It knows neither the strength of the vibration nor whether the motor actually ran — so there is no “response strength” number here and there will not be one: inventing it would be dishonest.',
+    n2: 'On iPhone, vibration from a browser is unavailable at all: Apple closed it to websites. That is neither a broken phone nor a broken page — on an iPhone the motor can only be checked from an app or a service menu.',
+    n3: 'Short pulses are the real test. A motor with a worn weight spins up more slowly, so clicks of forty to a hundred milliseconds are either swallowed or turned into a faint hum.',
+    n4: 'The browser may shorten or cancel vibration: during a call, in battery saver, or when the page goes into the background. If the vibration stopped by itself, come back to the page and try again.',
+    n5: 'A motor that rattles or buzzes under continuous vibration usually has a loose mount or dust inside. Complete silence while the command is running means a broken cable or a dead motor.',
+  },
+  es: {
+    noApi: 'Este navegador no da acceso al motor de vibración. En el iPhone no lo hace ninguno: Apple cerró la vibración a los sitios web, y tu motor no tiene nada que ver. La prueba funciona en teléfonos con Android.',
+    run: 'Iniciar vibración continua', stop: 'Detener',
+    rhythms: 'Patrones preparados',
+    rCall: 'Llamada entrante', rNote: 'Notificación', rClick: 'Triple clic', rBoom: 'Explosión de juego',
+    tape: 'Cinta del patrón',
+    tapeSub: 'La cinta muestra la orden enviada al motor, no una medición de la vibración: el navegador no puede oír el motor.',
+    padIdle: 'Marca tu propio ritmo en esta zona', padRec: 'Grabando… suelta y sigue marcando',
+    padDone: 'Pulsos grabados: {n}',
+    play: 'Reproducir', clear: 'Borrar',
+    stApi: 'Acceso al motor', stOn: 'disponible', stOff: 'bloqueado',
+    stLocal: 'Todo se calcula en tu dispositivo; no se envía nada a ninguna parte',
+    hint: 'Empieza por la vibración continua: prueba el motor en sí. Después prueba los patrones cortos: un motor gastado se los come.',
+    n1: 'El navegador solo puede enviar una orden al motor. No conoce ni la fuerza de la vibración ni si el motor llegó a moverse, así que aquí no hay una cifra de «fuerza de respuesta» ni la habrá: inventarla sería deshonesto.',
+    n2: 'En el iPhone la vibración desde el navegador no está disponible en absoluto: Apple la cerró a los sitios web. No es un teléfono roto ni un fallo de la página; en un iPhone el motor solo se comprueba desde una aplicación o el menú de servicio.',
+    n3: 'Los pulsos cortos son la prueba de verdad. Un motor con el contrapeso gastado arranca más despacio, así que los clics de cuarenta a cien milisegundos se los traga o los convierte en un zumbido débil.',
+    n4: 'El navegador puede acortar o cancelar la vibración: durante una llamada, con el ahorro de batería o cuando la página pasa a segundo plano. Si se cortó sola, vuelve a la página y repite.',
+    n5: 'Un motor que traquetea o suena metálico con la vibración continua suele tener el soporte flojo o polvo dentro. El silencio total mientras la orden se ejecuta significa cable roto o motor muerto.',
+  },
+  uk: {
+    noApi: 'Цей браузер не дає сторінці доступ до вібромотора. На айфоні його немає в жодному браузері — Apple закрила вібрацію для сайтів, і мотор тут ні до чого. Перевірка працює на телефонах з Android.',
+    run: 'Запустити безперервну вібрацію', stop: 'Зупинити',
+    rhythms: 'Готові ритми',
+    rCall: 'Вхідний дзвінок', rNote: 'Сповіщення', rClick: 'Потрійний щиглик', rBoom: 'Вибух у грі',
+    tape: 'Стрічка ритму',
+    tapeSub: 'Стрічка показує команду, надіслану мотору, а не замір вібрації: почути мотор браузер не вміє.',
+    padIdle: 'Вистукайте свій ритм по цьому майданчику', padRec: 'Пишемо… відпустіть і стукайте далі',
+    padDone: 'Записано імпульсів: {n}',
+    play: 'Програти', clear: 'Стерти',
+    stApi: 'Доступ до мотора', stOn: 'є', stOff: 'закрито',
+    stLocal: 'Усе рахується на вашому пристрої, нікуди нічого не надсилається',
+    hint: 'Почніть із безперервної вібрації: вона перевіряє сам мотор. Потім спробуйте короткі ритми — зношений мотор їх скрадає.',
+    n1: 'Браузер уміє лише надіслати мотору команду. Ні сили вібрації, ні того, чи відпрацював мотор насправді, він не знає — тому тут немає числа «сила відгуку» і не буде: вигадувати його нечесно.',
+    n2: 'На айфоні вібрація з браузера недоступна взагалі: Apple закрила її для сайтів. Це не поломка телефона й не помилка сторінки — на iPhone перевірити вібромотор можна лише через програму або сервісне меню.',
+    n3: 'Короткі імпульси — головна перевірка. Мотор зі зношеним важком розкручується повільніше, і щиглики в сорок-сто мілісекунд він або скрадає, або перетворює на слабке гудіння.',
+    n4: 'Браузер може вкоротити або скасувати вібрацію: під час дзвінка, при економії заряду або коли сторінка йде у фон. Якщо вібрація обірвалася сама, поверніться на сторінку й повторіть.',
+    n5: 'Якщо мотор тріщить, гримить або деренчить при безперервній вібрації, справа зазвичай у розхитаному кріпленні або пилюці всередині. Повна тиша при робочій команді — обірваний шлейф або згорілий мотор.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="вб" data-words={JSON.stringify(с)}>
+  <div class="вб-окно">
+    <div class="вб-нельзя" id="вб-нельзя">{с.noApi}</div>
+
+    <div class="вб-верх">
+      <button type="button" class="вб-пуск" id="вб-пуск">{с.run}</button>
+      <div class="вб-ритмы" id="вб-ритмы">
+        <button type="button" class="вб-ритм" data-р="звонок">{с.rCall}<em>500 · 250 · 500</em></button>
+        <button type="button" class="вб-ритм" data-р="уведомление">{с.rNote}<em>100 · 50 · 100</em></button>
+        <button type="button" class="вб-ритм" data-р="щелчок">{с.rClick}<em>40 · 60 · 40</em></button>
+        <button type="button" class="вб-ритм" data-р="взрыв">{с.rBoom}<em>300 · 40 · 90</em></button>
+      </div>
+    </div>
+
+    <div class="вб-лента"><canvas id="вб-холст"></canvas></div>
+    <div class="вб-подпись">{с.tapeSub}</div>
+
+    <div class="вб-свой">
+      <button type="button" class="вб-площадка" id="вб-площадка">{с.padIdle}</button>
+      <button type="button" class="вб-мелкая" id="вб-играть" disabled>{с.play}</button>
+      <button type="button" class="вб-мелкая" id="вб-стереть" disabled>{с.clear}</button>
+    </div>
+
+    <div class="вб-статус">
+      <span>{с.stApi}: <span id="вб-состояние">—</span></span>
+      <span>{с.stLocal}</span>
+    </div>
+  </div>
+
+  <div class="вб-итог" id="вб-итог">{с.hint}</div>
+
+  <div class="вб-заметки">
+    <div class="вб-заметка">{с.n1}</div>
+    <div class="вб-заметка">{с.n2}</div>
+    <div class="вб-заметка">{с.n3}</div>
+    <div class="вб-заметка">{с.n4}</div>
+    <div class="вб-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.вб');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const холст = $('вб-холст');
+    const кисть = холст.getContext('2d');
+
+    const РИТМЫ = {
+      звонок: [500, 250, 500, 250, 500],
+      уведомление: [100, 50, 100],
+      щелчок: [40, 60, 40, 60, 40],
+      // Взрыв: сильный удар, короткая пауза и затухающие отголоски.
+      взрыв: [300, 40, 90, 60, 60, 80, 40, 100, 25],
+    };
+    const ДОЛГО = 10000;   // «непрерывная» вибрация: дольше браузеры всё равно обрывают
+
+    const есть = typeof navigator.vibrate === 'function';
+    корень.classList.toggle('без', !есть);
+    $('вб-состояние').textContent = есть ? с.stOn : с.stOff;
+    if (!есть) {
+      $('вб-пуск').disabled = true;
+      корень.querySelectorAll('.вб-ритм').forEach((к) => { к.disabled = true; });
+      $('вб-площадка').disabled = true;
+    }
+
+    // Лента рисует ОТПРАВЛЕННЫЕ импульсы: их время известно заранее, поэтому график точный
+    // по команде и честно не притворяется замером мотора.
+    let отрезки = [];      // {от, до} в миллисекундах по часам страницы
+    let идёт = false, кадр = null;
+    const ОКНО = 6000;     // сколько времени видно на ленте
+
+    function готовить() {
+      const п = холст.getBoundingClientRect();
+      const плотность = Math.min(window.devicePixelRatio || 1, 2);
+      холст.width = Math.max(1, Math.round(п.width * плотность));
+      холст.height = Math.max(1, Math.round(96 * плотность));
+      кисть.setTransform(плотность, 0, 0, плотность, 0, 0);
+    }
+
+    function рисовать() {
+      const ш = холст.width / Math.min(window.devicePixelRatio || 1, 2);
+      const в = 96;
+      const сейчас = performance.now();
+      кисть.clearRect(0, 0, ш, в);
+      кисть.fillStyle = '#000';
+      кисть.fillRect(0, 0, ш, в);
+
+      // Нулевая линия и сетка по секундам -- чтобы ритм читался, а не плыл.
+      кисть.strokeStyle = 'rgba(255,255,255,.12)';
+      кисть.lineWidth = 1;
+      for (let т = 0; т <= ОКНО; т += 1000) {
+        const x = ш - (т / ОКНО) * ш;
+        кисть.beginPath(); кисть.moveTo(x, 0); кисть.lineTo(x, в); кисть.stroke();
+      }
+      const низ = в - 18, верх = 18;
+      кисть.strokeStyle = 'rgba(255,255,255,.35)';
+      кисть.beginPath(); кисть.moveTo(0, низ); кисть.lineTo(ш, низ); кисть.stroke();
+
+      // Меандр: пока импульс идёт -- верх, в паузе -- низ.
+      отрезки = отрезки.filter((о) => о.до > сейчас - ОКНО);
+      кисть.strokeStyle = '#fff';
+      кисть.lineWidth = 2;
+      кисть.beginPath();
+      кисть.moveTo(0, низ);
+      let перо = низ;
+      for (const о of отрезки) {
+        const x1 = ш - ((сейчас - о.от) / ОКНО) * ш;
+        const x2 = ш - ((сейчас - Math.min(о.до, сейчас)) / ОКНО) * ш;
+        if (x2 < 0) continue;
+        кисть.lineTo(Math.max(0, x1), перо);
+        кисть.lineTo(Math.max(0, x1), верх); перо = верх;
+        кисть.lineTo(Math.min(ш, x2), верх);
+        кисть.lineTo(Math.min(ш, x2), низ); перо = низ;
+      }
+      кисть.lineTo(ш, перо);
+      кисть.stroke();
+      кадр = requestAnimationFrame(рисовать);
+    }
+
+    // Раскладываем массив «работа, пауза, работа…» в отрезки времени для ленты.
+    function записатьВЛенту(ритм) {
+      let т = performance.now();
+      ритм.forEach((мс, и) => {
+        if (и % 2 === 0) отрезки.push({ от: т, до: т + мс });
+        т += мс;
+      });
+      return т - performance.now();
+    }
+
+    function стоп() {
+      if (есть) navigator.vibrate(0);
+      идёт = false;
+      $('вб-пуск').classList.remove('идёт');
+      $('вб-пуск').textContent = с.run;
+      корень.querySelectorAll('.вб-ритм').forEach((к) => к.classList.remove('идёт'));
+      // Обрываем нарисованное: то, что уже не звучит, не должно тянуться по ленте.
+      const сейчас = performance.now();
+      отрезки = отрезки.map((о) => (о.от > сейчас ? null : { от: о.от, до: Math.min(о.до, сейчас) }))
+        .filter(Boolean);
+    }
+
+    $('вб-пуск').addEventListener('click', () => {
+      if (идёт) { стоп(); return; }
+      navigator.vibrate(ДОЛГО);
+      отрезки.push({ от: performance.now(), до: performance.now() + ДОЛГО });
+      идёт = true;
+      $('вб-пуск').classList.add('идёт');
+      $('вб-пуск').textContent = с.stop;
+    });
+
+    корень.querySelectorAll('.вб-ритм').forEach((к) => {
+      к.addEventListener('click', () => {
+        стоп();
+        const ритм = РИТМЫ[к.dataset.р];
+        navigator.vibrate(ритм);
+        const длина = записатьВЛенту(ритм);
+        к.classList.add('идёт');
+        setTimeout(() => к.classList.remove('идёт'), длина);
+      });
+    });
+
+    /* ---- Свой ритм ------------------------------------------------------------------- */
+
+    // Длина нажатия становится длиной импульса, промежуток между нажатиями -- паузой.
+    // Так человек выстукивает ритм ровно так, как он его слышит.
+    let свой = [], нажато = 0, отпущено = 0;
+    const площадка = $('вб-площадка');
+
+    площадка.addEventListener('pointerdown', (e) => {
+      e.preventDefault();
+      if (!есть) return;
+      const т = performance.now();
+      if (отпущено) свой.push(Math.min(2000, Math.round(т - отпущено)));
+      нажато = т;
+      площадка.classList.add('пишем');
+      площадка.textContent = с.padRec;
+    });
+
+    const отпустить = () => {
+      if (!нажато) return;
+      const мс = Math.max(20, Math.min(2000, Math.round(performance.now() - нажато)));
+      свой.push(мс);
+      отпущено = performance.now();
+      нажато = 0;
+      площадка.classList.remove('пишем');
+      площадка.textContent = с.padDone.replace('{n}', Math.ceil(свой.length / 2));
+      $('вб-играть').disabled = false;
+      $('вб-стереть').disabled = false;
+    };
+    площадка.addEventListener('pointerup', отпустить);
+    площадка.addEventListener('pointercancel', отпустить);
+    площадка.addEventListener('pointerleave', отпустить);
+
+    $('вб-играть').addEventListener('click', () => {
+      if (!свой.length || !есть) return;
+      стоп();
+      navigator.vibrate(свой);
+      записатьВЛенту(свой);
+    });
+
+    $('вб-стереть').addEventListener('click', () => {
+      свой = []; нажато = 0; отпущено = 0;
+      площадка.textContent = с.padIdle;
+      $('вб-играть').disabled = true;
+      $('вб-стереть').disabled = true;
+    });
+
+    // Уход со страницы: браузер вибрацию всё равно оборвёт, но кнопка должна честно
+    // вернуться в исходное, а не остаться в положении «идёт».
+    document.addEventListener('visibilitychange', () => {
+      if (document.visibilityState !== 'visible') стоп();
+    });
+
+    готовить();
+    рисовать();
+    let пересчёт = null;
+    window.addEventListener('resize', () => {
+      clearTimeout(пересчёт); пересчёт = setTimeout(готовить, 200);
+    });
+
+    window.__вбСостояние = () => ({
+      доступ: есть, идёт, отрезков: отрезки.length,
+      свой: свой.slice(), кнопка: $('вб-пуск').textContent,
+      состояние: $('вб-состояние').textContent,
+      предупреждение: getComputedStyle($('вб-нельзя')).display,
+      площадка: площадка.textContent,
+    });
+  })();
+</script>
