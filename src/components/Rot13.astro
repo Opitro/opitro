@@ -1,0 +1,237 @@
+---
+// ШИФР ROT13.
+//
+// Шифр сам себе обратный: применил дважды -- получил исходное. Поэтому направления здесь
+// нет вовсе, одна кнопка не нужна, и «зашифровать» с «расшифровать» -- одно и то же действие.
+//
+// ГЛАВНАЯ ЛОВУШКА -- КИРИЛЛИЦА. Самообратный сдвиг существует только у алфавита с ЧЁТНЫМ
+// числом букв: у латиницы их 26, половина -- 13, отсюда и название. В русском алфавите 33
+// буквы, в украинском тоже 33 -- нечётное число, и самообратного сдвига для них НЕ СУЩЕСТВУЕТ
+// вовсе. Сдвинув на 16 дважды, «привет» превращается в «опзбдс», а не возвращается.
+//
+// Выход один и он общепринятый: считать алфавит из 32 букв, без «ё». Тогда половина -- ровно
+// 16, и всё сходится: А превращается в Р (ровно как в задании), а второй проход возвращает
+// букву на место. «Ё» при этом не трогаем -- как не трогаем цифры и знаки препинания.
+// То же и с украинскими і, ї, є, ґ: они остаются как есть, и об этом сказано прямо на странице.
+//
+// Ничего никуда не уходит: всё делается в браузере, страница не отправляет и не хранит строк.
+import css from '../styles/rot13.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    cyr: 'Сдвигать и кириллицу',
+    place: 'Введите текст — или готовую строку ROT13, чтобы прочитать её…',
+    result: 'Результат появится здесь…',
+    chars: 'Знаков', moved: 'Букв сдвинуто', shift: 'Сдвиг',
+    shiftLat: 'латиница на 13', shiftBoth: 'латиница на 13, кириллица на 16',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    wheelLat: 'Латиница: буква и её замена',
+    wheelCyr: 'Кириллица: буква и её замена',
+    n1: '<b>Одно действие в обе стороны.</b> Шифр сам себе обратный: применили к тексту — получили шифр, применили к шифру — получили текст. Поэтому кнопок «зашифровать» и «расшифровать» здесь нет, они делали бы одно и то же.',
+    n2: 'Цифры, пробелы и знаки препинания <b>не трогаются</b> — так устроен классический ROT13. Строчки и заглавные сохраняются: «Привет» останется с заглавной буквой.',
+    n3: '<b>Почему кириллица сдвигается на 16, а не на 13.</b> Самообратный сдвиг возможен только у алфавита с чётным числом букв: у латиницы их 26, половина — 13. В русском алфавите 33 буквы, и половины у него нет вовсе. Поэтому берётся общепринятый счёт из 32 букв, без «ё»: половина — ровно 16, и текст возвращается на место.',
+    n4: '<b>«Ё» остаётся нетронутой</b> — как цифры и знаки. Иначе шифр перестал бы быть обратимым: сдвинутый дважды текст возвращался бы искажённым. То же и с украинскими <b>і, ї, є, ґ</b>: в 32 буквы они не входят и остаются как есть.',
+    n5: 'Это <b>не защита</b>. ROT13 не скрывает ничего: его разворачивает кто угодно и без ключа, в том числе на этой странице. Он придуман для другого — спрятать ответ загадки, концовку фильма или бранное слово так, чтобы их нельзя было прочитать случайно, скользнув глазами.',
+    n6: 'Всё считается в вашем браузере. Текст никуда не отправляется, нигде не сохраняется и после закрытия вкладки не остаётся.',
+  },
+  uk: {
+    cyr: 'Зсувати й кирилицю',
+    place: 'Введіть текст — або готовий рядок ROT13, щоб прочитати його…',
+    result: 'Результат з’явиться тут…',
+    chars: 'Знаків', moved: 'Літер зсунуто', shift: 'Зсув',
+    shiftLat: 'латиниця на 13', shiftBoth: 'латиниця на 13, кирилиця на 16',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    wheelLat: 'Латиниця: літера та її заміна',
+    wheelCyr: 'Кирилиця: літера та її заміна',
+    n1: '<b>Одна дія в обидва боки.</b> Шифр сам собі зворотний: застосували до тексту — отримали шифр, застосували до шифру — отримали текст. Тому кнопок «зашифрувати» й «розшифрувати» тут немає, вони робили б одне й те саме.',
+    n2: 'Цифри, пробіли та розділові знаки <b>не чіпаються</b> — так влаштований класичний ROT13. Малі й великі літери зберігаються: «Привіт» лишиться з великої.',
+    n3: '<b>Чому кирилиця зсувається на 16, а не на 13.</b> Самообернений зсув можливий лише в абетці з парною кількістю літер: у латиниці їх 26, половина — 13. У російській абетці 33 літери, і половини в неї немає взагалі. Тому береться загальноприйнятий лік із 32 літер, без «ё»: половина — рівно 16, і текст повертається на місце.',
+    n4: '<b>Українські і, ї, є, ґ лишаються недоторканими</b> — як цифри та знаки. В українській абетці теж 33 літери, тобто самообернений зсув для неї не існує зовсім: будь-який зсув, застосований двічі, повертав би спотворений текст. Чесніше лишити ці літери як є, ніж зіпсувати зворотний хід.',
+    n5: 'Це <b>не захист</b>. ROT13 не приховує нічого: його розгортає будь-хто й без ключа, зокрема й на цій сторінці. Його вигадали для іншого — сховати відповідь загадки, кінцівку фільму чи лайливе слово так, щоб їх не можна було прочитати випадково, ковзнувши очима.',
+    n6: 'Усе рахується у вашому браузері. Текст нікуди не надсилається, ніде не зберігається і після закриття вкладки не лишається.',
+  },
+  en: {
+    cyr: 'Shift Cyrillic too',
+    place: 'Enter text — or a ready ROT13 string to read it…',
+    result: 'The result will appear here…',
+    chars: 'Characters', moved: 'Letters shifted', shift: 'Shift',
+    shiftLat: 'Latin by 13', shiftBoth: 'Latin by 13, Cyrillic by 16',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    wheelLat: 'Latin: a letter and its replacement',
+    wheelCyr: 'Cyrillic: a letter and its replacement',
+    n1: '<b>One action both ways.</b> The cipher is its own inverse: apply it to text and you get the cipher, apply it to the cipher and you get the text back. That is why there are no “encode” and “decode” buttons here — they would do the same thing.',
+    n2: 'Digits, spaces and punctuation are <b>left alone</b> — that is how classic ROT13 works. Upper and lower case are preserved: “Hello” keeps its capital letter.',
+    n3: '<b>Why Cyrillic shifts by 16 rather than 13.</b> A self-inverse shift is only possible for an alphabet with an even number of letters: Latin has 26, and half of that is 13. The Russian alphabet has 33 letters and no half at all. So the common count of 32 letters is used, without “ё”: half of that is exactly 16, and the text comes back unchanged.',
+    n4: '<b>“Ё” is left untouched</b>, like digits and punctuation. Otherwise the cipher would stop being reversible: text shifted twice would come back distorted. The same goes for the Ukrainian <b>і, ї, є, ґ</b> — they are not among the 32 letters and stay as they are.',
+    n5: 'This is <b>not protection</b>. ROT13 hides nothing: anyone can unfold it without a key, including on this page. It was made for something else — to hide the answer to a riddle, the ending of a film or a rude word so that they cannot be read by accident at a glance.',
+    n6: 'Everything is computed in your browser. The text is never sent anywhere, never stored, and does not survive closing the tab.',
+  },
+  es: {
+    cyr: 'Desplazar también el cirílico',
+    place: 'Escribe un texto o una cadena ROT13 ya hecha para leerla…',
+    result: 'El resultado aparecerá aquí…',
+    chars: 'Caracteres', moved: 'Letras desplazadas', shift: 'Desplazamiento',
+    shiftLat: 'latino en 13', shiftBoth: 'latino en 13, cirílico en 16',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    wheelLat: 'Latino: una letra y su sustituta',
+    wheelCyr: 'Cirílico: una letra y su sustituta',
+    n1: '<b>Una sola acción en ambos sentidos.</b> El cifrado es su propio inverso: aplícalo al texto y sale el cifrado; aplícalo al cifrado y vuelve el texto. Por eso aquí no hay botones de «cifrar» y «descifrar»: harían lo mismo.',
+    n2: 'Las cifras, los espacios y la puntuación <b>no se tocan</b>: así funciona el ROT13 clásico. Las mayúsculas y minúsculas se conservan: «Hola» mantiene su mayúscula.',
+    n3: '<b>Por qué el cirílico se desplaza 16 y no 13.</b> Un desplazamiento que se deshace a sí mismo solo es posible en un alfabeto con un número par de letras: el latino tiene 26 y su mitad es 13. El alfabeto ruso tiene 33 letras y no tiene mitad. Por eso se usa el recuento habitual de 32 letras, sin la «ё»: la mitad es justo 16 y el texto vuelve intacto.',
+    n4: '<b>La «ё» se queda sin tocar</b>, igual que las cifras y los signos. Si no, el cifrado dejaría de ser reversible: un texto desplazado dos veces volvería deformado. Lo mismo ocurre con las letras ucranianas <b>і, ї, є, ґ</b>: no están entre las 32 y se quedan como están.',
+    n5: 'Esto <b>no es protección</b>. ROT13 no oculta nada: cualquiera lo deshace sin clave, incluso en esta misma página. Se inventó para otra cosa: tapar la respuesta de un acertijo, el final de una película o una palabrota para que no se lean por accidente de un vistazo.',
+    n6: 'Todo se calcula en tu navegador. El texto no se envía a ningún sitio, no se guarda y no sobrevive al cierre de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Наглядные ряды под инструментом: буква и её замена. Считаются здесь, при сборке страницы.
+const ЛАТ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+const КИР = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';   // 32 буквы, без Ё
+const сдвинуть = (алф, шаг) => [...алф].map((_, и) => алф[(и + шаг) % алф.length]);
+const латВерх = [...ЛАТ], латНиз = сдвинуть(ЛАТ, 13);
+const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="рот" data-words={JSON.stringify(с)}>
+  <div class="рот-верх">
+    <label class="рот-выбор"><input type="checkbox" id="рот-кириллица" checked><i></i>{с.cyr}</label>
+  </div>
+
+  <div class="рот-пара-полей">
+    <div class="рот-поле">
+      <textarea class="рот-ввод" id="рот-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="рот-поле рот-вывод">
+      <textarea class="рот-ввод" id="рот-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="рот-счётчики">
+      <span>{с.shift}: <b id="рот-сдвиг">{с.shiftBoth}</b></span>
+      <span>{с.chars}: <b id="рот-знаков">0</b></span>
+      <span>{с.moved}: <b id="рот-сдвинуто">0</b></span>
+      <span class="рот-сказ" id="рот-сказ"></span>
+    </div>
+  </div>
+
+  <div class="рот-низ">
+    <button type="button" class="рот-кнопка" id="рот-копировать">{с.copyBig}</button>
+    <button type="button" class="рот-простая" id="рот-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="рот-кольцо">
+    <span class="рот-кольцо-к">{с.wheelLat}</span>
+    <div class="рот-ряд">{латВерх.map((б) => <span>{б}</span>)}</div>
+    <div class="рот-ряд низ">{латНиз.map((б) => <span>{б}</span>)}</div>
+    <span class="рот-кольцо-к" style="margin-top:14px">{с.wheelCyr}</span>
+    <div class="рот-ряд">{кирВерх.map((б) => <span>{б}</span>)}</div>
+    <div class="рот-ряд низ">{кирНиз.map((б) => <span>{б}</span>)}</div>
+  </div>
+
+  <div class="рот-заметки">
+    <div class="рот-заметка" set:html={с.n1}></div>
+    <div class="рот-заметка" set:html={с.n2}></div>
+    <div class="рот-заметка" set:html={с.n3}></div>
+    <div class="рот-заметка" set:html={с.n4}></div>
+    <div class="рот-заметка" set:html={с.n5}></div>
+    <div class="рот-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.рот');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('рот-ввод');
+    const вывод = $('рот-вывод');
+
+    // 26 латинских букв, половина -- 13. Отсюда и название шифра.
+    const ЛАТ_МАЛ = 'abcdefghijklmnopqrstuvwxyz';
+    const ЛАТ_БОЛ = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ';
+    // 32 буквы, БЕЗ «ё». В полном русском алфавите 33 буквы -- число нечётное, и сдвига,
+    // который возвращал бы текст на место, для него не существует вовсе.
+    const КИР_МАЛ = 'абвгдежзийклмнопрстуфхцчшщъыьэюя';
+    const КИР_БОЛ = 'АБВГДЕЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ';
+
+    // Таблица замен строится один раз: перебирать алфавит на каждую букву незачем.
+    function собрать(кириллица) {
+      const т = new Map();
+      const пара = (алф, шаг) => {
+        for (let и = 0; и < алф.length; и++) т.set(алф[и], алф[(и + шаг) % алф.length]);
+      };
+      пара(ЛАТ_МАЛ, 13); пара(ЛАТ_БОЛ, 13);
+      if (кириллица) { пара(КИР_МАЛ, 16); пара(КИР_БОЛ, 16); }
+      return т;
+    }
+    let таблица = собрать(true);
+
+    function перевести() {
+      const исходный = ввод.value;
+      let сдвинуто = 0;
+      let итог = '';
+      for (const знак of исходный) {
+        const замена = таблица.get(знак);
+        if (замена === undefined) { итог += знак; continue; }
+        итог += замена;
+        сдвинуто++;
+      }
+      вывод.value = итог;
+      $('рот-знаков').textContent = String([...исходный].length);
+      $('рот-сдвинуто').textContent = String(сдвинуто);
+    }
+
+    function сказать(текст) {
+      const э = $('рот-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', перевести);
+    $('рот-кириллица').addEventListener('change', () => {
+      const вкл = $('рот-кириллица').checked;
+      таблица = собрать(вкл);
+      $('рот-сдвиг').textContent = вкл ? с.shiftBoth : с.shiftLat;
+      перевести();
+    });
+
+    $('рот-копировать').addEventListener('click', async () => {
+      const кнопка = $('рот-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('рот-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      перевести();
+      ввод.focus();
+    });
+
+    перевести();
+
+    window.__ротСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      кириллица: $('рот-кириллица').checked,
+      знаков: $('рот-знаков').textContent, сдвинуто: $('рот-сдвинуто').textContent,
+      сдвиг: $('рот-сдвиг').textContent,
+    });
+  })();
+</script>
