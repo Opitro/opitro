@@ -1,0 +1,358 @@
+---
+// ТЕСТ БАТАРЕИ -- своя страница со своим кодом и стилями.
+//
+// Что делаем:
+//   * ПОКАЗЫВАЕМ ЖИВЫЕ ДАННЫЕ: заряд, питание от сети или нет, время до полной зарядки и
+//     остаток работы -- всё, что отдаёт браузер.
+//   * ВЕДЁМ ГРАФИК заряда по времени с первой секунды, а не только под нагрузкой.
+//   * ЗАМЕРЯЕМ РАСХОД ПОД НАГРУЗКОЙ: считаем в отдельном потоке, чтобы страница не замирала,
+//     и смотрим, на сколько процентов упал заряд. Из этого получаем расход в процентах за
+//     час и время автономной работы при такой нагрузке.
+//
+// ЧЕГО ЗДЕСЬ НЕТ И НЕ БУДЕТ: износа батареи в процентах. Браузеру не сообщают ни ёмкость,
+// ни число циклов, ни паспортную ёмкость -- ничего, из чего износ считается. Любой сайт,
+// который называет вам «износ 87 %» по данным браузера, его выдумывает. Мы вместо этого
+// меряем то, что действительно можно измерить, -- скорость расхода, -- и показываем, где
+// посмотреть настоящий износ в самой системе.
+//
+// Battery Status API есть только в браузерах на Chromium (Chrome, Edge, Opera, браузеры
+// Android). В Safari его нет и не было, в Firefox его убрали ради приватности. На айфоне
+// страница честно скажет об этом и оставит инструкцию для системы.
+import css from '../styles/battery-test.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    noApi: 'Этот браузер не сообщает странице данные о батарее. Так устроены Safari и Firefox: доступ к батарее закрыли ради приватности — по её уровню сайты научились узнавать посетителя. На айфоне не поможет ни один браузер. Живые данные покажет браузер на Chromium: Chrome, Edge, Opera или браузер Android. А настоящий износ батареи в любом случае смотрят в самой системе — как именно, написано ниже.',
+    rPower: 'Питание', rLevel: 'Заряд', rFull: 'До полной зарядки', rLeft: 'Осталось работы',
+    rRate: 'Расход под нагрузкой', rPrivacy: 'Приватность',
+    fromNet: 'от сети, заряжается', onBattery: 'от батареи',
+    unknown: 'браузер не сообщает', local: 'локально, без отправки',
+    load: 'Замер расхода под нагрузкой',
+    start: 'Запустить замер', stop: 'Остановить',
+    running: 'Идёт замер… осталось {n}',
+    hint: 'Отключите зарядку, иначе расход мерить не на чем. Замер нагружает процессор и честно тратит немного заряда — это плата за точность.',
+    resShort: 'Замер длился всего {t} — для оценки этого мало. Из такого куска расход в час не пересчитать: ошибка будет в разы. Дайте замеру отработать хотя бы минуту.',
+    resNone: 'За {t} заряд не изменился ни на процент. Это хороший знак, но для оценки нужно дольше: возьмите срок побольше и повторите.',
+    resRate: 'Под нагрузкой уходит <b>{r}% в час</b>. При таком расходе полного заряда хватит примерно на <b>{h}</b>. Это скорость расхода, а не износ: износ браузеру не сообщают.',
+    resCharging: 'Замер остановлен: подключена зарядка. Расход меряется только на батарее.',
+    hours: 'ч', minutes: 'мин', sec: 'с',
+    n1: 'Износ батареи в процентах со страницы не измерить. Браузеру не сообщают ни нынешнюю ёмкость, ни паспортную, ни число циклов — то есть ни одного числа, из которого износ считается. Сайты, называющие «износ 87 %», берут его с потолка.',
+    n2: 'Настоящий износ смотрят в системе. <b>iPhone:</b> Настройки → Аккумулятор → Состояние аккумулятора. <b>Android:</b> Настройки → Батарея (у части моделей нужен фирменный сервисный режим). <b>Windows:</b> команда powercfg /batteryreport в командной строке. <b>macOS:</b> Настройки → Аккумулятор → Состояние.',
+    n3: 'Расход под нагрузкой — честный способ поймать уставшую батарею косвенно. Свежий телефон под нагрузкой теряет примерно 15–25 % в час, ноутбук 20–40 %. Втрое больше при обычной работе — повод посмотреть настоящий износ в системе.',
+    n4: 'Уровень заряда браузер округляет, поэтому за три минуты он часто не меняется вовсе. Это не поломка страницы: у крупной батареи один процент уходит дольше. Берите срок побольше.',
+    n5: 'Всё считается на вашем устройстве. Данные о батарее живут в памяти вкладки, никуда не отправляются и нигде не сохраняются.',
+  },
+  en: {
+    noApi: 'This browser does not report battery data to pages. Safari and Firefox are built that way: access was closed for privacy, because sites learned to recognise visitors by their battery level. On iPhone no browser will help. Live data is shown by Chromium browsers: Chrome, Edge, Opera or an Android browser. Real battery wear is read in the system itself in any case — see below how.',
+    rPower: 'Power', rLevel: 'Charge', rFull: 'Until fully charged', rLeft: 'Time left',
+    rRate: 'Drain under load', rPrivacy: 'Privacy',
+    fromNet: 'plugged in, charging', onBattery: 'on battery',
+    unknown: 'not reported', local: 'local, nothing is sent',
+    load: 'Drain measurement under load',
+    start: 'Start the measurement', stop: 'Stop',
+    running: 'Measuring… {n} left',
+    hint: 'Unplug the charger, otherwise there is no drain to measure. The test loads the processor and honestly spends a little charge — that is the price of accuracy.',
+    resShort: 'The run lasted only {t} — too little to judge. An hourly rate cannot be extrapolated from such a slice: the error would be several-fold. Let the measurement run for at least a minute.',
+    resNone: 'Over {t} the charge did not move by a single percent. That is a good sign, but the estimate needs longer: pick a longer run and repeat.',
+    resRate: 'Under load it uses <b>{r}% per hour</b>. At that rate a full charge lasts about <b>{h}</b>. This is drain speed, not wear: wear is never reported to a browser.',
+    resCharging: 'Measurement stopped: the charger is connected. Drain can only be measured on battery.',
+    hours: 'h', minutes: 'min', sec: 's',
+    n1: 'Battery wear in percent cannot be measured from a web page. The browser is told neither the present capacity, nor the design capacity, nor the cycle count — not one of the numbers wear is computed from. Sites that print “87 % health” are inventing it.',
+    n2: 'Real wear is read in the system. <b>iPhone:</b> Settings → Battery → Battery Health. <b>Android:</b> Settings → Battery (some models need the maker’s service menu). <b>Windows:</b> run powercfg /batteryreport in the command prompt. <b>macOS:</b> Settings → Battery → Battery Health.',
+    n3: 'Drain under load is an honest indirect way to catch a tired battery. A fresh phone loses roughly 15–25 % per hour under load, a laptop 20–40 %. Three times that during ordinary work is a reason to look up the real wear figure in the system.',
+    n4: 'The browser rounds the charge level, so over three minutes it often does not move at all. That is not a broken page: on a large battery one percent simply takes longer. Choose a longer run.',
+    n5: 'Everything runs on your device. Battery data lives in the tab’s memory, is sent nowhere and stored nowhere.',
+  },
+  es: {
+    noApi: 'Este navegador no informa a las páginas sobre la batería. Safari y Firefox están hechos así: cerraron el acceso por privacidad, porque los sitios aprendieron a reconocer visitantes por su nivel de batería. En el iPhone no ayudará ningún navegador. Los datos en vivo los muestran los navegadores Chromium: Chrome, Edge, Opera o un navegador de Android. El desgaste real se consulta en el propio sistema, como se explica abajo.',
+    rPower: 'Alimentación', rLevel: 'Carga', rFull: 'Hasta carga completa', rLeft: 'Autonomía restante',
+    rRate: 'Consumo bajo carga', rPrivacy: 'Privacidad',
+    fromNet: 'enchufado, cargando', onBattery: 'con batería',
+    unknown: 'no lo informa', local: 'local, no se envía nada',
+    load: 'Medición del consumo bajo carga',
+    start: 'Iniciar la medición', stop: 'Detener',
+    running: 'Midiendo… quedan {n}',
+    hint: 'Desenchufa el cargador o no habrá consumo que medir. La prueba carga el procesador y gasta algo de batería: es el precio de la precisión.',
+    resShort: 'La medición duró solo {t}: demasiado poco para juzgar. De un tramo así no se puede extrapolar un consumo por hora, el error sería de varias veces. Deja correr la medición al menos un minuto.',
+    resNone: 'En {t} la carga no bajó ni un punto. Es buena señal, pero para estimar hace falta más tiempo: elige una duración mayor y repite.',
+    resRate: 'Bajo carga consume <b>{r}% por hora</b>. A ese ritmo una carga completa dura unas <b>{h}</b>. Esto es velocidad de consumo, no desgaste: el desgaste nunca se le comunica al navegador.',
+    resCharging: 'Medición detenida: el cargador está conectado. El consumo solo se mide con batería.',
+    hours: 'h', minutes: 'min', sec: 's',
+    n1: 'El desgaste de la batería en porcentaje no se puede medir desde una página. Al navegador no se le dice ni la capacidad actual, ni la de diseño, ni los ciclos: ninguno de los números con los que se calcula el desgaste. Los sitios que muestran «salud 87 %» se lo inventan.',
+    n2: 'El desgaste real se mira en el sistema. <b>iPhone:</b> Ajustes → Batería → Estado de la batería. <b>Android:</b> Ajustes → Batería (algunos modelos requieren el menú de servicio del fabricante). <b>Windows:</b> ejecuta powercfg /batteryreport en la consola. <b>macOS:</b> Ajustes → Batería → Estado.',
+    n3: 'El consumo bajo carga es una forma indirecta y honesta de detectar una batería cansada. Un móvil nuevo pierde en torno al 15–25 % por hora bajo carga; un portátil, 20–40 %. El triple durante un uso normal es motivo para consultar el desgaste real en el sistema.',
+    n4: 'El navegador redondea el nivel de carga, así que en tres minutos a menudo no se mueve. No es un fallo de la página: en una batería grande un punto porcentual tarda más. Elige una duración mayor.',
+    n5: 'Todo se calcula en tu dispositivo. Los datos de la batería viven en la memoria de la pestaña, no se envían a ningún sitio y no se guardan.',
+  },
+  uk: {
+    noApi: 'Цей браузер не повідомляє сторінці дані про батарею. Так влаштовані Safari й Firefox: доступ до батареї закрили заради приватності — за її рівнем сайти навчилися впізнавати відвідувача. На айфоні не допоможе жоден браузер. Живі дані покаже браузер на Chromium: Chrome, Edge, Opera або браузер Android. А справжній знос батареї в будь-якому разі дивляться в самій системі — як саме, написано нижче.',
+    rPower: 'Живлення', rLevel: 'Заряд', rFull: 'До повного заряду', rLeft: 'Лишилося роботи',
+    rRate: 'Витрата під навантаженням', rPrivacy: 'Приватність',
+    fromNet: 'від мережі, заряджається', onBattery: 'від батареї',
+    unknown: 'браузер не повідомляє', local: 'локально, без надсилання',
+    load: 'Замір витрати під навантаженням',
+    start: 'Запустити замір', stop: 'Зупинити',
+    running: 'Триває замір… лишилося {n}',
+    hint: 'Вимкніть зарядку, інакше витрату міряти нема на чому. Замір навантажує процесор і чесно витрачає трохи заряду — це плата за точність.',
+    resShort: 'Замір тривав лише {t} — для оцінки цього замало. З такого шматка витрату за годину не перерахувати: похибка буде в рази. Дайте заміру відпрацювати хоча б хвилину.',
+    resNone: 'За {t} заряд не змінився ані на відсоток. Це добрий знак, але для оцінки треба довше: візьміть більший строк і повторіть.',
+    resRate: 'Під навантаженням іде <b>{r}% за годину</b>. За такої витрати повного заряду вистачить приблизно на <b>{h}</b>. Це швидкість витрати, а не знос: знос браузеру не повідомляють.',
+    resCharging: 'Замір зупинено: під’єднано зарядку. Витрату міряють лише на батареї.',
+    hours: 'год', minutes: 'хв', sec: 'с',
+    n1: 'Знос батареї у відсотках зі сторінки не виміряти. Браузеру не повідомляють ні теперішню ємність, ні паспортну, ні кількість циклів — тобто жодного числа, з якого знос рахується. Сайти, що називають «знос 87 %», беруть його зі стелі.',
+    n2: 'Справжній знос дивляться в системі. <b>iPhone:</b> Налаштування → Акумулятор → Стан акумулятора. <b>Android:</b> Налаштування → Батарея (у частини моделей потрібен фірмовий сервісний режим). <b>Windows:</b> команда powercfg /batteryreport у командному рядку. <b>macOS:</b> Налаштування → Акумулятор → Стан.',
+    n3: 'Витрата під навантаженням — чесний спосіб спіймати втомлену батарею опосередковано. Свіжий телефон під навантаженням втрачає приблизно 15–25 % за годину, ноутбук 20–40 %. Утричі більше при звичайній роботі — привід подивитися справжній знос у системі.',
+    n4: 'Рівень заряду браузер округлює, тому за три хвилини він часто не змінюється зовсім. Це не поломка сторінки: у великої батареї один відсоток іде довше. Беріть більший строк.',
+    n5: 'Усе рахується на вашому пристрої. Дані про батарею живуть у пам’яті вкладки, нікуди не надсилаються й ніде не зберігаються.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="бт" data-words={JSON.stringify(с)}>
+  <div class="бт-нет" id="бт-нет" set:html={с.noApi}></div>
+
+  <div class="бт-панель">
+    <div class="бт-окно">
+      <div class="бт-строка"><span class="н">{с.rPower}</span><span class="з" id="бт-питание">—</span></div>
+      <div class="бт-строка"><span class="н">{с.rLevel}</span><span class="з" id="бт-заряд">—</span></div>
+      <div class="бт-строка"><span class="н">{с.rFull}</span><span class="з" id="бт-доПолной">—</span></div>
+      <div class="бт-строка"><span class="н">{с.rLeft}</span><span class="з" id="бт-осталось">—</span></div>
+      <div class="бт-строка"><span class="н">{с.rRate}</span><span class="з" id="бт-расход">—</span></div>
+      <div class="бт-строка"><span class="н">{с.rPrivacy}</span><span class="з">{с.local}</span></div>
+    </div>
+
+    <div class="бт-окно бт-вид">
+      <div class="бт-корпус">
+        <div class="бт-заряд" id="бт-полоса"></div>
+        <div class="бт-молния">⚡</div>
+      </div>
+      <div class="бт-число" id="бт-число">—</div>
+      <div class="бт-график"><canvas id="бт-холст"></canvas></div>
+    </div>
+  </div>
+
+  <div class="бт-нагрузка">
+    <span class="бт-к">{с.load}</span>
+    <div class="бт-ряд" id="бт-сроки">
+      <button type="button" class="бт-срок вкл" data-мин="3">3 {с.minutes}</button>
+      <button type="button" class="бт-срок" data-мин="10">10 {с.minutes}</button>
+      <button type="button" class="бт-срок" data-мин="20">20 {с.minutes}</button>
+      <button type="button" class="бт-пуск" id="бт-пуск">{с.start}</button>
+    </div>
+  </div>
+
+  <div class="бт-итог" id="бт-итог">{с.hint}</div>
+
+  <div class="бт-заметки">
+    <div class="бт-заметка">{с.n1}</div>
+    <div class="бт-заметка" set:html={с.n2}></div>
+    <div class="бт-заметка">{с.n3}</div>
+    <div class="бт-заметка">{с.n4}</div>
+    <div class="бт-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.бт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const холст = $('бт-холст');
+    const кисть = холст.getContext('2d');
+
+    let батарея = null;
+    let точки = [];              // {т, доля} -- уровень заряда по времени
+    let мин = 3;
+    let рабочие = [];            // потоки нагрузки
+    let замерДо = 0, замерТик = null, началоЗамера = 0, зарядНаСтарте = 0;
+
+    function время(секунд) {
+      if (!isFinite(секунд) || секунд <= 0) return с.unknown;
+      const ч = Math.floor(секунд / 3600);
+      const м = Math.round((секунд % 3600) / 60);
+      return (ч ? ч + ' ' + с.hours + ' ' : '') + м + ' ' + с.minutes;
+    }
+
+    function обновить() {
+      if (!батарея) return;
+      const доля = батарея.level;
+      корень.classList.toggle('заряжается', батарея.charging);
+      $('бт-питание').textContent = батарея.charging ? с.fromNet : с.onBattery;
+      $('бт-заряд').textContent = Math.round(доля * 100) + '%';
+      $('бт-число').textContent = Math.round(доля * 100) + '%';
+      $('бт-полоса').style.width = (доля * 100) + '%';
+      $('бт-доПолной').textContent = батарея.charging ? время(батарея.chargingTime) : '—';
+      $('бт-осталось').textContent = батарея.charging ? '—' : время(батарея.dischargingTime);
+      точки.push({ т: performance.now(), доля });
+      // Держим два часа истории: дольше человек на странице всё равно не сидит.
+      точки = точки.filter((т) => т.т > performance.now() - 7200000);
+      рисовать();
+    }
+
+    function готовить() {
+      const п = холст.getBoundingClientRect();
+      const плотность = Math.min(window.devicePixelRatio || 1, 2);
+      холст.width = Math.max(1, Math.round(п.width * плотность));
+      холст.height = Math.round(92 * плотность);
+      кисть.setTransform(плотность, 0, 0, плотность, 0, 0);
+      рисовать();
+    }
+
+    function рисовать() {
+      const плотность = Math.min(window.devicePixelRatio || 1, 2);
+      const ш = холст.width / плотность, в = 92;
+      кисть.clearRect(0, 0, ш, в);
+      кисть.strokeStyle = 'rgba(255,255,255,.10)';
+      кисть.lineWidth = 1;
+      for (let i = 1; i < 4; i++) {
+        const y = (в / 4) * i;
+        кисть.beginPath(); кисть.moveTo(0, y); кисть.lineTo(ш, y); кисть.stroke();
+      }
+      if (точки.length < 2) return;
+      // Линия строится по всему собранному отрезку времени, а по высоте -- по узкому окну
+      // вокруг нынешнего заряда: иначе на шкале от нуля до ста падение на процент незаметно.
+      const первый = точки[0].т, последний = точки[точки.length - 1].т;
+      const срок = Math.max(1, последний - первый);
+      let низ = 1, верх = 0;
+      for (const т of точки) { низ = Math.min(низ, т.доля); верх = Math.max(верх, т.доля); }
+      const запас = Math.max(0.02, (верх - низ) * 0.4);
+      низ = Math.max(0, низ - запас); верх = Math.min(1, верх + запас);
+      const высота = Math.max(0.01, верх - низ);
+      // Линия и заливка под ней -- зелёным цветом сайта: это тот же заряд, что в контуре
+      // батареи, и разными цветами их разводить незачем.
+      const путь = (начать) => {
+        кисть.beginPath();
+        точки.forEach((т, i) => {
+          const x = ((т.т - первый) / срок) * ш;
+          const y = в - ((т.доля - низ) / высота) * (в - 10) - 5;
+          i ? кисть.lineTo(x, y) : кисть.moveTo(x, y);
+        });
+        if (начать) { кисть.lineTo(ш, в); кисть.lineTo(0, в); кисть.closePath(); }
+      };
+      const заливка = кисть.createLinearGradient(0, 0, 0, в);
+      заливка.addColorStop(0, 'rgba(74,222,158,.28)');
+      заливка.addColorStop(1, 'rgba(74,222,158,0)');
+      путь(true);
+      кисть.fillStyle = заливка;
+      кисть.fill();
+      путь(false);
+      кисть.strokeStyle = '#4ade9e';
+      кисть.lineWidth = 1.8;
+      кисть.shadowColor = 'rgba(74,222,158,.55)';
+      кисть.shadowBlur = 8;
+      кисть.stroke();
+      кисть.shadowBlur = 0;
+    }
+
+    /* ---- Нагрузка ------------------------------------------------------------------- */
+
+    // Считаем в отдельных потоках: в главном страница замерла бы, и человек решил бы,
+    // что сайт повис. Потоков по числу ядер -- нагрузка должна быть настоящей.
+    const КОД = `onmessage = () => { let x = 0; for (;;) { for (let i = 0; i < 2e6; i++) x += Math.sqrt(i) * Math.sin(i); } };`;
+
+    function нагрузить() {
+      const ядер = Math.max(2, Math.min(8, navigator.hardwareConcurrency || 4));
+      const адрес = URL.createObjectURL(new Blob([КОД], { type: 'text/javascript' }));
+      for (let i = 0; i < ядер; i++) {
+        const р = new Worker(адрес);
+        р.postMessage('go');
+        рабочие.push(р);
+      }
+      URL.revokeObjectURL(адрес);
+    }
+
+    function снять() {
+      рабочие.forEach((р) => р.terminate());
+      рабочие = [];
+    }
+
+    function стопЗамер(текст) {
+      снять();
+      замерДо = 0;
+      clearInterval(замерТик); замерТик = null;
+      $('бт-пуск').textContent = с.start;
+      $('бт-пуск').classList.remove('идёт');
+      if (текст) $('бт-итог').innerHTML = текст;
+    }
+
+    function итогЗамера() {
+      const прошло = (performance.now() - началоЗамера) / 1000;
+      const ушло = зарядНаСтарте - батарея.level;
+      const срок = прошло < 60 ? Math.round(прошло) + ' ' + с.sec : время(прошло);
+      // Меньше минуты пересчитывать в час нельзя: заряд браузер округляет, и на коротком
+      // куске один «шаг» округления превращается в тысячи процентов за час. Проверено:
+      // остановка через две секунды давала 3390 %/ч.
+      if (прошло < 60) { стопЗамер(с.resShort.replace('{t}', срок)); return; }
+      if (ушло <= 0.0005) {
+        стопЗамер(с.resNone.replace('{t}', срок));
+        return;
+      }
+      const вЧас = (ушло * 100) * (3600 / прошло);
+      const хватит = время((батарея.level / (ушло / прошло)));
+      $('бт-расход').textContent = вЧас.toFixed(1) + ' %/' + с.hours;
+      стопЗамер(с.resRate.replace('{r}', вЧас.toFixed(1)).replace('{h}', хватит));
+    }
+
+    $('бт-пуск').addEventListener('click', () => {
+      if (замерДо) { стопЗамер(''); итогЗамера(); return; }
+      if (!батарея) return;
+      if (батарея.charging) { $('бт-итог').innerHTML = с.resCharging; return; }
+      зарядНаСтарте = батарея.level;
+      началоЗамера = performance.now();
+      замерДо = началоЗамера + мин * 60000;
+      нагрузить();
+      $('бт-пуск').classList.add('идёт');
+      $('бт-пуск').textContent = с.stop;
+      const тик = () => {
+        const осталось = Math.max(0, замерДо - performance.now());
+        $('бт-итог').innerHTML = с.running.replace('{n}', время(осталось / 1000));
+        if (батарея.charging) { стопЗамер(с.resCharging); return; }
+        if (осталось <= 0) итогЗамера();
+      };
+      тик();
+      замерТик = setInterval(тик, 1000);
+    });
+
+    корень.querySelectorAll('.бт-срок').forEach((к) => {
+      к.addEventListener('click', () => {
+        мин = Number(к.dataset.мин);
+        корень.querySelectorAll('.бт-срок').forEach((д) => д.classList.toggle('вкл', д === к));
+      });
+    });
+
+    /* ---- Пуск ------------------------------------------------------------------------ */
+
+    if (typeof navigator.getBattery !== 'function') {
+      корень.classList.add('без');
+    } else {
+      navigator.getBattery().then((б) => {
+        батарея = б;
+        готовить();
+        обновить();
+        for (const событие of ['levelchange', 'chargingchange', 'chargingtimechange', 'dischargingtimechange']) {
+          б.addEventListener(событие, обновить);
+        }
+        // Уровень меняется редко и не всегда шлёт событие -- добираем опросом раз в пять секунд.
+        setInterval(обновить, 5000);
+      }).catch(() => корень.classList.add('без'));
+    }
+
+    window.addEventListener('resize', готовить);
+    window.addEventListener('pagehide', снять);
+
+    window.__бтСостояние = () => ({
+      есть: !корень.classList.contains('без'),
+      питание: $('бт-питание').textContent, заряд: $('бт-заряд').textContent,
+      доПолной: $('бт-доПолной').textContent, осталось: $('бт-осталось').textContent,
+      расход: $('бт-расход').textContent, полоса: $('бт-полоса').style.width,
+      точек: точек_длина(), потоков: рабочие.length, замерИдёт: !!замерДо, срок: мин,
+      итог: $('бт-итог').textContent,
+    });
+    function точек_длина() { return точки.length; }
+  })();
+</script>

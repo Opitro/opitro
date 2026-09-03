@@ -1,0 +1,105 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТ БАТАРЕИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- сервисная панель того же языка, что у геймпада, датчиков, вибрации и камеры.
+ * Чёрный фон, тонкие линии, моноширинные цифры. Единственное цветное пятно -- сам заряд:
+ * он рисуется зелёным цветом сайта. Светофора из красного и жёлтого тут нет намеренно:
+ * низкий заряд -- это не поломка, пугать им человека незачем.
+ *
+ * Устройство:
+ *   1. СЛЕВА ТЕЛЕМЕТРИЯ строками, справа -- контур батареи и график расхода.
+ *   2. ГРАФИК ведётся всё время, пока страница открыта, а не только под нагрузкой: заряд
+ *      меняется медленно, и линия нужна длинная.
+ *   3. НАГРУЗКА ОТДЕЛЬНО, внизу: это не «проверка», а замер расхода, и путать их нельзя.
+ */
+
+.бт {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы: #ffffff;
+  --буквы2: #a9b0ba;
+  --линия: rgba(255,255,255,.18);
+  /* Зелёный сайта. Второй тон светлее -- для блика на заливке. */
+  --свой: #4ade9e;
+  --свой2: #60efb8;
+  font-family: var(--ui);
+}
+
+.бт-нет { display: none; margin-bottom: 12px; padding: 13px 14px; border-radius: 10px;
+  border: 1px solid rgba(255,154,168,.5); font: 400 13px/1.6 var(--ui); color: #ffd9df }
+.бт.без .бт-нет { display: block }
+.бт.без .бт-панель, .бт.без .бт-нагрузка { display: none }
+
+.бт-панель { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px }
+.бт-окно { background: #000; border: 1px solid var(--линия); border-radius: 12px;
+  padding: 13px 14px }
+
+.бт-строка { display: flex; align-items: baseline; justify-content: space-between; gap: 12px;
+  padding: 7px 0; border-bottom: 1px solid rgba(255,255,255,.07) }
+.бт-строка:last-child { border-bottom: 0 }
+.бт-строка .н { font: 400 12px var(--ui); color: var(--буквы2) }
+.бт-строка .з { font: 500 12.5px var(--цифры); color: var(--буквы); text-align: right;
+  font-variant-numeric: tabular-nums }
+
+/* Контур батареи: прямоугольник с носиком, заливка белым ровно на величину заряда. */
+.бт-вид { display: flex; flex-direction: column; align-items: center; gap: 10px }
+/* Без overflow: hidden -- иначе носик батареи, торчащий вправо, срезается вместе с ним,
+   и контур перестаёт читаться как батарея. Скругление заливке задано своё. */
+.бт-корпус { position: relative; width: 168px; height: 76px; border: 1px solid var(--линия);
+  border-radius: 8px; padding: 5px }
+/* Носик батареи -- своим цветом, чтобы контур читался как батарея, а не как рамка. */
+.бт-корпус::after { content: ""; position: absolute; right: -6px; top: 50%; width: 5px; height: 22px;
+  margin-top: -11px; border-radius: 0 3px 3px 0; background: var(--линия) }
+.бт-заряд {
+  position: relative; height: 100%; width: 0; border-radius: 4px;
+  background: linear-gradient(180deg, var(--свой2), var(--свой));
+  box-shadow: 0 0 18px rgba(74,222,158,.45), inset 0 1px 0 rgba(255,255,255,.35);
+  transition: width .5s cubic-bezier(.22,.61,.36,1);
+}
+/* Тонкий блик поверх заливки: без него зелёное поле выглядит плоской краской. */
+.бт-заряд::after { content: ""; position: absolute; inset: 0 0 55% 0; border-radius: 4px 4px 0 0;
+  background: linear-gradient(180deg, rgba(255,255,255,.22), transparent) }
+.бт-молния { position: absolute; inset: 0; display: none; align-items: center;
+  justify-content: center; font: 500 26px var(--ui); color: #fff; mix-blend-mode: difference;
+  pointer-events: none }
+.бт.заряжается .бт-молния { display: flex }
+.бт-число { font: 600 30px/1 var(--цифры); color: var(--свой); font-variant-numeric: tabular-nums;
+  text-shadow: 0 0 22px rgba(74,222,158,.35) }
+
+.бт-график { width: 100%; margin-top: 4px; border: 1px solid var(--линия); border-radius: 8px;
+  overflow: hidden }
+.бт-график canvas { display: block; width: 100%; height: 92px }
+
+/* ---- Нагрузка --------------------------------------------------------------------------- */
+
+.бт-нагрузка { margin-top: 10px; background: #000; border: 1px solid var(--линия);
+  border-radius: 12px; padding: 13px 14px }
+.бт-к { display: block; margin-bottom: 9px; font: 400 10.5px var(--ui); letter-spacing: .12em;
+  text-transform: uppercase; color: var(--буквы2) }
+.бт-ряд { display: flex; flex-wrap: wrap; gap: 6px; align-items: center }
+.бт-срок {
+  flex: 0 0 auto; font: 400 12.5px var(--цифры); height: 34px; padding: 0 13px; border-radius: 7px;
+  cursor: pointer; color: var(--буквы); background: #000; border: 1px solid var(--линия);
+}
+.бт-срок:hover { border-color: #fff }
+.бт-срок.вкл { background: #fff; color: #000; border-color: #fff }
+.бт-пуск {
+  flex: 0 0 auto; font: 500 13.5px var(--ui); height: 42px; padding: 0 20px; border-radius: 8px;
+  cursor: pointer; color: var(--буквы); background: #000; border: 1px solid #fff;
+}
+.бт-пуск:hover { background: #fff; color: #000 }
+.бт-пуск.идёт { border-width: 2px }
+
+.бт-итог { margin-top: 12px; text-align: center; font: 400 13px/1.6 var(--ui); color: var(--буквы2) }
+.бт-итог b { color: var(--буквы); font-weight: 600 }
+.бт-итог .плохо { color: #ff9aa8; font-weight: 600 }
+
+.бт-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
+.бт-заметка { display: flex; gap: 9px; font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
+.бт-заметка::before { content: "•"; color: rgba(255,255,255,.45); flex: none }
+.бт-заметка b { color: var(--буквы); font-weight: 600 }
+
+@media (max-width: 700px) {
+  .бт-панель { grid-template-columns: 1fr }
+}
