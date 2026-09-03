@@ -1,0 +1,217 @@
+---
+// СНЯТИЕ ДИАКРИТИЧЕСКИХ ЗНАКОВ.
+//
+// Работаем разложением Юникода: normalize('NFD') разбивает «á» на «a» и отдельный знак
+// ударения, после чего знаки убираются одним правилом. Это надёжнее любой таблицы букв --
+// работает и для языков, о которых мы не думали.
+//
+// ДВА МЕСТА, ГДЕ ПРОСТОЕ РАЗЛОЖЕНИЕ ВРЁТ, и оба здесь учтены:
+//   1. Ñ -- отдельная буква испанского алфавита, а не «n с чёрточкой». Для адреса страницы
+//      её надо превратить в n, для разбора языка -- сохранить. Отсюда переключатель.
+//   2. ø, ł, ß, æ, đ РАЗЛОЖЕНИЮ НЕ ПОДДАЮТСЯ вовсе: в Юникоде это самостоятельные буквы без
+//      отделяемого знака. Обычный способ их не тронет, и «Malmø» так и останется с «ø» --
+//      для адреса страницы это поломка. Поэтому в режиме адреса им нужна своя таблица.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/diacritics.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    keepN: 'Заменять Ñ на N', slug: 'Режим адреса страницы (slug)',
+    place: 'Введите текст со знаками ударения: á, é, ñ, ü…',
+    result: 'Очищенный текст появится здесь…',
+    chars: 'Знаков', removed: 'Заменено символов',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: 'Знаки снимаются разложением Юникода, а не таблицей букв: «á» распадается на «a» и отдельный знак ударения, который стирается. Поэтому работает не только с испанским и французским, но и с любым языком, где ударения ставятся над буквами.',
+    n2: '<b>Ñ — отдельная буква испанского алфавита</b>, а не «n с чёрточкой»: «año» (год) и «ano» — разные слова. Для адреса страницы её принято заменять на n, для разбора языка — сохранять. Переключатель наверху решает это за вас.',
+    n3: 'Буквы <b>ø, ł, ß, æ, đ</b> разложению не поддаются: в Юникоде это самостоятельные буквы без отделяемого знака, и обычным способом их не снять. В режиме адреса страницы мы заменяем их вручную: ø → o, ł → l, ß → ss, æ → ae. В обычном режиме они остаются как есть — это буквы, а не ударения.',
+    n4: 'Режим адреса страницы делает больше, чем снятие знаков: приводит к строчным, заменяет пробелы и знаки препинания дефисами и убирает дефисы по краям. Из «Peñalara — la Sierra» выходит «penalara-la-sierra».',
+    n5: 'Текст никуда не отправляется: очистка идёт прямо в вашем браузере, страница ничего не сохраняет.',
+  },
+  uk: {
+    keepN: 'Замінювати Ñ на N', slug: 'Режим адреси сторінки (slug)',
+    place: 'Введіть текст зі знаками наголосу: á, é, ñ, ü…',
+    result: 'Очищений текст з’явиться тут…',
+    chars: 'Знаків', removed: 'Замінено символів',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: 'Знаки знімаються розкладанням Юнікоду, а не таблицею літер: «á» розпадається на «a» і окремий знак наголосу, який стирається. Тому працює не лише з іспанською та французькою, а й з будь-якою мовою, де наголоси ставлять над літерами.',
+    n2: '<b>Ñ — окрема літера іспанської абетки</b>, а не «n з рискою»: «año» (рік) і «ano» — різні слова. Для адреси сторінки її прийнято замінювати на n, для мовного розбору — зберігати. Перемикач нагорі вирішує це за вас.',
+    n3: 'Літери <b>ø, ł, ß, æ, đ</b> розкладанню не піддаються: у Юнікоді це самостійні літери без відокремлюваного знака, і звичайним способом їх не зняти. У режимі адреси сторінки ми замінюємо їх вручну: ø → o, ł → l, ß → ss, æ → ae. У звичайному режимі вони лишаються як є — це літери, а не наголоси.',
+    n4: 'Режим адреси сторінки робить більше, ніж зняття знаків: робить усе малим, замінює пробіли й розділові знаки дефісами та прибирає дефіси по краях. З «Peñalara — la Sierra» виходить «penalara-la-sierra».',
+    n5: 'Текст нікуди не надсилається: очищення йде просто у вашому браузері, сторінка нічого не зберігає.',
+  },
+  en: {
+    keepN: 'Replace Ñ with N', slug: 'URL mode (slug)',
+    place: 'Enter text with accents: á, é, ñ, ü…',
+    result: 'The cleaned text will appear here…',
+    chars: 'Characters', removed: 'Characters replaced',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: 'Marks are stripped by Unicode decomposition rather than a table of letters: “á” splits into “a” and a separate accent mark, which is then deleted. So it works not only for Spanish and French but for any language that writes accents above letters.',
+    n2: '<b>Ñ is a letter of the Spanish alphabet</b> in its own right, not “n with a squiggle”: “año” (year) and “ano” are different words. For a URL it is customary to turn it into n; for linguistic work it should stay. The switch above decides that for you.',
+    n3: 'The letters <b>ø, ł, ß, æ, đ</b> cannot be decomposed: in Unicode they are independent letters with no detachable mark, so the usual method leaves them alone. In URL mode we replace them by hand: ø → o, ł → l, ß → ss, æ → ae. In normal mode they stay as they are — they are letters, not accents.',
+    n4: 'URL mode does more than strip marks: it lowercases the text, turns spaces and punctuation into hyphens and trims hyphens at the edges. “Peñalara — la Sierra” comes out as “penalara-la-sierra”.',
+    n5: 'The text is never sent anywhere: the cleaning happens inside your browser and the page stores nothing.',
+  },
+  es: {
+    keepN: 'Sustituir Ñ por N', slug: 'Modo URL (slug)',
+    place: 'Escribe texto con acentos: á, é, ñ, ü…',
+    result: 'El texto limpio aparecerá aquí…',
+    chars: 'Caracteres', removed: 'Caracteres sustituidos',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: 'Los signos se quitan por descomposición Unicode y no con una tabla de letras: «á» se separa en «a» y un signo de acento aparte, que se borra. Por eso funciona no solo con el español y el francés, sino con cualquier idioma que escriba acentos sobre las letras.',
+    n2: '<b>La Ñ es una letra propia del alfabeto español</b>, no «una n con virgulilla»: «año» y «ano» son palabras distintas. Para una URL se acostumbra a convertirla en n; para trabajo lingüístico conviene conservarla. El interruptor de arriba lo decide por ti.',
+    n3: 'Las letras <b>ø, ł, ß, æ, đ</b> no se pueden descomponer: en Unicode son letras independientes sin signo separable, así que el método habitual no las toca. En modo URL las sustituimos a mano: ø → o, ł → l, ß → ss, æ → ae. En modo normal se quedan como están: son letras, no acentos.',
+    n4: 'El modo URL hace más que quitar signos: pasa el texto a minúsculas, convierte espacios y puntuación en guiones y recorta los guiones de los bordes. De «Peñalara — la Sierra» sale «penalara-la-sierra».',
+    n5: 'El texto no se envía a ninguna parte: la limpieza ocurre en tu navegador y la página no guarda nada.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дк" data-words={JSON.stringify(с)}>
+  <div class="дк-выборы">
+    <label class="дк-выбор"><input type="checkbox" id="дк-энье" checked><i></i>{с.keepN}</label>
+    <label class="дк-выбор"><input type="checkbox" id="дк-адрес"><i></i>{с.slug}</label>
+  </div>
+
+  <div class="дк-пара-полей">
+    <div class="дк-поле">
+      <textarea class="дк-ввод" id="дк-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="дк-поле дк-вывод">
+      <textarea class="дк-ввод" id="дк-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="дк-счётчики">
+      <span>{с.chars}: <b id="дк-знаков">0</b></span>
+      <span class="дк-заменено" id="дк-заменено">{с.removed}: <b id="дк-заменено-число">0</b></span>
+      <span class="дк-сказ" id="дк-сказ"></span>
+    </div>
+  </div>
+
+  <div class="дк-низ">
+    <button type="button" class="дк-кнопка" id="дк-копировать">{с.copyBig}</button>
+    <button type="button" class="дк-простая" id="дк-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="дк-заметки">
+    <div class="дк-заметка">{с.n1}</div>
+    <div class="дк-заметка" set:html={с.n2}></div>
+    <div class="дк-заметка" set:html={с.n3}></div>
+    <div class="дк-заметка">{с.n4}</div>
+    <div class="дк-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.дк');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('дк-ввод');
+    const вывод = $('дк-вывод');
+
+    // Буквы, которые НЕ раскладываются: в Юникоде это самостоятельные знаки, а не «буква
+    // плюс значок». Нужны только для адреса страницы -- там всё обязано стать простой
+    // латиницей. В обычном режиме мы их не трогаем: это буквы, а не ударения.
+    const САМОСТОЯТЕЛЬНЫЕ = {
+      'ø':'o', 'Ø':'O', 'ł':'l', 'Ł':'L', 'đ':'d', 'Đ':'D', 'ð':'d', 'Ð':'D',
+      'ß':'ss', 'æ':'ae', 'Æ':'AE', 'œ':'oe', 'Œ':'OE', 'þ':'th', 'Þ':'TH', 'ı':'i',
+    };
+
+    // Метки для энье. Берём знаки, которых в тексте быть не может, и прячем за ними букву
+    // на время разложения: иначе NFD разберёт её на «n» и волну, и волна пропадёт.
+    const МЕТКА_МАЛ = '\u0001';
+    const МЕТКА_БОЛ = '\u0002';
+
+    function очистить(текст) {
+      const энье = $('дк-энье').checked;      // да -- превращаем в n
+      const адрес = $('дк-адрес').checked;
+      let заменено = 0;
+
+      let работа = текст;
+      if (!энье) работа = работа.replace(/ñ/g, МЕТКА_МАЛ).replace(/Ñ/g, МЕТКА_БОЛ);
+
+      // Разложение: «á» -> «a» + знак ударения. Считаем знаки до того, как сотрём.
+      const разложено = работа.normalize('NFD');
+      const знаки = разложено.match(/[\u0300-\u036f]/g);
+      заменено += знаки ? знаки.length : 0;
+      работа = разложено.replace(/[\u0300-\u036f]/g, '').normalize('NFC');
+
+      if (!энье) работа = работа.replace(new RegExp(МЕТКА_МАЛ, 'g'), 'ñ')
+        .replace(new RegExp(МЕТКА_БОЛ, 'g'), 'Ñ');
+
+      if (адрес) {
+        работа = работа.replace(/./g, (з) => {
+          const замена = САМОСТОЯТЕЛЬНЫЕ[з];
+          if (замена === undefined) return з;
+          заменено++;
+          return замена;
+        });
+        работа = работа.toLowerCase()
+          .replace(/[^a-z0-9]+/g, '-')
+          .replace(/^-+|-+$/g, '')
+          .replace(/-{2,}/g, '-');
+      }
+      return { текст: работа, заменено };
+    }
+
+    function перевести() {
+      const исходный = ввод.value;
+      const { текст, заменено } = очистить(исходный);
+      вывод.value = текст;
+      $('дк-знаков').textContent = исходный.length;
+      $('дк-заменено-число').textContent = заменено;
+      $('дк-заменено').classList.toggle('есть', заменено > 0);
+    }
+
+    function сказать(текст) {
+      const э = $('дк-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', перевести);
+    $('дк-энье').addEventListener('change', перевести);
+    $('дк-адрес').addEventListener('change', перевести);
+
+    $('дк-копировать').addEventListener('click', async () => {
+      const кнопка = $('дк-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('дк-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      перевести();
+      ввод.focus();
+    });
+
+    перевести();
+
+    window.__дкСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      энье: $('дк-энье').checked, адрес: $('дк-адрес').checked,
+      знаков: $('дк-знаков').textContent, заменено: $('дк-заменено-число').textContent,
+      подсвечено: $('дк-заменено').classList.contains('есть'),
+    });
+  })();
+</script>
