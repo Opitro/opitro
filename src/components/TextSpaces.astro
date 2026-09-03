@@ -1,0 +1,229 @@
+---
+// УДАЛЕНИЕ ЛИШНИХ ПРОБЕЛОВ.
+//
+// Четыре очистки: двойные пробелы, отступы по краям строк, пустые строки и «всё в одну
+// строку». Каждая работает прямо в поле -- человек вставил текст, нажал и забрал.
+//
+// СТРОКА СРАВНЕНИЯ. «Было / стало / удалено» считается от того текста, который человек
+// вставил, а не от предыдущего нажатия: ему важно, сколько мусора ушло всего, а не за
+// последний шаг. Счёт «было» сбрасывается, когда текст меняют руками или вставляют заново.
+//
+// ОТМЕНА. Очистка стирает исходный текст, и без отмены одно нажатие уничтожает чужую
+// работу. Помним двадцать шагов назад -- как на соседней странице про регистр.
+//
+// Текст никуда не уходит: всё делается в браузере, страница ничего не отправляет и не хранит.
+import css from '../styles/text-spaces.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте ваш текст с лишними пробелами или отступами сюда…',
+    was: 'Было знаков', now: 'Стало', removed: 'Удалено',
+    doubles: 'Убрать двойные пробелы', trim: 'Очистить отступы строк',
+    blanks: 'Удалить пустые строки', oneLine: 'В одну строку',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!',
+    clearAll: 'Очистить всё', undo: 'Отменить',
+    nothing: 'Поле пустое', clean: 'Лишнего не нашлось',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '«Убрать двойные пробелы» сжимает любую цепочку пробелов и табуляций между словами до одного пробела. Переносы строк при этом остаются на месте — абзацы не склеиваются.',
+    n2: '«Очистить отступы строк» убирает пробелы и табуляции в начале и в конце каждой строки. Это то, что обычно мешает после копирования текста из документа или с сайта.',
+    n3: '«Удалить пустые строки» оставляет один перенос вместо нескольких подряд. Абзацы сохраняются, исчезает только пустота между ними.',
+    n4: '«В одну строку» превращает весь текст в один сплошной абзац: все переносы становятся пробелами. Это нужно для полей, где перенос строки недопустим, но текст после этого читается хуже — отменить можно кнопкой рядом.',
+    n5: 'Текст никуда не отправляется: очистка идёт прямо в вашем браузере, страница ничего не сохраняет и не ведёт записей.',
+  },
+  uk: {
+    place: 'Вставте ваш текст із зайвими пробілами або відступами сюди…',
+    was: 'Було знаків', now: 'Стало', removed: 'Видалено',
+    doubles: 'Прибрати подвійні пробіли', trim: 'Очистити відступи рядків',
+    blanks: 'Видалити порожні рядки', oneLine: 'В один рядок',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!',
+    clearAll: 'Очистити все', undo: 'Скасувати',
+    nothing: 'Поле порожнє', clean: 'Зайвого не знайшлося',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '«Прибрати подвійні пробіли» стискає будь-який ланцюжок пробілів і табуляцій між словами до одного пробілу. Переноси рядків при цьому лишаються на місці — абзаци не склеюються.',
+    n2: '«Очистити відступи рядків» прибирає пробіли й табуляції на початку та в кінці кожного рядка. Це те, що зазвичай заважає після копіювання тексту з документа або із сайту.',
+    n3: '«Видалити порожні рядки» лишає один перенос замість кількох поспіль. Абзаци зберігаються, зникає лише порожнеча між ними.',
+    n4: '«В один рядок» перетворює весь текст на один суцільний абзац: усі переноси стають пробілами. Це потрібно для полів, де перенос рядка неприпустимий, але текст після цього читається гірше — скасувати можна кнопкою поруч.',
+    n5: 'Текст нікуди не надсилається: очищення йде просто у вашому браузері, сторінка нічого не зберігає й не веде записів.',
+  },
+  en: {
+    place: 'Paste your text with extra spaces or indents here…',
+    was: 'Characters before', now: 'After', removed: 'Removed',
+    doubles: 'Remove double spaces', trim: 'Trim line indents',
+    blanks: 'Remove blank lines', oneLine: 'Join into one line',
+    copyBig: 'Copy the result', copiedBig: 'Copied!',
+    clearAll: 'Clear everything', undo: 'Undo',
+    nothing: 'The field is empty', clean: 'Nothing extra was found',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '“Remove double spaces” squeezes any run of spaces and tabs between words down to a single space. Line breaks stay where they are — paragraphs are not glued together.',
+    n2: '“Trim line indents” strips spaces and tabs from the start and end of every line. That is usually what gets in the way after copying text out of a document or a web page.',
+    n3: '“Remove blank lines” leaves a single break instead of several in a row. Paragraphs survive; only the emptiness between them goes.',
+    n4: '“Join into one line” turns the whole text into one continuous paragraph: every break becomes a space. Useful for fields that reject line breaks, though the text reads worse afterwards — the undo button is right there.',
+    n5: 'The text is never sent anywhere: the cleaning happens inside your browser and the page keeps no records.',
+  },
+  es: {
+    place: 'Pega aquí tu texto con espacios o sangrías de más…',
+    was: 'Caracteres antes', now: 'Después', removed: 'Eliminados',
+    doubles: 'Quitar espacios dobles', trim: 'Limpiar sangrías de línea',
+    blanks: 'Eliminar líneas vacías', oneLine: 'Unir en una línea',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!',
+    clearAll: 'Limpiar todo', undo: 'Deshacer',
+    nothing: 'El campo está vacío', clean: 'No había nada de más',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '«Quitar espacios dobles» reduce cualquier serie de espacios y tabulaciones entre palabras a un solo espacio. Los saltos de línea se quedan donde están: los párrafos no se pegan.',
+    n2: '«Limpiar sangrías de línea» quita espacios y tabulaciones al principio y al final de cada línea. Es lo que suele estorbar tras copiar texto de un documento o de una web.',
+    n3: '«Eliminar líneas vacías» deja un solo salto en lugar de varios seguidos. Los párrafos se conservan; solo desaparece el vacío entre ellos.',
+    n4: '«Unir en una línea» convierte todo el texto en un párrafo continuo: cada salto pasa a ser un espacio. Sirve para campos que no admiten saltos, aunque después el texto se lee peor; el botón de deshacer está al lado.',
+    n5: 'El texto no se envía a ninguna parte: la limpieza ocurre en tu navegador y la página no guarda ningún registro.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="пр" data-words={JSON.stringify(с)}>
+  <div class="пр-поле">
+    <textarea class="пр-ввод" id="пр-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    <div class="пр-счётчики">
+      <span>{с.was}: <b id="пр-было">0</b></span>
+      <span>{с.now}: <b id="пр-стало">0</b></span>
+      <span class="пр-убрано" id="пр-убрано">{с.removed}: 0</span>
+      <span class="пр-сказ" id="пр-сказ"></span>
+    </div>
+  </div>
+
+  <div class="пр-кнопки">
+    <button type="button" class="пр-кнопка" data-с="doubles">{с.doubles}</button>
+    <button type="button" class="пр-кнопка" data-с="blanks">{с.blanks}</button>
+    <button type="button" class="пр-кнопка" data-с="trim">{с.trim}</button>
+    <button type="button" class="пр-кнопка" data-с="oneLine">{с.oneLine}</button>
+  </div>
+
+  <div class="пр-низ">
+    <button type="button" class="пр-кнопка главная" id="пр-копировать">{с.copyBig}</button>
+    <button type="button" class="пр-простая" id="пр-очистить">{с.clearAll}</button>
+    <button type="button" class="пр-простая" id="пр-отменить" disabled>{с.undo}</button>
+  </div>
+
+  <div class="пр-заметки">
+    <div class="пр-заметка">{с.n1}</div>
+    <div class="пр-заметка">{с.n2}</div>
+    <div class="пр-заметка">{с.n3}</div>
+    <div class="пр-заметка">{с.n4}</div>
+    <div class="пр-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.пр');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const поле = $('пр-ввод');
+    const история = [];
+    // Длина того текста, который человек вставил или напечатал. От неё считается «удалено»:
+    // ему важно, сколько мусора ушло всего, а не за последнее нажатие.
+    let былоЗнаков = 0;
+
+    function сказать(текст) {
+      const э = $('пр-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    function числа() {
+      const стало = поле.value.length;
+      const убрано = Math.max(0, былоЗнаков - стало);
+      $('пр-было').textContent = былоЗнаков;
+      $('пр-стало').textContent = стало;
+      const поле2 = $('пр-убрано');
+      поле2.textContent = с.removed + ': ' + убрано;
+      цветУбрано(поле2, убрано > 0);
+    }
+    function цветУбрано(узел, есть) { узел.classList.toggle("есть", есть); }
+
+    const ОЧИСТКИ = {
+      // Пробелы и табуляции между словами -- в один пробел. Переносы строк не трогаем:
+      // \s подхватил бы и их, и абзацы склеились бы в кашу.
+      doubles: (т) => т.replace(/[^\S\n\r]+/g, ' '),
+      // Отступы в начале и в конце КАЖДОЙ строки, а не всего текста целиком.
+      trim: (т) => т.split('\n').map((с) => с.replace(/^[^\S\n\r]+|[^\S\n\r]+$/g, '')).join('\n'),
+      // Несколько пустых строк подряд -- в одну. Сам абзацный перенос остаётся.
+      blanks: (т) => т.replace(/\r/g, '').replace(/\n[^\S\n]*(?:\n[^\S\n]*)+/g, '\n'),
+      // Всё в одну строку: переносы становятся пробелами, лишние пробелы сразу сжимаются.
+      oneLine: (т) => т.replace(/\s+/g, ' ').trim(),
+    };
+
+    function применить(имя, кнопка) {
+      const было = поле.value;
+      if (!было) { сказать(с.nothing); return; }
+      const стало = ОЧИСТКИ[имя](было);
+      if (стало === было) { сказать(с.clean); return; }
+      история.push(было);
+      if (история.length > 20) история.shift();
+      поле.value = стало;
+      $('пр-отменить').disabled = false;
+      корень.querySelectorAll('.пр-кнопка[data-с]').forEach((к) => к.classList.toggle('сделан', к === кнопка));
+      числа();
+    }
+
+    корень.querySelectorAll('.пр-кнопка[data-с]').forEach((к) => {
+      к.addEventListener('click', () => применить(к.dataset.с, к));
+    });
+
+    $('пр-отменить').addEventListener('click', () => {
+      const было = история.pop();
+      if (было == null) return;
+      поле.value = было;
+      $('пр-отменить').disabled = история.length === 0;
+      корень.querySelectorAll('.пр-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+      числа();
+    });
+
+    $('пр-копировать').addEventListener('click', async () => {
+      const кнопка = $('пр-копировать');
+      if (!поле.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(поле.value); вышло = true; }
+      catch (ошибка) {
+        // Буфер закрыт -- пробуем старый способ: выделить и скопировать командой.
+        поле.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('пр-очистить').addEventListener('click', () => {
+      if (!поле.value) { сказать(с.nothing); return; }
+      история.push(поле.value);
+      поле.value = '';
+      былоЗнаков = 0;
+      $('пр-отменить').disabled = false;
+      корень.querySelectorAll('.пр-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+      числа();
+    });
+
+    // Человек тронул текст сам -- значит, отсчёт «было» начинается заново.
+    поле.addEventListener('input', () => {
+      былоЗнаков = поле.value.length;
+      корень.querySelectorAll('.пр-кнопка[data-с]').forEach((к) => к.classList.remove('сделан'));
+      числа();
+    });
+    числа();
+
+    window.__прСостояние = () => ({
+      текст: поле.value,
+      числа: [$('пр-было').textContent, $('пр-стало').textContent, $('пр-убрано').textContent],
+      подсвечено: $('пр-убрано').classList.contains('есть'),
+      история: история.length, отменаДоступна: !$('пр-отменить').disabled,
+      сказано: $('пр-сказ').textContent,
+    });
+  })();
+</script>
