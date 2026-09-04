@@ -73,6 +73,8 @@
   font-variant-numeric: tabular-nums;
 }
 .чп-счётчики b { color: #fff; font-weight: 500 }
+/* Значение режима -- блоком: только так под него можно занять постоянное место. */
+#чп-режим { display: inline-block; text-align: left }
 .чп-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .чп-сказ.видно { opacity: 1 }
 
