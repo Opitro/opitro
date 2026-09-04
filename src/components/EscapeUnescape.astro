@@ -1,0 +1,365 @@
+---
+// ЭКРАНИРОВАНИЕ СПЕЦСИМВОЛОВ: HTML, JavaScript, CSS.
+//
+// ОБРАТНОЕ ПРЕОБРАЗОВАНИЕ ИДЁТ ОДНИМ ПРОХОДОМ, а не цепочкой замен. Цепочка портит строку:
+// заменив сперва «\n» на перенос, а потом «\\» на косую, из записи «\\n» -- то есть косой
+// и буквы n -- получишь перенос строки. Это не опечатка, а разные данные. Единственный
+// верный способ -- идти слева направо и решать на каждой косой.
+//
+// ЭКРАНИРОВАНИЕ ЗАВИСИТ ОТ МЕСТА. Строка, безопасная в HTML, небезопасна внутри JavaScript,
+// и наоборот. Поэтому здесь три отдельных вида, а не один «универсальный».
+//
+// Ничего никуда не уходит: всё делается в браузере.
+import css from '../styles/escape-unescape.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    context: 'Куда вставляем', html: 'HTML — сущности', js: 'JavaScript и JSON', cssName: 'CSS — строка',
+    dir: 'Действие', esc: 'Экранировать', unesc: 'Разэкранировать',
+    place: 'Вставьте текст или код…', result: 'Результат появится здесь…',
+    before: 'Знаков до', after: 'После',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Обратное преобразование идёт одним проходом.</b> Наивная цепочка замен портит строку: сперва «\\n» станет переносом, потом «\\\\» — косой, и запись «\\\\n» (косая и буква n) превратится в перенос. Это уже другие данные. Мы идём по строке слева направо и решаем на каждой косой.',
+    n2: '<b>Экранирование зависит от места вставки.</b> Строка, безопасная в HTML, небезопасна внутри JavaScript, и наоборот: там свои знаки и свои правила. Одного «универсального» экранирования не существует — поэтому здесь три вида, а не один.',
+    n3: '<b>Это не защита от подделки запросов.</b> Экранирование делает текст безопасным для конкретного места, но не проверяет его. Настоящая защита на сервере строится иначе — на разборе и проверке данных, а не на замене знаков в браузере.',
+    n4: '<b>В CSS после кода обязателен пробел.</b> Без него следующая цифра прилипает к шестнадцатеричному числу: «\\41 2» — это «A2», а «\\412» — совсем другой знак. Мы ставим этот пробел всегда, и при обратном разборе съедаем ровно один.',
+    n5: '<b>Незнакомое остаётся как было.</b> Непонятная сущность вроде «&amp;чего-то;» и незнакомая пара с косой не выбрасываются, а возвращаются целиком. Потерять кусок чужого кода хуже, чем оставить его неразобранным.',
+    n6: 'Всё делается в вашем браузере. Исходный код, настройки и защищаемые строки никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    context: 'Куди вставляємо', html: 'HTML — сутності', js: 'JavaScript і JSON', cssName: 'CSS — рядок',
+    dir: 'Дія', esc: 'Екранувати', unesc: 'Розекранувати',
+    place: 'Вставте текст або код…', result: 'Результат з’явиться тут…',
+    before: 'Знаків до', after: 'Після',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Зворотне перетворення йде одним проходом.</b> Наївний ланцюжок замін псує рядок: спершу «\\n» стане переносом, потім «\\\\» — скісною, і запис «\\\\n» (скісна й літера n) перетвориться на перенос. Це вже інші дані.',
+    n2: '<b>Екранування залежить від місця вставки.</b> Рядок, безпечний у HTML, небезпечний усередині JavaScript, і навпаки: там свої знаки й свої правила. Одного «універсального» екранування не існує.',
+    n3: '<b>Це не захист від підробки запитів.</b> Екранування робить текст безпечним для конкретного місця, але не перевіряє його. Справжній захист на сервері будується інакше.',
+    n4: '<b>У CSS після коду обов’язковий пробіл.</b> Без нього наступна цифра прилипає до шістнадцяткового числа: «\\41 2» — це «A2», а «\\412» — зовсім інший знак.',
+    n5: '<b>Незнайоме лишається як було.</b> Незрозуміла сутність і незнайома пара зі скісною не викидаються, а повертаються цілком. Втратити шматок чужого коду гірше, ніж лишити його нерозібраним.',
+    n6: 'Усе робиться у вашому браузері. Вихідний код і рядки нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    context: 'Where it goes', html: 'HTML entities', js: 'JavaScript and JSON', cssName: 'CSS string',
+    dir: 'Action', esc: 'Escape', unesc: 'Unescape',
+    place: 'Paste text or code…', result: 'The result will appear here…',
+    before: 'Characters before', after: 'After',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>Unescaping is done in a single pass.</b> A naive chain of replacements corrupts the string: turn “\\n” into a newline first and “\\\\” into a backslash second, and the sequence “\\\\n” — a backslash followed by the letter n — becomes a newline. That is different data. We walk the string once and decide at every backslash.',
+    n2: '<b>Escaping depends on where the text goes.</b> A string that is safe in HTML is unsafe inside JavaScript, and the other way round: each context has its own characters and its own rules. There is no single universal escaping, which is why there are three modes here.',
+    n3: '<b>This is not a security control.</b> Escaping makes text safe for one particular place; it does not validate anything. Real protection on a server is built differently — on parsing and checking data, not on swapping characters in a browser.',
+    n4: '<b>CSS needs a space after the code.</b> Without it the next digit sticks to the hexadecimal number: “\\41 2” is “A2” while “\\412” is a completely different character. We always add that space and consume exactly one when unescaping.',
+    n5: '<b>Anything unrecognised is left alone.</b> An unknown entity or an unfamiliar backslash pair is returned whole rather than dropped. Losing a piece of somebody else code is worse than leaving it unconverted.',
+    n6: 'Everything happens in your browser. Source code and protected strings are never sent anywhere and never stored.',
+  },
+  es: {
+    context: 'Dónde va', html: 'Entidades HTML', js: 'JavaScript y JSON', cssName: 'Cadena CSS',
+    dir: 'Acción', esc: 'Escapar', unesc: 'Desescapar',
+    place: 'Pega texto o código…', result: 'El resultado aparecerá aquí…',
+    before: 'Caracteres antes', after: 'Después',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>El desescapado se hace en una sola pasada.</b> Una cadena ingenua de reemplazos estropea el texto: si primero conviertes «\\n» en salto de línea y luego «\\\\» en barra, la secuencia «\\\\n» —una barra y la letra n— acaba siendo un salto de línea. Eso ya son otros datos.',
+    n2: '<b>Escapar depende de dónde va el texto.</b> Una cadena segura en HTML no lo es dentro de JavaScript, y al revés: cada contexto tiene sus caracteres y sus reglas. No existe un escapado universal, por eso aquí hay tres modos.',
+    n3: '<b>Esto no es una medida de seguridad.</b> Escapar hace que un texto sea seguro para un sitio concreto, pero no lo valida. La protección real en un servidor se construye de otra manera.',
+    n4: '<b>En CSS hace falta un espacio tras el código.</b> Sin él, la cifra siguiente se pega al número hexadecimal: «\\41 2» es «A2» mientras que «\\412» es otro carácter completamente distinto.',
+    n5: '<b>Lo que no se reconoce se deja igual.</b> Una entidad desconocida o una pareja con barra que no entendemos se devuelven enteras en lugar de descartarse. Perder un trozo de código ajeno es peor que dejarlo sin convertir.',
+    n6: 'Todo ocurre en tu navegador. El código fuente y las cadenas no se envían a ninguna parte ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="эк" data-words={JSON.stringify(с)}>
+  <div class="эк-верх">
+    <span class="эк-подпись">{с.context}:</span>
+    <select class="эк-список" id="эк-вид">
+      <option value="html">{с.html}</option>
+      <option value="js">{с.js}</option>
+      <option value="css">{с.cssName}</option>
+    </select>
+    <span class="эк-подпись">{с.dir}:</span>
+    <div class="эк-кнопки" role="group">
+      <button type="button" class="эк-выбор выбран" id="эк-туда">{с.esc}</button>
+      <button type="button" class="эк-выбор" id="эк-обратно">{с.unesc}</button>
+    </div>
+  </div>
+
+  <div class="эк-пара-полей">
+    <div class="эк-поле">
+      <textarea class="эк-ввод" id="эк-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="эк-поле эк-вывод">
+      <textarea class="эк-ввод" id="эк-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="эк-счётчики">
+      <span>{с.before}: <b id="эк-до">0</b></span>
+      <span>{с.after}: <b id="эк-после">0</b></span>
+      <span class="эк-сказ" id="эк-сказ"></span>
+    </div>
+  </div>
+
+  <div class="эк-низ">
+    <button type="button" class="эк-кнопка" id="эк-копировать">{с.copyBig}</button>
+    <button type="button" class="эк-простая" id="эк-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="эк-заметки">
+    <div class="эк-заметка" set:html={с.n1}></div>
+    <div class="эк-заметка" set:html={с.n2}></div>
+    <div class="эк-заметка" set:html={с.n3}></div>
+    <div class="эк-заметка" set:html={с.n4}></div>
+    <div class="эк-заметка" set:html={с.n5}></div>
+    <div class="эк-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.эк');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('эк-ввод');
+    const вывод = $('эк-вывод');
+    let туда = true;
+
+    /* ЭКРАНИРОВАНИЕ СПЕЦСИМВОЛОВ.
+     *
+     * ОБРАТНОЕ ПРЕОБРАЗОВАНИЕ ДЕЛАЕТСЯ ОДНИМ ПРОХОДОМ, а не цепочкой замен. Цепочка портит
+     * строку: заменив сперва \\n на перенос, а потом \\\\ на косую, из «\\\\n» (косая и буква n)
+     * получишь перенос строки -- то есть не то, что было записано. Единственный верный способ --
+     * идти по строке слева направо и решать на каждой косой.
+     */
+
+    /* ---- HTML ------------------------------------------------------------------------------- */
+
+    const HTML_ЗАМЕНЫ = { '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#x27;' };
+
+    function вHTML(строка) {
+      // Амперсанд идёт первым в таблице, но заменяются все знаки за один проход, поэтому
+      // порядок значения не имеет и «&lt;» не превратится в «&amp;lt;».
+      return строка.replace(/[&<>"']/g, (з) => HTML_ЗАМЕНЫ[з]);
+    }
+
+    // Имён у сущностей больше двух тысяч, наизусть их не выписать. Раскрываем каждую находку
+    // отдельно, силами самого браузера, но подставляем в него ТОЛЬКО то, что похоже на сущность.
+    const ИМЕНОВАННЫЕ = {
+      amp: '&', lt: '<', gt: '>', quot: '"', apos: "'", nbsp: ' ', laquo: '«', raquo: '»',
+      ldquo: '“', rdquo: '”', lsquo: '‘', rsquo: '’', mdash: '—', ndash: '–',
+      hellip: '…', copy: '©', reg: '®', trade: '™', deg: '°', plusmn: '±', times: '×',
+      divide: '÷', euro: '€', pound: '£', yen: '¥', cent: '¢', sect: '§', para: '¶',
+      middot: '·', bull: '•', dagger: '†', permil: '‰', larr: '←', rarr: '→', harr: '↔',
+      ne: '≠', le: '≤', ge: '≥', infin: '∞', sup2: '²', sup3: '³', frac12: '½', frac14: '¼',
+      shy: '­', ensp: ' ', emsp: ' ', thinsp: ' ', zwnj: '‌', zwj: '‍',
+    };
+
+    function изHTML(строка, черезБраузер) {
+      return строка.replace(/&(#[Xx][0-9A-Fa-f]+|#\d+|[A-Za-z][A-Za-z0-9]{1,31});/g, (всё, тело) => {
+        if (тело[0] === '#') {
+          const код = тело[1] === 'x' || тело[1] === 'X'
+            ? parseInt(тело.slice(2), 16) : parseInt(тело.slice(1), 10);
+          if (!Number.isFinite(код) || код < 0 || код > 0x10FFFF) return всё;
+          try { return String.fromCodePoint(код); } catch (е) { return всё; }
+        }
+        const своё = ИМЕНОВАННЫЕ[тело] ?? ИМЕНОВАННЫЕ[тело.toLowerCase()];
+        if (своё !== undefined) return своё;
+        // Редкие имена спрашиваем у браузера -- он знает все две тысячи.
+        if (черезБраузер) { const р = черезБраузер(всё); if (р !== всё) return р; }
+        return всё;      // не поняли -- оставляем как было, а не выбрасываем
+      });
+    }
+
+    /* ---- JavaScript и JSON -------------------------------------------------------------------- */
+
+    const JS_ПРОСТЫЕ = {
+      '\\': '\\\\', '"': '\\"', "'": "\\'", '\n': '\\n', '\r': '\\r', '\t': '\\t',
+      '\b': '\\b', '\f': '\\f', '\v': '\\v', '\0': '\\0',
+    };
+
+    function вJS(строка) {
+      let итог = '';
+      for (const знак of строка) {
+        const своё = JS_ПРОСТЫЕ[знак];
+        if (своё !== undefined) { итог += своё; continue; }
+        const код = знак.codePointAt(0);
+        // Управляющие знаки и невидимые разделители строк из Юникода записываем кодом:
+        // U+2028 и U+2029 ломают код, оставаясь при этом невидимыми.
+        if (код < 0x20 || код === 0x7F || код === 0x2028 || код === 0x2029) {
+          итог += '\\u' + код.toString(16).padStart(4, '0');
+          continue;
+        }
+        итог += знак;
+      }
+      return итог;
+    }
+
+    const JS_ОБРАТНО = {
+      n: '\n', r: '\r', t: '\t', b: '\b', f: '\f', v: '\v', '0': '\0',
+      '\\': '\\', '"': '"', "'": "'", '/': '/', '`': '`',
+    };
+
+    function изJS(строка) {
+      let итог = '';
+      let и = 0;
+      while (и < строка.length) {
+        const знак = строка[и];
+        if (знак !== '\\') { итог += знак; и++; continue; }
+        const дальше = строка[и + 1];
+        if (дальше === undefined) { итог += знак; break; }   // одинокая косая в конце
+
+        if (дальше === 'u') {
+          if (строка[и + 2] === '{') {
+            const конец = строка.indexOf('}', и + 3);
+            const тело = конец > 0 ? строка.slice(и + 3, конец) : '';
+            if (/^[0-9A-Fa-f]{1,6}$/.test(тело)) {
+              итог += String.fromCodePoint(parseInt(тело, 16));
+              и = конец + 1;
+              continue;
+            }
+          }
+          const четыре = строка.slice(и + 2, и + 6);
+          if (/^[0-9A-Fa-f]{4}$/.test(четыре)) {
+            итог += String.fromCharCode(parseInt(четыре, 16));
+            и += 6;
+            continue;
+          }
+        }
+        if (дальше === 'x') {
+          const два = строка.slice(и + 2, и + 4);
+          if (/^[0-9A-Fa-f]{2}$/.test(два)) {
+            итог += String.fromCharCode(parseInt(два, 16));
+            и += 4;
+            continue;
+          }
+        }
+        const своё = JS_ОБРАТНО[дальше];
+        // Незнакомую пару оставляем как была: выбрасывать косую нельзя, вдруг она значимая.
+        итог += своё !== undefined ? своё : знак + дальше;
+        и += 2;
+      }
+      return итог;
+    }
+
+    /* ---- CSS ---------------------------------------------------------------------------------- */
+
+    function вCSS(строка) {
+      let итог = '';
+      for (const знак of строка) {
+        const код = знак.codePointAt(0);
+        const латиница = (код >= 48 && код <= 57) || (код >= 65 && код <= 90)
+          || (код >= 97 && код <= 122);
+        if (латиница || знак === ' ' || знак === '-' || знак === '_') { итог += знак; continue; }
+        // Пробел после кода обязателен: иначе следующая цифра прилипнет к шестнадцатеричному
+        // числу, и «\41 2» станет «\412» -- совсем другим знаком.
+        итог += '\\' + код.toString(16).toUpperCase() + ' ';
+      }
+      return итог;
+    }
+
+    function изCSS(строка) {
+      let итог = '';
+      let и = 0;
+      while (и < строка.length) {
+        const знак = строка[и];
+        if (знак !== '\\') { итог += знак; и++; continue; }
+        const хвост = строка.slice(и + 1);
+        const шестнадцать = хвост.match(/^([0-9A-Fa-f]{1,6})[ \t\n]?/);
+        if (шестнадцать) {
+          const код = parseInt(шестнадцать[1], 16);
+          итог += (код > 0 && код <= 0x10FFFF) ? String.fromCodePoint(код) : '�';
+          и += 1 + шестнадцать[0].length;
+          continue;
+        }
+        if (хвост.length === 0) { итог += знак; break; }
+        итог += хвост[0];      // «\+» -- это просто «+»
+        и += 2;
+      }
+      return итог;
+    }
+
+    const ВИДЫ = {
+      html: { туда: вHTML, обратно: изHTML },
+      js: { туда: вJS, обратно: изJS },
+      css: { туда: вCSS, обратно: изCSS },
+    };
+
+    // Редкие именованные сущности спрашиваем у браузера. Подставляем в него ТОЛЬКО то, что
+    // уже похоже на сущность, и кладём в оторванное поле ввода: его содержимое разбирается
+    // как текст, поэтому ничего выполниться не может.
+    const карман = document.createElement('textarea');
+    function спроситьБраузер(сущность) {
+      карман.innerHTML = сущность;
+      const ответ = карман.value;
+      return ответ.length === 1 || ответ !== сущность ? ответ : сущность;
+    }
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      const вид = ВИДЫ[$('эк-вид').value] || ВИДЫ.html;
+      if (!исходный) {
+        вывод.value = '';
+      } else if (туда) {
+        вывод.value = вид.туда(исходный);
+      } else {
+        вывод.value = вид === ВИДЫ.html
+          ? вид.обратно(исходный, спроситьБраузер) : вид.обратно(исходный);
+      }
+      $('эк-до').textContent = String([...исходный].length);
+      $('эк-после').textContent = String([...вывод.value].length);
+    }
+
+    function поставитьНаправление(вперёд, кнопка) {
+      туда = вперёд;
+      for (const и of ['эк-туда', 'эк-обратно']) $(и).classList.toggle('выбран', и === кнопка);
+      пересчитать();
+    }
+
+    function сказать(текст) {
+      const э = $('эк-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('эк-вид').addEventListener('change', пересчитать);
+    $('эк-туда').addEventListener('click', () => поставитьНаправление(true, 'эк-туда'));
+    $('эк-обратно').addEventListener('click', () => поставитьНаправление(false, 'эк-обратно'));
+
+    $('эк-копировать').addEventListener('click', async () => {
+      const кнопка = $('эк-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('эк-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__экСостояние = () => ({
+      туда, вид: $('эк-вид').value, ввод: ввод.value, вывод: вывод.value,
+      до: $('эк-до').textContent, после: $('эк-после').textContent,
+    });
+  })();
+</script>

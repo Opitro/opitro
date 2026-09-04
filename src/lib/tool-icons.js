@@ -36,6 +36,7 @@ const I = {
   cases: '<path d="M4 5.5h16M4 10h16M4 14.5h11M4 19h7"/><path d="M18.5 13.5v6M16 17l2.5 2.5L21 17"/>',
   ordinal: '<path d="M6 9.5L8 8v8"/><path d="M13 19h7M13 19l3.5-9 3.5 9"/><path d="M14.2 16h4.6"/><path d="M6 19h4"/>',
   phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 5.5h3"/><circle cx="12" cy="18" r="1"/>',
+  escape: '<path d="M7 4.5L3.5 12 7 19.5"/><path d="M17 4.5L20.5 12 17 19.5"/><path d="M13.5 6l-3 12"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -116,6 +117,7 @@ const RULES = [
   [/equalizer/, 'sliders'],
   [/video/, 'video'],
   [/ringtone/, 'bell'],
+  [/escape-unescape/, 'escape'],
   [/phone-formatter/, 'phone'],
   [/ordinal-numbers/, 'ordinal'],
   [/number-declension/, 'cases'],
@@ -152,7 +154,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e',
+  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */
