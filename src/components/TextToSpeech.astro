@@ -758,10 +758,22 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       try {
         const blob = await свойЗвук();
         показатьРаботу(с.encoding, 100);
-        const ак = new (window.AudioContext || window.webkitAudioContext)();
-        const буфер = await ак.decodeAudioData(await blob.arrayBuffer());
-        const файл = формат === 'wav' ? encodeWAV(буфер) : await encodeMP3(буфер, 128);
-        await ак.close();
+        let файл;
+        if (формат === 'wav') {
+          // Из синтезатора уже выходит готовый WAV с верным заголовком. Пересобирать его
+          // незачем: любой пересчёт здесь -- только потеря времени и качества.
+          файл = blob;
+        } else {
+          // Считаем на ЧАСТОТЕ САМОГО ЗВУКА (у Piper это 22050). Обычный AudioContext
+          // работает на 48000 и молча пересчитывает вверх -- файл выходил вдвое тяжелее,
+          // а лучше от этого не звучал.
+          const байты = await blob.arrayBuffer();
+          const частота = new DataView(байты).getUint32(24, true) || 22050;
+          const ак = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: частота });
+          const буфер = await ак.decodeAudioData(байты);
+          файл = await encodeMP3(буфер, 128);
+          await ак.close();
+        }
         const имя = (ввод.value.trim().slice(0, 32).replace(/[^\p{L}\p{N}]+/gu, '-')
           .replace(/^-|-$/g, '') || 'speech');
         downloadBlob(файл, `${имя}.${формат}`);
