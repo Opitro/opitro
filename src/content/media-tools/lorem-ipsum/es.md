@@ -22,6 +22,10 @@ faq:
     answer: "Hasta doscientos párrafos, frases o palabras, según lo que hayas elegido. El límite es deliberado: mil párrafos colgarían la pestaña y solo se piden por error."
   - question: ¿El texto se genera en un servidor?
     answer: "No. Se produce en tu propio navegador a partir de una lista de palabras que ya vino con la página. No se descarga nada ni se envía nada a ninguna parte."
+  - question: ¿Se puede generar relleno en cirílico?
+    answer: "Sí: hay un selector de idioma con latín, ucraniano y ruso. El relleno cirílico no es un adorno: el latino miente sobre el peso visual del texto. El alfabeto latino tiene muchas letras con rasgos descendentes —p, g, q, y—, mientras que el cirílico apenas tiene ninguna y en cambio abunda en letras anchas y rectangulares como Ш, Щ, Ж, М. La columna se ve distinta, y una maqueta montada con latín se desajusta cuando llega el texto real."
+  - question: ¿Qué diferencia hay entre el relleno cirílico con sentido y el que no lo tiene?
+    answer: "El que no tiene sentido se arma con sílabas: se lee como el idioma pero no son palabras. El que sí lo aparenta se construye con giros burocráticos reales y parece un artículo terminado, de modo que el cliente ve la densidad de texto habitual en lugar de distraerse con letras sin sentido. Sigue sin significar nada, y eso es deliberado."
 related:
   - reading-time
   - text-case-converter
@@ -47,3 +51,9 @@ Las frases de igual longitud delatan el truco enseguida y prueban mal la maqueta
 ## Comprueba antes de entregar
 
 El relleno acaba en imprenta y en páginas publicadas más a menudo de lo que parece. Antes de entregar, busca la palabra «lorem» en todas las plantillas, correos y páginas de servicio, incluidas las que casi nunca se abren.
+
+## Relleno en cirílico
+
+El selector de idioma cambia el banco de palabras: latín, ucraniano o ruso. No es un capricho: el relleno latino miente sobre el peso del texto. El latino tiene muchas letras con rasgos descendentes (p, g, q, y); el cirílico casi ninguna, pero muchas letras anchas como Ш, Щ, Ж, М.
+
+El lado cirílico tiene dos bancos: **sin sentido** a partir de sílabas y **con sentido aparente** a partir de giros burocráticos reales.

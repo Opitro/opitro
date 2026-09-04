@@ -22,6 +22,10 @@ faq:
     answer: "Up to two hundred paragraphs, sentences or words, depending on what you picked. The limit is deliberate: a thousand paragraphs would hang the tab, and you would only ask for them by mistake."
   - question: Is the text generated on a server?
     answer: "No. It is produced right in your browser from a word list that already arrived with the page. Nothing is downloaded and nothing is sent anywhere."
+  - question: Can the filler be in Cyrillic?
+    answer: "Yes — a language switch offers Latin, Ukrainian and Russian. Cyrillic filler is not a decoration: Latin filler misrepresents the visual weight of the text. Latin has many letters with descenders — p, g, q, y — while Cyrillic has almost none, and instead has wide rectangular Ш, Щ, Ж, М. The column looks different, and a layout set in Latin will shift once real Cyrillic copy arrives."
+  - question: What is the difference between the meaningful and the gibberish Cyrillic filler?
+    answer: "The gibberish is assembled from syllables: it reads like the language but is not made of words. The meaningful set is built from real bureaucratic phrases and looks like a finished article, so the client sees the familiar density of text instead of being distracted by nonsense letters. It still means nothing, and that is deliberate."
 related:
   - reading-time
   - text-case-converter
@@ -47,3 +51,9 @@ Sentences of equal length give the fake away at once and test the layout poorly:
 ## Check before you ship
 
 Filler regularly makes it into print and onto live pages. Before shipping, search for the word “lorem” across every template, email and utility page — including the ones that rarely get opened.
+
+## Cyrillic filler
+
+The language switch changes the word bank: Latin, Ukrainian or Russian. This is not a whim — Latin filler misrepresents the weight of the text. Latin has many letters with descenders (p, g, q, y); Cyrillic has almost none but plenty of wide Ш, Щ, Ж, М. A layout set in Latin will shift once Cyrillic copy arrives.
+
+The Cyrillic side has two banks: **gibberish** from syllables and **meaningful** from real bureaucratic phrases. The second looks like a finished article while meaning nothing at all.

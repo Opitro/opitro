@@ -118,6 +118,13 @@
   appearance: none; margin: 0 }
 .ли-число:focus { outline: none; background: #23272f }
 
+/* Классический зачин нужен только латыни, а выбор стиля -- только кириллице. Оба лежат
+   в ОДНОЙ ячейке сетки, одно поверх другого: ширина слота по большему из них, поэтому при
+   смене языка строка настроек не прыгает и на месте спрятанного не зияет пустота. */
+.ли-слот { display: inline-grid }
+.ли-если { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 10px }
+.ли-если.скрыт { visibility: hidden }
+
 /* Готовый текст -- читаемый абзацами, а не одной простынёй. */
 .ли-текст { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px;
   padding: 16px 18px; max-height: 460px; overflow-y: auto }
