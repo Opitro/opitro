@@ -28,7 +28,7 @@ const СЛОВА = {
   ru: {
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
-    engDev: 'Голоса устройства', engOwn: 'Свой голос', engHint: 'Свой голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первом пуске', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У своего голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
+    engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства можно только <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Сохранить их в файл браузер странице не даёт — для этого есть встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первом пуске', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
     place: 'Вставьте или напишите текст для озвучки…',
     chars: 'Знаков', parts: 'Кусков', of: 'из',
     play: 'Воспроизвести', pause: 'Пауза', resume: 'Продолжить', stop: 'Стоп',
@@ -57,15 +57,15 @@ const СЛОВА = {
     busy: 'Дождитесь конца записи',
     n1: '<b>Голоса берутся из вашего устройства.</b> На iPhone и Mac это голоса Siri, на Windows — Microsoft, в Chrome к ним добавляются сетевые голоса Google. Поэтому список у всех разный, и один и тот же текст на телефоне и на компьютере звучит по-разному. Ничего не устанавливается: всё это уже есть в системе.',
     n2: '<b>Текст не уходит с вашего устройства.</b> Речь синтезирует сама система, страница только передаёт ей буквы. Мы ничего не сохраняем, не ведём записей и не отправляем текст ни к нам, ни к кому-либо ещё.',
-    n3: '<b>Два голоса на выбор, и они устроены по-разному.</b> «Голоса устройства» — те, что уже стоят в вашей системе: слушать можно сразу, ничего не качается, но сохранить их в файл браузер напрямую не даёт, поэтому для скачивания он спрашивает разрешение записать звук окна. «Свой голос» считается прямо здесь: он один раз загружается (вес указан рядом с каждым), зато дальше файл собирается мгновенно, без единого разрешения, и это работает на iPhone.',
-    n4: '<b>Пустой файл мы не отдадим.</b> При записи голосов устройства страница меряет громкость и, если там тишина, скачивание не происходит — вместо него появляется разбор, что именно поменять. У своего голоса такой беды нет вовсе: звук рождается здесь, а не подслушивается.',
+    n3: '<b>Два голоса на выбор, и они устроены по-разному.</b> «Голоса устройства» — те, что уже стоят в вашей системе: слушать можно сразу, ничего не качается, но сохранить их в файл браузер напрямую не даёт, поэтому для скачивания он спрашивает разрешение записать звук окна. «Встроенный голос» считается прямо здесь: он один раз загружается (вес указан рядом с каждым), зато дальше файл собирается мгновенно, без единого разрешения, и это работает на iPhone.',
+    n4: '<b>Пустой файл мы не отдадим.</b> При записи голосов устройства страница меряет громкость и, если там тишина, скачивание не происходит — вместо него появляется разбор, что именно поменять. У встроенного голоса такой беды нет вовсе: звук рождается здесь, а не подслушивается.',
     n5: '<b>Длинный текст читается кусками.</b> Chrome обрывает речь примерно на пятнадцатой секунде — это его давняя особенность. Мы режем текст по предложениям и читаем подряд, поэтому обрыва не происходит. Чем медленнее речь, тем короче куски.',
     n6: 'Ограничение по длине — 5000 знаков за раз. Это не каприз: чем длиннее текст, тем выше вероятность, что система прервёт чтение на середине по своим причинам.',
   },
   uk: {
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
-    engDev: 'Голоси пристрою', engOwn: 'Власний голос', engHint: 'Власний голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першому пуску', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У власного голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
+    engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою можна лише <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Зберегти їх у файл браузер сторінці не дає — для цього є вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першому пуску', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
     place: 'Вставте або напишіть текст для озвучення…',
     chars: 'Знаків', parts: 'Шматків', of: 'з',
     play: 'Відтворити', pause: 'Пауза', resume: 'Продовжити', stop: 'Стоп',
@@ -94,15 +94,15 @@ const СЛОВА = {
     busy: 'Дочекайтеся кінця запису',
     n1: '<b>Голоси беруться з вашого пристрою.</b> На iPhone і Mac це голоси Siri, на Windows — Microsoft, у Chrome до них додаються мережеві голоси Google. Тому список у всіх різний, і той самий текст на телефоні й на комп’ютері звучить по-різному. Нічого не встановлюється: усе це вже є в системі.',
     n2: '<b>Текст не йде з вашого пристрою.</b> Мову синтезує сама система, сторінка лише передає їй букви. Ми нічого не зберігаємо, не ведемо записів і не надсилаємо текст нікуди.',
-    n3: '<b>Два голоси на вибір, і влаштовані вони по-різному.</b> «Голоси пристрою» — ті, що вже стоять у вашій системі: слухати можна одразу, нічого не качається, але зберегти їх у файл браузер напряму не дає, тому для завантаження він питає дозвіл записати звук вікна. «Власний голос» рахується просто тут: він один раз завантажується (вага вказана поруч із кожним), зате далі файл збирається миттєво, без жодного дозволу, і це працює на iPhone.',
-    n4: '<b>Порожній файл ми не віддамо.</b> При записі голосів пристрою сторінка міряє гучність і, якщо там тиша, завантаження не відбувається — замість нього з’являється розбір, що поміняти. У власного голосу такої біди немає зовсім: звук народжується тут, а не підслуховується.',
+    n3: '<b>Два голоси на вибір, і влаштовані вони по-різному.</b> «Голоси пристрою» — ті, що вже стоять у вашій системі: слухати можна одразу, нічого не качається, але зберегти їх у файл браузер напряму не дає, тому для завантаження він питає дозвіл записати звук вікна. «Вбудований голос» рахується просто тут: він один раз завантажується (вага вказана поруч із кожним), зате далі файл збирається миттєво, без жодного дозволу, і це працює на iPhone.',
+    n4: '<b>Порожній файл ми не віддамо.</b> При записі голосів пристрою сторінка міряє гучність і, якщо там тиша, завантаження не відбувається — замість нього з’являється розбір, що поміняти. У вбудованого голосу такої біди немає зовсім: звук народжується тут, а не підслуховується.',
     n5: '<b>Довгий текст читається шматками.</b> Chrome обриває мову приблизно на п’ятнадцятій секунді — це його давня особливість. Ми ріжемо текст по реченнях і читаємо поспіль, тому обриву не стається. Що повільніша мова, то коротші шматки.',
     n6: 'Обмеження за довжиною — 5000 знаків за раз. Це не примха: що довший текст, то вища ймовірність, що система перерве читання на середині зі своїх причин.',
   },
   en: {
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     local: 'device', mb: 'MB', network: 'network',
-    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first play', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
+    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are for <b>listening</b> only: read an article aloud, check a pronunciation, listen to a book. A browser will not let a page save them to a file — that is what the built-in voice is for.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first play', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
     place: 'Paste or type the text you want spoken…',
     chars: 'Characters', parts: 'Chunks', of: 'of',
     play: 'Play', pause: 'Pause', resume: 'Resume', stop: 'Stop',
@@ -139,7 +139,7 @@ const СЛОВА = {
   es: {
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
-    engDev: 'Voces del dispositivo', engOwn: 'Voz propia', engHint: 'La voz propia se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga al primer uso', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz propia no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
+    engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo son solo para <b>escuchar</b>: leer un artículo en voz alta, comprobar una pronunciación, oír un libro. El navegador no deja que una página las guarde en un archivo; para eso está la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga al primer uso', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
     place: 'Pega o escribe el texto que quieres escuchar…',
     chars: 'Caracteres', parts: 'Trozos', of: 'de',
     play: 'Reproducir', pause: 'Pausa', resume: 'Continuar', stop: 'Parar',
@@ -168,8 +168,8 @@ const СЛОВА = {
     busy: 'Espera a que acabe la grabación',
     n1: '<b>Las voces salen de tu propio dispositivo.</b> En iPhone y Mac son las voces de Siri, en Windows las de Microsoft, y Chrome añade encima las voces de red de Google. Por eso cada persona ve una lista distinta y el mismo texto suena diferente en el móvil y en el ordenador. No se instala nada: todo eso ya está en el sistema.',
     n2: '<b>El texto no sale de tu dispositivo.</b> La voz la sintetiza el propio sistema; la página solo le pasa las letras. No guardamos nada, no llevamos registros y no enviamos el texto ni a nosotros ni a nadie.',
-    n3: '<b>Dos voces a elegir, y están hechas de forma distinta.</b> Las «voces del dispositivo» son las que ya tiene tu sistema: puedes escuchar al momento y no se descarga nada, pero el navegador no deja que una página las guarde en un archivo, así que la descarga pide permiso para grabar el sonido de la ventana. La «voz propia» se calcula aquí mismo: se descarga una vez (el peso aparece junto a cada voz) y a partir de ahí el archivo se monta al instante, sin ningún permiso, también en un iPhone.',
-    n4: '<b>No te vamos a dar un archivo vacío.</b> Al grabar voces del dispositivo la página mide el volumen y, si es silencio, la descarga no ocurre: en su lugar aparece una explicación de qué cambiar. La voz propia no puede tener ese problema: el sonido nace aquí, no se capta de fuera.',
+    n3: '<b>Dos voces a elegir, y están hechas de forma distinta.</b> Las «voces del dispositivo» son las que ya tiene tu sistema: puedes escuchar al momento y no se descarga nada, pero el navegador no deja que una página las guarde en un archivo, así que la descarga pide permiso para grabar el sonido de la ventana. La «voz integrada» se calcula aquí mismo: se descarga una vez (el peso aparece junto a cada voz) y a partir de ahí el archivo se monta al instante, sin ningún permiso, también en un iPhone.',
+    n4: '<b>No te vamos a dar un archivo vacío.</b> Al grabar voces del dispositivo la página mide el volumen y, si es silencio, la descarga no ocurre: en su lugar aparece una explicación de qué cambiar. La voz integrada no puede tener ese problema: el sonido nace aquí, no se capta de fuera.',
     n5: '<b>El texto largo se lee por trozos.</b> Chrome corta la voz alrededor de los quince segundos, una rareza suya de siempre. Cortamos el texto por finales de frase y leemos los trozos seguidos, así no se corta nada. Cuanto más lenta la voz, más cortos los trozos.',
     n6: 'El límite de longitud es de 5000 caracteres por vez. No es un capricho: cuanto más largo el texto, más probable es que el sistema interrumpa la lectura a mitad por motivos propios.',
   },
@@ -181,8 +181,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <div class="рч" data-words={JSON.stringify(с)} data-locale={locale} data-limit={ПРЕДЕЛ}>
   <div class="рч-двигатели">
-    <button type="button" class="рч-дв выбран" id="рч-дв-устройство">{с.engDev}</button>
-    <button type="button" class="рч-дв" id="рч-дв-свой">{с.engOwn}</button>
+    <button type="button" class="рч-дв выбран" id="рч-дв-свой">{с.engOwn}</button>
+    <button type="button" class="рч-дв" id="рч-дв-устройство">{с.engDev}</button>
   </div>
 
   <div class="рч-пульт">
@@ -197,7 +197,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <input type="range" class="рч-ползунок" id="рч-скорость" min="0.5" max="2" step="0.05" value="1" />
       <span class="рч-значение" id="рч-скорость-знач">1.00x</span>
     </span>
-    <span class="рч-ручка" id="рч-ручка-тон">
+    <span class="рч-ручка" id="рч-ручка-тон" hidden>
       <span class="рч-подпись">{с.pitch}:</span>
       <input type="range" class="рч-ползунок" id="рч-тон" min="0" max="2" step="0.05" value="1" />
       <span class="рч-значение" id="рч-тон-знач">1.00</span>
@@ -265,11 +265,20 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const синтез = window.speechSynthesis;
     let голоса = [];
     // Двигатель: «устройство» -- голоса системы, «свой» -- Piper прямо в браузере.
-    let двигатель = 'устройство';
+    // Встроенный голос -- первым и по умолчанию: только он даёт файл на любом устройстве.
+    // Голоса устройства -- второй кнопкой, для прослушивания.
+    let двигатель = 'свой';
     let работник = null;
     let скачанные = [];
-    let своиГолоса = ГОЛОСА.filter((г) => г.я === язык);
-    let плеер = null;          // обычный <audio> для своего голоса
+    // ВСЕ языки, а не только язык страницы: озвучивать приходится и чужой текст -- испанскую
+    // фразу в русской статье, немецкую цитату в английской. Язык страницы идёт первым, потому
+    // что нужен чаще всего. Название языка берётся на нём же самом («Deutsch», «Українська»):
+    // так человек находит своё на любой языковой версии и переводить ничего не надо.
+    let своиГолоса = ГОЛОСА.slice().sort((а, б) => {
+      const свой = (г) => (г.я === язык ? 0 : 1);
+      return свой(а) - свой(б) || а.яз.localeCompare(б.яз) || а.мб - б.мб || а.имя.localeCompare(б.имя);
+    });
+    let плеер = null;          // обычный <audio> для встроенного голоса
     let плеерРазбужен = false;
     // Полсотни миллисекунд тишины: нужны только чтобы разбудить проигрыватель в жесте.
     const ТИШИНА = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQ4AAAAAAAAAAAAAAAAAAAAAAA==';
@@ -393,6 +402,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         о.textContent = подписьГолоса(г);
         return о;
       });
+      // Список приходит с задержкой. Если человек к этому времени смотрит встроенные голоса,
+      // трогать поле нельзя: иначе в нём оказывается «Милена (ru-RU)», а считает совсем другой
+      // голос -- номер-то берётся из другого списка.
+      if (двигатель !== 'устройство') { видКнопок(); return true; }
       списокГолосов.replaceChildren(...куски);
       списокГолосов.disabled = false;
       if (было && голоса[Number(было)]) списокГолосов.value = было;
@@ -414,14 +427,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (синтез) синтез.addEventListener('voiceschanged', () => { собратьГолоса(); });
     }
 
-    // У своего голоса подпись говорит и о местности, и о качестве, и о весе: человек выбирает
+    // У встроенного голоса подпись говорит и о местности, и о качестве, и о весе: человек выбирает
     // не только звучание, но и сколько ему качать.
     function заполнитьСвои() {
       const было = списокГолосов.value;
       списокГолосов.replaceChildren(...своиГолоса.map((г, и) => {
         const о = document.createElement('option');
         о.value = String(и);
-        о.textContent = `${г.имя} (${г.м}) — ${г.мб} ${с.mb}`;
+        о.textContent = `${г.яз} · ${г.имя} (${г.м}) — ${г.мб} ${с.mb}`;
         return о;
       }));
       списокГолосов.disabled = !своиГолоса.length;
@@ -481,7 +494,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       кнИграть.disabled = пишем;
       кнСтоп.disabled = состояние === 'стоп';
       кнСкачать.disabled = пишем;
-      списокГолосов.disabled = пишем || !голоса.length;
+      списокГолосов.disabled = пишем || !(двигатель === 'свой' ? своиГолоса.length : голоса.length);
       // Не hidden: исчезающая полоса подпрыгивала бы макетом на каждом пуске чтения.
       полоса.classList.toggle('идёт', состояние !== 'стоп');
     }
@@ -640,15 +653,31 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('рч-дв-свой').classList.toggle('выбран', на === 'свой');
       // Тона у Piper нет вовсе -- ручку не показываем, а не делаем вид, что она работает.
       $('рч-ручка-тон').hidden = на === 'свой';
-      кнСкачать.classList.toggle('служебная', на === 'устройство' && !среда.умеет);
+      // У голосов устройства кнопка скачивания притушена всегда: файла оттуда браузер не даёт,
+      // а то, что получается записью окна, -- обходной путь, а не обычная работа.
+      кнСкачать.classList.toggle('служебная', на === 'устройство');
       списокГолосов.value = '';
       if (на === 'свой') { поднятьРаботника(); заполнитьСвои(); весть(с.engHint); }
-      else { собратьГолоса(); убратьВесть(); }
+      else { собратьГолоса(); весть(с.devHint); }
       показатьПроГолос();
     }
     $('рч-дв-устройство').addEventListener('click', () => переключить('устройство'));
     $('рч-дв-свой').addEventListener('click', () => переключить('свой'));
-    списокГолосов.addEventListener('change', () => { готовыйЗвук = null; показатьПроГолос(); });
+    // Смена голоса или скорости на ходу должна ПЕРЕЗАПУСТИТЬ чтение тем, что выбрали.
+    // Раньше здесь только чистился кеш: старый голос продолжал читать, а нажатие
+    // «Воспроизвести» ставило его на паузу вместо переключения.
+    function перезапустить() {
+      готовыйЗвук = null;
+      if (состояние !== 'читает' && состояние !== 'пауза') return;
+      if (двигатель === 'свой') { остановить(); своёЧтение(); }
+      else начать(false);
+    }
+
+    списокГолосов.addEventListener('change', () => {
+      готовыйЗвук = null;
+      показатьПроГолос();
+      перезапустить();
+    });
 
     for (const кн of корень.querySelectorAll('.рч-фмт')) {
       кн.addEventListener('click', () => {
@@ -668,9 +697,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         $(знач).textContent = вид(Number(п.value));
       };
       п.addEventListener('input', покрасить);
-      п.addEventListener('change', () => {
-        if (состояние === 'читает' || состояние === 'пауза') начать(false);
-      });
+      // Через общий перезапуск: у встроенного голоса своё чтение, и начать() -- которое зовёт
+      // синтезатор системы -- запускало бы голос устройства поверх.
+      п.addEventListener('change', перезапустить);
       покрасить();
     }
 
@@ -843,13 +872,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     // ---- Запуск ------------------------------------------------------------------------------
 
-    if (!синтез) {
-      кнИграть.disabled = true;   // синтезатора нет вовсе -- вот тут нажимать действительно нечего
-      списокГолосов.replaceChildren(new Option(с.noVoices, ''));
-    } else {
-      ждатьГолоса();
-    }
+    // Голоса устройства ищем сразу, хотя показываем позже: список приходит с задержкой, и
+    // ко второй кнопке он должен быть уже готов.
+    if (синтез) ждатьГолоса();
+    заполнитьСвои();
+    весть(с.engHint);
     видКнопок();
+    // Работника поднимаем не сразу: на странице, куда пришли просто послушать, лишние
+    // триста килобайт ни к чему. Заводим в простое, чтобы к первому нажатию он был готов
+    // и уже знал, какие голоса лежат на устройстве.
+    if (typeof requestIdleCallback === 'function') requestIdleCallback(() => поднятьРаботника(), { timeout: 4000 });
+    else setTimeout(() => поднятьРаботника(), 1500);
     // Речь переживает переход по страницам сайта: без этого голос продолжает читать вслух
     // на следующей странице, и остановить его нечем.
     window.addEventListener('pagehide', () => { try { синтез.cancel(); } catch (е) {} });

@@ -42,6 +42,12 @@ Move a slider while it is reading and the speech restarts from the current sente
 
 No browser lets a page take the synthesiser output straight into a file — the capability does not exist. So Download asks your permission to record the sound of the window; without it there is no file. In exchange the file is a real one, and an empty one is never handed over: the loudness is checked before the download happens.
 
-## The built-in voice, for when you need a file
+## Two voices to choose from
 
-The switch above the list chooses what does the reading. Device voices sound better and download nothing, but a browser will not let a page save them to a file directly. The built-in voice is computed right in your browser: it downloads once, and after that the file is built instantly, with no permission at all — including on an iPhone. Every voice shows its size and whether it is already downloaded.
+**The built-in voice** comes first and is on by default. It is computed right in your browser: it downloads once (the size is shown for each), and after that the file is built instantly, with no permission at all — including on an iPhone.
+
+**Device voices** are the second button. They are for listening only: read an article aloud, check a pronunciation, listen to a book. A browser will not let a page save them to a file, so the download button is dimmed there.
+
+## Voices in 50 languages
+
+Every language version of this page offers all the voices, not just its own: a Spanish phrase inside an English article, or a German quote inside a Spanish one, can be voiced right here. Your own language comes first in the list.
