@@ -60,6 +60,7 @@ import TextReverse from '../../components/TextReverse.astro';
 import HtmlStrip from '../../components/HtmlStrip.astro';
 import TextDiff from '../../components/TextDiff.astro';
 import WordFrequency from '../../components/WordFrequency.astro';
+import PunctuationRemover from '../../components/PunctuationRemover.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
@@ -447,7 +448,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'word-frequency' && (
       <WordFrequency locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'speaker-cleaner', 'subwoofer-test', 'tone-generator', 'hearing-test', 'audio-delay-test', 'ultrasound-generator', 'mouse-test', 'touchscreen-test', 'multi-touch-test', 'stylus-test', 'gamepad-test', 'phone-sensors-test', 'vibration-test', 'webcam-test', 'battery-test', 'bluetooth-test', 'browser-codecs-test', 'text-case-converter', 'remove-extra-spaces', 'sort-lines', 'remove-duplicate-lines', 'transliteration', 'remove-diacritics', 'base64-encode-decode', 'url-encode-decode', 'rot13', 'reading-time', 'lorem-ipsum', 'text-reverse', 'html-strip', 'text-diff', 'word-frequency'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'punctuation-remover' && (
+      <PunctuationRemover locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'speaker-cleaner', 'subwoofer-test', 'tone-generator', 'hearing-test', 'audio-delay-test', 'ultrasound-generator', 'mouse-test', 'touchscreen-test', 'multi-touch-test', 'stylus-test', 'gamepad-test', 'phone-sensors-test', 'vibration-test', 'webcam-test', 'battery-test', 'bluetooth-test', 'browser-codecs-test', 'text-case-converter', 'remove-extra-spaces', 'sort-lines', 'remove-duplicate-lines', 'transliteration', 'remove-diacritics', 'base64-encode-decode', 'url-encode-decode', 'rot13', 'reading-time', 'lorem-ipsum', 'text-reverse', 'html-strip', 'text-diff', 'word-frequency', 'punctuation-remover'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

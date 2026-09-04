@@ -1,0 +1,225 @@
+---
+// УДАЛЕНИЕ ЗНАКОВ ПРЕПИНАНИЯ.
+//
+// ЗНАКИ НЕ ПЕРЕЧИСЛЯЮТСЯ СПИСКОМ. В задании предлагался готовый набор в квадратных скобках,
+// но такой список всегда неполон: в него не попали кавычки-ёлочки «», лапки „“, одинарные
+// ‹›, многоточие …, длинное тире ―, испанские ¿ и ¡, знак номера. Мы спрашиваем у самого
+// Юникода: что он считает знаком препинания, то и убираем. Правило работает для любой
+// письменности, а не только для латиницы.
+//
+// СЛОВА НЕ СЛИПАЮТСЯ -- и это главное отличие от простого вычёркивания. Знак, стоящий МЕЖДУ
+// двумя буквами, заменяется пробелом, а не стирается: иначе «Москва—Питер» превращается в
+// «МоскваПитер», а «кое-как» -- в «коекак». Знак у пробела или у края строки просто исчезает.
+//
+// ДЕФИС И АПОСТРОФ ВНУТРИ СЛОВА -- по переключателю. Он один: ломаются они одинаково,
+// и «Санкт-Петербург» с «з'їзд» -- одна и та же беда.
+//
+// Текст никуда не уходит: всё делается в браузере.
+import css from '../styles/punctuation-remover.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    keepHyphen: 'Сохранять дефис и апостроф внутри слов',
+    alsoSymbols: 'Убирать и символы: + = $ € № эмодзи',
+    place: 'Вставьте текст со знаками препинания…',
+    result: 'Очищенный текст появится здесь…',
+    before: 'Знаков до', after: 'После', removed: 'Убрано',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Знаки не перечисляются списком.</b> Готовый набор в квадратных скобках всегда неполон: в него не попадают кавычки-ёлочки «», лапки „“, многоточие, длинное тире, испанские ¿ и ¡. Мы спрашиваем у самого Юникода, что считается знаком препинания, — и убираем это.',
+    n2: '<b>Слова не слипаются.</b> Знак между двумя буквами заменяется пробелом, а не стирается: иначе «Москва—Питер» превратилось бы в «МоскваПитер». Знак у пробела или у края строки просто исчезает, поэтому пробелы, отступы и переносы строк остаются нетронутыми.',
+    n3: '<b>Дефис и апостроф ломаются одинаково</b>, поэтому переключатель на них один. С ним «Санкт-Петербург», «кое-как» и «з’їзд» остаются целыми. Без него они превращаются в два слова через пробел — но не в одно слипшееся.',
+    n4: '<b>Символы — отдельно от знаков препинания.</b> Плюс, знак равенства, доллар, евро, знак номера и эмодзи по правилам Юникода не знаки препинания, а символы. Их убирает второй переключатель, потому что в формулах и ценах они нужны, а в чистом тексте мешают.',
+    n5: '<b>Двойные пробелы остаются намеренно.</b> Там, где знак стоял между пробелами — «очень — долго», — после него пробелов оказывается два. Эта страница пробелы не трогает вовсе, потому что так обещано: ваши отступы и переносы придут в целости. Свести пробелы к одному умеет соседняя страница, «Удаление лишних пробелов».',
+    n6: 'Всё делается в вашем браузере. Текст никуда не отправляется и нигде не сохраняется.',
+  },
+  uk: {
+    keepHyphen: 'Зберігати дефіс та апостроф усередині слів',
+    alsoSymbols: 'Прибирати й символи: + = $ € № емодзі',
+    place: 'Вставте текст із розділовими знаками…',
+    result: 'Очищений текст з’явиться тут…',
+    before: 'Знаків до', after: 'Після', removed: 'Прибрано',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Знаки не перелічуються списком.</b> Готовий набір у квадратних дужках завжди неповний: до нього не потрапляють лапки-ялинки «», лапки „“, три крапки, довге тире, іспанські ¿ та ¡. Ми питаємо в самого Юнікоду, що вважається розділовим знаком, — і прибираємо це.',
+    n2: '<b>Слова не злипаються.</b> Знак між двома літерами замінюється пробілом, а не стирається: інакше «Київ—Львів» перетворилося б на «КиївЛьвів». Знак біля пробілу або з краю рядка просто зникає, тому пробіли, відступи й переноси рядків лишаються недоторканими.',
+    n3: '<b>Дефіс і апостроф ламаються однаково</b>, тому перемикач на них один. З ним «Івано-Франківськ», «будь-як» і «з’їзд» лишаються цілими. Без нього вони перетворюються на два слова через пробіл — але не на одне злипле.',
+    n4: '<b>Символи — окремо від розділових знаків.</b> Плюс, знак рівності, долар, євро, знак номера та емодзі за правилами Юнікоду не розділові знаки, а символи. Їх прибирає другий перемикач, бо у формулах і цінах вони потрібні, а в чистому тексті заважають.',
+    n5: '<b>Подвійні пробіли лишаються навмисно.</b> Там, де знак стояв між пробілами — «дуже — довго», — після нього пробілів виявляється два. Ця сторінка пробіли не чіпає взагалі, бо так обіцяно: ваші відступи й переноси прийдуть цілими. Звести пробіли до одного вміє сусідня сторінка, «Видалення зайвих пробілів».',
+    n6: 'Усе робиться у вашому браузері. Текст нікуди не надсилається і ніде не зберігається.',
+  },
+  en: {
+    keepHyphen: 'Keep hyphens and apostrophes inside words',
+    alsoSymbols: 'Also remove symbols: + = $ € № emoji',
+    place: 'Paste text with punctuation…',
+    result: 'The cleaned text will appear here…',
+    before: 'Characters before', after: 'After', removed: 'Removed',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>The marks are not listed by hand.</b> A ready-made set in square brackets is always incomplete: it misses guillemets «», low quotes „“, the ellipsis, the em dash, the Spanish ¿ and ¡. We ask Unicode itself what counts as punctuation — and remove that.',
+    n2: '<b>Words do not run together.</b> A mark standing between two letters becomes a space rather than vanishing: otherwise “New York—Boston” would come out as “New YorkBoston”. A mark next to a space or at the edge of a line simply disappears, so your spaces, indents and line breaks survive untouched.',
+    n3: '<b>Hyphens and apostrophes break in the same way</b>, so one switch covers both. With it on, “state-of-the-art” and “don’t” stay whole. With it off they turn into separate words with a space — never into one run-on word.',
+    n4: '<b>Symbols are separate from punctuation.</b> Plus, equals, dollar, euro, the numero sign and emoji are, by Unicode rules, symbols and not punctuation. The second switch removes them, because in formulas and prices they are needed while in plain text they get in the way.',
+    n5: '<b>Double spaces are left on purpose.</b> Where a mark stood between spaces — “very — long” — you end up with two spaces after it. This page does not touch spacing at all, because that is what it promises: your indents and line breaks arrive intact. Collapsing spaces is the job of the neighbouring page, “Remove extra spaces”.',
+    n6: 'Everything happens in your browser. The text is never sent anywhere and never stored.',
+  },
+  es: {
+    keepHyphen: 'Conservar guiones y apóstrofos dentro de las palabras',
+    alsoSymbols: 'Quitar también símbolos: + = $ € № emojis',
+    place: 'Pega un texto con signos de puntuación…',
+    result: 'El texto limpio aparecerá aquí…',
+    before: 'Caracteres antes', after: 'Después', removed: 'Quitados',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Los signos no se enumeran a mano.</b> Una lista fija entre corchetes siempre queda corta: se dejan fuera las comillas angulares «», las bajas „“, los puntos suspensivos, la raya larga y los signos de apertura ¿ y ¡. Nosotros preguntamos al propio Unicode qué cuenta como puntuación, y eso es lo que quitamos.',
+    n2: '<b>Las palabras no se pegan.</b> Un signo situado entre dos letras se convierte en espacio en vez de desaparecer: si no, «Madrid—Barcelona» saldría como «MadridBarcelona». Un signo junto a un espacio o al borde de la línea simplemente se va, así que tus espacios, sangrías y saltos de línea quedan intactos.',
+    n3: '<b>El guion y el apóstrofo se rompen igual</b>, por eso comparten un solo interruptor. Con él activado, «teórico-práctico» y «don’t» se quedan enteros. Sin él se convierten en dos palabras separadas por un espacio, nunca en una sola palabra pegada.',
+    n4: '<b>Los símbolos van aparte de la puntuación.</b> El más, el igual, el dólar, el euro, el signo de número y los emojis son, según Unicode, símbolos y no puntuación. Los quita el segundo interruptor, porque en fórmulas y precios hacen falta y en texto limpio estorban.',
+    n5: '<b>Los espacios dobles se dejan a propósito.</b> Donde el signo estaba entre espacios —«muy — largo»— quedan dos espacios seguidos. Esta página no toca el espaciado en absoluto, porque eso es lo que promete: tus sangrías y saltos de línea llegan intactos. Reducir los espacios es tarea de la página vecina, «Eliminar espacios de más».',
+    n6: 'Todo ocurre en tu navegador. El texto no se envía a ningún sitio ni se guarda.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="зп" data-words={JSON.stringify(с)}>
+  <div class="зп-верх">
+    <label class="зп-галка"><input type="checkbox" id="зп-дефис" checked><i></i>{с.keepHyphen}</label>
+    <label class="зп-галка"><input type="checkbox" id="зп-символы"><i></i>{с.alsoSymbols}</label>
+  </div>
+
+  <div class="зп-пара-полей">
+    <div class="зп-поле">
+      <textarea class="зп-ввод" id="зп-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="зп-поле зп-вывод">
+      <textarea class="зп-ввод" id="зп-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="зп-счётчики">
+      <span>{с.before}: <b id="зп-до">0</b></span>
+      <span>{с.after}: <b id="зп-после">0</b></span>
+      <span class="зп-убрано" id="зп-убрано">{с.removed}: <b id="зп-убрано-число">0</b></span>
+      <span class="зп-сказ" id="зп-сказ"></span>
+    </div>
+  </div>
+
+  <div class="зп-низ">
+    <button type="button" class="зп-кнопка" id="зп-копировать">{с.copyBig}</button>
+    <button type="button" class="зп-простая" id="зп-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="зп-заметки">
+    <div class="зп-заметка" set:html={с.n1}></div>
+    <div class="зп-заметка" set:html={с.n2}></div>
+    <div class="зп-заметка" set:html={с.n3}></div>
+    <div class="зп-заметка" set:html={с.n4}></div>
+    <div class="зп-заметка" set:html={с.n5}></div>
+    <div class="зп-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.зп');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('зп-ввод');
+    const вывод = $('зп-вывод');
+
+    // Что убирать. Спрашиваем у самого Юникода, а не перечисляем знаки списком: любой
+    // список рано или поздно окажется неполным.
+    const ЗНАК = /\p{P}/u;                      // знаки препинания
+    // \p{S} -- символы: математические, валютные, прочие. Отдельно берём картиночные
+    // знаки и две невидимки, которыми эмодзи склеиваются в составные: селектор вида
+    // (U+FE0F) и соединитель нулевой ширины (U+200D). Без них от семьи из трёх
+    // человечков остались бы висящие невидимки.
+    const СИМВОЛ = /\p{S}|\p{Extended_Pictographic}|[\uFE0F\u200D]/u;
+    const БУКВА = /[\p{L}\p{N}]/u;
+    // Дефис и апостроф в тех начертаниях, что реально встречаются в текстах.
+    const ВНУТРИ = /[\u0027\u2019\u02BC\u2010\u002D]/;   // ' ’ ʼ ‐ -
+
+    function очистить(текст) {
+      const дефис = $('зп-дефис').checked;
+      const символы = $('зп-символы').checked;
+      const знаки = [...текст];
+      let итог = '';
+      let убрано = 0;
+
+      for (let и = 0; и < знаки.length; и++) {
+        const з = знаки[и];
+        const убирать = ЗНАК.test(з) || (символы && СИМВОЛ.test(з));
+        if (!убирать) { итог += з; continue; }
+
+        const слева = и > 0 ? знаки[и - 1] : '';
+        const справа = и + 1 < знаки.length ? знаки[и + 1] : '';
+        const междуБукв = БУКВА.test(слева) && БУКВА.test(справа);
+
+        // Дефис и апостроф внутри слова оставляем целиком -- по переключателю.
+        if (дефис && междуБукв && ВНУТРИ.test(з)) { итог += з; continue; }
+
+        убрано++;
+        // Знак МЕЖДУ буквами становится пробелом, иначе слова слиплись бы: «Москва—Питер»
+        // превратилось бы в «МоскваПитер». Знак у пробела или у края строки просто исчезает.
+        итог += междуБукв ? ' ' : '';
+      }
+      return { текст: итог, убрано };
+    }
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      const { текст, убрано } = очистить(исходный);
+      вывод.value = текст;
+      $('зп-до').textContent = String([...исходный].length);
+      $('зп-после').textContent = String([...текст].length);
+      $('зп-убрано-число').textContent = String(убрано);
+      $('зп-убрано').classList.toggle('есть', убрано > 0);
+    }
+
+    function сказать(текст) {
+      const э = $('зп-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('зп-дефис').addEventListener('change', пересчитать);
+    $('зп-символы').addEventListener('change', пересчитать);
+
+    $('зп-копировать').addEventListener('click', async () => {
+      const кнопка = $('зп-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('зп-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__зпСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      дефис: $('зп-дефис').checked, символы: $('зп-символы').checked,
+      до: $('зп-до').textContent, после: $('зп-после').textContent,
+      убрано: $('зп-убрано-число').textContent,
+      подсвечено: $('зп-убрано').classList.contains('есть'),
+    });
+  })();
+</script>
