@@ -1,0 +1,382 @@
+---
+// ЧАСТОТА СЛОВ В ТЕКСТЕ.
+//
+// РАЗБОР НА СЛОВА. В задании предлагалось вычеркнуть знаки препинания списком и разрезать
+// по пробелам. На латинице это почти работает, а дальше портит текст:
+//   -- дефис в списке знаков превращает «кто-то» в «ктото», «по-русски» в «порусски»;
+//   -- апостроф ломает украинское «з'їзд» и английское «don't»;
+//   -- кавычки-ёлочки, тире и многоточие в список не попали и остаются приклеенными к слову;
+//   -- у пустой строки такое разрезание даёт одно «слово» вместо ни одного.
+// Поэтому мы не вычёркиваем знаки, а ВЫБИРАЕМ слова: буквы и цифры, между которыми может
+// стоять дефис или апостроф. Правило работает для любой письменности, а не только для
+// латиницы с кириллицей.
+//
+// СТОП-СЛОВА берутся по языку самого текста, а не по языку страницы: испанец может разбирать
+// русский текст. Язык определяем по буквам и по служебным словам, и прямо пишем, какой список
+// применён -- чтобы человек видел, а не гадал.
+//
+// «ТОШНОТА» считается, потому что её ищут, но с честной оговоркой: это мера из обихода
+// русских сеошных сервисов, а не показатель, который публикуют поисковые системы.
+//
+// Текст никуда не уходит: всё делается в браузере.
+import css from '../styles/word-frequency.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    stops: 'Не считать предлоги и союзы', minLen: 'Минимум букв в слове',
+    place: 'Вставьте текст — статью, описание товара или страницу целиком…',
+    total: 'Всего слов', unique: 'Уникальных', skipped: 'Отброшено', langUsed: 'Список слов',
+    empty: 'Вставьте текст — частотный словарь появится здесь сразу.',
+    nothing: 'После отбора не осталось ни одного слова. Попробуйте уменьшить минимальную длину или снять галочку.',
+    times: ['раз', 'раза', 'раз'],
+    nausea: 'Тошнота', classic: 'классическая', academic: 'академическая',
+    nauseaNote: 'Меры из обихода русских сеошных сервисов. Поисковые системы такого показателя не публикуют и порогов не называют — считайте это грубым сигналом «одно слово повторяется слишком часто», а не оценкой.',
+    copyBig: 'Копировать словарь', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothingCopy: 'Копировать нечего', copyFail: 'Браузер не дал скопировать',
+    langs: { ru: 'русский', uk: 'украинский', en: 'английский', es: 'испанский', off: 'не применялся' },
+    n1: '<b>Слова выбираются, а не очищаются от знаков.</b> Обычный способ — вычеркнуть знаки препинания списком — превращает «кто-то» в «ктото», а «з’їзд» в «зїзд». Мы берём буквы и цифры вместе с дефисом и апострофом внутри слова, поэтому составные слова остаются целыми.',
+    n2: '<b>Считаются точные формы, а не слова языка.</b> «Текст» и «тексты» попадут в разные строки: чтобы свести их вместе, нужен разбор морфологии, а он требует словаря на несколько мегабайт. Мы не делаем вид, что умеем это, — при разборе ключевых слов складывайте формы глазами.',
+    n3: '<b>Стоп-слова берутся по языку текста, а не страницы.</b> Список определяется по самим буквам и служебным словам, и его название написано в строке отчёта. Без этого верхушку словаря занимают «и», «в», «на» — они частые, но ничего не говорят о содержании.',
+    n4: '<b>Плотность — подсказка, а не правило.</b> Ни одна поисковая система не публикует порога, после которого текст считается переоптимизированным, и «не больше 3 процентов» — цеховое поверье, а не закон. Куда полезнее прочитать вслух: если слово режет слух, его и правда много.',
+    n5: 'Всё считается в вашем браузере. Текст и результаты разбора никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    stops: 'Не рахувати прийменники та сполучники', minLen: 'Мінімум літер у слові',
+    place: 'Вставте текст — статтю, опис товару або сторінку цілком…',
+    total: 'Усього слів', unique: 'Унікальних', skipped: 'Відкинуто', langUsed: 'Список слів',
+    empty: 'Вставте текст — частотний словник з’явиться тут одразу.',
+    nothing: 'Після відбору не лишилося жодного слова. Спробуйте зменшити мінімальну довжину або зняти галочку.',
+    times: ['раз', 'рази', 'разів'],
+    nausea: 'Нудота', classic: 'класична', academic: 'академічна',
+    nauseaNote: 'Міри з обіходу російських сеошних сервісів. Пошукові системи такого показника не публікують і порогів не називають — вважайте це грубим сигналом «одне слово повторюється надто часто», а не оцінкою.',
+    copyBig: 'Копіювати словник', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothingCopy: 'Копіювати нічого', copyFail: 'Браузер не дав скопіювати',
+    langs: { ru: 'російський', uk: 'український', en: 'англійський', es: 'іспанський', off: 'не застосовувався' },
+    n1: '<b>Слова обираються, а не очищаються від знаків.</b> Звичайний спосіб — викреслити розділові знаки списком — перетворює «хтось-то» на щось інше, а «з’їзд» на «зїзд». Ми беремо літери й цифри разом із дефісом та апострофом усередині слова, тому складені слова лишаються цілими.',
+    n2: '<b>Рахуються точні форми, а не слова мови.</b> «Текст» і «тексти» потраплять у різні рядки: щоб звести їх разом, потрібен розбір морфології, а він вимагає словника на кілька мегабайтів. Ми не вдаємо, що вміємо це, — під час розбору ключових слів складайте форми очима.',
+    n3: '<b>Стоп-слова беруться за мовою тексту, а не сторінки.</b> Список визначається за самими літерами й службовими словами, і його назва написана в рядку звіту. Без цього верхівку словника займають «і», «в», «на» — вони часті, але нічого не кажуть про зміст.',
+    n4: '<b>Щільність — підказка, а не правило.</b> Жодна пошукова система не публікує порога, після якого текст вважається переоптимізованим, і «не більше 3 відсотків» — цехове повір’я, а не закон. Куди корисніше прочитати вголос: якщо слово ріже слух, його й справді забагато.',
+    n5: 'Усе рахується у вашому браузері. Текст і результати розбору нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    stops: 'Skip common function words', minLen: 'Minimum letters in a word',
+    place: 'Paste your text — an article, a product description or a whole page…',
+    total: 'Words in total', unique: 'Unique', skipped: 'Skipped', langUsed: 'Word list',
+    empty: 'Paste some text — the frequency list appears here at once.',
+    nothing: 'Nothing survived the filters. Try lowering the minimum length or unticking the box.',
+    times: ['time', 'times'],
+    nausea: 'Repetition', classic: 'classic', academic: 'academic',
+    nauseaNote: 'These two figures come from Russian SEO tools. No search engine publishes such a measure or names a threshold — treat it as a rough signal that one word repeats too often, not as a score.',
+    copyBig: 'Copy the list', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothingCopy: 'There is nothing to copy', copyFail: 'The browser refused to copy',
+    langs: { ru: 'Russian', uk: 'Ukrainian', en: 'English', es: 'Spanish', off: 'not applied' },
+    n1: '<b>Words are picked out, not stripped of punctuation.</b> The usual approach — deleting punctuation from a list — turns “state-of-the-art” into one run-on word and “don’t” into “dont”. We take letters and digits together with any hyphen or apostrophe inside the word, so compound words survive.',
+    n2: '<b>Exact forms are counted, not dictionary words.</b> “Text” and “texts” land on separate rows: merging them needs morphological analysis, which needs a dictionary of several megabytes. We do not pretend to do that — when studying keywords, add the forms together yourself.',
+    n3: '<b>The stop-word list follows the language of the text, not the page.</b> It is chosen from the letters and function words themselves, and its name is printed in the summary line. Without it the top of the list is “the”, “and”, “of” — frequent, but silent about the content.',
+    n4: '<b>Density is a hint, not a rule.</b> No search engine publishes a threshold above which text counts as over-optimised, and “keep it under 3 per cent” is trade folklore rather than law. Reading the text aloud tells you more: if a word grates, there really is too much of it.',
+    n5: 'Everything is computed in your browser. The text and the results are never sent anywhere and never stored.',
+  },
+  es: {
+    stops: 'No contar preposiciones ni conjunciones', minLen: 'Mínimo de letras por palabra',
+    place: 'Pega tu texto: un artículo, la descripción de un producto o una página entera…',
+    total: 'Palabras en total', unique: 'Únicas', skipped: 'Descartadas', langUsed: 'Lista de palabras',
+    empty: 'Pega un texto: la lista de frecuencias aparece aquí al instante.',
+    nothing: 'No ha quedado ninguna palabra tras los filtros. Prueba a bajar la longitud mínima o a quitar la marca.',
+    times: ['vez', 'veces'],
+    nausea: 'Repetición', classic: 'clásica', academic: 'académica',
+    nauseaNote: 'Son dos medidas del mundo SEO ruso. Ningún buscador publica un indicador así ni fija un umbral: tómalo como una señal aproximada de que una palabra se repite demasiado, no como una nota.',
+    copyBig: 'Copiar la lista', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothingCopy: 'No hay nada que copiar', copyFail: 'El navegador no dejó copiar',
+    langs: { ru: 'ruso', uk: 'ucraniano', en: 'inglés', es: 'español', off: 'sin aplicar' },
+    n1: '<b>Las palabras se seleccionan, no se limpian de signos.</b> El método habitual —borrar la puntuación con una lista— convierte «bien-estar» en una sola palabra pegada y «don’t» en «dont». Nosotros tomamos letras y cifras junto con el guion o el apóstrofo que haya dentro de la palabra, así que las compuestas sobreviven.',
+    n2: '<b>Se cuentan formas exactas, no palabras del diccionario.</b> «Texto» y «textos» irán en filas distintas: unirlas exige análisis morfológico, que a su vez exige un diccionario de varios megabytes. No fingimos saber hacerlo: al estudiar palabras clave, suma tú las formas.',
+    n3: '<b>La lista de palabras vacías sigue al idioma del texto, no al de la página.</b> Se elige a partir de las propias letras y palabras funcionales, y su nombre aparece en la línea de resumen. Sin ella, la cabeza de la lista la ocupan «de», «la», «que»: frecuentes, pero mudas sobre el contenido.',
+    n4: '<b>La densidad es una pista, no una regla.</b> Ningún buscador publica un umbral a partir del cual un texto se considera sobreoptimizado, y lo de «no pases del 3 por ciento» es folclore del oficio, no una ley. Leer el texto en voz alta dice más: si una palabra chirría, es que sobra.',
+    n5: 'Todo se calcula en tu navegador. Ni el texto ni los resultados se envían a ningún sitio ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="чс" data-words={JSON.stringify(с)}>
+  <div class="чс-верх">
+    <label class="чс-галка"><input type="checkbox" id="чс-стоп" checked><i></i>{с.stops}</label>
+    <span class="чс-подпись">{с.minLen}:</span>
+    <div class="чс-счёт">
+      <button type="button" class="чс-шаг" id="чс-меньше" aria-label="−">−</button>
+      <input class="чс-число" id="чс-длина" type="number" min="1" max="12" value="3"
+        inputmode="numeric">
+      <button type="button" class="чс-шаг" id="чс-больше" aria-label="+">+</button>
+    </div>
+  </div>
+
+  <div class="чс-поле">
+    <textarea class="чс-ввод" id="чс-ввод" placeholder={с.place} spellcheck="false"></textarea>
+  </div>
+
+  <div class="чс-счётчики">
+    <span>{с.total}: <b id="чс-всего">0</b></span>
+    <span>{с.unique}: <b id="чс-уникальных">0</b></span>
+    <span>{с.skipped}: <b id="чс-отброшено">0</b></span>
+    <span>{с.langUsed}: <b id="чс-язык">—</b></span>
+    <span class="чс-сказ" id="чс-сказ"></span>
+  </div>
+
+  <div class="чс-итог" id="чс-итог">
+    <div class="чс-пусто">{с.empty}</div>
+  </div>
+
+  <div class="чс-тошнота" id="чс-тошнота">
+    <div class="чс-тошнота-ряд">
+      <span>{с.nausea} ({с.classic}): <b id="чс-классическая">—</b></span>
+      <span>{с.nausea} ({с.academic}): <b id="чс-академическая">—</b></span>
+    </div>
+    <span class="чс-тошнота-к">{с.nauseaNote}</span>
+  </div>
+
+  <div class="чс-низ">
+    <button type="button" class="чс-кнопка" id="чс-копировать">{с.copyBig}</button>
+    <button type="button" class="чс-простая" id="чс-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="чс-заметки">
+    <div class="чс-заметка" set:html={с.n1}></div>
+    <div class="чс-заметка" set:html={с.n2}></div>
+    <div class="чс-заметка" set:html={с.n3}></div>
+    <div class="чс-заметка" set:html={с.n4}></div>
+    <div class="чс-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.чс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('чс-ввод');
+    const итог = $('чс-итог');
+
+    /* ---- Стоп-слова ----------------------------------------------------------------------- */
+
+    const СТОП = {
+      ru: 'и в во не что он на я с со как а то все она так его но да ты к у же вы за бы по только ее её мне было вот от меня еще ещё нет о из ему теперь когда даже ну вдруг ли если уже или ни быть был него до вас нибудь опять уж вам ведь там потом себя ничего ей может они тут где есть надо ней для мы тебя их чем была сам чтоб без будто чего раз тоже себе под будет ж тогда кто этот того потому этого какой совсем ним здесь этом один почти мой тем чтобы нее сейчас были куда зачем всех никогда можно при наконец два об другой хоть после над больше тот через эти нас про всего них какая много разве три эту моя впрочем свою этой перед иногда лучше чуть том нельзя такой им более всегда конечно всю между',
+      uk: 'і й та у в не що він на я з із зі як а то все вона так його але да ти до ж ви за б по тільки її мені було ось від мене ще немає о йому тепер коли навіть ну раптом чи якщо вже або ні бути був нього вас знову вам адже там потім себе нічого їй може вони тут де є треба для ми тебе їх ніж була сам щоб без ніби чого раз теж собі під буде тоді хто цей того тому цього який зовсім ним цьому один майже мій тим зараз були куди навіщо всіх ніколи можна при нарешті два про інший хоч після над більше той через ці нас всього них яка багато хіба три цю моя свою цієї перед іноді краще трохи такий їм більш завжди звичайно всю між',
+      en: 'the be to of and a in that have i it for not on with he as you do at this but his by from they we say her she or an will my one all would there their what so up out if about who get which go me when make can like time no just him know take people into year your good some could them see other than then now look only come its over think also back after use two how our work first well way even new want because any these give day most us is are was were been has had did does',
+      es: 'de la que el en y a los del se las por un para con no una su al lo como más pero sus le ya o este sí porque esta entre cuando muy sin sobre también me hasta hay donde quien desde todo nos durante todos uno les ni contra otros ese eso ante ellos esto mí antes algunos qué unos yo otro otras otra él tanto esa estos mucho quienes nada muchos cual poco ella estar estas algunas algo nosotros',
+    };
+    const наборы = {};
+    for (const ключ of Object.keys(СТОП)) наборы[ключ] = new Set(СТОП[ключ].split(' '));
+
+    /* ---- Разбор на слова ------------------------------------------------------------------- */
+
+    // Слова ВЫБИРАЕМ, а не очищаем текст от знаков: вычёркивание дефиса склеивает «кто-то»
+    // в «ктото», а апострофа -- ломает «з'їзд» и «don't». Здесь буква или цифра, а внутри
+    // слова допускаются дефис и апостроф в любом из трёх начертаний.
+    const ПРАВИЛО = /[\p{L}\p{N}]+(?:[-'’ʼ][\p{L}\p{N}]+)*/gu;
+
+    function слова(текст) {
+      return (текст.toLowerCase().match(ПРАВИЛО) || []);
+    }
+
+    // Язык определяем по самому тексту, а не по языку страницы: испанец может разбирать
+    // русский текст, и список предлогов нужен русский.
+    function язык(набор) {
+      const строка = набор.join(' ');
+      const кириллица = (строка.match(/[а-яёіїєґ]/g) || []).length;
+      const латиница = (строка.match(/[a-z]/g) || []).length;
+      if (кириллица === 0 && латиница === 0) return null;
+      if (кириллица >= латиница) {
+        // Украинский узнаём по буквам, которых в русском нет.
+        return /[іїєґ]/.test(строка) ? 'uk' : 'ru';
+      }
+      // Испанский узнаём по своим буквам и по служебным словам, которых в английском нет.
+      if (/[ñáéíóúü¿¡]/.test(строка)) return 'es';
+      let испанских = 0, английских = 0;
+      for (const слово of набор) {
+        if (наборы.es.has(слово) && !наборы.en.has(слово)) испанских++;
+        if (наборы.en.has(слово) && !наборы.es.has(слово)) английских++;
+      }
+      return испанских > английских ? 'es' : 'en';
+    }
+
+    function форма(число, формы) {
+      if (формы.length === 2) return формы[число === 1 ? 0 : 1];
+      const сотня = Math.abs(число) % 100;
+      const десяток = сотня % 10;
+      if (сотня >= 11 && сотня <= 14) return формы[2];
+      if (десяток === 1) return формы[0];
+      if (десяток >= 2 && десяток <= 4) return формы[1];
+      return формы[2];
+    }
+
+    /* ---- Показ ------------------------------------------------------------------------------ */
+
+    let список = [];
+
+    function пусто(текст) {
+      const э = document.createElement('div');
+      э.className = 'чс-пусто';
+      э.textContent = текст;
+      итог.replaceChildren(э);
+      $('чс-тошнота').classList.remove('видна');
+    }
+
+    function ячейка(класс, текст) {
+      const э = document.createElement('span');
+      э.className = класс;
+      э.textContent = текст;
+      return э;
+    }
+
+    function показать(пары, всего) {
+      const куски = document.createDocumentFragment();
+      const самое = пары[0][1];
+      пары.forEach(([слово, сколько], и) => {
+        const строка = document.createElement('div');
+        строка.className = 'чс-строка';
+        const доля = (сколько / всего) * 100;
+        строка.append(
+          ячейка('чс-место', String(и + 1) + '.'),
+          ячейка('чс-слово', слово),
+          ячейка('чс-сколько', `${сколько} ${форма(сколько, с.times)}`),
+          ячейка('чс-доля', `${доля.toFixed(доля < 10 ? 1 : 0)}%`),
+        );
+        const полоса = document.createElement('div');
+        полоса.className = 'чс-полоса';
+        const заливка = document.createElement('i');
+        // Длина полосы -- относительно САМОГО частого слова, а не относительно ста процентов:
+        // иначе при доле в два процента все полосы были бы неразличимо короткими.
+        заливка.style.width = `${Math.max(3, (сколько / самое) * 100)}%`;
+        полоса.append(заливка);
+        строка.append(полоса);
+        куски.append(строка);
+      });
+      итог.replaceChildren(куски);
+    }
+
+    /* ---- Работа ------------------------------------------------------------------------------ */
+
+    function разобрать() {
+      const текст = ввод.value;
+      const все = слова(текст);
+      const минимум = Math.min(12, Math.max(1, parseInt($('чс-длина').value, 10) || 1));
+      const убиратьСтоп = $('чс-стоп').checked;
+      const язычок = язык(все);
+
+      $('чс-всего').textContent = String(все.length);
+      $('чс-язык').textContent = убиратьСтоп && язычок ? с.langs[язычок] : с.langs.off;
+
+      if (!все.length) {
+        список = [];
+        $('чс-уникальных').textContent = '0';
+        $('чс-отброшено').textContent = '0';
+        пусто(с.empty);
+        return;
+      }
+
+      const стоп = убиратьСтоп && язычок ? наборы[язычок] : null;
+      const счёт = new Map();
+      let отброшено = 0;
+      for (const слово of все) {
+        // Длину считаем по буквам, а не по знакам: дефис и апостроф внутрь длины не идут.
+        const букв = (слово.match(/[\p{L}\p{N}]/gu) || []).length;
+        if (букв < минимум || (стоп && стоп.has(слово))) { отброшено++; continue; }
+        счёт.set(слово, (счёт.get(слово) || 0) + 1);
+      }
+
+      $('чс-уникальных').textContent = String(счёт.size);
+      $('чс-отброшено').textContent = String(отброшено);
+
+      if (!счёт.size) {
+        список = [];
+        пусто(с.nothing);
+        return;
+      }
+
+      // При равной частоте -- по алфавиту, иначе порядок был бы случайным и прыгал бы
+      // при каждом наборе буквы.
+      const пары = [...счёт.entries()].sort((а, б) => б[1] - а[1] || а[0].localeCompare(б[0]));
+      список = пары;
+      const учтено = пары.reduce((сумма, [, н]) => сумма + н, 0);
+      показать(пары, учтено);
+
+      // «Тошнота»: классическая -- корень из частоты самого частого слова, академическая --
+      // его доля в процентах. Обе меры взяты из обихода сеошных сервисов, о чём сказано рядом.
+      const самое = пары[0][1];
+      $('чс-классическая').textContent = Math.sqrt(самое).toFixed(2);
+      $('чс-академическая').textContent = `${((самое / учтено) * 100).toFixed(1)}%`;
+      $('чс-тошнота').classList.add('видна');
+    }
+
+    function обновитьШаги() {
+      const н = Math.max(1, parseInt($('чс-длина').value, 10) || 1);
+      $('чс-меньше').disabled = н <= 1;
+      $('чс-больше').disabled = н >= 12;
+    }
+
+    function сдвинуть(на) {
+      const поле = $('чс-длина');
+      const было = Math.max(1, parseInt(поле.value, 10) || 1);
+      поле.value = String(Math.min(12, Math.max(1, было + на)));
+      обновитьШаги();
+      разобрать();
+    }
+
+    function сказать(текст) {
+      const э = $('чс-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', разобрать);
+    $('чс-стоп').addEventListener('change', разобрать);
+    $('чс-длина').addEventListener('input', () => { обновитьШаги(); разобрать(); });
+    $('чс-меньше').addEventListener('click', () => сдвинуть(-1));
+    $('чс-больше').addEventListener('click', () => сдвинуть(1));
+
+    $('чс-копировать').addEventListener('click', async () => {
+      const кнопка = $('чс-копировать');
+      if (!список.length) { сказать(с.nothingCopy); return; }
+      const учтено = список.reduce((сумма, [, н]) => сумма + н, 0);
+      const текст = список
+        .map(([слово, н], и) => `${и + 1}. ${слово}\t${н}\t${((н / учтено) * 100).toFixed(1)}%`)
+        .join('\n');
+      let вышло = false;
+      try { await navigator.clipboard.writeText(текст); вышло = true; }
+      catch (ошибка) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('чс-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      разобрать();
+      ввод.focus();
+    });
+
+    обновитьШаги();
+    разобрать();
+
+    window.__чсСостояние = () => ({
+      всего: $('чс-всего').textContent, уникальных: $('чс-уникальных').textContent,
+      отброшено: $('чс-отброшено').textContent, язык: $('чс-язык').textContent,
+      классическая: $('чс-классическая').textContent,
+      академическая: $('чс-академическая').textContent,
+      пусто: Boolean(итог.querySelector('.чс-пусто')),
+      пустоТекст: (итог.querySelector('.чс-пусто') || {}).textContent || '',
+      строк: итог.querySelectorAll('.чс-строка').length,
+      первое: (итог.querySelector('.чс-слово') || {}).textContent || '',
+      первоеСколько: (итог.querySelector('.чс-сколько') || {}).textContent || '',
+      верхушка: [...итог.querySelectorAll('.чс-слово')].slice(0, 5).map((э) => э.textContent),
+    });
+    window.__чсСлова = (т) => слова(т);
+  })();
+</script>
