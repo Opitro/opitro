@@ -1,0 +1,378 @@
+---
+// ФОРМАТИРОВАНИЕ ТЕЛЕФОННЫХ НОМЕРОВ.
+//
+// БЕЗ ГОТОВОЙ БИБЛИОТЕКИ. В задании предлагалась libphonenumber, но она весит сотни
+// килобайт и решает другую задачу -- проверяет, существует ли номер у оператора. Нам нужно
+// привести список к единому виду, а для этого хватает кода страны, длины местного номера и
+// магистральной цифры.
+//
+// ГЛАВНОЕ ПРАВИЛО, БЕЗ КОТОРОГО СПИСОК НЕ ЗАГРУЗИТСЯ В CRM: «8» в начале русского номера и
+// «0» в начале украинского -- это выход на межгород, а не часть номера. 8 (999) 123-45-67 --
+// это +7 999 123-45-67, и просто приписать код страны нельзя: получится лишняя цифра.
+//
+// НЕРАЗОБРАННЫЕ СТРОКИ НЕ ВЫБРАСЫВАЮТСЯ. Они выводятся как есть, с пометкой, и считаются
+// отдельно. Молча потерять строку из клиентской базы -- худшее, что может сделать такой
+// инструмент.
+//
+// Номера никуда не уходят: всё делается в браузере.
+import css from '../styles/phone-formatter.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    format: 'Вид', e164: 'Международный (+7…)', digits: 'Только цифры', pretty: 'Читаемый',
+    country: 'Код по умолчанию',
+    place: 'Вставьте список номеров — каждый с новой строки…',
+    result: 'Приведённые номера появятся здесь…',
+    lines: 'Строк', done: 'Разобрано', failed: 'Не разобрано',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    беды: { 'буквы': 'в строке есть буквы', 'длина': 'не та длина номера',
+            'нет-цифр': 'нет цифр', 'нет-кода': 'неизвестный код страны' },
+    n1: '<b>«Восьмёрка» в начале — не часть номера.</b> Это выход на межгород, и в международной записи её не бывает: 8 (999) 123-45-67 — это +7 999 123-45-67. Просто приписать код страны нельзя, получится лишняя цифра. То же с украинским нулём: 067… — это +380 67…',
+    n2: '<b>Неразобранные строки не выбрасываются.</b> Они выводятся как есть, с пометкой, и считаются отдельно. Молча потерять строку из клиентской базы — худшее, что может сделать такой инструмент, поэтому мы этого не делаем.',
+    n3: '<b>Строки с буквами не трогаем.</b> Имя, заголовок столбца, «доб. 12» — всё это отправляется в неразобранные. Выдирать из такой строки цифры опасно: добавочный номер прилипнет к основному, и получится несуществующий контакт.',
+    n4: '<b>Читаемый вид зависит от страны.</b> Российский номер пишется как +7 (999) 123-45-67, испанский — как +34 612 34 56 78, американский — как +1 (415) 555-2671. Одна маска на всех дала бы неверную запись для половины списка.',
+    n5: '<b>Мы не проверяем, существует ли номер.</b> Для этого нужны справочники операторских диапазонов, а они большие и меняются. Здесь проверяется только форма: код страны, длина и отсутствие лишних знаков.',
+    n6: 'Всё делается в вашем браузере. Списки клиентов и контакты никуда не отправляются, нигде не сохраняются и после закрытия вкладки не остаются.',
+  },
+  uk: {
+    format: 'Вигляд', e164: 'Міжнародний (+380…)', digits: 'Лише цифри', pretty: 'Читабельний',
+    country: 'Код за замовчуванням',
+    place: 'Вставте список номерів — кожен з нового рядка…',
+    result: 'Приведені номери з’являться тут…',
+    lines: 'Рядків', done: 'Розібрано', failed: 'Не розібрано',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    беды: { 'буквы': 'у рядку є літери', 'длина': 'не та довжина номера',
+            'нет-цифр': 'немає цифр', 'нет-кода': 'невідомий код країни' },
+    n1: '<b>Нуль на початку — не частина номера.</b> Це вихід на міжміський, і в міжнародному записі його не буває: 067 123-45-67 — це +380 67 123-45-67. Просто дописати код країни не можна, вийде зайва цифра. Те саме з російською «вісімкою».',
+    n2: '<b>Нерозібрані рядки не викидаються.</b> Вони виводяться як є, з позначкою, і рахуються окремо. Мовчки втратити рядок із клієнтської бази — найгірше, що може зробити такий інструмент.',
+    n3: '<b>Рядки з літерами не чіпаємо.</b> Ім’я, заголовок стовпця, «дод. 12» — усе це йде в нерозібрані. Виривати з такого рядка цифри небезпечно: додатковий номер прилипне до основного.',
+    n4: '<b>Читабельний вигляд залежить від країни.</b> Український номер пишеться як +380 (67) 123-45-67, іспанський — як +34 612 34 56 78, американський — як +1 (415) 555-2671. Одна маска на всіх дала б хибний запис для половини списку.',
+    n5: '<b>Ми не перевіряємо, чи існує номер.</b> Для цього потрібні довідники операторських діапазонів, а вони великі й змінюються. Тут перевіряється лише форма.',
+    n6: 'Усе робиться у вашому браузері. Списки клієнтів і контакти нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    format: 'Format', e164: 'International (+1…)', digits: 'Digits only', pretty: 'Readable',
+    country: 'Default country code',
+    place: 'Paste a list of numbers — one per line…',
+    result: 'The formatted numbers will appear here…',
+    lines: 'Lines', done: 'Parsed', failed: 'Not parsed',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    беды: { 'буквы': 'the line contains letters', 'длина': 'wrong number length',
+            'нет-цифр': 'no digits', 'нет-кода': 'unknown country code' },
+    n1: '<b>A leading trunk digit is not part of the number.</b> The British 0, the Russian 8 and the Lithuanian 8 are dialling prefixes for long distance, and international notation has none of them: 07911 123456 is +44 7911 123456. Simply prefixing the country code would leave an extra digit.',
+    n2: '<b>Unparsed lines are not thrown away.</b> They come out as they went in, marked, and are counted separately. Silently losing a line from a customer list is the worst thing a tool like this could do.',
+    n3: '<b>Lines with letters are left alone.</b> A name, a column heading, “ext. 12” — all of these go to the unparsed pile. Pulling the digits out of such a line is dangerous: the extension would stick to the main number and produce a contact that does not exist.',
+    n4: '<b>The readable form depends on the country.</b> An American number reads +1 (415) 555-2671, a Spanish one +34 612 34 56 78, a Russian one +7 (999) 123-45-67. One mask for all would produce a wrong shape for half the list.',
+    n5: '<b>We do not check whether the number exists.</b> That needs directories of operator ranges, which are large and change. Here only the shape is checked: country code, length and no stray characters.',
+    n6: 'Everything happens in your browser. Customer lists and contacts are never sent anywhere and never stored.',
+  },
+  es: {
+    format: 'Formato', e164: 'Internacional (+34…)', digits: 'Solo cifras', pretty: 'Legible',
+    country: 'Código de país por defecto',
+    place: 'Pega una lista de números, uno por línea…',
+    result: 'Los números formateados aparecerán aquí…',
+    lines: 'Líneas', done: 'Procesados', failed: 'Sin procesar',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    беды: { 'буквы': 'la línea contiene letras', 'длина': 'longitud incorrecta',
+            'нет-цифр': 'no hay cifras', 'нет-кода': 'código de país desconocido' },
+    n1: '<b>El prefijo interurbano no forma parte del número.</b> El 0 británico o el 8 ruso sirven para salir al larga distancia y no existen en la notación internacional: 067 123-45-67 es +380 67 123-45-67. Añadir el código de país sin más dejaría una cifra de sobra.',
+    n2: '<b>Las líneas que no se entienden no se tiran.</b> Salen tal como entraron, marcadas, y se cuentan aparte. Perder en silencio una línea de una lista de clientes es lo peor que podría hacer una herramienta así.',
+    n3: '<b>Las líneas con letras se dejan intactas.</b> Un nombre, el encabezado de una columna, «ext. 12»: todo eso va al montón de lo no procesado. Sacar las cifras de una línea así es peligroso: la extensión se pegaría al número principal.',
+    n4: '<b>La forma legible depende del país.</b> Un número español se escribe +34 612 34 56 78; uno americano, +1 (415) 555-2671; uno ruso, +7 (999) 123-45-67. Una sola máscara para todos daría una forma equivocada para media lista.',
+    n5: '<b>No comprobamos si el número existe.</b> Para eso harían falta los directorios de rangos de los operadores, que son enormes y cambian. Aquí solo se comprueba la forma.',
+    n6: 'Todo ocurre en tu navegador. Las listas de clientes y los contactos no se envían a ninguna parte ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const поУмолчанию = { ru: '7', uk: '380', en: '1', es: '34' }[locale] || '7';
+const СПИСОК_СТРАН = [
+  ['7', 'Россия, Казахстан'], ['380', 'Украина'], ['375', 'Беларусь'], ['34', 'España'],
+  ['1', 'USA, Canada'], ['44', 'United Kingdom'], ['49', 'Deutschland'], ['48', 'Polska'],
+  ['998', 'Oʻzbekiston'], ['996', 'Кыргызстан'], ['995', 'საქართველო'], ['371', 'Latvija'],
+  ['370', 'Lietuva'], ['372', 'Eesti'], ['373', 'Moldova'], ['90', 'Türkiye'],
+  ['33', 'France'], ['39', 'Italia'], ['351', 'Portugal'], ['52', 'México'],
+  ['54', 'Argentina'], ['57', 'Colombia'],
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тел" data-words={JSON.stringify(с)}>
+  <div class="тел-верх">
+    <span class="тел-подпись">{с.format}:</span>
+    <div class="тел-кнопки" role="group">
+      <button type="button" class="тел-выбор выбран" id="тел-e164">{с.e164}</button>
+      <button type="button" class="тел-выбор" id="тел-цифры">{с.digits}</button>
+      <button type="button" class="тел-выбор" id="тел-красиво">{с.pretty}</button>
+    </div>
+    <span class="тел-подпись">{с.country}:</span>
+    <select class="тел-список" id="тел-страна">
+      {СПИСОК_СТРАН.map(([код, имя]) => (
+        <option value={код} selected={код === поУмолчанию}>+{код} — {имя}</option>
+      ))}
+    </select>
+  </div>
+
+  <div class="тел-пара-полей">
+    <div class="тел-поле">
+      <textarea class="тел-ввод" id="тел-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="тел-поле тел-вывод">
+      <textarea class="тел-ввод" id="тел-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="тел-счётчики">
+      <span>{с.lines}: <b id="тел-строк">0</b></span>
+      <span>{с.done}: <b id="тел-разобрано">0</b></span>
+      <span class="тел-беды" id="тел-беды">{с.failed}: <b id="тел-беды-число">0</b></span>
+      <span class="тел-сказ" id="тел-сказ"></span>
+    </div>
+  </div>
+
+  <div class="тел-низ">
+    <button type="button" class="тел-кнопка" id="тел-копировать">{с.copyBig}</button>
+    <button type="button" class="тел-простая" id="тел-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="тел-заметки">
+    <div class="тел-заметка" set:html={с.n1}></div>
+    <div class="тел-заметка" set:html={с.n2}></div>
+    <div class="тел-заметка" set:html={с.n3}></div>
+    <div class="тел-заметка" set:html={с.n4}></div>
+    <div class="тел-заметка" set:html={с.n5}></div>
+    <div class="тел-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.тел');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('тел-ввод');
+    const вывод = $('тел-вывод');
+    let вид = 'e164';
+
+    /* ФОРМАТИРОВАНИЕ ТЕЛЕФОННЫХ НОМЕРОВ.
+     *
+     * СТРАНЫ ЗАДАНЫ ТАБЛИЦЕЙ, А НЕ БИБЛИОТЕКОЙ. Готовая libphonenumber весит сотни килобайт --
+     * она нужна тем, кто проверяет, существует ли номер у оператора. Нам нужно другое: привести
+     * список к единому виду. Для этого хватает кода страны, длины местного номера и
+     * магистральной цифры -- той самой «восьмёрки» в начале.
+     *
+     * ГЛАВНОЕ ПРАВИЛО, БЕЗ КОТОРОГО СПИСОК НЕ ЗАГРУЗИТСЯ: «8» в начале русского номера и «0»
+     * в начале украинского -- это не часть номера, а выход на межгород. В международной записи
+     * их не бывает: 8 (999) 123-45-67 -- это +7 999 123-45-67, а 067 123-45-67 -- это
+     * +380 67 123-45-67.
+     */
+
+    const СТРАНЫ = [
+      { код: '7',   имя: 'Россия, Казахстан', нац: 10, магистраль: '8',
+        маска: '+C (XXX) XXX-XX-XX' },
+      { код: '380', имя: 'Украина',           нац: 9,  магистраль: '0',
+        маска: '+C (XX) XXX-XX-XX' },
+      { код: '375', имя: 'Беларусь',          нац: 9,  магистраль: '0',
+        маска: '+C (XX) XXX-XX-XX' },
+      { код: '34',  имя: 'Испания',           нац: 9,  магистраль: '',
+        маска: '+C XXX XX XX XX' },
+      { код: '1',   имя: 'США, Канада',       нац: 10, магистраль: '1',
+        маска: '+C (XXX) XXX-XXXX' },
+      { код: '44',  имя: 'Великобритания',    нац: 10, магистраль: '0',
+        маска: '+C XXXX XXXXXX' },
+      { код: '49',  имя: 'Германия',          нац: [10, 11], магистраль: '0',
+        маска: '+C XXX XXXXXXX' },
+      { код: '48',  имя: 'Польша',            нац: 9,  магистраль: '',
+        маска: '+C XXX XXX XXX' },
+      { код: '998', имя: 'Узбекистан',        нац: 9,  магистраль: '8',
+        маска: '+C XX XXX XX XX' },
+      { код: '996', имя: 'Киргизия',          нац: 9,  магистраль: '0',
+        маска: '+C XXX XXX XXX' },
+      { код: '995', имя: 'Грузия',            нац: 9,  магистраль: '0',
+        маска: '+C XXX XXX XXX' },
+      { код: '371', имя: 'Латвия',            нац: 8,  магистраль: '',
+        маска: '+C XXXX XXXX' },
+      { код: '370', имя: 'Литва',             нац: 8,  магистраль: '8',
+        маска: '+C XXX XXXXX' },
+      { код: '372', имя: 'Эстония',           нац: [7, 8], магистраль: '',
+        маска: '+C XXXX XXXX' },
+      { код: '373', имя: 'Молдова',           нац: 8,  магистраль: '0',
+        маска: '+C XX XXX XXX' },
+      { код: '90',  имя: 'Турция',            нац: 10, магистраль: '0',
+        маска: '+C XXX XXX XX XX' },
+      { код: '33',  имя: 'Франция',           нац: 9,  магистраль: '0',
+        маска: '+C X XX XX XX XX' },
+      { код: '39',  имя: 'Италия',            нац: [9, 10], магистраль: '',
+        маска: '+C XXX XXX XXXX' },
+      { код: '351', имя: 'Португалия',        нац: 9,  магистраль: '',
+        маска: '+C XXX XXX XXX' },
+      { код: '52',  имя: 'Мексика',           нац: 10, магистраль: '',
+        маска: '+C XX XXXX XXXX' },
+      { код: '54',  имя: 'Аргентина',         нац: 10, магистраль: '0',
+        маска: '+C XX XXXX XXXX' },
+      { код: '57',  имя: 'Колумбия',          нац: 10, магистраль: '',
+        маска: '+C XXX XXX XXXX' },
+    ];
+
+    const поКоду = new Map(СТРАНЫ.map((с) => [с.код, с]));
+
+    /** Страна по началу международного номера. Ищем самый длинный подходящий код. */
+    function страна(цифры) {
+      for (const длина of [3, 2, 1]) {
+        const кусок = цифры.slice(0, длина);
+        if (поКоду.has(кусок)) return поКоду.get(кусок);
+      }
+      return null;
+    }
+
+    const подходит = (длина, нац) => (Array.isArray(нац) ? нац.includes(длина) : длина === нац);
+
+    /**
+     * Разбор одной строки. Возвращает { цифры } -- международный номер без плюса,
+     * либо { беда } с причиной.
+     */
+    function разобрать(строка, кодПоУмолчанию) {
+      const обрезанная = строка.trim();
+      if (!обрезанная) return null;                       // пустые строки просто пропускаем
+
+      // Буквы в номере -- почти всегда чужая строка: имя, заголовок столбца, «доб.» с добавочным.
+      if (/[A-Za-zА-Яа-яЁёІіЇїЄєҐґ]/.test(обрезанная)) return { беда: 'буквы' };
+
+      const международный = /^\s*(\+|00)/.test(обрезанная);
+      const цифры = обрезанная.replace(/\D/g, '');
+      if (!цифры) return { беда: 'нет-цифр' };
+
+      let полный = цифры;
+      if (международный) {
+        // «00» в начале -- тот же плюс, только набранный с городского телефона.
+        полный = обрезанная.replace(/\D/g, '').replace(/^00/, '');
+      } else {
+        const свой = поКоду.get(кодПоУмолчанию);
+        if (!свой) return { беда: 'нет-кода' };
+        const { код, нац, магистраль } = свой;
+
+        if (цифры.startsWith(код) && подходит(цифры.length - код.length, нац)) {
+          полный = цифры;                                  // код уже есть, просто без плюса
+        } else if (магистраль && цифры.startsWith(магистраль)
+            && подходит(цифры.length - магистраль.length, нац)) {
+          // Магистральная цифра -- выход на межгород, в международной записи её не бывает.
+          полный = код + цифры.slice(магистраль.length);
+        } else if (подходит(цифры.length, нац)) {
+          полный = код + цифры;
+        } else {
+          return { беда: 'длина' };
+        }
+      }
+
+      // E.164 разрешает не больше пятнадцати цифр; короче семи номеров не бывает.
+      if (полный.length < 7 || полный.length > 15) return { беда: 'длина' };
+      return { цифры: полный };
+    }
+
+    /** Красивая запись по маске страны. Для незнакомого кода -- разбивка по три цифры. */
+    function поМаске(цифры) {
+      const с = страна(цифры);
+      if (!с) return '+' + цифры.replace(/(\d{3})(?=\d)/g, '$1 ');
+      const местные = цифры.slice(с.код.length);
+      const шаблон = с.маска.replace('C', с.код);
+      let и = 0;
+      let итог = '';
+      for (const знак of шаблон) {
+        if (знак !== 'X') { итог += знак; continue; }
+        if (и < местные.length) { итог += местные[и]; и++; }
+      }
+      // Если цифр оказалось больше, чем в маске, хвост дописываем как есть -- терять нельзя.
+      if (и < местные.length) итог += местные.slice(и);
+      return итог;
+    }
+
+    function привести(строка, вид, кодПоУмолчанию) {
+      const итог = разобрать(строка, кодПоУмолчанию);
+      if (!итог) return null;
+      if (итог.беда) return итог;
+      if (вид === 'цифры') return { значение: итог.цифры };
+      if (вид === 'красиво') return { значение: поМаске(итог.цифры) };
+      return { значение: '+' + итог.цифры };
+    }
+
+    function пересчитать() {
+      const строки = ввод.value.split(/\r\n|\r|\n/);
+      const код = $('тел-страна').value;
+      const итог = [];
+      let разобрано = 0, беды = 0, всего = 0;
+
+      for (const строка of строки) {
+        if (!строка.trim()) { итог.push(''); continue; }
+        всего++;
+        const ответ = привести(строка, вид, код);
+        if (ответ && ответ.значение) { итог.push(ответ.значение); разобрано++; continue; }
+        // Строку не выбрасываем: возвращаем как была и говорим, что с ней не так.
+        беды++;
+        const причина = (ответ && с.беды[ответ.беда]) || '?';
+        итог.push(`${строка.trim()}   ← ${причина}`);
+      }
+
+      вывод.value = итог.join('\n');
+      $('тел-строк').textContent = String(всего);
+      $('тел-разобрано').textContent = String(разобрано);
+      $('тел-беды-число').textContent = String(беды);
+      $('тел-беды').classList.toggle('есть', беды > 0);
+    }
+
+    function поставитьВид(имя, кнопка) {
+      вид = имя;
+      for (const и of ['тел-e164', 'тел-цифры', 'тел-красиво']) {
+        $(и).classList.toggle('выбран', и === кнопка);
+      }
+      пересчитать();
+    }
+
+    function сказать(текст) {
+      const э = $('тел-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('тел-страна').addEventListener('change', пересчитать);
+    $('тел-e164').addEventListener('click', () => поставитьВид('e164', 'тел-e164'));
+    $('тел-цифры').addEventListener('click', () => поставитьВид('цифры', 'тел-цифры'));
+    $('тел-красиво').addEventListener('click', () => поставитьВид('красиво', 'тел-красиво'));
+
+    $('тел-копировать').addEventListener('click', async () => {
+      const кнопка = $('тел-копировать');
+      if (!вывод.value.trim()) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('тел-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__телСостояние = () => ({
+      вид, страна: $('тел-страна').value, вывод: вывод.value,
+      строк: $('тел-строк').textContent, разобрано: $('тел-разобрано').textContent,
+      беды: $('тел-беды-число').textContent,
+      подсвечено: $('тел-беды').classList.contains('есть'),
+    });
+  })();
+</script>
