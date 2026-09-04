@@ -20,6 +20,26 @@
   font-family: var(--цифры);
 }
 
+/* ---- Переключатель двигателей ---------------------------------------------------------------
+   Два разных источника голоса: система устройства и свой синтезатор в браузере. Выбранный
+   помечен только обводкой -- заливку владелец забраковал ещё на Base64. */
+
+.рч-двигатели { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px }
+.рч-дв {
+  height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.рч-дв:hover { border-color: #fff; background: #23272f }
+.рч-дв.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.рч-дв.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Вес голоса и то, лежит ли он уже на устройстве. Высота постоянная: строка появляется при
+   переключении двигателя, и без запаса поле ввода прыгало бы под курсором. */
+.рч-голос-весть { min-height: 20px; padding: 0 4px 4px; font: 400 12px var(--цифры);
+  color: #7d848f; font-variant-numeric: tabular-nums }
+.рч-голос-весть.готов { color: var(--accent) }
+
 /* ---- Пульт настроек ------------------------------------------------------------------------ */
 
 .рч-пульт { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
@@ -43,6 +63,10 @@
 /* Ползунок. Дорожка тонкая, бегунок -- белый квадрат, как просил владелец. Закраска слева
    от бегунка своя: без неё в Chrome вся дорожка одного цвета и не видно, где ты стоишь. */
 .рч-ручка { display: flex; align-items: center; gap: 9px; flex: 0 1 240px; min-width: 180px }
+/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этой
+   строки спрятанная ручка остаётся на виду. Проверка на свойство .hidden такую беду не ловит,
+   она проходит -- поймал только снимок экрана. */
+.рч-ручка[hidden] { display: none }
 .рч-ползунок {
   flex: 1 1 auto; min-width: 0; height: 18px; appearance: none; background: transparent;
   cursor: pointer;
