@@ -24,7 +24,9 @@
    Два разных источника голоса: система устройства и свой синтезатор в браузере. Выбранный
    помечен только обводкой -- заливку владелец забраковал ещё на Base64. */
 
-.рч-двигатели { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 12px }
+/* Переключатель стоит В ОДНОМ РЯДУ со списком голосов: список всё равно не занимал
+   строку целиком, и отдельная полоса под две кнопки была пустой тратой высоты. */
+.рч-двигатели { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto }
 .рч-дв {
   height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
   font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -46,7 +48,10 @@
   margin-bottom: 12px }
 .рч-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
 
-.рч-голос-гнездо { display: flex; align-items: center; gap: 9px; flex: 1 1 100%; min-width: 0 }
+.рч-голос-гнездо { display: flex; align-items: center; gap: 9px; flex: 1 1 300px; min-width: 0 }
+/* Ползунки уходят на свою строку целиком: рядом с длинным именем голоса им не хватало места,
+   и они сжимались до нечитаемой ниточки. */
+.рч-ручки { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; flex: 1 1 100% }
 .рч-список {
   flex: 1 1 auto; min-width: 0; height: 38px; padding: 0 34px 0 12px; border-radius: 6px;
   cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -214,6 +219,8 @@
 }
 
 @media (max-width: 720px) {
+  .рч-двигатели { flex: 1 1 100% }
+  .рч-дв { flex: 1 1 0 }
   .рч-голос-гнездо { flex: 1 1 100% }
   .рч-ручка { flex: 1 1 100% }
   .рч-формат { margin-left: 0 }

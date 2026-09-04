@@ -180,27 +180,28 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 <style is:inline set:html={css}></style>
 
 <div class="рч" data-words={JSON.stringify(с)} data-locale={locale} data-limit={ПРЕДЕЛ}>
-  <div class="рч-двигатели">
-    <button type="button" class="рч-дв выбран" id="рч-дв-свой">{с.engOwn}</button>
-    <button type="button" class="рч-дв" id="рч-дв-устройство">{с.engDev}</button>
-  </div>
-
   <div class="рч-пульт">
+    <span class="рч-двигатели">
+      <button type="button" class="рч-дв выбран" id="рч-дв-свой">{с.engOwn}</button>
+      <button type="button" class="рч-дв" id="рч-дв-устройство">{с.engDev}</button>
+    </span>
     <span class="рч-голос-гнездо">
       <span class="рч-подпись">{с.voice}:</span>
       <select class="рч-список" id="рч-голос" disabled>
         <option>{с.loadingVoices}</option>
       </select>
     </span>
-    <span class="рч-ручка">
-      <span class="рч-подпись">{с.rate}:</span>
-      <input type="range" class="рч-ползунок" id="рч-скорость" min="0.5" max="2" step="0.05" value="1" />
-      <span class="рч-значение" id="рч-скорость-знач">1.00x</span>
-    </span>
-    <span class="рч-ручка" id="рч-ручка-тон" hidden>
-      <span class="рч-подпись">{с.pitch}:</span>
-      <input type="range" class="рч-ползунок" id="рч-тон" min="0" max="2" step="0.05" value="1" />
-      <span class="рч-значение" id="рч-тон-знач">1.00</span>
+    <span class="рч-ручки">
+      <span class="рч-ручка">
+        <span class="рч-подпись">{с.rate}:</span>
+        <input type="range" class="рч-ползунок" id="рч-скорость" min="0.5" max="2" step="0.05" value="1" />
+        <span class="рч-значение" id="рч-скорость-знач">1.00x</span>
+      </span>
+      <span class="рч-ручка" id="рч-ручка-тон" hidden>
+        <span class="рч-подпись">{с.pitch}:</span>
+        <input type="range" class="рч-ползунок" id="рч-тон" min="0" max="2" step="0.05" value="1" />
+        <span class="рч-значение" id="рч-тон-знач">1.00</span>
+      </span>
     </span>
   </div>
 
@@ -486,6 +487,28 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       строкаЧитается.classList.add('идёт');
       строкаЧитается.textContent = `${с.reading} ${и + 1}/${очередь.length}: ${очередь[и]}`;
       полосаИ.style.width = `${Math.round(((и + 1) / очередь.length) * 100)}%`;
+    }
+
+    // Ширина кнопки пуска. Надпись на ней меняется («Воспроизвести» -- «Пауза» --
+    // «Продолжить»), и без запаса кнопка на каждом нажатии прыгает, а с ней и весь ряд.
+    // Меряем ВСЕ три надписи и держим место под самую длинную. Пересчитываем после загрузки
+    // шрифта и при смене размера окна: до готовности шрифта ширина получается чужая.
+    function держатьШиринуПуска() {
+      const вид = getComputedStyle(кнИграть);
+      const проба = document.createElement("span");
+      проба.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;left:-9999px";
+      проба.style.font = вид.font;
+      проба.style.letterSpacing = вид.letterSpacing;
+      корень.appendChild(проба);
+      let макс = 0;
+      for (const надпись of [с.play, с.pause, с.resume]) {
+        проба.textContent = надпись;
+        макс = Math.max(макс, проба.getBoundingClientRect().width);
+      }
+      проба.remove();
+      const бока = parseFloat(вид.paddingLeft) + parseFloat(вид.paddingRight)
+        + parseFloat(вид.borderLeftWidth) + parseFloat(вид.borderRightWidth);
+      кнИграть.style.minWidth = Math.ceil(макс + бока) + "px";
     }
 
     function видКнопок() {
@@ -892,6 +915,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     if (синтез) ждатьГолоса();
     заполнитьСвои();
     видКнопок();
+    держатьШиринуПуска();
+    if (document.fonts && document.fonts.ready) document.fonts.ready.then(держатьШиринуПуска);
+    window.addEventListener("resize", держатьШиринуПуска);
     // Работника поднимаем не сразу: на странице, куда пришли просто послушать, лишние
     // триста килобайт ни к чему. Заводим в простое, чтобы к первому нажатию он был готов
     // и уже знал, какие голоса лежат на устройстве.
