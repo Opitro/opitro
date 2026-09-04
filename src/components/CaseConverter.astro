@@ -1,0 +1,255 @@
+---
+// ПЕРЕВОД СТИЛЕЙ ИМЕНОВАНИЯ: camelCase, PascalCase, snake_case, kebab-case, UPPER_CASE.
+//
+// ВСЯ РАБОТА -- В РАЗБИЕНИИ НА СЛОВА, и наивное правило «заглавная начинает слово» ломается
+// на трёх местах, каждое из которых встречается в живом коде:
+//   1. Аббревиатуры: parseHTTPResponse -- это parse + HTTP + Response.
+//   2. Цифры: user2Name -- это user2 + Name, цифра прилипает к слову слева.
+//   3. Подчёркивания по краям: __init__ в Python -- не то же самое, что init.
+//
+// Одно имя в строке: разбирать целые строки кода мы не беремся -- ключевые слова и строковые
+// значения при этом портятся, а молча испортить чужой код хуже, чем не тронуть его.
+//
+// Ничего никуда не уходит: всё делается в браузере.
+import css from '../styles/case-converter.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    target: 'Во что перевести',
+    place: 'Вставьте список имён — по одному в строке…', result: 'Результат появится здесь…',
+    lines: 'Строк', found: 'Исходный стиль', none: 'не понят',
+    имена: { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case',
+             kebab: 'kebab-case', upper: 'UPPER_CASE' },
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Аббревиатуры не рассыпаются на буквы.</b> Правило «заглавная начинает слово» превратило бы parseHTTPResponse в parse_h_t_t_p_response. На самом деле из череды заглавных последняя уходит к следующему слову: HTTPResponse — это HTTP и Response. Выходит parse_http_response.',
+    n2: '<b>Цифра прилипает к слову слева.</b> user2Name — это user2 и Name, а не user, 2 и Name: так это имя и писали. Поэтому получается user2_name, а не user_2_name.',
+    n3: '<b>Подчёркивания по краям сохраняются.</b> В Python __init__ и init — разные имена, и превратить одно в другое значит сломать код. Края остаются как были при любом стиле.',
+    n4: '<b>Отступ и хвостовые знаки на месте.</b> Если вы вставили список с отступами и запятыми, они вернутся туда же: строка «  userName,» станет «  user_name,». Список можно вставить обратно в код, ничего не подправляя.',
+    n5: '<b>Одно имя в строке.</b> Разбирать целые строки кода мы не беремся: при этом портятся ключевые слова и строковые значения. Молча испортить чужой код хуже, чем не тронуть его — поэтому инструмент работает со списками имён, как и показано в поле.',
+    n6: 'Всё делается в вашем браузере. Названия функций, полей и таблиц никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    target: 'У що перевести',
+    place: 'Вставте список імен — по одному в рядку…', result: 'Результат з’явиться тут…',
+    lines: 'Рядків', found: 'Вихідний стиль', none: 'не зрозумілий',
+    имена: { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case',
+             kebab: 'kebab-case', upper: 'UPPER_CASE' },
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Абревіатури не розсипаються на літери.</b> Правило «велика починає слово» перетворило б parseHTTPResponse на parse_h_t_t_p_response. Насправді з низки великих остання йде до наступного слова: HTTPResponse — це HTTP і Response.',
+    n2: '<b>Цифра прилипає до слова зліва.</b> user2Name — це user2 і Name, а не user, 2 і Name: так це ім’я й писали. Тому виходить user2_name.',
+    n3: '<b>Підкреслення по краях зберігаються.</b> У Python __init__ та init — різні імена, і перетворити одне на інше означає зламати код.',
+    n4: '<b>Відступ і хвостові знаки на місці.</b> Рядок «  userName,» стане «  user_name,». Список можна вставити назад у код, нічого не підправляючи.',
+    n5: '<b>Одне ім’я в рядку.</b> Розбирати цілі рядки коду ми не беремося: при цьому псуються ключові слова й рядкові значення. Мовчки зіпсувати чужий код гірше, ніж не чіпати його.',
+    n6: 'Усе робиться у вашому браузері. Назви функцій, полів і таблиць нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    target: 'Convert to',
+    place: 'Paste a list of names — one per line…', result: 'The result will appear here…',
+    lines: 'Lines', found: 'Source style', none: 'not recognised',
+    имена: { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case',
+             kebab: 'kebab-case', upper: 'UPPER_CASE' },
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>Acronyms do not fall apart into letters.</b> The rule “a capital starts a word” would turn parseHTTPResponse into parse_h_t_t_p_response. In fact the last capital of a run belongs to the next word: HTTPResponse is HTTP and Response, giving parse_http_response.',
+    n2: '<b>A digit sticks to the word on its left.</b> user2Name is user2 and Name, not user, 2 and Name — that is how the name was written. So the result is user2_name rather than user_2_name.',
+    n3: '<b>Leading and trailing underscores survive.</b> In Python __init__ and init are different names, and turning one into the other breaks the code. The edges are kept exactly as they were, whatever the target style.',
+    n4: '<b>Indentation and trailing punctuation stay put.</b> A line reading “  userName,” comes back as “  user_name,”, so a pasted list can go straight back into the code with nothing to fix up.',
+    n5: '<b>One name per line.</b> We do not try to parse whole lines of code: keywords and string literals get mangled that way. Silently corrupting somebody else source is worse than not touching it, so the tool works on lists of names.',
+    n6: 'Everything happens in your browser. Function, field and table names are never sent anywhere and never stored.',
+  },
+  es: {
+    target: 'Convertir a',
+    place: 'Pega una lista de nombres, uno por línea…', result: 'El resultado aparecerá aquí…',
+    lines: 'Líneas', found: 'Estilo de origen', none: 'no reconocido',
+    имена: { camel: 'camelCase', pascal: 'PascalCase', snake: 'snake_case',
+             kebab: 'kebab-case', upper: 'UPPER_CASE' },
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Las siglas no se deshacen en letras.</b> La regla «una mayúscula empieza palabra» convertiría parseHTTPResponse en parse_h_t_t_p_response. En realidad la última mayúscula de la serie pertenece a la palabra siguiente: HTTPResponse es HTTP y Response.',
+    n2: '<b>La cifra se pega a la palabra de su izquierda.</b> user2Name es user2 y Name, no user, 2 y Name: así se escribió el nombre. El resultado es user2_name y no user_2_name.',
+    n3: '<b>Los guiones bajos de los extremos se conservan.</b> En Python __init__ e init son nombres distintos, y convertir uno en otro rompe el código.',
+    n4: '<b>La sangría y la puntuación final se quedan.</b> Una línea «  userName,» vuelve como «  user_name,», así que la lista se puede pegar de nuevo en el código sin retoques.',
+    n5: '<b>Un nombre por línea.</b> No intentamos analizar líneas enteras de código: así se estropean las palabras clave y las cadenas de texto. Estropear en silencio el código de otro es peor que no tocarlo.',
+    n6: 'Todo ocurre en tu navegador. Los nombres de funciones, campos y tablas no se envían a ninguna parte ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="кс" data-words={JSON.stringify(с)}>
+  <div class="кс-верх">
+    <span class="кс-подпись">{с.target}:</span>
+    <select class="кс-список" id="кс-стиль">
+      <option value="snake">snake_case</option>
+      <option value="camel">camelCase</option>
+      <option value="pascal">PascalCase</option>
+      <option value="kebab">kebab-case</option>
+      <option value="upper">UPPER_CASE</option>
+    </select>
+  </div>
+
+  <div class="кс-пара-полей">
+    <div class="кс-поле">
+      <textarea class="кс-ввод" id="кс-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="кс-поле кс-вывод">
+      <textarea class="кс-ввод" id="кс-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="кс-счётчики">
+      <span>{с.lines}: <b id="кс-строк">0</b></span>
+      <span>{с.found}: <b id="кс-стиль-найден">—</b></span>
+      <span class="кс-сказ" id="кс-сказ"></span>
+    </div>
+  </div>
+
+  <div class="кс-низ">
+    <button type="button" class="кс-кнопка" id="кс-копировать">{с.copyBig}</button>
+    <button type="button" class="кс-простая" id="кс-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="кс-заметки">
+    <div class="кс-заметка" set:html={с.n1}></div>
+    <div class="кс-заметка" set:html={с.n2}></div>
+    <div class="кс-заметка" set:html={с.n3}></div>
+    <div class="кс-заметка" set:html={с.n4}></div>
+    <div class="кс-заметка" set:html={с.n5}></div>
+    <div class="кс-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.кс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('кс-ввод');
+    const вывод = $('кс-вывод');
+
+    /* ПЕРЕВОД СТИЛЕЙ ИМЕНОВАНИЯ: camelCase, PascalCase, snake_case, kebab-case, UPPER_CASE.
+     *
+     * ВСЯ РАБОТА -- В РАЗБИЕНИИ НА СЛОВА. Наивное правило «заглавная начинает слово» ломается
+     * на трёх местах, и все три встречаются в живом коде:
+     *   1. Аббревиатуры: parseHTTPResponse -- это parse + HTTP + Response, а не p+a+r+s+e+H+T+T+P.
+     *      Из череды заглавных последняя уходит к следующему слову: HTTPResponse -> HTTP + Response.
+     *   2. Цифры: user2Name -- это user2 + Name, а не user + 2 + Name. Цифра прилипает к слову
+     *      слева, потому что так её и писали.
+     *   3. Подчёркивания по краям: __init__ в Python -- не то же самое, что init. Края
+     *      сохраняются как были, иначе имя перестаёт работать.
+     */
+
+    // Порядок частей важен: сперва аббревиатура перед словом, потом обычное слово, потом
+    // череда заглавных целиком, потом одни цифры.
+    const СЛОВО = /\p{Lu}+(?=\p{Lu}\p{Ll})|\p{Lu}?[\p{Ll}0-9]+|\p{Lu}+[0-9]*|[0-9]+/gu;
+
+    /** Имя на слова. Возвращает края и сами слова. */
+    function наСлова(имя) {
+      const края = имя.match(/^([_\-. ]*)([\s\S]*?)([_\-. ]*)$/);
+      const начало = края[1], тело = края[2], конец = края[3];
+      const куски = тело.split(/[\s_\-.]+/).filter(Boolean);
+      const слова = [];
+      for (const кусок of куски) {
+        const найдено = кусок.match(СЛОВО);
+        if (найдено) слова.push(...найдено);
+        else if (кусок) слова.push(кусок);       // ни букв, ни цифр -- берём как есть
+      }
+      return { начало, слова, конец };
+    }
+
+    const сБольшой = (с) => с.charAt(0).toUpperCase() + с.slice(1).toLowerCase();
+
+    const СТИЛИ = {
+      camel: (слова) => слова.map((с, и) => (и === 0 ? с.toLowerCase() : сБольшой(с))).join(''),
+      pascal: (слова) => слова.map(сБольшой).join(''),
+      snake: (слова) => слова.map((с) => с.toLowerCase()).join('_'),
+      kebab: (слова) => слова.map((с) => с.toLowerCase()).join('-'),
+      upper: (слова) => слова.map((с) => с.toUpperCase()).join('_'),
+    };
+
+    /** Перевести одно имя. Отступ и хвостовые знаки сохраняются. */
+    function перевести(строка, стиль) {
+      // Отступ слева и хвост вроде «,» или «;» -- не часть имени, их надо вернуть на место.
+      const разбор = строка.match(/^(\s*)([\s\S]*?)([\s,;:]*)$/);
+      const отступ = разбор[1], имя = разбор[2], хвост = разбор[3];
+      if (!имя) return строка;
+      const { начало, слова, конец } = наСлова(имя);
+      if (!слова.length) return строка;
+      return отступ + начало + СТИЛИ[стиль](слова) + конец + хвост;
+    }
+
+    /** Список целиком: каждая строка отдельно, пустые сохраняются. */
+    function перевестиСписок(текст, стиль) {
+      return текст.split(/\r\n|\r|\n/).map((с) => (с.trim() ? перевести(с, стиль) : с)).join('\n');
+    }
+
+    /** Какой стиль у введённого. Нужен, только чтобы показать человеку. */
+    function узнатьСтиль(текст) {
+      const строка = (текст.split(/\r\n|\r|\n/).find((с) => с.trim()) || '').trim();
+      if (!строка) return null;
+      const голое = строка.replace(/^[_\-. ]+|[_\-. ]+$/g, '');
+      if (!голое) return null;
+      if (голое.includes('-')) return 'kebab';
+      if (голое.includes('_')) {
+        return голое === голое.toUpperCase() && /\p{Lu}/u.test(голое) ? 'upper' : 'snake';
+      }
+      if (/^\p{Lu}/u.test(голое) && /\p{Ll}/u.test(голое)) return 'pascal';
+      if (/\p{Lu}/u.test(голое)) return 'camel';
+      return 'snake';        // одно слово строчными -- ближе всего к змеиному
+    }
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      const стиль = $('кс-стиль').value;
+      вывод.value = исходный ? перевестиСписок(исходный, стиль) : '';
+      const строки = исходный.split(/\r\n|\r|\n/).filter((к) => к.trim()).length;
+      $('кс-строк').textContent = String(строки);
+      const найден = узнатьСтиль(исходный);
+      $('кс-стиль-найден').textContent = найден ? (с.имена[найден] || найден)
+        : (исходный.trim() ? с.none : '—');
+    }
+
+    function сказать(текст) {
+      const э = $('кс-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('кс-стиль').addEventListener('change', пересчитать);
+
+    $('кс-копировать').addEventListener('click', async () => {
+      const кнопка = $('кс-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('кс-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__ксСостояние = () => ({
+      стиль: $('кс-стиль').value, вывод: вывод.value,
+      строк: $('кс-строк').textContent, найден: $('кс-стиль-найден').textContent,
+    });
+  })();
+</script>
