@@ -26,6 +26,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    lead: 'Введите число — пропись появится сразу. Введите пропись — получите число. Направление страница определяет сама.',
     format: 'Формат', plain: 'Простой текст',
     rub: 'Российский рубль', uah: 'Украинская гривна', usd: 'Доллар США', eur: 'Евро',
     gender: 'Род', male: 'Мужской', female: 'Женский', neuter: 'Средний',
@@ -46,6 +47,7 @@ const СЛОВА = {
     n6: 'Всё считается в вашем браузере. Ни суммы, ни договорные строки никуда не отправляются и нигде не сохраняются.',
   },
   uk: {
+    lead: 'Введіть число — пропис з’явиться одразу. Введіть пропис — отримаєте число. Напрямок сторінка визначає сама.',
     format: 'Формат', plain: 'Простий текст',
     rub: 'Російський рубль', uah: 'Українська гривня', usd: 'Долар США', eur: 'Євро',
     gender: 'Рід', male: 'Чоловічий', female: 'Жіночий', neuter: 'Середній',
@@ -66,6 +68,7 @@ const СЛОВА = {
     n6: 'Усе рахується у вашому браузері. Ні суми, ні договірні рядки нікуди не надсилаються і ніде не зберігаються.',
   },
   en: {
+    lead: 'Type a number and the words appear at once. Paste words and you get the number back. The page works out the direction by itself.',
     format: 'Format', plain: 'Plain text',
     rub: 'Russian rouble', uah: 'Ukrainian hryvnia', usd: 'US dollar', eur: 'Euro',
     gender: 'Gender', male: 'Masculine', female: 'Feminine', neuter: 'Neuter',
@@ -86,6 +89,7 @@ const СЛОВА = {
     n6: 'Everything is computed in your browser. Neither amounts nor contract wording is sent anywhere or stored.',
   },
   es: {
+    lead: 'Escribe un número y las letras aparecen al instante. Pega letras y recuperas el número. La página decide la dirección por sí sola.',
     format: 'Formato', plain: 'Texto simple',
     rub: 'Rublo ruso', uah: 'Grivna ucraniana', usd: 'Dólar estadounidense', eur: 'Euro',
     gender: 'Género', male: 'Masculino', female: 'Femenino', neuter: 'Neutro',
@@ -154,6 +158,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <button type="button" class="чп-кнопка" id="чп-копировать">{с.copyBig}</button>
     <button type="button" class="чп-простая" id="чп-очистить">{с.clearAll}</button>
   </div>
+
+  <p class="чп-ведёт">{с.lead}</p>
 
   <div class="чп-заметки">
     <div class="чп-заметка" set:html={с.n1}></div>

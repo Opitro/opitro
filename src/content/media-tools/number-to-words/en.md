@@ -32,8 +32,6 @@ related:
   - word-frequency
 ---
 
-Type a number and the words appear at once. Paste words and you get the number back. The page works out the direction by itself.
-
 ## What it does
 
 - **Five formats** — plain text, roubles, hryvnias, dollars, euros

@@ -32,8 +32,6 @@ related:
   - word-frequency
 ---
 
-Escribe un número y las letras aparecen al instante. Pega letras y recuperas el número. La página decide la dirección por sí sola.
-
 ## Qué hace
 
 - **Cinco formatos** — texto simple, euros, dólares, rublos, grivnas

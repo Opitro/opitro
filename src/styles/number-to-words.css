@@ -91,7 +91,11 @@
 }
 .чп-простая:hover { border-color: #fff; background: #23272f }
 
-.чп-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Как пользоваться -- ПЕРВОЙ строкой под инструментом, а не после шести заметок:
+   человек читает её раньше, чем всё остальное, и там ей и место. */
+.чп-ведёт { margin: 18px 0 0; font: 400 14px/1.6 var(--ui); color: #fff }
+
+.чп-заметки { margin-top: 14px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
    каждому выделенному слову. */
 .чп-заметка { position: relative; padding-left: 18px;
