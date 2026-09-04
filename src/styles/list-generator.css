@@ -1,0 +1,188 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР СПИСКОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных текстовых инструментов, и все решения уже утверждены
+ * владельцем на Base64, URL и ROT13:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО зелёной обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ */
+
+.сп {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы2: #a1a1aa;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Настройки сверху -------------------------------------------------------------------- */
+
+.сп-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  margin-bottom: 10px }
+.сп-подпись { font: 400 12px var(--цифры); color: var(--accent) }
+
+/* Кнопки выбора. Подняты от страницы -- прозрачная кнопка на фоне #0e0f11 почти не видна. */
+.сп-кнопки { display: inline-flex; gap: 6px }
+.сп-выбор {
+  height: 38px; padding: 0 15px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.сп-выбор:hover { border-color: #fff; background: #23272f }
+/* Выбранная -- только обводка и зелёные буквы, без заливки. */
+.сп-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.сп-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Галочка: квадратная, без скруглений. */
+.сп-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.сп-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.сп-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.сп-галка:hover i { border-color: #fff }
+.сп-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.сп-галка input:checked + i { border-color: var(--accent) }
+.сп-галка input:checked + i::after { transform: scale(1) }
+.сп-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.сп-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.сп-поле:focus-within { border-color: #fff }
+.сп-ввод {
+  display: block; width: 100%; min-height: 150px; resize: vertical;
+  padding: 15px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
+}
+.сп-ввод:focus { outline: none }
+.сп-ввод::placeholder { color: #7d848f }
+
+.сп-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
+.сп-вывод textarea { color: #fff; cursor: text }
+.сп-вывод textarea::placeholder { color: #7d848f }
+
+/* Строка отчёта: подпись зелёная, значение белое. */
+.сп-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.сп-счётчики b { color: #fff; font-weight: 500 }
+.сп-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.сп-сказ.видно { opacity: 1 }
+
+/* ---- Кнопки действий ----------------------------------------------------------------------- */
+
+.сп-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px }
+.сп-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.сп-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.сп-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.сп-простая:hover { border-color: #fff; background: #23272f }
+
+.сп-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.сп-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.сп-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.сп-заметка b { color: #fff; font-weight: 600 }
+.сп-заметка code { font: 400 12.5px var(--цифры); color: #fff }
+
+/* ---- Счётчик количества --------------------------------------------------------------------- */
+
+.сп-счёт { display: inline-flex; align-items: stretch; border: 1px solid #3f4652;
+  border-radius: 6px; overflow: hidden; background: #1c1f26 }
+.сп-шаг { width: 34px; border: 0; cursor: pointer; background: transparent; color: #fff;
+  font: 500 16px var(--цифры); transition: background .15s }
+.сп-шаг:hover { background: #23272f }
+.сп-шаг[disabled] { color: #5b6270; cursor: default; background: transparent }
+.сп-число {
+  width: 58px; height: 38px; border: 0; border-left: 1px solid #3f4652;
+  border-right: 1px solid #3f4652; background: transparent; color: #fff; text-align: center;
+  font: 600 13px var(--цифры); appearance: textfield;
+}
+.сп-число::-webkit-outer-spin-button, .сп-число::-webkit-inner-spin-button {
+  appearance: none; margin: 0 }
+.сп-число:focus { outline: none; background: #23272f }
+
+/* Классический зачин нужен только латыни, а выбор стиля -- только кириллице. Оба лежат
+   в ОДНОЙ ячейке сетки, одно поверх другого: ширина слота по большему из них, поэтому при
+   смене языка строка настроек не прыгает и на месте спрятанного не зияет пустота. */
+.сп-слот { display: inline-grid }
+.сп-если { grid-area: 1 / 1; display: inline-flex; align-items: center; gap: 10px }
+.сп-если.скрыт { visibility: hidden }
+
+/* Готовый текст -- читаемый абзацами, а не одной простынёй. */
+.сп-текст { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px;
+  padding: 16px 18px; max-height: 460px; overflow-y: auto }
+.сп-текст p { margin: 0 0 13px; font: 400 14px/1.7 var(--ui); color: #fff }
+.сп-текст p:last-child { margin-bottom: 0 }
+.сп-текст.пусто p { color: #7d848f }
+
+@media (max-width: 560px) {
+  .сп-верх { gap: 8px 12px }
+}
+
+/* ---- Поля параметров ------------------------------------------------------------------------ */
+
+.сп-поле-мал {
+  width: 92px; height: 38px; padding: 0 12px; border-radius: 6px;
+  background: #1c1f26; border: 1px solid #3f4652; color: #fff;
+  font: 500 13px var(--цифры); transition: border-color .15s ease;
+}
+.сп-поле-мал:hover { border-color: #6b7280 }
+.сп-поле-мал:focus { outline: none; border-color: #fff }
+.сп-поле-мал::placeholder { color: #7d848f }
+.сп-поле-мал.широкое { width: 128px }
+.сп-поле-мал.буква { width: 62px; text-align: center }
+.сп-поле-мал::-webkit-outer-spin-button, .сп-поле-мал::-webkit-inner-spin-button {
+  appearance: none; margin: 0 }
+
+.сп-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.сп-список:hover { border-color: #fff }
+
+/* Ряд настроек, который относится только к одному виду. Прячется вместе с местом:
+   строк тут много, и держать пустоту было бы хуже, чем сдвинуть на одну строку. */
+.сп-ряд.нет { display: none }
+
+/* Своё поле для чужого списка. */
+.сп-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease; margin-bottom: 10px }
+.сп-поле:focus-within { border-color: #fff }
+.сп-ввод {
+  display: block; width: 100%; min-height: 130px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13.5px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
+}
+.сп-ввод:focus { outline: none }
+.сп-ввод::placeholder { color: #7d848f }
+
+/* Готовый список: моноширинным, потому что это чаще всего код или артикулы. */
+.сп-текст p { font: 400 13.5px/1.7 var(--цифры); margin: 0 }
+.сп-текст.беда p { color: #ff9aa8; font-family: var(--ui); font-size: 13px }
+
+@media (max-width: 560px) {
+  .сп-поле-мал { width: 100% }
+  .сп-поле-мал.широкое, .сп-поле-мал.буква { width: 100% }
+}

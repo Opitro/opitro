@@ -1,0 +1,424 @@
+---
+// ГЕНЕРАТОР СПИСКОВ: числовой ряд, буквенный ряд и оформление своего списка.
+//
+// ТРИ МЕСТА, ГДЕ ТАКОЙ ИНСТРУМЕНТ ЛОМАЕТСЯ, и все три здесь закрыты:
+//   1. Шаг ноль -- вечный цикл и повисшая вкладка.
+//   2. Шаг не в ту сторону: от 1 до 100 с шагом минус один. Ряда не выйдет, и надо сказать
+//      об этом, а не молча отдать пустоту.
+//   3. Дробный шаг: 0,3 делённое на 0,1 в двоичной арифметике даёт 2,9999999999999996, и
+//      последняя строка ряда терялась. Считаем в целых.
+//
+// Буквенный ряд знает четыре азбуки: латиницу, испанскую с Ñ, русскую и украинскую.
+//
+// Ничего никуда не уходит: всё делается в браузере.
+import css from '../styles/list-generator.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+// Своя азбука для каждого языка страницы: испанцу нужна Ñ, украинцу -- Ґ, Є, І, Ї.
+const латинская = locale === 'es' ? 'lat_es' : 'lat';
+const кириллическая = locale === 'uk' ? 'uk' : 'ru';
+
+const СЛОВА = {
+  ru: {
+    kind: 'Что делаем', numbers: 'Ряд чисел', letters: 'Ряд букв', own: 'Свой список',
+    from: 'От', to: 'До', step: 'Шаг',
+    alphabet: 'Азбука', lat: 'Латиница', cyr: 'Кириллица',
+    caseUp: 'ЗАГЛАВНЫЕ', caseLow: 'строчные',
+    prefix: 'Приставка', suffix: 'Хвост', numbering: 'Нумерация',
+    numNone: 'без номеров', numDot: '1.', numParen: '1)', numZero: '01.', numDash: '— ',
+    place: 'Вставьте свой список — по строке на пункт…',
+    empty: 'Задайте ряд — список появится здесь.',
+    lines: 'Строк',
+    беды: { 'шаг-ноль': 'Шаг не может быть нулём: ряд никогда не кончится.',
+            'шаг-не-туда': 'Шаг ведёт в другую сторону: до конца ряд не дойдёт. Поменяйте знак шага или переставьте «от» и «до».',
+            'не-число': 'В полях диапазона должны быть числа.',
+            'слишком-много': 'Слишком длинный ряд: больше ста тысяч строк вкладка не выдержит.',
+            'не-буква': 'Такой буквы нет в выбранной азбуке.' },
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить',
+    nothing: 'Списка нет', copyFail: 'Браузер не дал скопировать',
+    n1: '<b>Шаг ноль и шаг не в ту сторону отсекаются сразу.</b> Шаг ноль — это вечный цикл и повисшая вкладка. А ряд «от 1 до 100 с шагом минус один» просто не дойдёт до конца: вместо пустоты мы говорим, что не так и что поправить.',
+    n2: '<b>Дробный шаг считается в целых числах.</b> В двоичной арифметике 0,3 делённое на 0,1 даёт 2,9999999999999996, и последняя строка ряда терялась, а сложение по одному давало 0,30000000000000004. Мы умножаем на десять в нужной степени и считаем целыми — тогда ряд «от 0 до 0,3 шагом 0,1» выходит ровным.',
+    n3: '<b>Буквенный ряд знает четыре азбуки.</b> Латиницу, испанскую с Ñ, русскую с Ё и украинскую с Ґ, Є, І, Ї. Азбука выбирается по языку страницы, но переключить можно вручную.',
+    n4: '<b>В официальных документах буквенная нумерация идёт не по всей азбуке.</b> Правила оформления велят пропускать ё, з, й, о, ч, ъ, ы, ь — их путают с цифрами и друг с другом. Мы выдаём азбуку целиком: где нужен строгий порядок, лишние буквы проще убрать глазами, чем догадываться, почему их нет.',
+    n5: '<b>Приставка, хвост и нумерация ложатся и на свой список.</b> Вставьте столбец из таблицы — и получите готовые пункты HTML, строки кода или нумерованный перечень. Пустые строки при этом остаются пустыми.',
+    n6: 'Всё считается в вашем браузере. Артикулы, серийные номера и списки никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    kind: 'Що робимо', numbers: 'Ряд чисел', letters: 'Ряд літер', own: 'Свій список',
+    from: 'Від', to: 'До', step: 'Крок',
+    alphabet: 'Абетка', lat: 'Латиниця', cyr: 'Кирилиця',
+    caseUp: 'ВЕЛИКІ', caseLow: 'малі',
+    prefix: 'Приставка', suffix: 'Хвіст', numbering: 'Нумерація',
+    numNone: 'без номерів', numDot: '1.', numParen: '1)', numZero: '01.', numDash: '— ',
+    place: 'Вставте свій список — по рядку на пункт…',
+    empty: 'Задайте ряд — список з’явиться тут.',
+    lines: 'Рядків',
+    беды: { 'шаг-ноль': 'Крок не може бути нулем: ряд ніколи не скінчиться.',
+            'шаг-не-туда': 'Крок веде в інший бік: до кінця ряд не дійде. Змініть знак кроку або переставте «від» і «до».',
+            'не-число': 'У полях діапазону мають бути числа.',
+            'слишком-много': 'Задовгий ряд: більше ста тисяч рядків вкладка не витримає.',
+            'не-буква': 'Такої літери немає в обраній абетці.' },
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити',
+    nothing: 'Списку немає', copyFail: 'Браузер не дав скопіювати',
+    n1: '<b>Крок нуль і крок не в той бік відсікаються одразу.</b> Крок нуль — це вічний цикл і зависла вкладка. А ряд «від 1 до 100 з кроком мінус один» просто не дійде до кінця: замість порожнечі ми кажемо, що не так.',
+    n2: '<b>Дробовий крок рахується в цілих числах.</b> У двійковій арифметиці 0,3 поділене на 0,1 дає 2,9999999999999996, і останній рядок ряду губився. Ми множимо на десять у потрібному степені й рахуємо цілими.',
+    n3: '<b>Літерний ряд знає чотири абетки.</b> Латиницю, іспанську з Ñ, російську з Ё та українську з Ґ, Є, І, Ї. Абетка обирається за мовою сторінки, але перемкнути можна вручну.',
+    n4: '<b>В офіційних документах літерна нумерація йде не по всій абетці.</b> Правила оформлення велять пропускати літери, які плутають із цифрами. Ми видаємо абетку цілком: де потрібен суворий порядок, зайві літери простіше прибрати очима.',
+    n5: '<b>Приставка, хвіст і нумерація лягають і на свій список.</b> Вставте стовпець із таблиці — і отримаєте готові пункти HTML, рядки коду або нумерований перелік.',
+    n6: 'Усе рахується у вашому браузері. Артикули, серійні номери й списки нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    kind: 'What to build', numbers: 'Number range', letters: 'Letter range', own: 'My own list',
+    from: 'From', to: 'To', step: 'Step',
+    alphabet: 'Alphabet', lat: 'Latin', cyr: 'Cyrillic',
+    caseUp: 'UPPERCASE', caseLow: 'lowercase',
+    prefix: 'Prefix', suffix: 'Suffix', numbering: 'Numbering',
+    numNone: 'no numbers', numDot: '1.', numParen: '1)', numZero: '01.', numDash: '— ',
+    place: 'Paste your own list — one item per line…',
+    empty: 'Set a range and the list appears here.',
+    lines: 'Lines',
+    беды: { 'шаг-ноль': 'The step cannot be zero: the range would never end.',
+            'шаг-не-туда': 'The step points the other way, so the range never reaches the end. Flip the sign of the step, or swap “from” and “to”.',
+            'не-число': 'The range fields need numbers.',
+            'слишком-много': 'Too long a range: a tab will not survive more than a hundred thousand lines.',
+            'не-буква': 'That letter is not in the chosen alphabet.' },
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear',
+    nothing: 'There is no list', copyFail: 'The browser refused to copy',
+    n1: '<b>A zero step and a step in the wrong direction are caught at once.</b> A zero step is an endless loop and a hung tab. A range “from 1 to 100 in steps of minus one” simply never reaches the end — instead of returning nothing we say what is wrong and how to fix it.',
+    n2: '<b>Fractional steps are counted in whole numbers.</b> In binary arithmetic 0.3 divided by 0.1 gives 2.9999999999999996, so the last line of the range went missing, while adding up step by step produced 0.30000000000000004. We scale by a power of ten and count in integers, so a range from 0 to 0.3 in steps of 0.1 comes out clean.',
+    n3: '<b>The letter range knows four alphabets.</b> Latin, Spanish with Ñ, Russian with Ё and Ukrainian with Ґ, Є, І, Ї. The alphabet follows the language of the page and can be switched by hand.',
+    n4: '<b>Official documents do not letter their lists with the whole alphabet.</b> Style rules drop the letters that are easily confused with digits or with each other. We give the alphabet in full: where a strict order is required it is easier to delete a letter than to wonder why one is missing.',
+    n5: '<b>Prefix, suffix and numbering apply to your own list too.</b> Paste a column from a spreadsheet and get ready-made HTML items, lines of code or a numbered list. Blank lines stay blank.',
+    n6: 'Everything is computed in your browser. Part numbers, serial numbers and lists are never sent anywhere and never stored.',
+  },
+  es: {
+    kind: 'Qué generar', numbers: 'Serie numérica', letters: 'Serie de letras', own: 'Mi lista',
+    from: 'Desde', to: 'Hasta', step: 'Paso',
+    alphabet: 'Alfabeto', lat: 'Latino', cyr: 'Cirílico',
+    caseUp: 'MAYÚSCULAS', caseLow: 'minúsculas',
+    prefix: 'Prefijo', suffix: 'Sufijo', numbering: 'Numeración',
+    numNone: 'sin números', numDot: '1.', numParen: '1)', numZero: '01.', numDash: '— ',
+    place: 'Pega tu propia lista, un elemento por línea…',
+    empty: 'Define un rango y la lista aparecerá aquí.',
+    lines: 'Líneas',
+    беды: { 'шаг-ноль': 'El paso no puede ser cero: la serie no terminaría nunca.',
+            'шаг-не-туда': 'El paso va en sentido contrario, así que la serie no llega al final. Cambia el signo del paso o intercambia «desde» y «hasta».',
+            'не-число': 'Los campos del rango necesitan números.',
+            'слишком-много': 'Serie demasiado larga: una pestaña no aguanta más de cien mil líneas.',
+            'не-буква': 'Esa letra no está en el alfabeto elegido.' },
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar',
+    nothing: 'No hay lista', copyFail: 'El navegador no dejó copiar',
+    n1: '<b>El paso cero y el paso al revés se detectan al momento.</b> Un paso de cero es un bucle infinito y una pestaña colgada. Y una serie «de 1 a 100 con paso menos uno» nunca llega al final: en vez de devolver nada, decimos qué falla y cómo arreglarlo.',
+    n2: '<b>El paso decimal se cuenta con números enteros.</b> En aritmética binaria 0,3 dividido entre 0,1 da 2,9999999999999996 y la última línea de la serie se perdía. Multiplicamos por una potencia de diez y contamos en enteros.',
+    n3: '<b>La serie de letras conoce cuatro alfabetos.</b> El latino, el español con Ñ, el ruso con Ё y el ucraniano con Ґ, Є, І, Ї. El alfabeto sigue al idioma de la página y se puede cambiar a mano.',
+    n4: '<b>En documentos oficiales las listas con letras no usan todo el alfabeto.</b> Las normas de estilo saltan las letras que se confunden con cifras. Nosotros damos el alfabeto entero: donde haga falta un orden estricto, es más fácil borrar una letra que preguntarse por qué falta.',
+    n5: '<b>El prefijo, el sufijo y la numeración también se aplican a tu lista.</b> Pega una columna de una hoja de cálculo y obtén elementos HTML listos, líneas de código o una lista numerada.',
+    n6: 'Todo se calcula en tu navegador. Referencias, números de serie y listas no se envían a ninguna parte ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="сп" data-words={JSON.stringify(с)} data-lat={латинская} data-cyr={кириллическая}>
+  <div class="сп-верх">
+    <span class="сп-подпись">{с.kind}:</span>
+    <div class="сп-кнопки" role="group">
+      <button type="button" class="сп-выбор выбран" id="сп-числа">{с.numbers}</button>
+      <button type="button" class="сп-выбор" id="сп-буквы">{с.letters}</button>
+      <button type="button" class="сп-выбор" id="сп-свой">{с.own}</button>
+    </div>
+  </div>
+
+  <div class="сп-верх сп-ряд" id="сп-ряд-чисел">
+    <span class="сп-подпись">{с.from}:</span>
+    <input class="сп-поле-мал" id="сп-от" type="text" inputmode="decimal" value="1">
+    <span class="сп-подпись">{с.to}:</span>
+    <input class="сп-поле-мал" id="сп-до" type="text" inputmode="decimal" value="100">
+    <span class="сп-подпись">{с.step}:</span>
+    <input class="сп-поле-мал" id="сп-шаг" type="text" inputmode="decimal" value="1">
+  </div>
+
+  <div class="сп-верх сп-ряд нет" id="сп-ряд-букв">
+    <span class="сп-подпись">{с.alphabet}:</span>
+    <div class="сп-кнопки" role="group">
+      <button type="button" class="сп-выбор выбран" id="сп-лат">{с.lat}</button>
+      <button type="button" class="сп-выбор" id="сп-кир">{с.cyr}</button>
+    </div>
+    <span class="сп-подпись">{с.from}:</span>
+    <input class="сп-поле-мал буква" id="сп-буква-от" type="text" value="A" maxlength="1">
+    <span class="сп-подпись">{с.to}:</span>
+    <input class="сп-поле-мал буква" id="сп-буква-до" type="text" value="Z" maxlength="1">
+    <div class="сп-кнопки" role="group">
+      <button type="button" class="сп-выбор выбран" id="сп-больш">{с.caseUp}</button>
+      <button type="button" class="сп-выбор" id="сп-мал">{с.caseLow}</button>
+    </div>
+  </div>
+
+  <div class="сп-поле сп-ряд нет" id="сп-ряд-свой">
+    <textarea class="сп-ввод" id="сп-ввод" placeholder={с.place} spellcheck="false"></textarea>
+  </div>
+
+  <div class="сп-верх">
+    <span class="сп-подпись">{с.prefix}:</span>
+    <input class="сп-поле-мал широкое" id="сп-приставка" type="text" spellcheck="false">
+    <span class="сп-подпись">{с.suffix}:</span>
+    <input class="сп-поле-мал широкое" id="сп-хвост" type="text" spellcheck="false">
+    <span class="сп-подпись">{с.numbering}:</span>
+    <select class="сп-список" id="сп-нумерация">
+      <option value="none">{с.numNone}</option>
+      <option value="dot">{с.numDot}</option>
+      <option value="paren">{с.numParen}</option>
+      <option value="zero">{с.numZero}</option>
+      <option value="dash">{с.numDash}</option>
+    </select>
+  </div>
+
+  <div class="сп-текст пусто" id="сп-текст"><p>{с.empty}</p></div>
+
+  <div class="сп-счётчики">
+    <span>{с.lines}: <b id="сп-строк">0</b></span>
+    <span class="сп-сказ" id="сп-сказ"></span>
+  </div>
+
+  <div class="сп-низ">
+    <button type="button" class="сп-кнопка" id="сп-копировать">{с.copyBig}</button>
+    <button type="button" class="сп-простая" id="сп-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="сп-заметки">
+    <div class="сп-заметка" set:html={с.n1}></div>
+    <div class="сп-заметка" set:html={с.n2}></div>
+    <div class="сп-заметка" set:html={с.n3}></div>
+    <div class="сп-заметка" set:html={с.n4}></div>
+    <div class="сп-заметка" set:html={с.n5}></div>
+    <div class="сп-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.сп');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const латинская = корень.dataset.lat || 'lat';
+    const кириллическая = корень.dataset.cyr || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const окно = $('сп-текст');
+    let вид = 'числа';
+    let азбука = латинская;
+    let заглавные = true;
+
+    /* ГЕНЕРАТОР СПИСКОВ.
+     *
+     * ТРИ МЕСТА, ГДЕ ТАКОЙ ИНСТРУМЕНТ ОБЫЧНО ЛОМАЕТСЯ:
+     *   1. Шаг ноль -- вечный цикл и повисшая вкладка. Проверяем до начала.
+     *   2. Шаг не в ту сторону: от 1 до 100 с шагом минус один. Ряда не выйдет, и об этом надо
+     *      сказать, а не молча отдать пустоту.
+     *   3. Дробный шаг: 0,1 плюс 0,1 плюс 0,1 в двоичной арифметике даёт 0,30000000000000004.
+     *      Поэтому каждое значение считается как «старт плюс номер, умноженный на шаг», и
+     *      округляется до того же числа знаков, что во введённых числах.
+     */
+
+    const ПРЕДЕЛ = 100000;   // больше ста тысяч строк вкладке уже тяжело
+
+    const АЛФАВИТЫ = {
+      lat: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ',
+      lat_es: 'ABCDEFGHIJKLMNÑOPQRSTUVWXYZ',
+      ru: 'АБВГДЕЁЖЗИЙКЛМНОПРСТУФХЦЧШЩЪЫЬЭЮЯ',
+      uk: 'АБВГҐДЕЄЖЗИІЇЙКЛМНОПРСТУФХЦЧШЩЬЮЯ',
+    };
+
+    /** Сколько знаков после запятой в записи числа. */
+    function знаковПосле(строка) {
+      const м = String(строка).match(/[.,](\d+)/);
+      return м ? м[1].length : 0;
+    }
+
+    /**
+     * Числовой ряд. Возвращает { строки } либо { беда }.
+     * Числа принимаются строками -- по ним же считается нужная точность.
+     */
+    function числовойРяд(отСтрока, доСтрока, шагСтрока) {
+      const от = Number(String(отСтрока).replace(',', '.'));
+      const до = Number(String(доСтрока).replace(',', '.'));
+      const шаг = Number(String(шагСтрока).replace(',', '.'));
+      if (!Number.isFinite(от) || !Number.isFinite(до) || !Number.isFinite(шаг)) {
+        return { беда: 'не-число' };
+      }
+      if (шаг === 0) return { беда: 'шаг-ноль' };
+      if ((до - от) !== 0 && Math.sign(до - от) !== Math.sign(шаг)) return { беда: 'шаг-не-туда' };
+
+      // Точность берём наибольшую из введённых: если шаг 0,1 -- и результат с одним знаком.
+      const знаков = Math.max(знаковПосле(отСтрока), знаковПосле(доСтрока), знаковПосле(шагСтрока));
+      const множитель = Math.pow(10, знаков);
+
+      // Считаем в ЦЕЛЫХ. В двоичной арифметике 0,3 делённое на 0,1 даёт 2,9999999999999996,
+      // и последняя строка ряда просто терялась. В целых такого не бывает.
+      const цОт = Math.round(от * множитель);
+      const цДо = Math.round(до * множитель);
+      const цШаг = Math.round(шаг * множитель);
+      if (цШаг === 0) return { беда: 'шаг-ноль' };
+
+      const сколько = Math.floor(Math.abs((цДо - цОт) / цШаг)) + 1;
+      if (сколько > ПРЕДЕЛ) return { беда: 'слишком-много', сколько };
+
+      const строки = [];
+      for (let и = 0; и < сколько; и++) {
+        const целое = цОт + и * цШаг;
+        строки.push(знаков ? (целое / множитель).toFixed(знаков) : String(целое));
+      }
+      return { строки };
+    }
+
+    /** Буквенный ряд от буквы до буквы по выбранному алфавиту. */
+    function буквенныйРяд(алфавит, отБуквы, доБуквы, заглавные) {
+      const азбука = АЛФАВИТЫ[алфавит] || АЛФАВИТЫ.lat;
+      const от = азбука.indexOf(String(отБуквы || '').toUpperCase());
+      const до = азбука.indexOf(String(доБуквы || '').toUpperCase());
+      if (от < 0 || до < 0) return { беда: 'не-буква' };
+      const шаг = до >= от ? 1 : -1;
+      const строки = [];
+      for (let и = от; шаг > 0 ? и <= до : и >= до; и += шаг) {
+        строки.push(заглавные ? азбука[и] : азбука[и].toLowerCase());
+      }
+      return { строки };
+    }
+
+    const НУМЕРАЦИЯ = {
+      none: null,
+      dot: (н) => `${н}. `,
+      paren: (н) => `${н}) `,
+      zero: (н, всего) => `${String(н).padStart(String(всего).length, '0')}. `,
+      dash: () => '— ',
+    };
+
+    /** Приставка, хвост и нумерация -- поверх готовых строк. */
+    function оформить(строки, { приставка = '', хвост = '', нумерация = 'none' } = {}) {
+      const как = НУМЕРАЦИЯ[нумерация];
+      return строки.map((с, и) => (как ? как(и + 1, строки.length) : '') + приставка + с + хвост);
+    }
+
+    /* ---- Показ ------------------------------------------------------------------------------ */
+
+    function показать(строки, беда) {
+      окно.classList.toggle('пусто', !строки.length);
+      окно.classList.toggle('беда', Boolean(беда));
+      const куски = (беда ? [беда] : (строки.length ? строки : [с.empty]))
+        .map((т) => { const п = document.createElement('p'); п.textContent = т; return п; });
+      окно.replaceChildren(...куски);
+      $('сп-строк').textContent = String(беда ? 0 : строки.length);
+    }
+
+    function собрать() {
+      const оформление = {
+        приставка: $('сп-приставка').value,
+        хвост: $('сп-хвост').value,
+        нумерация: $('сп-нумерация').value,
+      };
+
+      if (вид === 'свой') {
+        const строки = $('сп-ввод').value.split(/\r\n|\r|\n/);
+        if (!строки.some((к) => к.trim())) { показать([]); return; }
+        // Пустые строки оставляем пустыми: они разделяют куски списка, и номера им не нужны.
+        // Нумерация идёт по непустым подряд, поэтому оформляем их отдельным списком, а потом
+        // раскладываем обратно по местам.
+        const непустые = строки.filter((к) => к.trim());
+        const занумерованные = оформить(непустые, оформление);
+        let и = 0;
+        показать(строки.map((к) => (к.trim() ? занумерованные[и++] : '')));
+        return;
+      }
+
+      const ответ = вид === 'числа'
+        ? числовойРяд($('сп-от').value, $('сп-до').value, $('сп-шаг').value)
+        : буквенныйРяд(азбука, $('сп-буква-от').value, $('сп-буква-до').value, заглавные);
+
+      if (ответ.беда) { показать([], с.беды[ответ.беда] || ответ.беда); return; }
+      показать(оформить(ответ.строки, оформление));
+    }
+
+    function поставитьВид(имя, кнопка) {
+      вид = имя;
+      for (const и of ['сп-числа', 'сп-буквы', 'сп-свой']) {
+        $(и).classList.toggle('выбран', и === кнопка);
+      }
+      $('сп-ряд-чисел').classList.toggle('нет', имя !== 'числа');
+      $('сп-ряд-букв').classList.toggle('нет', имя !== 'буквы');
+      $('сп-ряд-свой').classList.toggle('нет', имя !== 'свой');
+      собрать();
+    }
+
+    function поставитьАзбуку(имя, кнопка) {
+      азбука = имя;
+      for (const и of ['сп-лат', 'сп-кир']) $(и).classList.toggle('выбран', и === кнопка);
+      // Буквы из прежней азбуки в новой не найдутся -- ставим её первую и последнюю.
+      const набор = АЛФАВИТЫ[имя];
+      $('сп-буква-от').value = набор[0];
+      $('сп-буква-до').value = набор[набор.length - 1];
+      собрать();
+    }
+
+    function сказать(текст) {
+      const э = $('сп-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    $('сп-числа').addEventListener('click', () => поставитьВид('числа', 'сп-числа'));
+    $('сп-буквы').addEventListener('click', () => поставитьВид('буквы', 'сп-буквы'));
+    $('сп-свой').addEventListener('click', () => поставитьВид('свой', 'сп-свой'));
+    $('сп-лат').addEventListener('click', () => поставитьАзбуку(латинская, 'сп-лат'));
+    $('сп-кир').addEventListener('click', () => поставитьАзбуку(кириллическая, 'сп-кир'));
+    $('сп-больш').addEventListener('click', () => {
+      заглавные = true;
+      $('сп-больш').classList.add('выбран'); $('сп-мал').classList.remove('выбран');
+      собрать();
+    });
+    $('сп-мал').addEventListener('click', () => {
+      заглавные = false;
+      $('сп-мал').classList.add('выбран'); $('сп-больш').classList.remove('выбран');
+      собрать();
+    });
+    for (const и of ['сп-от', 'сп-до', 'сп-шаг', 'сп-буква-от', 'сп-буква-до',
+                     'сп-приставка', 'сп-хвост', 'сп-ввод']) {
+      $(и).addEventListener('input', собрать);
+    }
+    $('сп-нумерация').addEventListener('change', собрать);
+
+    $('сп-копировать').addEventListener('click', async () => {
+      const кнопка = $('сп-копировать');
+      if (окно.classList.contains('пусто') || окно.classList.contains('беда')) {
+        сказать(с.nothing); return;
+      }
+      const текст = [...окно.querySelectorAll('p')].map((п) => п.textContent).join('\n');
+      let вышло = false;
+      try { await navigator.clipboard.writeText(текст); вышло = true; }
+      catch (ошибка) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('сп-очистить').addEventListener('click', () => {
+      $('сп-приставка').value = '';
+      $('сп-хвост').value = '';
+      $('сп-нумерация').value = 'none';
+      $('сп-ввод').value = '';
+      собрать();
+    });
+
+    поставитьАзбуку(латинская, 'сп-лат');
+    собрать();
+
+    window.__спСостояние = () => ({
+      вид, азбука, заглавные,
+      строк: $('сп-строк').textContent,
+      беда: окно.classList.contains('беда'),
+      текст: [...окно.querySelectorAll('p')].map((п) => п.textContent).join('\n'),
+    });
+  })();
+</script>

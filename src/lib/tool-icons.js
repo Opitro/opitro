@@ -38,6 +38,7 @@ const I = {
   phone: '<rect x="6.5" y="2.5" width="11" height="19" rx="2.5"/><path d="M10.5 5.5h3"/><circle cx="12" cy="18" r="1"/>',
   escape: '<path d="M7 4.5L3.5 12 7 19.5"/><path d="M17 4.5L20.5 12 17 19.5"/><path d="M13.5 6l-3 12"/>',
   camel: '<path d="M4 16.5V10a2.5 2.5 0 0 1 5 0v6.5"/><path d="M4 13.5h5"/><path d="M13 19.5h8"/><path d="M14.5 15.5h2M18.5 15.5h2"/>',
+  listgen: '<path d="M9 6.5h11M9 12h11M9 17.5h11"/><path d="M4 5.5l1.2 1.2L7.2 4.7"/><path d="M4 11l1.2 1.2L7.2 10"/><path d="M4 16.5l1.2 1.2 2-2"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -76,6 +77,7 @@ const I = {
 // Порядок важен: первое совпадение выигрывает, поэтому частное стоит выше общего --
 // "remove-silence" должен попасть в резку, а не в шум по слову "silence".
 const RULES = [
+  [/^list-generator$/, 'listgen'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
   [/^case-converter$/, 'camel'],
@@ -158,7 +160,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b',
+  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */
