@@ -1,0 +1,200 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕКСТ В РЕЧЬ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных текстовых инструментов, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: у кнопки «Стоп» просили серые буквы (#71717A). Пока кнопка живая,
+ * буквы белые -- приглушённый текст на рабочей кнопке владелец уже забраковал на Base64.
+ * Серой она становится, только когда действительно не нажимается.
+ */
+
+.рч {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт настроек ------------------------------------------------------------------------ */
+
+.рч-пульт { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
+  margin-bottom: 12px }
+.рч-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.рч-голос-гнездо { display: flex; align-items: center; gap: 9px; flex: 1 1 100%; min-width: 0 }
+.рч-список {
+  flex: 1 1 auto; min-width: 0; height: 38px; padding: 0 34px 0 12px; border-radius: 6px;
+  cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none; text-overflow: ellipsis;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.рч-список:hover { border-color: #fff }
+.рч-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.рч-список[disabled] { color: #71717a; cursor: default; border-color: #2a2f38 }
+
+/* Ползунок. Дорожка тонкая, бегунок -- белый квадрат, как просил владелец. Закраска слева
+   от бегунка своя: без неё в Chrome вся дорожка одного цвета и не видно, где ты стоишь. */
+.рч-ручка { display: flex; align-items: center; gap: 9px; flex: 0 1 240px; min-width: 180px }
+.рч-ползунок {
+  flex: 1 1 auto; min-width: 0; height: 18px; appearance: none; background: transparent;
+  cursor: pointer;
+}
+.рч-ползунок::-webkit-slider-runnable-track { height: 2px; border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--доля, 50%), #3f4652 var(--доля, 50%)) }
+.рч-ползунок::-moz-range-track { height: 2px; border-radius: 2px; background: #3f4652 }
+.рч-ползунок::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--accent) }
+.рч-ползунок::-webkit-slider-thumb { appearance: none; width: 8px; height: 8px; margin-top: -3px;
+  background: #fff; border: 0; border-radius: 0 }
+.рч-ползунок::-moz-range-thumb { width: 8px; height: 8px; background: #fff; border: 0;
+  border-radius: 0 }
+.рч-ползунок:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px }
+/* Место под значение держится постоянным: «1.0x» и «0.55x» разной ширины, и без этого
+   ползунок дёргался бы при каждом движении. */
+.рч-значение { flex: none; width: 46px; text-align: right; font: 500 12.5px var(--цифры);
+  color: #fff; font-variant-numeric: tabular-nums }
+
+/* ---- Поле ---------------------------------------------------------------------------------- */
+
+.рч-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.рч-поле:focus-within { border-color: #fff }
+.рч-ввод {
+  display: block; width: 100%; min-height: 170px; resize: vertical;
+  padding: 15px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
+}
+.рч-ввод:focus { outline: none }
+.рч-ввод::placeholder { color: #7d848f }
+
+.рч-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 9px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.рч-счётчики b { color: #fff; font-weight: 500 }
+.рч-счётчики .перебор b { color: #ff9aa8 }
+.рч-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s;
+  text-align: right }
+.рч-сказ.видно { opacity: 1 }
+
+/* ---- Строка «сейчас читается» ---------------------------------------------------------------
+   Место под неё занято с самого начала и высота постоянная: строка появляется в середине
+   работы, и без запаса страница подпрыгивала бы прямо во время чтения. */
+.рч-читается {
+  min-height: 42px; display: flex; align-items: center; padding: 8px 12px; margin-bottom: 10px;
+  border: 1px solid var(--линия); border-radius: 8px; background: #0b0c0f;
+  font: 400 13px/1.4 var(--ui); color: #7d848f;
+  overflow: hidden;
+}
+.рч-читается.идёт { color: #fff; border-color: rgba(255,255,255,.28) }
+.рч-читается b { color: #fff; font-weight: 600 }
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.рч-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center }
+.рч-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.рч-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.рч-кнопка[disabled] { background: #1c1f26; border-color: #2a2f38; color: #71717a; cursor: default }
+.рч-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+  display: inline-flex; align-items: center; gap: 8px;
+}
+.рч-простая:hover { border-color: #fff; background: #23272f }
+.рч-простая[disabled] { color: #71717a; border-color: #2a2f38; cursor: default; background: #16181d }
+.рч-простая[disabled]:hover { border-color: #2a2f38; background: #16181d }
+
+/* Скачивание -- чёрная кнопка в белой обводке, при наведении заливается белым. */
+.рч-скачать {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  display: inline-flex; align-items: center; gap: 8px; transition: background .15s, color .15s;
+}
+.рч-скачать:hover { background: #fff; color: #000 }
+/* Служебный вид: на iPhone и в Safari записи нет. Кнопка не пропадает и не блокируется --
+   по ней объясняют, почему так, иначе это выглядит как поломка. */
+.рч-скачать.служебная { border-color: #3f4652; color: #a1a1aa }
+.рч-скачать.служебная:hover { background: #16181d; color: #fff; border-color: #fff }
+.рч-скачать[disabled] { border-color: #2a2f38; color: #71717a; cursor: default; background: #16181d }
+.рч-скачать[disabled]:hover { background: #16181d; color: #71717a }
+
+.рч-формат { display: inline-flex; gap: 6px; margin-left: auto }
+.рч-фмт {
+  height: 44px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.рч-фмт:hover { border-color: #fff; background: #23272f }
+.рч-фмт.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.рч-фмт.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* ---- Окно ответа ----------------------------------------------------------------------------
+   Сюда попадают и подсказка перед записью, и разбор неудачи. Место держится пустым, чтобы
+   появление сообщения не сдвигало заметки под ним. */
+.рч-ответ { min-height: 0; margin-top: 10px; border-radius: 10px; overflow: hidden;
+  transition: none }
+.рч-ответ:empty { display: none }
+.рч-весть { padding: 12px 14px; border: 1px solid var(--линия); border-radius: 10px;
+  background: #16181d; font: 400 13px/1.6 var(--ui); color: #fff }
+.рч-весть.беда { border-color: rgba(255,154,168,.45) }
+.рч-весть b { color: #fff; font-weight: 600 }
+.рч-весть ol, .рч-весть ul { margin: 7px 0 0; padding-left: 20px }
+.рч-весть li { margin: 3px 0 }
+
+/* Полоса хода. Место под неё занято ВСЕГДА, видимость меняется прозрачностью: если прятать
+   её через hidden, страница подпрыгивает на 12 пикселей при каждом пуске чтения. */
+.рч-полоса { height: 2px; margin-top: 10px; background: #23272f; border-radius: 2px;
+  overflow: hidden; opacity: 0; transition: opacity .15s }
+.рч-полоса.идёт { opacity: 1 }
+.рч-полоса i { display: block; height: 100%; width: 0; background: var(--accent);
+  transition: width .2s linear }
+
+.рч-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.рч-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.рч-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.рч-заметка b { color: #fff; font-weight: 600 }
+
+/* Список голосов рисуем внутри страницы, а не отдельным документом системы: на длинном
+   списке (у iPhone и Windows их больше сотни) нативный список заметно тормозит отклик. */
+@supports (appearance: base-select) {
+  .рч .рч-список { appearance: base-select; display: flex; align-items: center;
+    white-space: nowrap; overflow: hidden }
+  .рч .рч-список::picker(select) { appearance: base-select; border: 1px solid var(--линия);
+    border-radius: 10px; background: #16181d; box-shadow: 0 14px 40px rgba(0,0,0,.55);
+    padding: 6px; margin-top: 6px; position-try-fallbacks: none; max-height: 60vh }
+  .рч .рч-список::picker-icon { display: none }
+  .рч .рч-список option { display: flex; align-items: center; gap: 10px; padding: 9px 11px;
+    border-radius: 7px; color: #fff; background: transparent;
+    font: 500 13px var(--цифры) }
+  .рч .рч-список option:checked { color: var(--accent) }
+  .рч .рч-список option:hover { background: rgba(255,255,255,.06) }
+  /* Галочку системы прячем: она рисуется поверх текста и уже дважды портила списки. */
+  .рч .рч-список option::checkmark { display: none }
+}
+
+@media (max-width: 720px) {
+  .рч-голос-гнездо { flex: 1 1 100% }
+  .рч-ручка { flex: 1 1 100% }
+  .рч-формат { margin-left: 0 }
+}
+@media (max-width: 560px) {
+  .рч-ввод { min-height: 140px }
+  .рч-кнопка, .рч-простая, .рч-скачать { flex: 1 1 auto; justify-content: center }
+}
