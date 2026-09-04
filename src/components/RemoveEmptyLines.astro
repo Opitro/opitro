@@ -1,0 +1,210 @@
+---
+// УДАЛЕНИЕ ПУСТЫХ СТРОК.
+//
+// ДВА РАЗНЫХ ДЕЙСТВИЯ, и путать их нельзя:
+//   -- УБРАТЬ пустые строки: не остаётся ни одной, текст становится сплошным списком.
+//   -- СЖАТЬ их: несколько подряд превращаются в одну, деление на абзацы сохраняется.
+// Второе нужно для статей, первое -- для списков и выгрузок, где пустая строка ломает разбор.
+//
+// СТРОКА ИЗ ОДНИХ ПРОБЕЛОВ на вид пустая, а по знакам -- нет. Именно из-за неё «пустые
+// строки вроде убрал, а они остались». Переключатель решает, считать ли её пустой; по
+// умолчанию считаем, потому что человек смотрит глазами, а не в коды знаков.
+//
+// Текст никуда не уходит: всё делается в браузере.
+import css from '../styles/remove-empty-lines.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    withSpaces: 'Считать пустой и строку из пробелов', collapse: 'Не убирать, а сжать до одной',
+    place: 'Вставьте текст или список с пустыми строками…', result: 'Очищенный текст появится здесь…',
+    was: 'Было строк', now: 'Стало', removed: 'Убрано',
+    copyBig: 'Копировать результат', copiedBig: 'Скопировано!', clearAll: 'Очистить всё',
+    nothing: 'Поле пустое', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Строка из одних пробелов на вид пустая, а по знакам — нет.</b> Именно из-за неё бывает «убрал пустые строки, а они остались»: там сидят пробелы или табуляции, которых не видно. По умолчанию мы считаем такую строку пустой — человек смотрит глазами, а не в коды знаков. Снимите переключатель, если нужна буквальная строгость.',
+    n2: '<b>Убрать и сжать — разные вещи.</b> Убрать значит не оставить ни одной пустой строки: текст становится сплошным списком, и это нужно для выгрузок, где пустая строка ломает разбор. Сжать значит оставить ровно одну между кусками: так сохраняется деление на абзацы, и это нужно для статей.',
+    n3: '<b>Пустые строки по краям уходят тоже.</b> Пустота в начале и в конце текста при вставке из таблицы или PDF появляется почти всегда, а замечают её редко — потом она вылезает лишним переносом в готовом файле.',
+    n4: '<b>Одиночные переносы внутри абзаца не трогаются.</b> Мы работаем только со строками, где нет ничего, кроме пустоты. Сам текст, отступы внутри строк и порядок строк остаются как были.',
+    n5: 'Всё делается в вашем браузере. Списки, адреса и исходный код никуда не отправляются и нигде не сохраняются.',
+  },
+  uk: {
+    withSpaces: 'Вважати порожнім і рядок із пробілів', collapse: 'Не прибирати, а стиснути до одного',
+    place: 'Вставте текст або список із порожніми рядками…', result: 'Очищений текст з’явиться тут…',
+    was: 'Було рядків', now: 'Стало', removed: 'Прибрано',
+    copyBig: 'Копіювати результат', copiedBig: 'Скопійовано!', clearAll: 'Очистити все',
+    nothing: 'Поле порожнє', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Рядок із самих пробілів на вигляд порожній, а за знаками — ні.</b> Саме через нього буває «прибрав порожні рядки, а вони лишилися»: там сидять пробіли або табуляції, яких не видно. За замовчуванням ми вважаємо такий рядок порожнім.',
+    n2: '<b>Прибрати й стиснути — різні речі.</b> Прибрати означає не лишити жодного порожнього рядка: текст стає суцільним списком, і це потрібно для вивантажень, де порожній рядок ламає розбір. Стиснути означає лишити рівно один між шматками — так зберігається поділ на абзаци.',
+    n3: '<b>Порожні рядки по краях зникають теж.</b> Порожнеча на початку й у кінці тексту при вставці з таблиці або PDF з’являється майже завжди, а помічають її рідко.',
+    n4: '<b>Одиничні переноси всередині абзацу не чіпаються.</b> Ми працюємо лише з рядками, де немає нічого, крім порожнечі. Сам текст, відступи всередині рядків і порядок рядків лишаються як були.',
+    n5: 'Усе робиться у вашому браузері. Списки, адреси й вихідний код нікуди не надсилаються і ніде не зберігаються.',
+  },
+  en: {
+    withSpaces: 'Treat a line of spaces as blank', collapse: 'Collapse to one instead of removing',
+    place: 'Paste text or a list with blank lines…', result: 'The cleaned text will appear here…',
+    was: 'Lines before', now: 'After', removed: 'Removed',
+    copyBig: 'Copy the result', copiedBig: 'Copied!', clearAll: 'Clear everything',
+    nothing: 'The field is empty', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>A line made of spaces looks blank but is not.</b> That is exactly why people say “I removed the blank lines and they are still there”: those lines hold spaces or tabs that nothing shows. By default we count such a line as blank, because a person judges by eye rather than by character codes. Untick the switch if you need literal strictness.',
+    n2: '<b>Removing and collapsing are different jobs.</b> Removing leaves no blank line at all: the text becomes a solid list, which is what an export needs when a blank line breaks the parser. Collapsing leaves exactly one between blocks, which keeps the split into paragraphs and is what an article needs.',
+    n3: '<b>Blank lines at the edges go too.</b> Emptiness at the start and end of a pasted text appears almost every time it comes from a spreadsheet or a PDF, and is almost never noticed until it shows up as a stray break in the finished file.',
+    n4: '<b>Single breaks inside a paragraph are left alone.</b> We only touch lines that hold nothing but emptiness. The text itself, the indentation inside lines and the order of lines stay exactly as they were.',
+    n5: 'Everything happens in your browser. Lists, addresses and source code are never sent anywhere and never stored.',
+  },
+  es: {
+    withSpaces: 'Contar como vacía una línea de espacios', collapse: 'Reducir a una en vez de quitarlas',
+    place: 'Pega un texto o una lista con líneas vacías…', result: 'El texto limpio aparecerá aquí…',
+    was: 'Líneas antes', now: 'Después', removed: 'Quitadas',
+    copyBig: 'Copiar el resultado', copiedBig: '¡Copiado!', clearAll: 'Limpiar todo',
+    nothing: 'El campo está vacío', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Una línea hecha de espacios parece vacía pero no lo está.</b> Por eso ocurre lo de «quité las líneas vacías y siguen ahí»: esas líneas llevan espacios o tabulaciones que no se ven. Por defecto las contamos como vacías, porque una persona juzga con los ojos y no con los códigos de los caracteres.',
+    n2: '<b>Quitar y reducir son cosas distintas.</b> Quitar significa no dejar ninguna línea vacía: el texto queda como una lista compacta, que es lo que necesita una exportación cuando una línea vacía rompe el análisis. Reducir deja exactamente una entre bloques y conserva la división en párrafos.',
+    n3: '<b>Las líneas vacías de los extremos también se van.</b> El vacío al principio y al final aparece casi siempre al pegar desde una hoja de cálculo o un PDF, y casi nunca se nota hasta que sale como un salto de más en el archivo final.',
+    n4: '<b>Los saltos sueltos dentro de un párrafo no se tocan.</b> Solo tocamos las líneas que no contienen más que vacío. El texto, la sangría dentro de las líneas y el orden se quedan igual.',
+    n5: 'Todo ocurre en tu navegador. Las listas, las direcciones y el código no se envían a ninguna parte ni se guardan.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="пс" data-words={JSON.stringify(с)}>
+  <div class="пс-верх">
+    <label class="пс-галка"><input type="checkbox" id="пс-пробелы" checked><i></i>{с.withSpaces}</label>
+    <label class="пс-галка"><input type="checkbox" id="пс-сжать"><i></i>{с.collapse}</label>
+  </div>
+
+  <div class="пс-пара-полей">
+    <div class="пс-поле">
+      <textarea class="пс-ввод" id="пс-ввод" placeholder={с.place} spellcheck="false"></textarea>
+    </div>
+    <div class="пс-поле пс-вывод">
+      <textarea class="пс-ввод" id="пс-вывод" placeholder={с.result} readonly></textarea>
+    </div>
+    <div class="пс-счётчики">
+      <span>{с.was}: <b id="пс-было">0</b></span>
+      <span>{с.now}: <b id="пс-стало">0</b></span>
+      <span class="пс-убрано" id="пс-убрано">{с.removed}: <b id="пс-убрано-число">0</b></span>
+      <span class="пс-сказ" id="пс-сказ"></span>
+    </div>
+  </div>
+
+  <div class="пс-низ">
+    <button type="button" class="пс-кнопка" id="пс-копировать">{с.copyBig}</button>
+    <button type="button" class="пс-простая" id="пс-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="пс-заметки">
+    <div class="пс-заметка" set:html={с.n1}></div>
+    <div class="пс-заметка" set:html={с.n2}></div>
+    <div class="пс-заметка" set:html={с.n3}></div>
+    <div class="пс-заметка" set:html={с.n4}></div>
+    <div class="пс-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.пс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('пс-ввод');
+    const вывод = $('пс-вывод');
+
+    // Пустой считается либо строка вовсе без знаков, либо -- по переключателю -- строка из
+    // одних пробелов и табуляций. Второе и есть тот случай, когда «убрал, а они остались».
+    const пустая = (строка, считатьПробелы) => (считатьПробелы ? строка.trim() === '' : строка === '');
+
+    function очистить(текст) {
+      const считатьПробелы = $('пс-пробелы').checked;
+      const сжать = $('пс-сжать').checked;
+      // Возврат каретки из Windows убираем сразу, иначе строка «\r» никогда не будет пустой.
+      const строки = текст.replace(/\r/g, '').split('\n');
+
+      if (!сжать) {
+        const оставшиеся = строки.filter((с_) => !пустая(с_, считатьПробелы));
+        return { строки: оставшиеся, было: строки.length };
+      }
+
+      const итог = [];
+      let подряд = 0;
+      for (const строка of строки) {
+        if (пустая(строка, считатьПробелы)) {
+          подряд++;
+          // Пустоту по краям не оставляем и при сжатии: в начале и в конце она не разделяет
+          // ничего, а в готовом файле вылезает лишним переносом.
+          if (подряд === 1 && итог.length) итог.push('');
+          continue;
+        }
+        подряд = 0;
+        итог.push(строка);
+      }
+      while (итог.length && пустая(итог[итог.length - 1], считатьПробелы)) итог.pop();
+      return { строки: итог, было: строки.length };
+    }
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      if (!исходный) {
+        вывод.value = '';
+        for (const [и, з] of [['пс-было','0'],['пс-стало','0'],['пс-убрано-число','0']]) {
+          $(и).textContent = з;
+        }
+        $('пс-убрано').classList.remove('есть');
+        return;
+      }
+      const { строки, было } = очистить(исходный);
+      вывод.value = строки.join('\n');
+      const убрано = было - строки.length;
+      $('пс-было').textContent = String(было);
+      $('пс-стало').textContent = String(строки.length);
+      $('пс-убрано-число').textContent = String(убрано);
+      $('пс-убрано').classList.toggle('есть', убрано > 0);
+    }
+
+    function сказать(текст) {
+      const э = $('пс-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('пс-пробелы').addEventListener('change', пересчитать);
+    $('пс-сжать').addEventListener('change', пересчитать);
+
+    $('пс-копировать').addEventListener('click', async () => {
+      const кнопка = $('пс-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copiedBig;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+    });
+
+    $('пс-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    пересчитать();
+
+    window.__псСостояние = () => ({
+      ввод: ввод.value, вывод: вывод.value,
+      пробелы: $('пс-пробелы').checked, сжать: $('пс-сжать').checked,
+      было: $('пс-было').textContent, стало: $('пс-стало').textContent,
+      убрано: $('пс-убрано-число').textContent,
+      подсвечено: $('пс-убрано').classList.contains('есть'),
+    });
+  })();
+</script>

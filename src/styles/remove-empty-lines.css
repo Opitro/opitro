@@ -1,0 +1,106 @@
+/* СТИЛИ СТРАНИЦЫ «УДАЛЕНИЕ ПУСТЫХ СТРОК».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных текстовых инструментов, и все решения уже утверждены
+ * владельцем на Base64, URL и ROT13:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО зелёной обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ */
+
+.пс {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --буквы2: #a1a1aa;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Настройки сверху -------------------------------------------------------------------- */
+
+.пс-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
+  margin-bottom: 10px }
+
+/* Галочка: квадратная, без скруглений. */
+.пс-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.пс-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.пс-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.пс-галка:hover i { border-color: #fff }
+.пс-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.пс-галка input:checked + i { border-color: var(--accent) }
+.пс-галка input:checked + i::after { transform: scale(1) }
+.пс-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.пс-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.пс-поле:focus-within { border-color: #fff }
+.пс-ввод {
+  display: block; width: 100%; min-height: 150px; resize: vertical;
+  padding: 15px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
+}
+.пс-ввод:focus { outline: none }
+.пс-ввод::placeholder { color: #7d848f }
+
+.пс-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
+.пс-вывод textarea { color: #fff; cursor: text }
+.пс-вывод textarea::placeholder { color: #7d848f }
+
+/* Строка отчёта: подпись зелёная, значение белое. */
+.пс-счётчики {
+  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.пс-счётчики b { color: #fff; font-weight: 500 }
+.пс-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.пс-сказ.видно { opacity: 1 }
+
+/* ---- Кнопки действий ----------------------------------------------------------------------- */
+
+.пс-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px }
+.пс-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.пс-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.пс-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.пс-простая:hover { border-color: #fff; background: #23272f }
+
+.пс-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.пс-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.пс-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.пс-заметка b { color: #fff; font-weight: 600 }
+.пс-заметка code { font: 400 12.5px var(--цифры); color: #fff }
+
+
+/* Число убранных строк серое, пока убирать нечего, и белое, как только нашлось: владелец
+   просил, чтобы главное число само бросалось в глаза. */
+.пс-убрано b { color: #71717a }
+.пс-убрано.есть b { color: #fff; font-weight: 700 }
+
+/* Поля сеткой с самого начала: на узком экране они идут друг под другом с тем же зазором,
+   на широком -- рядом. Строка отчёта в обоих случаях занимает всю ширину. */
+.пс-пара-полей { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+@media (min-width: 900px) {
+  .пс-пара-полей { grid-template-columns: 1fr 1fr }
+  .пс-счётчики { grid-column: 1 / -1; padding-top: 0 }
+}
+@media (max-width: 560px) {
+  .пс-ввод { min-height: 130px }
+}
