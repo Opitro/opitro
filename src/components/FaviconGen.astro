@@ -1,0 +1,467 @@
+---
+// ГЕНЕРАТОР ЗНАЧКА САЙТА (FAVICON).
+//
+// Всё считается на месте: картинка читается через URL.createObjectURL, режется холстом,
+// складывается в .ico и .zip своими упаковщиками (ico-write.js, zip-store.js). Ни один байт
+// никуда не уходит -- и это не украшение задания, а причина, по которой такой страницей
+// вообще пользуются: сюда несут логотипы, которые нельзя выкладывать на чужой сервер.
+//
+// ТРИ МЕСТА, ГДЕ Я ОТСТУПИЛ ОТ ЗАДАНИЯ:
+//
+//   1. Фон страницы не задаю. Инструменты у нас не красят страницу под себя -- у сайта свой
+//      фон, и он уже почти чёрный. Поля делаю СВЕТЛЕЕ фона: чёрное поле на тёмном фоне
+//      сливается, это решение принято давно и не мной.
+//   2. Текст кода просили приглушённо-серым (#A1A1AA). Он белый. Приглушённые буквы владелец
+//      забраковал ещё на Base64, и повторять эту ошибку незачем: код на этой странице человек
+//      именно читает, а не рассматривает.
+//   3. То же с кнопкой «Очистить»: обычная обводка, буквы белые.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО, НО БЕЗ ЧЕГО ПОЛУЧИТСЯ ПЛОХО: значок для iOS заливается белым.
+// Прозрачность там не поддерживается -- система подставляет под неё чёрное, и логотип с
+// прозрачным фоном превращается на телефоне в чёрный квадрат. Об этом сказано в заметках.
+import css from '../styles/favicon-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    drop: 'Перетащите изображение сюда, выберите файл или вставьте картинку клавишами Ctrl+V',
+    pick: 'Выбрать файл', again: 'Выбрать другой',
+    formats: 'PNG, JPG, WebP, SVG',
+    fitMode: 'Не квадрат', crop: 'Обрезать по центру', fit: 'Вписать целиком',
+    preview: 'Предпросмотр значка', tab: 'Мой сайт — главная',
+    real: 'В настоящем размере', code: 'Готовый HTML-код',
+    copy: 'Копировать код', copied: 'Скопировано',
+    zip: 'Скачать пакет favicon (ZIP)', clear: 'Очистить',
+    empty: 'Загрузите изображение — значок и код появятся сразу',
+    bad: 'Не удалось прочитать это изображение. Подойдут PNG, JPG, WebP и SVG.',
+    badSvg: 'В этом SVG не указан размер и нет viewBox — браузеру не от чего оттолкнуться. Откройте файл в редакторе и добавьте viewBox, либо принесите PNG.',
+    size: 'Размер', files: 'Файлов', weight: 'Вес архива',
+    n1: '<b>В .ico кладём три слоя: 16, 32 и 48 пикселей.</b> Это не один файл трёх размеров, а контейнер: система сама берёт нужный. И слои внутри — обычный BMP, а не PNG. Смысл .ico сегодня целиком в совместимости со старым; класть в файл для старых систем формат, которого они не понимают, — работа впустую.',
+    n2: '<b>Значок для iOS заливается белым.</b> Прозрачность там не поддерживается: система подставляет под неё чёрное, и логотип с прозрачным фоном становится на телефоне чёрным квадратом. Остальные файлы прозрачность сохраняют.',
+    n3: '<b>Смотрите на предпросмотр в 16 пикселей, а не на крупный.</b> Именно его увидят во вкладке. Тонкие линии, буквы и мелкие детали в этом размере превращаются в кашу — хороший значок сайта обычно проще логотипа: одна фигура, один-два цвета.',
+    n4: '<b>Файл favicon.ico кладут в корень сайта.</b> Браузеры и поисковые роботы запрашивают /favicon.ico сами, даже если в коде страницы про него ничего не сказано. Остальные файлы можно положить куда угодно — лишь бы пути в коде совпадали.',
+    n5: 'Ничего никуда не отправляется. Картинка читается прямо в памяти вкладки, режется холстом браузера, и архив собирается там же. Логотип, который нельзя показывать посторонним, здесь и не показывается никому.',
+  },
+  uk: {
+    drop: 'Перетягніть зображення сюди, виберіть файл або вставте картинку клавішами Ctrl+V',
+    pick: 'Вибрати файл', again: 'Вибрати інший',
+    formats: 'PNG, JPG, WebP, SVG',
+    fitMode: 'Не квадрат', crop: 'Обрізати по центру', fit: 'Вписати повністю',
+    preview: 'Перегляд значка', tab: 'Мій сайт — головна',
+    real: 'У справжньому розмірі', code: 'Готовий HTML-код',
+    copy: 'Копіювати код', copied: 'Скопійовано',
+    zip: 'Завантажити пакет favicon (ZIP)', clear: 'Очистити',
+    empty: 'Завантажте зображення — значок і код з’являться одразу',
+    bad: 'Не вдалося прочитати це зображення. Підійдуть PNG, JPG, WebP і SVG.',
+    badSvg: 'У цьому SVG не вказано розмір і немає viewBox — браузеру нема від чого відштовхнутися. Відкрийте файл у редакторі й додайте viewBox або принесіть PNG.',
+    size: 'Розмір', files: 'Файлів', weight: 'Вага архіву',
+    n1: '<b>У .ico кладемо три шари: 16, 32 і 48 пікселів.</b> Це не один файл трьох розмірів, а контейнер: система сама бере потрібний. І шари всередині — звичайний BMP, а не PNG. Сенс .ico сьогодні цілком у сумісності зі старим; класти у файл для старих систем формат, якого вони не розуміють, — робота намарне.',
+    n2: '<b>Значок для iOS заливається білим.</b> Прозорість там не підтримується: система підставляє під неї чорне, і логотип із прозорим тлом стає на телефоні чорним квадратом. Решта файлів прозорість зберігає.',
+    n3: '<b>Дивіться на перегляд у 16 пікселів, а не на великий.</b> Саме його побачать у вкладці. Тонкі лінії, літери й дрібні деталі в цьому розмірі перетворюються на кашу — добрий значок сайту зазвичай простіший за логотип: одна фігура, один-два кольори.',
+    n4: '<b>Файл favicon.ico кладуть у корінь сайту.</b> Браузери й пошукові роботи запитують /favicon.ico самі, навіть якщо в коді сторінки про нього нічого не сказано. Решту файлів можна покласти будь-куди — аби шляхи в коді збігалися.',
+    n5: 'Нічого нікуди не надсилається. Зображення читається просто в пам’яті вкладки, ріжеться полотном браузера, і архів збирається там само. Логотип, який не можна показувати стороннім, тут і не показується нікому.',
+  },
+  en: {
+    drop: 'Drag an image here, choose a file, or paste a picture with Ctrl+V',
+    pick: 'Choose a file', again: 'Choose another',
+    formats: 'PNG, JPG, WebP, SVG',
+    fitMode: 'Not square', crop: 'Crop to centre', fit: 'Fit whole image',
+    preview: 'Icon preview', tab: 'My site — home',
+    real: 'At real size', code: 'Ready-made HTML',
+    copy: 'Copy the code', copied: 'Copied',
+    zip: 'Download favicon package (ZIP)', clear: 'Clear',
+    empty: 'Load an image — the icon and the code appear at once',
+    bad: 'This image could not be read. PNG, JPG, WebP and SVG will work.',
+    badSvg: 'This SVG has no size and no viewBox, so the browser has nothing to scale from. Open the file in an editor and add a viewBox, or bring a PNG instead.',
+    size: 'Size', files: 'Files', weight: 'Archive size',
+    n1: '<b>The .ico holds three layers: 16, 32 and 48 pixels.</b> It is not one file at three sizes but a container, and the system picks the layer it needs. The layers inside are plain BMP rather than PNG: the whole point of .ico today is compatibility with old software, and putting a format old software cannot read inside a file made for it would be wasted work.',
+    n2: '<b>The iOS icon is filled with white.</b> Transparency is not supported there — the system puts black behind it, so a logo with a transparent background turns into a black square on the phone. The other files keep their transparency.',
+    n3: '<b>Judge it by the 16-pixel preview, not the large one.</b> That is what people see in the tab. Thin lines, lettering and small details turn to mush at that size — a good site icon is usually simpler than the logo: one shape, one or two colours.',
+    n4: '<b>favicon.ico goes in the site root.</b> Browsers and search crawlers request /favicon.ico on their own, even when the page markup says nothing about it. The other files can live anywhere, as long as the paths in the markup match.',
+    n5: 'Nothing is sent anywhere. The picture is read inside the tab, resized by the browser\'s own canvas, and the archive is built in the same place. A logo you are not allowed to show to outsiders is not shown to anyone here.',
+  },
+  es: {
+    drop: 'Arrastre una imagen aquí, elija un archivo o pegue una con Ctrl+V',
+    pick: 'Elegir archivo', again: 'Elegir otro',
+    formats: 'PNG, JPG, WebP, SVG',
+    fitMode: 'No es cuadrada', crop: 'Recortar al centro', fit: 'Encajar entera',
+    preview: 'Vista previa del icono', tab: 'Mi sitio — inicio',
+    real: 'A tamaño real', code: 'HTML listo para pegar',
+    copy: 'Copiar el código', copied: 'Copiado',
+    zip: 'Descargar el paquete favicon (ZIP)', clear: 'Limpiar',
+    empty: 'Cargue una imagen: el icono y el código aparecen al instante',
+    bad: 'No se ha podido leer esta imagen. Sirven PNG, JPG, WebP y SVG.',
+    badSvg: 'Este SVG no tiene tamaño ni viewBox, así que el navegador no tiene de dónde partir. Abra el archivo en un editor y añada un viewBox, o traiga un PNG.',
+    size: 'Tamaño', files: 'Archivos', weight: 'Peso del archivo',
+    n1: '<b>El .ico lleva tres capas: 16, 32 y 48 píxeles.</b> No es un archivo en tres tamaños sino un contenedor, y el sistema toma la capa que necesita. Las capas de dentro son BMP normal, no PNG: hoy el sentido del .ico es enteramente la compatibilidad con lo antiguo, y meter en un archivo hecho para sistemas viejos un formato que esos sistemas no entienden sería trabajo perdido.',
+    n2: '<b>El icono para iOS se rellena de blanco.</b> Allí no hay transparencia: el sistema pone negro detrás, y un logotipo con fondo transparente acaba siendo un cuadrado negro en el teléfono. Los demás archivos conservan la transparencia.',
+    n3: '<b>Júzguelo por la vista previa de 16 píxeles, no por la grande.</b> Es la que se ve en la pestaña. Las líneas finas, las letras y los detalles pequeños se convierten en una mancha a ese tamaño: un buen icono de sitio suele ser más simple que el logotipo, una figura y uno o dos colores.',
+    n4: '<b>favicon.ico va en la raíz del sitio.</b> Los navegadores y los rastreadores piden /favicon.ico por su cuenta, aunque el código de la página no diga nada de él. Los demás archivos pueden estar donde quiera, mientras las rutas del código coincidan.',
+    n5: 'No se envía nada a ninguna parte. La imagen se lee dentro de la propia pestaña, la recorta el lienzo del navegador y el archivo comprimido se monta ahí mismo. Un logotipo que no puede enseñar a terceros aquí no se le enseña a nadie.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Один источник правды: и файлы в архиве, и строки кода строятся из этого списка.
+const КОД = [
+  '<link rel="icon" href="/favicon.ico" sizes="32x32">',
+  '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
+  '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">',
+  '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
+].join('\n');
+---
+
+<div class="фв" data-words={JSON.stringify(с)}>
+  <label class="фв-зона" id="фв-зона">
+    <p>{с.drop}</p>
+    <span class="фв-взять" id="фв-выбрать">{с.pick}</span>
+    <span class="фв-виды">{с.formats}</span>
+    <input type="file" id="фв-файл" accept="image/png,image/jpeg,image/webp,image/svg+xml,image/*" />
+  </label>
+
+  <!-- Выбор кадрирования появляется только для неквадратной картинки: для квадратной он
+       ничего не меняет, и показывать его значило бы предлагать выбор без последствий.
+       Место под него держится всегда, чтобы низ не прыгал. -->
+  <div class="фв-кроп" id="фв-кроп">
+    <span class="фв-набор">
+      <button type="button" class="фв-выбор выбран" data-к="crop">{с.crop}</button>
+      <button type="button" class="фв-выбор" data-к="fit">{с.fit}</button>
+    </span>
+  </div>
+
+  <div class="фв-пара">
+    <div class="фв-окно">
+      <div class="фв-шапка">{с.preview}</div>
+      <div class="фв-тело">
+        <!-- Подделка вкладки браузера: значок стоит там же и того же размера, что в настоящей
+             вкладке, -- только так видно, читается он или слипся в пятно. -->
+        <div class="фв-вкладка">
+          <canvas id="фв-вкладка-знак" width="16" height="16"></canvas>
+          <span class="фв-вкладка-имя">{с.tab}</span>
+          <span class="фв-вкладка-крест">✕</span>
+        </div>
+        <div class="фв-ряд-знаков" id="фв-знаки"></div>
+        <div class="фв-пусто" id="фв-пусто">{с.empty}</div>
+      </div>
+    </div>
+
+    <div class="фв-окно">
+      <div class="фв-шапка">
+        {с.code}
+        <button type="button" class="фв-значок" id="фв-копировать"
+                aria-label={с.copy} title={с.copy}>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"/>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>
+        </button>
+      </div>
+      <div class="фв-тело">
+        <textarea class="фв-код" id="фв-код" readonly spellcheck="false">{КОД}</textarea>
+      </div>
+    </div>
+  </div>
+
+  <div class="фв-отчёт" id="фв-отчёт"></div>
+
+  <div class="фв-ряд">
+    <button type="button" class="фв-кнопка" id="фв-скачать" disabled>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 3v12m0 0 5-5m-5 5-5-5M4 20h16"/></svg>
+      {с.zip}
+    </button>
+    <button type="button" class="фв-значок фв-крупнее" id="фв-очистить"
+            aria-label={с.clear} title={с.clear}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/>
+      </svg>
+    </button>
+  </div>
+
+  <div class="фв-заметки">
+    <div class="фв-заметка" set:html={с.n1}></div>
+    <div class="фв-заметка" set:html={с.n2}></div>
+    <div class="фв-заметка" set:html={с.n3}></div>
+    <div class="фв-заметка" set:html={с.n4}></div>
+    <div class="фв-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { собратьIco } from '../lib/ico-write.js';
+  import { собратьZip } from '../lib/zip-store.js';
+
+  const корень = document.querySelector('.фв');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    // Размеры, которые уходят в архив. Первые три -- слои внутри .ico, они же отдельными PNG
+    // для современных браузеров; 180 -- закладка на iOS.
+    const ВIco = [16, 32, 48];
+    const ЗНАКИ = [16, 32, 48, 180];
+
+    let источник = null;      // Image или ImageBitmap исходной картинки
+    let кроп = 'crop';
+    let архив = null;
+
+    /**
+     * SVG без width/height рисуется браузером в нулевой размер: масштабировать не от чего.
+     * Достаём размеры из viewBox и прописываем их в саму картинку.
+     */
+    async function читатьSvg(файл) {
+      const текст = await файл.text();
+      const тег = текст.match(/<svg\b[^>]*>/i);
+      if (!тег) return null;
+
+      // Размер берём из viewBox, а если его нет -- из width и height.
+      const вб = тег[0].match(/viewBox\s*=\s*["']\s*([-\d.]+)[\s,]+([-\d.]+)[\s,]+([\d.]+)[\s,]+([\d.]+)/i);
+      const шА = тег[0].match(/\swidth\s*=\s*["']?([\d.]+)/i);
+      const вА = тег[0].match(/\sheight\s*=\s*["']?([\d.]+)/i);
+      let ш = вб ? parseFloat(вб[3]) : (шА ? parseFloat(шА[1]) : 0);
+      let в = вб ? parseFloat(вб[4]) : (вА ? parseFloat(вА[1]) : 0);
+      if (!ш || !в) return null;
+
+      // Рисуем крупно: 512 по большей стороне, чтобы уменьшение шло с запасом чёткости.
+      const к = 512 / Math.max(ш, в);
+      // Свои width и height СНАЧАЛА УБИРАЕМ. Если просто дописать новые, в теге окажется по
+      // два одинаковых свойства -- разметка становится негодной, и картинка не читается вовсе.
+      let новый = тег[0]
+        .replace(/\swidth\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/i, '')
+        .replace(/\sheight\s*=\s*("[^"]*"|'[^']*'|[^\s>]+)/i, '')
+        .replace(/^<svg/i, `<svg width="${Math.round(ш * к)}" height="${Math.round(в * к)}"`);
+      // Без viewBox новые размеры ничего не масштабируют: содержимое остаётся прежним, а
+      // холст просто становится больше. Дописываем рамку из исходных размеров.
+      if (!вб) новый = новый.replace(/^<svg/i, `<svg viewBox="0 0 ${ш} ${в}"`);
+
+      const blob = new Blob([текст.replace(тег[0], новый)], { type: 'image/svg+xml' });
+      return взятьКартинку(blob);
+    }
+
+    function взятьКартинку(источникДанных) {
+      return new Promise((готово, беда) => {
+        const адрес = URL.createObjectURL(источникДанных);
+        const карт = new Image();
+        // Адрес держим при картинке: в зоне показывается её копия, и ей нужен тот же адрес.
+        карт._адрес = адрес;
+        карт.onload = () => готово(карт);
+        карт.onerror = () => { URL.revokeObjectURL(адрес); беда(new Error('не читается')); };
+        карт.src = адрес;
+      });
+    }
+
+    /** Отпустить память прошлой картинки. Вызывается перед новой и при очистке. */
+    function отпустить() {
+      if (источник && источник._адрес) URL.revokeObjectURL(источник._адрес);
+    }
+
+    /** Квадрат нужного размера: либо обрезанный по центру, либо вписанный целиком. */
+    function начертить(размер, залитьБелым) {
+      const х = document.createElement('canvas');
+      х.width = размер; х.height = размер;
+      const р = х.getContext('2d');
+      // Уменьшение крупной картинки до 16 точек без сглаживания даёт рвань.
+      р.imageSmoothingEnabled = true;
+      р.imageSmoothingQuality = 'high';
+      if (залитьБелым) { р.fillStyle = '#fff'; р.fillRect(0, 0, размер, размер); }
+
+      const ш = источник.naturalWidth || источник.width;
+      const в = источник.naturalHeight || источник.height;
+      if (кроп === 'crop') {
+        // Берём из середины квадратный кусок по меньшей стороне.
+        const сторона = Math.min(ш, в);
+        р.drawImage(источник, (ш - сторона) / 2, (в - сторона) / 2, сторона, сторона,
+          0, 0, размер, размер);
+      } else {
+        const к = Math.min(размер / ш, размер / в);
+        const нш = ш * к, нв = в * к;
+        р.drawImage(источник, (размер - нш) / 2, (размер - нв) / 2, нш, нв);
+      }
+      return х;
+    }
+
+    const вБайты = (холст) => new Promise((готово) =>
+      холст.toBlob((б) => б.arrayBuffer().then((а) => готово(new Uint8Array(а))), 'image/png'));
+
+    async function пересчитать() {
+      if (!источник) return;
+      // Значок для iOS -- по белому: прозрачности там нет, система кладёт под неё чёрное.
+      const холсты = Object.fromEntries(ЗНАКИ.map((н) => [н, начертить(н, н === 180)]));
+
+      // Вкладка и ряд «в настоящем размере».
+      const вк = $('фв-вкладка-знак').getContext('2d');
+      вк.clearRect(0, 0, 16, 16);
+      вк.drawImage(холсты[16], 0, 0);
+      const ряд = $('фв-знаки');
+      ряд.replaceChildren();
+      for (const н of ЗНАКИ) {
+        const клетка = document.createElement('div');
+        клетка.className = 'фв-клетка';
+        const х = холсты[н].cloneNode();
+        х.getContext('2d').drawImage(холсты[н], 0, 0);
+        // Показываем ровно в тех точках, в каких файл и будет: 180 сжимаем вдвое, иначе
+        // окно разъедется, но подписываем настоящий размер.
+        х.style.width = (н > 64 ? н / 2 : н) + 'px';
+        х.style.height = х.style.width;
+        клетка.append(х, Object.assign(document.createElement('span'),
+          { className: 'фв-мера', textContent: `${н}×${н}` }));
+        ряд.appendChild(клетка);
+      }
+      $('фв-пусто').hidden = true;
+
+      const ico = собратьIco(ВIco.map((н) => {
+        const р = холсты[н].getContext('2d');
+        return { точки: р.getImageData(0, 0, н, н).data, ширина: н, высота: н };
+      }));
+      архив = собратьZip([
+        { имя: 'favicon.ico', данные: ico },
+        { имя: 'favicon-32x32.png', данные: await вБайты(холсты[32]) },
+        { имя: 'favicon-16x16.png', данные: await вБайты(холсты[16]) },
+        { имя: 'apple-touch-icon.png', данные: await вБайты(холсты[180]) },
+      ]);
+      $('фв-скачать').disabled = false;
+
+      const ш = источник.naturalWidth || источник.width;
+      const в = источник.naturalHeight || источник.height;
+      $('фв-отчёт').innerHTML =
+        `${с.size}: <b>${ш}×${в}</b>` +
+        `<span>${с.files}: <b>4</b></span>` +
+        `<span>${с.weight}: <b>${(архив.size / 1024).toFixed(1)} КБ</b></span>`;
+      $('фв-кроп').classList.toggle('нужен', ш !== в);
+    }
+
+    async function принять(файл) {
+      if (!файл) return;
+      отпустить();
+      try {
+        источник = файл.type === 'image/svg+xml' || /\.svg$/i.test(файл.name || '')
+          ? await читатьSvg(файл)
+          : await взятьКартинку(файл);
+        if (!источник) { сказать(с.badSvg); return; }
+      } catch (е) {
+        сказать(с.bad);
+        return;
+      }
+      $('фв-зона').classList.add('есть');
+      const прежний = $('фв-зона').querySelector('.фв-снимок');
+      if (прежний) прежний.remove();
+      const показ = источник.cloneNode();
+      показ.className = 'фв-снимок';
+      // Поле файла надо забрать ДО замены содержимого: иначе оно уходит из страницы вместе
+      // с остальным, и выбрать второй файл уже нельзя.
+      const поле = $('фв-файл');
+      const ещё = Object.assign(document.createElement('span'),
+        { className: 'фв-взять', textContent: с.again });
+      ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+      $('фв-зона').replaceChildren(показ, ещё, поле);
+      await пересчитать();
+    }
+
+    function сказать(текст) {
+      $('фв-отчёт').innerHTML = `<span class="фв-беда">${текст}</span>`;
+      $('фв-скачать').disabled = true;
+      архив = null;
+    }
+
+    function очистить() {
+      отпустить();
+      источник = null; архив = null;
+      $('фв-скачать').disabled = true;
+      $('фв-отчёт').replaceChildren();
+      $('фв-знаки').replaceChildren();
+      $('фв-пусто').hidden = false;
+      $('фв-кроп').classList.remove('нужен');
+      $('фв-вкладка-знак').getContext('2d').clearRect(0, 0, 16, 16);
+      const поле = $('фв-файл');
+      поле.value = '';
+      $('фв-зона').classList.remove('есть');
+      const п = document.createElement('p');
+      п.textContent = с.drop;
+      const кн = Object.assign(document.createElement('span'),
+        { className: 'фв-взять', textContent: с.pick });
+      кн.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+      const виды = Object.assign(document.createElement('span'),
+        { className: 'фв-виды', textContent: с.formats });
+      $('фв-зона').replaceChildren(п, кн, виды, поле);
+    }
+
+    $('фв-файл').addEventListener('change', (е) => принять(е.target.files && е.target.files[0]));
+    $('фв-выбрать').addEventListener('click', (е) => { е.preventDefault(); $('фв-файл').click(); });
+
+    for (const событие of ['dragenter', 'dragover']) {
+      $('фв-зона').addEventListener(событие, (е) => {
+        е.preventDefault(); $('фв-зона').classList.add('держат');
+      });
+    }
+    $('фв-зона').addEventListener('dragleave', () => $('фв-зона').classList.remove('держат'));
+    $('фв-зона').addEventListener('drop', (е) => {
+      е.preventDefault();
+      $('фв-зона').classList.remove('держат');
+      принять(е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0]);
+    });
+
+    document.addEventListener('paste', (е) => {
+      const вещи = е.clipboardData && е.clipboardData.items;
+      if (!вещи) return;
+      for (const в of вещи) {
+        if (в.type && в.type.startsWith('image/')) {
+          const файл = в.getAsFile();
+          if (файл) принять(файл);
+          break;
+        }
+      }
+    });
+
+    for (const кн of корень.querySelectorAll('.фв-выбор[data-к]')) {
+      кн.addEventListener('click', () => {
+        кроп = кн.dataset.к;
+        for (const д of корень.querySelectorAll('.фв-выбор[data-к]')) {
+          д.classList.toggle('выбран', д === кн);
+        }
+        пересчитать();
+      });
+    }
+
+    $('фв-копировать').addEventListener('click', async () => {
+      const кнопка = $('фв-копировать');
+      try { await navigator.clipboard.writeText($('фв-код').value); } catch (е) { return; }
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
+    });
+
+    $('фв-скачать').addEventListener('click', () => {
+      if (!архив) return;
+      const адрес = URL.createObjectURL(архив);
+      const а = document.createElement('a');
+      а.href = адрес; а.download = 'favicon.zip';
+      document.body.appendChild(а); а.click(); а.remove();
+      setTimeout(() => URL.revokeObjectURL(адрес), 1000);
+    });
+
+    $('фв-очистить').addEventListener('click', очистить);
+
+    window.__фвСостояние = () => ({
+      естьИсточник: !!источник,
+      кроп,
+      скачатьЖива: !$('фв-скачать').disabled,
+      кропВиден: $('фв-кроп').classList.contains('нужен'),
+      знаков: $('фв-знаки').children.length,
+      отчёт: $('фв-отчёт').textContent.trim(),
+      весАрхива: архив ? архив.size : 0,
+      код: $('фв-код').value,
+    });
+    window.__фвАрхив = async () => {
+      if (!архив) return null;
+      const а = new Uint8Array(await архив.arrayBuffer());
+      return Array.from(а);
+    };
+  })();
+</script>

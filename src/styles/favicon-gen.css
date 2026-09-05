@@ -1,0 +1,178 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР FAVICON».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ И ПОЧЕМУ:
+ *   -- фон страницы не задаём: у сайта свой, инструменты его не перекрашивают. Поля делаем
+ *      СВЕТЛЕЕ фона, потому что чёрное поле на тёмном фоне сливается;
+ *   -- текст кода просили приглушённо-серым (#A1A1AA) -- он белый. Приглушённые буквы
+ *      забракованы владельцем ещё на Base64, а код тут именно читают;
+ *   -- «Очистить» просили матово-серой -- она стала значком корзины с белым контуром.
+ *
+ * Правило владельца, которое здесь ведущее: меньше надписей, больше значков. Словами названо
+ * только то, что значком не объяснить: два способа кадрирования и главная кнопка скачивания.
+ */
+
+.фв {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Зона загрузки -------------------------------------------------------------------------- */
+
+.фв-зона {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; min-height: 236px; padding: 26px 22px; border-radius: 12px;
+  border: 1px dashed #3f4652; background: #14161b; cursor: pointer; text-align: center;
+  transition: border-color .15s, background .15s;
+}
+.фв-зона:hover { border-color: #fff; background: #1a1d23 }
+.фв-зона.держат { border-style: solid; border-color: #fff }
+.фв-зона p { margin: 0; font: 400 13px/1.5 var(--ui); color: #fff; max-width: 46ch }
+.фв-зона input[type=file] { display: none }
+/* Показанный исходник -- невысокий: он подтверждает выбор файла, а не заменяет предпросмотр. */
+.фв-снимок { max-width: 100%; height: 130px; border-radius: 8px; object-fit: contain }
+
+.фв-взять {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; align-self: center; height: 38px; padding: 0 16px; border-radius: 6px;
+  cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.фв-взять:hover { border-color: #fff; background: #23272f }
+.фв-виды { font: 400 11.5px var(--цифры); letter-spacing: .04em; color: var(--accent) }
+
+/* ---- Выбор кадрирования ---------------------------------------------------------------------
+   Нужен только для неквадратной картинки: для квадратной оба способа дают одно и то же, и
+   предлагать выбор без последствий незачем. Но место под него держим ВСЕГДА -- иначе при
+   загрузке прямоугольника всё, что ниже, прыгнуло бы вниз. */
+.фв-кроп { display: flex; align-items: center; gap: 10px; margin: 12px 0; min-height: 38px;
+  visibility: hidden }
+.фв-кроп.нужен { visibility: visible }
+.фв-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
+.фв-выбор {
+  display: inline-flex; align-items: center; justify-content: center;
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.фв-выбор:hover { border-color: #fff; background: #23272f }
+.фв-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.фв-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* ---- Два окна -------------------------------------------------------------------------------- */
+
+.фв-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch }
+.фв-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden }
+.фв-шапка {
+  display: flex; align-items: center; justify-content: space-between; gap: 10px;
+  padding: 9px 10px 9px 14px; border-bottom: 1px solid var(--линия);
+  font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent);
+}
+.фв-тело { flex: 1; display: flex; flex-direction: column; padding: 16px; min-height: 210px }
+
+/* Подделка вкладки браузера. Значок стоит там же и того же размера, что в настоящей вкладке:
+   только так видно, читается он или слипся в пятно. */
+.фв-вкладка {
+  display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
+  max-width: 100%; padding: 8px 12px; border-radius: 8px 8px 0 0;
+  background: #0b0c0f; border: 1px solid var(--линия); border-bottom: 0;
+}
+.фв-вкладка canvas { width: 16px; height: 16px; flex: none; display: block }
+.фв-вкладка-имя { font: 400 12px var(--ui); color: #fff; white-space: nowrap;
+  overflow: hidden; text-overflow: ellipsis }
+.фв-вкладка-крест { font: 400 11px var(--ui); color: #fff; flex: none }
+
+.фв-ряд-знаков { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px;
+  margin-top: 18px }
+.фв-клетка { display: flex; flex-direction: column; align-items: center; gap: 7px }
+/* Клетчатая подложка -- чтобы прозрачность была видна, а не сливалась с фоном окна. */
+.фв-клетка canvas {
+  display: block; image-rendering: pixelated;
+  background-image: linear-gradient(45deg, #2a2e36 25%, transparent 25%),
+                    linear-gradient(-45deg, #2a2e36 25%, transparent 25%),
+                    linear-gradient(45deg, transparent 75%, #2a2e36 75%),
+                    linear-gradient(-45deg, transparent 75%, #2a2e36 75%);
+  background-size: 8px 8px;
+  background-position: 0 0, 0 4px, 4px -4px, -4px 0;
+}
+.фв-мера { font: 400 11px var(--цифры); color: var(--accent); font-variant-numeric: tabular-nums }
+.фв-пусто { font: 400 13px/1.6 var(--ui); color: #fff; margin-top: 18px }
+.фв-пусто[hidden] { display: none }
+
+/* Поле кода. Буквы БЕЛЫЕ, а не приглушённые: этот текст человек читает и переносит к себе. */
+.фв-код {
+  flex: 1; width: 100%; min-height: 180px; resize: vertical;
+  padding: 0; border: 0; background: transparent; color: #fff;
+  font: 400 12.5px/1.75 var(--цифры);
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 2;
+}
+.фв-код:focus { outline: none }
+
+/* ---- Отчёт и кнопки --------------------------------------------------------------------------
+   Место под отчёт держится постоянным: он появляется после загрузки, и без запаса кнопки
+   прыгали бы вниз. */
+.фв-отчёт {
+  min-height: 34px; display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center;
+  padding: 9px 2px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.фв-отчёт b { color: #fff; font-weight: 500 }
+.фв-беда { color: var(--беда); font: 400 12.5px/1.5 var(--цифры) }
+
+.фв-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px; align-items: center }
+.фв-кнопка {
+  display: inline-flex; align-items: center; gap: 9px; flex: 0 0 auto;
+  height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.фв-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.фв-кнопка svg { width: 17px; height: 17px; flex: none; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
+.фв-кнопка[disabled] {
+  cursor: not-allowed; color: #8b93a0; background: #14161b; border-color: #2c313a;
+}
+.фв-кнопка[disabled]:hover { background: #14161b; border-color: #2c313a }
+
+/* Кнопка-значок: без букв, но с подсказкой при наведении и подписью для голосового чтения. */
+.фв-значок {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; color: #fff;
+  background: transparent; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.фв-значок:hover { border-color: #fff; background: #1c1f26 }
+.фв-значок svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+.фв-крупнее { width: 44px; height: 44px }
+.фв-крупнее svg { width: 19px; height: 19px }
+/* Отклик на копирование -- сменой значка на галочку, а не подменой слова. */
+.фв-значок .галка { display: none }
+.фв-значок.готово { border-color: var(--accent); color: var(--accent) }
+.фв-значок.готово .лист { display: none }
+.фв-значок.готово .галка { display: block }
+
+.фв-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.фв-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.фв-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.фв-заметка b { color: #fff; font-weight: 600 }
+.фв-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 900px) {
+  .фв-пара { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) }
+}
+@media (max-width: 560px) {
+  .фв-зона { min-height: 214px; padding: 20px 16px }
+  .фв-снимок { height: 104px }
+  .фв-зона p { font-size: 12.5px }
+  .фв-ряд-знаков { gap: 14px }
+  .фв-код { min-height: 150px; font-size: 11.5px }
+}
