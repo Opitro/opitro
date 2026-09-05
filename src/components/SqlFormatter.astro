@@ -1,0 +1,312 @@
+---
+// SQL ФОРМАТТЕР.
+//
+// Само форматирование делает библиотека sql-formatter: диалектов больше двадцати, у каждого
+// свои ключевые слова и правила экранирования, и писать это руками означало бы тихо ломать
+// чужие запросы. Библиотека грузится ЛЕНИВО, при первом расчёте -- на странице, куда зашли
+// посмотреть, лишние сто с лишним килобайт ни к чему.
+//
+// СЖАТИЕ В ОДНУ СТРОКУ -- своё (src/lib/sql-minify.js), потому что библиотека этого не умеет,
+// а сделать «в лоб» нельзя: замена всех пробелов на один портит данные внутри строк,
+// превращает «--» в комментарий, съедающий остаток запроса, и выбрасывает подсказки
+// оптимизатору /*+ ... */, а это меняет план выполнения.
+import css from '../styles/sql-formatter.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const ПРИМЕР = "select u.id, u.name, count(o.id) as orders from users u left join orders o on o.user_id = u.id where u.active = true and u.age > 18 group by u.id, u.name having count(o.id) > 0 order by orders desc limit 10";
+
+const СЛОВА = {
+  ru: {
+    dialect: 'Диалект', case: 'Регистр', indent: 'Отступ',
+    upper: 'ВЕРХНИЙ', lower: 'нижний', keep: 'Не менять',
+    sp2: '2 пробела', sp4: '4 пробела', tab: 'Табуляция',
+    breakLogic: 'Перенос перед AND и OR',
+    place: 'Вставьте SQL-запрос — форматирование идёт сразу, по мере ввода…',
+    result: 'Результат появится здесь…',
+    format: 'Форматировать', minify: 'Сжать в одну строку', clear: 'Очистить',
+    copy: 'Копировать результат', copied: 'Скопировано!',
+    was: 'Было', now: 'Стало', chars: 'знаков', lines: 'строк',
+    nothing: 'Сначала вставьте запрос',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    failed: 'Не удалось разобрать запрос',
+    loading: 'Загружаем форматирование…',
+    loadFail: 'Не удалось загрузить форматирование — похоже, пропала сеть',
+    n1: '<b>Сжатие в одну строку не ломает запрос.</b> Замена всех пробелов на один — а так делают почти везде — портит сразу три вещи: два пробела внутри <code>\x27Москва,  Тверская\x27</code> это данные, а не отступ; строка после <code>--</code> при склейке закомментирует весь остаток запроса; а подсказка оптимизатору <code>/*+ INDEX(t idx) */</code> выглядит комментарием, но задаёт план выполнения. Мы разбираем запрос по знакам и всё это сохраняем.',
+    n2: '<b>Диалект имеет значение.</b> Долларовые кавычки PostgreSQL, обратные апострофы MySQL, квадратные скобки T-SQL, блоки PL/SQL — во всех этих местах общий разбор ошибается. Выберите свой движок сверху, и ключевые слова с правилами возьмутся его.',
+    n3: '<b>Регистр ключевых слов — на выбор.</b> Верхний привычен по учебникам и выделяет каркас запроса, нижний спокойнее выглядит в современном коде. Есть и «не менять» — если в команде уже принято своё.',
+    n4: '<b>Перенос перед AND и OR</b> ставит союз в начало строки, а не в конец предыдущей. В длинном условии так сразу видно, сколько всего проверок и где кончается каждая.',
+    n5: 'Ничего никуда не отправляется. Схемы таблиц, запросы к рабочим базам и аналитика остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    dialect: 'Діалект', case: 'Регістр', indent: 'Відступ',
+    upper: 'ВЕРХНІЙ', lower: 'нижній', keep: 'Не міняти',
+    sp2: '2 пробіли', sp4: '4 пробіли', tab: 'Табуляція',
+    breakLogic: 'Перенос перед AND та OR',
+    place: 'Вставте SQL-запит — форматування йде одразу, у міру введення…',
+    result: 'Результат з’явиться тут…',
+    format: 'Форматувати', minify: 'Стиснути в один рядок', clear: 'Очистити',
+    copy: 'Копіювати результат', copied: 'Скопійовано!',
+    was: 'Було', now: 'Стало', chars: 'знаків', lines: 'рядків',
+    nothing: 'Спершу вставте запит',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    failed: 'Не вдалося розібрати запит',
+    loading: 'Завантажуємо форматування…',
+    loadFail: 'Не вдалося завантажити форматування — схоже, зникла мережа',
+    n1: '<b>Стиснення в один рядок не ламає запит.</b> Заміна всіх пробілів на один — а так роблять майже скрізь — псує одразу три речі: два пробіли всередині <code>\x27Київ,  Хрещатик\x27</code> це дані, а не відступ; рядок після <code>--</code> при склеюванні закоментує весь залишок запиту; а підказка оптимізатору <code>/*+ INDEX(t idx) */</code> має вигляд коментаря, але задає план виконання.',
+    n2: '<b>Діалект має значення.</b> Доларові лапки PostgreSQL, зворотні апострофи MySQL, квадратні дужки T-SQL, блоки PL/SQL — у всіх цих місцях загальний розбір помиляється. Виберіть свій рушій згори.',
+    n3: '<b>Регістр ключових слів — на вибір.</b> Верхній звичний за підручниками і виділяє каркас запиту, нижній спокійніше виглядає в сучасному коді. Є й «не міняти».',
+    n4: '<b>Перенос перед AND та OR</b> ставить сполучник на початок рядка, а не в кінець попереднього. У довгій умові так одразу видно, скільки всього перевірок.',
+    n5: 'Нічого нікуди не надсилається. Схеми таблиць, запити до робочих баз і аналітика лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    dialect: 'Dialect', case: 'Keywords', indent: 'Indent',
+    upper: 'UPPER', lower: 'lower', keep: 'Leave as is',
+    sp2: '2 spaces', sp4: '4 spaces', tab: 'Tab',
+    breakLogic: 'Line break before AND and OR',
+    place: 'Paste an SQL query — it is formatted as you type…',
+    result: 'The result will appear here…',
+    format: 'Format', minify: 'Minify to one line', clear: 'Clear',
+    copy: 'Copy the result', copied: 'Copied!',
+    was: 'Before', now: 'After', chars: 'chars', lines: 'lines',
+    nothing: 'Paste a query first',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    failed: 'The query could not be parsed',
+    loading: 'Loading the formatter…',
+    loadFail: 'The formatter could not be loaded — the network seems to have dropped',
+    n1: '<b>Minifying to one line does not break the query.</b> Replacing every run of whitespace with a single space — which is what almost everyone does — ruins three things at once: the two spaces inside <code>\x27London,  Baker St\x27</code> are data rather than indentation; the text after <code>--</code>, once joined, comments out the whole rest of the query; and the optimiser hint <code>/*+ INDEX(t idx) */</code> looks like a comment but decides the execution plan. We walk the query character by character and keep all three intact.',
+    n2: '<b>The dialect matters.</b> PostgreSQL dollar quoting, MySQL backticks, T-SQL square brackets, PL/SQL blocks — a generic parser gets all of these wrong. Pick your engine at the top and its keywords and rules are used.',
+    n3: '<b>Keyword case is up to you.</b> Upper case is what the textbooks use and it outlines the skeleton of the query; lower case sits more quietly in modern code. There is also “leave as is”, for teams with their own habit.',
+    n4: '<b>A line break before AND and OR</b> puts the connective at the start of a line rather than the end of the previous one. In a long condition that makes it obvious how many checks there are and where each one ends.',
+    n5: 'Nothing is sent anywhere. Table schemas, production queries and analytics stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    dialect: 'Dialecto', case: 'Palabras clave', indent: 'Sangría',
+    upper: 'MAYÚSCULAS', lower: 'minúsculas', keep: 'No cambiar',
+    sp2: '2 espacios', sp4: '4 espacios', tab: 'Tabulación',
+    breakLogic: 'Salto de línea antes de AND y OR',
+    place: 'Pega una consulta SQL: se formatea mientras escribes…',
+    result: 'El resultado aparecerá aquí…',
+    format: 'Formatear', minify: 'Comprimir a una línea', clear: 'Limpiar',
+    copy: 'Copiar el resultado', copied: '¡Copiado!',
+    was: 'Antes', now: 'Después', chars: 'caracteres', lines: 'líneas',
+    nothing: 'Pega primero una consulta',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    failed: 'No se ha podido analizar la consulta',
+    loading: 'Cargando el formateador…',
+    loadFail: 'No se ha podido cargar el formateador: parece que se ha caído la red',
+    n1: '<b>Comprimir a una línea no rompe la consulta.</b> Sustituir todos los espacios por uno —que es lo que hace casi todo el mundo— estropea tres cosas a la vez: los dos espacios dentro de <code>\x27Madrid,  Gran Vía\x27</code> son datos, no sangría; el texto tras <code>--</code>, al unir las líneas, comenta todo el resto de la consulta; y la indicación al optimizador <code>/*+ INDEX(t idx) */</code> parece un comentario pero decide el plan de ejecución.',
+    n2: '<b>El dialecto importa.</b> Las comillas de dólar de PostgreSQL, las comillas invertidas de MySQL, los corchetes de T-SQL, los bloques de PL/SQL: un análisis genérico se equivoca en todos ellos. Elige tu motor arriba.',
+    n3: '<b>Las mayúsculas de las palabras clave son cosa tuya.</b> Las mayúsculas son lo de los manuales y marcan el esqueleto de la consulta; las minúsculas quedan más discretas en el código moderno. También está «no cambiar».',
+    n4: '<b>El salto antes de AND y OR</b> coloca la conjunción al principio de la línea en vez de al final de la anterior. En una condición larga se ve de un vistazo cuántas comprobaciones hay.',
+    n5: 'No se envía nada a ninguna parte. Los esquemas de tablas, las consultas de producción y la analítica se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ДИАЛЕКТЫ = [
+  ['sql', 'Стандартный SQL'], ['postgresql', 'PostgreSQL'], ['mysql', 'MySQL'],
+  ['mariadb', 'MariaDB'], ['sqlite', 'SQLite'], ['plsql', 'Oracle (PL/SQL)'],
+  ['tsql', 'T-SQL (MS SQL)'], ['bigquery', 'BigQuery'], ['snowflake', 'Snowflake'],
+  ['spark', 'Spark SQL'], ['redshift', 'Redshift'], ['clickhouse', 'ClickHouse'],
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ск" data-words={JSON.stringify(с)}>
+  <div class="ск-пульт">
+    <span class="ск-отступ">
+      <span class="ск-подпись">{с.dialect}:</span>
+      <select class="ск-список" id="ск-диалект">
+        {ДИАЛЕКТЫ.map(([з, имя]) => <option value={з}>{имя}</option>)}
+      </select>
+    </span>
+    <span class="ск-отступ">
+      <span class="ск-подпись">{с.indent}:</span>
+      <select class="ск-список" id="ск-отступ">
+        <option value="2">{с.sp2}</option>
+        <option value="4" selected>{с.sp4}</option>
+        <option value="tab">{с.tab}</option>
+      </select>
+    </span>
+    <span class="ск-отступ">
+      <span class="ск-подпись">{с.case}:</span>
+      <span class="ск-набор">
+        <button type="button" class="ск-выбор выбран" data-р="upper">{с.upper}</button>
+        <button type="button" class="ск-выбор" data-р="lower">{с.lower}</button>
+        <button type="button" class="ск-выбор" data-р="preserve">{с.keep}</button>
+      </span>
+    </span>
+    <label class="ск-галка"><input type="checkbox" id="ск-логика" checked><i></i>{с.breakLogic}</label>
+  </div>
+
+  <div class="ск-пара">
+    <div class="ск-поле" id="ск-поле-ввода">
+      <textarea class="ск-ввод" id="ск-ввод" placeholder={с.place} spellcheck="false"
+        autocapitalize="off" autocorrect="off">{ПРИМЕР}</textarea>
+    </div>
+    <div class="ск-поле ск-вывод">
+      <textarea class="ск-ввод" id="ск-вывод" placeholder={с.result} readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="ск-отчёт" id="ск-отчёт"><span class="ск-сказ" id="ск-сказ"></span></div>
+
+  <div class="ск-ряд">
+    <button type="button" class="ск-кнопка" id="ск-формат">{с.format}</button>
+    <button type="button" class="ск-обводка" id="ск-сжать">{с.minify}</button>
+    <button type="button" class="ск-простая" id="ск-очистить">{с.clear}</button>
+    <button type="button" class="ск-кнопка вправо" id="ск-копировать">{с.copy}</button>
+  </div>
+
+  <div class="ск-заметки">
+    <div class="ск-заметка" set:html={с.n1}></div>
+    <div class="ск-заметка" set:html={с.n2}></div>
+    <div class="ск-заметка" set:html={с.n3}></div>
+    <div class="ск-заметка" set:html={с.n4}></div>
+    <div class="ск-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { сжатьSQL } from '../lib/sql-minify.js';
+
+  const корень = document.querySelector('.ск');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('ск-ввод');
+    const вывод = $('ск-вывод');
+    const отчёт = $('ск-отчёт');
+    const сказ = $('ск-сказ');
+    let регистр = 'upper';
+    let форматировать = null;   // подгружается лениво, при первом расчёте
+
+    const диалект = () => $('ск-диалект').value;
+    const строк = (т) => (т ? т.split('\n').length : 0);
+
+    function сказать(текст) {
+      сказ.textContent = текст;
+      сказ.classList.add('видно');
+      clearTimeout(сказ._т);
+      сказ._т = setTimeout(() => сказ.classList.remove('видно'), 2600);
+    }
+    function показать(куски) {
+      отчёт.replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }), сказ);
+    }
+
+    async function взятьБиблиотеку() {
+      if (форматировать) return форматировать;
+      const модуль = await import('sql-formatter');
+      форматировать = модуль.format;
+      return форматировать;
+    }
+
+    let ход = 0;
+    async function пересчитать() {
+      const исходный = ввод.value;
+      $('ск-поле-ввода').classList.remove('негоден');
+      if (!исходный.trim()) { вывод.value = ''; показать([]); return; }
+
+      const мой = ++ход;
+      let формат;
+      try {
+        формат = await взятьБиблиотеку();
+      } catch (е) {
+        показать([`<span style="color:var(--беда)">${с.loadFail}</span>`]);
+        return;
+      }
+      if (мой !== ход) return;   // пока грузили, успели набрать ещё -- этот расчёт устарел
+
+      const отступ = $('ск-отступ').value;
+      try {
+        const готово = формат(исходный, {
+          language: диалект(),
+          keywordCase: регистр,
+          tabWidth: отступ === 'tab' ? 4 : Number(отступ),
+          useTabs: отступ === 'tab',
+          logicalOperatorNewline: $('ск-логика').checked ? 'before' : 'after',
+        });
+        вывод.value = готово;
+        показать([
+          `${с.was}: <b>${исходный.length}</b> ${с.chars}`,
+          `${с.now}: <b>${готово.length}</b>`,
+          `${с.lines}: <b>${строк(готово)}</b>`,
+        ]);
+      } catch (е) {
+        вывод.value = '';
+        $('ск-поле-ввода').classList.add('негоден');
+        показать([`<span style="color:var(--беда)">${с.failed}: ${String(е && (е.message || е)).slice(0, 160)}</span>`]);
+      }
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    for (const ид of ['ск-диалект', 'ск-отступ', 'ск-логика']) {
+      $(ид).addEventListener('change', пересчитать);
+    }
+    for (const кн of корень.querySelectorAll('.ск-выбор')) {
+      кн.addEventListener('click', () => {
+        регистр = кн.dataset.р;
+        for (const д of корень.querySelectorAll('.ск-выбор')) д.classList.toggle('выбран', д === кн);
+        пересчитать();
+      });
+    }
+
+    // Кнопки кладут готовое ОБРАТНО В ПОЛЕ ВВОДА: расчёт и так идёт по мере набора, и вторая
+    // кнопка, делающая ровно то же самое, была бы обманом. Польза от них другая и настоящая --
+    // продолжить работу с уже приведённым в порядок запросом.
+    $('ск-формат').addEventListener('click', async () => {
+      if (!ввод.value.trim()) { сказать(с.nothing); return; }
+      await пересчитать();
+      if (вывод.value) { ввод.value = вывод.value; пересчитать(); }
+    });
+    $('ск-сжать').addEventListener('click', () => {
+      if (!ввод.value.trim()) { сказать(с.nothing); return; }
+      // Сжатие -- своё: библиотека этого не умеет, а «в лоб» ломает строки, комментарии
+      // и подсказки оптимизатору.
+      const сжато = сжатьSQL(ввод.value, диалект());
+      вывод.value = сжато;
+      показать([
+        `${с.was}: <b>${ввод.value.length}</b> ${с.chars}`,
+        `${с.now}: <b>${сжато.length}</b>`,
+        `${с.lines}: <b>1</b>`,
+      ]);
+    });
+
+    $('ск-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    $('ск-копировать').addEventListener('click', async () => {
+      const кнопка = $('ск-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    пересчитать();
+
+    window.__скСостояние = () => ({
+      вывод: вывод.value,
+      отчёт: отчёт.textContent.trim(),
+      регистр,
+      негоден: $('ск-поле-ввода').classList.contains('негоден'),
+    });
+    window.__скПересчитать = пересчитать;
+  })();
+</script>

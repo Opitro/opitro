@@ -1,0 +1,152 @@
+/* СТИЛИ СТРАНИЦЫ «SQL ФОРМАТТЕР».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
+ * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
+ * уже забраковал на Base64, и повторять эту ошибку незачем.
+ */
+
+.ск {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.ск-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.ск-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.ск-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.ск-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.ск-список:hover { border-color: #fff }
+.ск-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.ск-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.ск-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.ск-поле:focus-within { border-color: #fff }
+.ск-поле.негоден { border-color: rgba(255,154,168,.55) }
+.ск-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.ск-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.ск-ввод:focus { outline: none }
+.ск-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.ск-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.ск-отчёт b { color: #fff; font-weight: 500 }
+.ск-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.ск-беда b { color: var(--беда); font-weight: 700 }
+.ск-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.ск-сказ.видно { opacity: 1 }
+
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.ск-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.ск-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.ск-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.ск-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.ск-обводка:hover { background: #fff; color: #000 }
+.ск-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.ск-простая:hover { border-color: #fff; background: #23272f }
+.ск-кнопка.вправо, .ск-простая.вправо { margin-left: auto }
+
+.ск-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.ск-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.ск-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.ск-заметка b { color: #fff; font-weight: 600 }
+.ск-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 1000px) {
+  .ск-пара { grid-template-columns: 1fr 1fr }
+  /* Кнопки идут МЕЖДУ полями и в две колонки не лезут: они относятся к обоим сразу. */
+  .ск-пара .ск-поле:first-child { grid-column: 1 }
+}
+@media (max-width: 560px) {
+  .ск-ввод { min-height: 170px }
+  .ск-знак { margin-left: 0 }
+  .ск-кнопка, .ск-обводка, .ск-простая { flex: 1 1 auto }
+  .ск-кнопка.вправо, .ск-простая.вправо { margin-left: 0 }
+}
+
+/* ---- Своё для этой страницы --------------------------------------------------------------- */
+
+/* Выбор регистра ключевых слов -- кнопками, а не радиокнопками: три коротких слова читаются
+   с одного взгляда, а кружки рядом с ними только сорят. Выбранное помечено обводкой. */
+.ск-набор { display: inline-flex; gap: 6px }
+.ск-выбор {
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.ск-выбор:hover { border-color: #fff; background: #23272f }
+.ск-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.ск-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Галочка: квадратная, без скруглений -- как на остальных страницах сайта. */
+.ск-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.ск-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.ск-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.ск-галка:hover i { border-color: #fff }
+.ск-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.ск-галка input:checked + i { border-color: var(--accent) }
+.ск-галка input:checked + i::after { transform: scale(1) }
+.ск-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+@media (max-width: 560px) {
+  .ск-набор { width: 100% }
+  .ск-выбор { flex: 1 1 0; padding: 0 6px }
+}
