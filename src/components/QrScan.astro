@@ -361,8 +361,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (!ищем || режим !== 'camera') return;
       if (видео.readyState >= 2) {
         try {
-          const н = await разобратьКадр(видео, видео.videoWidth, видео.videoHeight,
-            (рис) => рис.drawImage(видео, 0, 0), false);
+          const к = Math.min(1, 960 / Math.max(видео.videoWidth, видео.videoHeight));
+          const н = await разобратьКадр(видео,
+            Math.round(видео.videoWidth * к), Math.round(видео.videoHeight * к),
+            (рис) => рис.drawImage(видео, 0, 0, видео.videoWidth * к, видео.videoHeight * к),
+            false);
           if (н && н.текст !== найдено) показать(н);
         } catch (е) { /* один неудачный кадр -- не беда, ждём следующий */ }
       }
