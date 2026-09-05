@@ -21,6 +21,9 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    goOther: "Разобрать этот код",
+    stop: "Выключить камеру", other: "Сканер штрихкода",
+    kindBar: "Штрихкод", barHint: "Это штрихкод, а не QR-код. Страна, контрольная цифра и остальной разбор — на соседней странице.",
     mode: 'Откуда', camera: 'Камера', photo: 'Файл или снимок',
     start: 'Включить камеру', stop: 'Выключить',
     camIdle: 'Камера выключена. Нажмите кнопку — браузер спросит разрешение.',
@@ -46,6 +49,9 @@ const СЛОВА = {
     n5: 'Ничего никуда не отправляется. Картинка с кодом и поток с камеры разбираются прямо в браузере: они не уходят в сеть и нигде не сохраняются.',
   },
   uk: {
+    goOther: "Розібрати цей код",
+    stop: "Вимкнути камеру", other: "Сканер штрихкоду",
+    kindBar: "Штрихкод", barHint: "Це штрихкод, а не QR-код. Країна, контрольна цифра та решта розбору — на сусідній сторінці.",
     mode: 'Звідки', camera: 'Камера', photo: 'Файл або знімок',
     start: 'Увімкнути камеру', stop: 'Вимкнути',
     camIdle: 'Камеру вимкнено. Натисніть кнопку — браузер запитає дозвіл.',
@@ -71,6 +77,9 @@ const СЛОВА = {
     n5: 'Нічого нікуди не надсилається. Картинка з кодом і потік з камери розбираються просто у браузері.',
   },
   en: {
+    goOther: "Analyse this code",
+    stop: "Turn the camera off", other: "Barcode scanner",
+    kindBar: "Barcode", barHint: "This is a barcode, not a QR code. The country, the check digit and the rest of the analysis are on the neighbouring page.",
     mode: 'Source', camera: 'Camera', photo: 'File or screenshot',
     start: 'Turn the camera on', stop: 'Turn off',
     camIdle: 'The camera is off. Press the button — the browser will ask for permission.',
@@ -96,6 +105,9 @@ const СЛОВА = {
     n5: 'Nothing is sent anywhere. The picture and the camera stream are decoded right in the browser: they never go to the network and are never stored.',
   },
   es: {
+    goOther: "Analizar este código",
+    stop: "Apagar la cámara", other: "Escáner de códigos de barras",
+    kindBar: "Código de barras", barHint: "Esto es un código de barras, no un código QR. El país, el dígito de control y el resto del análisis están en la página vecina.",
     mode: 'Origen', camera: 'Cámara', photo: 'Archivo o captura',
     start: 'Encender la cámara', stop: 'Apagar',
     camIdle: 'La cámara está apagada. Pulsa el botón: el navegador pedirá permiso.',
@@ -126,16 +138,32 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <style is:inline set:html={css}></style>
 
-<div class="ск2" data-words={JSON.stringify(с)}>
+<div class="ск2" data-words={JSON.stringify(с)} data-locale={locale}>
   <div class="ск2-пульт">
     <span class="ск2-отступ">
       <span class="ск2-подпись">{с.mode}:</span>
       <span class="ск2-набор">
-        <button type="button" class="ск2-выбор выбран" data-р="camera">{с.camera}</button>
+        <!-- Значок фотоаппарата САМ включает камеру: нажал на камеру -- получил камеру.
+             Пока она работает, значок перечёркнут -- нажатие выключит. -->
+        <button type="button" class="ск2-выбор ск2-глаз выбран" data-р="camera"
+                id="ск2-глаз" aria-label={с.camera} title={с.camera}>
+          <svg class="идёт-нет" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+            <circle cx="12" cy="13.3" r="3.5"/>
+          </svg>
+          <svg class="стоп" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+            <circle cx="12" cy="13.3" r="3.5"/>
+            <path d="M3.5 3.5l17 17"/>
+          </svg>
+        </button>
         <button type="button" class="ск2-выбор" data-р="photo">{с.photo}</button>
       </span>
     </span>
-    <button type="button" class="ск2-простая" id="ск2-пуск">{с.start}</button>
+    <a class="ск2-сосед" href={`/${locale}/barcode-scan`}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h2v14H3zM6.5 5h1v14h-1zM9 5h2v14H9zM12.5 5h1v14h-1zM15 5h2v14h-2zM18.5 5h1v14h-1zM21 5h1v14h-1z"/></svg>
+      {с.other}
+    </a>
   </div>
 
   <div class="ск2-пара">
@@ -176,6 +204,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <script>
   import { разобратьСодержимое } from '../lib/qr-read.js';
+  import { прочитатьКадр } from '../lib/code-read.js';
 
   const корень = document.querySelector('.ск2');
   if (корень) (() => {
@@ -188,15 +217,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     let режим = 'camera';
     let поток = null;
     let ищем = false;
-    let читать = null;      // jsQR, подгружается лениво
     let найдено = '';
-
-    async function взятьЧитателя() {
-      if (читать) return читать;
-      const м = await import('jsqr');
-      читать = м.default || м;
-      return читать;
-    }
 
     /** Короткий тихий сигнал. Громкость намеренно мала: это подсказка, а не сирена. */
     function пикнуть() {
@@ -232,8 +253,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       return дл;
     }
 
-    function показать(текст) {
+    function показать(находка) {
+      // С камеры и из файла теперь приходят оба вида кодов. Полоски эта страница не
+      // разбирает -- это работа соседней, -- но молчать о них нельзя: человек навёл камеру
+      // и должен получить ответ, а не «не найдено».
+      const текст = находка.текст;
       найдено = текст;
+      if (находка.вид === 'штрих') { показатьШтрих(текст); return; }
       const разбор = разобратьСодержимое(текст);
       итог.replaceChildren();
       $('ск2-ряд').hidden = false;
@@ -283,32 +309,46 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       setTimeout(() => $('ск2-глазок').classList.remove('нашёл'), 900);
     }
 
+    /** Полоски: цифры и дорога на соседнюю страницу, где их разбирают полностью. */
+    function показатьШтрих(цифры) {
+      итог.replaceChildren();
+      $('ск2-ряд').hidden = false;
+      $('ск2-перейти').style.display = 'none';
+      итог.appendChild(узел('span', 'ск2-вид', с.kindBar));
+      итог.appendChild(узел('div', 'ск2-значение', цифры));
+      итог.appendChild(узел('div', 'ск2-ждём', с.barHint));
+      const ссылка = узел('a', 'ск2-обводка', с.goOther);
+      ссылка.href = `/${корень.dataset.locale}/barcode-scan`;
+      итог.appendChild(ссылка);
+      пикнуть();
+      $('ск2-глазок').classList.add('нашёл');
+      setTimeout(() => $('ск2-глазок').classList.remove('нашёл'), 900);
+    }
+
     function сказатьВИтог(текст) {
       итог.replaceChildren(узел('span', 'ск2-ждём', текст));
       $('ск2-ряд').hidden = true;
       найдено = '';
     }
 
-    /** Один проход по картинке. Возвращает найденный текст или пусто. */
-    async function разобратьКадр(ширина, высота, рисовать) {
-      if (!ширина || !высота) return '';
-      const jsQR = await взятьЧитателя();
+    /** Один проход по картинке. Возвращает находку или null. */
+    async function разобратьКадр(источник, ширина, высота, рисовать, снимок) {
+      if (!ширина || !высота) return null;
       холст.width = ширина;
       холст.height = высота;
       const рис = холст.getContext('2d', { willReadFrequently: true });
       рисовать(рис);
       const точки = рис.getImageData(0, 0, ширина, высота);
-      const код = jsQR(точки.data, точки.width, точки.height, { inversionAttempts: 'attemptBoth' });
-      return код && код.data ? код.data : '';
+      return прочитатьКадр({ источник, точки, нужно: 'оба', снимок });
     }
 
     async function круг() {
       if (!ищем || режим !== 'camera') return;
       if (видео.readyState >= 2) {
         try {
-          const текст = await разобратьКадр(видео.videoWidth, видео.videoHeight,
-            (рис) => рис.drawImage(видео, 0, 0));
-          if (текст && текст !== найдено) { показать(текст); }
+          const н = await разобратьКадр(видео, видео.videoWidth, видео.videoHeight,
+            (рис) => рис.drawImage(видео, 0, 0), false);
+          if (н && н.текст !== найдено) показать(н);
         } catch (е) { /* один неудачный кадр -- не беда, ждём следующий */ }
       }
       // Раз в четверть секунды: чаще незачем, а батарею телефона бережём.
@@ -329,7 +369,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       видео.srcObject = поток;
       await видео.play().catch(() => {});
       $('ск2-заслон').hidden = true;
-      $('ск2-пуск').textContent = с.stop;
+      значокКамеры(true);
       ищем = true;
       круг();
     }
@@ -340,7 +380,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       видео.srcObject = null;
       $('ск2-заслон').hidden = false;
       $('ск2-заслон').textContent = с.camIdle;
-      $('ск2-пуск').textContent = с.start;
+      значокКамеры(false);
+    }
+
+    /** Перечёркнутый фотоаппарат = «выключить». Подпись меняется вместе со значком:
+        кнопка без букв должна называть себя хотя бы голосовому чтению. */
+    function значокКамеры(идёт) {
+      const к = $('ск2-глаз');
+      к.classList.toggle('идёт', идёт);
+      к.setAttribute('aria-label', идёт ? с.stop : с.camera);
+      к.setAttribute('title', идёт ? с.stop : с.camera);
     }
 
     async function взятьКартинку(файл) {
@@ -348,36 +397,45 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const адрес = URL.createObjectURL(файл);
       const карт = new Image();
       карт.onload = async () => {
-        const текст = await разобратьКадр(карт.naturalWidth, карт.naturalHeight,
-          (рис) => рис.drawImage(карт, 0, 0));
+        let н = null;
+        try {
+          н = await разобратьКадр(карт, карт.naturalWidth, карт.naturalHeight,
+            (рис) => рис.drawImage(карт, 0, 0), true);
+        } catch (е) { н = null; }
         // Показываем сам снимок: сразу видно, тот ли файл разбирали.
-        $('ск2-зона').replaceChildren(карт, узел('span', 'ск2-взять', с.again));
-        $('ск2-зона').querySelector('.ск2-взять').addEventListener('click', (е) => {
-          е.preventDefault(); $('ск2-файл').click();
-        });
-        $('ск2-зона').appendChild($('ск2-файл'));
-        if (текст) показать(текст); else сказатьВИтог(с.notFound);
+        // Поле файла надо забрать ДО замены содержимого: replaceChildren вынимает его
+        // из страницы, и getElementById после этого возвращает пусто. Из-за этого «Выбрать
+        // другой» падал с ошибкой, и второй файл выбрать было уже нельзя.
+        const поле = $('ск2-файл');
+        const ещё = узел('span', 'ск2-взять', с.again);
+        ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+        $('ск2-зона').replaceChildren(карт, ещё, поле);
+        if (н) показать(н); else сказатьВИтог(с.notFound);
         URL.revokeObjectURL(адрес);
       };
       карт.onerror = () => { сказатьВИтог(с.notFound); URL.revokeObjectURL(адрес); };
       карт.src = адрес;
     }
 
-    for (const кн of корень.querySelectorAll('.ск2-выбор[data-р]')) {
-      кн.addEventListener('click', () => {
-        режим = кн.dataset.р;
-        for (const д of корень.querySelectorAll('.ск2-выбор[data-р]')) {
-          д.classList.toggle('выбран', д === кн);
-        }
-        const камера = режим === 'camera';
-        $('ск2-глазок').hidden = !камера;
-        $('ск2-зона').hidden = камера;
-        $('ск2-пуск').hidden = !камера;
-        if (!камера) выключить();
-      });
+    function выбратьРежим(новый) {
+      режим = новый;
+      for (const д of корень.querySelectorAll('.ск2-выбор[data-р]')) {
+        д.classList.toggle('выбран', д.dataset.р === новый);
+      }
+      const камера = новый === 'camera';
+      $('ск2-глазок').hidden = !камера;
+      $('ск2-зона').hidden = камера;
+      if (!камера) выключить();
     }
 
-    $('ск2-пуск').addEventListener('click', включить);
+    // Нажатие на фотоаппарат: из режима снимка -- переключиться и сразу включить камеру;
+    // в режиме камеры -- включить или выключить её.
+    $('ск2-глаз').addEventListener('click', () => {
+      if (режим !== 'camera') { выбратьРежим('camera'); включить(); return; }
+      if (поток) выключить(); else включить();
+    });
+    корень.querySelector('.ск2-выбор[data-р="photo"]')
+      .addEventListener('click', () => выбратьРежим('photo'));
     $('ск2-файл').addEventListener('change', (е) => взятьКартинку(е.target.files && е.target.files[0]));
     $('ск2-выбрать').addEventListener('click', (е) => { е.preventDefault(); $('ск2-файл').click(); });
 

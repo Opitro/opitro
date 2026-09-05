@@ -23,6 +23,7 @@ faq:
   - question: ¿Se envían los datos a alguna parte?
     answer: "No. El código se dibuja en tu navegador. Referencias, números de lote y códigos internos no van a ningún sitio y desaparecen con la pestaña."
 related:
+  - barcode-scan
   - qr-code
   - qr-scan
   - mock-data

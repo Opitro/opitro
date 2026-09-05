@@ -23,6 +23,7 @@ faq:
   - question: Is the data sent anywhere?
     answer: "No. The code is drawn right in your browser. Product codes, batch numbers and internal references go nowhere, are never stored, and disappear with the tab."
 related:
+  - barcode-scan
   - qr-code
   - qr-scan
   - mock-data

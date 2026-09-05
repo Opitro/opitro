@@ -80,6 +80,7 @@ import Base64File from '../../components/Base64File.astro';
 import QrCode from '../../components/QrCode.astro';
 import QrScan from '../../components/QrScan.astro';
 import Barcode from '../../components/Barcode.astro';
+import BarcodeScan from '../../components/BarcodeScan.astro';
 const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music', 'remove-music': 'voice' };
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
@@ -527,7 +528,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'barcode' && (
       <Barcode locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'speaker-cleaner', 'subwoofer-test', 'tone-generator', 'hearing-test', 'audio-delay-test', 'ultrasound-generator', 'mouse-test', 'touchscreen-test', 'multi-touch-test', 'stylus-test', 'gamepad-test', 'phone-sensors-test', 'vibration-test', 'webcam-test', 'battery-test', 'bluetooth-test', 'browser-codecs-test', 'text-case-converter', 'remove-extra-spaces', 'sort-lines', 'remove-duplicate-lines', 'transliteration', 'remove-diacritics', 'base64-encode-decode', 'url-encode-decode', 'rot13', 'reading-time', 'lorem-ipsum', 'text-reverse', 'html-strip', 'text-diff', 'word-frequency', 'punctuation-remover', 'number-to-words', 'date-to-words', 'number-declension', 'ordinal-numbers', 'phone-formatter', 'escape-unescape', 'case-converter', 'list-generator', 'remove-empty-lines', 'text-to-speech', 'json-formatter', 'json-schema-validator', 'csv-json', 'sql-formatter', 'mock-data', 'base64-file', 'qr-code', 'qr-scan', 'barcode'].includes(entry.data.tool)
+    {kind === 'media' && entry.data.tool === 'barcode-scan' && (
+      <BarcodeScan locale={entry.data.locale} />
+    )}
+    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'speaker-cleaner', 'subwoofer-test', 'tone-generator', 'hearing-test', 'audio-delay-test', 'ultrasound-generator', 'mouse-test', 'touchscreen-test', 'multi-touch-test', 'stylus-test', 'gamepad-test', 'phone-sensors-test', 'vibration-test', 'webcam-test', 'battery-test', 'bluetooth-test', 'browser-codecs-test', 'text-case-converter', 'remove-extra-spaces', 'sort-lines', 'remove-duplicate-lines', 'transliteration', 'remove-diacritics', 'base64-encode-decode', 'url-encode-decode', 'rot13', 'reading-time', 'lorem-ipsum', 'text-reverse', 'html-strip', 'text-diff', 'word-frequency', 'punctuation-remover', 'number-to-words', 'date-to-words', 'number-declension', 'ordinal-numbers', 'phone-formatter', 'escape-unescape', 'case-converter', 'list-generator', 'remove-empty-lines', 'text-to-speech', 'json-formatter', 'json-schema-validator', 'csv-json', 'sql-formatter', 'mock-data', 'base64-file', 'qr-code', 'qr-scan', 'barcode', 'barcode-scan'].includes(entry.data.tool)
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

@@ -88,6 +88,8 @@
   transition: background .15s, color .15s;
 }
 .ск2-обводка:hover { background: #fff; color: #000 }
+a.ск2-обводка { display: inline-flex; align-items: center; align-self: flex-start;
+  text-decoration: none }
 .ск2-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
   font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -110,8 +112,9 @@
 @media (max-width: 560px) {
   .ск2-ввод { min-height: 170px }
   .ск2-знак { margin-left: 0 }
-  .ск2-кнопка, .ск2-обводка, .ск2-простая { flex: 1 1 auto }
+  /* Кнопки НЕ растягиваем во всю ширину: кнопка должна выглядеть кнопкой, а не полосой. */
   .ск2-кнопка.вправо, .ск2-простая.вправо { margin-left: 0 }
+  .ск2-сосед { margin-left: 0 }
 }
 
 /* ---- Своё для этой страницы --------------------------------------------------------------- */
@@ -126,6 +129,33 @@
 .ск2-выбор:hover { border-color: #fff; background: #23272f }
 .ск2-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
 .ск2-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Значок фотоаппарата -- он же выключатель камеры. Отдельной кнопки «Включить камеру» нет:
+   человек нажимает на камеру и получает камеру, а не два нажатия ради одного действия.
+   Квадратный, чтобы читался как значок, а не как обрезанная надпись. */
+.ск2-глаз { display: inline-flex; align-items: center; justify-content: center;
+  width: 46px; padding: 0 }
+.ск2-глаз svg { width: 21px; height: 21px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+.ск2-глаз .стоп { display: none }
+.ск2-глаз.идёт .идёт-нет { display: none }
+.ск2-глаз.идёт .стоп { display: block }
+/* Камера в работе -- значок красный: понятно, что нажатие её выключит, а не включит ещё раз. */
+.ск2-глаз.идёт { border-color: var(--беда); color: var(--беда) }
+.ск2-глаз.идёт:hover { border-color: var(--беда); color: var(--беда);
+  background: rgba(255,154,168,.10) }
+
+/* Переход на сканер штрихкода. Приглушённая обводка: это выход со страницы, а не главное
+   действие на ней. Стоит у самого инструмента -- человек с кодом в руках часто не знает,
+   квадратик у него или полоски. */
+.ск2-сосед {
+  display: inline-flex; align-items: center; gap: 8px; margin-left: auto; flex: none;
+  height: 38px; padding: 0 14px; border-radius: 6px; text-decoration: none;
+  font: 500 12.5px var(--цифры); color: #fff; background: transparent;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.ск2-сосед:hover { border-color: #fff; background: #1c1f26 }
+.ск2-сосед svg { width: 15px; height: 15px; fill: currentColor; flex: none }
 
 .ск2-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
 

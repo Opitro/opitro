@@ -23,6 +23,7 @@ faq:
   - question: What else can be read besides links?
     answer: "Everything that goes into QR codes: plain text, a Wi-Fi network (we show the name, password and security type on separate lines), a vCard (name, organisation, phone, email), a phone number and an email address. The format is recognised automatically."
 related:
+  - barcode-scan
   - qr-code
   - base64-file
   - url-encode-decode

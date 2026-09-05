@@ -1,0 +1,501 @@
+---
+// СКАНЕР ШТРИХКОДОВ.
+//
+// Отдельная страница, а не вкладка внутри сканера QR: разговор совсем другой. QR отдаёт
+// ссылку, сеть или визитку -- то, с чем сразу что-то делают, и главный вопрос там «не обман
+// ли это». Штрихкод отдаёт тринадцать цифр, и главный вопрос другой: «что эти цифры значат».
+// Отвечаем: формат, сходится ли контрольная цифра, в какой стране выдан номер, книга это или
+// товар. Всё это считается на месте, никуда не ходя.
+//
+// ЧЕГО МЫ НЕ ДЕЛАЕМ И НЕ ОБЕЩАЕМ: названия товара и цены. За ними стоит платная база GS1,
+// и притворяться, что мы её знаем, нельзя. Сказано об этом прямо в заметках, а не мелким
+// шрифтом внизу.
+//
+// Узнаёт коды общий движок code-read.js -- тот же, что на сканере QR. Обе страницы читают
+// оба вида, и человек, попавший не туда, всё равно получит ответ и ссылку на соседнюю.
+import css from '../styles/barcode-scan.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    goOther: "Разобрать этот код",
+    mode: 'Режим', camera: 'Камера', photo: 'Файл или снимок',
+    stop: 'Выключить камеру',
+    camIdle: 'Нажмите значок фотоаппарата и поднесите штрихкод к объективу',
+    camDenied: 'Браузер не дал доступ к камере. Разрешите его в настройках сайта или переключитесь на «Файл или снимок».',
+    camNo1D: 'В этом браузере живая камера ловит только QR-коды. Штрихкод читается по снимку — переключитесь на «Файл или снимок».',
+    pick: 'Выбрать файл', again: 'Выбрать другой',
+    drop: 'Перетащите изображение сюда, выберите файл или вставьте снимок клавишами Ctrl+V',
+    waiting: 'Наведите камеру или загрузите изображение с кодом',
+    notFound: 'Код не найден. Снимите ближе и ровнее: полосы должны быть в кадре целиком, вместе с белыми полями по краям.',
+    copy: 'Копировать цифры', copied: 'Скопировано',
+    kindBar: 'Штрихкод', kindQr: 'QR-код',
+    fFormat: 'Формат', fCheck: 'Контрольная цифра', fCountry: 'Номер выдан в стране',
+    fIsbn10: 'Старый ISBN-10', fInside: 'Внутри',
+    checkOk: 'сходится', checkBad: 'не сходится — должна быть',
+    badTitle: 'Контрольная цифра не сошлась.',
+    badText: 'Либо код распознан с ошибкой — попробуйте снять ещё раз, — либо цифры набраны вручную неверно. Настоящий товарный код всегда сходится.',
+    markБook: 'Книга (ISBN)', markНоты: 'Ноты (ISMN)', markЖурнал: 'Журнал или газета (ISSN)',
+    markВнутренний: 'Внутренний код магазина', markКупон: 'Купон',
+    markВозврат: 'Чек возврата', markGs1: 'Служебный номер GS1',
+    inStore: 'Такой код печатает сам магазин на весовом товаре. За его дверями он не значит ничего: в другой сети те же цифры будут другим товаром.',
+    other: 'Сканер QR-кода', otherHint: 'Это QR-код, а не штрихкод. Разбор ссылок и проверка на обман — на соседней странице.',
+    n1: '<b>Первые цифры — страна, где номер выдан, а не где сделан товар.</b> Это самое частое заблуждение про штрихкоды. Префикс говорит, в каком отделении GS1 производитель зарегистрировался. Немецкая фирма с кодом 400 может шить в Китае, а российский импортёр получит код 460 на товар из Турции. По штрихкоду страну производства узнать нельзя — её пишут на упаковке словами.',
+    n2: '<b>Названия товара и цены мы не показываем — и не обещаем.</b> Цифры сами по себе имени не содержат: связь «номер → товар» лежит в базе GS1, и доступ к ней платный. Страницы, которые обещают узнать товар по коду, либо берут данные из неполных любительских списков, либо просто подставляют название по первой ссылке в поиске.',
+    n3: '<b>Контрольную цифру проверяем на месте.</b> Последняя цифра EAN и UPC вычисляется из остальных. Если она не сошлась — код либо распознан криво, либо набран с ошибкой. Это надёжная проверка: одна перепутанная цифра почти всегда её ломает.',
+    n4: '<b>На iPhone штрихкод читается по снимку.</b> В Chrome и на Android распознаватель встроен в сам браузер и ловит полосы прямо с камеры. В Safari его нет, и живая камера там ищет только QR — зато снимок или файл разбирается полностью, тем же набором форматов.',
+    n5: '<b>QR-коды эта страница тоже читает.</b> Если вместо полосок в кадр попадёт квадратик, мы его прочтём и покажем содержимое, а за разбором ссылки отправим на сканер QR — там проверка на подменённый адрес.',
+    n6: 'Ничего никуда не отправляется. Снимок не загружается на сервер, распознавание идёт в самой вкладке, и после закрытия страницы не остаётся ничего.',
+  },
+  uk: {
+    goOther: "Розібрати цей код",
+    mode: 'Режим', camera: 'Камера', photo: 'Файл або знімок',
+    stop: 'Вимкнути камеру',
+    camIdle: 'Натисніть значок фотоапарата і піднесіть штрихкод до об’єктива',
+    camDenied: 'Браузер не дав доступ до камери. Дозвольте його в налаштуваннях сайту або перемкніться на «Файл або знімок».',
+    camNo1D: 'У цьому браузері жива камера ловить лише QR-коди. Штрихкод читається зі знімка — перемкніться на «Файл або знімок».',
+    pick: 'Вибрати файл', again: 'Вибрати інший',
+    drop: 'Перетягніть зображення сюди, виберіть файл або вставте знімок клавішами Ctrl+V',
+    waiting: 'Наведіть камеру або завантажте зображення з кодом',
+    notFound: 'Код не знайдено. Зніміть ближче і рівніше: смуги мають бути в кадрі повністю, разом з білими полями по краях.',
+    copy: 'Копіювати цифри', copied: 'Скопійовано',
+    kindBar: 'Штрихкод', kindQr: 'QR-код',
+    fFormat: 'Формат', fCheck: 'Контрольна цифра', fCountry: 'Номер видано в країні',
+    fIsbn10: 'Старий ISBN-10', fInside: 'Усередині',
+    checkOk: 'збігається', checkBad: 'не збігається — має бути',
+    badTitle: 'Контрольна цифра не збіглася.',
+    badText: 'Або код розпізнано з помилкою — спробуйте зняти ще раз, — або цифри набрано вручну неправильно. Справжній товарний код завжди збігається.',
+    markБook: 'Книга (ISBN)', markНоты: 'Ноти (ISMN)', markЖурнал: 'Журнал або газета (ISSN)',
+    markВнутренний: 'Внутрішній код магазину', markКупон: 'Купон',
+    markВозврат: 'Чек повернення', markGs1: 'Службовий номер GS1',
+    inStore: 'Такий код друкує сам магазин на ваговому товарі. За його дверима він не значить нічого: в іншій мережі ті самі цифри будуть іншим товаром.',
+    other: 'Сканер QR-коду', otherHint: 'Це QR-код, а не штрихкод. Розбір посилань і перевірка на обман — на сусідній сторінці.',
+    n1: '<b>Перші цифри — країна, де видано номер, а не де зроблено товар.</b> Це найчастіша хибна думка про штрихкоди. Префікс каже, у якому відділенні GS1 виробник зареєструвався. Німецька фірма з кодом 400 може шити в Китаї, а український імпортер отримає код 482 на товар із Туреччини. За штрихкодом країну виробництва дізнатися не можна — її пишуть на упаковці словами.',
+    n2: '<b>Назв товару і цін ми не показуємо — і не обіцяємо.</b> Цифри самі по собі імені не містять: зв’язок «номер → товар» лежить у базі GS1, і доступ до неї платний. Сторінки, які обіцяють дізнатися товар за кодом, або беруть дані з неповних аматорських списків, або просто підставляють назву за першим посиланням у пошуку.',
+    n3: '<b>Контрольну цифру перевіряємо на місці.</b> Остання цифра EAN і UPC обчислюється з решти. Якщо вона не збіглася — код або розпізнано криво, або набрано з помилкою. Це надійна перевірка: одна переплутана цифра майже завжди її ламає.',
+    n4: '<b>На iPhone штрихкод читається зі знімка.</b> У Chrome і на Android розпізнавач вбудований у сам браузер і ловить смуги просто з камери. У Safari його немає, і жива камера там шукає лише QR — зате знімок або файл розбирається повністю, тим самим набором форматів.',
+    n5: '<b>QR-коди ця сторінка теж читає.</b> Якщо замість смужок у кадр потрапить квадратик, ми його прочитаємо і покажемо вміст, а за розбором посилання відправимо на сканер QR — там перевірка на підмінену адресу.',
+    n6: 'Нічого нікуди не надсилається. Знімок не завантажується на сервер, розпізнавання йде в самій вкладці, і після закриття сторінки не лишається нічого.',
+  },
+  en: {
+    goOther: "Analyse this code",
+    mode: 'Mode', camera: 'Camera', photo: 'File or screenshot',
+    stop: 'Turn the camera off',
+    camIdle: 'Press the camera icon and hold the barcode up to the lens',
+    camDenied: 'The browser denied camera access. Allow it in the site settings, or switch to “File or screenshot”.',
+    camNo1D: 'In this browser the live camera only catches QR codes. Barcodes are read from a picture — switch to “File or screenshot”.',
+    pick: 'Choose file', again: 'Choose another',
+    drop: 'Drag an image here, choose a file, or paste a screenshot with Ctrl+V',
+    waiting: 'Point the camera at a code, or load an image',
+    notFound: 'No code found. Shoot closer and straighter: the whole set of bars must be in frame, together with the white margins at both ends.',
+    copy: 'Copy digits', copied: 'Copied',
+    kindBar: 'Barcode', kindQr: 'QR code',
+    fFormat: 'Format', fCheck: 'Check digit', fCountry: 'Number issued in',
+    fIsbn10: 'Old ISBN-10', fInside: 'Contents',
+    checkOk: 'matches', checkBad: 'does not match — should be',
+    badTitle: 'The check digit does not match.',
+    badText: 'Either the code was read wrong — try shooting it again — or the digits were typed in incorrectly. A genuine retail code always matches.',
+    markБook: 'Book (ISBN)', markНоты: 'Sheet music (ISMN)', markЖурнал: 'Magazine or newspaper (ISSN)',
+    markВнутренний: 'In-store code', markКупон: 'Coupon',
+    markВозврат: 'Refund receipt', markGs1: 'GS1 internal number',
+    inStore: 'A code like this is printed by the shop itself, usually on loose goods weighed at the counter. Outside that shop it means nothing: in another chain the same digits are a different product.',
+    other: 'QR code scanner', otherHint: 'This is a QR code, not a barcode. Link analysis and the check for spoofed addresses are on the neighbouring page.',
+    n1: '<b>The first digits are the country where the number was issued, not where the goods were made.</b> This is the most common misconception about barcodes. The prefix says which GS1 office the manufacturer registered with. A German company with prefix 400 may have everything sewn in China, and an importer will put its own national prefix on goods from Türkiye. A barcode cannot tell you the country of manufacture — that is written on the packaging in words.',
+    n2: '<b>We do not show product names or prices — and we do not promise to.</b> The digits carry no name in themselves: the link from number to product lives in the GS1 database, and access to it is paid. Pages that promise to name a product from its code either pull from incomplete amateur lists or simply echo the first search result.',
+    n3: '<b>The check digit is verified here and now.</b> The last digit of an EAN or UPC is computed from the rest. If it does not match, the code was either misread or mistyped. It is a reliable test: a single transposed digit almost always breaks it.',
+    n4: '<b>On iPhone a barcode is read from a picture.</b> In Chrome and on Android the recogniser is built into the browser itself and catches bars straight from the camera. Safari has no such thing, so its live camera looks for QR only — but a photo or file is read in full, with the same set of formats.',
+    n5: '<b>This page reads QR codes too.</b> If a square lands in the frame instead of bars, we will read it and show what is inside, then point you to the QR scanner for the link analysis — that is where addresses are checked for spoofing.',
+    n6: 'Nothing is sent anywhere. The picture is not uploaded to a server, recognition happens inside the tab itself, and once the page is closed nothing is left behind.',
+  },
+  es: {
+    goOther: "Analizar este código",
+    mode: 'Modo', camera: 'Cámara', photo: 'Archivo o captura',
+    stop: 'Apagar la cámara',
+    camIdle: 'Pulse el icono de la cámara y acerque el código de barras al objetivo',
+    camDenied: 'El navegador no dio acceso a la cámara. Permítalo en los ajustes del sitio o cambie a «Archivo o captura».',
+    camNo1D: 'En este navegador la cámara en vivo solo capta códigos QR. El código de barras se lee desde una imagen: cambie a «Archivo o captura».',
+    pick: 'Elegir archivo', again: 'Elegir otro',
+    drop: 'Arrastre una imagen aquí, elija un archivo o pegue una captura con Ctrl+V',
+    waiting: 'Apunte la cámara a un código o cargue una imagen',
+    notFound: 'No se encontró ningún código. Acérquese y enderece la toma: las barras deben caber enteras en el encuadre, junto con los márgenes blancos de los extremos.',
+    copy: 'Copiar los dígitos', copied: 'Copiado',
+    kindBar: 'Código de barras', kindQr: 'Código QR',
+    fFormat: 'Formato', fCheck: 'Dígito de control', fCountry: 'Número emitido en',
+    fIsbn10: 'ISBN-10 antiguo', fInside: 'Contenido',
+    checkOk: 'coincide', checkBad: 'no coincide: debería ser',
+    badTitle: 'El dígito de control no coincide.',
+    badText: 'O bien el código se leyó mal —pruebe a tomar la foto de nuevo— o los dígitos se escribieron con un error. Un código comercial auténtico siempre coincide.',
+    markБook: 'Libro (ISBN)', markНоты: 'Partitura (ISMN)', markЖурнал: 'Revista o periódico (ISSN)',
+    markВнутренний: 'Código interno de la tienda', markКупон: 'Cupón',
+    markВозврат: 'Recibo de devolución', markGs1: 'Número de servicio GS1',
+    inStore: 'Ese código lo imprime la propia tienda, normalmente en producto a granel pesado en el mostrador. Fuera de ella no significa nada: en otra cadena los mismos dígitos son otro producto.',
+    other: 'Escáner de códigos QR', otherHint: 'Esto es un código QR, no un código de barras. El análisis de enlaces y la comprobación de direcciones falsas están en la página vecina.',
+    n1: '<b>Las primeras cifras indican el país donde se emitió el número, no donde se fabricó el producto.</b> Es el error más extendido sobre los códigos de barras. El prefijo dice en qué oficina de GS1 se registró el fabricante. Una empresa alemana con prefijo 400 puede coser en China, y un importador pondrá su prefijo nacional a mercancía turca. El país de fabricación no se deduce del código: se escribe con letras en el envase.',
+    n2: '<b>No mostramos nombres de producto ni precios, y tampoco lo prometemos.</b> Las cifras por sí solas no contienen ningún nombre: la relación entre número y producto está en la base de datos de GS1, y el acceso es de pago. Las páginas que prometen identificar el producto por su código o bien tiran de listas aficionadas incompletas, o bien repiten el primer resultado del buscador.',
+    n3: '<b>El dígito de control se comprueba aquí mismo.</b> La última cifra de un EAN o un UPC se calcula a partir del resto. Si no coincide, el código se leyó mal o se tecleó con un error. Es una comprobación fiable: basta con intercambiar dos cifras para romperla.',
+    n4: '<b>En el iPhone el código de barras se lee desde una imagen.</b> En Chrome y en Android el reconocedor está integrado en el propio navegador y capta las barras directamente de la cámara. Safari no lo tiene, así que allí la cámara en vivo busca solo QR; en cambio una foto o un archivo se analizan por completo, con el mismo juego de formatos.',
+    n5: '<b>Esta página también lee códigos QR.</b> Si en lugar de barras entra un cuadrado en el encuadre, lo leeremos y mostraremos su contenido, y le remitiremos al escáner de QR para el análisis del enlace: allí es donde se comprueba si la dirección está suplantada.',
+    n6: 'No se envía nada a ninguna parte. La imagen no se sube a ningún servidor, el reconocimiento ocurre dentro de la propia pestaña y, al cerrar la página, no queda nada.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="скш" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="скш-пульт">
+    <span class="скш-отступ">
+      <span class="скш-подпись">{с.mode}:</span>
+      <span class="скш-набор">
+        <!-- Значок фотоаппарата САМ включает камеру: нажал на камеру -- получил камеру.
+             Отдельной кнопки «включить» нет, два нажатия ради одного действия ни к чему.
+             Пока камера работает, значок перечёркнут -- нажатие её выключит. -->
+        <button type="button" class="скш-выбор скш-глаз выбран" data-р="camera"
+                id="скш-глаз" aria-label={с.camera} title={с.camera}>
+          <svg class="идёт-нет" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+            <circle cx="12" cy="13.3" r="3.5"/>
+          </svg>
+          <svg class="стоп" viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+            <circle cx="12" cy="13.3" r="3.5"/>
+            <path d="M3.5 3.5l17 17"/>
+          </svg>
+        </button>
+        <button type="button" class="скш-выбор" data-р="photo">{с.photo}</button>
+      </span>
+    </span>
+    <!-- Переход на сканер QR стоит прямо здесь, у самого инструмента: человек с кодом в
+         руках часто не знает, полоски у него или квадратик, и уходить за этим вниз страницы
+         неправильно. -->
+    <a class="скш-сосед" href={`/${locale}/qr-scan`}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
+      {с.other}
+    </a>
+  </div>
+
+  <div class="скш-пара">
+    <div>
+      <div class="скш-глазок" id="скш-глазок">
+        <video id="скш-видео" playsinline muted></video>
+        <canvas id="скш-холст"></canvas>
+        <div class="скш-прицел"><i></i><i></i></div>
+        <div class="скш-заслон" id="скш-заслон">{с.camIdle}</div>
+      </div>
+
+      <label class="скш-зона" id="скш-зона" hidden>
+        <p>{с.drop}</p>
+        <span class="скш-взять" id="скш-выбрать">{с.pick}</span>
+        <input type="file" id="скш-файл" accept="image/*" />
+      </label>
+    </div>
+
+    <div class="скш-итог" id="скш-итог">
+      <span class="скш-ждём" id="скш-ждём">{с.waiting}</span>
+    </div>
+  </div>
+
+  <div class="скш-ряд" id="скш-ряд" hidden>
+    <button type="button" class="скш-кнопка" id="скш-копировать">{с.copy}</button>
+    <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
+  </div>
+
+  <div class="скш-заметки">
+    <div class="скш-заметка" set:html={с.n1}></div>
+    <div class="скш-заметка" set:html={с.n2}></div>
+    <div class="скш-заметка" set:html={с.n3}></div>
+    <div class="скш-заметка" set:html={с.n4}></div>
+    <div class="скш-заметка" set:html={с.n5}></div>
+    <div class="скш-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { прочитатьКадр, камераВидитПолоски } from '../lib/code-read.js';
+  import { разобратьШтрих, названиеСтраны } from '../lib/barcode-info.js';
+  import { разобратьСодержимое } from '../lib/qr-read.js';
+
+  const корень = document.querySelector('.скш');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const видео = $('скш-видео');
+    const холст = $('скш-холст');
+    const итог = $('скш-итог');
+
+    let режим = 'camera';
+    let поток = null;
+    let ищем = false;
+    let найдено = '';
+    let ловитПолоски = true;   // умеет ли живая камера ловить полосы; уточняется ниже
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    function пары(список) {
+      const дл = document.createElement('dl');
+      дл.className = 'скш-пары';
+      for (const [имя, значение] of список) {
+        if (!значение) continue;
+        дл.append(узел('dt', '', имя), узел('dd', '', значение));
+      }
+      return дл;
+    }
+
+    /** Короткий тихий сигнал: подсказка, а не сирена. */
+    function пикнуть() {
+      try {
+        const ак = new (window.AudioContext || window.webkitAudioContext)();
+        const ген = ак.createOscillator();
+        const гром = ак.createGain();
+        ген.type = 'sine';
+        ген.frequency.value = 1320;
+        гром.gain.setValueAtTime(0.0001, ак.currentTime);
+        гром.gain.exponentialRampToValueAtTime(0.08, ак.currentTime + 0.01);
+        гром.gain.exponentialRampToValueAtTime(0.0001, ак.currentTime + 0.12);
+        ген.connect(гром); гром.connect(ак.destination);
+        ген.start(); ген.stop(ак.currentTime + 0.13);
+        setTimeout(() => ак.close(), 400);
+      } catch (е) { /* звук -- приятная мелочь, без него всё работает */ }
+    }
+
+    /** Человеческое имя формата: ean_13 и EAN_13 от разных движков -- одно и то же. */
+    function имяФормата(ф) {
+      const к = String(ф || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
+      const карта = { EAN13: 'EAN-13', EAN8: 'EAN-8', UPCA: 'UPC-A', UPCE: 'UPC-E',
+        CODE128: 'Code 128', CODE39: 'Code 39', CODE93: 'Code 93', ITF: 'ITF',
+        QRCODE: 'QR', DATAMATRIX: 'Data Matrix', PDF417: 'PDF417', AZTEC: 'Aztec' };
+      return карта[к] || String(ф || '');
+    }
+
+    function показатьQR(текст) {
+      const разбор = разобратьСодержимое(текст);
+      итог.appendChild(узел('span', 'скш-вид', с.kindQr));
+      итог.appendChild(узел('div', 'скш-значение', разбор.текст));
+      итог.appendChild(узел('div', 'скш-подсказ', с.otherHint));
+      $('скш-туда').style.display = 'inline-flex';
+    }
+
+    function показатьШтрих(текст, формат) {
+      const р = разобратьШтрих(текст, формат);
+      итог.appendChild(узел('span', 'скш-вид', с.kindBar));
+      итог.appendChild(узел('div', 'скш-значение', р.цифры));
+
+      const строки = [[с.fFormat, имяФормата(р.формат)]];
+      if (р.контроль) {
+        строки.push([с.fCheck, р.контроль.сошлась
+          ? с.checkOk
+          : `${с.checkBad} ${р.контроль.должна}`]);
+      }
+      if (р.страна) строки.push([с.fCountry, названиеСтраны(р.страна, язык)]);
+      if (р.пометка) {
+        const слово = { книга: с.markБook, ноты: с.markНоты, журнал: с.markЖурнал,
+          внутренний: с.markВнутренний, купон: с.markКупон, возврат: с.markВозврат,
+          gs1: с.markGs1 }[р.пометка];
+        if (слово) строки.push([с.fInside, слово]);
+      }
+      if (р.isbn10) строки.push([с.fIsbn10, р.isbn10]);
+      итог.appendChild(пары(строки));
+
+      // Внутренний код магазина без пояснения выглядит как поломка: страны нет, смысла нет.
+      if (р.пометка === 'внутренний') итог.appendChild(узел('div', 'скш-подсказ', с.inStore));
+
+      if (р.контроль && !р.контроль.сошлась) {
+        const б = узел('div', 'скш-тревога');
+        б.innerHTML = `<b>${с.badTitle}</b> ${с.badText}`;
+        итог.appendChild(б);
+      }
+    }
+
+    function показать(находка) {
+      найдено = находка.текст;
+      итог.replaceChildren();
+      $('скш-ряд').hidden = false;
+      $('скш-туда').style.display = 'none';
+      if (находка.вид === 'qr') показатьQR(находка.текст);
+      else показатьШтрих(находка.текст, находка.формат);
+      пикнуть();
+      $('скш-глазок').classList.add('нашёл');
+      setTimeout(() => $('скш-глазок').classList.remove('нашёл'), 900);
+    }
+
+    function сказатьВИтог(текст) {
+      итог.replaceChildren(узел('span', 'скш-ждём', текст));
+      $('скш-ряд').hidden = true;
+      найдено = '';
+    }
+
+    /** Один проход по картинке. */
+    async function разобратьКадр(источник, ширина, высота, рисовать, снимок) {
+      if (!ширина || !высота) return null;
+      холст.width = ширина;
+      холст.height = высота;
+      const рис = холст.getContext('2d', { willReadFrequently: true });
+      рисовать(рис);
+      const точки = рис.getImageData(0, 0, ширина, высота);
+      return прочитатьКадр({ источник, точки, нужно: 'оба', снимок });
+    }
+
+    async function круг() {
+      if (!ищем || режим !== 'camera') return;
+      if (видео.readyState >= 2) {
+        try {
+          const н = await разобратьКадр(видео, видео.videoWidth, видео.videoHeight,
+            (рис) => рис.drawImage(видео, 0, 0), false);
+          if (н && н.текст !== найдено) показать(н);
+        } catch (е) { /* один неудачный кадр -- не беда, ждём следующий */ }
+      }
+      if (ищем) setTimeout(() => requestAnimationFrame(круг), 250);
+    }
+
+    async function включить() {
+      if (поток) { выключить(); return; }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          // Полосы тоньше, чем клетки QR: просим кадр покрупнее, иначе они сливаются.
+          video: { facingMode: 'environment', width: { ideal: 1920 } }, audio: false,
+        });
+      } catch (е) {
+        $('скш-заслон').hidden = false;
+        $('скш-заслон').textContent = с.camDenied;
+        return;
+      }
+      видео.srcObject = поток;
+      await видео.play().catch(() => {});
+      $('скш-заслон').hidden = true;
+      значокКамеры(true);
+      ищем = true;
+      круг();
+    }
+
+    function выключить() {
+      ищем = false;
+      if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
+      видео.srcObject = null;
+      $('скш-заслон').hidden = false;
+      $('скш-заслон').textContent = ловитПолоски ? с.camIdle : с.camNo1D;
+      значокКамеры(false);
+    }
+
+    /** Перечёркнутый фотоаппарат = «выключить». Подпись меняется вместе со значком:
+        кнопка без букв должна называть себя хотя бы голосовому чтению. */
+    function значокКамеры(идёт) {
+      const к = $('скш-глаз');
+      к.classList.toggle('идёт', идёт);
+      к.setAttribute('aria-label', идёт ? с.stop : с.camera);
+      к.setAttribute('title', идёт ? с.stop : с.camera);
+    }
+
+    async function взятьКартинку(файл) {
+      if (!файл) return;
+      const адрес = URL.createObjectURL(файл);
+      const карт = new Image();
+      карт.onload = async () => {
+        let н = null;
+        try {
+          н = await разобратьКадр(карт, карт.naturalWidth, карт.naturalHeight,
+            (рис) => рис.drawImage(карт, 0, 0), true);
+        } catch (е) { н = null; }
+        // Показываем сам снимок: сразу видно, тот ли файл разбирали.
+        // Поле файла надо забрать ДО замены содержимого: replaceChildren вынимает его
+        // из страницы, и getElementById после этого возвращает пусто. Из-за этого «Выбрать
+        // другой» падал с ошибкой, и второй файл выбрать было уже нельзя.
+        const поле = $('скш-файл');
+        const ещё = узел('span', 'скш-взять', с.again);
+        ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+        $('скш-зона').replaceChildren(карт, ещё, поле);
+        if (н) показать(н); else сказатьВИтог(с.notFound);
+        URL.revokeObjectURL(адрес);
+      };
+      карт.onerror = () => { сказатьВИтог(с.notFound); URL.revokeObjectURL(адрес); };
+      карт.src = адрес;
+    }
+
+    function выбратьРежим(новый) {
+      режим = новый;
+      for (const д of корень.querySelectorAll('.скш-выбор[data-р]')) {
+        д.classList.toggle('выбран', д.dataset.р === новый);
+      }
+      const камера = новый === 'camera';
+      $('скш-глазок').hidden = !камера;
+      $('скш-зона').hidden = камера;
+      if (!камера) выключить();
+    }
+
+    // Нажатие на фотоаппарат: из режима снимка -- переключиться и сразу включить камеру;
+    // в режиме камеры -- включить или выключить её.
+    $('скш-глаз').addEventListener('click', () => {
+      if (режим !== 'camera') { выбратьРежим('camera'); включить(); return; }
+      if (поток) выключить(); else включить();
+    });
+    корень.querySelector('.скш-выбор[data-р="photo"]')
+      .addEventListener('click', () => выбратьРежим('photo'));
+
+    $('скш-файл').addEventListener('change', (е) => взятьКартинку(е.target.files && е.target.files[0]));
+    $('скш-выбрать').addEventListener('click', (е) => { е.preventDefault(); $('скш-файл').click(); });
+
+    for (const событие of ['dragenter', 'dragover']) {
+      $('скш-зона').addEventListener(событие, (е) => { е.preventDefault(); $('скш-зона').classList.add('держат'); });
+    }
+    $('скш-зона').addEventListener('dragleave', () => $('скш-зона').classList.remove('держат'));
+    $('скш-зона').addEventListener('drop', (е) => {
+      е.preventDefault();
+      $('скш-зона').classList.remove('держат');
+      взятьКартинку(е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0]);
+    });
+
+    document.addEventListener('paste', (е) => {
+      const вещи = е.clipboardData && е.clipboardData.items;
+      if (!вещи) return;
+      for (const в of вещи) {
+        if (в.type && в.type.startsWith('image/')) {
+          const файл = в.getAsFile();
+          if (файл) {
+            корень.querySelector('.скш-выбор[data-р="photo"]').click();
+            взятьКартинку(файл);
+          }
+          break;
+        }
+      }
+    });
+
+    $('скш-копировать').addEventListener('click', async () => {
+      const кнопка = $('скш-копировать');
+      if (!найдено) return;
+      try { await navigator.clipboard.writeText(найдено); }
+      catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    window.addEventListener('pagehide', выключить);
+
+    // Честная надпись под камерой там, где браузер не умеет ловить полосы на лету.
+    камераВидитПолоски().then((умеет) => {
+      ловитПолоски = умеет;
+      if (!умеет && !поток) $('скш-заслон').textContent = с.camNo1D;
+    });
+
+    window.__скшСостояние = () => ({
+      режим,
+      найдено,
+      итог: итог.textContent.trim(),
+      вид: (итог.querySelector('.скш-вид') || {}).textContent || '',
+      значение: (итог.querySelector('.скш-значение') || {}).textContent || '',
+      пары: [...итог.querySelectorAll('.скш-пары dt')].map((д, и) =>
+        [д.textContent, итог.querySelectorAll('.скш-пары dd')[и].textContent]),
+      тревога: !!итог.querySelector('.скш-тревога'),
+      кнопкиВидны: !$('скш-ряд').hidden,
+      наQR: $('скш-туда').style.display !== 'none',
+    });
+    window.__скшПоказать = показать;
+  })();
+</script>

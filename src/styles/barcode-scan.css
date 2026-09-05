@@ -1,0 +1,168 @@
+/* СТИЛИ СТРАНИЦЫ «СКАНЕР ШТРИХКОДОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею. Вид -- родня сканеру QR: страницы
+ * ссылаются друг на друга, и человек должен видеть, что попал в тот же дом.
+ *
+ * Решения владельца, которые здесь соблюдены:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- буквы плотные, приглушённых подписей нет;
+ *   -- кнопки НЕ растягиваются на всю ширину на телефоне: кнопка должна выглядеть кнопкой;
+ *   -- камеру включает сам значок фотоаппарата, отдельной кнопки «включить» нет.
+ */
+
+.скш {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.скш-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.скш-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+.скш-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+
+.скш-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
+.скш-выбор {
+  display: inline-flex; align-items: center; justify-content: center; gap: 8px;
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.скш-выбор:hover { border-color: #fff; background: #23272f }
+.скш-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.скш-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+/* Значок фотоаппарата -- он же выключатель камеры. Отдельной кнопки «включить» нет: человек
+   нажимает на камеру и получает камеру, а не два нажатия подряд ради одного действия.
+   Квадратный, чтобы читался как значок, а не как обрезанная надпись. */
+.скш-глаз { width: 46px; padding: 0 }
+.скш-глаз svg { width: 21px; height: 21px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+.скш-глаз .стоп { display: none }
+.скш-глаз.идёт .идёт-нет { display: none }
+.скш-глаз.идёт .стоп { display: block }
+/* Камера в работе -- значок красный: понятно, что нажатие её выключит, а не включит ещё раз. */
+.скш-глаз.идёт { border-color: var(--беда); color: var(--беда) }
+.скш-глаз.идёт:hover { border-color: var(--беда); color: var(--беда); background: rgba(255,154,168,.10) }
+
+/* Переход на соседний сканер. Приглушённая обводка: это выход со страницы, а не главное
+   действие на ней. */
+.скш-сосед {
+  display: inline-flex; align-items: center; gap: 8px; margin-left: auto; flex: none;
+  height: 38px; padding: 0 14px; border-radius: 6px; text-decoration: none;
+  font: 500 12.5px var(--цифры); color: #fff; background: transparent;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.скш-сосед:hover { border-color: #fff; background: #1c1f26 }
+.скш-сосед svg { width: 15px; height: 15px; fill: currentColor; flex: none }
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.скш-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
+
+.скш-глазок { position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--линия); background: #0b0c0f; aspect-ratio: 4 / 3 }
+.скш-глазок video { width: 100%; height: 100%; object-fit: cover; display: block }
+.скш-глазок canvas { display: none }
+
+/* Прицел здесь -- ДВЕ горизонтальные скобки, а не четыре уголка как у QR. Штрихкод длинный
+   и низкий, и рамка квадратом заставляла бы наводить неправильно. */
+.скш-прицел { position: absolute; inset: 34% 10%; pointer-events: none }
+.скш-прицел i { position: absolute; top: 0; bottom: 0; width: 20px; border: 2px solid #fff;
+  opacity: .85 }
+.скш-прицел i:nth-child(1) { left: 0; border-right: 0; border-radius: 4px 0 0 4px }
+.скш-прицел i:nth-child(2) { right: 0; border-left: 0; border-radius: 0 4px 4px 0 }
+.скш-глазок.нашёл .скш-прицел i { border-color: var(--accent); opacity: 1 }
+
+.скш-заслон { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; padding: 20px; text-align: center;
+  font: 400 13px/1.6 var(--ui); color: #fff; background: #0b0c0f }
+
+.скш-зона {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; aspect-ratio: 4 / 3; padding: 22px; border-radius: 12px;
+  border: 1px dashed #3f4652; background: #14161b; cursor: pointer; text-align: center;
+  transition: border-color .15s, background .15s;
+}
+.скш-зона:hover { border-color: #fff; background: #1a1d23 }
+.скш-зона.держат { border-style: solid; border-color: #fff }
+.скш-зона p { margin: 0; font: 400 13px/1.5 var(--ui); color: #fff }
+.скш-зона img { max-width: 100%; max-height: 60%; border-radius: 8px; object-fit: contain }
+.скш-зона input[type=file] { display: none }
+
+.скш-взять {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; align-self: center; height: 38px; padding: 0 16px; border-radius: 6px;
+  cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.скш-взять:hover { border-color: #fff; background: #23272f }
+
+/* Правила display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этих
+   строк видоискатель и зона файла видны одновременно. */
+.скш-зона[hidden] { display: none }
+.скш-глазок[hidden] { display: none }
+.скш-заслон[hidden] { display: none }
+
+/* ---- Найденное ------------------------------------------------------------------------------ */
+
+.скш-итог { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 10px }
+.скш-вид { font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent) }
+/* Сами цифры -- главное на странице, ради них и пришли. Крупно, вразрядку, чтобы их можно
+   было переписать с экрана на бумагу не сбившись. */
+.скш-значение { font: 400 19px/1.4 var(--цифры); letter-spacing: .06em; color: #fff;
+  overflow-wrap: anywhere; user-select: text; font-variant-numeric: tabular-nums }
+.скш-пары { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 5px 12px;
+  font: 400 13px/1.5 var(--цифры) }
+.скш-пары dt { color: var(--accent) }
+.скш-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
+.скш-ждём { font: 400 13px/1.6 var(--ui); color: #fff }
+.скш-подсказ { font: 400 12.5px/1.55 var(--ui); color: #fff }
+
+.скш-тревога { padding: 11px 13px; border-radius: 9px; border: 1px solid rgba(255,154,168,.55);
+  background: rgba(255,154,168,.08); font: 400 12.5px/1.55 var(--ui); color: #fff }
+.скш-тревога b { color: var(--беда); font-weight: 700 }
+
+/* ---- Кнопки под инструментом ---------------------------------------------------------------- */
+
+.скш-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 12px 0 10px }
+.скш-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.скш-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.скш-обводка {
+  display: inline-flex; align-items: center; flex: 0 0 auto;
+  height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer; text-decoration: none;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.скш-обводка:hover { background: #fff; color: #000 }
+
+.скш-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.скш-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.скш-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.скш-заметка b { color: #fff; font-weight: 600 }
+.скш-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 900px) {
+  .скш-пара { grid-template-columns: minmax(0, 1fr) 380px }
+}
+@media (max-width: 560px) {
+  /* Кнопки НЕ растягиваем. Растянутая во всю ширину кнопка перестаёт читаться кнопкой и
+     выглядит полосой; на десктопе она аккуратная, и на телефоне должна быть такой же. */
+  .скш-сосед { margin-left: 0 }
+  .скш-пары { grid-template-columns: 1fr; gap: 1px 0 }
+  .скш-пары dd { margin-bottom: 7px }
+  .скш-значение { font-size: 17px }
+}

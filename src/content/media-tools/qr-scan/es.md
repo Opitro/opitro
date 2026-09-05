@@ -23,6 +23,7 @@ faq:
   - question: ¿Qué más se puede leer aparte de enlaces?
     answer: "Todo lo que se mete en los códigos QR: texto normal, una red Wi-Fi, una tarjeta vCard, un teléfono y una dirección de correo. El formato se reconoce solo."
 related:
+  - barcode-scan
   - qr-code
   - base64-file
   - url-encode-decode

@@ -23,6 +23,7 @@ faq:
   - question: Що можна прочитати, крім посилань?
     answer: "Усе, що кладуть у QR-коди: звичайний текст, мережу Wi-Fi, візитівку vCard, телефон і адресу пошти. Формат розпізнається сам."
 related:
+  - barcode-scan
   - qr-code
   - base64-file
   - url-encode-decode
