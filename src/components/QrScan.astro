@@ -26,7 +26,7 @@ const СЛОВА = {
     kindBar: "Штрихкод", barHint: "Это штрихкод, а не QR-код. Страна, контрольная цифра и остальной разбор — на соседней странице.",
     mode: 'Откуда', camera: 'Камера', photo: 'Файл или снимок',
     start: 'Включить камеру', stop: 'Выключить',
-    camIdle: 'Камера выключена. Нажмите кнопку — браузер спросит разрешение.',
+    camIdle: 'Нажмите значок фотоаппарата — браузер спросит разрешение на камеру.',
     camDenied: 'Камера не доступна. Разрешение не дано или устройства нет. Можно распознать снимок: переключитесь на «Файл или снимок».',
     camLooking: 'Наведите код на прицел…',
     drop: 'Перетащите картинку сюда, выберите файл или вставьте снимок клавишами Ctrl+V',
@@ -54,7 +54,7 @@ const СЛОВА = {
     kindBar: "Штрихкод", barHint: "Це штрихкод, а не QR-код. Країна, контрольна цифра та решта розбору — на сусідній сторінці.",
     mode: 'Звідки', camera: 'Камера', photo: 'Файл або знімок',
     start: 'Увімкнути камеру', stop: 'Вимкнути',
-    camIdle: 'Камеру вимкнено. Натисніть кнопку — браузер запитає дозвіл.',
+    camIdle: 'Натисніть значок фотоапарата — браузер запитає дозвіл на камеру.',
     camDenied: 'Камера недоступна. Дозвіл не надано або пристрою немає. Можна розпізнати знімок: перемкніться на «Файл або знімок».',
     camLooking: 'Наведіть код на приціл…',
     drop: 'Перетягніть зображення сюди, виберіть файл або вставте знімок клавішами Ctrl+V',
@@ -82,7 +82,7 @@ const СЛОВА = {
     kindBar: "Barcode", barHint: "This is a barcode, not a QR code. The country, the check digit and the rest of the analysis are on the neighbouring page.",
     mode: 'Source', camera: 'Camera', photo: 'File or screenshot',
     start: 'Turn the camera on', stop: 'Turn off',
-    camIdle: 'The camera is off. Press the button — the browser will ask for permission.',
+    camIdle: 'Press the camera icon — the browser will ask for permission.',
     camDenied: 'The camera is not available. Permission was refused or there is no device. You can still decode a picture: switch to “File or screenshot”.',
     camLooking: 'Point the code at the frame…',
     drop: 'Drop a picture here, choose a file, or paste a screenshot with Ctrl+V',
@@ -110,7 +110,7 @@ const СЛОВА = {
     kindBar: "Código de barras", barHint: "Esto es un código de barras, no un código QR. El país, el dígito de control y el resto del análisis están en la página vecina.",
     mode: 'Origen', camera: 'Cámara', photo: 'Archivo o captura',
     start: 'Encender la cámara', stop: 'Apagar',
-    camIdle: 'La cámara está apagada. Pulsa el botón: el navegador pedirá permiso.',
+    camIdle: 'Pulse el icono de la cámara: el navegador pedirá permiso.',
     camDenied: 'La cámara no está disponible. No se dio permiso o no hay dispositivo. Puedes descifrar una imagen: cambia a «Archivo o captura».',
     camLooking: 'Apunta el código al marco…',
     drop: 'Arrastra una imagen aquí, elige un archivo o pega una captura con Ctrl+V',
@@ -145,7 +145,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <span class="ск2-набор">
         <!-- Значок фотоаппарата САМ включает камеру: нажал на камеру -- получил камеру.
              Пока она работает, значок перечёркнут -- нажатие выключит. -->
-        <button type="button" class="ск2-выбор ск2-глаз выбран" data-р="camera"
+        <button type="button" class="ск2-выбор ск2-глаз" data-р="camera"
                 id="ск2-глаз" aria-label={с.camera} title={с.camera}>
           <svg class="идёт-нет" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
@@ -419,9 +419,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     function выбратьРежим(новый) {
       режим = новый;
-      for (const д of корень.querySelectorAll('.ск2-выбор[data-р]')) {
-        д.classList.toggle('выбран', д.dataset.р === новый);
-      }
+      корень.querySelector('.ск2-выбор[data-р="photo"]')
+        .classList.toggle('выбран', новый === 'photo');
       const камера = новый === 'camera';
       $('ск2-глазок').hidden = !камера;
       $('ск2-зона').hidden = камера;

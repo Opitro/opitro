@@ -76,6 +76,10 @@
 
 /* ---- Кнопки -------------------------------------------------------------------------------- */
 
+/* display: flex выше сильнее, чем display:none из таблицы браузера для [hidden]. Без этой
+   строки ряд кнопок виден ДО первого распознавания: «Копировать» предлагает скопировать
+   пустоту. Проверка на свойство .hidden эту беду не ловит -- только замер пикселей. */
+.ск2-ряд[hidden] { display: none }
 .ск2-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
 .ск2-кнопка {
   flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
@@ -251,7 +255,7 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
   font: 400 13px/1.5 var(--цифры) }
 .ск2-пары dt { color: var(--accent) }
 .ск2-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
-.ск2-ждём { font: 400 13px/1.6 var(--ui); color: #7d848f }
+.ск2-ждём { font: 400 13px/1.6 var(--ui); color: #fff }
 
 /* Куда на самом деле ведёт ссылка. Отдельной строкой и крупно: человек читает начало адреса
    и видит знакомое имя, а браузер пойдёт совсем не туда. */

@@ -150,7 +150,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         <!-- Значок фотоаппарата САМ включает камеру: нажал на камеру -- получил камеру.
              Отдельной кнопки «включить» нет, два нажатия ради одного действия ни к чему.
              Пока камера работает, значок перечёркнут -- нажатие её выключит. -->
-        <button type="button" class="скш-выбор скш-глаз выбран" data-р="camera"
+        <button type="button" class="скш-выбор скш-глаз" data-р="camera"
                 id="скш-глаз" aria-label={с.camera} title={с.camera}>
           <svg class="идёт-нет" viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
@@ -420,9 +420,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     function выбратьРежим(новый) {
       режим = новый;
-      for (const д of корень.querySelectorAll('.скш-выбор[data-р]')) {
-        д.classList.toggle('выбран', д.dataset.р === новый);
-      }
+      корень.querySelector('.скш-выбор[data-р="photo"]')
+        .classList.toggle('выбран', новый === 'photo');
       const камера = новый === 'camera';
       $('скш-глазок').hidden = !камера;
       $('скш-зона').hidden = камера;
