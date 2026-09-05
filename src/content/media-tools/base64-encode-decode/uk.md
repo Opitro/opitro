@@ -1,7 +1,7 @@
 ---
 toolSlug: base64-encode-decode
 locale: uk
-category: text
+category: dev
 tool: base64-encode-decode
 title: Base64 онлайн — кодування та декодування рядків (encode / decode)
 h1: Кодування та декодування Base64

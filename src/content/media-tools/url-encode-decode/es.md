@@ -1,7 +1,7 @@
 ---
 toolSlug: url-encode-decode
 locale: es
-category: text
+category: dev
 tool: url-encode-decode
 title: Codificar URL online — codificador y decodificador de enlaces
 h1: Codificación y decodificación URL

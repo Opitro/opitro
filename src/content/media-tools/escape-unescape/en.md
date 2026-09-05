@@ -1,7 +1,7 @@
 ---
 toolSlug: escape-unescape
 locale: en
-category: text
+category: dev
 tool: escape-unescape
 title: Escape and Unescape Online — HTML, JavaScript and CSS String Escaper
 h1: String Escape and Unescape

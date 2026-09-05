@@ -1,7 +1,7 @@
 ---
 toolSlug: url-encode-decode
 locale: uk
-category: text
+category: dev
 tool: url-encode-decode
 title: URL-кодування онлайн — кодувати та декодувати адреси сторінок
 h1: Кодування та декодування URL

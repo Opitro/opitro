@@ -1,7 +1,7 @@
 ---
 toolSlug: base64-encode-decode
 locale: es
-category: text
+category: dev
 tool: base64-encode-decode
 title: Base64 online — codificador y decodificador de texto (encode / decode)
 h1: Codificación y decodificación Base64

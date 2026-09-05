@@ -1,7 +1,7 @@
 ---
 toolSlug: case-converter
 locale: ru
-category: text
+category: dev
 tool: case-converter
 title: Перевод CamelCase в snake_case онлайн — конвертер стилей кода
 h1: Конвертер стилей CamelCase и snake_case

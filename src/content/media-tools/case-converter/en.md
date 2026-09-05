@@ -1,7 +1,7 @@
 ---
 toolSlug: case-converter
 locale: en
-category: text
+category: dev
 tool: case-converter
 title: CamelCase to snake_case Converter Online — Naming Style Transformer
 h1: CamelCase and snake_case Converter

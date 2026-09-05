@@ -1,7 +1,7 @@
 ---
 toolSlug: html-strip
 locale: en
-category: text
+category: dev
 tool: html-strip
 title: HTML Strip Tags Online — Clean HTML Code from Text
 h1: HTML Strip Tags

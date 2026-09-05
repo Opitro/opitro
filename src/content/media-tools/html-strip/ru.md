@@ -1,7 +1,7 @@
 ---
 toolSlug: html-strip
 locale: ru
-category: text
+category: dev
 tool: html-strip
 title: Удаление HTML-тегов онлайн — очистить текст от кода и скриптов
 h1: Удаление HTML-тегов из текста

@@ -1,7 +1,7 @@
 ---
 toolSlug: escape-unescape
 locale: ru
-category: text
+category: dev
 tool: escape-unescape
 title: Escape и unescape онлайн — экранирование спецсимволов HTML, JS, CSS
 h1: Экранирование спецсимволов

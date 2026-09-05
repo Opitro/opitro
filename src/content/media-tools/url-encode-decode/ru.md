@@ -1,7 +1,7 @@
 ---
 toolSlug: url-encode-decode
 locale: ru
-category: text
+category: dev
 tool: url-encode-decode
 title: URL-кодирование онлайн — кодировать и декодировать адреса страниц
 h1: Кодирование и декодирование URL

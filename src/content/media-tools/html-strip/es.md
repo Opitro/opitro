@@ -1,7 +1,7 @@
 ---
 toolSlug: html-strip
 locale: es
-category: text
+category: dev
 tool: html-strip
 title: Eliminar etiquetas HTML online — limpiar el código de un texto
 h1: Eliminar etiquetas HTML

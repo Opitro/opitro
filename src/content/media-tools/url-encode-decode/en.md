@@ -1,7 +1,7 @@
 ---
 toolSlug: url-encode-decode
 locale: en
-category: text
+category: dev
 tool: url-encode-decode
 title: URL Encoder Online — Encode and Decode Percent-Encoding
 h1: URL Encode & Decode

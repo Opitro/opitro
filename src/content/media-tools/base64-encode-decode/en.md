@@ -1,7 +1,7 @@
 ---
 toolSlug: base64-encode-decode
 locale: en
-category: text
+category: dev
 tool: base64-encode-decode
 title: Base64 Online — Encode and Decode Text Strings
 h1: Base64 Encode & Decode

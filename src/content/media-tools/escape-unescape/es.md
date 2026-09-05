@@ -1,7 +1,7 @@
 ---
 toolSlug: escape-unescape
 locale: es
-category: text
+category: dev
 tool: escape-unescape
 title: Escape y unescape online — escapar caracteres especiales HTML, JS, CSS
 h1: Escapar caracteres especiales
