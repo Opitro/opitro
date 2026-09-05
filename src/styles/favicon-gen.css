@@ -45,11 +45,29 @@
 .фв-взять:hover { border-color: #fff; background: #23272f }
 .фв-виды { font: 400 11.5px var(--цифры); letter-spacing: .04em; color: var(--accent) }
 
+/* ---- Пульт: название сайта, цвет и кадрирование ------------------------------------------- */
+
+.фв-пульт { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 }
+/* У поля нет отдельной подписи: подсказка внутри него и есть подпись. Лишних надписей на
+   странице быть не должно -- правило владельца. */
+.фв-имя {
+  flex: 1 1 220px; min-width: 0; max-width: 320px;
+  height: 38px; padding: 0 12px; border-radius: 6px;
+  font: 500 12.5px var(--цифры); color: #fff; background: #16181d;
+  border: 1px solid var(--линия);
+}
+.фв-имя:hover, .фв-имя:focus { border-color: #fff; outline: none }
+.фв-имя::placeholder { color: #8b93a0 }
+/* Цвет, который уйдёт в манифест: без него полоса над приложением на Android будет белой.
+   Показываем квадратиком, а не числом -- цвет объясняет себя сам. */
+.фв-цвет { width: 38px; height: 38px; border-radius: 6px; flex: none;
+  border: 1px solid var(--линия); background: #16181d }
+
 /* ---- Выбор кадрирования ---------------------------------------------------------------------
    Нужен только для неквадратной картинки: для квадратной оба способа дают одно и то же, и
    предлагать выбор без последствий незачем. Но место под него держим ВСЕГДА -- иначе при
    загрузке прямоугольника всё, что ниже, прыгнуло бы вниз. */
-.фв-кроп { display: flex; align-items: center; gap: 10px; margin: 12px 0; min-height: 38px;
+.фв-кроп { display: flex; align-items: center; gap: 10px; min-height: 38px;
   visibility: hidden }
 .фв-кроп.нужен { visibility: visible }
 .фв-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }

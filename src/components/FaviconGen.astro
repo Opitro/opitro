@@ -25,6 +25,8 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    n5: "<b>Файлы 192 и 512 нужны для ярлыка на телефоне.</b> Вместе с site.webmanifest они позволяют поставить сайт на домашний экран Android — тогда он открывается без адресной строки, как приложение. В манифест попадает название, которое вы впишете, и цвет строки состояния: мы берём самый частый цвет самого значка, чтобы полоса над сайтом не оказалась белой.",
+    name: "Название сайта", theme: "Цвет для строки состояния",
     drop: 'Перетащите изображение сюда, выберите файл или вставьте картинку клавишами Ctrl+V',
     pick: 'Выбрать файл', again: 'Выбрать другой',
     formats: 'PNG, JPG, WebP, SVG',
@@ -41,9 +43,11 @@ const СЛОВА = {
     n2: '<b>Значок для iOS заливается белым.</b> Прозрачность там не поддерживается: система подставляет под неё чёрное, и логотип с прозрачным фоном становится на телефоне чёрным квадратом. Остальные файлы прозрачность сохраняют.',
     n3: '<b>Смотрите на предпросмотр в 16 пикселей, а не на крупный.</b> Именно его увидят во вкладке. Тонкие линии, буквы и мелкие детали в этом размере превращаются в кашу — хороший значок сайта обычно проще логотипа: одна фигура, один-два цвета.',
     n4: '<b>Файл favicon.ico кладут в корень сайта.</b> Браузеры и поисковые роботы запрашивают /favicon.ico сами, даже если в коде страницы про него ничего не сказано. Остальные файлы можно положить куда угодно — лишь бы пути в коде совпадали.',
-    n5: 'Ничего никуда не отправляется. Картинка читается прямо в памяти вкладки, режется холстом браузера, и архив собирается там же. Логотип, который нельзя показывать посторонним, здесь и не показывается никому.',
+    n6: 'Ничего никуда не отправляется. Картинка читается прямо в памяти вкладки, режется холстом браузера, и архив собирается там же. Логотип, который нельзя показывать посторонним, здесь и не показывается никому.',
   },
   uk: {
+    n5: "<b>Файли 192 і 512 потрібні для ярлика на телефоні.</b> Разом із site.webmanifest вони дозволяють поставити сайт на домашній екран Android — тоді він відкривається без рядка адреси, як застосунок. У маніфест потрапляє назва, яку ви впишете, і колір рядка стану: ми беремо найчастіший колір самого значка, щоб смуга над сайтом не виявилася білою.",
+    name: "Назва сайту", theme: "Колір для рядка стану",
     drop: 'Перетягніть зображення сюди, виберіть файл або вставте картинку клавішами Ctrl+V',
     pick: 'Вибрати файл', again: 'Вибрати інший',
     formats: 'PNG, JPG, WebP, SVG',
@@ -60,9 +64,11 @@ const СЛОВА = {
     n2: '<b>Значок для iOS заливається білим.</b> Прозорість там не підтримується: система підставляє під неї чорне, і логотип із прозорим тлом стає на телефоні чорним квадратом. Решта файлів прозорість зберігає.',
     n3: '<b>Дивіться на перегляд у 16 пікселів, а не на великий.</b> Саме його побачать у вкладці. Тонкі лінії, літери й дрібні деталі в цьому розмірі перетворюються на кашу — добрий значок сайту зазвичай простіший за логотип: одна фігура, один-два кольори.',
     n4: '<b>Файл favicon.ico кладуть у корінь сайту.</b> Браузери й пошукові роботи запитують /favicon.ico самі, навіть якщо в коді сторінки про нього нічого не сказано. Решту файлів можна покласти будь-куди — аби шляхи в коді збігалися.',
-    n5: 'Нічого нікуди не надсилається. Зображення читається просто в пам’яті вкладки, ріжеться полотном браузера, і архів збирається там само. Логотип, який не можна показувати стороннім, тут і не показується нікому.',
+    n6: 'Нічого нікуди не надсилається. Зображення читається просто в пам’яті вкладки, ріжеться полотном браузера, і архів збирається там само. Логотип, який не можна показувати стороннім, тут і не показується нікому.',
   },
   en: {
+    n5: "<b>The 192 and 512 files are what makes a phone shortcut possible.</b> Together with site.webmanifest they let the site be added to an Android home screen, where it opens without an address bar, like an app. The manifest carries the name you type in and a status-bar colour: we take the most common colour of the icon itself, so the strip above the site is not left white.",
+    name: "Site name", theme: "Colour for the status bar",
     drop: 'Drag an image here, choose a file, or paste a picture with Ctrl+V',
     pick: 'Choose a file', again: 'Choose another',
     formats: 'PNG, JPG, WebP, SVG',
@@ -79,9 +85,11 @@ const СЛОВА = {
     n2: '<b>The iOS icon is filled with white.</b> Transparency is not supported there — the system puts black behind it, so a logo with a transparent background turns into a black square on the phone. The other files keep their transparency.',
     n3: '<b>Judge it by the 16-pixel preview, not the large one.</b> That is what people see in the tab. Thin lines, lettering and small details turn to mush at that size — a good site icon is usually simpler than the logo: one shape, one or two colours.',
     n4: '<b>favicon.ico goes in the site root.</b> Browsers and search crawlers request /favicon.ico on their own, even when the page markup says nothing about it. The other files can live anywhere, as long as the paths in the markup match.',
-    n5: 'Nothing is sent anywhere. The picture is read inside the tab, resized by the browser\'s own canvas, and the archive is built in the same place. A logo you are not allowed to show to outsiders is not shown to anyone here.',
+    n6: 'Nothing is sent anywhere. The picture is read inside the tab, resized by the browser\'s own canvas, and the archive is built in the same place. A logo you are not allowed to show to outsiders is not shown to anyone here.',
   },
   es: {
+    n5: "<b>Los archivos de 192 y 512 son los que permiten el acceso directo en el teléfono.</b> Junto con site.webmanifest dejan añadir el sitio a la pantalla de inicio de Android, donde se abre sin barra de direcciones, como una aplicación. El manifiesto lleva el nombre que usted escriba y un color para la barra de estado: tomamos el color más frecuente del propio icono, para que la franja sobre el sitio no quede blanca.",
+    name: "Nombre del sitio", theme: "Color para la barra de estado",
     drop: 'Arrastre una imagen aquí, elija un archivo o pegue una con Ctrl+V',
     pick: 'Elegir archivo', again: 'Elegir otro',
     formats: 'PNG, JPG, WebP, SVG',
@@ -98,7 +106,7 @@ const СЛОВА = {
     n2: '<b>El icono para iOS se rellena de blanco.</b> Allí no hay transparencia: el sistema pone negro detrás, y un logotipo con fondo transparente acaba siendo un cuadrado negro en el teléfono. Los demás archivos conservan la transparencia.',
     n3: '<b>Júzguelo por la vista previa de 16 píxeles, no por la grande.</b> Es la que se ve en la pestaña. Las líneas finas, las letras y los detalles pequeños se convierten en una mancha a ese tamaño: un buen icono de sitio suele ser más simple que el logotipo, una figura y uno o dos colores.',
     n4: '<b>favicon.ico va en la raíz del sitio.</b> Los navegadores y los rastreadores piden /favicon.ico por su cuenta, aunque el código de la página no diga nada de él. Los demás archivos pueden estar donde quiera, mientras las rutas del código coincidan.',
-    n5: 'No se envía nada a ninguna parte. La imagen se lee dentro de la propia pestaña, la recorta el lienzo del navegador y el archivo comprimido se monta ahí mismo. Un logotipo que no puede enseñar a terceros aquí no se le enseña a nadie.',
+    n6: 'No se envía nada a ninguna parte. La imagen se lee dentro de la propia pestaña, la recorta el lienzo del navegador y el archivo comprimido se monta ahí mismo. Un logotipo que no puede enseñar a terceros aquí no se le enseña a nadie.',
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
@@ -109,6 +117,7 @@ const КОД = [
   '<link rel="icon" type="image/png" sizes="32x32" href="/favicon-32x32.png">',
   '<link rel="icon" type="image/png" sizes="16x16" href="/favicon-16x16.png">',
   '<link rel="apple-touch-icon" sizes="180x180" href="/apple-touch-icon.png">',
+  '<link rel="manifest" href="/site.webmanifest">',
 ].join('\n');
 ---
 
@@ -123,11 +132,16 @@ const КОД = [
   <!-- Выбор кадрирования появляется только для неквадратной картинки: для квадратной он
        ничего не меняет, и показывать его значило бы предлагать выбор без последствий.
        Место под него держится всегда, чтобы низ не прыгал. -->
-  <div class="фв-кроп" id="фв-кроп">
+  <div class="фв-пульт">
+    <input type="text" class="фв-имя" id="фв-имя" maxlength="60"
+           placeholder={с.name} aria-label={с.name} />
+    <span class="фв-цвет" id="фв-цвет" title={с.theme} aria-label={с.theme}></span>
+    <div class="фв-кроп" id="фв-кроп">
     <span class="фв-набор">
       <button type="button" class="фв-выбор выбран" data-к="crop">{с.crop}</button>
       <button type="button" class="фв-выбор" data-к="fit">{с.fit}</button>
     </span>
+    </div>
   </div>
 
   <div class="фв-пара">
@@ -184,7 +198,8 @@ const КОД = [
     <div class="фв-заметка" set:html={с.n2}></div>
     <div class="фв-заметка" set:html={с.n3}></div>
     <div class="фв-заметка" set:html={с.n4}></div>
-    <div class="фв-заметка">{с.n5}</div>
+    <div class="фв-заметка" set:html={с.n5}></div>
+    <div class="фв-заметка">{с.n6}</div>
   </div>
 </div>
 
@@ -203,6 +218,9 @@ const КОД = [
     // для современных браузеров; 180 -- закладка на iOS.
     const ВIco = [16, 32, 48];
     const ЗНАКИ = [16, 32, 48, 180];
+    // Эти два в предпросмотр не показываем -- они крупнее самого окна. Идут прямо в архив:
+    // без них сайт не поставится ярлыком на домашний экран Android.
+    const ДЛЯЯРЛЫКА = [192, 512];
 
     let источник = null;      // Image или ImageBitmap исходной картинки
     let кроп = 'crop';
@@ -286,10 +304,27 @@ const КОД = [
     const вБайты = (холст) => new Promise((готово) =>
       холст.toBlob((б) => б.arrayBuffer().then((а) => готово(new Uint8Array(а))), 'image/png'));
 
+    /** Самый частый непрозрачный цвет. Оттенки округляем, иначе побеждает шум сглаживания. */
+    function главныйЦвет(холст, н) {
+      const д = холст.getContext('2d').getImageData(0, 0, н, н).data;
+      const счёт = new Map();
+      for (let и = 0; и < д.length; и += 4) {
+        if (д[и + 3] < 200) continue;
+        const ключ = ((д[и] >> 4) << 8) | ((д[и + 1] >> 4) << 4) | (д[и + 2] >> 4);
+        счёт.set(ключ, (счёт.get(ключ) || 0) + 1);
+      }
+      if (!счёт.size) return '#ffffff';
+      let лучший = 0, сколько = -1;
+      for (const [к, с] of счёт) if (с > сколько) { сколько = с; лучший = к; }
+      const в16 = (з) => ((з << 4) | з).toString(16).padStart(2, '0');
+      return '#' + в16((лучший >> 8) & 15) + в16((лучший >> 4) & 15) + в16(лучший & 15);
+    }
+
     async function пересчитать() {
       if (!источник) return;
       // Значок для iOS -- по белому: прозрачности там нет, система кладёт под неё чёрное.
-      const холсты = Object.fromEntries(ЗНАКИ.map((н) => [н, начертить(н, н === 180)]));
+      const холсты = Object.fromEntries(
+        [...ЗНАКИ, ...ДЛЯЯРЛЫКА].map((н) => [н, начертить(н, н === 180)]));
 
       // Вкладка и ряд «в настоящем размере».
       const вк = $('фв-вкладка-знак').getContext('2d');
@@ -312,6 +347,23 @@ const КОД = [
       }
       $('фв-пусто').hidden = true;
 
+      const цвет = главныйЦвет(холсты[48], 48);
+      $('фв-цвет').style.background = цвет;
+
+      const имяСайта = ($('фв-имя').value || '').trim() || с.name;
+      const манифест = JSON.stringify({
+        name: имяСайта,
+        short_name: имяСайта.length > 12 ? имяСайта.slice(0, 12) : имяСайта,
+        icons: [
+          { src: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
+          { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+        ],
+        theme_color: цвет,
+        background_color: '#ffffff',
+        display: 'standalone',
+        start_url: '/',
+      }, null, 2);
+
       const ico = собратьIco(ВIco.map((н) => {
         const р = холсты[н].getContext('2d');
         return { точки: р.getImageData(0, 0, н, н).data, ширина: н, высота: н };
@@ -321,6 +373,9 @@ const КОД = [
         { имя: 'favicon-32x32.png', данные: await вБайты(холсты[32]) },
         { имя: 'favicon-16x16.png', данные: await вБайты(холсты[16]) },
         { имя: 'apple-touch-icon.png', данные: await вБайты(холсты[180]) },
+        { имя: 'favicon-192.png', данные: await вБайты(холсты[192]) },
+        { имя: 'icon-512.png', данные: await вБайты(холсты[512]) },
+        { имя: 'site.webmanifest', данные: new TextEncoder().encode(манифест) },
       ]);
       $('фв-скачать').disabled = false;
 
@@ -328,7 +383,7 @@ const КОД = [
       const в = источник.naturalHeight || источник.height;
       $('фв-отчёт').innerHTML =
         `${с.size}: <b>${ш}×${в}</b>` +
-        `<span>${с.files}: <b>4</b></span>` +
+        `<span>${с.files}: <b>7</b></span>` +
         `<span>${с.weight}: <b>${(архив.size / 1024).toFixed(1)} КБ</b></span>`;
       $('фв-кроп').classList.toggle('нужен', ш !== в);
     }
@@ -378,6 +433,8 @@ const КОД = [
       const поле = $('фв-файл');
       поле.value = '';
       $('фв-зона').classList.remove('есть');
+      $('фв-имя').value = '';
+      $('фв-цвет').style.background = '';
       const п = document.createElement('p');
       п.textContent = с.drop;
       const кн = Object.assign(document.createElement('span'),
@@ -446,6 +503,14 @@ const КОД = [
       setTimeout(() => URL.revokeObjectURL(адрес), 1000);
     });
 
+    // Название сайта попадает в манифест, поэтому архив пересобираем на каждую правку.
+    // Тяжёлого тут нет: заново рисуются те же холсты, всё в памяти.
+    let ждём = null;
+    $('фв-имя').addEventListener('input', () => {
+      clearTimeout(ждём);
+      ждём = setTimeout(() => { if (источник) пересчитать(); }, 250);
+    });
+
     $('фв-очистить').addEventListener('click', очистить);
 
     window.__фвСостояние = () => ({
@@ -457,6 +522,7 @@ const КОД = [
       отчёт: $('фв-отчёт').textContent.trim(),
       весАрхива: архив ? архив.size : 0,
       код: $('фв-код').value,
+      цвет: $('фв-цвет').style.background,
     });
     window.__фвАрхив = async () => {
       if (!архив) return null;

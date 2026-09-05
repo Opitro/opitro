@@ -20,13 +20,15 @@ faq:
     answer: "An .ico is a container rather than an image: several pictures of different sizes live inside and the system takes the one it needs. Ours holds three layers — 16, 32 and 48 pixels. Since Windows Vista you have been allowed to drop PNG straight in, and many generators do, which makes a smaller file. But the whole point of .ico today is compatibility with old software; modern browsers are perfectly happy with .svg. Putting a format that old software cannot read inside a file made for old software is wasted work. So inside is plain uncompressed BMP, as in the original description of the format."
   - question: Why does the iPhone icon come out on a white background?
     answer: "Because apple-touch-icon does not support transparency: iOS puts black behind any transparent area. A logo with a transparent background becomes a black square with a picture in the middle on the phone screen. We fill that one file with white in advance. The other three keep their transparency, which works properly in a browser tab."
+  - question: What is site.webmanifest, and do I need it?
+    answer: "It is a small text file that tells a phone how to present your site once someone has added it to their home screen: under what name, with which icon, and what colour to make the status bar. Without it the shortcut still works, but the name comes from the page title and the icon is whatever the phone can find. You could not call it mandatory, but it is what makes the site open from the home screen without an address bar, like an app. We put it in the archive along with the 192×192 and 512×512 files it refers to, and take the status-bar colour from the most common colour in your own icon."
 related:
   - qr-code
   - barcode
   - base64-file
 ---
 
-Drag a picture in — the icon, four ready files and the markup to paste appear at once. Nothing is uploaded anywhere.
+Drag a picture in — the icon, seven ready files and the markup to paste appear at once. Nothing is uploaded anywhere.
 
 ## What makes a good icon
 

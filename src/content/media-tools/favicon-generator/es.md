@@ -20,13 +20,15 @@ faq:
     answer: "Un .ico es un contenedor, no una imagen: dentro viven varias imágenes de distintos tamaños y el sistema toma la que necesita. El nuestro lleva tres capas: 16, 32 y 48 píxeles. Desde Windows Vista se permite meter PNG tal cual, y muchos generadores lo hacen porque el archivo sale más pequeño. Pero hoy el sentido del .ico es enteramente la compatibilidad con lo antiguo: los navegadores modernos se apañan de sobra con .svg. Meter en un archivo pensado para sistemas viejos un formato que esos sistemas no entienden es trabajo perdido. Por eso dentro va BMP normal sin comprimir, como en la descripción original del formato."
   - question: ¿Por qué el icono para iPhone sale sobre fondo blanco?
     answer: "Porque apple-touch-icon no admite transparencia: iOS pone negro detrás de las zonas transparentes. Un logotipo con fondo transparente acaba siendo un cuadrado negro con un dibujo en medio en la pantalla del teléfono. Ese archivo lo rellenamos de blanco de antemano. Los otros tres conservan la transparencia, que en una pestaña de navegador funciona como debe."
+  - question: ¿Qué es el archivo site.webmanifest y hace falta?
+    answer: "Es un archivo de texto pequeño que le dice al teléfono cómo mostrar su sitio cuando alguien lo añade a la pantalla de inicio: con qué nombre, con qué icono y de qué color pintar la barra de estado. Sin él el acceso directo también funciona, pero el nombre sale del título de la página y el icono es el que el teléfono consiga encontrar. Obligatorio no es, pero es lo que hace que el sitio se abra desde la pantalla de inicio sin barra de direcciones, como una aplicación. Lo incluimos en el archivo comprimido junto con los ficheros de 192×192 y 512×512 a los que apunta, y tomamos el color de la barra del color más frecuente de su propio icono."
 related:
   - qr-code
   - barcode
   - base64-file
 ---
 
-Arrastre una imagen: el icono, cuatro archivos listos y el código para pegar aparecen al instante. No se sube nada a ninguna parte.
+Arrastre una imagen: el icono, siete archivos listos y el código para pegar aparecen al instante. No se sube nada a ninguna parte.
 
 ## Cómo es un buen icono
 
