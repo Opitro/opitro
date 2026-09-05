@@ -21,14 +21,14 @@ faq:
   - question: Why does the iPhone icon come out on a white background?
     answer: "Because apple-touch-icon does not support transparency: iOS puts black behind any transparent area. A logo with a transparent background becomes a black square with a picture in the middle on the phone screen. We fill that one file with white in advance. The other three keep their transparency, which works properly in a browser tab."
   - question: What is site.webmanifest, and do I need it?
-    answer: "It is a small text file that tells a phone how to present your site once someone has added it to their home screen: under what name, with which icon, and what colour to make the status bar. Without it the shortcut still works, but the name comes from the page title and the icon is whatever the phone can find. You could not call it mandatory, but it is what makes the site open from the home screen without an address bar, like an app. We put it in the archive along with the 192×192 and 512×512 files it refers to, and take the status-bar colour from the most common colour in your own icon."
+    answer: "It is a small text file that tells a phone how to present your site once someone has added it to their home screen: under what name, with which icon, and what colour to make the status bar. Without it the shortcut still works, but the name comes from the page title and the icon is whatever the phone can find. You could not call it mandatory, but it is what makes the site open from the home screen without an address bar, like an app. We put it in the archive along with the 192×192 and 512×512 files it refers to, including a separate «maskable» one whose edges are given over to be cropped by the launcher, and take the status-bar colour from the most common colour in your own icon."
 related:
   - qr-code
   - barcode
   - base64-file
 ---
 
-Drag a picture in — the icon, seven ready files and the markup to paste appear at once. Nothing is uploaded anywhere.
+Drag a picture in — the icon, eight ready files and the markup to paste appear at once. Nothing is uploaded anywhere.
 
 ## What makes a good icon
 

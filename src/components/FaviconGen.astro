@@ -25,7 +25,8 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    n5: "<b>Файлы 192 и 512 нужны для ярлыка на телефоне.</b> Вместе с site.webmanifest они позволяют поставить сайт на домашний экран Android — тогда он открывается без адресной строки, как приложение. В манифест попадает название, которое вы впишете, и цвет строки состояния: мы берём самый частый цвет самого значка, чтобы полоса над сайтом не оказалась белой.",
+    back: "Цвет подложки под значком",
+    n5: "<b>Файлы 192 и 512 нужны для ярлыка на телефоне.</b> Вместе с site.webmanifest они позволяют поставить сайт на домашний экран Android — тогда он открывается без адресной строки, как приложение. В манифест попадает название, которое вы впишете, и цвет строки состояния: мы берём самый частый цвет самого значка, чтобы полоса над сайтом не оказалась белой. Третий файл, icon-maskable-512, — для новых Android: там значок обрезают под форму оболочки, круглую или каплей. Поэтому рисунок в нём ужат до восьмидесяти процентов, а края залиты подложкой — иначе от логотипа отрезало бы углы.",
     name: "Название сайта", theme: "Цвет для строки состояния",
     drop: 'Перетащите изображение сюда, выберите файл или вставьте картинку клавишами Ctrl+V',
     pick: 'Выбрать файл', again: 'Выбрать другой',
@@ -46,7 +47,8 @@ const СЛОВА = {
     n6: 'Ничего никуда не отправляется. Картинка читается прямо в памяти вкладки, режется холстом браузера, и архив собирается там же. Логотип, который нельзя показывать посторонним, здесь и не показывается никому.',
   },
   uk: {
-    n5: "<b>Файли 192 і 512 потрібні для ярлика на телефоні.</b> Разом із site.webmanifest вони дозволяють поставити сайт на домашній екран Android — тоді він відкривається без рядка адреси, як застосунок. У маніфест потрапляє назва, яку ви впишете, і колір рядка стану: ми беремо найчастіший колір самого значка, щоб смуга над сайтом не виявилася білою.",
+    back: "Колір підкладки під значком",
+    n5: "<b>Файли 192 і 512 потрібні для ярлика на телефоні.</b> Разом із site.webmanifest вони дозволяють поставити сайт на домашній екран Android — тоді він відкривається без рядка адреси, як застосунок. У маніфест потрапляє назва, яку ви впишете, і колір рядка стану: ми беремо найчастіший колір самого значка, щоб смуга над сайтом не виявилася білою. Третій файл, icon-maskable-512, — для нових Android: там значок обрізають під форму оболонки, круглу або краплею. Тому рисунок у ньому стиснуто до вісімдесяти відсотків, а краї залито підкладкою — інакше від логотипа відрізало б кути.",
     name: "Назва сайту", theme: "Колір для рядка стану",
     drop: 'Перетягніть зображення сюди, виберіть файл або вставте картинку клавішами Ctrl+V',
     pick: 'Вибрати файл', again: 'Вибрати інший',
@@ -67,7 +69,8 @@ const СЛОВА = {
     n6: 'Нічого нікуди не надсилається. Зображення читається просто в пам’яті вкладки, ріжеться полотном браузера, і архів збирається там само. Логотип, який не можна показувати стороннім, тут і не показується нікому.',
   },
   en: {
-    n5: "<b>The 192 and 512 files are what makes a phone shortcut possible.</b> Together with site.webmanifest they let the site be added to an Android home screen, where it opens without an address bar, like an app. The manifest carries the name you type in and a status-bar colour: we take the most common colour of the icon itself, so the strip above the site is not left white.",
+    back: "Backdrop colour behind the icon",
+    n5: "<b>The 192 and 512 files are what makes a phone shortcut possible.</b> Together with site.webmanifest they let the site be added to an Android home screen, where it opens without an address bar, like an app. The manifest carries the name you type in and a status-bar colour: we take the most common colour of the icon itself, so the strip above the site is not left white. The third file, icon-maskable-512, is for newer Android versions, where the launcher crops the icon into its own shape — a circle, a squircle, a teardrop. That is why the drawing inside it is shrunk to eighty per cent and the edges are filled with the backdrop colour: otherwise the corners of the logo would be cut off.",
     name: "Site name", theme: "Colour for the status bar",
     drop: 'Drag an image here, choose a file, or paste a picture with Ctrl+V',
     pick: 'Choose a file', again: 'Choose another',
@@ -88,7 +91,8 @@ const СЛОВА = {
     n6: 'Nothing is sent anywhere. The picture is read inside the tab, resized by the browser\'s own canvas, and the archive is built in the same place. A logo you are not allowed to show to outsiders is not shown to anyone here.',
   },
   es: {
-    n5: "<b>Los archivos de 192 y 512 son los que permiten el acceso directo en el teléfono.</b> Junto con site.webmanifest dejan añadir el sitio a la pantalla de inicio de Android, donde se abre sin barra de direcciones, como una aplicación. El manifiesto lleva el nombre que usted escriba y un color para la barra de estado: tomamos el color más frecuente del propio icono, para que la franja sobre el sitio no quede blanca.",
+    back: "Color del fondo bajo el icono",
+    n5: "<b>Los archivos de 192 y 512 son los que permiten el acceso directo en el teléfono.</b> Junto con site.webmanifest dejan añadir el sitio a la pantalla de inicio de Android, donde se abre sin barra de direcciones, como una aplicación. El manifiesto lleva el nombre que usted escriba y un color para la barra de estado: tomamos el color más frecuente del propio icono, para que la franja sobre el sitio no quede blanca. El tercer archivo, icon-maskable-512, es para las versiones recientes de Android, donde el lanzador recorta el icono con su propia forma: círculo, cuadrado redondeado o gota. Por eso dentro de él el dibujo se reduce al ochenta por ciento y los bordes se rellenan con el color de fondo: si no, al logotipo le cortarían las esquinas.",
     name: "Nombre del sitio", theme: "Color para la barra de estado",
     drop: 'Arrastre una imagen aquí, elija un archivo o pegue una con Ctrl+V',
     pick: 'Elegir archivo', again: 'Elegir otro',
@@ -135,7 +139,10 @@ const КОД = [
   <div class="фв-пульт">
     <input type="text" class="фв-имя" id="фв-имя" maxlength="60"
            placeholder={с.name} aria-label={с.name} />
-    <span class="фв-цвет" id="фв-цвет" title={с.theme} aria-label={с.theme}></span>
+    <input type="color" class="фв-цвет" id="фв-цвет" value="#ffffff"
+           title={с.theme} aria-label={с.theme} />
+    <input type="color" class="фв-цвет" id="фв-подложка" value="#ffffff"
+           title={с.back} aria-label={с.back} />
     <div class="фв-кроп" id="фв-кроп">
     <span class="фв-набор">
       <button type="button" class="фв-выбор выбран" data-к="crop">{с.crop}</button>
@@ -277,24 +284,27 @@ const КОД = [
     }
 
     /** Квадрат нужного размера: либо обрезанный по центру, либо вписанный целиком. */
-    function начертить(размер, залитьБелым) {
+    function начертить(размер, подложка, доля) {
       const х = document.createElement('canvas');
       х.width = размер; х.height = размер;
       const р = х.getContext('2d');
       // Уменьшение крупной картинки до 16 точек без сглаживания даёт рвань.
       р.imageSmoothingEnabled = true;
       р.imageSmoothingQuality = 'high';
-      if (залитьБелым) { р.fillStyle = '#fff'; р.fillRect(0, 0, размер, размер); }
+      if (подложка) { р.fillStyle = подложка; р.fillRect(0, 0, размер, размер); }
 
       const ш = источник.naturalWidth || источник.width;
       const в = источник.naturalHeight || источник.height;
+      // Доля -- сколько от квадрата занимает сам рисунок. Единица везде, кроме маскируемого
+      // значка: там края отдаются на съедение, и рисунок ужимается до безопасной середины.
+      const поле = размер * (доля || 1);
+      const отступ = (размер - поле) / 2;
       if (кроп === 'crop') {
-        // Берём из середины квадратный кусок по меньшей стороне.
         const сторона = Math.min(ш, в);
         р.drawImage(источник, (ш - сторона) / 2, (в - сторона) / 2, сторона, сторона,
-          0, 0, размер, размер);
+          отступ, отступ, поле, поле);
       } else {
-        const к = Math.min(размер / ш, размер / в);
+        const к = Math.min(поле / ш, поле / в);
         const нш = ш * к, нв = в * к;
         р.drawImage(источник, (размер - нш) / 2, (размер - нв) / 2, нш, нв);
       }
@@ -323,8 +333,13 @@ const КОД = [
     async function пересчитать() {
       if (!источник) return;
       // Значок для iOS -- по белому: прозрачности там нет, система кладёт под неё чёрное.
+      const подложка = $('фв-подложка').value || '#ffffff';
       const холсты = Object.fromEntries(
-        [...ЗНАКИ, ...ДЛЯЯРЛЫКА].map((н) => [н, начертить(н, н === 180)]));
+        [...ЗНАКИ, ...ДЛЯЯРЛЫКА].map((н) => [н, начертить(н, н === 180 ? подложка : null)]));
+      // Маскируемый значок: Android обрежет его под свою форму -- круг, каплю, скруглённый
+      // квадрат, -- поэтому рисунок ужимается до восьмидесяти процентов, а края заливаются.
+      // Без этого от логотипа отрежут углы.
+      const маска = начертить(512, подложка, 0.8);
 
       // Вкладка и ряд «в настоящем размере».
       const вк = $('фв-вкладка-знак').getContext('2d');
@@ -347,8 +362,10 @@ const КОД = [
       }
       $('фв-пусто').hidden = true;
 
-      const цвет = главныйЦвет(холсты[48], 48);
-      $('фв-цвет').style.background = цвет;
+      // Подставляем подобранный цвет только пока человек его не трогал: перезаписывать
+      // выбранное вручную -- худшее, что может сделать подсказка.
+      if (!$('фв-цвет').dataset.своё) $('фв-цвет').value = главныйЦвет(холсты[48], 48);
+      const цвет = $('фв-цвет').value;
 
       const имяСайта = ($('фв-имя').value || '').trim() || с.name;
       const манифест = JSON.stringify({
@@ -357,6 +374,7 @@ const КОД = [
         icons: [
           { src: '/favicon-192.png', sizes: '192x192', type: 'image/png' },
           { src: '/icon-512.png', sizes: '512x512', type: 'image/png' },
+          { src: '/icon-maskable-512.png', sizes: '512x512', type: 'image/png', purpose: 'maskable' },
         ],
         theme_color: цвет,
         background_color: '#ffffff',
@@ -375,6 +393,7 @@ const КОД = [
         { имя: 'apple-touch-icon.png', данные: await вБайты(холсты[180]) },
         { имя: 'favicon-192.png', данные: await вБайты(холсты[192]) },
         { имя: 'icon-512.png', данные: await вБайты(холсты[512]) },
+        { имя: 'icon-maskable-512.png', данные: await вБайты(маска) },
         { имя: 'site.webmanifest', данные: new TextEncoder().encode(манифест) },
       ]);
       $('фв-скачать').disabled = false;
@@ -383,7 +402,7 @@ const КОД = [
       const в = источник.naturalHeight || источник.height;
       $('фв-отчёт').innerHTML =
         `${с.size}: <b>${ш}×${в}</b>` +
-        `<span>${с.files}: <b>7</b></span>` +
+        `<span>${с.files}: <b>8</b></span>` +
         `<span>${с.weight}: <b>${(архив.size / 1024).toFixed(1)} КБ</b></span>`;
       $('фв-кроп').classList.toggle('нужен', ш !== в);
     }
@@ -434,7 +453,9 @@ const КОД = [
       поле.value = '';
       $('фв-зона').classList.remove('есть');
       $('фв-имя').value = '';
-      $('фв-цвет').style.background = '';
+      $('фв-цвет').value = '#ffffff';
+      delete $('фв-цвет').dataset.своё;
+      $('фв-подложка').value = '#ffffff';
       const п = document.createElement('p');
       п.textContent = с.drop;
       const кн = Object.assign(document.createElement('span'),
@@ -506,9 +527,15 @@ const КОД = [
     // Название сайта попадает в манифест, поэтому архив пересобираем на каждую правку.
     // Тяжёлого тут нет: заново рисуются те же холсты, всё в памяти.
     let ждём = null;
-    $('фв-имя').addEventListener('input', () => {
+    const позже = () => {
       clearTimeout(ждём);
       ждём = setTimeout(() => { if (источник) пересчитать(); }, 250);
+    };
+    $('фв-имя').addEventListener('input', позже);
+    $('фв-подложка').addEventListener('input', позже);
+    $('фв-цвет').addEventListener('input', () => {
+      $('фв-цвет').dataset.своё = '1';
+      позже();
     });
 
     $('фв-очистить').addEventListener('click', очистить);
@@ -522,7 +549,8 @@ const КОД = [
       отчёт: $('фв-отчёт').textContent.trim(),
       весАрхива: архив ? архив.size : 0,
       код: $('фв-код').value,
-      цвет: $('фв-цвет').style.background,
+      цвет: $('фв-цвет').value,
+      подложка: $('фв-подложка').value,
     });
     window.__фвАрхив = async () => {
       if (!архив) return null;

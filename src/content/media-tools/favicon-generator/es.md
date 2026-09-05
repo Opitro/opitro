@@ -21,14 +21,14 @@ faq:
   - question: ¿Por qué el icono para iPhone sale sobre fondo blanco?
     answer: "Porque apple-touch-icon no admite transparencia: iOS pone negro detrás de las zonas transparentes. Un logotipo con fondo transparente acaba siendo un cuadrado negro con un dibujo en medio en la pantalla del teléfono. Ese archivo lo rellenamos de blanco de antemano. Los otros tres conservan la transparencia, que en una pestaña de navegador funciona como debe."
   - question: ¿Qué es el archivo site.webmanifest y hace falta?
-    answer: "Es un archivo de texto pequeño que le dice al teléfono cómo mostrar su sitio cuando alguien lo añade a la pantalla de inicio: con qué nombre, con qué icono y de qué color pintar la barra de estado. Sin él el acceso directo también funciona, pero el nombre sale del título de la página y el icono es el que el teléfono consiga encontrar. Obligatorio no es, pero es lo que hace que el sitio se abra desde la pantalla de inicio sin barra de direcciones, como una aplicación. Lo incluimos en el archivo comprimido junto con los ficheros de 192×192 y 512×512 a los que apunta, y tomamos el color de la barra del color más frecuente de su propio icono."
+    answer: "Es un archivo de texto pequeño que le dice al teléfono cómo mostrar su sitio cuando alguien lo añade a la pantalla de inicio: con qué nombre, con qué icono y de qué color pintar la barra de estado. Sin él el acceso directo también funciona, pero el nombre sale del título de la página y el icono es el que el teléfono consiga encontrar. Obligatorio no es, pero es lo que hace que el sitio se abra desde la pantalla de inicio sin barra de direcciones, como una aplicación. Lo incluimos en el archivo comprimido junto con los ficheros de 192×192 y 512×512 a los que apunta, incluido uno «enmascarable» aparte cuyos bordes se ceden al recorte del lanzador, y tomamos el color de la barra del color más frecuente de su propio icono."
 related:
   - qr-code
   - barcode
   - base64-file
 ---
 
-Arrastre una imagen: el icono, siete archivos listos y el código para pegar aparecen al instante. No se sube nada a ninguna parte.
+Arrastre una imagen: el icono, ocho archivos listos y el código para pegar aparecen al instante. No se sube nada a ninguna parte.
 
 ## Cómo es un buen icono
 
