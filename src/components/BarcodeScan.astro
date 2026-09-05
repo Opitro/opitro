@@ -251,6 +251,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         <canvas id="скш-кадр" class="скш-кадр"></canvas>
         <div class="скш-прицел"><i></i><i></i></div>
         <div class="скш-луч"></div>
+        <button type="button" class="скш-крестик скш-крестик-кадра" id="скш-снять-ещё"
+                aria-label={с.drop2} title={с.drop2}>
+          <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+        </button>
         <div class="скш-затвор-ряд">
           <span class="скш-намёк" id="скш-намёк"></span>
           <button type="button" class="скш-затвор" id="скш-затвор"
@@ -692,9 +696,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       включить();
     });
 
-    $('скш-затвор').addEventListener('click', () => {
-      if ($('скш-глазок').classList.contains('снимок')) снятьЕщё(); else снять();
-    });
+    $('скш-затвор').addEventListener('click', снять);
+    $('скш-снять-ещё').addEventListener('click', снятьЕщё);
 
     $('скш-глаз').addEventListener('click', () => {
       if (режим !== 'camera') { выбратьРежим('camera'); включить(); return; }
