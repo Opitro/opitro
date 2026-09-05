@@ -15,7 +15,7 @@ faq:
   - question: What is the danger of the code itself?
     answer: "A code cannot be read by eye: you learn where it leads only after following it. Whole families of scams are built on that — somebody else's sticker pasted over the real one on a parking meter, in a café, on a bill. That is why our scanner never opens anything by itself: it shows the full address as text, and the decision to follow it is yours."
   - question: What does the warning about the “@” sign mean?
-    answer: "In an address like https://paypal.com@evil.example, everything before the “@” is not the site but a user name. The browser goes to evil.example while the reader sees a familiar name at the start. We flag such addresses and show the host the browser will really visit on its own line."
+    answer: "In an address like https://bank.example@evil.example, everything before the “@” is not the site but a user name. The browser goes to evil.example while the reader sees a familiar name at the start. We flag such addresses and show the host the browser will really visit on its own line."
   - question: And the warning about “xn--”?
     answer: "That is how a browser displays host names written in non-Latin letters. It gets exploited: “аpple.com” with a Cyrillic “а” looks exactly like the real name but is a different site. Whenever “xn--” appears in the name, we say so plainly."
   - question: Why is the Wi-Fi password shown without stray slashes?
@@ -36,7 +36,7 @@ A QR code cannot be read by eye, and scams are built on that: somebody else's st
 
 ## Where the link really leads
 
-In `https://paypal.com@evil.example` the browser goes to `evil.example`. We flag such addresses and show the real host on its own line.
+In `https://bank.example@evil.example` the browser goes to `evil.example`. We flag such addresses and show the real host on its own line.
 
 ## The Wi-Fi password comes out usable
 

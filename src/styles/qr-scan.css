@@ -198,6 +198,17 @@
 .ск2-зона img { max-width: 100%; max-height: 60%; border-radius: 8px; object-fit: contain }
 .ск2-зона input[type=file] { display: none }
 
+/* Кнопка ВНУТРИ зоны. Отдельный класс, а не общий с переключателем режимов: тот на узком
+   экране растягивается на всю ширину (flex: 1 1 0), и здесь это выглядело как поехавшая
+   вёрстка. Плюс inline-flex -- без него буквы сидели у верхнего края коробки в 38 пикселей. */
+.ск2-взять {
+  display: inline-flex; align-items: center; justify-content: center;
+  flex: none; align-self: center; height: 38px; padding: 0 16px; border-radius: 6px;
+  cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.ск2-взять:hover { border-color: #fff; background: #23272f }
+
 /* ---- Найденное ------------------------------------------------------------------------------ */
 
 .ск2-итог { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;

@@ -40,7 +40,7 @@ const СЛОВА = {
     warnScheme: '<b>Осторожно: необычная схема ссылки.</b> Переход по такой ссылке мы не предлагаем:',
     noOpen: 'Открыть можно только обычные ссылки http и https.',
     n1: '<b>Сканер ничего не открывает сам.</b> Прочитанное показывается текстом, и решение переходить принимаете вы. Это не осторожность ради осторожности: QR-код нельзя прочитать глазами, и на этом построены обманы — чужую наклейку лепят поверх настоящей на парковочном автомате, в кафе, на счёте.',
-    n2: '<b>Мы называем, куда ссылка ведёт на самом деле.</b> В адресе <code>https://sberbank.ru@evil.example</code> браузер пойдёт на <code>evil.example</code>: всё до «@» — это не сайт. Такой адрес мы помечаем и показываем настоящий узел отдельной строкой.',
+    n2: '<b>Мы называем, куда ссылка ведёт на самом деле.</b> В адресе <code>https://bank.example@evil.example</code> браузер пойдёт на <code>evil.example</code>: всё до «@» — это не сайт. Такой адрес мы помечаем и показываем настоящий узел отдельной строкой.',
     n3: '<b>Имена из похожих букв тоже помечаются.</b> Есть имена, записанные знаками, неотличимыми на вид от латинских: «аpple.com» с кириллической «а» выглядит как настоящее. Браузер показывает такие имена в служебном виде <code>xn--…</code>, и мы об этом предупреждаем.',
     n4: '<b>Пароль от Wi-Fi показывается верным.</b> В строке сети особые знаки экранируются обратной косой; сканер, который её не снимает, покажет пароль с лишними чертами. Мы снимаем — и пароль можно просто скопировать.',
     n5: 'Ничего никуда не отправляется. Картинка с кодом и поток с камеры разбираются прямо в браузере: они не уходят в сеть и нигде не сохраняются.',
@@ -51,7 +51,7 @@ const СЛОВА = {
     camIdle: 'Камеру вимкнено. Натисніть кнопку — браузер запитає дозвіл.',
     camDenied: 'Камера недоступна. Дозвіл не надано або пристрою немає. Можна розпізнати знімок: перемкніться на «Файл або знімок».',
     camLooking: 'Наведіть код на приціл…',
-    drop: 'Перетягніть картинку сюди, виберіть файл або вставте знімок клавішами Ctrl+V',
+    drop: 'Перетягніть зображення сюди, виберіть файл або вставте знімок клавішами Ctrl+V',
     pick: 'Вибрати файл', again: 'Інший файл',
     waiting: 'Тут з’явиться те, що записано в коді',
     notFound: 'Код на картинці не знайдено. Спробуйте знімок більший і чіткіший.',
@@ -65,7 +65,7 @@ const СЛОВА = {
     warnScheme: '<b>Обережно: незвичайна схема посилання.</b> Перехід за таким посиланням ми не пропонуємо:',
     noOpen: 'Відкрити можна лише звичайні посилання http і https.',
     n1: '<b>Сканер нічого не відкриває сам.</b> Прочитане показується текстом, і рішення переходити ухвалюєте ви. QR-код не можна прочитати очима, і на цьому побудовані обмани — чужу наклейку ліплять поверх справжньої.',
-    n2: '<b>Ми називаємо, куди посилання веде насправді.</b> В адресі <code>https://privatbank.ua@evil.example</code> браузер піде на <code>evil.example</code>: усе до «@» — це не сайт.',
+    n2: '<b>Ми називаємо, куди посилання веде насправді.</b> В адресі <code>https://bank.example@evil.example</code> браузер піде на <code>evil.example</code>: усе до «@» — це не сайт.',
     n3: '<b>Імена зі схожих літер теж позначаються.</b> Є імена, записані знаками, невідрізними на вигляд від латинських. Браузер показує такі імена у службовому вигляді <code>xn--…</code>, і ми про це попереджаємо.',
     n4: '<b>Пароль від Wi-Fi показується правильним.</b> У рядку мережі особливі знаки екрануються зворотною косою; сканер, який її не знімає, покаже пароль із зайвими рисками. Ми знімаємо.',
     n5: 'Нічого нікуди не надсилається. Картинка з кодом і потік з камери розбираються просто у браузері.',
@@ -90,7 +90,7 @@ const СЛОВА = {
     warnScheme: '<b>Careful: unusual link scheme.</b> We do not offer to follow a link like this:',
     noOpen: 'Only ordinary http and https links can be opened.',
     n1: '<b>The scanner never opens anything by itself.</b> What it reads is shown as text, and the decision to follow it is yours. That is not caution for its own sake: a QR code cannot be read by eye, and whole families of scams are built on it — somebody else’s sticker pasted over the real one on a parking meter, in a café, on a bill.',
-    n2: '<b>We name where the link actually leads.</b> In <code>https://paypal.com@evil.example</code> the browser goes to <code>evil.example</code>: everything before the “@” is not the site. We flag such an address and show the real host on its own line.',
+    n2: '<b>We name where the link actually leads.</b> In <code>https://bank.example@evil.example</code> the browser goes to <code>evil.example</code>: everything before the “@” is not the site. We flag such an address and show the real host on its own line.',
     n3: '<b>Look-alike names are flagged too.</b> Some host names are written with characters visually identical to Latin ones: “аpple.com” with a Cyrillic “а” looks genuine. Browsers show such names in the technical <code>xn--…</code> form, and we warn about it.',
     n4: '<b>The Wi-Fi password is shown correctly.</b> In the network string special characters are escaped with a backslash; a scanner that does not remove it shows the password with stray slashes. We remove it, so the password can simply be copied.',
     n5: 'Nothing is sent anywhere. The picture and the camera stream are decoded right in the browser: they never go to the network and are never stored.',
@@ -115,7 +115,7 @@ const СЛОВА = {
     warnScheme: '<b>Cuidado: esquema de enlace poco habitual.</b> No ofrecemos seguir un enlace así:',
     noOpen: 'Solo se pueden abrir enlaces http y https normales.',
     n1: '<b>El escáner no abre nada por su cuenta.</b> Lo leído se muestra como texto y la decisión de seguirlo es tuya. Un código QR no se puede leer a simple vista, y sobre eso se montan estafas: una pegatina ajena encima de la auténtica en un parquímetro, en un bar, en una factura.',
-    n2: '<b>Decimos adónde lleva realmente el enlace.</b> En <code>https://bbva.es@evil.example</code> el navegador va a <code>evil.example</code>: todo lo anterior a la «@» no es el sitio.',
+    n2: '<b>Decimos adónde lleva realmente el enlace.</b> En <code>https://bank.example@evil.example</code> el navegador va a <code>evil.example</code>: todo lo anterior a la «@» no es el sitio.',
     n3: '<b>Los nombres con letras parecidas también se señalan.</b> Hay nombres escritos con caracteres idénticos a la vista a los latinos. El navegador los muestra en la forma técnica <code>xn--…</code> y nosotros avisamos.',
     n4: '<b>La contraseña del Wi-Fi se muestra correcta.</b> En la cadena de red los caracteres especiales van escapados con barra invertida; un escáner que no la quita muestra la contraseña con barras de más. Nosotros la quitamos.',
     n5: 'No se envía nada a ninguna parte. La imagen y el flujo de la cámara se descifran en el propio navegador.',
@@ -149,7 +149,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
       <label class="ск2-зона" id="ск2-зона" hidden>
         <p id="ск2-подсказка">{с.drop}</p>
-        <span class="ск2-выбор" id="ск2-выбрать">{с.pick}</span>
+        <span class="ск2-взять" id="ск2-выбрать">{с.pick}</span>
         <input type="file" id="ск2-файл" accept="image/*" />
       </label>
     </div>
@@ -351,8 +351,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const текст = await разобратьКадр(карт.naturalWidth, карт.naturalHeight,
           (рис) => рис.drawImage(карт, 0, 0));
         // Показываем сам снимок: сразу видно, тот ли файл разбирали.
-        $('ск2-зона').replaceChildren(карт, узел('span', 'ск2-выбор', с.again));
-        $('ск2-зона').querySelector('.ск2-выбор').addEventListener('click', (е) => {
+        $('ск2-зона').replaceChildren(карт, узел('span', 'ск2-взять', с.again));
+        $('ск2-зона').querySelector('.ск2-взять').addEventListener('click', (е) => {
           е.preventDefault(); $('ск2-файл').click();
         });
         $('ск2-зона').appendChild($('ск2-файл'));

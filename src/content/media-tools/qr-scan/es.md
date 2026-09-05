@@ -15,7 +15,7 @@ faq:
   - question: ¿Cuál es el peligro del código en sí?
     answer: "Un código no se puede leer a simple vista: uno se entera de adónde lleva solo después de seguirlo. Sobre eso se montan estafas enteras: una pegatina ajena encima de la auténtica en un parquímetro, en un bar, en una factura. Por eso nuestro escáner no abre nada por su cuenta."
   - question: ¿Qué significa el aviso sobre el signo «@»?
-    answer: "En una dirección como https://bbva.es@evil.example, todo lo que va antes de la «@» no es el sitio sino un nombre de usuario. El navegador irá a evil.example mientras el lector ve un nombre conocido al principio. Señalamos esas direcciones y mostramos el host real en una línea aparte."
+    answer: "En una dirección como https://bank.example@evil.example, todo lo que va antes de la «@» no es el sitio sino un nombre de usuario. El navegador irá a evil.example mientras el lector ve un nombre conocido al principio. Señalamos esas direcciones y mostramos el host real en una línea aparte."
   - question: ¿Y el aviso sobre «xn--»?
     answer: "Así muestra el navegador los nombres de sitio escritos con letras no latinas. Se aprovecha para engañar: un nombre con una letra cirílica se ve idéntico al auténtico pero es otro sitio."
   - question: ¿Por qué la contraseña del Wi-Fi sale sin barras de más?
@@ -36,7 +36,7 @@ Un QR no se puede leer a simple vista y sobre eso se montan estafas. Mostramos l
 
 ## Adónde lleva el enlace de verdad
 
-En `https://bbva.es@evil.example` el navegador va a `evil.example`. Señalamos esas direcciones.
+En `https://bank.example@evil.example` el navegador va a `evil.example`. Señalamos esas direcciones.
 
 ## La contraseña del Wi-Fi sale usable
 
