@@ -1,0 +1,435 @@
+---
+// СКАНЕР QR-КОДОВ.
+//
+// ГЛАВНОЕ ЗДЕСЬ -- НЕ РАСПОЗНАВАНИЕ, А БЕЗОПАСНОСТЬ. В задании написано «абсолютно безопасно»,
+// но про доступ к камере. Настоящая опасность QR-кода в другом: его нельзя прочитать глазами,
+// и человек узнаёт, куда его ведут, только после перехода. На этом стоит целое семейство
+// обманов -- наклейку с чужим кодом лепят поверх настоящей на парковочном автомате, в кафе,
+// на счёте за коммуналку.
+//
+// Поэтому здесь три правила, и они важнее любой красоты:
+//   1. Сканер НИКОГДА ничего не открывает сам. Только показывает.
+//   2. Полный адрес выводится ТЕКСТОМ, который можно прочитать и выделить, а отдельной
+//      строкой -- узел, куда браузер пойдёт на самом деле.
+//   3. Подозрительное называется вслух: собачка в адресе, punycode, чужая схема.
+//
+// Распознаёт jsQR, подгружается лениво -- на странице, куда зашли посмотреть, лишние
+// сорок килобайт ни к чему.
+import css from '../styles/qr-scan.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    mode: 'Откуда', camera: 'Камера', photo: 'Файл или снимок',
+    start: 'Включить камеру', stop: 'Выключить',
+    camIdle: 'Камера выключена. Нажмите кнопку — браузер спросит разрешение.',
+    camDenied: 'Камера не доступна. Разрешение не дано или устройства нет. Можно распознать снимок: переключитесь на «Файл или снимок».',
+    camLooking: 'Наведите код на прицел…',
+    drop: 'Перетащите картинку сюда, выберите файл или вставьте снимок клавишами Ctrl+V',
+    pick: 'Выбрать файл', again: 'Другой файл',
+    waiting: 'Здесь появится то, что записано в коде',
+    notFound: 'Код на картинке не найден. Попробуйте снимок покрупнее и порезче.',
+    kindUrl: 'Ссылка', kindText: 'Текст', kindWifi: 'Сеть Wi-Fi', kindCard: 'Визитка',
+    kindTel: 'Телефон', kindMail: 'Почта',
+    goesTo: 'Браузер пойдёт на', copy: 'Копировать', copied: 'Скопировано!', open: 'Открыть ссылку',
+    ssid: 'Имя сети', pass: 'Пароль', prot: 'Защита', hidden: 'Скрытая', yes: 'да',
+    name: 'Имя', org: 'Организация', job: 'Должность', phone: 'Телефон', mail: 'Почта', site: 'Сайт',
+    warnAt: '<b>Осторожно: адрес обманный.</b> Всё, что стоит до знака «@», — это не сайт. Браузер пойдёт на',
+    warnPuny: '<b>Осторожно: имя сайта записано особыми знаками.</b> Такие имена подделывают под известные — буквы выглядят одинаково, а сайт другой. Настоящее имя:',
+    warnScheme: '<b>Осторожно: необычная схема ссылки.</b> Переход по такой ссылке мы не предлагаем:',
+    noOpen: 'Открыть можно только обычные ссылки http и https.',
+    n1: '<b>Сканер ничего не открывает сам.</b> Прочитанное показывается текстом, и решение переходить принимаете вы. Это не осторожность ради осторожности: QR-код нельзя прочитать глазами, и на этом построены обманы — чужую наклейку лепят поверх настоящей на парковочном автомате, в кафе, на счёте.',
+    n2: '<b>Мы называем, куда ссылка ведёт на самом деле.</b> В адресе <code>https://sberbank.ru@evil.example</code> браузер пойдёт на <code>evil.example</code>: всё до «@» — это не сайт. Такой адрес мы помечаем и показываем настоящий узел отдельной строкой.',
+    n3: '<b>Имена из похожих букв тоже помечаются.</b> Есть имена, записанные знаками, неотличимыми на вид от латинских: «аpple.com» с кириллической «а» выглядит как настоящее. Браузер показывает такие имена в служебном виде <code>xn--…</code>, и мы об этом предупреждаем.',
+    n4: '<b>Пароль от Wi-Fi показывается верным.</b> В строке сети особые знаки экранируются обратной косой; сканер, который её не снимает, покажет пароль с лишними чертами. Мы снимаем — и пароль можно просто скопировать.',
+    n5: 'Ничего никуда не отправляется. Картинка с кодом и поток с камеры разбираются прямо в браузере: они не уходят в сеть и нигде не сохраняются.',
+  },
+  uk: {
+    mode: 'Звідки', camera: 'Камера', photo: 'Файл або знімок',
+    start: 'Увімкнути камеру', stop: 'Вимкнути',
+    camIdle: 'Камеру вимкнено. Натисніть кнопку — браузер запитає дозвіл.',
+    camDenied: 'Камера недоступна. Дозвіл не надано або пристрою немає. Можна розпізнати знімок: перемкніться на «Файл або знімок».',
+    camLooking: 'Наведіть код на приціл…',
+    drop: 'Перетягніть картинку сюди, виберіть файл або вставте знімок клавішами Ctrl+V',
+    pick: 'Вибрати файл', again: 'Інший файл',
+    waiting: 'Тут з’явиться те, що записано в коді',
+    notFound: 'Код на картинці не знайдено. Спробуйте знімок більший і чіткіший.',
+    kindUrl: 'Посилання', kindText: 'Текст', kindWifi: 'Мережа Wi-Fi', kindCard: 'Візитівка',
+    kindTel: 'Телефон', kindMail: 'Пошта',
+    goesTo: 'Браузер піде на', copy: 'Копіювати', copied: 'Скопійовано!', open: 'Відкрити посилання',
+    ssid: 'Ім’я мережі', pass: 'Пароль', prot: 'Захист', hidden: 'Прихована', yes: 'так',
+    name: 'Ім’я', org: 'Організація', job: 'Посада', phone: 'Телефон', mail: 'Пошта', site: 'Сайт',
+    warnAt: '<b>Обережно: адреса оманлива.</b> Усе, що стоїть до знака «@», — це не сайт. Браузер піде на',
+    warnPuny: '<b>Обережно: ім’я сайту записано особливими знаками.</b> Такі імена підробляють під відомі. Справжнє ім’я:',
+    warnScheme: '<b>Обережно: незвичайна схема посилання.</b> Перехід за таким посиланням ми не пропонуємо:',
+    noOpen: 'Відкрити можна лише звичайні посилання http і https.',
+    n1: '<b>Сканер нічого не відкриває сам.</b> Прочитане показується текстом, і рішення переходити ухвалюєте ви. QR-код не можна прочитати очима, і на цьому побудовані обмани — чужу наклейку ліплять поверх справжньої.',
+    n2: '<b>Ми називаємо, куди посилання веде насправді.</b> В адресі <code>https://privatbank.ua@evil.example</code> браузер піде на <code>evil.example</code>: усе до «@» — це не сайт.',
+    n3: '<b>Імена зі схожих літер теж позначаються.</b> Є імена, записані знаками, невідрізними на вигляд від латинських. Браузер показує такі імена у службовому вигляді <code>xn--…</code>, і ми про це попереджаємо.',
+    n4: '<b>Пароль від Wi-Fi показується правильним.</b> У рядку мережі особливі знаки екрануються зворотною косою; сканер, який її не знімає, покаже пароль із зайвими рисками. Ми знімаємо.',
+    n5: 'Нічого нікуди не надсилається. Картинка з кодом і потік з камери розбираються просто у браузері.',
+  },
+  en: {
+    mode: 'Source', camera: 'Camera', photo: 'File or screenshot',
+    start: 'Turn the camera on', stop: 'Turn off',
+    camIdle: 'The camera is off. Press the button — the browser will ask for permission.',
+    camDenied: 'The camera is not available. Permission was refused or there is no device. You can still decode a picture: switch to “File or screenshot”.',
+    camLooking: 'Point the code at the frame…',
+    drop: 'Drop a picture here, choose a file, or paste a screenshot with Ctrl+V',
+    pick: 'Choose a file', again: 'Another file',
+    waiting: 'What the code holds will appear here',
+    notFound: 'No code found in the picture. Try a larger, sharper shot.',
+    kindUrl: 'Link', kindText: 'Text', kindWifi: 'Wi-Fi network', kindCard: 'vCard',
+    kindTel: 'Phone', kindMail: 'Email',
+    goesTo: 'The browser will go to', copy: 'Copy', copied: 'Copied!', open: 'Open the link',
+    ssid: 'Network name', pass: 'Password', prot: 'Security', hidden: 'Hidden', yes: 'yes',
+    name: 'Name', org: 'Organisation', job: 'Job title', phone: 'Phone', mail: 'Email', site: 'Website',
+    warnAt: '<b>Careful: this address is deceptive.</b> Everything before the “@” is not the site. The browser will go to',
+    warnPuny: '<b>Careful: the host name is written with special characters.</b> Such names are made to look like well-known ones — the letters look identical but the site is different. The real name:',
+    warnScheme: '<b>Careful: unusual link scheme.</b> We do not offer to follow a link like this:',
+    noOpen: 'Only ordinary http and https links can be opened.',
+    n1: '<b>The scanner never opens anything by itself.</b> What it reads is shown as text, and the decision to follow it is yours. That is not caution for its own sake: a QR code cannot be read by eye, and whole families of scams are built on it — somebody else’s sticker pasted over the real one on a parking meter, in a café, on a bill.',
+    n2: '<b>We name where the link actually leads.</b> In <code>https://paypal.com@evil.example</code> the browser goes to <code>evil.example</code>: everything before the “@” is not the site. We flag such an address and show the real host on its own line.',
+    n3: '<b>Look-alike names are flagged too.</b> Some host names are written with characters visually identical to Latin ones: “аpple.com” with a Cyrillic “а” looks genuine. Browsers show such names in the technical <code>xn--…</code> form, and we warn about it.',
+    n4: '<b>The Wi-Fi password is shown correctly.</b> In the network string special characters are escaped with a backslash; a scanner that does not remove it shows the password with stray slashes. We remove it, so the password can simply be copied.',
+    n5: 'Nothing is sent anywhere. The picture and the camera stream are decoded right in the browser: they never go to the network and are never stored.',
+  },
+  es: {
+    mode: 'Origen', camera: 'Cámara', photo: 'Archivo o captura',
+    start: 'Encender la cámara', stop: 'Apagar',
+    camIdle: 'La cámara está apagada. Pulsa el botón: el navegador pedirá permiso.',
+    camDenied: 'La cámara no está disponible. No se dio permiso o no hay dispositivo. Puedes descifrar una imagen: cambia a «Archivo o captura».',
+    camLooking: 'Apunta el código al marco…',
+    drop: 'Arrastra una imagen aquí, elige un archivo o pega una captura con Ctrl+V',
+    pick: 'Elegir archivo', again: 'Otro archivo',
+    waiting: 'Aquí aparecerá lo que contiene el código',
+    notFound: 'No se ha encontrado ningún código en la imagen. Prueba con una foto más grande y nítida.',
+    kindUrl: 'Enlace', kindText: 'Texto', kindWifi: 'Red Wi-Fi', kindCard: 'Tarjeta',
+    kindTel: 'Teléfono', kindMail: 'Correo',
+    goesTo: 'El navegador irá a', copy: 'Copiar', copied: '¡Copiado!', open: 'Abrir el enlace',
+    ssid: 'Nombre de la red', pass: 'Contraseña', prot: 'Seguridad', hidden: 'Oculta', yes: 'sí',
+    name: 'Nombre', org: 'Organización', job: 'Puesto', phone: 'Teléfono', mail: 'Correo', site: 'Sitio',
+    warnAt: '<b>Cuidado: la dirección engaña.</b> Todo lo que va antes de la «@» no es el sitio. El navegador irá a',
+    warnPuny: '<b>Cuidado: el nombre del sitio usa caracteres especiales.</b> Así se imitan nombres conocidos: las letras se ven iguales pero el sitio es otro. El nombre real:',
+    warnScheme: '<b>Cuidado: esquema de enlace poco habitual.</b> No ofrecemos seguir un enlace así:',
+    noOpen: 'Solo se pueden abrir enlaces http y https normales.',
+    n1: '<b>El escáner no abre nada por su cuenta.</b> Lo leído se muestra como texto y la decisión de seguirlo es tuya. Un código QR no se puede leer a simple vista, y sobre eso se montan estafas: una pegatina ajena encima de la auténtica en un parquímetro, en un bar, en una factura.',
+    n2: '<b>Decimos adónde lleva realmente el enlace.</b> En <code>https://bbva.es@evil.example</code> el navegador va a <code>evil.example</code>: todo lo anterior a la «@» no es el sitio.',
+    n3: '<b>Los nombres con letras parecidas también se señalan.</b> Hay nombres escritos con caracteres idénticos a la vista a los latinos. El navegador los muestra en la forma técnica <code>xn--…</code> y nosotros avisamos.',
+    n4: '<b>La contraseña del Wi-Fi se muestra correcta.</b> En la cadena de red los caracteres especiales van escapados con barra invertida; un escáner que no la quita muestra la contraseña con barras de más. Nosotros la quitamos.',
+    n5: 'No se envía nada a ninguna parte. La imagen y el flujo de la cámara se descifran en el propio navegador.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="ск2" data-words={JSON.stringify(с)}>
+  <div class="ск2-пульт">
+    <span class="ск2-отступ">
+      <span class="ск2-подпись">{с.mode}:</span>
+      <span class="ск2-набор">
+        <button type="button" class="ск2-выбор выбран" data-р="camera">{с.camera}</button>
+        <button type="button" class="ск2-выбор" data-р="photo">{с.photo}</button>
+      </span>
+    </span>
+    <button type="button" class="ск2-простая" id="ск2-пуск">{с.start}</button>
+  </div>
+
+  <div class="ск2-пара">
+    <div>
+      <div class="ск2-глазок" id="ск2-глазок">
+        <video id="ск2-видео" playsinline muted></video>
+        <canvas id="ск2-холст"></canvas>
+        <div class="ск2-прицел"><i></i><i></i><i></i><i></i></div>
+        <div class="ск2-заслон" id="ск2-заслон">{с.camIdle}</div>
+      </div>
+
+      <label class="ск2-зона" id="ск2-зона" hidden>
+        <p id="ск2-подсказка">{с.drop}</p>
+        <span class="ск2-выбор" id="ск2-выбрать">{с.pick}</span>
+        <input type="file" id="ск2-файл" accept="image/*" />
+      </label>
+    </div>
+
+    <div class="ск2-итог" id="ск2-итог">
+      <span class="ск2-ждём" id="ск2-ждём">{с.waiting}</span>
+    </div>
+  </div>
+
+  <div class="ск2-ряд" id="ск2-ряд" hidden>
+    <button type="button" class="ск2-кнопка" id="ск2-копировать">{с.copy}</button>
+    <a class="ск2-обводка" id="ск2-перейти" target="_blank" rel="noopener noreferrer nofollow"
+       style="display:none;line-height:44px;text-decoration:none">{с.open}</a>
+  </div>
+
+  <div class="ск2-заметки">
+    <div class="ск2-заметка" set:html={с.n1}></div>
+    <div class="ск2-заметка" set:html={с.n2}></div>
+    <div class="ск2-заметка" set:html={с.n3}></div>
+    <div class="ск2-заметка" set:html={с.n4}></div>
+    <div class="ск2-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { разобратьСодержимое } from '../lib/qr-read.js';
+
+  const корень = document.querySelector('.ск2');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const видео = $('ск2-видео');
+    const холст = $('ск2-холст');
+    const итог = $('ск2-итог');
+
+    let режим = 'camera';
+    let поток = null;
+    let ищем = false;
+    let читать = null;      // jsQR, подгружается лениво
+    let найдено = '';
+
+    async function взятьЧитателя() {
+      if (читать) return читать;
+      const м = await import('jsqr');
+      читать = м.default || м;
+      return читать;
+    }
+
+    /** Короткий тихий сигнал. Громкость намеренно мала: это подсказка, а не сирена. */
+    function пикнуть() {
+      try {
+        const ак = new (window.AudioContext || window.webkitAudioContext)();
+        const ген = ак.createOscillator();
+        const гром = ак.createGain();
+        ген.type = 'sine';
+        ген.frequency.value = 1320;
+        гром.gain.setValueAtTime(0.0001, ак.currentTime);
+        гром.gain.exponentialRampToValueAtTime(0.08, ак.currentTime + 0.01);
+        гром.gain.exponentialRampToValueAtTime(0.0001, ак.currentTime + 0.12);
+        ген.connect(гром); гром.connect(ак.destination);
+        ген.start(); ген.stop(ак.currentTime + 0.13);
+        setTimeout(() => ак.close(), 400);
+      } catch (е) { /* звук -- приятная мелочь, без него всё работает */ }
+    }
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    function пары(список) {
+      const дл = document.createElement('dl');
+      дл.className = 'ск2-пары';
+      for (const [имя, значение] of список) {
+        if (!значение) continue;
+        дл.append(узел('dt', '', имя), узел('dd', '', значение));
+      }
+      return дл;
+    }
+
+    function показать(текст) {
+      найдено = текст;
+      const разбор = разобратьСодержимое(текст);
+      итог.replaceChildren();
+      $('ск2-ряд').hidden = false;
+      const переход = $('ск2-перейти');
+      переход.style.display = 'none';
+
+      const виды = { url: с.kindUrl, text: с.kindText, wifi: с.kindWifi,
+        card: с.kindCard, tel: с.kindTel, mail: с.kindMail };
+      итог.appendChild(узел('span', 'ск2-вид', виды[разбор.вид] || с.kindText));
+
+      if (разбор.вид === 'url') {
+        const л = разбор.ссылка;
+        // Полный адрес -- текстом. Его можно прочитать и выделить ДО всякого перехода.
+        итог.appendChild(узел('div', 'ск2-значение', разбор.текст));
+        итог.appendChild(узел('div', 'ск2-узел', `${с.goesTo}: ${л.узел}`));
+        for (const т of л.тревоги) {
+          const э = узел('div', 'ск2-тревога');
+          const слова = т.вид === 'punycode' ? с.warnPuny
+            : т.вид === 'схема' ? с.warnScheme : с.warnAt;
+          э.innerHTML = `${слова} <b>${т.что}</b>`;
+          итог.appendChild(э);
+        }
+        if (л.переходить) {
+          переход.href = л.адрес;
+          переход.style.display = 'inline-block';
+        } else {
+          итог.appendChild(узел('div', 'ск2-ждём', с.noOpen));
+        }
+      } else if (разбор.вид === 'wifi') {
+        итог.appendChild(пары([
+          [с.ssid, разбор.сеть.имя],
+          [с.pass, разбор.сеть.пароль],
+          [с.prot, разбор.сеть.защита],
+          [с.hidden, разбор.сеть.скрытая ? с.yes : ''],
+        ]));
+      } else if (разбор.вид === 'card') {
+        const в = разбор.визитка;
+        итог.appendChild(пары([
+          [с.name, в.имя], [с.org, в.организация], [с.job, в.должность],
+          [с.phone, в.телефон], [с.mail, в.почта], [с.site, в.сайт],
+        ]));
+      } else {
+        итог.appendChild(узел('div', 'ск2-значение', разбор.текст));
+      }
+      пикнуть();
+      $('ск2-глазок').classList.add('нашёл');
+      setTimeout(() => $('ск2-глазок').classList.remove('нашёл'), 900);
+    }
+
+    function сказатьВИтог(текст) {
+      итог.replaceChildren(узел('span', 'ск2-ждём', текст));
+      $('ск2-ряд').hidden = true;
+      найдено = '';
+    }
+
+    /** Один проход по картинке. Возвращает найденный текст или пусто. */
+    async function разобратьКадр(ширина, высота, рисовать) {
+      if (!ширина || !высота) return '';
+      const jsQR = await взятьЧитателя();
+      холст.width = ширина;
+      холст.height = высота;
+      const рис = холст.getContext('2d', { willReadFrequently: true });
+      рисовать(рис);
+      const точки = рис.getImageData(0, 0, ширина, высота);
+      const код = jsQR(точки.data, точки.width, точки.height, { inversionAttempts: 'attemptBoth' });
+      return код && код.data ? код.data : '';
+    }
+
+    async function круг() {
+      if (!ищем || режим !== 'camera') return;
+      if (видео.readyState >= 2) {
+        try {
+          const текст = await разобратьКадр(видео.videoWidth, видео.videoHeight,
+            (рис) => рис.drawImage(видео, 0, 0));
+          if (текст && текст !== найдено) { показать(текст); }
+        } catch (е) { /* один неудачный кадр -- не беда, ждём следующий */ }
+      }
+      // Раз в четверть секунды: чаще незачем, а батарею телефона бережём.
+      if (ищем) setTimeout(() => requestAnimationFrame(круг), 250);
+    }
+
+    async function включить() {
+      if (поток) { выключить(); return; }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: 'environment', width: { ideal: 1280 } }, audio: false,
+        });
+      } catch (е) {
+        $('ск2-заслон').hidden = false;
+        $('ск2-заслон').textContent = с.camDenied;
+        return;
+      }
+      видео.srcObject = поток;
+      await видео.play().catch(() => {});
+      $('ск2-заслон').hidden = true;
+      $('ск2-пуск').textContent = с.stop;
+      ищем = true;
+      круг();
+    }
+
+    function выключить() {
+      ищем = false;
+      if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
+      видео.srcObject = null;
+      $('ск2-заслон').hidden = false;
+      $('ск2-заслон').textContent = с.camIdle;
+      $('ск2-пуск').textContent = с.start;
+    }
+
+    async function взятьКартинку(файл) {
+      if (!файл) return;
+      const адрес = URL.createObjectURL(файл);
+      const карт = new Image();
+      карт.onload = async () => {
+        const текст = await разобратьКадр(карт.naturalWidth, карт.naturalHeight,
+          (рис) => рис.drawImage(карт, 0, 0));
+        // Показываем сам снимок: сразу видно, тот ли файл разбирали.
+        $('ск2-зона').replaceChildren(карт, узел('span', 'ск2-выбор', с.again));
+        $('ск2-зона').querySelector('.ск2-выбор').addEventListener('click', (е) => {
+          е.preventDefault(); $('ск2-файл').click();
+        });
+        $('ск2-зона').appendChild($('ск2-файл'));
+        if (текст) показать(текст); else сказатьВИтог(с.notFound);
+        URL.revokeObjectURL(адрес);
+      };
+      карт.onerror = () => { сказатьВИтог(с.notFound); URL.revokeObjectURL(адрес); };
+      карт.src = адрес;
+    }
+
+    for (const кн of корень.querySelectorAll('.ск2-выбор[data-р]')) {
+      кн.addEventListener('click', () => {
+        режим = кн.dataset.р;
+        for (const д of корень.querySelectorAll('.ск2-выбор[data-р]')) {
+          д.classList.toggle('выбран', д === кн);
+        }
+        const камера = режим === 'camera';
+        $('ск2-глазок').hidden = !камера;
+        $('ск2-зона').hidden = камера;
+        $('ск2-пуск').hidden = !камера;
+        if (!камера) выключить();
+      });
+    }
+
+    $('ск2-пуск').addEventListener('click', включить);
+    $('ск2-файл').addEventListener('change', (е) => взятьКартинку(е.target.files && е.target.files[0]));
+    $('ск2-выбрать').addEventListener('click', (е) => { е.preventDefault(); $('ск2-файл').click(); });
+
+    for (const событие of ['dragenter', 'dragover']) {
+      $('ск2-зона').addEventListener(событие, (е) => { е.preventDefault(); $('ск2-зона').classList.add('держат'); });
+    }
+    $('ск2-зона').addEventListener('dragleave', () => $('ск2-зона').classList.remove('держат'));
+    $('ск2-зона').addEventListener('drop', (е) => {
+      е.preventDefault();
+      $('ск2-зона').classList.remove('держат');
+      взятьКартинку(е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0]);
+    });
+
+    // Вставка снимка из буфера: самый частый способ на компьютере -- сделать снимок экрана
+    // и нажать Ctrl+V, не сохраняя файл.
+    document.addEventListener('paste', (е) => {
+      const вещи = е.clipboardData && е.clipboardData.items;
+      if (!вещи) return;
+      for (const в of вещи) {
+        if (в.type && в.type.startsWith('image/')) {
+          const файл = в.getAsFile();
+          if (файл) {
+            // Переключаемся на снимок сами: человек уже показал, чего хочет.
+            корень.querySelector('.ск2-выбор[data-р="photo"]').click();
+            взятьКартинку(файл);
+          }
+          break;
+        }
+      }
+    });
+
+    $('ск2-копировать').addEventListener('click', async () => {
+      const кнопка = $('ск2-копировать');
+      if (!найдено) return;
+      try { await navigator.clipboard.writeText(найдено); }
+      catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    window.addEventListener('pagehide', выключить);
+
+    window.__ск2Состояние = () => ({
+      режим,
+      найдено,
+      итог: итог.textContent.trim(),
+      тревог: итог.querySelectorAll('.ск2-тревога').length,
+      узел: (итог.querySelector('.ск2-узел') || {}).textContent || '',
+      переходВиден: $('ск2-перейти').style.display !== 'none',
+      кнопкиВидны: !$('ск2-ряд').hidden,
+    });
+    window.__ск2Показать = показать;
+  })();
+</script>

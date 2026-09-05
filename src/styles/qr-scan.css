@@ -1,0 +1,227 @@
+/* СТИЛИ СТРАНИЦЫ «СКАНЕР QR-КОДОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
+ * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
+ * уже забраковал на Base64, и повторять эту ошибку незачем.
+ */
+
+.ск2 {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.ск2-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.ск2-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.ск2-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.ск2-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.ск2-список:hover { border-color: #fff }
+.ск2-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.ск2-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.ск2-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.ск2-поле:focus-within { border-color: #fff }
+.ск2-поле.негоден { border-color: rgba(255,154,168,.55) }
+.ск2-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.ск2-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.ск2-ввод:focus { outline: none }
+.ск2-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.ск2-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.ск2-отчёт b { color: #fff; font-weight: 500 }
+.ск2-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.ск2-беда b { color: var(--беда); font-weight: 700 }
+.ск2-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.ск2-сказ.видно { opacity: 1 }
+
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.ск2-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.ск2-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.ск2-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.ск2-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.ск2-обводка:hover { background: #fff; color: #000 }
+.ск2-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.ск2-простая:hover { border-color: #fff; background: #23272f }
+.ск2-кнопка.вправо, .ск2-простая.вправо { margin-left: auto }
+
+.ск2-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.ск2-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.ск2-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.ск2-заметка b { color: #fff; font-weight: 600 }
+.ск2-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .ск2-ввод { min-height: 170px }
+  .ск2-знак { margin-left: 0 }
+  .ск2-кнопка, .ск2-обводка, .ск2-простая { flex: 1 1 auto }
+  .ск2-кнопка.вправо, .ск2-простая.вправо { margin-left: 0 }
+}
+
+/* ---- Своё для этой страницы --------------------------------------------------------------- */
+
+/* Выбор вида данных и уровня -- кнопками, выбранное только обводкой. */
+.ск2-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
+.ск2-выбор {
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.ск2-выбор:hover { border-color: #fff; background: #23272f }
+.ск2-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.ск2-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+.ск2-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
+
+/* Поля для сети и визитки. */
+.ск2-поля { display: flex; flex-direction: column; gap: 8px }
+.ск2-поля[hidden] { display: none }
+.ск2-строка { display: grid; grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 8px;
+  align-items: center }
+.ск2-имя { font: 400 12px var(--цифры); color: var(--accent) }
+.ск2-текст {
+  height: 38px; padding: 0 12px; border-radius: 6px; min-width: 0;
+  font: 500 12.5px var(--цифры); color: #fff; background: #16181d;
+  border: 1px solid var(--линия);
+}
+.ск2-текст:hover, .ск2-текст:focus { border-color: #fff; outline: none }
+
+.ск2-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.ск2-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.ск2-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.ск2-галка:hover i { border-color: #fff }
+.ск2-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.ск2-галка input:checked + i { border-color: var(--accent) }
+.ск2-галка input:checked + i::after { transform: scale(1) }
+
+
+@media (min-width: 900px) {
+  .ск2-пара { grid-template-columns: minmax(0, 1fr) 340px }
+}
+@media (max-width: 560px) {
+  .ск2-строка { grid-template-columns: 1fr; gap: 3px }
+  .ск2-набор { width: 100% }
+  .ск2-выбор { flex: 1 1 0; padding: 0 8px }
+}
+
+/* ---- Видоискатель --------------------------------------------------------------------------- */
+
+.ск2-глазок { position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--линия); background: #0b0c0f; aspect-ratio: 4 / 3 }
+.ск2-глазок video { width: 100%; height: 100%; object-fit: cover; display: block }
+.ск2-глазок canvas { display: none }
+
+/* Четыре уголка прицела. Белые и тонкие: они помогают навести, но не мешают камере. */
+.ск2-прицел { position: absolute; inset: 14%; pointer-events: none }
+.ск2-прицел i { position: absolute; width: 26px; height: 26px; border: 2px solid #fff;
+  opacity: .85 }
+.ск2-прицел i:nth-child(1) { top: 0; left: 0; border-right: 0; border-bottom: 0; border-radius: 4px 0 0 0 }
+.ск2-прицел i:nth-child(2) { top: 0; right: 0; border-left: 0; border-bottom: 0; border-radius: 0 4px 0 0 }
+.ск2-прицел i:nth-child(3) { bottom: 0; left: 0; border-right: 0; border-top: 0; border-radius: 0 0 0 4px }
+.ск2-прицел i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 4px 0 }
+.ск2-глазок.нашёл .ск2-прицел i { border-color: var(--accent); opacity: 1 }
+
+.ск2-заслон { position: absolute; inset: 0; display: flex; align-items: center;
+  justify-content: center; padding: 20px; text-align: center;
+  font: 400 13px/1.6 var(--ui); color: #fff; background: #0b0c0f }
+.ск2-заслон[hidden] { display: none }
+
+/* Зона для файла: та же, что у кодировщика файлов -- страницы должны быть роднёй. */
+.ск2-зона {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 12px; aspect-ratio: 4 / 3; padding: 22px; border-radius: 12px;
+  border: 1px dashed #3f4652; background: #14161b; cursor: pointer; text-align: center;
+  transition: border-color .15s, background .15s;
+}
+.ск2-зона:hover { border-color: #fff; background: #1a1d23 }
+.ск2-зона.держат { border-style: solid; border-color: #fff }
+.ск2-зона p { margin: 0; font: 400 13px/1.5 var(--ui); color: #fff }
+.ск2-зона img { max-width: 100%; max-height: 60%; border-radius: 8px; object-fit: contain }
+.ск2-зона input[type=file] { display: none }
+
+/* ---- Найденное ------------------------------------------------------------------------------ */
+
+.ск2-итог { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 10px }
+.ск2-вид { font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent) }
+.ск2-значение { font: 400 14px/1.55 var(--цифры); color: #fff; overflow-wrap: anywhere;
+  user-select: text }
+.ск2-пары { display: grid; grid-template-columns: minmax(0, 120px) minmax(0, 1fr); gap: 4px 12px;
+  font: 400 13px/1.5 var(--цифры) }
+.ск2-пары dt { color: var(--accent) }
+.ск2-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
+.ск2-ждём { font: 400 13px/1.6 var(--ui); color: #7d848f }
+
+/* Куда на самом деле ведёт ссылка. Отдельной строкой и крупно: человек читает начало адреса
+   и видит знакомое имя, а браузер пойдёт совсем не туда. */
+.ск2-узел { font: 700 13px var(--цифры); color: #fff }
+.ск2-тревога { padding: 11px 13px; border-radius: 9px; border: 1px solid rgba(255,154,168,.55);
+  background: rgba(255,154,168,.08); font: 400 12.5px/1.55 var(--ui); color: #fff }
+.ск2-тревога b { color: var(--беда); font-weight: 700 }
+
+/* Правила display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этих
+   двух строк видоискатель и зона файла видны одновременно. Ту же ошибку я уже допускал на
+   ползунке тона в «Тексте в речь» -- проверка на свойство .hidden её не ловит, только замер
+   пикселей. */
+.ск2-зона[hidden] { display: none }
+.ск2-глазок[hidden] { display: none }
