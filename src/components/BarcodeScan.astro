@@ -19,6 +19,8 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    drop2: "Убрать файл",
+    badHeic: "Это снимок в формате HEIC — так iPhone сохраняет фотографии, и открывать их умеет только Safari. Откройте эту страницу на самом iPhone, либо переснимите в JPEG: Настройки → Камера → Форматы → «Наиболее совместимые».",
     base: "Найти в открытой базе", baseWait: "Ищу…", baseNone: "В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.", baseFail: "База не ответила. Проверьте связь и попробуйте ещё раз.", fName: "Название", fBrand: "Марка", fQty: "Объём или вес", fCats: "Что это", fScore: "Nutri-Score", baseFrom: "Данные: Open Food Facts",
     fParts: "Из чего состоит",
     pPrefix: "префикс",
@@ -61,6 +63,8 @@ const СЛОВА = {
     n6: 'Снимок никуда не загружается: распознавание идёт в самой вкладке. В сеть уходит только номер и только если вы нажали «Найти в открытой базе».',
   },
   uk: {
+    drop2: "Прибрати файл",
+    badHeic: "Це знімок у форматі HEIC — так iPhone зберігає фотографії, і відкривати їх уміє лише Safari. Відкрийте цю сторінку на самому iPhone або перезнiміть у JPEG: Налаштування → Камера → Формати → «Найсумісніші».",
     base: "Знайти у відкритій базі", baseWait: "Шукаю…", baseNone: "У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.", baseFail: "База не відповіла. Перевірте зв’язок і спробуйте ще раз.", fName: "Назва", fBrand: "Марка", fQty: "Обсяг або вага", fCats: "Що це", fScore: "Nutri-Score", baseFrom: "Дані: Open Food Facts",
     fParts: "З чого складається",
     pPrefix: "префікс",
@@ -103,6 +107,8 @@ const СЛОВА = {
     n6: 'Знімок нікуди не завантажується: розпізнавання йде в самій вкладці. У мережу йде лише номер і лише якщо ви натиснули «Знайти у відкритій базі».',
   },
   en: {
+    drop2: "Remove the file",
+    badHeic: "This is a HEIC photo — the format iPhones save in, and only Safari can open it. Open this page on the iPhone itself, or switch the camera to JPEG: Settings → Camera → Formats → “Most Compatible”.",
     base: "Look up in the open database", baseWait: "Looking…", baseNone: "This product is not in the open database. It is compiled by people, and it is mostly food.", baseFail: "The database did not answer. Check the connection and try again.", fName: "Name", fBrand: "Brand", fQty: "Size", fCats: "What it is", fScore: "Nutri-Score", baseFrom: "Data: Open Food Facts",
     fParts: "How it breaks down",
     pPrefix: "prefix",
@@ -145,6 +151,8 @@ const СЛОВА = {
     n6: 'The picture is never uploaded: recognition happens inside the tab itself. The only thing that ever leaves is the number, and only if you press “Look up in the open database”.',
   },
   es: {
+    drop2: "Quitar el archivo",
+    badHeic: "Es una foto en formato HEIC: así guarda el iPhone, y solo Safari sabe abrirlo. Abra esta página en el propio iPhone, o cambie la cámara a JPEG: Ajustes → Cámara → Formatos → «Más compatible».",
     base: "Buscar en la base abierta", baseWait: "Buscando…", baseNone: "Este producto no está en la base abierta. La recopilan personas y es sobre todo comida.", baseFail: "La base no ha respondido. Compruebe la conexión e inténtelo de nuevo.", fName: "Nombre", fBrand: "Marca", fQty: "Cantidad", fCats: "Qué es", fScore: "Nutri-Score", baseFrom: "Datos: Open Food Facts",
     fParts: "Cómo se descompone",
     pPrefix: "prefijo",
@@ -255,9 +263,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         </div>
       </div>
 
-      <label class="скш-зона" id="скш-зона" hidden>
+      <label class="скш-зона" id="скш-зона" data-луч="да" hidden>
         <p>{с.drop}</p>
         <span class="скш-взять" id="скш-выбрать">{с.pick}</span>
+        <div class="скш-луч скш-луч-зоны"></div>
         <input type="file" id="скш-файл" accept="image/*" />
       </label>
     </div>
@@ -589,28 +598,76 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       к.setAttribute('title', идёт ? с.stop : с.camera);
     }
 
+    /**
+     * HEIC -- то, как iPhone сохраняет фотографии. Ни Chrome, ни Firefox открывать его не
+     * умеют вовсе (проверено: не берёт ни картинкой, ни через createImageBitmap), и человек
+     * видит просто «не получилось». Узнаём формат по началу файла и говорим, в чём дело.
+     */
+    async function этоHeic(файл) {
+      try {
+        const шапка = new Uint8Array(await файл.slice(0, 16).arrayBuffer());
+        const метка = String.fromCharCode(...шапка.slice(4, 12));
+        return /^ftyp(heic|heix|hevc|hevx|mif1|msf1|heim|heis|hevm|hevs)/.test(метка);
+      } catch (е) {
+        return /\.hei[cf]$/i.test(файл.name || '');
+      }
+    }
+
+    /** Вернуть зону в пустой вид. Крестик и «выбрать другой» ведут сюда же. */
+    function очиститьЗону() {
+      const зона = $('скш-зона');
+      const луч = зона.querySelector('.скш-луч-зоны');
+      const поле = $('скш-файл');
+      поле.value = '';
+      зона.classList.remove('ищет');
+      const подпись = document.createElement('p');
+      подпись.textContent = с.drop;
+      const взять = узел('span', 'скш-взять', с.pick);
+      взять.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+      зона.replaceChildren(подпись, взять, луч, поле);
+      сказатьВИтог(с.waiting);
+    }
+
     async function взятьКартинку(файл) {
       if (!файл) return;
-      сказатьВИтог(с.looking);
       const адрес = URL.createObjectURL(файл);
       const карт = new Image();
       карт.onload = async () => {
+        // Снимок показываем СРАЗУ, до разбора, и пускаем по нему луч: человек должен видеть,
+        // что работа пошла, а не гадать, нажалось ли. Луч живёт в самой зоне, поэтому его
+        // надо сохранить при замене содержимого -- иначе он уедет вместе с подсказкой.
+        const зона = $('скш-зона');
+        const луч = зона.querySelector('.скш-луч-зоны');
+        const поле = $('скш-файл');
+        const ещё = узел('span', 'скш-взять', с.again);
+        ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
+        const крест = узел('button', 'скш-крестик', '');
+        крест.type = 'button';
+        крест.setAttribute('aria-label', с.drop2);
+        крест.setAttribute('title', с.drop2);
+        крест.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+          + '<path d="M6 6l12 12M18 6L6 18"/></svg>';
+        крест.addEventListener('click', (е) => {
+          е.preventDefault(); е.stopPropagation(); очиститьЗону();
+        });
+        зона.replaceChildren(карт, ещё, крест, луч, поле);
+        зона.classList.add('ищет');
+        сказатьВИтог(с.looking);
+
+        const ход = new Promise((г) => setTimeout(г, 900));
         let н = null;
         try {
           н = await прочитатьСнимок({ картинка: карт, нужно: 'оба' });
         } catch (е) { н = null; }
-        // Показываем сам снимок: сразу видно, тот ли файл разбирали.
-        // Поле файла надо забрать ДО замены содержимого: replaceChildren вынимает его
-        // из страницы, и getElementById после этого возвращает пусто. Из-за этого «Выбрать
-        // другой» падал с ошибкой, и второй файл выбрать было уже нельзя.
-        const поле = $('скш-файл');
-        const ещё = узел('span', 'скш-взять', с.again);
-        ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
-        $('скш-зона').replaceChildren(карт, ещё, поле);
+        await ход;                       // ответ поверх недобежавшего луча читался бы поломкой
+        зона.classList.remove('ищет');
         if (н) показать(н); else сказатьВИтог(с.notShot);
         URL.revokeObjectURL(адрес);
       };
-      карт.onerror = () => { сказатьВИтог(с.notFound); URL.revokeObjectURL(адрес); };
+      карт.onerror = async () => {
+        сказатьВИтог(await этоHeic(файл) ? с.badHeic : с.notFound);
+        URL.revokeObjectURL(адрес);
+      };
       карт.src = адрес;
     }
 

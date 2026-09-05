@@ -261,3 +261,27 @@
   .скш-пары dd { margin-bottom: 7px }
   .скш-значение { font-size: 17px }
 }
+
+/* ---- Луч по загруженному файлу ---------------------------------------------------------------
+   Тот же луч, что на снимке с камеры: человек, загрузивший файл, должен видеть, что работа
+   пошла, а не гадать, нажалось ли. Зона режет луч по своим краям, иначе он выедет наружу. */
+.скш-зона { position: relative; overflow: hidden }
+.скш-луч-зоны { position: absolute; left: 0; right: 0; height: 76px; opacity: 0;
+  pointer-events: none;
+  background: linear-gradient(to bottom, rgba(80,255,170,0) 0%, rgba(80,255,170,.14) 62%,
+    rgba(80,255,170,.8) 96%, rgba(255,255,255,.95) 100%);
+  box-shadow: 0 2px 12px rgba(80,255,170,.5) }
+.скш-зона.ищет .скш-луч-зоны { animation: скш-бег 1.15s cubic-bezier(.5,0,.5,1) infinite }
+
+/* Крестик поверх загруженного снимка: убрать файл и вернуть пустую зону. Стоит в углу, а не
+   в ряду кнопок, -- он относится к картинке, а не к странице. */
+.скш-крестик {
+  position: absolute; top: 10px; right: 10px; z-index: 3;
+  width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0;
+  display: inline-flex; align-items: center; justify-content: center;
+  color: #fff; background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.45);
+  transition: background .15s, border-color .15s;
+}
+.скш-крестик:hover { background: rgba(0,0,0,.8); border-color: #fff }
+.скш-крестик svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round }
