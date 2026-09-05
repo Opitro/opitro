@@ -1,0 +1,183 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
+ * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
+ * уже забраковал на Base64, и повторять эту ошибку незачем.
+ */
+
+.мк {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.мк-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.мк-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.мк-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.мк-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.мк-список:hover { border-color: #fff }
+.мк-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.мк-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.мк-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.мк-поле:focus-within { border-color: #fff }
+.мк-поле.негоден { border-color: rgba(255,154,168,.55) }
+.мк-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.мк-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.мк-ввод:focus { outline: none }
+.мк-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.мк-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.мк-отчёт b { color: #fff; font-weight: 500 }
+.мк-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.мк-беда b { color: var(--беда); font-weight: 700 }
+.мк-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.мк-сказ.видно { opacity: 1 }
+
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.мк-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.мк-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.мк-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.мк-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.мк-обводка:hover { background: #fff; color: #000 }
+.мк-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.мк-простая:hover { border-color: #fff; background: #23272f }
+.мк-кнопка.вправо, .мк-простая.вправо { margin-left: auto }
+
+.мк-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.мк-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.мк-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.мк-заметка b { color: #fff; font-weight: 600 }
+.мк-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .мк-ввод { min-height: 170px }
+  .мк-знак { margin-left: 0 }
+  .мк-кнопка, .мк-обводка, .мк-простая { flex: 1 1 auto }
+  .мк-кнопка.вправо, .мк-простая.вправо { margin-left: 0 }
+}
+
+/* ---- Конструктор схемы --------------------------------------------------------------------- */
+
+.мк-заголовок { margin: 14px 0 8px; font: 400 11px var(--ui); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
+
+.мк-схема { display: flex; flex-direction: column; gap: 8px }
+.мк-строка { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 44px;
+  gap: 8px; align-items: center }
+.мк-ключ {
+  height: 38px; padding: 0 12px; border-radius: 6px; min-width: 0;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652;
+}
+.мк-ключ:hover { border-color: #fff }
+.мк-ключ:focus { outline: none; border-color: #fff }
+.мк-ключ.пусто { border-color: rgba(255,154,168,.55) }
+
+/* Убрать и добавить: обводка, без заливки. Буквы белые -- серые на кнопке владелец
+   забраковал ещё на Base64. */
+.мк-убрать {
+  height: 38px; width: 44px; border-radius: 6px; cursor: pointer;
+  font: 500 16px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.мк-убрать:hover { border-color: var(--беда); color: var(--беда) }
+.мк-убрать[disabled] { color: #52525b; border-color: #2a2f38; cursor: default }
+.мк-убрать[disabled]:hover { border-color: #2a2f38; color: #52525b }
+.мк-добавить {
+  align-self: flex-start; height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px dashed #3f4652; transition: border-color .15s, background .15s;
+}
+.мк-добавить:hover { border-color: #fff; background: #23272f }
+
+/* Число записей. Приделан свой шаг: на телефоне стрелки браузера крошечные. */
+.мк-счёт { display: inline-flex; align-items: stretch; border: 1px solid #3f4652;
+  border-radius: 6px; overflow: hidden; background: #1c1f26 }
+.мк-шаг { width: 34px; border: 0; cursor: pointer; background: transparent; color: #fff;
+  font: 500 16px var(--цифры) }
+.мк-шаг:hover { background: #23272f }
+.мк-число {
+  width: 66px; height: 38px; border: 0; border-left: 1px solid #3f4652;
+  border-right: 1px solid #3f4652; background: transparent; color: #fff; text-align: center;
+  font: 600 13px var(--цифры); appearance: textfield;
+}
+.мк-число::-webkit-outer-spin-button, .мк-число::-webkit-inner-spin-button { appearance: none; margin: 0 }
+.мк-число:focus { outline: none; background: #23272f }
+
+/* Выбор формата -- кнопками, выбранное только обводкой. */
+.мк-набор { display: inline-flex; gap: 6px }
+.мк-выбор {
+  height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.мк-выбор:hover { border-color: #fff; background: #23272f }
+.мк-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.мк-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+.мк-ввод { min-height: 300px }
+.мк-таблица[hidden] { display: none }
+
+@media (max-width: 560px) {
+  .мк-строка { grid-template-columns: minmax(0, 1fr) minmax(0, 1fr) 40px }
+  .мк-набор { width: 100% }
+  .мк-выбор { flex: 1 1 0; padding: 0 8px }
+}

@@ -1,0 +1,326 @@
+---
+// ГЕНЕРАТОР ТЕСТОВЫХ ДАННЫХ.
+//
+// Словари свои и на четырёх языках (src/lib/mock-data.js): готовые библиотеки весят по
+// полмегабайта и говорят по-английски, а на «John Smith» не видно ни длинных фамилий, ни
+// того, как вёрстка держит кириллицу.
+//
+// CSV собирается уже готовым узлом сайта -- вCSV из csv-json.js, где кавычки и запятые внутри
+// значений разбираются по правилам формата. SQL собирается с экранированием: имя O'Brien без
+// него рвёт запрос пополам.
+import css from '../styles/mock-data.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const ТИПЫ_ПОДПИСИ = {
+  ru: { id: 'Порядковый номер', uuid: 'UUID', firstName: 'Имя', lastName: 'Фамилия',
+    fullName: 'Имя и фамилия', email: 'Почта', phone: 'Телефон', city: 'Город',
+    country: 'Страна', address: 'Адрес', company: 'Компания', jobTitle: 'Должность',
+    number: 'Число', price: 'Цена', date: 'Дата', datetime: 'Дата и время',
+    boolean: 'Да / нет', word: 'Слово', sentence: 'Предложение', url: 'Ссылка', ip: 'IP-адрес' },
+  uk: { id: 'Порядковий номер', uuid: 'UUID', firstName: 'Ім’я', lastName: 'Прізвище',
+    fullName: 'Ім’я та прізвище', email: 'Пошта', phone: 'Телефон', city: 'Місто',
+    country: 'Країна', address: 'Адреса', company: 'Компанія', jobTitle: 'Посада',
+    number: 'Число', price: 'Ціна', date: 'Дата', datetime: 'Дата й час',
+    boolean: 'Так / ні', word: 'Слово', sentence: 'Речення', url: 'Посилання', ip: 'IP-адреса' },
+  en: { id: 'Sequential id', uuid: 'UUID', firstName: 'First name', lastName: 'Last name',
+    fullName: 'Full name', email: 'Email', phone: 'Phone', city: 'City',
+    country: 'Country', address: 'Address', company: 'Company', jobTitle: 'Job title',
+    number: 'Number', price: 'Price', date: 'Date', datetime: 'Date and time',
+    boolean: 'Boolean', word: 'Word', sentence: 'Sentence', url: 'URL', ip: 'IP address' },
+  es: { id: 'Número correlativo', uuid: 'UUID', firstName: 'Nombre', lastName: 'Apellido',
+    fullName: 'Nombre y apellido', email: 'Correo', phone: 'Teléfono', city: 'Ciudad',
+    country: 'País', address: 'Dirección', company: 'Empresa', jobTitle: 'Puesto',
+    number: 'Número', price: 'Precio', date: 'Fecha', datetime: 'Fecha y hora',
+    boolean: 'Booleano', word: 'Palabra', sentence: 'Frase', url: 'Enlace', ip: 'Dirección IP' },
+};
+
+const СЛОВА = {
+  ru: {
+    format: 'Формат', count: 'Записей', table: 'Таблица',
+    schema: 'Конструктор схемы', key: 'ключ', type: 'тип',
+    add: 'Добавить поле', remove: 'Убрать',
+    make: 'Сгенерировать', copy: 'Копировать результат', copied: 'Скопировано!',
+    reset: 'Сбросить', result: 'Результат появится здесь…',
+    rows: 'Записей', fields: 'Полей', size: 'Размер',
+    noFields: 'Задайте хотя бы одно поле с именем',
+    limit: 'Больше 5000 записей браузер рисует уже с задержкой',
+    n1: '<b>Данные на языке страницы, а не английские.</b> Русскому приложению нужны русские имена: на «John Smith» не видно ни длинных фамилий, ни того, как вёрстка держит кириллицу. Словари здесь свои и на четырёх языках — поэтому страница и весит килобайты, а не полмегабайта, как готовые библиотеки.',
+    n2: '<b>Почта только на example.com.</b> Эти домены закреплены за примерами особым правилом (RFC 2606), и письмо туда физически не уйдёт никому. Часто в таких генераторах стоит test.com — а это настоящий домен с живым владельцем, и однажды он получает чужую тестовую рассылку.',
+    n3: '<b>В SQL значения экранируются.</b> Имя <code>O\x27Brien</code> без этого рвёт запрос пополам, и вместо тестовых данных получается наглядное пособие по тому, как ломают базы. Апостроф удваивается, числа и логические значения идут без кавычек, имя таблицы проверяется.',
+    n4: '<b>Телефоны могут случайно совпасть с настоящими.</b> Закреплённого «выдуманного» диапазона нет нигде, кроме США, поэтому по сгенерированным номерам не звоните и не шлите сообщения. Для английского языка мы берём диапазон 555-01xx, отведённый как раз для вымысла.',
+    n5: 'Ничего никуда не отправляется. Структура ваших будущих таблиц и сами данные остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    format: 'Формат', count: 'Записів', table: 'Таблиця',
+    schema: 'Конструктор схеми', key: 'ключ', type: 'тип',
+    add: 'Додати поле', remove: 'Прибрати',
+    make: 'Згенерувати', copy: 'Копіювати результат', copied: 'Скопійовано!',
+    reset: 'Скинути', result: 'Результат з’явиться тут…',
+    rows: 'Записів', fields: 'Полів', size: 'Розмір',
+    noFields: 'Задайте хоча б одне поле з іменем',
+    limit: 'Понад 5000 записів браузер малює вже із затримкою',
+    n1: '<b>Дані мовою сторінки, а не англійські.</b> Українському застосунку потрібні українські імена: на «John Smith» не видно ні довгих прізвищ, ні того, як верстка тримає кирилицю. Словники тут власні й на чотирьох мовах.',
+    n2: '<b>Пошта лише на example.com.</b> Ці домени закріплені за прикладами окремим правилом (RFC 2606), і лист туди фізично не піде нікому. Часто в таких генераторах стоїть test.com — а це справжній домен із живим власником.',
+    n3: '<b>У SQL значення екрануються.</b> Ім’я <code>O\x27Brien</code> без цього рве запит навпіл. Апостроф подвоюється, числа й логічні значення йдуть без лапок, ім’я таблиці перевіряється.',
+    n4: '<b>Телефони можуть випадково збігтися зі справжніми.</b> Закріпленого «вигаданого» діапазону немає ніде, крім США, тому за згенерованими номерами не телефонуйте.',
+    n5: 'Нічого нікуди не надсилається. Структура ваших майбутніх таблиць і самі дані лишаються в пам’яті вкладки.',
+  },
+  en: {
+    format: 'Format', count: 'Rows', table: 'Table',
+    schema: 'Schema builder', key: 'key', type: 'type',
+    add: 'Add a field', remove: 'Remove',
+    make: 'Generate', copy: 'Copy the result', copied: 'Copied!',
+    reset: 'Reset', result: 'The result will appear here…',
+    rows: 'Rows', fields: 'Fields', size: 'Size',
+    noFields: 'Give at least one field a name',
+    limit: 'Past 5000 rows the browser starts drawing with a lag',
+    n1: '<b>Data in the language of the page, not just English.</b> A Russian app needs Russian names: “John Smith” shows you nothing about long surnames or how the layout copes with Cyrillic. The dictionaries here are our own and cover four languages — which is why this page weighs kilobytes rather than the half a megabyte a ready-made library costs.',
+    n2: '<b>Email only at example.com.</b> Those domains are reserved for examples by a standard of their own (RFC 2606), so mail sent there physically reaches nobody. Generators often use test.com instead — a real domain with a real owner who one day receives somebody else’s test run.',
+    n3: '<b>SQL values are escaped.</b> The name <code>O\x27Brien</code> would otherwise tear the statement in half, turning test data into a demonstration of how databases get broken. The apostrophe is doubled, numbers and booleans go unquoted, and the table name is checked.',
+    n4: '<b>Phone numbers may coincide with real ones.</b> No reserved “fictional” range exists anywhere except the United States, so do not call or text the numbers you generate. For English we use the 555-01xx range, set aside for exactly this.',
+    n5: 'Nothing is sent anywhere. The structure of your future tables and the data itself stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    format: 'Formato', count: 'Registros', table: 'Tabla',
+    schema: 'Constructor de esquema', key: 'clave', type: 'tipo',
+    add: 'Añadir campo', remove: 'Quitar',
+    make: 'Generar', copy: 'Copiar el resultado', copied: '¡Copiado!',
+    reset: 'Reiniciar', result: 'El resultado aparecerá aquí…',
+    rows: 'Registros', fields: 'Campos', size: 'Tamaño',
+    noFields: 'Da nombre al menos a un campo',
+    limit: 'Por encima de 5000 registros el navegador ya dibuja con retraso',
+    n1: '<b>Datos en el idioma de la página, no solo en inglés.</b> Una aplicación en español necesita nombres en español: con «John Smith» no se ve cómo aguanta la maquetación los apellidos largos ni los acentos. Los diccionarios son propios y cubren cuatro idiomas.',
+    n2: '<b>Correo solo en example.com.</b> Esos dominios están reservados para ejemplos por una norma propia (RFC 2606) y el correo enviado allí no llega a nadie. Muchos generadores usan test.com, que es un dominio real con un dueño real.',
+    n3: '<b>Los valores de SQL se escapan.</b> El nombre <code>O\x27Brien</code> partiría la sentencia en dos. La comilla se duplica, los números y booleanos van sin comillas y el nombre de la tabla se comprueba.',
+    n4: '<b>Los teléfonos pueden coincidir con números reales.</b> No existe un rango «de ficción» reservado en ningún sitio salvo Estados Unidos, así que no llames ni escribas a los números generados.',
+    n5: 'No se envía nada a ninguna parte. La estructura de tus futuras tablas y los datos se quedan en la memoria de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const подписи = ТИПЫ_ПОДПИСИ[locale] || ТИПЫ_ПОДПИСИ.ru;
+
+const НАЧАЛЬНАЯ = [
+  ['id', 'id'], ['name', 'fullName'], ['email', 'email'], ['created_at', 'date'],
+];
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="мк" data-words={JSON.stringify(с)} data-locale={locale}
+     data-types={JSON.stringify(подписи)}>
+  <div class="мк-пульт">
+    <span class="мк-отступ">
+      <span class="мк-подпись">{с.format}:</span>
+      <span class="мк-набор">
+        <button type="button" class="мк-выбор выбран" data-ф="json">JSON</button>
+        <button type="button" class="мк-выбор" data-ф="csv">CSV</button>
+        <button type="button" class="мк-выбор" data-ф="sql">SQL</button>
+      </span>
+    </span>
+    <span class="мк-отступ">
+      <span class="мк-подпись">{с.count}:</span>
+      <span class="мк-счёт">
+        <button type="button" class="мк-шаг" id="мк-меньше" aria-label="−">−</button>
+        <input type="number" class="мк-число" id="мк-сколько" value="10" min="1" max="5000" />
+        <button type="button" class="мк-шаг" id="мк-больше" aria-label="+">+</button>
+      </span>
+    </span>
+    <span class="мк-отступ мк-таблица" id="мк-гнездо-таблицы" hidden>
+      <span class="мк-подпись">{с.table}:</span>
+      <input type="text" class="мк-ключ" id="мк-таблица" value="users" spellcheck="false" />
+    </span>
+  </div>
+
+  <div class="мк-заголовок">{с.schema}</div>
+  <div class="мк-схема" id="мк-схема"></div>
+  <button type="button" class="мк-добавить" id="мк-добавить" style="margin-top:8px">+ {с.add}</button>
+
+  <div class="мк-ряд" style="margin-top:14px">
+    <button type="button" class="мк-кнопка" id="мк-сделать">{с.make}</button>
+    <button type="button" class="мк-простая" id="мк-сброс">{с.reset}</button>
+    <button type="button" class="мк-кнопка вправо" id="мк-копировать">{с.copy}</button>
+  </div>
+
+  <div class="мк-поле мк-вывод" style="margin-top:4px">
+    <textarea class="мк-ввод" id="мк-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+  </div>
+  <div class="мк-отчёт" id="мк-отчёт"><span class="мк-сказ" id="мк-сказ"></span></div>
+
+  <div class="мк-заметки">
+    <div class="мк-заметка" set:html={с.n1}></div>
+    <div class="мк-заметка" set:html={с.n2}></div>
+    <div class="мк-заметка" set:html={с.n3}></div>
+    <div class="мк-заметка" set:html={с.n4}></div>
+    <div class="мк-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { сделать, вSQL, ТИПЫ } from '../lib/mock-data.js';
+  import { вCSV } from '../lib/csv-json.js';
+
+  const корень = document.querySelector('.мк');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const подписи = JSON.parse(корень.dataset.types || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const схема = $('мк-схема');
+    const вывод = $('мк-вывод');
+    const сказ = $('мк-сказ');
+    let формат = 'json';
+
+    const НАЧАЛЬНАЯ = [['id','id'],['name','fullName'],['email','email'],['created_at','date']];
+
+    function сказать(текст) {
+      сказ.textContent = текст;
+      сказ.classList.add('видно');
+      clearTimeout(сказ._т);
+      сказ._т = setTimeout(() => сказ.classList.remove('видно'), 2600);
+    }
+
+    function строкаСхемы(ключ, тип) {
+      const строка = document.createElement('div');
+      строка.className = 'мк-строка';
+      const поле = document.createElement('input');
+      поле.type = 'text';
+      поле.className = 'мк-ключ';
+      поле.value = ключ;
+      поле.placeholder = с.key;
+      поле.spellcheck = false;
+      const список = document.createElement('select');
+      список.className = 'мк-список';
+      for (const т of ТИПЫ) {
+        const о = document.createElement('option');
+        о.value = т;
+        о.textContent = подписи[т] || т;
+        список.appendChild(о);
+      }
+      список.value = тип;
+      const убрать = document.createElement('button');
+      убрать.type = 'button';
+      убрать.className = 'мк-убрать';
+      убрать.textContent = '−';
+      убрать.title = с.remove;
+      убрать.addEventListener('click', () => { строка.remove(); видКнопок(); });
+      строка.append(поле, список, убрать);
+      return строка;
+    }
+
+    function видКнопок() {
+      // Последнее поле убрать нельзя: пустая схема ничего не даёт, а кнопка, которая
+      // молча ничего не делает, выглядит поломкой.
+      const строки = [...схема.children];
+      for (const с_ of строки) с_.querySelector('.мк-убрать').disabled = строки.length <= 1;
+    }
+
+    function собратьСхему() {
+      return [...схема.children].map((с_) => ({
+        ключ: с_.querySelector('.мк-ключ').value,
+        тип: с_.querySelector('.мк-список').value,
+      }));
+    }
+
+    function поставитьСхему(пары) {
+      схема.replaceChildren(...пары.map(([к, т]) => строкаСхемы(к, т)));
+      видКнопок();
+    }
+
+    function отчёт(куски) {
+      $('мк-отчёт').replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }), сказ);
+    }
+
+    const вес = (текст) => {
+      const байт = new TextEncoder().encode(текст).length;
+      return байт < 1024 ? `${байт} B` : `${(байт / 1024).toFixed(1)} KB`;
+    };
+
+    function сгенерировать() {
+      const поля = собратьСхему();
+      const названные = поля.filter((п) => п.ключ.trim());
+      for (const с_ of схема.children) {
+        с_.querySelector('.мк-ключ').classList.toggle('пусто', !с_.querySelector('.мк-ключ').value.trim());
+      }
+      if (!названные.length) { вывод.value = ''; отчёт([]); сказать(с.noFields); return; }
+
+      let сколько = Math.round(Number($('мк-сколько').value) || 1);
+      if (сколько > 5000) { сколько = 5000; $('мк-сколько').value = '5000'; сказать(с.limit); }
+      if (сколько < 1) { сколько = 1; $('мк-сколько').value = '1'; }
+
+      const ряды = сделать(названные, сколько, язык);
+      let текст;
+      if (формат === 'json') текст = JSON.stringify(ряды, null, 2);
+      // Перенос LF, а не CRLF: текстовое поле браузера всё равно приводит CRLF к LF, и
+      // обещать в отчёте одно, а отдавать другое было бы неправдой.
+      else if (формат === 'csv') текст = вCSV(ряды, { перенос: '\n' }).csv;
+      else текст = вSQL(ряды, $('мк-таблица').value.trim() || 'users');
+
+      вывод.value = текст;
+      отчёт([
+        `${с.rows}: <b>${сколько}</b>`,
+        `${с.fields}: <b>${названные.length}</b>`,
+        `${с.size}: <b>${вес(текст)}</b>`,
+      ]);
+    }
+
+    for (const кн of корень.querySelectorAll('.мк-выбор')) {
+      кн.addEventListener('click', () => {
+        формат = кн.dataset.ф;
+        for (const д of корень.querySelectorAll('.мк-выбор')) д.classList.toggle('выбран', д === кн);
+        // Имя таблицы нужно только для SQL -- в остальных случаях это лишнее поле на пульте.
+        $('мк-гнездо-таблицы').hidden = формат !== 'sql';
+        if (вывод.value) сгенерировать();
+      });
+    }
+    $('мк-добавить').addEventListener('click', () => {
+      схема.appendChild(строкаСхемы('', 'firstName'));
+      видКнопок();
+      схема.lastElementChild.querySelector('.мк-ключ').focus();
+    });
+    for (const [ид, шаг] of [['мк-меньше', -10], ['мк-больше', 10]]) {
+      $(ид).addEventListener('click', () => {
+        const было = Math.round(Number($('мк-сколько').value) || 0);
+        $('мк-сколько').value = String(Math.min(5000, Math.max(1, было + шаг)));
+      });
+    }
+    $('мк-сделать').addEventListener('click', сгенерировать);
+    $('мк-сброс').addEventListener('click', () => {
+      поставитьСхему(НАЧАЛЬНАЯ);
+      $('мк-сколько').value = '10';
+      $('мк-таблица').value = 'users';
+      вывод.value = '';
+      отчёт([]);
+    });
+    $('мк-копировать').addEventListener('click', async () => {
+      const кнопка = $('мк-копировать');
+      if (!вывод.value) { сказать(с.noFields); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) return;
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    поставитьСхему(НАЧАЛЬНАЯ);
+    сгенерировать();
+
+    window.__мкСостояние = () => ({
+      вывод: вывод.value,
+      отчёт: $('мк-отчёт').textContent.trim(),
+      формат,
+      полей: схема.children.length,
+      таблицаВидна: !$('мк-гнездо-таблицы').hidden,
+      схема: собратьСхему(),
+    });
+  })();
+</script>
