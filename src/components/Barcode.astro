@@ -1,0 +1,330 @@
+---
+// ГЕНЕРАТОР ШТРИХКОДОВ.
+//
+// Рисует JsBarcode, и рисует хорошо. Но на вопрос «почему не получилось» она отвечает одним
+// словом: невалидно. Для человека это бесполезно, а случаи разные -- и все три частых
+// разобраны в src/lib/barcode-check.js:
+//   -- КИРИЛЛИЦА В CODE128 НЕ ПОМЕЩАЕТСЯ. «Товар-1» отвергается молча, и хозяин магазина
+//      думает, что сломан сайт. Мы называем конкретную букву и объясняем.
+//   -- EAN-13 С НЕВЕРНОЙ КОНТРОЛЬНОЙ ЦИФРОЙ. Библиотека не говорит, какая нужна, -- а это
+//      простой расчёт: мы называем верную цифру прямо.
+//   -- CODE39 ПЕЧАТАЕТ СТРОЧНЫЕ ЗАГЛАВНЫМИ. Код годный, но напечатано не то, что ввели.
+//
+// Библиотека подгружается лениво: на странице, куда зашли посмотреть, лишние сорок килобайт
+// ни к чему.
+import css from '../styles/barcode.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    format: 'Формат', text: 'Текст под кодом',
+    place: 'Введите данные…',
+    png: 'Скачать PNG', svg: 'Скачать SVG', clear: 'Очистить',
+    empty: 'Введите данные слева — код появится сразу',
+    chars: 'Знаков', ready: 'Готов',
+    errDigits: 'Здесь только цифры. Лишний знак:',
+    errLen: 'Нужно цифр:', errHave: 'а введено:',
+    errCheck: 'Последняя цифра — контрольная, и она не сходится. Должна быть',
+    errCheckIs: 'а стоит',
+    errAscii: 'В этот штрихкод помещаются только цифры, латинские буквы и знаки препинания. Не подходит знак:',
+    errAsciiTail: 'Кириллицу штрихкод хранить не умеет — ни этот стандарт, ни другие линейные.',
+    err39: 'Code 39 знает только цифры, латинские заглавные и знаки - . $ / + % и пробел. Не подходит:',
+    okCheck: 'Контрольную цифру мы досчитали сами:',
+    okCheckTail: 'Полный код —',
+    okUpper: 'Code 39 печатает только заглавными, поэтому в коде будет',
+    n1: '<b>Кириллица в штрихкод не помещается.</b> Это не наше ограничение: линейные штрихкоды хранят цифры, латинские буквы и знаки препинания — русских букв в их таблицах просто нет. Мы называем конкретный знак, из-за которого не вышло, а не отвечаем общим «неверные данные».',
+    n2: '<b>Контрольную цифру мы считаем и называем.</b> В EAN и UPC последняя цифра вычисляется из остальных и защищает от ошибок чтения. Введите двенадцать цифр — тринадцатую допишем сами и скажем какую. Введёте тринадцать с ошибкой — скажем, какая цифра должна там стоять, а не просто «код неверный».',
+    n3: '<b>Code 128 и EAN-13 — для разного.</b> Code 128 берёт любые цифры и латинские буквы, он для склада, логистики и внутреннего учёта. EAN-13 — строгий розничный стандарт: ровно тринадцать цифр, и он нужен для товара на полке магазина. Собственный номер по EAN-13 придумывать нельзя — префиксы выдаёт организация GS1, иначе код совпадёт с чужим товаром.',
+    n4: '<b>Для печати берите SVG.</b> Он описан линиями и увеличивается до любого размера без потери резкости. PNG состоит из точек: на этикетке, увеличенной при печати, края штрихов размоются, и сканер начнёт ошибаться. Для документа или страницы PNG подойдёт.',
+    n5: '<b>Слишком мелкий штрихкод не читается.</b> У полос есть наименьшая ширина, ниже которой сканер их не различает; уменьшая картинку в вёрстке, легко перейти эту границу. Печатайте в размер, а перед тиражом проверьте один экземпляр настоящим сканером — на нашей же странице сканера кода.',
+    n6: 'Ничего никуда не отправляется. Артикулы, номера партий и внутренние коды остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    format: 'Формат', text: 'Текст під кодом',
+    place: 'Введіть дані…',
+    png: 'Завантажити PNG', svg: 'Завантажити SVG', clear: 'Очистити',
+    empty: 'Введіть дані ліворуч — код з’явиться одразу',
+    chars: 'Знаків', ready: 'Готовий',
+    errDigits: 'Тут лише цифри. Зайвий знак:',
+    errLen: 'Потрібно цифр:', errHave: 'а введено:',
+    errCheck: 'Остання цифра — контрольна, і вона не сходиться. Має бути',
+    errCheckIs: 'а стоїть',
+    errAscii: 'У цей штрихкод вміщаються лише цифри, латинські літери та знаки пунктуації. Не підходить знак:',
+    errAsciiTail: 'Кирилицю штрихкод зберігати не вміє — ні цей стандарт, ні інші лінійні.',
+    err39: 'Code 39 знає лише цифри, латинські великі та знаки - . $ / + % і пробіл. Не підходить:',
+    okCheck: 'Контрольну цифру ми дорахували самі:',
+    okCheckTail: 'Повний код —',
+    okUpper: 'Code 39 друкує лише великими, тому в коді буде',
+    n1: '<b>Кирилиця у штрихкод не вміщається.</b> Це не наше обмеження: лінійні штрихкоди зберігають цифри, латинські літери та знаки пунктуації. Ми називаємо конкретний знак, через який не вийшло.',
+    n2: '<b>Контрольну цифру ми рахуємо й називаємо.</b> В EAN і UPC остання цифра обчислюється з решти. Введіть дванадцять цифр — тринадцяту допишемо самі. Введете тринадцять із помилкою — скажемо, яка цифра має там стояти.',
+    n3: '<b>Code 128 і EAN-13 — для різного.</b> Code 128 бере будь-які цифри й латинські літери, він для складу й логістики. EAN-13 — суворий роздрібний стандарт: рівно тринадцять цифр. Власний номер за EAN-13 вигадувати не можна — префікси видає GS1.',
+    n4: '<b>Для друку беріть SVG.</b> Він описаний лініями і збільшується без втрати різкості. PNG складається з точок: на етикетці краї штрихів розмиються.',
+    n5: '<b>Занадто дрібний штрихкод не читається.</b> У смуг є найменша ширина, нижче якої сканер їх не розрізняє. Друкуйте в розмір, а перед накладом перевірте один примірник справжнім сканером.',
+    n6: 'Нічого нікуди не надсилається. Артикули, номери партій і внутрішні коди лишаються в пам’яті вкладки.',
+  },
+  en: {
+    format: 'Format', text: 'Text under the code',
+    place: 'Type the data…',
+    png: 'Download PNG', svg: 'Download SVG', clear: 'Clear',
+    empty: 'Type the data on the left — the code appears at once',
+    chars: 'Characters', ready: 'Ready',
+    errDigits: 'Digits only here. The odd character:',
+    errLen: 'Digits required:', errHave: 'but entered:',
+    errCheck: 'The last digit is a check digit and it does not add up. It should be',
+    errCheckIs: 'but it is',
+    errAscii: 'This barcode holds only digits, Latin letters and punctuation. This character does not fit:',
+    errAsciiTail: 'Barcodes cannot store non-Latin letters — neither this standard nor any other linear one.',
+    err39: 'Code 39 knows only digits, capital Latin letters and - . $ / + % and space. Does not fit:',
+    okCheck: 'We worked out the check digit for you:',
+    okCheckTail: 'The full code is',
+    okUpper: 'Code 39 prints in capitals only, so the code will read',
+    n1: '<b>Non-Latin letters do not fit into a barcode.</b> That is not our limitation: linear barcodes store digits, Latin letters and punctuation — Cyrillic and other scripts are simply not in their tables. We name the exact character that stopped it rather than answering with a blanket “invalid data”.',
+    n2: '<b>We work out the check digit and tell you what it is.</b> In EAN and UPC the last digit is computed from the rest and guards against misreads. Type twelve digits and we add the thirteenth and say which. Type thirteen with a mistake and we say which digit belongs there, instead of just “invalid”.',
+    n3: '<b>Code 128 and EAN-13 are for different jobs.</b> Code 128 takes any digits and Latin letters; it is for warehouses, logistics and internal tracking. EAN-13 is the strict retail standard: exactly thirteen digits, for goods on a shop shelf. You cannot invent your own EAN-13 number — prefixes are issued by GS1, otherwise your code collides with somebody else’s product.',
+    n4: '<b>For print, take the SVG.</b> It is described by lines and scales to any size without losing sharpness. A PNG is made of dots: on a label enlarged at print time the bar edges blur and the scanner starts making mistakes. For a document or a web page a PNG is fine.',
+    n5: '<b>A barcode printed too small will not scan.</b> Bars have a minimum width below which a scanner cannot tell them apart, and shrinking the picture in a layout crosses that line easily. Print at size, and before a print run check one copy with a real scanner — there is one on our own scanner page.',
+    n6: 'Nothing is sent anywhere. Product codes, batch numbers and internal references stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    format: 'Formato', text: 'Texto bajo el código',
+    place: 'Escribe los datos…',
+    png: 'Descargar PNG', svg: 'Descargar SVG', clear: 'Limpiar',
+    empty: 'Escribe los datos a la izquierda: el código aparece al momento',
+    chars: 'Caracteres', ready: 'Listo',
+    errDigits: 'Aquí solo van dígitos. Carácter sobrante:',
+    errLen: 'Dígitos necesarios:', errHave: 'e introducidos:',
+    errCheck: 'El último dígito es de control y no cuadra. Debería ser',
+    errCheckIs: 'y hay',
+    errAscii: 'En este código de barras solo caben dígitos, letras latinas y signos de puntuación. No encaja:',
+    errAsciiTail: 'Un código de barras no puede guardar letras no latinas, ni en este estándar ni en los demás lineales.',
+    err39: 'Code 39 solo conoce dígitos, mayúsculas latinas y los signos - . $ / + % y el espacio. No encaja:',
+    okCheck: 'Hemos calculado el dígito de control:',
+    okCheckTail: 'El código completo es',
+    okUpper: 'Code 39 imprime solo en mayúsculas, así que el código será',
+    n1: '<b>Las letras no latinas no caben en un código de barras.</b> No es una limitación nuestra: los códigos lineales guardan dígitos, letras latinas y puntuación. Señalamos el carácter exacto que lo impide en vez de responder con un «datos no válidos».',
+    n2: '<b>Calculamos el dígito de control y te lo decimos.</b> En EAN y UPC el último dígito se obtiene del resto. Escribe doce dígitos y añadimos el decimotercero diciendo cuál es. Escribe trece con un error y te decimos qué dígito corresponde.',
+    n3: '<b>Code 128 y EAN-13 sirven para cosas distintas.</b> Code 128 admite dígitos y letras latinas; es para almacén y logística. EAN-13 es el estándar estricto del comercio: exactamente trece dígitos. No se puede inventar un EAN-13 propio: los prefijos los asigna GS1.',
+    n4: '<b>Para imprenta, el SVG.</b> Se describe con líneas y se amplía sin perder nitidez. El PNG está hecho de puntos: en una etiqueta ampliada los bordes se emborronan y el lector empieza a fallar.',
+    n5: '<b>Un código impreso demasiado pequeño no se lee.</b> Las barras tienen un ancho mínimo por debajo del cual el lector no las distingue. Imprime a tamaño y, antes de una tirada, comprueba una copia con un lector real.',
+    n6: 'No se envía nada a ninguna parte. Referencias, números de lote y códigos internos se quedan en la memoria de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ФОРМАТЫ = [
+  ['CODE128', 'Code 128'], ['EAN13', 'EAN-13'], ['EAN8', 'EAN-8'],
+  ['UPC', 'UPC-A'], ['CODE39', 'Code 39'], ['ITF14', 'ITF-14'], ['codabar', 'Codabar'],
+];
+const НАЧАЛО = { CODE128: '2026-TEST-CODE', EAN13: '4600051000057', EAN8: '46009371',
+  UPC: '036000291452', CODE39: 'ABC-123', ITF14: '15400141288763', codabar: 'A123456A' };
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="шт" data-words={JSON.stringify(с)} data-starts={JSON.stringify(НАЧАЛО)}>
+  <div class="шт-пульт">
+    <span class="шт-отступ">
+      <span class="шт-подпись">{с.format}:</span>
+      <select class="шт-список" id="шт-формат">
+        {ФОРМАТЫ.map(([з, имя]) => <option value={з}>{имя}</option>)}
+      </select>
+    </span>
+    <label class="шт-галка"><input type="checkbox" id="шт-текст" checked><i></i>{с.text}</label>
+  </div>
+
+  <div class="шт-пара">
+    <div>
+      <div class="шт-поле">
+        <textarea class="шт-ввод" id="шт-ввод" spellcheck="false" autocapitalize="off"
+          autocorrect="off" placeholder={с.place} style="min-height:120px">2026-TEST-CODE</textarea>
+      </div>
+      <div class="шт-отчёт" id="шт-отчёт"><span class="шт-сказ" id="шт-сказ"></span></div>
+      <div class="шт-заметка-итог" id="шт-замечание" hidden></div>
+      <div class="шт-беда-итог" id="шт-беда" hidden></div>
+    </div>
+
+    <div class="шт-окно">
+      <div class="шт-код" id="шт-код" hidden><svg id="шт-рисунок"></svg></div>
+      <div class="шт-пусто" id="шт-пусто">{с.empty}</div>
+    </div>
+  </div>
+
+  <div class="шт-ряд">
+    <button type="button" class="шт-кнопка" id="шт-png">{с.png}</button>
+    <button type="button" class="шт-обводка" id="шт-svg">{с.svg}</button>
+    <button type="button" class="шт-простая" id="шт-очистить">{с.clear}</button>
+  </div>
+
+  <div class="шт-заметки">
+    <div class="шт-заметка" set:html={с.n1}></div>
+    <div class="шт-заметка" set:html={с.n2}></div>
+    <div class="шт-заметка" set:html={с.n3}></div>
+    <div class="шт-заметка" set:html={с.n4}></div>
+    <div class="шт-заметка" set:html={с.n5}></div>
+    <div class="шт-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  import { проверить } from '../lib/barcode-check.js';
+
+  const корень = document.querySelector('.шт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const НАЧАЛО = JSON.parse(корень.dataset.starts || '{}');
+    const $ = (и) => document.getElementById(и);
+    let рисовать = null;      // JsBarcode, подгружается лениво
+    let готово = '';          // значение, которое ушло в код
+
+    const формат = () => $('шт-формат').value;
+
+    async function взятьБиблиотеку() {
+      if (рисовать) return рисовать;
+      const м = await import('jsbarcode');
+      рисовать = м.default || м;
+      return рисовать;
+    }
+
+    function отчёт(куски) {
+      $('шт-отчёт').replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }), $('шт-сказ'));
+    }
+
+    function пусто() {
+      $('шт-код').hidden = true;
+      $('шт-пусто').hidden = false;
+      готово = '';
+    }
+
+    /** Понятное сообщение вместо библиотечного «невалидно». */
+    function сказатьПроБеду(беда) {
+      const б = $('шт-беда');
+      б.hidden = false;
+      if (беда.вид === 'толькоЦифры') {
+        б.innerHTML = `<b>${с.errDigits}</b> «${беда.знак}»`;
+      } else if (беда.вид === 'длина') {
+        б.innerHTML = `<b>${с.errLen}</b> ${беда.надо}, ${с.errHave} ${беда.есть}`;
+      } else if (беда.вид === 'контроль') {
+        б.innerHTML = `<b>${с.errCheck} ${беда.должна}</b>, ${с.errCheckIs} ${беда.стоит}`;
+      } else if (беда.вид === 'неASCII') {
+        б.innerHTML = `<b>${с.errAscii}</b> «${беда.знак}». ${с.errAsciiTail}`;
+      } else if (беда.вид === 'знак39') {
+        б.innerHTML = `<b>${с.err39}</b> «${беда.знак}»`;
+      } else {
+        б.hidden = true;
+      }
+    }
+
+    let ход = 0;
+    async function пересчитать() {
+      const итог = проверить(формат(), $('шт-ввод').value);
+      $('шт-беда').hidden = true;
+      $('шт-замечание').hidden = true;
+
+      if (итог.пусто) { пусто(); отчёт([]); return; }
+      if (!итог.годно) { пусто(); отчёт([]); сказатьПроБеду(итог.беда); return; }
+
+      const мой = ++ход;
+      let рис;
+      try { рис = await взятьБиблиотеку(); } catch (е) { return; }
+      if (мой !== ход) return;
+
+      try {
+        рис($('шт-рисунок'), итог.значение, {
+          format: формат(),
+          displayValue: $('шт-текст').checked,
+          background: '#ffffff',
+          lineColor: '#000000',
+          margin: 10,
+          fontSize: 18,
+          height: 90,
+        });
+      } catch (е) {
+        пусто();
+        отчёт([]);
+        сказатьПроБеду({ вид: 'неизвестно' });
+        $('шт-беда').hidden = false;
+        $('шт-беда').textContent = String(е && (е.message || е)).slice(0, 200);
+        return;
+      }
+      готово = итог.значение;
+      $('шт-код').hidden = false;
+      $('шт-пусто').hidden = true;
+      отчёт([
+        `${с.chars}: <b>${итог.значение.length}</b>`,
+        `${с.format}: <b>${формат()}</b>`,
+      ]);
+
+      // Замечания: не ошибки, но молчать о них нельзя -- напечатается не то, что ввели.
+      if (итог.добавленаЦифра !== undefined) {
+        $('шт-замечание').hidden = false;
+        $('шт-замечание').innerHTML = `${с.okCheck} <b>${итог.добавленаЦифра}</b>. ${с.okCheckTail} <b>${итог.значение}</b>`;
+      } else if (итог.подсказка && итог.подсказка.вид === 'заглавные') {
+        $('шт-замечание').hidden = false;
+        $('шт-замечание').innerHTML = `${с.okUpper} <b>${итог.значение}</b>`;
+      }
+    }
+
+    $('шт-ввод').addEventListener('input', пересчитать);
+    $('шт-текст').addEventListener('change', пересчитать);
+    $('шт-формат').addEventListener('change', () => {
+      // При смене формата подставляем пример: код одного стандарта в другом почти всегда
+      // негоден, и человек увидел бы только ошибку.
+      $('шт-ввод').value = НАЧАЛО[формат()] || '';
+      пересчитать();
+    });
+
+    function скачать(содержимое, имя, тип) {
+      const blob = содержимое instanceof Blob ? содержимое : new Blob([содержимое], { type: тип });
+      const адрес = URL.createObjectURL(blob);
+      const а = document.createElement('a');
+      а.href = адрес; а.download = имя;
+      document.body.appendChild(а); а.click(); а.remove();
+      setTimeout(() => URL.revokeObjectURL(адрес), 5000);
+    }
+
+    $('шт-svg').addEventListener('click', () => {
+      if (!готово) return;
+      const рисунок = $('шт-рисунок');
+      const копия = рисунок.cloneNode(true);
+      копия.setAttribute('xmlns', 'http://www.w3.org/2000/svg');
+      скачать(копия.outerHTML, 'barcode.svg', 'image/svg+xml');
+    });
+
+    $('шт-png').addEventListener('click', async () => {
+      if (!готово) return;
+      const рис = await взятьБиблиотеку();
+      const холст = document.createElement('canvas');
+      // Крупно: этикетку печатают, и мелкий растр даст размытые края штрихов.
+      рис(холст, готово, {
+        format: формат(),
+        displayValue: $('шт-текст').checked,
+        background: '#ffffff', lineColor: '#000000',
+        margin: 10, width: 4, height: 220, fontSize: 40,
+      });
+      холст.toBlob((blob) => { if (blob) скачать(blob, 'barcode.png', 'image/png'); }, 'image/png');
+    });
+
+    $('шт-очистить').addEventListener('click', () => {
+      $('шт-ввод').value = '';
+      пересчитать();
+      $('шт-ввод').focus();
+    });
+
+    пересчитать();
+
+    window.__штСостояние = () => ({
+      готово,
+      формат: формат(),
+      кодВиден: !$('шт-код').hidden,
+      отчёт: $('шт-отчёт').textContent.trim(),
+      беда: $('шт-беда').hidden ? '' : $('шт-беда').textContent.trim(),
+      замечание: $('шт-замечание').hidden ? '' : $('шт-замечание').textContent.trim(),
+      полос: $('шт-рисунок').querySelectorAll('rect').length,
+    });
+  })();
+</script>

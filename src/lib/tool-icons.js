@@ -49,6 +49,7 @@ const I = {
   файлкод: '<path d="M13.5 2.5H7A2.5 2.5 0 0 0 4.5 5v14A2.5 2.5 0 0 0 7 21.5h10a2.5 2.5 0 0 0 2.5-2.5V8.5z"/><path d="M13.5 2.5V8.5h6"/><path d="M9 13.5l-1.6 1.8L9 17"/><path d="M14.5 13.5l1.6 1.8-1.6 1.7"/>',
   кьюар: '<rect x="3" y="3" width="7" height="7" rx="1"/><rect x="14" y="3" width="7" height="7" rx="1"/><rect x="3" y="14" width="7" height="7" rx="1"/><path d="M14 14h3v3h-3zM19 14h2M14 19h3M19 18v3h2"/>',
   прицел: '<path d="M3 8V5.5A2.5 2.5 0 0 1 5.5 3H8M16 3h2.5A2.5 2.5 0 0 1 21 5.5V8M21 16v2.5a2.5 2.5 0 0 1-2.5 2.5H16M8 21H5.5A2.5 2.5 0 0 1 3 18.5V16"/><path d="M7 12h10"/>',
+  полосы: '<path d="M3 5v14M6 5v14M9.5 5v10M13 5v14M16 5v10M19 5v14M21.5 5v14"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -102,6 +103,7 @@ const RULES = [
   [/^base64-file$/, 'файлкод'],
   [/^qr-code$/, 'кьюар'],
   [/^qr-scan$/, 'прицел'],
+  [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
   [/^case-converter$/, 'camel'],
@@ -184,7 +186,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee', таблица: '#f59e0b', бочка: '#a78bfa', кубики: '#34d399', файлкод: '#fbbf24', кьюар: '#60a5fa', прицел: '#2dd4bf',
+  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee', таблица: '#f59e0b', бочка: '#a78bfa', кубики: '#34d399', файлкод: '#fbbf24', кьюар: '#60a5fa', прицел: '#2dd4bf', полосы: '#f0abfc',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */

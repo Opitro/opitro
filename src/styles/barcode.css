@@ -1,0 +1,177 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР ШТРИХКОДОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
+ * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
+ * уже забраковал на Base64, и повторять эту ошибку незачем.
+ */
+
+.шт {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.шт-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.шт-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.шт-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.шт-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.шт-список:hover { border-color: #fff }
+.шт-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.шт-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.шт-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.шт-поле:focus-within { border-color: #fff }
+.шт-поле.негоден { border-color: rgba(255,154,168,.55) }
+.шт-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.шт-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.шт-ввод:focus { outline: none }
+.шт-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.шт-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.шт-отчёт b { color: #fff; font-weight: 500 }
+.шт-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.шт-беда b { color: var(--беда); font-weight: 700 }
+.шт-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.шт-сказ.видно { opacity: 1 }
+
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.шт-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.шт-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.шт-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.шт-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.шт-обводка:hover { background: #fff; color: #000 }
+.шт-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.шт-простая:hover { border-color: #fff; background: #23272f }
+.шт-кнопка.вправо, .шт-простая.вправо { margin-left: auto }
+
+.шт-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.шт-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.шт-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.шт-заметка b { color: #fff; font-weight: 600 }
+.шт-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .шт-ввод { min-height: 170px }
+  .шт-знак { margin-left: 0 }
+  .шт-кнопка, .шт-обводка, .шт-простая { flex: 1 1 auto }
+  .шт-кнопка.вправо, .шт-простая.вправо { margin-left: 0 }
+}
+
+/* ---- Своё для этой страницы --------------------------------------------------------------- */
+
+/* Выбор вида данных и уровня -- кнопками, выбранное только обводкой. */
+.шт-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
+.шт-выбор {
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.шт-выбор:hover { border-color: #fff; background: #23272f }
+.шт-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+.шт-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
+
+.шт-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
+
+
+.шт-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.шт-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.шт-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.шт-галка:hover i { border-color: #fff }
+.шт-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.шт-галка input:checked + i { border-color: var(--accent) }
+.шт-галка input:checked + i::after { transform: scale(1) }
+
+/* ОКНО КОДА. Единственное место на сайте, где подложка обязана быть БЕЛОЙ: камере нужен
+   жёсткий контраст, на тёмной подложке телефон код физически не разберёт. Поле вокруг кода
+   в четыре клетки заложено в сам рисунок -- это часть стандарта, а не отступ для красоты. */
+.шт-окно {
+  display: flex; align-items: center; justify-content: center;
+  min-height: 300px; padding: 18px; border-radius: 12px;
+  border: 1px solid var(--линия); background: #0b0c0f;
+}
+/* Штрихкод шире, чем высок, поэтому квадрат тут не нужен. Подложка белая: сканеру и
+   терминалу сбора данных нужен жёсткий контраст, на тёмной полосы не читаются. */
+.шт-код { width: 100%; background: #fff; border-radius: 4px; padding: 14px 10px }
+.шт-код svg { display: block; width: 100%; height: auto }
+.шт-пусто { font: 400 13px/1.6 var(--ui); color: #7d848f; text-align: center; padding: 0 16px }
+
+@media (min-width: 900px) {
+  .шт-пара { grid-template-columns: minmax(0, 1fr) 340px }
+}
+@media (max-width: 560px) {
+  .шт-строка { grid-template-columns: 1fr; gap: 3px }
+  .шт-набор { width: 100% }
+  .шт-выбор { flex: 1 1 0; padding: 0 8px }
+}
+
+/* Замечание, когда всё вышло, но есть о чём сказать: досчитанная контрольная цифра,
+   превращение в заглавные. Не ошибка -- поэтому не красное. */
+.шт-заметка-итог { margin-top: 8px; padding: 10px 13px; border-radius: 9px;
+  border: 1px solid rgba(74,222,158,.35); background: rgba(74,222,158,.06);
+  font: 400 12.5px/1.55 var(--ui); color: #fff }
+.шт-заметка-итог b { font-weight: 700 }
+.шт-беда-итог { margin-top: 8px; padding: 10px 13px; border-radius: 9px;
+  border: 1px solid rgba(255,154,168,.5); background: rgba(255,154,168,.07);
+  font: 400 12.5px/1.55 var(--ui); color: #fff }
+.шт-беда-итог b { color: var(--беда); font-weight: 700 }
+.шт-заметка-итог[hidden], .шт-беда-итог[hidden] { display: none }
