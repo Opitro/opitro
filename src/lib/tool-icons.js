@@ -43,6 +43,7 @@ const I = {
   говор: '<path d="M3 5.5h9M3 10h9M3 14.5h6"/><path d="M14.5 8.5v7M17.5 6v12M20.5 9.5v5"/>',
   фигурные: '<path d="M9 3.5H8a2.5 2.5 0 0 0-2.5 2.5v3A2.5 2.5 0 0 1 3 11.5a2.5 2.5 0 0 1 2.5 2.5v3A2.5 2.5 0 0 0 8 19.5h1"/><path d="M15 3.5h1A2.5 2.5 0 0 1 18.5 6v3a2.5 2.5 0 0 0 2.5 2.5 2.5 2.5 0 0 0-2.5 2.5v3a2.5 2.5 0 0 1-2.5 2.5h-1"/>',
   схема: '<rect x="3" y="3.5" width="18" height="17" rx="2.5"/><path d="M7 9h6M7 12.5h4"/><path d="M14 16.5l1.6 1.6L19 14.7"/>',
+  таблица: '<rect x="2.5" y="4" width="19" height="16" rx="2"/><path d="M2.5 9.5h19M9 9.5V20"/><path d="M15.5 12.5l2.2 2.2-2.2 2.2"/>',
   ruler: '<rect x="2.5" y="8" width="19" height="8" rx="2"/><path d="M7 8v3M11 8v5M15 8v3M19 8v5"/>',
   weight: '<path d="M7 8h10l3 12H4L7 8z"/><circle cx="12" cy="5" r="2.5"/>',
   beaker: '<path d="M9 3v6l-5 9a2 2 0 0 0 1.8 3h12.4a2 2 0 0 0 1.8-3l-5-9V3"/><path d="M8 3h8"/>',
@@ -90,6 +91,7 @@ const RULES = [
   [/^text-to-speech$/, 'говор'],
   [/^json-formatter$/, 'фигурные'],
   [/^json-schema-validator$/, 'схема'],
+  [/^csv-json$/, 'таблица'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
   [/^case-converter$/, 'camel'],
@@ -172,7 +174,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee',
+  diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee', таблица: '#f59e0b',
 };
 
 /** Имя семьи значка: по роду действия, потом по категории, в крайнем случае общее. */

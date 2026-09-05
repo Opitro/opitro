@@ -1,0 +1,312 @@
+---
+// КОНВЕРТЕР CSV И JSON.
+//
+// Разбор -- в src/lib/csv-json.js, и он свой по двум причинам.
+//
+// ПЕРВАЯ: CSV -- это не «разбить по запятой». Внутри поля в кавычках живут и запятая, и
+// перенос строки, а сама кавычка удваивается. Наивное разбиение молча портит такие таблицы.
+//
+// ВТОРАЯ И ГЛАВНАЯ: «умные типы» в лоб тоже портят данные. Обычная проверка «похоже на число
+// -- значит число» превращает артикул 00123 в 123, идентификатор 9007199254740993 в ...992,
+// телефон +79001234567 в 79001234567 и цену 1.50 в 1.5. Здесь правило другое: число получается
+// только если возвращается обратно знак в знак.
+import css from '../styles/csv-json.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const ПРИМЕР = `id,name,active,article
+1,admin,true,00123
+2,editor,false,00456`;
+
+const СЛОВА = {
+  ru: {
+    dir: 'Направление', toJson: 'CSV → JSON', toCsv: 'JSON → CSV',
+    delim: 'Разделитель', auto: 'Определить самому', comma: 'Запятая (,)',
+    semi: 'Точка с запятой (;)', tab: 'Табуляция', pipe: 'Вертикальная черта (|)',
+    smart: 'Числа и «да/нет» — своими типами', head: 'Первая строка — заголовки',
+    srcCsv: 'Исходные данные — CSV', srcJson: 'Исходные данные — JSON',
+    outJson: 'Результат — JSON', outCsv: 'Результат — CSV',
+    placeCsv: 'Вставьте таблицу CSV…', placeJson: 'Вставьте массив объектов JSON…',
+    result: 'Результат появится здесь…',
+    rows: 'Строк', cols: 'Колонок', size: 'Размер', line: 'строка',
+    copy: 'Копировать результат', copied: 'Скопировано!', clear: 'Очистить всё',
+    nothing: 'Сначала вставьте данные',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    badJson: 'Ошибка в JSON', usedDelim: 'разделитель',
+    n1: '<b>Артикулы и длинные номера не портятся.</b> Обычные конвертеры делают «похоже на число — значит число», и тогда артикул <code>00123</code> становится <code>123</code>, идентификатор <code>9007199254740993</code> — <code>…992</code>, телефон <code>+79001234567</code> теряет плюс, а цена <code>1.50</code> превращается в <code>1.5</code>. Здесь число получается только если оно возвращается обратно знак в знак; всё остальное остаётся строкой.',
+    n2: '<b>Запятая внутри поля не ломает таблицу.</b> Разбор идёт по правилам формата, а не разбиением по знаку: адрес <code>"Москва, Тверская 1"</code> остаётся одной колонкой, перенос строки внутри кавычек не разрывает запись, а удвоенная кавычка читается как одна.',
+    n3: '<b>Вложенный JSON разворачивается в плоские колонки.</b> <code>{"user":{"name":"Иван"}}</code> даёт колонку <code>user.name</code>, а массив — <code>tags.0</code>, <code>tags.1</code>. Порядок колонок — по первому появлению, а не по алфавиту: таблица выглядит так, как её задумали.',
+    n4: '<b>Невидимые мелочи учтены.</b> Метка BOM из Excel снимается, иначе она приклеивается к первому заголовку и ключ становится невидимо испорченным. Повторяющиеся имена колонок разводятся в <code>name</code>, <code>name_2</code>, а не затирают друг друга.',
+    n5: 'Ничего никуда не отправляется. Выгрузки, списки клиентов и отчёты остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    dir: 'Напрямок', toJson: 'CSV → JSON', toCsv: 'JSON → CSV',
+    delim: 'Роздільник', auto: 'Визначити самому', comma: 'Кома (,)',
+    semi: 'Крапка з комою (;)', tab: 'Табуляція', pipe: 'Вертикальна риска (|)',
+    smart: 'Числа і «так/ні» — своїми типами', head: 'Перший рядок — заголовки',
+    srcCsv: 'Вихідні дані — CSV', srcJson: 'Вихідні дані — JSON',
+    outJson: 'Результат — JSON', outCsv: 'Результат — CSV',
+    placeCsv: 'Вставте таблицю CSV…', placeJson: 'Вставте масив об’єктів JSON…',
+    result: 'Результат з’явиться тут…',
+    rows: 'Рядків', cols: 'Колонок', size: 'Розмір', line: 'рядок',
+    copy: 'Копіювати результат', copied: 'Скопійовано!', clear: 'Очистити все',
+    nothing: 'Спершу вставте дані',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    badJson: 'Помилка в JSON', usedDelim: 'роздільник',
+    n1: '<b>Артикули й довгі номери не псуються.</b> Звичайні конвертери роблять «схоже на число — отже число», і тоді артикул <code>00123</code> стає <code>123</code>, ідентифікатор <code>9007199254740993</code> — <code>…992</code>, телефон <code>+79001234567</code> втрачає плюс, а ціна <code>1.50</code> перетворюється на <code>1.5</code>. Тут число виходить лише якщо повертається назад знак у знак.',
+    n2: '<b>Кома всередині поля не ламає таблицю.</b> Розбір іде за правилами формату, а не розбиттям по знаку: адреса <code>"Київ, Хрещатик 1"</code> лишається однією колонкою, перенос рядка в лапках не розриває запис, а подвоєна лапка читається як одна.',
+    n3: '<b>Вкладений JSON розгортається у плоскі колонки.</b> <code>{"user":{"name":"Іван"}}</code> дає колонку <code>user.name</code>, а масив — <code>tags.0</code>, <code>tags.1</code>. Порядок колонок — за першою появою, а не за абеткою.',
+    n4: '<b>Невидимі дрібниці враховано.</b> Мітка BOM з Excel знімається, інакше вона приклеюється до першого заголовка. Однакові імена колонок розводяться в <code>name</code>, <code>name_2</code>, а не затирають одне одного.',
+    n5: 'Нічого нікуди не надсилається. Вивантаження, списки клієнтів і звіти лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    dir: 'Direction', toJson: 'CSV → JSON', toCsv: 'JSON → CSV',
+    delim: 'Delimiter', auto: 'Detect automatically', comma: 'Comma (,)',
+    semi: 'Semicolon (;)', tab: 'Tab', pipe: 'Pipe (|)',
+    smart: 'Numbers and true/false as real types', head: 'First row is the header',
+    srcCsv: 'Source — CSV', srcJson: 'Source — JSON',
+    outJson: 'Result — JSON', outCsv: 'Result — CSV',
+    placeCsv: 'Paste a CSV table…', placeJson: 'Paste an array of JSON objects…',
+    result: 'The result will appear here…',
+    rows: 'Rows', cols: 'Columns', size: 'Size', line: 'line',
+    copy: 'Copy the result', copied: 'Copied!', clear: 'Clear everything',
+    nothing: 'Paste some data first',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    badJson: 'Error in the JSON', usedDelim: 'delimiter',
+    n1: '<b>Product codes and long numbers survive intact.</b> Ordinary converters go by “looks like a number, so it is one”, and then the code <code>00123</code> becomes <code>123</code>, the identifier <code>9007199254740993</code> becomes <code>…992</code>, the phone <code>+79001234567</code> loses its plus and the price <code>1.50</code> turns into <code>1.5</code>. Here a value becomes a number only if it converts back digit for digit; everything else stays a string.',
+    n2: '<b>A comma inside a field does not break the table.</b> Parsing follows the format rules rather than splitting on a character: <code>"London, Baker St 1"</code> stays one column, a line break inside quotes does not split the record, and a doubled quote reads as one.',
+    n3: '<b>Nested JSON is flattened into plain columns.</b> <code>{"user":{"name":"Ann"}}</code> gives a <code>user.name</code> column, and an array gives <code>tags.0</code>, <code>tags.1</code>. Column order follows first appearance rather than the alphabet, so the table looks the way it was designed.',
+    n4: '<b>The invisible details are handled.</b> The BOM marker from Excel is stripped — left in place it sticks to the first header and quietly corrupts the key. Repeated column names become <code>name</code>, <code>name_2</code> instead of overwriting one another.',
+    n5: 'Nothing is sent anywhere. Exports, customer lists and reports stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    dir: 'Dirección', toJson: 'CSV → JSON', toCsv: 'JSON → CSV',
+    delim: 'Separador', auto: 'Detectar solo', comma: 'Coma (,)',
+    semi: 'Punto y coma (;)', tab: 'Tabulación', pipe: 'Barra vertical (|)',
+    smart: 'Números y true/false como tipos reales', head: 'La primera fila son los encabezados',
+    srcCsv: 'Datos de origen — CSV', srcJson: 'Datos de origen — JSON',
+    outJson: 'Resultado — JSON', outCsv: 'Resultado — CSV',
+    placeCsv: 'Pega una tabla CSV…', placeJson: 'Pega un array de objetos JSON…',
+    result: 'El resultado aparecerá aquí…',
+    rows: 'Filas', cols: 'Columnas', size: 'Tamaño', line: 'línea',
+    copy: 'Copiar el resultado', copied: '¡Copiado!', clear: 'Limpiar todo',
+    nothing: 'Pega primero los datos',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    badJson: 'Error en el JSON', usedDelim: 'separador',
+    n1: '<b>Las referencias y los números largos no se estropean.</b> Los conversores corrientes van con «parece un número, luego lo es», y entonces la referencia <code>00123</code> pasa a <code>123</code>, el identificador <code>9007199254740993</code> a <code>…992</code>, el teléfono <code>+34600123456</code> pierde el signo y el precio <code>1.50</code> se convierte en <code>1.5</code>. Aquí un valor se vuelve número solo si regresa dígito a dígito.',
+    n2: '<b>Una coma dentro de un campo no rompe la tabla.</b> El análisis sigue las reglas del formato en vez de partir por un carácter: <code>"Madrid, Gran Vía 1"</code> sigue siendo una columna, un salto de línea entre comillas no parte el registro y una comilla duplicada se lee como una.',
+    n3: '<b>El JSON anidado se aplana en columnas simples.</b> <code>{"user":{"name":"Ana"}}</code> da la columna <code>user.name</code>, y un array da <code>tags.0</code>, <code>tags.1</code>. El orden de columnas sigue la primera aparición, no el alfabeto.',
+    n4: '<b>Los detalles invisibles están cubiertos.</b> Se quita la marca BOM de Excel: si se deja, se pega al primer encabezado y corrompe la clave sin que se vea. Los nombres de columna repetidos pasan a <code>name</code>, <code>name_2</code> en vez de pisarse.',
+    n5: 'No se envía nada a ninguna parte. Las exportaciones, las listas de clientes y los informes se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="цс" data-words={JSON.stringify(с)}>
+  <div class="цс-пульт">
+    <span class="цс-отступ">
+      <span class="цс-подпись">{с.dir}:</span>
+      <select class="цс-список" id="цс-направление">
+        <option value="вjson">{с.toJson}</option>
+        <option value="вcsv">{с.toCsv}</option>
+      </select>
+    </span>
+    <span class="цс-отступ">
+      <span class="цс-подпись">{с.delim}:</span>
+      <select class="цс-список" id="цс-разделитель">
+        <option value="auto">{с.auto}</option>
+        <option value=",">{с.comma}</option>
+        <option value=";">{с.semi}</option>
+        <option value="tab">{с.tab}</option>
+        <option value="|">{с.pipe}</option>
+      </select>
+    </span>
+    <label class="цс-галка"><input type="checkbox" id="цс-типы" checked><i></i>{с.smart}</label>
+    <label class="цс-галка" id="цс-галка-шапки"><input type="checkbox" id="цс-шапка" checked><i></i>{с.head}</label>
+  </div>
+
+  <div class="цс-пара">
+    <div class="цс-окно">
+      <span class="цс-имя" id="цс-имя-ввода">{с.srcCsv}</span>
+      <div class="цс-поле" id="цс-поле-ввода">
+        <textarea class="цс-ввод" id="цс-ввод" spellcheck="false" autocapitalize="off"
+          autocorrect="off" placeholder={с.placeCsv}>{ПРИМЕР}</textarea>
+      </div>
+      <div class="цс-счёт" id="цс-счёт-ввода"></div>
+    </div>
+    <div class="цс-окно">
+      <span class="цс-имя" id="цс-имя-вывода">{с.outJson}</span>
+      <div class="цс-поле цс-вывод">
+        <textarea class="цс-ввод" id="цс-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+      </div>
+      <div class="цс-счёт" id="цс-счёт-вывода"></div>
+    </div>
+  </div>
+
+  <div class="цс-ряд">
+    <button type="button" class="цс-кнопка" id="цс-копировать">{с.copy}</button>
+    <button type="button" class="цс-простая" id="цс-очистить">{с.clear}</button>
+  </div>
+
+  <div class="цс-заметки">
+    <div class="цс-заметка" set:html={с.n1}></div>
+    <div class="цс-заметка" set:html={с.n2}></div>
+    <div class="цс-заметка" set:html={с.n3}></div>
+    <div class="цс-заметка" set:html={с.n4}></div>
+    <div class="цс-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { разобратьCSV, вJSON, вCSV, угадатьРазделитель } from '../lib/csv-json.js';
+  import { обработатьJSON } from '../lib/json-format.js';
+
+  const корень = document.querySelector('.цс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('цс-ввод');
+    const вывод = $('цс-вывод');
+
+    const направление = () => $('цс-направление').value;
+    const разделитель = () => {
+      const з = $('цс-разделитель').value;
+      if (з === 'tab') return '\t';
+      if (з === 'auto') return угадатьРазделитель(ввод.value);
+      return з;
+    };
+    const имяРазделителя = (з) => (з === '\t' ? с.tab : з);
+    const вес = (текст) => {
+      const байт = new TextEncoder().encode(текст).length;
+      return байт < 1024 ? `${байт} B` : `${(байт / 1024).toFixed(1)} KB`;
+    };
+
+    function счёт(гнездо, куски) {
+      гнездо.replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }));
+    }
+
+    function пересчитать() {
+      const вJson = направление() === 'вjson';
+      $('цс-имя-ввода').textContent = вJson ? с.srcCsv : с.srcJson;
+      $('цс-имя-вывода').textContent = вJson ? с.outJson : с.outCsv;
+      ввод.placeholder = вJson ? с.placeCsv : с.placeJson;
+      // «Первая строка — заголовки» имеет смысл только при чтении CSV.
+      $('цс-галка-шапки').hidden = !вJson;
+
+      const исходный = ввод.value;
+      $('цс-поле-ввода').classList.remove('негоден');
+      if (!исходный.trim()) {
+        вывод.value = '';
+        счёт($('цс-счёт-ввода'), []);
+        счёт($('цс-счёт-вывода'), []);
+        return;
+      }
+
+      if (вJson) {
+        const зн = разделитель();
+        const разбор = разобратьCSV(исходный, зн);
+        if (разбор.ошибка) {
+          вывод.value = '';
+          $('цс-поле-ввода').classList.add('негоден');
+          счёт($('цс-счёт-ввода'), [`<span class="беда">${с.line} ${разбор.ошибка.строка} — ${разбор.ошибка.текст}</span>`]);
+          счёт($('цс-счёт-вывода'), []);
+          return;
+        }
+        const итог = вJSON(разбор.таблица, {
+          заголовки: $('цс-шапка').checked,
+          умныеТипы: $('цс-типы').checked,
+        });
+        вывод.value = JSON.stringify(итог.значение, null, 2);
+        счёт($('цс-счёт-ввода'), [
+          `${с.rows}: <b>${разбор.таблица.length}</b>`,
+          `${с.size}: <b>${вес(исходный)}</b>`,
+          `${с.usedDelim}: <b>${имяРазделителя(зн)}</b>`,
+        ]);
+        счёт($('цс-счёт-вывода'), [
+          `${с.rows}: <b>${итог.строк}</b>`,
+          `${с.cols}: <b>${итог.колонок}</b>`,
+          `${с.size}: <b>${вес(вывод.value)}</b>`,
+        ]);
+        return;
+      }
+
+      // JSON -> CSV. Синтаксис разбираем своим движком: место ошибки одинаково во всех
+      // браузерах, и оно точнее, чем сообщение JSON.parse.
+      const разбор = обработатьJSON(исходный, 0);
+      if (разбор.ошибка) {
+        вывод.value = '';
+        $('цс-поле-ввода').classList.add('негоден');
+        счёт($('цс-счёт-ввода'), [`<span class="беда">${с.badJson}: ${с.line} ${разбор.ошибка.строка} — ${разбор.ошибка.текст}</span>`]);
+        счёт($('цс-счёт-вывода'), []);
+        return;
+      }
+      const зн = разделитель() === '\t' ? '\t' : ($('цс-разделитель').value === 'auto' ? ',' : разделитель());
+      const итог = вCSV(JSON.parse(разбор.готово), { разделитель: зн, перенос: '\r\n' });
+      if (итог.ошибка) {
+        вывод.value = '';
+        $('цс-поле-ввода').classList.add('негоден');
+        счёт($('цс-счёт-ввода'), [`<span class="беда">${итог.ошибка}</span>`]);
+        счёт($('цс-счёт-вывода'), []);
+        return;
+      }
+      вывод.value = итог.csv;
+      счёт($('цс-счёт-ввода'), [`${с.size}: <b>${вес(исходный)}</b>`]);
+      счёт($('цс-счёт-вывода'), [
+        `${с.rows}: <b>${итог.строк}</b>`,
+        `${с.cols}: <b>${итог.колонок}</b>`,
+        `${с.size}: <b>${вес(итог.csv)}</b>`,
+        `${с.usedDelim}: <b>${имяРазделителя(зн)}</b>`,
+      ]);
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    for (const ид of ['цс-разделитель', 'цс-типы', 'цс-шапка']) {
+      $(ид).addEventListener('change', пересчитать);
+    }
+    // Смена направления переносит готовый результат во ВВОД: иначе человек переключается и
+    // видит ошибку -- в поле лежит CSV, а ждут JSON.
+    $('цс-направление').addEventListener('change', () => {
+      if (вывод.value) ввод.value = вывод.value;
+      пересчитать();
+    });
+
+    $('цс-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    $('цс-копировать').addEventListener('click', async () => {
+      const кнопка = $('цс-копировать');
+      if (!вывод.value) { return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      кнопка.textContent = вышло ? с.copied : с.copyFail;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, вышло ? 1500 : 3000);
+    });
+
+    пересчитать();
+
+    window.__цсСостояние = () => ({
+      вывод: вывод.value,
+      направление: направление(),
+      счётВвода: $('цс-счёт-ввода').textContent.trim(),
+      счётВывода: $('цс-счёт-вывода').textContent.trim(),
+      негоден: $('цс-поле-ввода').classList.contains('негоден'),
+      шапкаВидна: !$('цс-галка-шапки').hidden,
+      имяВвода: $('цс-имя-ввода').textContent,
+    });
+  })();
+</script>

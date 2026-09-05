@@ -1,0 +1,157 @@
+/* СТИЛИ СТРАНИЦЫ «КОНВЕРТЕР CSV И JSON».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA), а счётчики
+ * -- серым #71717A. Здесь результат белый, а в счётчиках подпись зелёная и значение белое, как
+ * на всех остальных страницах сайта. Приглушённый текст владелец уже забраковал на Base64.
+ */
+
+.цс {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.цс-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.цс-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.цс-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.цс-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.цс-список:hover { border-color: #fff }
+.цс-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* Знак годности. Место под него занято всегда -- он появляется по ходу набора, и без запаса
+   пульт дёргался бы на каждой букве. */
+.цс-знак {
+  margin-left: auto; height: 28px; display: inline-flex; align-items: center;
+  padding: 0 12px; border-radius: 5px; font: 700 11.5px var(--цифры);
+  letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+  border: 1px solid #3f4652; color: #7d848f; background: transparent;
+}
+.цс-знак.годен { background: #fff; border-color: #fff; color: #000 }
+.цс-знак.негоден { border-color: var(--беда); color: var(--беда); background: transparent }
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.цс-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.цс-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.цс-поле:focus-within { border-color: #fff }
+.цс-поле.негоден { border-color: rgba(255,154,168,.55) }
+.цс-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.цс-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.цс-ввод:focus { outline: none }
+.цс-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.цс-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.цс-отчёт b { color: #fff; font-weight: 500 }
+.цс-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.цс-беда b { color: var(--беда); font-weight: 700 }
+.цс-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.цс-сказ.видно { opacity: 1 }
+
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.цс-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.цс-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.цс-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.цс-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.цс-обводка:hover { background: #fff; color: #000 }
+.цс-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.цс-простая:hover { border-color: #fff; background: #23272f }
+.цс-кнопка.вправо, .цс-простая.вправо { margin-left: auto }
+
+.цс-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.цс-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.цс-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.цс-заметка b { color: #fff; font-weight: 600 }
+.цс-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 1000px) {
+  .цс-пара { grid-template-columns: 1fr 1fr }
+  /* Кнопки идут МЕЖДУ полями и в две колонки не лезут: они относятся к обоим сразу. */
+  .цс-пара .цс-поле:first-child { grid-column: 1 }
+}
+@media (max-width: 560px) {
+  .цс-ввод { min-height: 170px }
+  .цс-знак { margin-left: 0 }
+  .цс-кнопка, .цс-обводка, .цс-простая { flex: 1 1 auto }
+  .цс-кнопка.вправо, .цс-простая.вправо { margin-left: 0 }
+}
+
+/* ---- Своё для этой страницы --------------------------------------------------------------- */
+
+/* Галочка: квадратная, без скруглений -- как на остальных страницах сайта. */
+.цс-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.цс-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.цс-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.цс-галка:hover i { border-color: #fff }
+.цс-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.цс-галка input:checked + i { border-color: var(--accent) }
+.цс-галка input:checked + i::after { transform: scale(1) }
+.цс-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+.цс-галка[hidden] { display: none }
+
+/* Подпись над окном: что здесь лежит. */
+.цс-окно { display: flex; flex-direction: column; min-width: 0 }
+.цс-имя { padding: 0 4px 6px; font: 400 11.5px var(--цифры); color: var(--accent) }
+
+/* Счётчики под своим окном. Место занято всегда: они появляются по мере ввода. */
+.цс-счёт { min-height: 26px; padding: 7px 4px 0; font: 400 12px var(--цифры);
+  color: var(--accent); font-variant-numeric: tabular-nums;
+  display: flex; flex-wrap: wrap; gap: 3px 14px }
+.цс-счёт b { color: #fff; font-weight: 500 }
+.цс-счёт .беда { color: var(--беда) }
