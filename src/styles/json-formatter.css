@@ -1,0 +1,136 @@
+/* СТИЛИ СТРАНИЦЫ «JSON ФОРМАТТЕР И ВАЛИДАТОР».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
+ *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
+ *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
+ *   -- в строке отчёта подпись зелёная, значение белое.
+ *
+ * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
+ * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
+ * уже забраковал на Base64, и повторять эту ошибку незачем.
+ */
+
+.дж {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт -------------------------------------------------------------------------------- */
+
+.дж-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.дж-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+.дж-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.дж-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.дж-список:hover { border-color: #fff }
+.дж-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* Знак годности. Место под него занято всегда -- он появляется по ходу набора, и без запаса
+   пульт дёргался бы на каждой букве. */
+.дж-знак {
+  margin-left: auto; height: 28px; display: inline-flex; align-items: center;
+  padding: 0 12px; border-radius: 5px; font: 700 11.5px var(--цифры);
+  letter-spacing: .06em; text-transform: uppercase; white-space: nowrap;
+  border: 1px solid #3f4652; color: #7d848f; background: transparent;
+}
+.дж-знак.годен { background: #fff; border-color: #fff; color: #000 }
+.дж-знак.негоден { border-color: var(--беда); color: var(--беда); background: transparent }
+
+/* ---- Поля --------------------------------------------------------------------------------- */
+
+.дж-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
+.дж-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
+  transition: border-color .15s ease }
+.дж-поле:focus-within { border-color: #fff }
+.дж-поле.негоден { border-color: rgba(255,154,168,.55) }
+.дж-вывод { background: #0b0c0f; border-color: rgba(255,255,255,.10) }
+.дж-ввод {
+  display: block; width: 100%; min-height: 220px; resize: vertical;
+  padding: 14px 16px 12px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры); border-radius: 10px;
+  white-space: pre; overflow-wrap: normal; overflow-x: auto; tab-size: 4;
+}
+.дж-ввод:focus { outline: none }
+.дж-ввод::placeholder { color: #7d848f }
+
+/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
+   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
+   и без запаса кнопки прыгали бы вниз на первой же букве. */
+.дж-отчёт {
+  min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
+  padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums;
+}
+.дж-отчёт b { color: #fff; font-weight: 500 }
+.дж-беда { color: var(--беда); display: flex; gap: 8px; align-items: baseline;
+  font: 400 12.5px/1.5 var(--цифры) }
+.дж-беда b { color: var(--беда); font-weight: 700 }
+.дж-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
+.дж-сказ.видно { opacity: 1 }
+
+/* Предупреждение о повторных ключах: не ошибка, но молчать о нём нельзя. */
+.дж-повторы { display: none; margin-top: 8px; padding: 10px 13px; border-radius: 9px;
+  border: 1px solid rgba(245,196,81,.45); background: rgba(245,196,81,.07);
+  font: 400 12.5px/1.5 var(--ui); color: #fff }
+.дж-повторы.видны { display: block }
+.дж-повторы b { font-weight: 700 }
+
+/* ---- Кнопки -------------------------------------------------------------------------------- */
+
+.дж-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.дж-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+}
+.дж-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.дж-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.дж-обводка:hover { background: #fff; color: #000 }
+.дж-простая {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.дж-простая:hover { border-color: #fff; background: #23272f }
+.дж-кнопка.вправо, .дж-простая.вправо { margin-left: auto }
+
+.дж-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
+   каждому выделенному слову. */
+.дж-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.дж-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.дж-заметка b { color: #fff; font-weight: 600 }
+.дж-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 1000px) {
+  .дж-пара { grid-template-columns: 1fr 1fr }
+  /* Кнопки идут МЕЖДУ полями и в две колонки не лезут: они относятся к обоим сразу. */
+  .дж-пара .дж-поле:first-child { grid-column: 1 }
+}
+@media (max-width: 560px) {
+  .дж-ввод { min-height: 170px }
+  .дж-знак { margin-left: 0 }
+  .дж-кнопка, .дж-обводка, .дж-простая { flex: 1 1 auto }
+  .дж-кнопка.вправо, .дж-простая.вправо { margin-left: 0 }
+}

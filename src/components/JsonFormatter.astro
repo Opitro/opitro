@@ -1,0 +1,279 @@
+---
+// JSON ФОРМАТТЕР И ВАЛИДАТОР.
+//
+// Весь разбор -- в src/lib/json-format.js, и он СВОЙ, а не JSON.parse + JSON.stringify.
+// Причина одна и веская: связка из учебников молча портит длинные числа. Идентификатор
+// 9007199254740993 возвращается как ...992, а 12345678901234567890 -- как ...567000. Человек
+// нажал «Форматировать» и унёс в работу другой идентификатор, ничего не заметив.
+//
+// Заодно свой разбор даёт одинаковое во всех браузерах место ошибки (V8, Firefox и Safari
+// пишут об этом по-разному, а Safari часто не пишет вовсе) и находит повторные ключи,
+// про которые JSON.parse молчит.
+import css from '../styles/json-formatter.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    indent: 'Отступ', sp2: '2 пробела', sp4: '4 пробела', tab: 'Табуляция', min: 'Без отступов',
+    place: 'Вставьте JSON сюда — проверка идёт сразу, по мере ввода…',
+    result: 'Здесь появится результат…',
+    valid: 'JSON верный', invalid: 'Ошибка', idle: 'Пусто',
+    pretty: 'Форматировать', minify: 'Сжать', clear: 'Очистить',
+    copy: 'Копировать результат', copied: 'Скопировано!',
+    line: 'строка', col: 'столбец',
+    was: 'Было', now: 'Стало', keys: 'Ключей', depth: 'Глубина', chars: 'знаков',
+    saved: 'Короче на',
+    nothing: 'Сначала вставьте JSON', copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    dupTitle: 'Повторяющиеся ключи',
+    dupTail: 'Формат это разрешает, но при чтении останется только последнее значение — остальные молча пропадут. Чаще всего это опечатка.',
+    n1: '<b>Длинные числа мы не портим, и это главное отличие.</b> Обычный способ — прогнать текст через <code>JSON.parse</code> и <code>JSON.stringify</code> — незаметно ломает большие идентификаторы: <code>9007199254740993</code> возвращается как <code>…992</code>, а <code>12345678901234567890</code> — как <code>…567000</code>. Здесь разбор свой, и числа выходят ровно теми знаками, какими были написаны.',
+    n2: '<b>Место ошибки одинаково во всех браузерах.</b> Мы считаем строку и столбец сами, а не пересказываем сообщение браузера: Chrome, Firefox и Safari пишут об одной и той же ошибке по-разному, а Safari часто вообще не указывает места.',
+    n3: '<b>Повторяющиеся ключи мы называем.</b> Стандарт их разрешает, но при чтении остаётся только последнее значение, а остальные молча пропадают. В файле настроек такая опечатка может прожить месяцы.',
+    n4: '<b>Проверка идёт по строгим правилам.</b> Только двойные кавычки, никаких висячих запятых и комментариев. Это не придирка: ровно так же поступит любая программа, которая будет читать ваш файл.',
+    n5: 'Ничего никуда не отправляется. Ключи, токены, ответы серверов и куски настроек остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    indent: 'Відступ', sp2: '2 пробіли', sp4: '4 пробіли', tab: 'Табуляція', min: 'Без відступів',
+    place: 'Вставте JSON сюди — перевірка йде одразу, у міру введення…',
+    result: 'Тут з’явиться результат…',
+    valid: 'JSON правильний', invalid: 'Помилка', idle: 'Порожньо',
+    pretty: 'Форматувати', minify: 'Стиснути', clear: 'Очистити',
+    copy: 'Копіювати результат', copied: 'Скопійовано!',
+    line: 'рядок', col: 'стовпець',
+    was: 'Було', now: 'Стало', keys: 'Ключів', depth: 'Глибина', chars: 'знаків',
+    saved: 'Коротше на',
+    nothing: 'Спершу вставте JSON', copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    dupTitle: 'Ключі, що повторюються',
+    dupTail: 'Формат це дозволяє, але при читанні лишиться тільки останнє значення — решта мовчки зникне. Найчастіше це друкарська помилка.',
+    n1: '<b>Довгі числа ми не псуємо, і це головна відмінність.</b> Звичайний спосіб — прогнати текст через <code>JSON.parse</code> і <code>JSON.stringify</code> — непомітно ламає великі ідентифікатори: <code>9007199254740993</code> повертається як <code>…992</code>, а <code>12345678901234567890</code> — як <code>…567000</code>. Тут розбір власний, і числа виходять рівно тими знаками, якими були написані.',
+    n2: '<b>Місце помилки однакове в усіх браузерах.</b> Ми рахуємо рядок і стовпець самі, а не переказуємо повідомлення браузера: Chrome, Firefox і Safari пишуть про ту саму помилку по-різному, а Safari часто взагалі не вказує місця.',
+    n3: '<b>Ключі, що повторюються, ми називаємо.</b> Стандарт їх дозволяє, але при читанні лишається тільки останнє значення, а решта мовчки зникає. У файлі налаштувань така помилка може прожити місяці.',
+    n4: '<b>Перевірка йде за суворими правилами.</b> Тільки подвійні лапки, жодних висячих ком і коментарів. Це не прискіпливість: рівно так само вчинить будь-яка програма, що читатиме ваш файл.',
+    n5: 'Нічого нікуди не надсилається. Ключі, токени, відповіді серверів і шматки налаштувань лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    indent: 'Indent', sp2: '2 spaces', sp4: '4 spaces', tab: 'Tab', min: 'No indent',
+    place: 'Paste JSON here — it is checked as you type…',
+    result: 'The result will appear here…',
+    valid: 'Valid JSON', invalid: 'Invalid', idle: 'Empty',
+    pretty: 'Format', minify: 'Minify', clear: 'Clear',
+    copy: 'Copy the result', copied: 'Copied!',
+    line: 'line', col: 'column',
+    was: 'Before', now: 'After', keys: 'Keys', depth: 'Depth', chars: 'chars',
+    saved: 'Smaller by',
+    nothing: 'Paste some JSON first', copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    dupTitle: 'Duplicate keys',
+    dupTail: 'The format allows this, but on reading only the last value survives — the rest disappear silently. It is usually a typo.',
+    n1: '<b>We do not corrupt long numbers, and that is the main difference.</b> The usual recipe — run the text through <code>JSON.parse</code> and <code>JSON.stringify</code> — quietly breaks large identifiers: <code>9007199254740993</code> comes back as <code>…992</code>, and <code>12345678901234567890</code> as <code>…567000</code>. Here the parsing is our own, so numbers come out with exactly the digits they went in with.',
+    n2: '<b>The error position is the same in every browser.</b> We count the line and column ourselves instead of relaying the browser message: Chrome, Firefox and Safari word the same error differently, and Safari often gives no position at all.',
+    n3: '<b>Duplicate keys get named.</b> The standard permits them, but on reading only the last value survives while the others vanish without a word. In a config file such a typo can live for months.',
+    n4: '<b>The check follows the strict rules.</b> Double quotes only, no trailing commas, no comments. That is not pedantry: any program that later reads your file will do exactly the same.',
+    n5: 'Nothing is sent anywhere. Keys, tokens, server responses and pieces of configuration stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    indent: 'Sangría', sp2: '2 espacios', sp4: '4 espacios', tab: 'Tabulación', min: 'Sin sangría',
+    place: 'Pega aquí el JSON: se comprueba mientras escribes…',
+    result: 'El resultado aparecerá aquí…',
+    valid: 'JSON válido', invalid: 'Error', idle: 'Vacío',
+    pretty: 'Formatear', minify: 'Comprimir', clear: 'Limpiar',
+    copy: 'Copiar el resultado', copied: '¡Copiado!',
+    line: 'línea', col: 'columna',
+    was: 'Antes', now: 'Después', keys: 'Claves', depth: 'Profundidad', chars: 'caracteres',
+    saved: 'Más corto en',
+    nothing: 'Pega primero un JSON', copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    dupTitle: 'Claves repetidas',
+    dupTail: 'El formato lo permite, pero al leerlo solo sobrevive el último valor: el resto desaparece sin avisar. Casi siempre es una errata.',
+    n1: '<b>No estropeamos los números largos, y esa es la diferencia principal.</b> La receta habitual —pasar el texto por <code>JSON.parse</code> y <code>JSON.stringify</code>— rompe sin avisar los identificadores grandes: <code>9007199254740993</code> vuelve como <code>…992</code> y <code>12345678901234567890</code> como <code>…567000</code>. Aquí el análisis es propio y los números salen con los mismos dígitos con los que entraron.',
+    n2: '<b>La posición del error es la misma en todos los navegadores.</b> Contamos la línea y la columna nosotros en vez de repetir el mensaje del navegador: Chrome, Firefox y Safari redactan el mismo error de forma distinta, y Safari a menudo no indica la posición.',
+    n3: '<b>Las claves repetidas se señalan.</b> El estándar las permite, pero al leer solo sobrevive el último valor y los demás desaparecen en silencio. En un archivo de configuración esa errata puede durar meses.',
+    n4: '<b>La comprobación sigue las reglas estrictas.</b> Solo comillas dobles, sin comas colgantes ni comentarios. No es quisquillosidad: cualquier programa que lea después tu archivo hará exactamente lo mismo.',
+    n5: 'No se envía nada a ninguna parte. Claves, tokens, respuestas de servidores y trozos de configuración se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дж" data-words={JSON.stringify(с)}>
+  <div class="дж-пульт">
+    <span class="дж-отступ">
+      <span class="дж-подпись">{с.indent}:</span>
+      <select class="дж-список" id="дж-отступ">
+        <option value="2">{с.sp2}</option>
+        <option value="4">{с.sp4}</option>
+        <option value="tab">{с.tab}</option>
+        <option value="0">{с.min}</option>
+      </select>
+    </span>
+    <span class="дж-знак" id="дж-знак">{с.idle}</span>
+  </div>
+
+  <div class="дж-пара">
+    <div class="дж-поле" id="дж-поле-ввода">
+      <textarea class="дж-ввод" id="дж-ввод" placeholder={с.place} spellcheck="false" autocapitalize="off" autocorrect="off"></textarea>
+    </div>
+    <div class="дж-поле дж-вывод">
+      <textarea class="дж-ввод" id="дж-вывод" placeholder={с.result} readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="дж-отчёт" id="дж-отчёт"><span class="дж-сказ" id="дж-сказ"></span></div>
+  <div class="дж-повторы" id="дж-повторы"></div>
+
+  <div class="дж-ряд">
+    <button type="button" class="дж-кнопка" id="дж-красиво">{с.pretty}</button>
+    <button type="button" class="дж-обводка" id="дж-сжать">{с.minify}</button>
+    <button type="button" class="дж-простая" id="дж-очистить">{с.clear}</button>
+    <button type="button" class="дж-кнопка вправо" id="дж-копировать">{с.copy}</button>
+  </div>
+
+  <div class="дж-заметки">
+    <div class="дж-заметка" set:html={с.n1}></div>
+    <div class="дж-заметка" set:html={с.n2}></div>
+    <div class="дж-заметка" set:html={с.n3}></div>
+    <div class="дж-заметка" set:html={с.n4}></div>
+    <div class="дж-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { обработатьJSON } from '../lib/json-format.js';
+
+  const корень = document.querySelector('.дж');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('дж-ввод');
+    const вывод = $('дж-вывод');
+    const знак = $('дж-знак');
+    const отчёт = $('дж-отчёт');
+    const полеВвода = $('дж-поле-ввода');
+    const повторы = $('дж-повторы');
+    const сказ = $('дж-сказ');
+
+    const число = (н) => н.toLocaleString(document.documentElement.lang || 'ru');
+    const отступ = () => { const з = $('дж-отступ').value; return з === 'tab' ? 'tab' : Number(з); };
+
+    function сказать(текст) {
+      сказ.textContent = текст;
+      сказ.classList.add('видно');
+      clearTimeout(сказ._т);
+      сказ._т = setTimeout(() => сказ.classList.remove('видно'), 2600);
+    }
+
+    // Отчёт собирается кусками, а строка «сказ» живёт в нём же и должна пережить пересборку.
+    function показать(куски) {
+      отчёт.replaceChildren(...куски, сказ);
+    }
+    const кусок = (текст) => { const э = document.createElement('span'); э.innerHTML = текст; return э; };
+
+    function пересчитать() {
+      const исходный = ввод.value;
+      const итог = обработатьJSON(исходный, отступ());
+
+      if (итог.пусто) {
+        вывод.value = '';
+        знак.textContent = с.idle;
+        знак.className = 'дж-знак';
+        полеВвода.classList.remove('негоден');
+        повторы.classList.remove('видны');
+        показать([]);
+        return итог;
+      }
+
+      if (итог.ошибка) {
+        вывод.value = '';
+        знак.textContent = с.invalid;
+        знак.className = 'дж-знак негоден';
+        полеВвода.classList.add('негоден');
+        повторы.classList.remove('видны');
+        const э = document.createElement('span');
+        э.className = 'дж-беда';
+        э.innerHTML = `<b>${с.line} ${итог.ошибка.строка}, ${с.col} ${итог.ошибка.столбец}</b> — ${итог.ошибка.текст}`;
+        показать([э]);
+        return итог;
+      }
+
+      вывод.value = итог.готово;
+      знак.textContent = с.valid;
+      знак.className = 'дж-знак годен';
+      полеВвода.classList.remove('негоден');
+
+      const было = исходный.length;
+      const стало = итог.готово.length;
+      const куски = [
+        кусок(`${с.was}: <b>${число(было)}</b> ${с.chars}`),
+        кусок(`${с.now}: <b>${число(стало)}</b>`),
+        кусок(`${с.keys}: <b>${число(итог.ключей)}</b>`),
+        кусок(`${с.depth}: <b>${число(итог.глубина)}</b>`),
+      ];
+      if (стало < было) {
+        куски.push(кусок(`${с.saved}: <b>${Math.round((1 - стало / было) * 100)}%</b>`));
+      }
+      показать(куски);
+
+      if (итог.повторы && итог.повторы.length) {
+        const список = итог.повторы
+          .map((п) => `${п.ключ} (${с.line} ${п.строка})`)
+          .join(', ');
+        повторы.innerHTML = `<b>${с.dupTitle}:</b> ${список}. ${с.dupTail}`;
+        повторы.classList.add('видны');
+      } else {
+        повторы.classList.remove('видны');
+      }
+      return итог;
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('дж-отступ').addEventListener('change', пересчитать);
+
+    // «Форматировать» и «Сжать» не считают заново, а КЛАДУТ РЕЗУЛЬТАТ ОБРАТНО в поле ввода:
+    // проверка и так идёт по мере набора, и вторая кнопка, делающая то же самое, была бы
+    // обманом. Пользы от них ровно одна, зато настоящая -- продолжить работу с готовым видом.
+    function применить(какОтступ) {
+      if (!ввод.value.trim()) { сказать(с.nothing); return; }
+      const итог = обработатьJSON(ввод.value, какОтступ);
+      if (!итог.готово) { пересчитать(); return; }
+      $('дж-отступ').value = String(какОтступ);
+      ввод.value = итог.готово;
+      пересчитать();
+    }
+    $('дж-красиво').addEventListener('click', () => применить(отступ() === 0 ? 2 : отступ()));
+    $('дж-сжать').addEventListener('click', () => применить(0));
+
+    $('дж-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    $('дж-копировать').addEventListener('click', async () => {
+      const кнопка = $('дж-копировать');
+      if (!вывод.value) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
+      catch (ошибка) {
+        вывод.select();
+        try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
+      }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    пересчитать();
+
+    window.__джСостояние = () => ({
+      знак: знак.textContent,
+      годен: знак.classList.contains('годен'),
+      негоден: знак.classList.contains('негоден'),
+      вывод: вывод.value,
+      отчёт: отчёт.textContent.trim(),
+      повторыВидны: повторы.classList.contains('видны'),
+      повторыТекст: повторы.textContent.trim(),
+    });
+  })();
+</script>
