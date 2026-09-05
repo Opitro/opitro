@@ -1,0 +1,326 @@
+---
+// BASE64 КОДИРОВЩИК ФАЙЛОВ.
+//
+// ЧЕСТНО ПРО ВЕС. В задании сказано, что встраивание «значительно ускоряет отрисовку». Это
+// верно только для мелочи. Base64 делает данные НА ТРЕТЬ ТЯЖЕЛЕЕ (три байта превращаются в
+// четыре знака), и встроенная картинка теряет главное свойство отдельного файла -- её нельзя
+// закешировать отдельно: браузер тянет её заново с каждой страницей, а в CSS она ещё и
+// задерживает отрисовку, потому что таблица стилей разбирается целиком. Поэтому рядом с
+// результатом стоит и исходный вес, и итоговый, и прирост, а на крупных файлах -- прямое
+// предупреждение. Правило простое: до нескольких килобайт встраивать выгодно, дальше вредно.
+//
+// ОГРАНИЧИТЕЛЬ ЗАМОРАЖИВАНИЯ. Вкладку вешает не кодирование, а ПОЛЕ ВЫВОДА: браузеру тяжело
+// нарисовать строку в несколько миллионов знаков. Поэтому в поле кладётся начало строки, а
+// кнопка «Копировать» и ссылка на скачивание работают с полной. Обрезка честно подписана.
+import css from '../styles/base64-file.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    drop: 'Перетащите файл сюда', or: 'или', pick: 'Выбрать файл на диске',
+    view: 'Вид', dataUrl: 'Data URL', plain: 'Чистый Base64', asImg: 'Тег <img>', asCss: 'CSS-фон',
+    file: 'Файл', type: 'Тип', size: 'Размер', after: 'После кодирования', growth: 'Прирост',
+    unknown: 'неизвестен',
+    copy: 'Копировать результат', copied: 'Скопировано!', clear: 'Очистить',
+    result: 'Здесь появится закодированная строка…',
+    reading: 'Читаем файл…', failed: 'Не удалось прочитать файл',
+    cut: 'В поле показано только начало строки — целиком её отдаст кнопка «Копировать»',
+    heavy: '<b>Такой файл встраивать не стоит.</b> Base64 делает его на треть тяжелее, а встроенную картинку нельзя закешировать отдельно — браузер будет тянуть её заново с каждой страницей. Встраивание выгодно на мелочи в несколько килобайт: маленькие значки, простые SVG. Всё, что крупнее, лучше оставить обычным файлом.',
+    nothing: 'Сначала выберите файл',
+    copyFail: 'Браузер не дал скопировать — текст выделен, нажмите Ctrl+C',
+    n1: '<b>Base64 делает данные тяжелее на треть.</b> Три байта превращаются в четыре знака — это свойство самого способа, а не наша недоработка. Поэтому рядом мы показываем и исходный вес, и итоговый, и прирост: чтобы решение встраивать принималось с открытыми глазами.',
+    n2: '<b>Встраивать выгодно только мелочь.</b> Маленький значок или простой SVG в несколько килобайт — да: браузер не пойдёт за ним отдельным запросом. Крупную картинку — нет: она станет на треть тяжелее, потеряет отдельное кеширование (браузер потянет её заново с каждой страницей) и, если она в CSS, задержит отрисовку, потому что таблица стилей разбирается целиком.',
+    n3: '<b>Разница между Data URL и чистым Base64.</b> Чистый — только данные. Data URL добавляет впереди тип файла: <code>data:image/png;base64,</code>. Именно он подставляется в <code>src</code> у картинки и в <code>url()</code> в стилях; чистый Base64 туда вставлять бесполезно.',
+    n4: '<b>Очень длинную строку мы не кладём в поле целиком.</b> Вкладку вешает не кодирование, а отрисовка миллионов знаков в текстовом поле. В поле — начало, в буфере обмена по кнопке — вся строка. Об обрезке сказано прямо, а не спрятано.',
+    n5: 'Файл не покидает ваше устройство. Он читается прямо в браузере и никуда не отправляется: ни на наш сервер, ни на чужой.',
+  },
+  uk: {
+    drop: 'Перетягніть файл сюди', or: 'або', pick: 'Вибрати файл на диску',
+    view: 'Вид', dataUrl: 'Data URL', plain: 'Чистий Base64', asImg: 'Тег <img>', asCss: 'CSS-фон',
+    file: 'Файл', type: 'Тип', size: 'Розмір', after: 'Після кодування', growth: 'Приріст',
+    unknown: 'невідомий',
+    copy: 'Копіювати результат', copied: 'Скопійовано!', clear: 'Очистити',
+    result: 'Тут з’явиться закодований рядок…',
+    reading: 'Читаємо файл…', failed: 'Не вдалося прочитати файл',
+    cut: 'У полі показано лише початок рядка — цілком його віддасть кнопка «Копіювати»',
+    heavy: '<b>Такий файл вбудовувати не варто.</b> Base64 робить його на третину важчим, а вбудовану картинку не можна закешувати окремо — браузер тягтиме її знову з кожною сторінкою. Вбудовування вигідне на дрібниці в кілька кілобайтів.',
+    nothing: 'Спершу виберіть файл',
+    copyFail: 'Браузер не дав скопіювати — текст виділено, натисніть Ctrl+C',
+    n1: '<b>Base64 робить дані важчими на третину.</b> Три байти перетворюються на чотири знаки — це властивість самого способу. Тому поруч ми показуємо і початкову вагу, і підсумкову, і приріст.',
+    n2: '<b>Вбудовувати вигідно лише дрібницю.</b> Маленький значок або простий SVG у кілька кілобайтів — так. Велику картинку — ні: вона стане на третину важчою, втратить окреме кешування і, якщо вона у CSS, затримає відмальовування.',
+    n3: '<b>Різниця між Data URL і чистим Base64.</b> Чистий — лише дані. Data URL додає попереду тип файлу: <code>data:image/png;base64,</code>. Саме він підставляється в <code>src</code> картинки і в <code>url()</code> у стилях.',
+    n4: '<b>Дуже довгий рядок ми не кладемо в поле цілком.</b> Вкладку вішає не кодування, а відмальовування мільйонів знаків. У полі — початок, у буфері обміну за кнопкою — увесь рядок.',
+    n5: 'Файл не покидає ваш пристрій. Він читається просто у браузері й нікуди не надсилається.',
+  },
+  en: {
+    drop: 'Drop a file here', or: 'or', pick: 'Choose a file',
+    view: 'Output', dataUrl: 'Data URL', plain: 'Plain Base64', asImg: '<img> tag', asCss: 'CSS background',
+    file: 'File', type: 'Type', size: 'Size', after: 'After encoding', growth: 'Growth',
+    unknown: 'unknown',
+    copy: 'Copy the result', copied: 'Copied!', clear: 'Clear',
+    result: 'The encoded string will appear here…',
+    reading: 'Reading the file…', failed: 'The file could not be read',
+    cut: 'Only the start of the string is shown — the Copy button gives you all of it',
+    heavy: '<b>A file this size is not worth inlining.</b> Base64 makes it a third heavier, and an inlined image loses separate caching — the browser fetches it again with every page. Inlining pays off for small things of a few kilobytes: little icons, simple SVGs. Anything larger is better left as an ordinary file.',
+    nothing: 'Choose a file first',
+    copyFail: 'The browser refused to copy — the text is selected, press Ctrl+C',
+    n1: '<b>Base64 makes data a third heavier.</b> Three bytes become four characters — that is a property of the method, not a shortcoming of ours. So we show the original size, the encoded size and the growth side by side, to let the decision be made with open eyes.',
+    n2: '<b>Only small things are worth inlining.</b> A little icon or a simple SVG of a few kilobytes: yes, the browser saves a separate request. A large image: no — it grows by a third, loses separate caching (the browser fetches it again with every page), and inside CSS it also delays rendering, because the stylesheet is parsed as a whole.',
+    n3: '<b>The difference between a Data URL and plain Base64.</b> Plain is the data alone. A Data URL puts the file type in front: <code>data:image/png;base64,</code>. That is the form that goes into an image <code>src</code> or a CSS <code>url()</code>; plain Base64 there does nothing.',
+    n4: '<b>A very long string is not put into the box in full.</b> What freezes a tab is not the encoding but drawing millions of characters in a text box. The box holds the start; the Copy button gives you the whole string. The truncation is stated plainly rather than hidden.',
+    n5: 'The file never leaves your device. It is read right in the browser and sent nowhere — neither to our server nor to anyone else’s.',
+  },
+  es: {
+    drop: 'Arrastra un archivo aquí', or: 'o', pick: 'Elegir archivo del disco',
+    view: 'Salida', dataUrl: 'Data URL', plain: 'Base64 puro', asImg: 'Etiqueta <img>', asCss: 'Fondo CSS',
+    file: 'Archivo', type: 'Tipo', size: 'Tamaño', after: 'Tras codificar', growth: 'Aumento',
+    unknown: 'desconocido',
+    copy: 'Copiar el resultado', copied: '¡Copiado!', clear: 'Limpiar',
+    result: 'Aquí aparecerá la cadena codificada…',
+    reading: 'Leyendo el archivo…', failed: 'No se ha podido leer el archivo',
+    cut: 'En el cuadro se muestra solo el principio: el botón Copiar entrega la cadena entera',
+    heavy: '<b>Un archivo así no conviene incrustarlo.</b> Base64 lo hace un tercio más pesado y una imagen incrustada pierde la caché por separado: el navegador la descarga otra vez con cada página. Incrustar compensa con cosas pequeñas de unos pocos kilobytes.',
+    nothing: 'Elige primero un archivo',
+    copyFail: 'El navegador no dejó copiar: el texto está seleccionado, pulsa Ctrl+C',
+    n1: '<b>Base64 hace los datos un tercio más pesados.</b> Tres bytes se convierten en cuatro caracteres: es una propiedad del método. Por eso mostramos juntos el tamaño original, el codificado y el aumento.',
+    n2: '<b>Solo compensa incrustar cosas pequeñas.</b> Un icono o un SVG sencillo de unos kilobytes: sí. Una imagen grande: no, porque crece un tercio, pierde la caché por separado y, dentro del CSS, retrasa el pintado, ya que la hoja de estilos se analiza entera.',
+    n3: '<b>Diferencia entre Data URL y Base64 puro.</b> El puro son solo los datos. El Data URL antepone el tipo de archivo: <code>data:image/png;base64,</code>. Esa es la forma que va en el <code>src</code> de una imagen o en un <code>url()</code> de CSS.',
+    n4: '<b>Una cadena muy larga no se vuelca entera en el cuadro.</b> Lo que congela una pestaña no es la codificación sino dibujar millones de caracteres. En el cuadro va el principio; el botón Copiar da la cadena completa.',
+    n5: 'El archivo no sale de tu dispositivo. Se lee en el propio navegador y no se envía a ninguna parte.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="бф" data-words={JSON.stringify(с)}>
+  <label class="бф-зона" id="бф-зона">
+    <p>{с.drop}<br /><span style="opacity:.75">{с.or}</span></p>
+    <span class="бф-выбрать" id="бф-выбрать">{с.pick}</span>
+    <input type="file" id="бф-файл" />
+  </label>
+
+  <div class="бф-опись" id="бф-опись"></div>
+
+  <div class="бф-пульт">
+    <span class="бф-отступ">
+      <span class="бф-подпись">{с.view}:</span>
+      <span class="бф-набор">
+        <button type="button" class="бф-выбор выбран" data-в="data">{с.dataUrl}</button>
+        <button type="button" class="бф-выбор" data-в="plain">{с.plain}</button>
+        <button type="button" class="бф-выбор" data-в="img" id="бф-как-img" hidden>{с.asImg}</button>
+        <button type="button" class="бф-выбор" data-в="css" id="бф-как-css" hidden>{с.asCss}</button>
+      </span>
+    </span>
+  </div>
+
+  <div class="бф-поле бф-вывод">
+    <textarea class="бф-ввод" id="бф-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+  </div>
+  <div class="бф-весть" id="бф-весть"></div>
+  <div class="бф-отчёт" id="бф-отчёт"><span class="бф-сказ" id="бф-сказ"></span></div>
+
+  <div class="бф-ряд">
+    <button type="button" class="бф-кнопка" id="бф-копировать">{с.copy}</button>
+    <button type="button" class="бф-простая" id="бф-очистить">{с.clear}</button>
+  </div>
+
+  <div class="бф-заметки">
+    <div class="бф-заметка" set:html={с.n1}></div>
+    <div class="бф-заметка" set:html={с.n2}></div>
+    <div class="бф-заметка" set:html={с.n3}></div>
+    <div class="бф-заметка" set:html={с.n4}></div>
+    <div class="бф-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  const корень = document.querySelector('.бф');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const зона = $('бф-зона');
+    const вывод = $('бф-вывод');
+    const опись = $('бф-опись');
+    const сказ = $('бф-сказ');
+
+    // Дальше этого места строку в поле не кладём: вкладку вешает не кодирование, а отрисовка.
+    const ПРЕДЕЛ_ПОКАЗА = 200000;
+    // С этого веса встраивание уже вредит, а не помогает.
+    const ТЯЖЁЛЫЙ = 100 * 1024;
+
+    let вид = 'data';
+    let файл = null;
+    let полная = '';        // Data URL целиком
+    let чистая = '';        // только Base64, без приставки
+
+    const вес = (байт) => (байт < 1024 ? `${байт} B`
+      : байт < 1024 * 1024 ? `${(байт / 1024).toFixed(1)} KB`
+      : `${(байт / 1024 / 1024).toFixed(2)} MB`);
+
+    function сказать(текст) {
+      сказ.textContent = текст;
+      сказ.classList.add('видно');
+      clearTimeout(сказ._т);
+      сказ._т = setTimeout(() => сказ.classList.remove('видно'), 2600);
+    }
+
+    function отчёт(куски) {
+      $('бф-отчёт').replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }), сказ);
+    }
+
+    /** Строка в выбранном виде. Отдаётся целиком -- обрезаем только показ. */
+    function строка() {
+      if (!полная) return '';
+      if (вид === 'plain') return чистая;
+      if (вид === 'img') return `<img src="${полная}" alt="">`;
+      if (вид === 'css') return `background-image: url("${полная}");`;
+      return полная;
+    }
+
+    function показать() {
+      const вся = строка();
+      if (вся.length > ПРЕДЕЛ_ПОКАЗА) {
+        вывод.value = вся.slice(0, ПРЕДЕЛ_ПОКАЗА) + '…';
+        сказать(с.cut);
+      } else {
+        вывод.value = вся;
+      }
+      if (!файл) { отчёт([]); return; }
+      const было = файл.size;
+      const стало = вся.length;
+      отчёт([
+        `${с.size}: <b>${вес(было)}</b>`,
+        `${с.after}: <b>${вес(стало)}</b>`,
+        `${с.growth}: <b>+${Math.round((стало / было - 1) * 100)}%</b>`,
+      ]);
+    }
+
+    function описать() {
+      опись.replaceChildren();
+      if (!файл) return;
+      // У картинок показываем сам значок: сразу видно, что закодировался тот файл.
+      if (/^image\//.test(файл.type) && полная) {
+        const карт = document.createElement('img');
+        карт.className = 'бф-значок';
+        карт.src = полная;
+        карт.alt = '';
+        опись.appendChild(карт);
+      }
+      for (const т of [
+        `${с.file}: <b>${файл.name}</b>`,
+        `${с.type}: <b>${файл.type || с.unknown}</b>`,
+      ]) {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        опись.appendChild(э);
+      }
+    }
+
+    function видКнопок() {
+      const картинка = !!файл && /^image\//.test(файл.type);
+      $('бф-как-img').hidden = !картинка;
+      $('бф-как-css').hidden = !картинка;
+      // Если выбранный вид пропал вместе с картинкой, возвращаемся к Data URL.
+      if (!картинка && (вид === 'img' || вид === 'css')) поставитьВид('data');
+    }
+
+    function поставитьВид(новый) {
+      вид = новый;
+      for (const кн of корень.querySelectorAll('.бф-выбор')) {
+        кн.classList.toggle('выбран', кн.dataset.в === новый);
+      }
+    }
+
+    function взять(ф) {
+      if (!ф) return;
+      файл = ф;
+      полная = '';
+      чистая = '';
+      вывод.value = '';
+      отчёт([`${с.reading}`]);
+      const читатель = new FileReader();
+      читатель.onload = () => {
+        полная = String(читатель.result || '');
+        const запятая = полная.indexOf(',');
+        чистая = запятая === -1 ? полная : полная.slice(запятая + 1);
+        описать();
+        видКнопок();
+        показать();
+        $('бф-весть').classList.toggle('видна', файл.size > ТЯЖЁЛЫЙ);
+        $('бф-весть').innerHTML = с.heavy;
+      };
+      читатель.onerror = () => {
+        файл = null;
+        отчёт([`<span style="color:var(--беда)">${с.failed}</span>`]);
+      };
+      читатель.readAsDataURL(ф);
+    }
+
+    $('бф-файл').addEventListener('change', (е) => взять(е.target.files && е.target.files[0]));
+    // Кнопка внутри метки: без этого щелчок по ней открывал бы окно выбора дважды.
+    $('бф-выбрать').addEventListener('click', (е) => { е.preventDefault(); $('бф-файл').click(); });
+
+    for (const событие of ['dragenter', 'dragover']) {
+      зона.addEventListener(событие, (е) => { е.preventDefault(); зона.classList.add('держат'); });
+    }
+    for (const событие of ['dragleave', 'dragend']) {
+      зона.addEventListener(событие, () => зона.classList.remove('держат'));
+    }
+    зона.addEventListener('drop', (е) => {
+      е.preventDefault();
+      зона.classList.remove('держат');
+      взять(е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0]);
+    });
+
+    for (const кн of корень.querySelectorAll('.бф-выбор')) {
+      кн.addEventListener('click', () => { поставитьВид(кн.dataset.в); показать(); });
+    }
+
+    $('бф-очистить').addEventListener('click', () => {
+      файл = null; полная = ''; чистая = '';
+      вывод.value = '';
+      опись.replaceChildren();
+      отчёт([]);
+      $('бф-весть').classList.remove('видна');
+      $('бф-файл').value = '';
+      видКнопок();
+    });
+
+    $('бф-копировать').addEventListener('click', async () => {
+      const кнопка = $('бф-копировать');
+      const вся = строка();
+      if (!вся) { сказать(с.nothing); return; }
+      let вышло = false;
+      try { await navigator.clipboard.writeText(вся); вышло = true; }
+      catch (ошибка) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    видКнопок();
+
+    window.__бфСостояние = () => ({
+      вывод: вывод.value,
+      полнаяДлина: строка().length,
+      вид,
+      отчёт: $('бф-отчёт').textContent.trim(),
+      опись: опись.textContent.trim(),
+      весть: $('бф-весть').classList.contains('видна'),
+      картинкаЕсть: !!опись.querySelector('img'),
+      видыКартинки: !$('бф-как-img').hidden,
+    });
+    // Для проверок: подсунуть файл без настоящего окна выбора.
+    window.__бфВзять = (имя, тип, содержимое) => {
+      взять(new File([содержимое], имя, { type: тип }));
+    };
+  })();
+</script>
