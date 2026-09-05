@@ -25,7 +25,6 @@ const СЛОВА = {
     stop: "Выключить камеру", other: "Сканер штрихкода",
     kindBar: "Штрихкод", barHint: "Это штрихкод, а не QR-код. Страна, контрольная цифра и остальной разбор — на соседней странице.",
     mode: 'Откуда', camera: 'Камера', photo: 'Файл или снимок',
-    start: 'Включить камеру', stop: 'Выключить',
     camIdle: 'Нажмите значок фотоаппарата — браузер спросит разрешение на камеру.',
     camDenied: 'Камера не доступна. Разрешение не дано или устройства нет. Можно распознать снимок: переключитесь на «Файл или снимок».',
     camLooking: 'Наведите код на прицел…',
@@ -53,7 +52,6 @@ const СЛОВА = {
     stop: "Вимкнути камеру", other: "Сканер штрихкоду",
     kindBar: "Штрихкод", barHint: "Це штрихкод, а не QR-код. Країна, контрольна цифра та решта розбору — на сусідній сторінці.",
     mode: 'Звідки', camera: 'Камера', photo: 'Файл або знімок',
-    start: 'Увімкнути камеру', stop: 'Вимкнути',
     camIdle: 'Натисніть значок фотоапарата — браузер запитає дозвіл на камеру.',
     camDenied: 'Камера недоступна. Дозвіл не надано або пристрою немає. Можна розпізнати знімок: перемкніться на «Файл або знімок».',
     camLooking: 'Наведіть код на приціл…',
@@ -81,7 +79,6 @@ const СЛОВА = {
     stop: "Turn the camera off", other: "Barcode scanner",
     kindBar: "Barcode", barHint: "This is a barcode, not a QR code. The country, the check digit and the rest of the analysis are on the neighbouring page.",
     mode: 'Source', camera: 'Camera', photo: 'File or screenshot',
-    start: 'Turn the camera on', stop: 'Turn off',
     camIdle: 'Press the camera icon — the browser will ask for permission.',
     camDenied: 'The camera is not available. Permission was refused or there is no device. You can still decode a picture: switch to “File or screenshot”.',
     camLooking: 'Point the code at the frame…',
@@ -109,7 +106,6 @@ const СЛОВА = {
     stop: "Apagar la cámara", other: "Escáner de códigos de barras",
     kindBar: "Código de barras", barHint: "Esto es un código de barras, no un código QR. El país, el dígito de control y el resto del análisis están en la página vecina.",
     mode: 'Origen', camera: 'Cámara', photo: 'Archivo o captura',
-    start: 'Encender la cámara', stop: 'Apagar',
     camIdle: 'Pulse el icono de la cámara: el navegador pedirá permiso.',
     camDenied: 'La cámara no está disponible. No se dio permiso o no hay dispositivo. Puedes descifrar una imagen: cambia a «Archivo o captura».',
     camLooking: 'Apunta el código al marco…',
@@ -172,7 +168,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         <video id="ск2-видео" playsinline muted></video>
         <canvas id="ск2-холст"></canvas>
         <div class="ск2-прицел"><i></i><i></i><i></i><i></i></div>
-        <div class="ск2-заслон" id="ск2-заслон">{с.camIdle}</div>
+        <div class="ск2-заслон" id="ск2-заслон">
+          <button type="button" class="ск2-крупный" id="ск2-крупный" aria-label={с.camera}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+              <circle cx="12" cy="13.3" r="3.5"/>
+            </svg>
+          </button>
+          <span id="ск2-слово">{с.camIdle}</span>
+        </div>
       </div>
 
       <label class="ск2-зона" id="ск2-зона" hidden>
@@ -363,7 +367,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         });
       } catch (е) {
         $('ск2-заслон').hidden = false;
-        $('ск2-заслон').textContent = с.camDenied;
+        $('ск2-слово').textContent = с.camDenied;
         return;
       }
       видео.srcObject = поток;
@@ -379,7 +383,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
       $('ск2-заслон').hidden = false;
-      $('ск2-заслон').textContent = с.camIdle;
+      $('ск2-слово').textContent = с.camIdle;
       значокКамеры(false);
     }
 
@@ -429,6 +433,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     // Нажатие на фотоаппарат: из режима снимка -- переключиться и сразу включить камеру;
     // в режиме камеры -- включить или выключить её.
+    $('ск2-крупный').addEventListener('click', () => {
+      if (режим !== 'camera') выбратьРежим('camera');
+      включить();
+    });
+
     $('ск2-глаз').addEventListener('click', () => {
       if (режим !== 'camera') { выбратьРежим('camera'); включить(); return; }
       if (поток) выключить(); else включить();

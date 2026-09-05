@@ -214,9 +214,23 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
 .ск2-прицел i:nth-child(4) { bottom: 0; right: 0; border-left: 0; border-top: 0; border-radius: 0 0 4px 0 }
 .ск2-глазок.нашёл .ск2-прицел i { border-color: var(--accent); opacity: 1 }
 
-.ск2-заслон { position: absolute; inset: 0; display: flex; align-items: center;
-  justify-content: center; padding: 20px; text-align: center;
+.ск2-заслон { position: absolute; inset: 0; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 18px; padding: 20px; text-align: center;
   font: 400 13px/1.6 var(--ui); color: #fff; background: #0b0c0f }
+
+/* Крупный фотоаппарат в середине окна. Человек нажимает там, куда смотрит, -- искать глазами
+   кнопку в пульте не надо. Выключает камеру уже кнопка в пульте: пока идёт съёмка, окно
+   занято картинкой, и заслона на экране нет. */
+.ск2-крупный {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 78px; height: 78px; border-radius: 50%; cursor: pointer; color: #fff;
+  background: #1c1f26; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.ск2-крупный:hover { border-color: #fff; background: #23272f }
+.ск2-крупный:active { transform: scale(.95) }
+.ск2-крупный svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.5; stroke-linecap: round; stroke-linejoin: round }
 .ск2-заслон[hidden] { display: none }
 
 /* Зона для файла: та же, что у кодировщика файлов -- страницы должны быть роднёй. */

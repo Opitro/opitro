@@ -180,7 +180,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         <video id="скш-видео" playsinline muted></video>
         <canvas id="скш-холст"></canvas>
         <div class="скш-прицел"><i></i><i></i></div>
-        <div class="скш-заслон" id="скш-заслон">{с.camIdle}</div>
+        <div class="скш-заслон" id="скш-заслон">
+          <button type="button" class="скш-крупный" id="скш-крупный" aria-label={с.camera}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M3 7.5h3.4L8.2 5h7.6l1.8 2.5H21a1 1 0 0 1 1 1V19a1 1 0 0 1-1 1H3a1 1 0 0 1-1-1V8.5a1 1 0 0 1 1-1Z"/>
+              <circle cx="12" cy="13.3" r="3.5"/>
+            </svg>
+          </button>
+          <span id="скш-слово">{с.camIdle}</span>
+        </div>
       </div>
 
       <label class="скш-зона" id="скш-зона" hidden>
@@ -364,7 +372,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         });
       } catch (е) {
         $('скш-заслон').hidden = false;
-        $('скш-заслон').textContent = с.camDenied;
+        $('скш-слово').textContent = с.camDenied;
         return;
       }
       видео.srcObject = поток;
@@ -380,7 +388,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
       $('скш-заслон').hidden = false;
-      $('скш-заслон').textContent = ловитПолоски ? с.camIdle : с.camNo1D;
+      $('скш-слово').textContent = ловитПолоски ? с.camIdle : с.camNo1D;
       значокКамеры(false);
     }
 
@@ -430,6 +438,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     // Нажатие на фотоаппарат: из режима снимка -- переключиться и сразу включить камеру;
     // в режиме камеры -- включить или выключить её.
+    $('скш-крупный').addEventListener('click', () => {
+      if (режим !== 'camera') выбратьРежим('camera');
+      включить();
+    });
+
     $('скш-глаз').addEventListener('click', () => {
       if (режим !== 'camera') { выбратьРежим('camera'); включить(); return; }
       if (поток) выключить(); else включить();
@@ -480,7 +493,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // Честная надпись под камерой там, где браузер не умеет ловить полосы на лету.
     камераВидитПолоски().then((умеет) => {
       ловитПолоски = умеет;
-      if (!умеет && !поток) $('скш-заслон').textContent = с.camNo1D;
+      if (!умеет && !поток) $('скш-слово').textContent = с.camNo1D;
     });
 
     window.__скшСостояние = () => ({
