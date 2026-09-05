@@ -19,6 +19,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    base: "Найти в открытой базе", baseWait: "Ищу…", baseNone: "В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.", baseFail: "База не ответила. Проверьте связь и попробуйте ещё раз.", fName: "Название", fBrand: "Марка", fQty: "Объём или вес", fCats: "Что это", fScore: "Nutri-Score", fWhere: "Продаётся в странах", baseFrom: "Данные: Open Food Facts",
     fParts: "Из чего состоит",
     pPrefix: "префикс",
     pBody: "фирма и товар",
@@ -53,13 +54,14 @@ const СЛОВА = {
     inStore: 'Такой код печатает сам магазин на весовом товаре. За его дверями он не значит ничего: в другой сети те же цифры будут другим товаром.',
     other: 'Сканер QR-кода', otherHint: 'Это QR-код, а не штрихкод. Разбор ссылок и проверка на обман — на соседней странице.',
     n1: '<b>Первые цифры — страна, где номер выдан, а не где сделан товар.</b> Это самое частое заблуждение про штрихкоды. Префикс говорит, в каком отделении GS1 производитель зарегистрировался. Немецкая фирма с кодом 400 может шить в Китае, а российский импортёр получит код 460 на товар из Турции. По штрихкоду страну производства узнать нельзя — её пишут на упаковке словами.',
-    n2: '<b>Названия товара и цены мы не показываем — и не обещаем.</b> Цифры сами по себе имени не содержат: связь «номер → товар» лежит в базе GS1, и доступ к ней платный. Страницы, которые обещают узнать товар по коду, либо берут данные из неполных любительских списков, либо просто подставляют название по первой ссылке в поиске.',
+    n2: '<b>Название товара — по кнопке.</b> В самом коде его нет: цифры не хранят слов. Но по номеру можно поискать в открытой базе Open Food Facts. Там в основном еда, и собирают её люди — находится не всё. Не нажмёте кнопку — никуда не пойдём.',
     n3: '<b>Контрольную цифру проверяем на месте.</b> Последняя цифра EAN и UPC вычисляется из остальных. Если она не сошлась — код либо распознан криво, либо набран с ошибкой. Это надёжная проверка: одна перепутанная цифра почти всегда её ломает.',
     n4: '<b>На iPhone штрихкод читается по снимку.</b> В Chrome и на Android распознаватель встроен в сам браузер и ловит полосы прямо с камеры. В Safari его нет, и живая камера там ищет только QR — зато снимок или файл разбирается полностью, тем же набором форматов.',
     n5: '<b>QR-коды эта страница тоже читает.</b> Если вместо полосок в кадр попадёт квадратик, мы его прочтём и покажем содержимое, а за разбором ссылки отправим на сканер QR — там проверка на подменённый адрес.',
-    n6: 'Ничего никуда не отправляется. Снимок не загружается на сервер, распознавание идёт в самой вкладке, и после закрытия страницы не остаётся ничего.',
+    n6: 'Снимок никуда не загружается: распознавание идёт в самой вкладке. В сеть уходит только номер и только если вы нажали «Найти в открытой базе».',
   },
   uk: {
+    base: "Знайти у відкритій базі", baseWait: "Шукаю…", baseNone: "У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.", baseFail: "База не відповіла. Перевірте зв’язок і спробуйте ще раз.", fName: "Назва", fBrand: "Марка", fQty: "Обсяг або вага", fCats: "Що це", fScore: "Nutri-Score", fWhere: "Продається в країнах", baseFrom: "Дані: Open Food Facts",
     fParts: "З чого складається",
     pPrefix: "префікс",
     pBody: "фірма і товар",
@@ -94,13 +96,14 @@ const СЛОВА = {
     inStore: 'Такий код друкує сам магазин на ваговому товарі. За його дверима він не значить нічого: в іншій мережі ті самі цифри будуть іншим товаром.',
     other: 'Сканер QR-коду', otherHint: 'Це QR-код, а не штрихкод. Розбір посилань і перевірка на обман — на сусідній сторінці.',
     n1: '<b>Перші цифри — країна, де видано номер, а не де зроблено товар.</b> Це найчастіша хибна думка про штрихкоди. Префікс каже, у якому відділенні GS1 виробник зареєструвався. Німецька фірма з кодом 400 може шити в Китаї, а український імпортер отримає код 482 на товар із Туреччини. За штрихкодом країну виробництва дізнатися не можна — її пишуть на упаковці словами.',
-    n2: '<b>Назв товару і цін ми не показуємо — і не обіцяємо.</b> Цифри самі по собі імені не містять: зв’язок «номер → товар» лежить у базі GS1, і доступ до неї платний. Сторінки, які обіцяють дізнатися товар за кодом, або беруть дані з неповних аматорських списків, або просто підставляють назву за першим посиланням у пошуку.',
+    n2: '<b>Назва товару — за кнопкою.</b> У самому коді її немає: цифри не зберігають слів. Але за номером можна пошукати у відкритій базі Open Food Facts. Там переважно їжа, і збирають її люди — знаходиться не все. Не натиснете кнопку — нікуди не підемо.',
     n3: '<b>Контрольну цифру перевіряємо на місці.</b> Остання цифра EAN і UPC обчислюється з решти. Якщо вона не збіглася — код або розпізнано криво, або набрано з помилкою. Це надійна перевірка: одна переплутана цифра майже завжди її ламає.',
     n4: '<b>На iPhone штрихкод читається зі знімка.</b> У Chrome і на Android розпізнавач вбудований у сам браузер і ловить смуги просто з камери. У Safari його немає, і жива камера там шукає лише QR — зате знімок або файл розбирається повністю, тим самим набором форматів.',
     n5: '<b>QR-коди ця сторінка теж читає.</b> Якщо замість смужок у кадр потрапить квадратик, ми його прочитаємо і покажемо вміст, а за розбором посилання відправимо на сканер QR — там перевірка на підмінену адресу.',
-    n6: 'Нічого нікуди не надсилається. Знімок не завантажується на сервер, розпізнавання йде в самій вкладці, і після закриття сторінки не лишається нічого.',
+    n6: 'Знімок нікуди не завантажується: розпізнавання йде в самій вкладці. У мережу йде лише номер і лише якщо ви натиснули «Знайти у відкритій базі».',
   },
   en: {
+    base: "Look up in the open database", baseWait: "Looking…", baseNone: "This product is not in the open database. It is compiled by people, and it is mostly food.", baseFail: "The database did not answer. Check the connection and try again.", fName: "Name", fBrand: "Brand", fQty: "Size", fCats: "What it is", fScore: "Nutri-Score", fWhere: "Sold in", baseFrom: "Data: Open Food Facts",
     fParts: "How it breaks down",
     pPrefix: "prefix",
     pBody: "company and item",
@@ -135,13 +138,14 @@ const СЛОВА = {
     inStore: 'A code like this is printed by the shop itself, usually on loose goods weighed at the counter. Outside that shop it means nothing: in another chain the same digits are a different product.',
     other: 'QR code scanner', otherHint: 'This is a QR code, not a barcode. Link analysis and the check for spoofed addresses are on the neighbouring page.',
     n1: '<b>The first digits are the country where the number was issued, not where the goods were made.</b> This is the most common misconception about barcodes. The prefix says which GS1 office the manufacturer registered with. A German company with prefix 400 may have everything sewn in China, and an importer will put its own national prefix on goods from Türkiye. A barcode cannot tell you the country of manufacture — that is written on the packaging in words.',
-    n2: '<b>We do not show product names or prices — and we do not promise to.</b> The digits carry no name in themselves: the link from number to product lives in the GS1 database, and access to it is paid. Pages that promise to name a product from its code either pull from incomplete amateur lists or simply echo the first search result.',
+    n2: '<b>The product name is one button away.</b> It is not in the code itself — digits hold no words. But the number can be looked up in the open Open Food Facts database. It is mostly food, and people compile it by hand, so not everything is there. Do not press the button and nothing leaves the page.',
     n3: '<b>The check digit is verified here and now.</b> The last digit of an EAN or UPC is computed from the rest. If it does not match, the code was either misread or mistyped. It is a reliable test: a single transposed digit almost always breaks it.',
     n4: '<b>On iPhone a barcode is read from a picture.</b> In Chrome and on Android the recogniser is built into the browser itself and catches bars straight from the camera. Safari has no such thing, so its live camera looks for QR only — but a photo or file is read in full, with the same set of formats.',
     n5: '<b>This page reads QR codes too.</b> If a square lands in the frame instead of bars, we will read it and show what is inside, then point you to the QR scanner for the link analysis — that is where addresses are checked for spoofing.',
-    n6: 'Nothing is sent anywhere. The picture is not uploaded to a server, recognition happens inside the tab itself, and once the page is closed nothing is left behind.',
+    n6: 'The picture is never uploaded: recognition happens inside the tab itself. The only thing that ever leaves is the number, and only if you press “Look up in the open database”.',
   },
   es: {
+    base: "Buscar en la base abierta", baseWait: "Buscando…", baseNone: "Este producto no está en la base abierta. La recopilan personas y es sobre todo comida.", baseFail: "La base no ha respondido. Compruebe la conexión e inténtelo de nuevo.", fName: "Nombre", fBrand: "Marca", fQty: "Cantidad", fCats: "Qué es", fScore: "Nutri-Score", fWhere: "Se vende en", baseFrom: "Datos: Open Food Facts",
     fParts: "Cómo se descompone",
     pPrefix: "prefijo",
     pBody: "empresa y artículo",
@@ -176,11 +180,11 @@ const СЛОВА = {
     inStore: 'Ese código lo imprime la propia tienda, normalmente en producto a granel pesado en el mostrador. Fuera de ella no significa nada: en otra cadena los mismos dígitos son otro producto.',
     other: 'Escáner de códigos QR', otherHint: 'Esto es un código QR, no un código de barras. El análisis de enlaces y la comprobación de direcciones falsas están en la página vecina.',
     n1: '<b>Las primeras cifras indican el país donde se emitió el número, no donde se fabricó el producto.</b> Es el error más extendido sobre los códigos de barras. El prefijo dice en qué oficina de GS1 se registró el fabricante. Una empresa alemana con prefijo 400 puede coser en China, y un importador pondrá su prefijo nacional a mercancía turca. El país de fabricación no se deduce del código: se escribe con letras en el envase.',
-    n2: '<b>No mostramos nombres de producto ni precios, y tampoco lo prometemos.</b> Las cifras por sí solas no contienen ningún nombre: la relación entre número y producto está en la base de datos de GS1, y el acceso es de pago. Las páginas que prometen identificar el producto por su código o bien tiran de listas aficionadas incompletas, o bien repiten el primer resultado del buscador.',
+    n2: '<b>El nombre del producto está a un botón.</b> En el código no está: las cifras no guardan palabras. Pero el número se puede buscar en la base abierta Open Food Facts. Es sobre todo comida y la recopilan personas, así que no está todo. Si no pulsa el botón, no sale nada de la página.',
     n3: '<b>El dígito de control se comprueba aquí mismo.</b> La última cifra de un EAN o un UPC se calcula a partir del resto. Si no coincide, el código se leyó mal o se tecleó con un error. Es una comprobación fiable: basta con intercambiar dos cifras para romperla.',
     n4: '<b>En el iPhone el código de barras se lee desde una imagen.</b> En Chrome y en Android el reconocedor está integrado en el propio navegador y capta las barras directamente de la cámara. Safari no lo tiene, así que allí la cámara en vivo busca solo QR; en cambio una foto o un archivo se analizan por completo, con el mismo juego de formatos.',
     n5: '<b>Esta página también lee códigos QR.</b> Si en lugar de barras entra un cuadrado en el encuadre, lo leeremos y mostraremos su contenido, y le remitiremos al escáner de QR para el análisis del enlace: allí es donde se comprueba si la dirección está suplantada.',
-    n6: 'No se envía nada a ninguna parte. La imagen no se sube a ningún servidor, el reconocimiento ocurre dentro de la propia pestaña y, al cerrar la página, no queda nada.',
+    n6: 'La imagen no se sube a ninguna parte: el reconocimiento ocurre dentro de la propia pestaña. Lo único que sale es el número, y solo si pulsa «Buscar en la base abierta».',
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
@@ -266,6 +270,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="скш-ряд" id="скш-ряд">
     <button type="button" class="скш-кнопка" id="скш-копировать" disabled>{с.copy}</button>
     <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
+    <button type="button" class="скш-обводка" id="скш-база" style="display:none">{с.base}</button>
     <a class="скш-обводка" id="скш-искать" style="display:none" target="_blank"
        rel="noopener noreferrer nofollow">{с.search}</a>
   </div>
@@ -431,6 +436,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('скш-копировать').disabled = false;
       $('скш-туда').style.display = 'none';
       $('скш-искать').style.display = 'none';
+      $('скш-база').style.display = 'none';
       if (находка.вид === 'qr') показатьQR(находка.текст);
       else {
         показатьШтрих(находка.текст, находка.формат);
@@ -440,6 +446,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const искать = $('скш-искать');
         искать.href = 'https://www.google.com/search?q=' + encodeURIComponent(находка.текст);
         искать.style.display = 'inline-flex';
+        // В открытой базе лежат товары, а не складские наклейки: спрашивать её имеет смысл
+        // только про розничный номер.
+        const р = разобратьШтрих(находка.текст, находка.формат);
+        if (р.контроль && р.контроль.сошлась) {
+          const б = $('скш-база');
+          б.style.display = 'inline-flex';
+          б.disabled = false;
+          б.textContent = с.base;
+          б.dataset.код = р.цифры;
+        }
       }
       пикнуть();
       $('скш-глазок').classList.add('нашёл');
@@ -451,6 +467,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('скш-копировать').disabled = true;
       $('скш-искать').style.display = 'none';
       $('скш-туда').style.display = 'none';
+      $('скш-база').style.display = 'none';
       найдено = '';
     }
 
@@ -650,6 +667,62 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       }
     });
 
+    /** Спросить открытую базу. Уходит только номер и только отсюда. */
+    async function спроситьБазу() {
+      const кнопка = $('скш-база');
+      const код = кнопка.dataset.код;
+      if (!код) return;
+      кнопка.disabled = true;
+      кнопка.textContent = с.baseWait;
+
+      let товар = null;
+      try {
+        const поля = ['product_name', 'product_name_' + язык, 'brands', 'quantity',
+          'categories', 'countries', 'nutriscore_grade', 'image_front_small_url'].join(',');
+        const ответ = await fetch(
+          `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(код)}.json?fields=${поля}`);
+        const данные = await ответ.json();
+        товар = данные && данные.status === 1 ? данные.product : false;
+      } catch (е) {
+        товар = null;                      // связи нет -- это не то же самое, что «не найден»
+      }
+
+      кнопка.style.display = 'none';
+      const коробка = узел('div', 'скш-товар');
+      if (товар === null) {
+        коробка.appendChild(узел('div', 'скш-подсказ', с.baseFail));
+        кнопка.disabled = false;
+        кнопка.textContent = с.base;
+        кнопка.style.display = 'inline-flex';
+      } else if (товар === false) {
+        коробка.appendChild(узел('div', 'скш-подсказ', с.baseNone));
+      } else {
+        const имя = товар['product_name_' + язык] || товар.product_name || '';
+        if (товар.image_front_small_url) {
+          const карт = document.createElement('img');
+          карт.className = 'скш-снимок-товара';
+          карт.src = товар.image_front_small_url;
+          карт.alt = имя;
+          карт.loading = 'lazy';
+          коробка.appendChild(карт);
+        }
+        const строки = [[с.fName, имя], [с.fBrand, товар.brands], [с.fQty, товар.quantity]];
+        if (товар.nutriscore_grade) строки.push([с.fScore, String(товар.nutriscore_grade).toUpperCase()]);
+        // Списки в базе длинные, и целиком они не помогают -- берём первые три. Заодно
+        // выбрасываем служебные метки вида «pt:bebidas»: это внутренняя запись базы, для
+        // человека она выглядит опечаткой.
+        const коротко = (с2) => String(с2 || '').split(',').map((к) => к.trim())
+          .filter((к) => к && !/^[a-z]{2}:/.test(к)).slice(0, 3).join(', ');
+        строки.push([с.fCats, коротко(товар.categories)], [с.fWhere, коротко(товар.countries)]);
+        коробка.appendChild(пары(строки));
+        // Данные чужие и открытые: назвать источник -- условие, на котором их отдают.
+        коробка.appendChild(узел('div', 'скш-источник', с.baseFrom));
+      }
+      итог.appendChild(коробка);
+    }
+
+    $('скш-база').addEventListener('click', спроситьБазу);
+
     $('скш-копировать').addEventListener('click', async () => {
       const кнопка = $('скш-копировать');
       if (!найдено) return;
@@ -681,6 +754,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         [д.textContent, итог.querySelectorAll('.скш-пары dd')[и].textContent]),
       тревога: !!итог.querySelector('.скш-тревога'),
       кнопкаЖива: !$('скш-копировать').disabled,
+      базаВидна: $('скш-база').style.display !== 'none',
+      товар: (итог.querySelector('.скш-товар') || {}).textContent || '',
       наQR: $('скш-туда').style.display !== 'none',
     });
     window.__скшПоказать = показать;

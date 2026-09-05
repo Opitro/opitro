@@ -194,6 +194,14 @@
 .скш-ждём { font: 400 13px/1.6 var(--ui); color: #fff }
 .скш-подсказ { font: 400 12.5px/1.55 var(--ui); color: #fff }
 /* Заголовок разбора кода GS1: отделяет поля упаковки от цифр самого номера. */
+/* Ответ открытой базы. Отделён линией: это чужие данные, пришедшие из сети, а не разбор
+   самого кода, и смешивать их в одну кучу нечестно. */
+.скш-товар { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--линия);
+  display: flex; flex-direction: column; gap: 10px }
+.скш-снимок-товара { width: 92px; height: 92px; object-fit: contain; border-radius: 8px;
+  background: #fff; align-self: flex-start }
+.скш-источник { font: 400 11px var(--цифры); color: var(--accent) }
+
 .скш-шапка-разбора { margin-top: 4px; font: 400 11px var(--ui); letter-spacing: .08em;
   text-transform: uppercase; color: var(--accent) }
 
