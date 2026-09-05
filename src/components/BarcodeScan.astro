@@ -19,7 +19,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    base: "Найти в открытой базе", baseWait: "Ищу…", baseNone: "В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.", baseFail: "База не ответила. Проверьте связь и попробуйте ещё раз.", fName: "Название", fBrand: "Марка", fQty: "Объём или вес", fCats: "Что это", fScore: "Nutri-Score", fWhere: "Продаётся в странах", baseFrom: "Данные: Open Food Facts",
+    base: "Найти в открытой базе", baseWait: "Ищу…", baseNone: "В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.", baseFail: "База не ответила. Проверьте связь и попробуйте ещё раз.", fName: "Название", fBrand: "Марка", fQty: "Объём или вес", fCats: "Что это", fScore: "Nutri-Score", baseFrom: "Данные: Open Food Facts",
     fParts: "Из чего состоит",
     pPrefix: "префикс",
     pBody: "фирма и товар",
@@ -61,7 +61,7 @@ const СЛОВА = {
     n6: 'Снимок никуда не загружается: распознавание идёт в самой вкладке. В сеть уходит только номер и только если вы нажали «Найти в открытой базе».',
   },
   uk: {
-    base: "Знайти у відкритій базі", baseWait: "Шукаю…", baseNone: "У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.", baseFail: "База не відповіла. Перевірте зв’язок і спробуйте ще раз.", fName: "Назва", fBrand: "Марка", fQty: "Обсяг або вага", fCats: "Що це", fScore: "Nutri-Score", fWhere: "Продається в країнах", baseFrom: "Дані: Open Food Facts",
+    base: "Знайти у відкритій базі", baseWait: "Шукаю…", baseNone: "У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.", baseFail: "База не відповіла. Перевірте зв’язок і спробуйте ще раз.", fName: "Назва", fBrand: "Марка", fQty: "Обсяг або вага", fCats: "Що це", fScore: "Nutri-Score", baseFrom: "Дані: Open Food Facts",
     fParts: "З чого складається",
     pPrefix: "префікс",
     pBody: "фірма і товар",
@@ -103,7 +103,7 @@ const СЛОВА = {
     n6: 'Знімок нікуди не завантажується: розпізнавання йде в самій вкладці. У мережу йде лише номер і лише якщо ви натиснули «Знайти у відкритій базі».',
   },
   en: {
-    base: "Look up in the open database", baseWait: "Looking…", baseNone: "This product is not in the open database. It is compiled by people, and it is mostly food.", baseFail: "The database did not answer. Check the connection and try again.", fName: "Name", fBrand: "Brand", fQty: "Size", fCats: "What it is", fScore: "Nutri-Score", fWhere: "Sold in", baseFrom: "Data: Open Food Facts",
+    base: "Look up in the open database", baseWait: "Looking…", baseNone: "This product is not in the open database. It is compiled by people, and it is mostly food.", baseFail: "The database did not answer. Check the connection and try again.", fName: "Name", fBrand: "Brand", fQty: "Size", fCats: "What it is", fScore: "Nutri-Score", baseFrom: "Data: Open Food Facts",
     fParts: "How it breaks down",
     pPrefix: "prefix",
     pBody: "company and item",
@@ -145,7 +145,7 @@ const СЛОВА = {
     n6: 'The picture is never uploaded: recognition happens inside the tab itself. The only thing that ever leaves is the number, and only if you press “Look up in the open database”.',
   },
   es: {
-    base: "Buscar en la base abierta", baseWait: "Buscando…", baseNone: "Este producto no está en la base abierta. La recopilan personas y es sobre todo comida.", baseFail: "La base no ha respondido. Compruebe la conexión e inténtelo de nuevo.", fName: "Nombre", fBrand: "Marca", fQty: "Cantidad", fCats: "Qué es", fScore: "Nutri-Score", fWhere: "Se vende en", baseFrom: "Datos: Open Food Facts",
+    base: "Buscar en la base abierta", baseWait: "Buscando…", baseNone: "Este producto no está en la base abierta. La recopilan personas y es sobre todo comida.", baseFail: "La base no ha respondido. Compruebe la conexión e inténtelo de nuevo.", fName: "Nombre", fBrand: "Marca", fQty: "Cantidad", fCats: "Qué es", fScore: "Nutri-Score", baseFrom: "Datos: Open Food Facts",
     fParts: "Cómo se descompone",
     pPrefix: "prefijo",
     pBody: "empresa y artículo",
@@ -681,7 +681,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       let товар = null;
       try {
         const поля = ['product_name', 'product_name_' + язык, 'brands', 'quantity',
-          'categories', 'countries', 'nutriscore_grade', 'image_front_small_url'].join(',');
+          'categories', 'nutriscore_grade', 'image_front_small_url'].join(',');
         const ответ = await fetch(
           `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(код)}.json?fields=${поля}`);
         const данные = await ответ.json();
@@ -710,13 +710,16 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           коробка.appendChild(карт);
         }
         const строки = [[с.fName, имя], [с.fBrand, товар.brands], [с.fQty, товар.quantity]];
-        if (товар.nutriscore_grade) строки.push([с.fScore, String(товар.nutriscore_grade).toUpperCase()]);
+        // Оценка бывает только у еды, и на всё остальное база отвечает «не знаю». Печатать
+        // это «не знаю» -- значит показывать человеку слово UNKNOWN у батарейки.
+        const оценка = String(товар.nutriscore_grade || '').toLowerCase();
+        if (/^[a-e]$/.test(оценка)) строки.push([с.fScore, оценка.toUpperCase()]);
         // Списки в базе длинные, и целиком они не помогают -- берём первые три. Заодно
         // выбрасываем служебные метки вида «pt:bebidas»: это внутренняя запись базы, для
         // человека она выглядит опечаткой.
         const коротко = (с2) => String(с2 || '').split(',').map((к) => к.trim())
           .filter((к) => к && !/^[a-z]{2}:/.test(к)).slice(0, 3).join(', ');
-        строки.push([с.fCats, коротко(товар.categories)], [с.fWhere, коротко(товар.countries)]);
+        строки.push([с.fCats, коротко(товар.categories)]);
         коробка.appendChild(пары(строки));
         // Данные чужие и открытые: назвать источник -- условие, на котором их отдают.
         коробка.appendChild(узел('div', 'скш-источник', с.baseFrom));
