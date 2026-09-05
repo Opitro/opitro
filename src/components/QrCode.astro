@@ -1,0 +1,346 @@
+---
+// ГЕНЕРАТОР QR-КОДОВ.
+//
+// Сам код собирает библиотека qrcode-generator: Рид-Соломон, восемь масок с подсчётом штрафов
+// и подбор версии руками не пишут -- почти правильный код читается одним телефоном и не
+// читается другим.
+//
+// А вот три вещи вокруг неё -- наши, и все три проверены запуском:
+//   1. КИРИЛЛИЦА. Библиотека по умолчанию берёт от каждого знака младший байт: «Привет»
+//      превращается в [31,64,56,50,53,66]. Код собирается, сканируется -- и показывает
+//      кракозябры. Лечится подменой перевода в байты на TextEncoder (см. настроитьUTF8).
+//   2. ЭКРАНИРОВАНИЕ В СТРОКЕ WI-FI. Пароль вида «Pa;ss» без экранирования обрывает строку:
+//      телефон видит пароль «Pa» и молча не подключается.
+//   3. ПОЛЕ ВОКРУГ КОДА в четыре клетки -- часть стандарта, а не отступ для красоты. Без него
+//      сканеры не находят код на пёстром фоне.
+import css from '../styles/qr-code.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    kind: 'Что кодируем', url: 'Ссылка', text: 'Текст', wifi: 'Wi-Fi', card: 'Визитка',
+    level: 'Восстановление', lvlL: 'Низкое (7%)', lvlM: 'Среднее (15%)', lvlQ: 'Высокое (25%)', lvlH: 'Наибольшее (30%)',
+    placeUrl: 'opitro.com', placeText: 'Любой текст…',
+    ssid: 'Имя сети', pass: 'Пароль', prot: 'Защита', noPass: 'Без пароля', hidden: 'Скрытая сеть',
+    first: 'Имя', last: 'Фамилия', org: 'Организация', job: 'Должность',
+    phone: 'Телефон', mail: 'Почта', site: 'Сайт',
+    png: 'Скачать PNG', svg: 'Скачать SVG', clear: 'Очистить',
+    empty: 'Заполните поля слева — код появится сразу',
+    chars: 'Знаков', modules: 'Клеток', ready: 'Готов',
+    tooMuch: 'Слишком много данных для QR-кода. Уберите лишнее или понизьте уровень восстановления.',
+    n1: '<b>Кириллица кодируется правильно.</b> Многие генераторы берут от каждого знака младший байт, и телефон показывает кракозябры вместо русского текста. Мы переводим строку в UTF-8 — тот вид, который ждут все сканеры.',
+    n2: '<b>Пароль от Wi-Fi со знаком «;» не ломает код.</b> В строке сети точка с запятой разделяет поля, поэтому в имени и пароле знаки <code>\\ ; , : "</code> обязаны быть экранированы. Без этого телефон увидит пароль до первой точки с запятой, молча не подключится — и человек будет думать, что дело в роутере.',
+    n3: '<b>Белое поле вокруг кода — часть кода.</b> Стандарт требует пустую рамку шириной в четыре клетки; без неё сканеры плохо находят код на пёстром фоне. Она заложена и в картинку на экране, и в оба скачиваемых файла.',
+    n4: '<b>PNG и SVG — для разного.</b> PNG состоит из точек и годится для экрана: вставить в переписку, в презентацию, на страницу. SVG описан формулами и увеличивается до любого размера без потери резкости — его и надо брать для печати: наклейка, вывеска, баннер.',
+    n5: '<b>Уровень восстановления — это запас на повреждения.</b> Чем он выше, тем больше в коде дублирующих данных и тем крупнее сам код, зато он читается, даже если помят, поцарапан или закрыт логотипом. Для наклейки на улицу берите высокий, для картинки на экране хватит среднего.',
+    n6: 'Ничего никуда не отправляется. Ссылки, пароли от сети и данные визитки остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    kind: 'Що кодуємо', url: 'Посилання', text: 'Текст', wifi: 'Wi-Fi', card: 'Візитівка',
+    level: 'Відновлення', lvlL: 'Низьке (7%)', lvlM: 'Середнє (15%)', lvlQ: 'Високе (25%)', lvlH: 'Найбільше (30%)',
+    placeUrl: 'opitro.com', placeText: 'Будь-який текст…',
+    ssid: 'Ім’я мережі', pass: 'Пароль', prot: 'Захист', noPass: 'Без пароля', hidden: 'Прихована мережа',
+    first: 'Ім’я', last: 'Прізвище', org: 'Організація', job: 'Посада',
+    phone: 'Телефон', mail: 'Пошта', site: 'Сайт',
+    png: 'Завантажити PNG', svg: 'Завантажити SVG', clear: 'Очистити',
+    empty: 'Заповніть поля ліворуч — код з’явиться одразу',
+    chars: 'Знаків', modules: 'Клітинок', ready: 'Готовий',
+    tooMuch: 'Забагато даних для QR-коду. Приберіть зайве або знизьте рівень відновлення.',
+    n1: '<b>Кирилиця кодується правильно.</b> Багато генераторів беруть від кожного знака молодший байт, і телефон показує кракозябри. Ми переводимо рядок у UTF-8 — той вигляд, якого чекають усі сканери.',
+    n2: '<b>Пароль від Wi-Fi зі знаком «;» не ламає код.</b> У рядку мережі крапка з комою розділяє поля, тому в імені й паролі знаки <code>\\ ; , : "</code> мають бути екрановані. Без цього телефон побачить пароль до першої крапки з комою й мовчки не підключиться.',
+    n3: '<b>Біле поле навколо коду — частина коду.</b> Стандарт вимагає порожню рамку завширшки чотири клітинки; без неї сканери погано знаходять код на строкатому тлі.',
+    n4: '<b>PNG і SVG — для різного.</b> PNG складається з точок і годиться для екрана. SVG описаний формулами і збільшується до будь-якого розміру без втрати різкості — його й треба брати для друку.',
+    n5: '<b>Рівень відновлення — це запас на пошкодження.</b> Що він вищий, то більше в коді дублюючих даних і то більший сам код, зате він читається, навіть якщо зім’ятий чи закритий логотипом.',
+    n6: 'Нічого нікуди не надсилається. Посилання, паролі від мережі й дані візитівки лишаються в пам’яті вкладки.',
+  },
+  en: {
+    kind: 'What to encode', url: 'Link', text: 'Text', wifi: 'Wi-Fi', card: 'vCard',
+    level: 'Error correction', lvlL: 'Low (7%)', lvlM: 'Medium (15%)', lvlQ: 'High (25%)', lvlH: 'Highest (30%)',
+    placeUrl: 'opitro.com', placeText: 'Any text…',
+    ssid: 'Network name', pass: 'Password', prot: 'Security', noPass: 'No password', hidden: 'Hidden network',
+    first: 'First name', last: 'Last name', org: 'Organisation', job: 'Job title',
+    phone: 'Phone', mail: 'Email', site: 'Website',
+    png: 'Download PNG', svg: 'Download SVG', clear: 'Clear',
+    empty: 'Fill in the fields on the left — the code appears at once',
+    chars: 'Characters', modules: 'Modules', ready: 'Ready',
+    tooMuch: 'Too much data for a QR code. Remove some or lower the error correction level.',
+    n1: '<b>Non-Latin text is encoded correctly.</b> Many generators take the low byte of each character and the phone shows mojibake instead of the text. We convert the string to UTF-8 — the form every scanner expects.',
+    n2: '<b>A Wi-Fi password containing “;” does not break the code.</b> In the network string a semicolon separates the fields, so the characters <code>\\ ; , : "</code> inside the name and password must be escaped. Without that the phone sees only the password up to the first semicolon, silently fails to connect — and the owner blames the router.',
+    n3: '<b>The white margin is part of the code.</b> The standard requires an empty frame four modules wide; without it scanners struggle to find the code against a busy background. It is built into the picture on screen and into both downloads.',
+    n4: '<b>PNG and SVG are for different jobs.</b> PNG is made of dots and suits the screen: a chat, a slide, a web page. SVG is described by formulas and scales to any size without losing sharpness — that is the one to take to print: a sticker, a sign, a banner.',
+    n5: '<b>Error correction is a reserve against damage.</b> The higher it is, the more duplicate data the code carries and the larger it grows — but it still reads when creased, scratched or covered by a logo. For an outdoor sticker take a high level; for a picture on screen medium is enough.',
+    n6: 'Nothing is sent anywhere. Links, network passwords and vCard details stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    kind: 'Qué codificar', url: 'Enlace', text: 'Texto', wifi: 'Wi-Fi', card: 'Tarjeta',
+    level: 'Corrección', lvlL: 'Baja (7%)', lvlM: 'Media (15%)', lvlQ: 'Alta (25%)', lvlH: 'Máxima (30%)',
+    placeUrl: 'opitro.com', placeText: 'Cualquier texto…',
+    ssid: 'Nombre de la red', pass: 'Contraseña', prot: 'Seguridad', noPass: 'Sin contraseña', hidden: 'Red oculta',
+    first: 'Nombre', last: 'Apellido', org: 'Organización', job: 'Puesto',
+    phone: 'Teléfono', mail: 'Correo', site: 'Sitio web',
+    png: 'Descargar PNG', svg: 'Descargar SVG', clear: 'Limpiar',
+    empty: 'Rellena los campos de la izquierda: el código aparece al momento',
+    chars: 'Caracteres', modules: 'Módulos', ready: 'Listo',
+    tooMuch: 'Demasiados datos para un código QR. Quita algo o baja el nivel de corrección.',
+    n1: '<b>Los acentos y la eñe se codifican bien.</b> Muchos generadores toman el byte bajo de cada carácter y el teléfono muestra caracteres raros. Nosotros pasamos la cadena a UTF-8, la forma que esperan todos los lectores.',
+    n2: '<b>Una contraseña de Wi-Fi con «;» no rompe el código.</b> En la cadena de red el punto y coma separa los campos, así que los caracteres <code>\\ ; , : "</code> del nombre y la contraseña deben escaparse. Si no, el teléfono ve la contraseña hasta el primer punto y coma y no conecta, en silencio.',
+    n3: '<b>El margen blanco forma parte del código.</b> La norma exige un marco vacío de cuatro módulos; sin él los lectores no encuentran bien el código sobre un fondo con dibujos.',
+    n4: '<b>PNG y SVG sirven para cosas distintas.</b> PNG está hecho de puntos y va bien en pantalla. SVG se describe con fórmulas y se amplía a cualquier tamaño sin perder nitidez: es el que hay que llevar a imprenta.',
+    n5: '<b>La corrección de errores es una reserva ante daños.</b> Cuanto más alta, más datos duplicados lleva el código y más grande se hace, pero se lee aunque esté arrugado o tapado por un logotipo.',
+    n6: 'No se envía nada a ninguna parte. Los enlaces, las contraseñas de red y los datos de la tarjeta se quedan en la memoria de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="кр" data-words={JSON.stringify(с)}>
+  <div class="кр-пульт">
+    <span class="кр-отступ">
+      <span class="кр-подпись">{с.kind}:</span>
+      <span class="кр-набор">
+        <button type="button" class="кр-выбор выбран" data-к="url">{с.url}</button>
+        <button type="button" class="кр-выбор" data-к="text">{с.text}</button>
+        <button type="button" class="кр-выбор" data-к="wifi">{с.wifi}</button>
+        <button type="button" class="кр-выбор" data-к="card">{с.card}</button>
+      </span>
+    </span>
+    <span class="кр-отступ">
+      <span class="кр-подпись">{с.level}:</span>
+      <select class="кр-список" id="кр-уровень">
+        <option value="L">{с.lvlL}</option>
+        <option value="M" selected>{с.lvlM}</option>
+        <option value="Q">{с.lvlQ}</option>
+        <option value="H">{с.lvlH}</option>
+      </select>
+    </span>
+  </div>
+
+  <div class="кр-пара">
+    <div>
+      <div class="кр-поле" id="кр-гнездо-текста">
+        <textarea class="кр-ввод" id="кр-текст" spellcheck="false" placeholder={с.placeUrl}
+          style="min-height:150px">opitro.com</textarea>
+      </div>
+
+      <div class="кр-поля" id="кр-поля-wifi" hidden>
+        <div class="кр-строка"><span class="кр-имя">{с.ssid}</span>
+          <input type="text" class="кр-текст" id="кр-ssid" spellcheck="false" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.pass}</span>
+          <input type="text" class="кр-текст" id="кр-pass" spellcheck="false" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.prot}</span>
+          <select class="кр-список" id="кр-prot">
+            <option value="WPA">WPA / WPA2 / WPA3</option>
+            <option value="WEP">WEP</option>
+            <option value="nopass">{с.noPass}</option>
+          </select></div>
+        <div class="кр-строка"><span class="кр-имя"></span>
+          <label class="кр-галка"><input type="checkbox" id="кр-hidden"><i></i>{с.hidden}</label></div>
+      </div>
+
+      <div class="кр-поля" id="кр-поля-card" hidden>
+        <div class="кр-строка"><span class="кр-имя">{с.first}</span>
+          <input type="text" class="кр-текст" id="кр-first" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.last}</span>
+          <input type="text" class="кр-текст" id="кр-last" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.org}</span>
+          <input type="text" class="кр-текст" id="кр-org" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.job}</span>
+          <input type="text" class="кр-текст" id="кр-job" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.phone}</span>
+          <input type="text" class="кр-текст" id="кр-phone" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.mail}</span>
+          <input type="text" class="кр-текст" id="кр-mail" spellcheck="false" /></div>
+        <div class="кр-строка"><span class="кр-имя">{с.site}</span>
+          <input type="text" class="кр-текст" id="кр-site" spellcheck="false" /></div>
+      </div>
+
+      <div class="кр-отчёт" id="кр-отчёт"><span class="кр-сказ" id="кр-сказ"></span></div>
+    </div>
+
+    <div class="кр-окно">
+      <div class="кр-код" id="кр-код" hidden></div>
+      <div class="кр-пусто" id="кр-пусто">{с.empty}</div>
+    </div>
+  </div>
+
+  <div class="кр-ряд">
+    <button type="button" class="кр-кнопка" id="кр-png">{с.png}</button>
+    <button type="button" class="кр-обводка" id="кр-svg">{с.svg}</button>
+    <button type="button" class="кр-простая" id="кр-очистить">{с.clear}</button>
+  </div>
+
+  <div class="кр-заметки">
+    <div class="кр-заметка" set:html={с.n1}></div>
+    <div class="кр-заметка" set:html={с.n2}></div>
+    <div class="кр-заметка" set:html={с.n3}></div>
+    <div class="кр-заметка" set:html={с.n4}></div>
+    <div class="кр-заметка" set:html={с.n5}></div>
+    <div class="кр-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<script>
+  import qrcode from 'qrcode-generator';
+  import { ссылка, сетьWifi, визитка, вSVG, настроитьUTF8 } from '../lib/qr-payload.js';
+
+  const корень = document.querySelector('.кр');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    // ОБЯЗАТЕЛЬНО и один раз: без этого кириллица в коде превращается в кракозябры.
+    настроитьUTF8(qrcode);
+
+    let вид = 'url';
+    let матрица = null;      // {тёмная, размер}
+    let строкаКода = '';
+
+    const знач = (и) => ($(и) ? $(и).value : '');
+
+    function собратьСтроку() {
+      if (вид === 'url') return ссылка(знач('кр-текст'));
+      if (вид === 'text') return знач('кр-текст');
+      if (вид === 'wifi') {
+        return сетьWifi({
+          имя: знач('кр-ssid'), пароль: знач('кр-pass'),
+          защита: знач('кр-prot'), скрытая: $('кр-hidden').checked,
+        });
+      }
+      return визитка({
+        имя: знач('кр-first'), фамилия: знач('кр-last'), организация: знач('кр-org'),
+        должность: знач('кр-job'), телефон: знач('кр-phone'), почта: знач('кр-mail'),
+        сайт: знач('кр-site'),
+      });
+    }
+
+    function отчёт(куски) {
+      $('кр-отчёт').replaceChildren(...куски.map((т) => {
+        const э = document.createElement('span');
+        э.innerHTML = т;
+        return э;
+      }), $('кр-сказ'));
+    }
+
+    function пусто(текст) {
+      матрица = null;
+      строкаКода = '';
+      $('кр-код').hidden = true;
+      $('кр-код').replaceChildren();
+      $('кр-пусто').hidden = false;
+      $('кр-пусто').textContent = текст || с.empty;
+    }
+
+    function пересчитать() {
+      const строка = собратьСтроку();
+      if (!строка.trim()) { пусто(); отчёт([]); return; }
+      let код;
+      try {
+        // Ноль -- «подбери версию сам, по объёму данных».
+        код = qrcode(0, $('кр-уровень').value);
+        код.addData(строка);
+        код.make();
+      } catch (е) {
+        // Единственная настоящая беда здесь -- данные не влезли ни в одну версию.
+        пусто(с.tooMuch);
+        отчёт([`<span style="color:var(--беда)">${с.tooMuch}</span>`]);
+        return;
+      }
+      const размер = код.getModuleCount();
+      матрица = { тёмная: (р, к) => код.isDark(р, к), размер };
+      строкаКода = строка;
+      $('кр-пусто').hidden = true;
+      $('кр-код').hidden = false;
+      $('кр-код').innerHTML = вSVG(матрица.тёмная, размер);
+      отчёт([
+        `${с.chars}: <b>${строка.length}</b>`,
+        `${с.modules}: <b>${размер}×${размер}</b>`,
+        `${с.level}: <b>${$('кр-уровень').value}</b>`,
+      ]);
+    }
+
+    function поставитьВид(новый) {
+      вид = новый;
+      for (const кн of корень.querySelectorAll('.кр-выбор')) {
+        кн.classList.toggle('выбран', кн.dataset.к === новый);
+      }
+      const текстовый = новый === 'url' || новый === 'text';
+      $('кр-гнездо-текста').hidden = !текстовый;
+      $('кр-поля-wifi').hidden = новый !== 'wifi';
+      $('кр-поля-card').hidden = новый !== 'card';
+      if (текстовый) $('кр-текст').placeholder = новый === 'url' ? с.placeUrl : с.placeText;
+      пересчитать();
+    }
+
+    for (const кн of корень.querySelectorAll('.кр-выбор')) {
+      кн.addEventListener('click', () => поставитьВид(кн.dataset.к));
+    }
+    for (const ид of ['кр-текст','кр-ssid','кр-pass','кр-first','кр-last','кр-org','кр-job','кр-phone','кр-mail','кр-site']) {
+      $(ид).addEventListener('input', пересчитать);
+    }
+    for (const ид of ['кр-уровень','кр-prot','кр-hidden']) {
+      $(ид).addEventListener('change', пересчитать);
+    }
+
+    function скачать(содержимое, имя, тип) {
+      const blob = содержимое instanceof Blob ? содержимое : new Blob([содержимое], { type: тип });
+      const адрес = URL.createObjectURL(blob);
+      const а = document.createElement('a');
+      а.href = адрес;
+      а.download = имя;
+      document.body.appendChild(а);
+      а.click();
+      а.remove();
+      setTimeout(() => URL.revokeObjectURL(адрес), 5000);
+    }
+
+    const вСВГ = () => вSVG(матрица.тёмная, матрица.размер);
+
+    $('кр-svg').addEventListener('click', () => {
+      if (!матрица) return;
+      скачать(вСВГ(), 'qr-code.svg', 'image/svg+xml');
+    });
+
+    $('кр-png').addEventListener('click', () => {
+      if (!матрица) return;
+      // Рисуем крупно: 1024 точки по стороне хватает и для печати наклейки, и для экрана.
+      const поле = 4;
+      const всего = матрица.размер + поле * 2;
+      const сторона = Math.max(1024, всего * 8);
+      const шаг = Math.floor(сторона / всего);
+      const холст = document.createElement('canvas');
+      холст.width = холст.height = шаг * всего;
+      const рис = холст.getContext('2d');
+      рис.fillStyle = '#ffffff';
+      рис.fillRect(0, 0, холст.width, холст.height);
+      рис.fillStyle = '#000000';
+      for (let р = 0; р < матрица.размер; р++) {
+        for (let к = 0; к < матрица.размер; к++) {
+          if (матрица.тёмная(р, к)) рис.fillRect((к + поле) * шаг, (р + поле) * шаг, шаг, шаг);
+        }
+      }
+      холст.toBlob((blob) => { if (blob) скачать(blob, 'qr-code.png', 'image/png'); }, 'image/png');
+    });
+
+    $('кр-очистить').addEventListener('click', () => {
+      for (const ид of ['кр-текст','кр-ssid','кр-pass','кр-first','кр-last','кр-org','кр-job','кр-phone','кр-mail','кр-site']) {
+        $(ид).value = '';
+      }
+      $('кр-hidden').checked = false;
+      пересчитать();
+    });
+
+    пересчитать();
+
+    window.__крСостояние = () => ({
+      вид,
+      строка: строкаКода,
+      размер: матрица ? матрица.размер : 0,
+      отчёт: $('кр-отчёт').textContent.trim(),
+      кодВиден: !$('кр-код').hidden,
+      пусто: $('кр-пусто').hidden ? '' : $('кр-пусто').textContent,
+      svg: матрица ? вСВГ().length : 0,
+    });
+  })();
+</script>

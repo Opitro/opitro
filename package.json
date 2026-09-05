@@ -20,6 +20,7 @@
     "ajv-formats": "^3.0.1",
     "astro": "^7.1.6",
     "jszip": "^3.10.1",
+    "qrcode-generator": "^2.0.4",
     "sql-formatter": "^15.8.2"
   }
 }
