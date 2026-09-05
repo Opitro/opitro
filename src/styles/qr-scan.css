@@ -314,7 +314,7 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
   background: linear-gradient(to bottom, rgba(80,255,170,0) 0%, rgba(80,255,170,.14) 62%,
     rgba(80,255,170,.8) 96%, rgba(255,255,255,.95) 100%);
   box-shadow: 0 2px 12px rgba(80,255,170,.5) }
-.ск2-зона.ищет .ск2-луч-зоны { animation: ск2-бег 1.15s cubic-bezier(.5,0,.5,1) infinite }
+.ск2-зона.ищет .ск2-луч-зоны { animation: ск2-бег 1.5s cubic-bezier(.5,0,.5,1) infinite }
 @keyframes ск2-бег {
   0%   { top: -76px; opacity: 0 }
   12%  { opacity: 1 }

@@ -19,6 +19,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    fPrice: "Цену видели", priceNote: "Это не средняя цена, а записи покупателей: кто-то отметил такую цену в таком магазине в такой день. Больше всего их по Франции и Испании.",
     drop2: "Убрать файл",
     badHeic: "Это снимок в формате HEIC — так iPhone сохраняет фотографии, и открывать их умеет только Safari. Откройте эту страницу на самом iPhone, либо переснимите в JPEG: Настройки → Камера → Форматы → «Наиболее совместимые».",
     base: "Найти в открытой базе", baseWait: "Ищу…", baseNone: "В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.", baseFail: "База не ответила. Проверьте связь и попробуйте ещё раз.", fName: "Название", fBrand: "Марка", fQty: "Объём или вес", fCats: "Что это", fScore: "Nutri-Score", baseFrom: "Данные: Open Food Facts",
@@ -63,6 +64,7 @@ const СЛОВА = {
     n6: 'Снимок никуда не загружается: распознавание идёт в самой вкладке. В сеть уходит только номер и только если вы нажали «Найти в открытой базе».',
   },
   uk: {
+    fPrice: "Ціну бачили", priceNote: "Це не середня ціна, а записи покупців: хтось відзначив таку ціну в такому магазині того дня. Найбільше їх по Франції та Іспанії.",
     drop2: "Прибрати файл",
     badHeic: "Це знімок у форматі HEIC — так iPhone зберігає фотографії, і відкривати їх уміє лише Safari. Відкрийте цю сторінку на самому iPhone або перезнiміть у JPEG: Налаштування → Камера → Формати → «Найсумісніші».",
     base: "Знайти у відкритій базі", baseWait: "Шукаю…", baseNone: "У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.", baseFail: "База не відповіла. Перевірте зв’язок і спробуйте ще раз.", fName: "Назва", fBrand: "Марка", fQty: "Обсяг або вага", fCats: "Що це", fScore: "Nutri-Score", baseFrom: "Дані: Open Food Facts",
@@ -107,6 +109,7 @@ const СЛОВА = {
     n6: 'Знімок нікуди не завантажується: розпізнавання йде в самій вкладці. У мережу йде лише номер і лише якщо ви натиснули «Знайти у відкритій базі».',
   },
   en: {
+    fPrice: "Prices seen", priceNote: "This is not an average price but shoppers' records: somebody noted this price, in this shop, on this day. Most of them are from France and Spain.",
     drop2: "Remove the file",
     badHeic: "This is a HEIC photo — the format iPhones save in, and only Safari can open it. Open this page on the iPhone itself, or switch the camera to JPEG: Settings → Camera → Formats → “Most Compatible”.",
     base: "Look up in the open database", baseWait: "Looking…", baseNone: "This product is not in the open database. It is compiled by people, and it is mostly food.", baseFail: "The database did not answer. Check the connection and try again.", fName: "Name", fBrand: "Brand", fQty: "Size", fCats: "What it is", fScore: "Nutri-Score", baseFrom: "Data: Open Food Facts",
@@ -151,6 +154,7 @@ const СЛОВА = {
     n6: 'The picture is never uploaded: recognition happens inside the tab itself. The only thing that ever leaves is the number, and only if you press “Look up in the open database”.',
   },
   es: {
+    fPrice: "Precios vistos", priceNote: "No es un precio medio sino apuntes de compradores: alguien anotó ese precio, en esa tienda, ese día. La mayoría son de Francia y España.",
     drop2: "Quitar el archivo",
     badHeic: "Es una foto en formato HEIC: así guarda el iPhone, y solo Safari sabe abrirlo. Abra esta página en el propio iPhone, o cambie la cámara a JPEG: Ajustes → Cámara → Formatos → «Más compatible».",
     base: "Buscar en la base abierta", baseWait: "Buscando…", baseNone: "Este producto no está en la base abierta. La recopilan personas y es sobre todo comida.", baseFail: "La base no ha respondido. Compruebe la conexión e inténtelo de nuevo.", fName: "Nombre", fBrand: "Marca", fQty: "Cantidad", fCats: "Qué es", fScore: "Nutri-Score", baseFrom: "Datos: Open Food Facts",
@@ -522,7 +526,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       // Луч идёт своё время, разбор -- своё. Показываем, когда готово И то, и другое: ответ
       // поверх недобежавшего луча выглядел бы поломкой. Но и держать готовый ответ ради
       // красоты не станем -- ждём ровно один проход луча, не дольше.
-      const луч = new Promise((г) => setTimeout(г, 900));
+      const луч = new Promise((г) => setTimeout(г, 1150));
       let н = null;
       try { н = await прочитатьСнимок({ картинка: кадр, нужно: 'оба' }); } catch (е) { н = null; }
       await луч;
@@ -654,7 +658,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         зона.classList.add('ищет');
         сказатьВИтог(с.looking);
 
-        const ход = new Promise((г) => setTimeout(г, 900));
+        const ход = new Promise((г) => setTimeout(г, 1150));
         let н = null;
         try {
           н = await прочитатьСнимок({ картинка: карт, нужно: 'оба' });
@@ -736,13 +740,21 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       кнопка.textContent = с.baseWait;
 
       let товар = null;
+      let цены = null;
       try {
         const поля = ['product_name', 'product_name_' + язык, 'brands', 'quantity',
           'categories', 'nutriscore_grade', 'image_front_small_url'].join(',');
-        const ответ = await fetch(
-          `https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(код)}.json?fields=${поля}`);
+        // Оба запроса разом: одно нажатие -- один поход в сеть, пусть и по двум адресам.
+        // Цены живут в отдельной базе того же проекта, и её молчание не должно мешать
+        // показать название товара.
+        const [ответ, ответЦен] = await Promise.all([
+          fetch(`https://world.openfoodfacts.org/api/v2/product/${encodeURIComponent(код)}.json?fields=${поля}`),
+          fetch(`https://prices.openfoodfacts.org/api/v1/prices?product_code=${encodeURIComponent(код)}&size=3&order_by=-date`)
+            .then((о) => о.json()).catch(() => null),
+        ]);
         const данные = await ответ.json();
         товар = данные && данные.status === 1 ? данные.product : false;
+        цены = ответЦен && ответЦен.items && ответЦен.items.length ? ответЦен.items : null;
       } catch (е) {
         товар = null;                      // связи нет -- это не то же самое, что «не найден»
       }
@@ -777,7 +789,26 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const коротко = (с2) => String(с2 || '').split(',').map((к) => к.trim())
           .filter((к) => к && !/^[a-z]{2}:/.test(к)).slice(0, 3).join(', ');
         строки.push([с.fCats, коротко(товар.categories)]);
+        // Цена -- это НЕ поле товара, а чужие наблюдения, и место им отдельное. Средней цены
+        // мы не считаем и слова такого не пишем: две записи из Франции не среднее ни для кого.
+        if (цены) {
+          const где = (ц) => {
+            const м = ц.location || {};
+            const имя2 = м.osm_name || (м.osm_display_name || '').split(',')[0] || '';
+            const город = м.osm_address_city || (м.osm_display_name || '').split(',').slice(-3, -2)[0] || '';
+            return [имя2, город].filter(Boolean).join(', ');
+          };
+          const датой2 = (д) => {
+            const т2 = new Date(д);
+            return isNaN(т2) ? д : т2.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' });
+          };
+          строки.push(...цены.map((ц, и) => [
+            и === 0 ? с.fPrice : '',
+            [`${ц.price} ${ц.currency || ''}`.trim(), где(ц), датой2(ц.date)].filter(Boolean).join(' · '),
+          ]));
+        }
         коробка.appendChild(пары(строки));
+        if (цены) коробка.appendChild(узел('div', 'скш-подсказ', с.priceNote));
         // Данные чужие и открытые: назвать источник -- условие, на котором их отдают.
         коробка.appendChild(узел('div', 'скш-источник', с.baseFrom));
       }

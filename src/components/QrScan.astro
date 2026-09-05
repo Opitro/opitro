@@ -479,7 +479,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         зона.classList.add('ищет');
         сказатьВИтог(с.looking);
 
-        const ход = new Promise((г) => setTimeout(г, 900));
+        const ход = new Promise((г) => setTimeout(г, 1150));
         let н = null;
         try {
           н = await прочитатьСнимок({ картинка: карт, нужно: 'оба' });
