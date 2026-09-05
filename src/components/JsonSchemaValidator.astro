@@ -1,0 +1,291 @@
+---
+// ВАЛИДАЦИЯ JSON ПО СХЕМЕ.
+//
+// Два независимых окна: схема (правила) и данные (объект). Синтаксис обоих проверяется на
+// лету НАШИМ разбором из json-format.js -- он даёт точное место ошибки одинаково во всех
+// браузерах. Сами правила схемы проверяет Ajv, образцовая реализация стандарта; он грузится
+// лениво, при первой проверке, потому что весит больше сотни килобайт.
+//
+// ЧЕРНОВИК СТАНДАРТА НАЗЫВАЕТСЯ ЯВНО. Draft-07, 2019-09 и 2020-12 несовместимы между собой
+// (в поздних у массивов вместо items -- prefixItems), и человек должен видеть, по каким
+// правилам его проверили. Берётся из поля $schema, а если его нет -- draft-07.
+import css from '../styles/json-schema.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const ПРИМЕР_СХЕМЫ = `{
+  "type": "object",
+  "required": ["id", "email"],
+  "properties": {
+    "id":    { "type": "integer", "minimum": 1 },
+    "email": { "type": "string", "format": "email" },
+    "tags":  { "type": "array", "items": { "type": "string" } }
+  }
+}`;
+const ПРИМЕР_ДАННЫХ = `{
+  "id": "12",
+  "tags": ["новый", 7]
+}`;
+
+const СЛОВА = {
+  ru: {
+    run: 'Проверить', clear: 'Очистить',
+    schema: 'Схема', schemaHint: 'правила', data: 'Данные', dataHint: 'проверяемый объект',
+    placeSchema: 'Вставьте JSON Schema…', placeData: 'Вставьте проверяемый JSON…',
+    matched: 'Соответствует', failed: 'Не соответствует', idle: 'Не проверено',
+    draft: 'Черновик', line: 'строка', col: 'столбец',
+    badSchema: 'Ошибка в схеме', badData: 'Ошибка в данных',
+    header: 'Несоответствия', found: 'Найдено',
+    schemaBroken: '<b>Схема не годится.</b> Ajv отказался её принять:',
+    loadFail: '<b>Не удалось загрузить проверку.</b> Похоже, пропала сеть — попробуйте ещё раз:',
+    okAll: '<b>Данные соответствуют схеме.</b> Все обязательные поля на месте, типы и ограничения сошлись.',
+    needBoth: 'Заполните оба окна: слева схему, справа данные.',
+    working: 'Проверяем…',
+    root: '(корень)',
+    n1: '<b>Это не то же самое, что проверка JSON.</b> Обычный валидатор смотрит только на синтаксис — разберётся ли текст вообще. Здесь проверяется смысл: те ли поля пришли, тех ли типов, в тех ли пределах. Синтаксически безупречный <code>{"age": "сорок"}</code> провалит проверку по схеме, где возраст объявлен числом.',
+    n2: '<b>Черновик стандарта называется явно.</b> Draft-07, 2019-09 и 2020-12 между собой несовместимы: в поздних у массивов вместо <code>items</code> появился <code>prefixItems</code>. Мы берём черновик из поля <code>$schema</code> вашей схемы, а если его нет — проверяем по draft-07, самому распространённому. Какой применён, написано рядом с кнопкой.',
+    n3: '<b>Показываются все несоответствия сразу, а не первое.</b> Так виден весь список правок, и не приходится чинить по одному, перезапуская проверку после каждого.',
+    n4: '<b>Ошибку в самой схеме мы отличаем от ошибки в данных.</b> Неизвестное ключевое слово, битая ссылка <code>$ref</code>, <code>"type": "int"</code> вместо <code>"integer"</code> — про это сказано отдельно, потому что чинить надо не данные.',
+    n5: 'Ничего никуда не отправляется. Ответы серверов, настройки и схемы остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    run: 'Перевірити', clear: 'Очистити',
+    schema: 'Схема', schemaHint: 'правила', data: 'Дані', dataHint: 'об’єкт, що перевіряється',
+    placeSchema: 'Вставте JSON Schema…', placeData: 'Вставте JSON для перевірки…',
+    matched: 'Відповідає', failed: 'Не відповідає', idle: 'Не перевірено',
+    draft: 'Чернетка', line: 'рядок', col: 'стовпець',
+    badSchema: 'Помилка у схемі', badData: 'Помилка в даних',
+    header: 'Невідповідності', found: 'Знайдено',
+    schemaBroken: '<b>Схема не годиться.</b> Ajv відмовився її прийняти:',
+    loadFail: '<b>Не вдалося завантажити перевірку.</b> Схоже, зникла мережа — спробуйте ще раз:',
+    okAll: '<b>Дані відповідають схемі.</b> Усі обов’язкові поля на місці, типи й обмеження зійшлися.',
+    needBoth: 'Заповніть обидва вікна: ліворуч схему, праворуч дані.',
+    working: 'Перевіряємо…',
+    root: '(корінь)',
+    n1: '<b>Це не те саме, що перевірка JSON.</b> Звичайний валідатор дивиться лише на синтаксис — чи розбереться текст узагалі. Тут перевіряється зміст: ті поля прийшли чи ні, тих типів, у тих межах. Синтаксично бездоганний <code>{"age": "сорок"}</code> провалить перевірку за схемою, де вік оголошено числом.',
+    n2: '<b>Чернетку стандарту названо явно.</b> Draft-07, 2019-09 і 2020-12 між собою несумісні: у пізніших у масивів замість <code>items</code> з’явився <code>prefixItems</code>. Ми беремо чернетку з поля <code>$schema</code> вашої схеми, а якщо його немає — перевіряємо за draft-07.',
+    n3: '<b>Показуються всі невідповідності одразу, а не перша.</b> Так видно весь список правок, і не доводиться лагодити по одній, перезапускаючи перевірку після кожної.',
+    n4: '<b>Помилку в самій схемі ми відрізняємо від помилки в даних.</b> Невідоме ключове слово, побите посилання <code>$ref</code>, <code>"type": "int"</code> замість <code>"integer"</code> — про це сказано окремо, бо лагодити треба не дані.',
+    n5: 'Нічого нікуди не надсилається. Відповіді серверів, налаштування і схеми лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    run: 'Validate', clear: 'Clear',
+    schema: 'Schema', schemaHint: 'the rules', data: 'Data', dataHint: 'the object being checked',
+    placeSchema: 'Paste a JSON Schema…', placeData: 'Paste the JSON to check…',
+    matched: 'Matches', failed: 'Does not match', idle: 'Not checked',
+    draft: 'Draft', line: 'line', col: 'column',
+    badSchema: 'Error in the schema', badData: 'Error in the data',
+    header: 'Mismatches', found: 'Found',
+    schemaBroken: '<b>The schema itself will not do.</b> Ajv refused to accept it:',
+    loadFail: '<b>The validator could not be loaded.</b> The network seems to have dropped — try again:',
+    okAll: '<b>The data matches the schema.</b> Every required field is there, and the types and limits all agree.',
+    needBoth: 'Fill in both boxes: the schema on the left, the data on the right.',
+    working: 'Checking…',
+    root: '(root)',
+    n1: '<b>This is not the same as checking JSON.</b> An ordinary validator looks only at syntax — whether the text parses at all. Here the meaning is checked: are the right fields present, of the right types, within the right limits. A syntactically flawless <code>{"age": "forty"}</code> fails against a schema that declares age to be a number.',
+    n2: '<b>The draft of the standard is named explicitly.</b> Draft-07, 2019-09 and 2020-12 are mutually incompatible: the later ones replaced array <code>items</code> with <code>prefixItems</code>. We take the draft from the <code>$schema</code> field of your schema and fall back to draft-07, the most widespread one. Which one was used is shown next to the button.',
+    n3: '<b>Every mismatch is listed at once, not just the first.</b> That way the whole list of fixes is visible and you do not have to repair them one at a time, rerunning the check after each.',
+    n4: '<b>An error in the schema is told apart from an error in the data.</b> An unknown keyword, a broken <code>$ref</code>, <code>"type": "int"</code> instead of <code>"integer"</code> — that is reported separately, because what needs fixing is not the data.',
+    n5: 'Nothing is sent anywhere. Server responses, configuration and schemas stay in the memory of the tab and vanish with it.',
+  },
+  es: {
+    run: 'Validar', clear: 'Limpiar',
+    schema: 'Esquema', schemaHint: 'las reglas', data: 'Datos', dataHint: 'el objeto a comprobar',
+    placeSchema: 'Pega un JSON Schema…', placeData: 'Pega el JSON a comprobar…',
+    matched: 'Coincide', failed: 'No coincide', idle: 'Sin comprobar',
+    draft: 'Borrador', line: 'línea', col: 'columna',
+    badSchema: 'Error en el esquema', badData: 'Error en los datos',
+    header: 'Discrepancias', found: 'Encontradas',
+    schemaBroken: '<b>El esquema no sirve.</b> Ajv se ha negado a aceptarlo:',
+    loadFail: '<b>No se ha podido cargar el validador.</b> Parece que se ha caído la red; inténtalo otra vez:',
+    okAll: '<b>Los datos coinciden con el esquema.</b> Están todos los campos obligatorios y los tipos y límites cuadran.',
+    needBoth: 'Rellena las dos ventanas: el esquema a la izquierda, los datos a la derecha.',
+    working: 'Comprobando…',
+    root: '(raíz)',
+    n1: '<b>Esto no es lo mismo que comprobar el JSON.</b> Un validador corriente solo mira la sintaxis: si el texto se analiza o no. Aquí se comprueba el sentido: si han llegado los campos correctos, del tipo correcto y dentro de los límites. Un <code>{"age": "cuarenta"}</code> impecable de sintaxis falla ante un esquema que declara la edad como número.',
+    n2: '<b>El borrador del estándar se indica de forma explícita.</b> Draft-07, 2019-09 y 2020-12 son incompatibles entre sí: los posteriores cambiaron <code>items</code> de los arrays por <code>prefixItems</code>. Tomamos el borrador del campo <code>$schema</code> de tu esquema y, si no está, usamos draft-07.',
+    n3: '<b>Se listan todas las discrepancias a la vez, no solo la primera.</b> Así se ve la lista completa de arreglos y no hay que ir uno por uno relanzando la comprobación.',
+    n4: '<b>Un error del esquema se distingue de un error de los datos.</b> Una palabra clave desconocida, un <code>$ref</code> roto, <code>"type": "int"</code> en vez de <code>"integer"</code>: eso se avisa aparte, porque lo que hay que arreglar no son los datos.',
+    n5: 'No se envía nada a ninguna parte. Las respuestas de servidores, la configuración y los esquemas se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="сх" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="сх-пульт">
+    <button type="button" class="сх-кнопка" id="сх-проверить">{с.run}</button>
+    <button type="button" class="сх-простая" id="сх-очистить">{с.clear}</button>
+    <span class="сх-черновик" id="сх-черновик"></span>
+    <span class="сх-знак" id="сх-знак">{с.idle}</span>
+  </div>
+
+  <div class="сх-пара">
+    <div class="сх-окно">
+      <span class="сх-имя">{с.schema} <i>— {с.schemaHint}</i></span>
+      <div class="сх-поле" id="сх-поле-схемы">
+        <textarea class="сх-ввод" id="сх-схема" placeholder={с.placeSchema} spellcheck="false"
+          autocapitalize="off" autocorrect="off">{ПРИМЕР_СХЕМЫ}</textarea>
+      </div>
+      <div class="сх-разбор" id="сх-разбор-схемы"></div>
+    </div>
+    <div class="сх-окно">
+      <span class="сх-имя">{с.data} <i>— {с.dataHint}</i></span>
+      <div class="сх-поле" id="сх-поле-данных">
+        <textarea class="сх-ввод" id="сх-данные" placeholder={с.placeData} spellcheck="false"
+          autocapitalize="off" autocorrect="off">{ПРИМЕР_ДАННЫХ}</textarea>
+      </div>
+      <div class="сх-разбор" id="сх-разбор-данных"></div>
+    </div>
+  </div>
+
+  <div class="сх-итог" id="сх-итог"></div>
+
+  <div class="сх-заметки">
+    <div class="сх-заметка" set:html={с.n1}></div>
+    <div class="сх-заметка" set:html={с.n2}></div>
+    <div class="сх-заметка" set:html={с.n3}></div>
+    <div class="сх-заметка" set:html={с.n4}></div>
+    <div class="сх-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<script>
+  import { обработатьJSON } from '../lib/json-format.js';
+  import { проверитьПоСхеме, черновик, пофразе } from '../lib/json-schema-check.js';
+
+  const корень = document.querySelector('.сх');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+    const схема = $('сх-схема');
+    const данные = $('сх-данные');
+    const знак = $('сх-знак');
+    const итог = $('сх-итог');
+    let ход = 0;   // номер запуска: ответ старой проверки не должен затирать новую
+
+    function поставитьЗнак(вид, текст) {
+      знак.className = 'сх-знак' + (вид ? ' ' + вид : '');
+      знак.textContent = текст;
+    }
+
+    /** Разбор синтаксиса своим движком: место ошибки одинаково во всех браузерах. */
+    function синтаксис(поле, гнездо, разбор) {
+      const итог = обработатьJSON(поле.value, 2);
+      const плохо = !!итог.ошибка;
+      гнездо.classList.toggle('негоден', плохо);
+      разбор.textContent = плохо
+        ? `${с.line} ${итог.ошибка.строка}, ${с.col} ${итог.ошибка.столбец} — ${итог.ошибка.текст}`
+        : '';
+      return итог;
+    }
+
+    function весть(текст, беда) {
+      итог.replaceChildren();
+      const э = document.createElement('div');
+      э.className = 'сх-весть' + (беда ? ' беда' : '');
+      э.innerHTML = текст;
+      итог.appendChild(э);
+    }
+
+    function проверитьСинтаксис() {
+      const с1 = синтаксис(схема, $('сх-поле-схемы'), $('сх-разбор-схемы'));
+      const с2 = синтаксис(данные, $('сх-поле-данных'), $('сх-разбор-данных'));
+      // Черновик виден сразу, ещё до нажатия: он влияет на смысл написанного в схеме.
+      if (с1.готово) {
+        try {
+          $('сх-черновик').innerHTML = `${с.draft}: <b>${черновик(JSON.parse(с1.готово))}</b>`;
+        } catch (е) { $('сх-черновик').textContent = ''; }
+      } else $('сх-черновик').textContent = '';
+      return { с1, с2 };
+    }
+
+    async function проверить() {
+      const { с1, с2 } = проверитьСинтаксис();
+
+      if (с1.пусто || с2.пусто) {
+        поставитьЗнак('', с.idle);
+        весть(с.needBoth, false);
+        return;
+      }
+      if (с1.ошибка) { поставитьЗнак('негоден', с.badSchema); итог.replaceChildren(); return; }
+      if (с2.ошибка) { поставитьЗнак('негоден', с.badData); итог.replaceChildren(); return; }
+
+      const мой = ++ход;
+      поставитьЗнак('', с.working);
+      const ответ = await проверитьПоСхеме(JSON.parse(с1.готово), JSON.parse(с2.готово), с.root);
+      if (мой !== ход) return;   // за это время нажали ещё раз -- старый ответ не нужен
+
+      if (ответ.неЗагрузилось) {
+        поставитьЗнак('негоден', с.failed);
+        весть(`${с.loadFail} <code>${ответ.неЗагрузилось}</code>`, true);
+        return;
+      }
+      if (ответ.схемаПлоха) {
+        поставитьЗнак('негоден', с.badSchema);
+        весть(`${с.schemaBroken} <code>${ответ.схемаПлоха}</code>`, true);
+        return;
+      }
+      if (ответ.годно) {
+        поставитьЗнак('годен', с.matched);
+        весть(с.okAll, false);
+        return;
+      }
+
+      поставитьЗнак('негоден', с.failed);
+      const список = document.createElement('div');
+      список.className = 'сх-список';
+      const шапка = document.createElement('div');
+      шапка.className = 'сх-шапка';
+      шапка.textContent = `${с.header} — ${с.found}: ${ответ.ошибки.length}`;
+      список.appendChild(шапка);
+      for (const о of ответ.ошибки) {
+        const строка = document.createElement('div');
+        строка.className = 'сх-строка';
+        const путь = document.createElement('span');
+        путь.className = 'сх-путь';
+        путь.textContent = о.путь;
+        const что = document.createElement('span');
+        что.className = 'сх-что';
+        что.textContent = пофразе(о, язык);
+        строка.append(путь, что);
+        список.appendChild(строка);
+      }
+      итог.replaceChildren(список);
+    }
+
+    let часы;
+    const позже = () => { clearTimeout(часы); часы = setTimeout(проверить, 600); };
+    for (const поле of [схема, данные]) {
+      поле.addEventListener('input', () => { проверитьСинтаксис(); позже(); });
+    }
+    $('сх-проверить').addEventListener('click', () => { clearTimeout(часы); проверить(); });
+    $('сх-очистить').addEventListener('click', () => {
+      схема.value = '';
+      данные.value = '';
+      clearTimeout(часы);
+      проверитьСинтаксис();
+      поставитьЗнак('', с.idle);
+      итог.replaceChildren();
+      схема.focus();
+    });
+
+    проверитьСинтаксис();
+
+    window.__схСостояние = () => ({
+      знак: знак.textContent,
+      годен: знак.classList.contains('годен'),
+      негоден: знак.classList.contains('негоден'),
+      черновик: $('сх-черновик').textContent,
+      разборСхемы: $('сх-разбор-схемы').textContent,
+      разборДанных: $('сх-разбор-данных').textContent,
+      итог: итог.textContent.trim(),
+      строк: итог.querySelectorAll('.сх-строка').length,
+      пути: [...итог.querySelectorAll('.сх-путь')].map((э) => э.textContent),
+    });
+    window.__схПроверить = проверить;
+  })();
+</script>
