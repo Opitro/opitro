@@ -21,10 +21,11 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    otherShort: "Штрихкод",
     goOther: "Разобрать этот код",
     stop: "Выключить камеру", other: "Сканер штрихкода",
     kindBar: "Штрихкод", barHint: "Это штрихкод, а не QR-код. Страна, контрольная цифра и остальной разбор — на соседней странице.",
-    mode: 'Откуда', camera: 'Камера', photo: 'Файл или снимок',
+    mode: 'Откуда', camera: 'Камера', photo: "Файл",
     camIdle: 'Нажмите значок фотоаппарата — браузер спросит разрешение на камеру.',
     camDenied: 'Камера не доступна. Разрешение не дано или устройства нет. Можно распознать снимок: переключитесь на «Файл или снимок».',
     camLooking: 'Наведите код на прицел…',
@@ -48,10 +49,11 @@ const СЛОВА = {
     n5: 'Ничего никуда не отправляется. Картинка с кодом и поток с камеры разбираются прямо в браузере: они не уходят в сеть и нигде не сохраняются.',
   },
   uk: {
+    otherShort: "Штрихкод",
     goOther: "Розібрати цей код",
     stop: "Вимкнути камеру", other: "Сканер штрихкоду",
     kindBar: "Штрихкод", barHint: "Це штрихкод, а не QR-код. Країна, контрольна цифра та решта розбору — на сусідній сторінці.",
-    mode: 'Звідки', camera: 'Камера', photo: 'Файл або знімок',
+    mode: 'Звідки', camera: 'Камера', photo: "Файл",
     camIdle: 'Натисніть значок фотоапарата — браузер запитає дозвіл на камеру.',
     camDenied: 'Камера недоступна. Дозвіл не надано або пристрою немає. Можна розпізнати знімок: перемкніться на «Файл або знімок».',
     camLooking: 'Наведіть код на приціл…',
@@ -75,10 +77,11 @@ const СЛОВА = {
     n5: 'Нічого нікуди не надсилається. Картинка з кодом і потік з камери розбираються просто у браузері.',
   },
   en: {
+    otherShort: "Barcode",
     goOther: "Analyse this code",
     stop: "Turn the camera off", other: "Barcode scanner",
     kindBar: "Barcode", barHint: "This is a barcode, not a QR code. The country, the check digit and the rest of the analysis are on the neighbouring page.",
-    mode: 'Source', camera: 'Camera', photo: 'File or screenshot',
+    mode: 'Source', camera: 'Camera', photo: "File",
     camIdle: 'Press the camera icon — the browser will ask for permission.',
     camDenied: 'The camera is not available. Permission was refused or there is no device. You can still decode a picture: switch to “File or screenshot”.',
     camLooking: 'Point the code at the frame…',
@@ -102,10 +105,11 @@ const СЛОВА = {
     n5: 'Nothing is sent anywhere. The picture and the camera stream are decoded right in the browser: they never go to the network and are never stored.',
   },
   es: {
+    otherShort: "Barras",
     goOther: "Analizar este código",
     stop: "Apagar la cámara", other: "Escáner de códigos de barras",
     kindBar: "Código de barras", barHint: "Esto es un código de barras, no un código QR. El país, el dígito de control y el resto del análisis están en la página vecina.",
-    mode: 'Origen', camera: 'Cámara', photo: 'Archivo o captura',
+    mode: 'Origen', camera: 'Cámara', photo: "Archivo",
     camIdle: 'Pulse el icono de la cámara: el navegador pedirá permiso.',
     camDenied: 'La cámara no está disponible. No se dio permiso o no hay dispositivo. Puedes descifrar una imagen: cambia a «Archivo o captura».',
     camLooking: 'Apunta el código al marco…',
@@ -153,12 +157,19 @@ const с = СЛОВА[locale] || СЛОВА.ru;
             <path d="M3.5 3.5l17 17"/>
           </svg>
         </button>
-        <button type="button" class="ск2-выбор" data-р="photo">{с.photo}</button>
+        <button type="button" class="ск2-выбор" data-р="photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"/>
+            <path d="M13.5 3v5.5H19"/>
+          </svg>
+          {с.photo}
+        </button>
       </span>
     </span>
     <a class="ск2-сосед" href={`/${locale}/barcode-scan`}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 5h2v14H3zM6.5 5h1v14h-1zM9 5h2v14H9zM12.5 5h1v14h-1zM15 5h2v14h-2zM18.5 5h1v14h-1zM21 5h1v14h-1z"/></svg>
-      {с.other}
+      <span class="ск2-полно">{с.other}</span>
+      <span class="ск2-кратко">{с.otherShort}</span>
     </a>
   </div>
 

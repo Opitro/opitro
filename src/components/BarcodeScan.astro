@@ -19,8 +19,9 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    otherShort: "QR-код",
     goOther: "Разобрать этот код",
-    mode: 'Режим', camera: 'Камера', photo: 'Файл или снимок',
+    mode: 'Режим', camera: 'Камера', photo: "Файл",
     stop: 'Выключить камеру',
     camIdle: 'Нажмите значок фотоаппарата и поднесите штрихкод к объективу',
     camDenied: 'Браузер не дал доступ к камере. Разрешите его в настройках сайта или переключитесь на «Файл или снимок».',
@@ -49,8 +50,9 @@ const СЛОВА = {
     n6: 'Ничего никуда не отправляется. Снимок не загружается на сервер, распознавание идёт в самой вкладке, и после закрытия страницы не остаётся ничего.',
   },
   uk: {
+    otherShort: "QR-код",
     goOther: "Розібрати цей код",
-    mode: 'Режим', camera: 'Камера', photo: 'Файл або знімок',
+    mode: 'Режим', camera: 'Камера', photo: "Файл",
     stop: 'Вимкнути камеру',
     camIdle: 'Натисніть значок фотоапарата і піднесіть штрихкод до об’єктива',
     camDenied: 'Браузер не дав доступ до камери. Дозвольте його в налаштуваннях сайту або перемкніться на «Файл або знімок».',
@@ -79,8 +81,9 @@ const СЛОВА = {
     n6: 'Нічого нікуди не надсилається. Знімок не завантажується на сервер, розпізнавання йде в самій вкладці, і після закриття сторінки не лишається нічого.',
   },
   en: {
+    otherShort: "QR code",
     goOther: "Analyse this code",
-    mode: 'Mode', camera: 'Camera', photo: 'File or screenshot',
+    mode: 'Mode', camera: 'Camera', photo: "File",
     stop: 'Turn the camera off',
     camIdle: 'Press the camera icon and hold the barcode up to the lens',
     camDenied: 'The browser denied camera access. Allow it in the site settings, or switch to “File or screenshot”.',
@@ -109,8 +112,9 @@ const СЛОВА = {
     n6: 'Nothing is sent anywhere. The picture is not uploaded to a server, recognition happens inside the tab itself, and once the page is closed nothing is left behind.',
   },
   es: {
+    otherShort: "QR",
     goOther: "Analizar este código",
-    mode: 'Modo', camera: 'Cámara', photo: 'Archivo o captura',
+    mode: 'Modo', camera: 'Cámara', photo: "Archivo",
     stop: 'Apagar la cámara',
     camIdle: 'Pulse el icono de la cámara y acerque el código de barras al objetivo',
     camDenied: 'El navegador no dio acceso a la cámara. Permítalo en los ajustes del sitio o cambie a «Archivo o captura».',
@@ -162,7 +166,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
             <path d="M3.5 3.5l17 17"/>
           </svg>
         </button>
-        <button type="button" class="скш-выбор" data-р="photo">{с.photo}</button>
+        <button type="button" class="скш-выбор" data-р="photo">
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M13.5 3H7a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h10a2 2 0 0 0 2-2V8.5L13.5 3Z"/>
+            <path d="M13.5 3v5.5H19"/>
+          </svg>
+          {с.photo}
+        </button>
       </span>
     </span>
     <!-- Переход на сканер QR стоит прямо здесь, у самого инструмента: человек с кодом в
@@ -170,7 +180,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
          неправильно. -->
     <a class="скш-сосед" href={`/${locale}/qr-scan`}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 4h6v6H4zM14 4h6v6h-6zM4 14h6v6H4zM14 14h2v2h-2zM18 14h2v2h-2zM16 16h2v2h-2zM14 18h2v2h-2zM18 18h2v2h-2z"/></svg>
-      {с.other}
+      <span class="скш-полно">{с.other}</span>
+      <span class="скш-кратко">{с.otherShort}</span>
     </a>
   </div>
 
