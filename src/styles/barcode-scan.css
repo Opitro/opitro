@@ -84,7 +84,56 @@
 .скш-прицел i:nth-child(2) { right: 0; border-left: 0; border-radius: 0 4px 4px 0 }
 .скш-глазок.нашёл .скш-прицел i { border-color: var(--accent); opacity: 1 }
 
-.скш-заслон { position: absolute; inset: 0; display: flex; flex-direction: column;
+/* ---- Снимок: стоп-кадр, луч, затвор ---------------------------------------------------------
+   Живая камера на iPhone полос не ловит -- там нет встроенного распознавателя, а тяжёлый
+   таскать на каждый кадр нельзя. Поэтому снимок: кадр застывает, и по нему уже можно
+   работать всерьёз. Заодно человек видит, ЧТО именно разбирают. */
+.скш-кадр { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  display: none }
+.скш-глазок.снимок .скш-кадр { display: block }
+.скш-глазок.снимок video { visibility: hidden }
+
+/* Луч. Идёт сверху вниз, пока ищется код; за ним светящийся шлейф. */
+.скш-луч { position: absolute; left: 0; right: 0; height: 96px; pointer-events: none;
+  opacity: 0; background: linear-gradient(to bottom,
+    rgba(80,255,170,0) 0%, rgba(80,255,170,.16) 62%, rgba(80,255,170,.85) 96%,
+    rgba(255,255,255,.95) 100%);
+  box-shadow: 0 2px 14px rgba(80,255,170,.55) }
+.скш-глазок.ищет .скш-луч { animation: скш-бег 1.15s cubic-bezier(.5,0,.5,1) infinite }
+@keyframes скш-бег {
+  0%   { top: -96px; opacity: 0 }
+  12%  { opacity: 1 }
+  88%  { opacity: 1 }
+  100% { top: 100%; opacity: 0 }
+}
+/* Пока идёт разбор, прицел гаснет: он подсказка для наводки, а наводить уже нечего. */
+.скш-глазок.ищет .скш-прицел { opacity: .25 }
+
+.скш-затвор-ряд { position: absolute; left: 0; right: 0; bottom: 12px;
+  display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none }
+.скш-намёк { max-width: 82%; text-align: center; pointer-events: none;
+  font: 400 12px/1.4 var(--ui); color: #fff;
+  /* На пёстрой картинке с камеры буквы без обводки не читаются. */
+  text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.8) }
+.скш-глазок.снимок .скш-намёк { visibility: hidden }
+
+/* Затвор -- кольцо с кружком внутри, как на фотоаппарате. Подписи не требует. */
+.скш-затвор { width: 58px; height: 58px; border-radius: 50%; cursor: pointer; flex: none;
+  pointer-events: auto; padding: 0; background: rgba(0,0,0,.35);
+  border: 2px solid rgba(255,255,255,.9);
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: transform .12s, background .15s }
+.скш-затвор i { width: 42px; height: 42px; border-radius: 50%; background: #fff;
+  transition: background .15s, transform .12s }
+.скш-затвор:hover i { background: #e9ecef }
+.скш-затвор:active { transform: scale(.93) }
+/* После снимка та же кнопка возвращает живую картинку -- внутри квадратик «стоп». */
+.скш-глазок.снимок .скш-затвор i { border-radius: 7px; width: 26px; height: 26px }
+.скш-глазок.ищет .скш-затвор { opacity: .45; pointer-events: none }
+/* Пока камера выключена, снимать нечего. */
+.скш-глазок:not(.снимок) .скш-затвор-ряд { display: flex }
+
+.скш-заслон { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 18px; padding: 20px; text-align: center;
   font: 400 13px/1.6 var(--ui); color: #fff; background: #0b0c0f }
 
@@ -144,6 +193,9 @@
 .скш-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
 .скш-ждём { font: 400 13px/1.6 var(--ui); color: #fff }
 .скш-подсказ { font: 400 12.5px/1.55 var(--ui); color: #fff }
+/* Заголовок разбора кода GS1: отделяет поля упаковки от цифр самого номера. */
+.скш-шапка-разбора { margin-top: 4px; font: 400 11px var(--ui); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
 
 .скш-тревога { padding: 11px 13px; border-radius: 9px; border: 1px solid rgba(255,154,168,.55);
   background: rgba(255,154,168,.08); font: 400 12.5px/1.55 var(--ui); color: #fff }

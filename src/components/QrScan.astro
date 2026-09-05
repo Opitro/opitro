@@ -219,7 +219,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <script>
   import { разобратьСодержимое } from '../lib/qr-read.js';
-  import { прочитатьКадр } from '../lib/code-read.js';
+  import { прочитатьКадр, прочитатьСнимок } from '../lib/code-read.js';
 
   const корень = document.querySelector('.ск2');
   if (корень) (() => {
@@ -414,8 +414,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       карт.onload = async () => {
         let н = null;
         try {
-          н = await разобратьКадр(карт, карт.naturalWidth, карт.naturalHeight,
-            (рис) => рис.drawImage(карт, 0, 0), true);
+          н = await прочитатьСнимок({ картинка: карт, нужно: 'оба' });
         } catch (е) { н = null; }
         // Показываем сам снимок: сразу видно, тот ли файл разбирали.
         // Поле файла надо забрать ДО замены содержимого: replaceChildren вынимает его

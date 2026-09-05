@@ -19,6 +19,16 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
+    fParts: "Из чего состоит",
+    pPrefix: "префикс",
+    pBody: "фирма и товар",
+    pCheck: "контрольная",
+    noMore: "Больше в этом коде не записано ничего: ни названия товара, ни цены, ни срока годности. Тринадцать цифр — это всё, что в него помещается.",
+    gs1Head: "Зашифровано в коде",
+    search: "Искать в интернете",
+    ai: {"gtin":"Номер товара (GTIN)","gtinВнутри":"Номер товара внутри","sscc":"Грузовое место (SSCC)","партия":"Партия","изготовлено":"Изготовлено","оплатитьДо":"Оплатить до","упаковано":"Упаковано","лучшеДо":"Лучше употребить до","продатьДо":"Продать до","годенДо":"Годен до","вариант":"Вариант","серийный":"Серийный номер","количество":"Количество","артикул":"Артикул","артикулПоставщика":"Артикул поставщика","серийныйВнутри":"Серийный номер внутри","заказ":"Номер заказа","кудаGLN":"Куда (GLN)","местоGLN":"Место (GLN)","платёж":"Сумма","сайт":"Сайт","мера":"Мера","иное":"Ещё поле"},
+    endMonth: "конец месяца",
+    shot: "Снять код", looking: "Ищу код…", retry: "Снять ещё", liveHint: "Наведите на код и нажмите кнопку снимка", notShot: "На этом снимке кода не видно. Поднесите телефон ближе, чтобы полосы заняли ширину кадра, и держите его ровно — не под углом к упаковке.", search: "Искать в интернете",
     otherShort: "QR-код",
     goOther: "Разобрать этот код",
     mode: 'Режим', camera: 'Камера', photo: "Файл",
@@ -50,6 +60,16 @@ const СЛОВА = {
     n6: 'Ничего никуда не отправляется. Снимок не загружается на сервер, распознавание идёт в самой вкладке, и после закрытия страницы не остаётся ничего.',
   },
   uk: {
+    fParts: "З чого складається",
+    pPrefix: "префікс",
+    pBody: "фірма і товар",
+    pCheck: "контрольна",
+    noMore: "Більше в цьому коді не записано нічого: ні назви товару, ні ціни, ні терміну придатності. Тринадцять цифр — це все, що в нього вміщується.",
+    gs1Head: "Зашифровано в коді",
+    search: "Шукати в інтернеті",
+    ai: {"gtin":"Номер товару (GTIN)","gtinВнутри":"Номер товару всередині","sscc":"Вантажне місце (SSCC)","партия":"Партія","изготовлено":"Виготовлено","оплатитьДо":"Сплатити до","упаковано":"Упаковано","лучшеДо":"Краще спожити до","продатьДо":"Продати до","годенДо":"Придатний до","вариант":"Варіант","серийный":"Серійний номер","количество":"Кількість","артикул":"Артикул","артикулПоставщика":"Артикул постачальника","серийныйВнутри":"Серійний номер усередині","заказ":"Номер замовлення","кудаGLN":"Куди (GLN)","местоGLN":"Місце (GLN)","платёж":"Сума","сайт":"Сайт","мера":"Міра","иное":"Ще поле"},
+    endMonth: "кінець місяця",
+    shot: "Зняти код", looking: "Шукаю код…", retry: "Зняти ще", liveHint: "Наведіть на код і натисніть кнопку знімка", notShot: "На цьому знімку коду не видно. Піднесіть телефон ближче, щоб смуги зайняли ширину кадру, і тримайте його рівно — не під кутом до упаковки.", search: "Шукати в інтернеті",
     otherShort: "QR-код",
     goOther: "Розібрати цей код",
     mode: 'Режим', camera: 'Камера', photo: "Файл",
@@ -81,6 +101,16 @@ const СЛОВА = {
     n6: 'Нічого нікуди не надсилається. Знімок не завантажується на сервер, розпізнавання йде в самій вкладці, і після закриття сторінки не лишається нічого.',
   },
   en: {
+    fParts: "How it breaks down",
+    pPrefix: "prefix",
+    pBody: "company and item",
+    pCheck: "check digit",
+    noMore: "Nothing else is written into this code: no product name, no price, no expiry date. Thirteen digits is all it holds.",
+    gs1Head: "Encoded in the code",
+    search: "Search the web",
+    ai: {"gtin":"Item number (GTIN)","gtinВнутри":"Item number inside","sscc":"Logistic unit (SSCC)","партия":"Batch","изготовлено":"Produced on","оплатитьДо":"Due date","упаковано":"Packed on","лучшеДо":"Best before","продатьДо":"Sell by","годенДо":"Use by","вариант":"Variant","серийный":"Serial number","количество":"Count","артикул":"Part number","артикулПоставщика":"Supplier part number","серийныйВнутри":"Serial number inside","заказ":"Order number","кудаGLN":"Ship to (GLN)","местоGLN":"Location (GLN)","платёж":"Amount","сайт":"Site","мера":"Measure","иное":"Another field"},
+    endMonth: "end of month",
+    shot: "Capture the code", looking: "Looking for a code…", retry: "Capture again", liveHint: "Aim at the code and press the shutter", notShot: "No code is visible in this shot. Hold the phone closer, so the bars fill the width of the frame, and keep it square to the packaging rather than at an angle.", search: "Search the web",
     otherShort: "QR code",
     goOther: "Analyse this code",
     mode: 'Mode', camera: 'Camera', photo: "File",
@@ -112,6 +142,16 @@ const СЛОВА = {
     n6: 'Nothing is sent anywhere. The picture is not uploaded to a server, recognition happens inside the tab itself, and once the page is closed nothing is left behind.',
   },
   es: {
+    fParts: "Cómo se descompone",
+    pPrefix: "prefijo",
+    pBody: "empresa y artículo",
+    pCheck: "dígito de control",
+    noMore: "En este código no hay escrito nada más: ni el nombre del producto, ni el precio, ni la fecha de caducidad. Trece cifras es todo lo que cabe.",
+    gs1Head: "Cifrado en el código",
+    search: "Buscar en la web",
+    ai: {"gtin":"Número de artículo (GTIN)","gtinВнутри":"Número de artículo interior","sscc":"Unidad logística (SSCC)","партия":"Lote","изготовлено":"Fabricado el","оплатитьДо":"Pagar antes del","упаковано":"Envasado el","лучшеДо":"Consumo preferente","продатьДо":"Vender antes del","годенДо":"Caduca el","вариант":"Variante","серийный":"Número de serie","количество":"Cantidad","артикул":"Referencia","артикулПоставщика":"Referencia del proveedor","серийныйВнутри":"Número de serie interior","заказ":"Número de pedido","кудаGLN":"Destino (GLN)","местоGLN":"Ubicación (GLN)","платёж":"Importe","сайт":"Sitio","мера":"Medida","иное":"Otro campo"},
+    endMonth: "fin de mes",
+    shot: "Capturar el código", looking: "Buscando el código…", retry: "Capturar otra vez", liveHint: "Apunte al código y pulse el disparador", notShot: "En esta toma no se ve ningún código. Acerque el teléfono para que las barras ocupen el ancho del encuadre, y manténgalo recto respecto al envase, no en ángulo.", search: "Buscar en la web",
     otherShort: "QR",
     goOther: "Analizar este código",
     mode: 'Modo', camera: 'Cámara', photo: "Archivo",
@@ -189,8 +229,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div>
       <div class="скш-глазок" id="скш-глазок">
         <video id="скш-видео" playsinline muted></video>
+        <!-- Рабочий холст живого разбора -- он не показывается никогда. -->
         <canvas id="скш-холст"></canvas>
+        <!-- Застывший кадр: его человек и рассматривает, пока идёт разбор. -->
+        <canvas id="скш-кадр" class="скш-кадр"></canvas>
         <div class="скш-прицел"><i></i><i></i></div>
+        <div class="скш-луч"></div>
+        <div class="скш-затвор-ряд">
+          <span class="скш-намёк" id="скш-намёк"></span>
+          <button type="button" class="скш-затвор" id="скш-затвор"
+                  aria-label={с.shot} title={с.shot}><i></i></button>
+        </div>
         <div class="скш-заслон" id="скш-заслон">
           <button type="button" class="скш-крупный" id="скш-крупный" aria-label={с.camera}>
             <svg viewBox="0 0 24 24" aria-hidden="true">
@@ -217,6 +266,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="скш-ряд" id="скш-ряд">
     <button type="button" class="скш-кнопка" id="скш-копировать" disabled>{с.copy}</button>
     <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
+    <a class="скш-обводка" id="скш-искать" style="display:none" target="_blank"
+       rel="noopener noreferrer nofollow">{с.search}</a>
   </div>
 
   <div class="скш-заметки">
@@ -232,8 +283,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 <style is:inline set:html={css}></style>
 
 <script>
-  import { прочитатьКадр, камераВидитПолоски } from '../lib/code-read.js';
+  import { прочитатьКадр, прочитатьСнимок, камераВидитПолоски } from '../lib/code-read.js';
   import { разобратьШтрих, названиеСтраны } from '../lib/barcode-info.js';
+  import { разобратьGS1 } from '../lib/gs1.js';
   import { разобратьСодержимое } from '../lib/qr-read.js';
 
   const корень = document.querySelector('.скш');
@@ -249,6 +301,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     let поток = null;
     let ищем = false;
     let найдено = '';
+    let снимаем = false;
     let ловитПолоски = true;   // умеет ли живая камера ловить полосы; уточняется ниже
 
     const узел = (тег, класс, текст) => {
@@ -302,6 +355,27 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('скш-туда').style.display = 'inline-flex';
     }
 
+    /** Дата на языке страницы. Числами -- их ни с чем не спутать в любой стране. */
+    function датой(разбор) {
+      if (!разбор) return '';
+      const д = разбор.дата.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' });
+      return разбор.конецМесяца ? `${д} (${с.endMonth})` : д;
+    }
+
+    /** Поля кода GS1: срок годности, партия, вес -- всё, что в нём действительно есть. */
+    function показатьGS1(поля) {
+      итог.appendChild(узел('div', 'скш-шапка-разбора', с.gs1Head));
+      итог.appendChild(пары(поля.map((п) => {
+        const имя = (с.ai || {})[п.имя] || п.имя;
+        let значение = п.значение;
+        if (п.вид === 'дата' && п.разбор) значение = датой(п.разбор);
+        if (п.вид === 'мера' && п.разбор) {
+          значение = `${п.разбор.число} ${п.разбор.единица}`.trim();
+        }
+        return [`${имя} (${п.код})`, значение];
+      })));
+    }
+
     function показатьШтрих(текст, формат) {
       const р = разобратьШтрих(текст, формат);
       итог.appendChild(узел('span', 'скш-вид', с.kindBar));
@@ -321,7 +395,25 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         if (слово) строки.push([с.fInside, слово]);
       }
       if (р.isbn10) строки.push([с.fIsbn10, р.isbn10]);
+      // Из чего сложены цифры: префикс организации, номер фирмы с товаром и контрольная.
+      // Человеку это видно сразу, и понятно, откуда взялась страна.
+      if (р.контроль && р.цифры.length >= 8) {
+        const тело = р.цифры.slice(0, -1);
+        const части = `${тело.slice(0, 3)} · ${тело.slice(3)} · ${р.цифры.slice(-1)}`;
+        строки.push([с.fParts, `${части}   (${с.pPrefix} · ${с.pBody} · ${с.pCheck})`]);
+      }
       итог.appendChild(пары(строки));
+
+      // Если внутри GS1 -- показываем всё, что там записано. Товарные EAN и UPC сюда не
+      // отдаём: полей GS1 в них не бывает, а цифры вроде 2000000000008 разбор принимает за
+      // поле «вариант» и выдумывает то, чего в коде нет.
+      const поля = р.контроль ? [] : разобратьGS1(текст);
+      if (поля.length) показатьGS1(поля);
+      else if (р.контроль) {
+        // А если это обычный товарный код -- говорим прямо, чего в нём нет. Иначе человек
+        // ищет глазами срок годности и решает, что инструмент сломан.
+        итог.appendChild(узел('div', 'скш-подсказ', с.noMore));
+      }
 
       // Внутренний код магазина без пояснения выглядит как поломка: страны нет, смысла нет.
       if (р.пометка === 'внутренний') итог.appendChild(узел('div', 'скш-подсказ', с.inStore));
@@ -338,8 +430,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       итог.replaceChildren();
       $('скш-копировать').disabled = false;
       $('скш-туда').style.display = 'none';
+      $('скш-искать').style.display = 'none';
       if (находка.вид === 'qr') показатьQR(находка.текст);
-      else показатьШтрих(находка.текст, находка.формат);
+      else {
+        показатьШтрих(находка.текст, находка.формат);
+        // Названия товара в коде нет и быть не может -- но найти его по номеру можно, и это
+        // ровно то, зачем сюда приходят. Кнопка честная: она уводит в поиск, а не делает вид,
+        // что мы знаем товар.
+        const искать = $('скш-искать');
+        искать.href = 'https://www.google.com/search?q=' + encodeURIComponent(находка.текст);
+        искать.style.display = 'inline-flex';
+      }
       пикнуть();
       $('скш-глазок').classList.add('нашёл');
       setTimeout(() => $('скш-глазок').classList.remove('нашёл'), 900);
@@ -348,6 +449,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     function сказатьВИтог(текст) {
       итог.replaceChildren(узел('span', 'скш-ждём', текст));
       $('скш-копировать').disabled = true;
+      $('скш-искать').style.display = 'none';
+      $('скш-туда').style.display = 'none';
       найдено = '';
     }
 
@@ -374,6 +477,54 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (ищем) setTimeout(() => requestAnimationFrame(круг), 250);
     }
 
+    /** Снимок: кадр застывает, по нему проходит луч, и в это время идёт разбор. */
+    async function снять() {
+      if (!поток || снимаем || видео.readyState < 2) return;
+      снимаем = true;
+      ищем = false;                                  // живой разбор на время снимка не нужен
+      const кадр = $('скш-кадр');
+      кадр.width = видео.videoWidth;
+      кадр.height = видео.videoHeight;
+      кадр.getContext('2d').drawImage(видео, 0, 0);
+      $('скш-глазок').classList.add('снимок', 'ищет');
+      щёлкнуть();
+      сказатьВИтог(с.looking);
+
+      // Луч идёт своё время, разбор -- своё. Показываем, когда готово И то, и другое: ответ
+      // поверх недобежавшего луча выглядел бы поломкой. Но и держать готовый ответ ради
+      // красоты не станем -- ждём ровно один проход луча, не дольше.
+      const луч = new Promise((г) => setTimeout(г, 900));
+      let н = null;
+      try { н = await прочитатьСнимок({ картинка: кадр, нужно: 'оба' }); } catch (е) { н = null; }
+      await луч;
+      $('скш-глазок').classList.remove('ищет');
+      снимаем = false;
+      if (н) показать(н); else сказатьВИтог(с.notShot);
+    }
+
+    /** Щелчок затвора: короткий и тихий, это подтверждение, а не звуковой эффект. */
+    function щёлкнуть() {
+      try {
+        const ак = new (window.AudioContext || window.webkitAudioContext)();
+        const шум = ак.createBufferSource();
+        const б = ак.createBuffer(1, ак.sampleRate * 0.04, ак.sampleRate);
+        const д = б.getChannelData(0);
+        for (let и = 0; и < д.length; и++) д[и] = (Math.random() * 2 - 1) * (1 - и / д.length) ** 6;
+        шум.buffer = б;
+        const гром = ак.createGain();
+        гром.gain.value = 0.22;
+        шум.connect(гром); гром.connect(ак.destination);
+        шум.start();
+        setTimeout(() => ак.close(), 300);
+      } catch (е) { /* без звука всё работает */ }
+    }
+
+    /** Вернуться к живой картинке после снимка. */
+    function снятьЕщё() {
+      $('скш-глазок').classList.remove('снимок', 'ищет');
+      if (поток) { ищем = true; круг(); }
+    }
+
     async function включить() {
       if (поток) { выключить(); return; }
       try {
@@ -390,6 +541,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       await видео.play().catch(() => {});
       $('скш-заслон').hidden = true;
       значокКамеры(true);
+      $('скш-глазок').classList.remove('снимок', 'ищет');
+      // Подсказка честная: там, где живая камера полос не ловит, снимок -- единственный путь,
+      // и молчать об этом нельзя. Где ловит -- она всё равно не мешает.
+      $('скш-намёк').textContent = с.liveHint;
       ищем = true;
       круг();
     }
@@ -398,6 +553,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       ищем = false;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
+      снимаем = false;
+      $('скш-глазок').classList.remove('снимок', 'ищет');
       $('скш-заслон').hidden = false;
       $('скш-слово').textContent = ловитПолоски ? с.camIdle : с.camNo1D;
       значокКамеры(false);
@@ -414,13 +571,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     async function взятьКартинку(файл) {
       if (!файл) return;
+      сказатьВИтог(с.looking);
       const адрес = URL.createObjectURL(файл);
       const карт = new Image();
       карт.onload = async () => {
         let н = null;
         try {
-          н = await разобратьКадр(карт, карт.naturalWidth, карт.naturalHeight,
-            (рис) => рис.drawImage(карт, 0, 0), true);
+          н = await прочитатьСнимок({ картинка: карт, нужно: 'оба' });
         } catch (е) { н = null; }
         // Показываем сам снимок: сразу видно, тот ли файл разбирали.
         // Поле файла надо забрать ДО замены содержимого: replaceChildren вынимает его
@@ -430,7 +587,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const ещё = узел('span', 'скш-взять', с.again);
         ещё.addEventListener('click', (е) => { е.preventDefault(); поле.click(); });
         $('скш-зона').replaceChildren(карт, ещё, поле);
-        if (н) показать(н); else сказатьВИтог(с.notFound);
+        if (н) показать(н); else сказатьВИтог(с.notShot);
         URL.revokeObjectURL(адрес);
       };
       карт.onerror = () => { сказатьВИтог(с.notFound); URL.revokeObjectURL(адрес); };
@@ -452,6 +609,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('скш-крупный').addEventListener('click', () => {
       if (режим !== 'camera') выбратьРежим('camera');
       включить();
+    });
+
+    $('скш-затвор').addEventListener('click', () => {
+      if ($('скш-глазок').classList.contains('снимок')) снятьЕщё(); else снять();
     });
 
     $('скш-глаз').addEventListener('click', () => {
@@ -509,6 +670,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     window.__скшСостояние = () => ({
       режим,
+      снимаем,
+      стопКадр: $('скш-глазок').classList.contains('снимок'),
+      затворВиден: $('скш-затвор').getBoundingClientRect().width > 0,
       найдено,
       итог: итог.textContent.trim(),
       вид: (итог.querySelector('.скш-вид') || {}).textContent || '',
