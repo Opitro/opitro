@@ -202,8 +202,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
   </div>
 
-  <div class="ск2-ряд" id="ск2-ряд" hidden>
-    <button type="button" class="ск2-кнопка" id="ск2-копировать">{с.copy}</button>
+  <div class="ск2-ряд" id="ск2-ряд">
+    <button type="button" class="ск2-кнопка" id="ск2-копировать" disabled>{с.copy}</button>
     <a class="ск2-обводка" id="ск2-перейти" target="_blank" rel="noopener noreferrer nofollow"
        style="display:none;line-height:44px;text-decoration:none">{с.open}</a>
   </div>
@@ -277,7 +277,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (находка.вид === 'штрих') { показатьШтрих(текст); return; }
       const разбор = разобратьСодержимое(текст);
       итог.replaceChildren();
-      $('ск2-ряд').hidden = false;
+      $('ск2-копировать').disabled = false;
       const переход = $('ск2-перейти');
       переход.style.display = 'none';
 
@@ -327,7 +327,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     /** Полоски: цифры и дорога на соседнюю страницу, где их разбирают полностью. */
     function показатьШтрих(цифры) {
       итог.replaceChildren();
-      $('ск2-ряд').hidden = false;
+      $('ск2-копировать').disabled = false;
       $('ск2-перейти').style.display = 'none';
       итог.appendChild(узел('span', 'ск2-вид', с.kindBar));
       итог.appendChild(узел('div', 'ск2-значение', цифры));
@@ -342,7 +342,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     function сказатьВИтог(текст) {
       итог.replaceChildren(узел('span', 'ск2-ждём', текст));
-      $('ск2-ряд').hidden = true;
+      $('ск2-копировать').disabled = true;
       найдено = '';
     }
 
@@ -505,7 +505,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       тревог: итог.querySelectorAll('.ск2-тревога').length,
       узел: (итог.querySelector('.ск2-узел') || {}).textContent || '',
       переходВиден: $('ск2-перейти').style.display !== 'none',
-      кнопкиВидны: !$('ск2-ряд').hidden,
+      кнопкаЖива: !$('ск2-копировать').disabled,
     });
     window.__ск2Показать = показать;
   })();

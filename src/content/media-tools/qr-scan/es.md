@@ -9,7 +9,7 @@ navName: Escáner QR
 description: "Lee un código QR con la cámara, desde una imagen o una captura. Mostramos la dirección completa y avisamos de enlaces engañosos. Nada se abre solo. Todo en tu navegador."
 faq:
   - question: ¿Cómo leo un QR guardado como imagen o captura?
-    answer: "Cambia a «Archivo o captura». Puedes elegir un archivo, arrastrar una imagen con el ratón o simplemente copiar una captura y pulsar Ctrl+V, o Cmd+V en Mac. La imagen se descifra al instante y se queda a la vista."
+    answer: "Cambia a «Archivo». Puedes elegir un archivo, arrastrar una imagen con el ratón o simplemente copiar una captura y pulsar Ctrl+V, o Cmd+V en Mac. La imagen se descifra al instante y se queda a la vista."
   - question: ¿Es seguro dar acceso a la cámara?
     answer: "La imagen de la cámara se descifra en el propio navegador: no sale a la red ni se guarda. Pero hay algo más importante que suele callarse: el peligro real de un código QR no está en la cámara sino en lo que lleva escrito dentro."
   - question: ¿Cuál es el peligro del código en sí?
@@ -29,16 +29,16 @@ related:
   - url-encode-decode
 ---
 
-Apunta con la cámara o carga una imagen. Lo que contiene se muestra como texto, y nada se abre solo.
+Apunte la cámara a un código o cargue una imagen. Lo leído se muestra como texto, y nada se abre solo.
 
-## El escáner no abre nada por su cuenta
+## Si el código no se lee
 
-Un QR no se puede leer a simple vista y sobre eso se montan estafas. Mostramos la dirección completa; la decisión de seguirla es tuya.
+Suelen estorbar tres cosas. **El reflejo**: un código bajo film o sobre papel satinado devuelve la luz de la lámpara; incline el teléfono hacia un lado y el reflejo se va. **Los márgenes recortados**: el código necesita alrededor un borde claro de unos cuatro módulos, sin él el escáner no encuentra el límite. **El encuadre pequeño**: acérquese, para que el código ocupe al menos un tercio del ancho. En cambio un código roto o manchado a menudo sí se lee: el QR recupera hasta un tercio de las celdas perdidas, va incluido en el propio estándar.
 
-## Adónde lleva el enlace de verdad
+## En qué se diferencia de la cámara del teléfono
 
-En `https://bank.example@evil.example` el navegador va a `evil.example`. Señalamos esas direcciones.
+La cámara de serie ve un código y ofrece abrirlo de inmediato, y el dedo pulsa antes de que el ojo haya leído la dirección. Aquí el orden es el contrario: primero la dirección entera como texto y el servidor real en su propia línea, y solo después el salto, con una pulsación aparte que da usted.
 
-## La contraseña del Wi-Fi sale usable
+## Un código en la pantalla de otro
 
-Se quita el escapado, así que la contraseña se puede copiar y escribir sin barras de más.
+Un código en un monitor o en la pantalla de un móvil se fotografía peor que uno en papel: molestan los reflejos y el muaré que sale al no coincidir los puntos de la pantalla con los de la cámara. Es más fácil no fotografiarlo: haga una captura y péguela aquí con Ctrl+V, Cmd+V en un Mac. La lectura sale más precisa, porque la imagen es perfecta.

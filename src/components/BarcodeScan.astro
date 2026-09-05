@@ -214,8 +214,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
   </div>
 
-  <div class="скш-ряд" id="скш-ряд" hidden>
-    <button type="button" class="скш-кнопка" id="скш-копировать">{с.copy}</button>
+  <div class="скш-ряд" id="скш-ряд">
+    <button type="button" class="скш-кнопка" id="скш-копировать" disabled>{с.copy}</button>
     <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
   </div>
 
@@ -336,7 +336,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     function показать(находка) {
       найдено = находка.текст;
       итог.replaceChildren();
-      $('скш-ряд').hidden = false;
+      $('скш-копировать').disabled = false;
       $('скш-туда').style.display = 'none';
       if (находка.вид === 'qr') показатьQR(находка.текст);
       else показатьШтрих(находка.текст, находка.формат);
@@ -347,7 +347,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     function сказатьВИтог(текст) {
       итог.replaceChildren(узел('span', 'скш-ждём', текст));
-      $('скш-ряд').hidden = true;
+      $('скш-копировать').disabled = true;
       найдено = '';
     }
 
@@ -516,7 +516,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       пары: [...итог.querySelectorAll('.скш-пары dt')].map((д, и) =>
         [д.textContent, итог.querySelectorAll('.скш-пары dd')[и].textContent]),
       тревога: !!итог.querySelector('.скш-тревога'),
-      кнопкиВидны: !$('скш-ряд').hidden,
+      кнопкаЖива: !$('скш-копировать').disabled,
       наQR: $('скш-туда').style.display !== 'none',
     });
     window.__скшПоказать = показать;

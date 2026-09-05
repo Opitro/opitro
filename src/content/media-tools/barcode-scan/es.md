@@ -9,7 +9,7 @@ navName: Escáner de barras
 description: "Lea un código de barras con la cámara o desde una imagen: EAN-13, EAN-8, UPC, Code 128, Code 39, ITF. Comprobamos el dígito de control y mostramos el país donde se emitió el número. Todo en el navegador, sin subir nada."
 faq:
   - question: ¿Cómo leo un código de barras que está en una foto o una captura de pantalla?
-    answer: "Cambie a «Archivo o captura». Puede elegir un archivo, arrastrar una imagen con el ratón o copiar una captura y pulsar Ctrl+V — Cmd+V en un Mac. La imagen se queda a la vista después de leerla, para que vea exactamente qué archivo se analizó. Si el código está tumbado de lado en la toma, probamos a leerlo también en vertical: no hace falta repetir la foto."
+    answer: "Cambie a «Archivo». Puede elegir un archivo, arrastrar una imagen con el ratón o copiar una captura y pulsar Ctrl+V — Cmd+V en un Mac. La imagen se queda a la vista después de leerla, para que vea exactamente qué archivo se analizó. Si el código está tumbado de lado en la toma, probamos a leerlo también en vertical: no hace falta repetir la foto."
   - question: ¿Por qué el escáner no muestra el nombre del producto ni el precio?
     answer: "Porque los dígitos por sí solos no contienen ningún nombre. La relación entre número y producto está en la base de datos de GS1, y el acceso es de pago. Las páginas que prometen identificar el producto por su código o bien tiran de listas aficionadas incompletas, o bien repiten el primer resultado del buscador, y a menudo se equivocan. Nosotros mostramos lo que realmente está codificado: el formato, el dígito de control y el país donde se emitió el número."
   - question: ¿Qué significan las primeras cifras del código — 84, 400, 690?
@@ -32,14 +32,14 @@ related:
 
 Apunte la cámara a un código o cargue una imagen. Mostramos los dígitos, comprobamos el dígito de control y decimos en qué país se emitió el número.
 
-## El dígito de control se comprueba aquí mismo
+## Si las barras no se leen
 
-La última cifra de un EAN o un UPC se calcula a partir del resto. Si no coincide, el código se leyó mal o se tecleó con un error. Decimos qué cifra debería estar ahí.
+El código de barras es más quisquilloso que el QR: se lee línea a línea, y basta un arañazo que lo cruce. **El reflejo del film**: incline el teléfono y el brillo se desplaza. **La superficie curva**: en una botella o una lata las barras se deforman cerca de los bordes, así que fotografíe la zona más plana que encuentre. **Los márgenes blancos recortados** de los extremos: forman parte del código, y sin ellos el escáner no encuentra dónde empieza ni dónde acaba. Y procure que las barras crucen el encuadre, no que vayan en diagonal.
 
-## Las primeras cifras indican dónde se emitió, no dónde se fabricó
+## Compruebe su tirada antes de imprimirla
 
-El prefijo dice en qué oficina de GS1 se registró el fabricante. Una empresa con prefijo `400` puede coser en China. El país de fabricación se escribe con letras en el envase.
+Si el código lo hizo usted, escanee aquí una etiqueta de prueba antes de imprimir diez mil. Las barras tienen un ancho mínimo por debajo del cual el escáner deja de distinguirlas, y es facilísimo reducir la imagen por debajo de ese límite al maquetar. El código puede montarlo en el [generador de códigos de barras](/es/barcode), que además calcula el dígito de control.
 
-## No prometemos nombres de producto
+## Un producto, un número
 
-Los dígitos no llevan nombre: eso está en la base de datos de pago de GS1. Mostramos lo que realmente está codificado y no nos inventamos el resto.
+El EAN-13 no va ligado a un nombre sino a un artículo concreto. El mismo champú en botella de 400 ml y de 250 ml son dos números distintos, y el yogur de fresa se diferencia del de arándanos. Por eso el código sirve para cotejar un albarán o un lineal: si coinciden las trece cifras, la mercancía es exactamente esa. Si falla una, es otro formato, otro sabor u otro lote.

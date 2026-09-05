@@ -9,7 +9,7 @@ navName: Barcode scanner
 description: "Read a barcode with your camera or from a picture: EAN-13, EAN-8, UPC, Code 128, Code 39, ITF. We verify the check digit and show the country where the number was issued. All in the browser, nothing uploaded."
 faq:
   - question: How do I read a barcode that is in a photo or a screenshot?
-    answer: "Switch to “File or screenshot”. You can pick a file, drag an image in with the mouse, or copy a screenshot and press Ctrl+V — Cmd+V on a Mac. The picture stays on screen after it is read, so you can see exactly which file was used. If the code lies sideways in the shot, we try reading it crossways too — no need to take it again."
+    answer: "Switch to “File”. You can pick a file, drag an image in with the mouse, or copy a screenshot and press Ctrl+V — Cmd+V on a Mac. The picture stays on screen after it is read, so you can see exactly which file was used. If the code lies sideways in the shot, we try reading it crossways too — no need to take it again."
   - question: Why does the scanner not show the product name and price?
     answer: "Because the digits themselves carry no name. The link between a number and a product lives in the GS1 database, and access to it is paid. Pages that promise to identify a product from its code either pull from incomplete amateur lists or simply echo the first search result — and they are often wrong. We show what is genuinely encoded: the format, the check digit, and the country where the number was issued."
   - question: What do the first digits of a barcode mean — 400, 500, 690?
@@ -30,16 +30,16 @@ related:
   - qr-code
 ---
 
-Point the camera at a code, or load a picture. We show the digits, verify the check digit, and name the country where the number was issued.
+Point the camera at a code or load an image. We show the digits, verify the check digit, and name the country where the number was issued.
 
-## The check digit is verified here and now
+## When the bars will not read
 
-The last digit of an EAN or UPC is computed from the rest. If it does not match, the code was misread or mistyped. We name the digit that should have been there.
+A barcode is fussier than a QR: it is read line by line, and a single scratch across it is enough. **Glare from film** — tilt the phone and the reflection moves off. **A curved surface**: on a bottle or a can the bars smear near the edges, so shoot the flattest part you can find. **Cropped white margins** at each end: they are part of the code, and without them the scanner cannot find where it starts and stops. And keep the bars across the frame rather than running diagonally.
 
-## The first digits mean where it was issued, not made
+## Check your print run before you print it
 
-The prefix says which GS1 office the manufacturer registered with. A company with prefix `400` may have everything sewn in China. The country of manufacture is written on the packaging in words.
+If you made the code yourself, scan a proof label here before printing ten thousand. Bars have a minimum width below which a scanner stops telling them apart, and it is very easy to shrink an image past that line while laying out a page. The code itself can be built on the [barcode generator](/en/barcode), which will also work out the check digit.
 
-## We do not promise product names
+## One product, one number
 
-The digits hold no name — that lives in the paid GS1 database. We show what is genuinely encoded and do not invent the rest.
+An EAN-13 is tied not to a name but to a specific item. The same shampoo in a 400 ml bottle and a 250 ml bottle are two different numbers, and strawberry yoghurt differs from blueberry. That is what makes the code useful for checking a delivery note or a shelf: if all thirteen digits match, the goods are exactly right. If one digit differs, it is another size, another flavour, or another batch.

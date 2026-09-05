@@ -9,7 +9,7 @@ navName: QR scanner
 description: "Read a QR code with your camera, from a picture or a screenshot. We show the full address and warn about deceptive links. Nothing opens by itself. All in your browser."
 faq:
   - question: How do I read a QR code saved as a picture or screenshot?
-    answer: "Switch to “File or screenshot”. You can choose a file, drag a picture in with the mouse, or simply copy a screenshot and press Ctrl+V — Cmd+V on a Mac. The picture is decoded at once and stays on screen, so you can see which file was actually read."
+    answer: "Switch to “File”. You can choose a file, drag a picture in with the mouse, or simply copy a screenshot and press Ctrl+V — Cmd+V on a Mac. The picture is decoded at once and stays on screen, so you can see which file was actually read."
   - question: Is it safe to give access to the camera?
     answer: "The camera image is decoded right in the browser: it never goes to the network and is never stored. But something else matters more, and it is usually left unsaid: the real danger of a QR code is not the camera but what is written inside it."
   - question: What is the danger of the code itself?
@@ -29,16 +29,16 @@ related:
   - url-encode-decode
 ---
 
-Point the camera at the code or load a picture. What it holds is shown as text — and nothing opens by itself.
+Point the camera at a code or load an image. What it reads is shown as text — and nothing opens by itself.
 
-## The scanner never opens anything by itself
+## When a code will not read
 
-A QR code cannot be read by eye, and scams are built on that: somebody else's sticker over the real one. We show the full address; the decision to follow it is yours.
+Three things usually get in the way. **Glare**: a code behind film or on gloss reflects the light — tilt the phone to one side and the reflection moves off. **Cropped margins**: a code needs a light border about four modules wide around it, or the scanner cannot find its edge. **Too small in frame**: move closer, so the code fills at least a third of the width. A torn or smudged code, on the other hand, often still reads — QR recovers up to a third of its lost cells, that is built into the standard itself.
 
-## Where the link really leads
+## How this differs from the phone camera
 
-In `https://bank.example@evil.example` the browser goes to `evil.example`. We flag such addresses and show the real host on its own line.
+The stock camera app sees a code and immediately offers to open it, and the finger taps before the eye has read the address. Here the order is reversed: first the full address as text and the real host on its own line, then the jump — a separate press that you make.
 
-## The Wi-Fi password comes out usable
+## A code on someone else's screen
 
-The escaping is removed, so the password can simply be copied and typed without stray slashes.
+A code on a monitor or a phone screen photographs worse than one on paper: glare and moiré from the screen's pixels fighting the camera's. It is easier not to photograph it at all — take a screenshot and paste it here with Ctrl+V, Cmd+V on a Mac. The reading is more accurate that way, because the image is perfect.
