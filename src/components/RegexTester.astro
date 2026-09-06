@@ -1,0 +1,338 @@
+---
+// ТЕСТЕР РЕГУЛЯРНЫХ ВЫРАЖЕНИЙ.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО, И БЕЗ ЧЕГО ТАКАЯ СТРАНИЦА ОПАСНА ДЛЯ САМОГО ЧЕЛОВЕКА.
+// В задании написано «оборачиваем в try/catch и разбираем текст при каждом нажатии». Так
+// делают почти все, и почти все вешают вкладку: выражение вроде (a+)+$ на строке из тридцати
+// букв «a» считается не секунду и не минуту, а годы. try/catch тут бесполезен -- ошибки нет,
+// есть счёт, который не кончается, и остановить его из того же потока невозможно.
+//
+// Поэтому поиск идёт в ОТДЕЛЬНОМ ПОТОКЕ, который страница может убить. Не дождавшись ответа
+// за полторы секунды, мы поток прерываем и говорим прямо: выражение зациклилось, вот на чём.
+// Человек, пришедший СЮДА пробовать выражения, как раз и должен узнавать о таких ловушках
+// здесь, а не на своём сервере.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых подписей не делаю. Подсветку
+// совпадений просили белой заливкой с чёрными буквами -- сделал зелёной подложкой с белыми:
+// на белом «кричащем» прямоугольнике не видно ни границ соседних совпадений, ни того, где
+// одно кончилось и началось другое.
+import css from '../styles/regex-tester.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    pattern: 'Регулярное выражение', flags: 'Флаги', test: 'Текст для проверки',
+    results: 'Что нашлось', clear: 'Очистить всё',
+    fg: 'все совпадения', fi: 'без учёта регистра', fm: 'по строкам',
+    valid: 'выражение верное', invalid: 'ошибка в выражении',
+    found: 'Найдено', none: 'ничего не нашлось', groups: 'Группы',
+    tooMany: 'показаны первые {н} — дальше не считаем, чтобы не занять всю память',
+    hangs: 'Выражение зациклилось: поиск не закончился за полторы секунды и был прерван. Так бывает при вложенных повторах вроде (a+)+ — движок перебирает разбиения, и их слишком много.',
+    place: 'Вставьте сюда текст, в котором ищем…',
+    empty: 'ноль',
+    n1: '<b>Поиск идёт в отдельном потоке, и его можно прервать.</b> Выражение вроде <code>(a+)+$</code> на строке из тридцати букв «a» считается годами — ошибки в нём нет, просто перебор не кончается. Из того же потока такой счёт не остановить, поэтому вкладка на большинстве таких страниц просто умирает. У нас поиск живёт отдельно: не ответил за полторы секунды — поток убит, а вам сказано, что случилось.',
+    n2: '<b>Пустое совпадение — вторая ловушка.</b> Выражение <code>a*</code> с флагом «все совпадения» находит пустоту в каждой позиции строки, и наивный цикл поиска никогда не сдвигается с места. Мы двигаем указатель сами, поэтому такие выражения не вешают страницу, а честно показывают свои пустые находки.',
+    n3: '<b>Флаг «все совпадения» меняет не только количество.</b> Без него поиск останавливается на первом же попадании. С ним у выражения появляется память о том, где оно остановилось, — и то же самое выражение, применённое дважды подряд, во второй раз начнёт искать не с начала. В коде это частая причина «через раз не работает».',
+    n4: '<b>«По строкам» переносит якоря, а не включает многострочность.</b> Знаки <code>^</code> и <code>$</code> без этого флага значат начало и конец всего текста; с ним — начало и конец каждой строки. Точка при этом всё равно не совпадает с переводом строки: за это отвечает отдельный флаг, которого здесь нет.',
+    n5: 'Ничего никуда не отправляется. Ваши выражения, разборщики журналов и проверочные тексты остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    pattern: 'Регулярний вираз', flags: 'Прапорці', test: 'Текст для перевірки',
+    results: 'Що знайшлося', clear: 'Очистити все',
+    fg: 'усі збіги', fi: 'без урахування регістру', fm: 'за рядками',
+    valid: 'вираз правильний', invalid: 'помилка у виразі',
+    found: 'Знайдено', none: 'нічого не знайшлося', groups: 'Групи',
+    tooMany: 'показано перші {н} — далі не рахуємо, щоб не зайняти всю пам’ять',
+    hangs: 'Вираз зациклився: пошук не закінчився за півтори секунди і був перерваний. Так буває за вкладених повторів на кшталт (a+)+ — рушій перебирає розбиття, і їх забагато.',
+    place: 'Вставте сюди текст, у якому шукаємо…',
+    empty: 'нуль',
+    n1: '<b>Пошук іде в окремому потоці, і його можна перервати.</b> Вираз на кшталт <code>(a+)+$</code> на рядку з тридцяти літер «a» рахується роками — помилки в ньому немає, просто перебір не закінчується. З того самого потоку такий рахунок не спинити, тому вкладка на більшості таких сторінок просто помирає. У нас пошук живе окремо: не відповів за півтори секунди — потік убито, а вам сказано, що сталося.',
+    n2: '<b>Порожній збіг — друга пастка.</b> Вираз <code>a*</code> з прапорцем «усі збіги» знаходить порожнечу в кожній позиції рядка, і наївний цикл пошуку ніколи не зрушує з місця. Ми рухаємо покажчик самі, тому такі вирази не вішають сторінку, а чесно показують свої порожні знахідки.',
+    n3: '<b>Прапорець «усі збіги» змінює не лише кількість.</b> Без нього пошук зупиняється на першому ж влучанні. З ним у виразу з’являється пам’ять про те, де він зупинився, — і той самий вираз, застосований двічі поспіль, удруге почне шукати не з початку. У коді це часта причина «через раз не працює».',
+    n4: '<b>«За рядками» переносить якорі, а не вмикає багаторядковість.</b> Знаки <code>^</code> і <code>$</code> без цього прапорця означають початок і кінець усього тексту; з ним — початок і кінець кожного рядка. Крапка при цьому все одно не збігається з переведенням рядка: за це відповідає окремий прапорець, якого тут немає.',
+    n5: 'Нічого нікуди не надсилається. Ваші вирази, розбирачі журналів і перевірочні тексти лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    pattern: 'Regular expression', flags: 'Flags', test: 'Text to search',
+    results: 'What was found', clear: 'Clear everything',
+    fg: 'all matches', fi: 'ignore case', fm: 'per line',
+    valid: 'the expression is valid', invalid: 'error in the expression',
+    found: 'Found', none: 'nothing found', groups: 'Groups',
+    tooMany: 'showing the first {н} — we stop counting there so as not to eat all the memory',
+    hangs: 'The expression went into a loop: the search did not finish within a second and a half and was cut off. This happens with nested repeats such as (a+)+ — the engine tries every way of splitting the text, and there are far too many.',
+    place: 'Paste the text to search through here…',
+    empty: 'zero',
+    n1: '<b>The search runs in a separate thread, and that thread can be killed.</b> An expression like <code>(a+)+$</code> against a string of thirty letter "a"s takes years to finish — there is no error in it, the backtracking simply never ends. Such a computation cannot be stopped from the thread running it, which is why the tab on most such pages simply dies. Here the search lives apart: no answer within a second and a half and the thread is killed, and you are told what happened.',
+    n2: '<b>The empty match is the second trap.</b> The expression <code>a*</code> with "all matches" finds emptiness at every position in the string, and a naive search loop never moves forward. We advance the pointer ourselves, so such expressions do not hang the page but honestly show their empty finds.',
+    n3: '<b>The "all matches" flag changes more than the count.</b> Without it the search stops at the first hit. With it the expression gains a memory of where it stopped — and the same expression applied twice in a row will, the second time, not start from the beginning. In code that is a common reason for "it works every other time".',
+    n4: '<b>"Per line" moves the anchors; it does not switch on multi-line matching.</b> Without that flag <code>^</code> and <code>$</code> mean the start and end of the whole text; with it, the start and end of every line. The dot still does not match a line break: that is a separate flag, and it is not here.',
+    n5: 'Nothing is sent anywhere. Your expressions, log parsers and test data stay in the tab\'s memory and vanish with it.',
+  },
+  es: {
+    pattern: 'Expresión regular', flags: 'Banderas', test: 'Texto para probar',
+    results: 'Lo encontrado', clear: 'Limpiarlo todo',
+    fg: 'todas las coincidencias', fi: 'sin distinguir mayúsculas', fm: 'por líneas',
+    valid: 'la expresión es correcta', invalid: 'error en la expresión',
+    found: 'Encontradas', none: 'no se ha encontrado nada', groups: 'Grupos',
+    tooMany: 'se muestran las primeras {н}: a partir de ahí dejamos de contar para no ocupar toda la memoria',
+    hangs: 'La expresión se ha quedado en bucle: la búsqueda no terminó en un segundo y medio y se interrumpió. Ocurre con repeticiones anidadas como (a+)+, porque el motor prueba todas las divisiones posibles y son demasiadas.',
+    place: 'Pegue aquí el texto en el que buscamos…',
+    empty: 'cero',
+    n1: '<b>La búsqueda corre en un hilo aparte, y ese hilo se puede matar.</b> Una expresión como <code>(a+)+$</code> contra una cadena de treinta letras «a» tarda años en terminar: no tiene ningún error, sencillamente el retroceso no acaba nunca. Ese cálculo no se puede detener desde el hilo que lo ejecuta, y por eso en la mayoría de páginas así la pestaña simplemente muere. Aquí la búsqueda vive aparte: si no responde en un segundo y medio, el hilo se mata y a usted se le dice qué ha pasado.',
+    n2: '<b>La coincidencia vacía es la segunda trampa.</b> La expresión <code>a*</code> con «todas las coincidencias» encuentra vacío en cada posición de la cadena, y un bucle de búsqueda ingenuo no avanza jamás. Nosotros movemos el puntero a mano, así que esas expresiones no cuelgan la página sino que muestran honradamente sus hallazgos vacíos.',
+    n3: '<b>La bandera «todas las coincidencias» cambia algo más que la cantidad.</b> Sin ella la búsqueda se detiene en el primer acierto. Con ella la expresión adquiere memoria de dónde se quedó, y la misma expresión aplicada dos veces seguidas no empezará desde el principio la segunda vez. En el código esa es una causa habitual de «funciona una vez sí y otra no».',
+    n4: '<b>«Por líneas» mueve las anclas; no activa la coincidencia multilínea.</b> Sin esa bandera <code>^</code> y <code>$</code> significan el principio y el final de todo el texto; con ella, el principio y el final de cada línea. El punto sigue sin coincidir con un salto de línea: de eso se encarga otra bandera, y aquí no está.',
+    n5: 'No se envía nada a ninguna parte. Sus expresiones, analizadores de registros y textos de prueba se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ОБРАЗЕЦ = `Пишите: admin@test.com и support@opitro.com
+Звоните: +7 900 123-45-67
+Дата: 2026-09-06`;
+---
+
+<div class="рг" data-words={JSON.stringify(с)}>
+  <div class="рг-окно">
+    <div class="рг-шапка">{с.pattern}</div>
+    <div class="рг-тело">
+      <div class="рг-строка-выражения">
+        <span class="рг-косая">/</span>
+        <input type="text" class="рг-выражение" id="рг-выражение" spellcheck="false"
+               autocapitalize="off" autocomplete="off" autocorrect="off"
+               value="[A-Za-z0-9._%+-]+@[A-Za-z0-9.-]+\.[A-Za-z]{2,}" />
+        <span class="рг-косая">/</span>
+        <span class="рг-косая рг-флаги-хвост" id="рг-хвост">gi</span>
+      </div>
+
+      <div class="рг-ряд-флагов">
+        <span class="рг-подпись">{с.flags}:</span>
+        <label class="рг-галка"><input type="checkbox" id="рг-ф-g" checked /><i></i><b>g</b> {с.fg}</label>
+        <label class="рг-галка"><input type="checkbox" id="рг-ф-i" checked /><i></i><b>i</b> {с.fi}</label>
+        <label class="рг-галка"><input type="checkbox" id="рг-ф-m" /><i></i><b>m</b> {с.fm}</label>
+      </div>
+
+      <div class="рг-состояние" id="рг-состояние"></div>
+    </div>
+  </div>
+
+  <div class="рг-окно">
+    <div class="рг-шапка">{с.test}</div>
+    <!-- Подсветка сделана слоями: снизу неподвижная копия текста с отмеченными кусками,
+         сверху прозрачное поле ввода. Оба слоя набраны одним шрифтом и одним размером,
+         иначе буквы разъезжаются и подсветка съезжает с текста. -->
+    <div class="рг-слои">
+      <div class="рг-подсветка" id="рг-подсветка" aria-hidden="true"></div>
+      <textarea class="рг-поле" id="рг-текст" spellcheck="false" autocapitalize="off"
+                placeholder={с.place}>{ОБРАЗЕЦ}</textarea>
+    </div>
+  </div>
+
+  <div class="рг-окно рг-окно-итог">
+    <div class="рг-шапка">{с.results}</div>
+    <div class="рг-итог" id="рг-итог"></div>
+  </div>
+
+  <div class="рг-ряд">
+    <button type="button" class="рг-обводка" id="рг-очистить">{с.clear}</button>
+  </div>
+
+  <div class="рг-заметки">
+    <div class="рг-заметка" set:html={с.n1}></div>
+    <div class="рг-заметка" set:html={с.n2}></div>
+    <div class="рг-заметка" set:html={с.n3}></div>
+    <div class="рг-заметка" set:html={с.n4}></div>
+    <div class="рг-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  const корень = document.querySelector('.рг');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    const СРОК = 1500;          // сколько ждём ответа, прежде чем признать выражение вечным
+
+    let поток = null;
+    let ждущий = null;          // обещание нынешнего поиска, чтобы прервать его при новом
+    let последнее = { совпадения: [], беда: '', зациклилось: false };
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    function новыйПоток() {
+      if (поток) поток.terminate();
+      поток = new Worker(new URL('../lib/regex-worker.js', import.meta.url), { type: 'module' });
+      return поток;
+    }
+
+    /** Поиск с часами в руках. Не ответил вовремя -- убиваем поток. */
+    function искать(шаблон, флаги, текст) {
+      return new Promise((готово) => {
+        const п = новыйПоток();
+        const часы = setTimeout(() => {
+          п.terminate();
+          поток = null;
+          готово({ зациклилось: true });
+        }, СРОК);
+        п.onmessage = (е) => {
+          clearTimeout(часы);
+          готово(е.data);
+        };
+        п.onerror = (е) => {
+          clearTimeout(часы);
+          готово({ беда: String(е.message || 'ошибка потока') });
+        };
+        п.postMessage({ шаблон, флаги, текст });
+      });
+    }
+
+    const флаги = () => ['g', 'i', 'm'].filter((ф) => $('рг-ф-' + ф).checked).join('');
+
+    /** Слой подсветки: тот же текст, но найденные куски обёрнуты. */
+    function подсветить(текст, совпадения) {
+      const место = $('рг-подсветка');
+      место.replaceChildren();
+      let было = 0;
+      for (const с2 of совпадения) {
+        if (с2.начало > было) место.appendChild(document.createTextNode(текст.slice(было, с2.начало)));
+        // Пустое совпадение нечем подсветить -- ставим тонкую метку, иначе человек решит,
+        // что его выражение ничего не нашло, хотя нашло пустоту в каждой позиции.
+        место.appendChild(с2.текст === ''
+          ? узел('i', 'рг-пусто-метка')
+          : узел('mark', 'рг-метка', с2.текст));
+        было = Math.max(с2.конец, с2.начало);
+      }
+      место.appendChild(document.createTextNode(текст.slice(было)));
+      // Хвостовой перевод строки браузер не показывает -- добавляем пробел, иначе последняя
+      // строка подсветки не совпадёт по высоте с полем ввода.
+      место.appendChild(document.createTextNode('\n '));
+    }
+
+    function показатьИтог(данные, шаблон) {
+      const итог = $('рг-итог');
+      итог.replaceChildren();
+      const состояние = $('рг-состояние');
+
+      if (данные.зациклилось) {
+        состояние.className = 'рг-состояние плохо';
+        состояние.textContent = с.hangs;
+        подсветить($('рг-текст').value, []);
+        return;
+      }
+      if (данные.беда) {
+        состояние.className = 'рг-состояние плохо';
+        // Сообщение движка отдаём как есть: оно точнее любого пересказа.
+        состояние.textContent = `${с.invalid}: ${данные.беда}`;
+        подсветить($('рг-текст').value, []);
+        return;
+      }
+
+      состояние.className = 'рг-состояние хорошо';
+      состояние.textContent = шаблон ? с.valid : '';
+
+      const н = данные.совпадения.length;
+      const шапка = узел('div', 'рг-счёт');
+      шапка.append(узел('span', 'рг-счёт-имя', с.found + ':'),
+        узел('b', '', н ? String(н) : с.empty));
+      if (данные.оборвано) {
+        шапка.appendChild(узел('span', 'рг-оборвано',
+          с.tooMany.replace('{н}', String(данные.потолок))));
+      }
+      итог.appendChild(шапка);
+
+      if (!н) { итог.appendChild(узел('div', 'рг-ничего', с.none)); return; }
+
+      const список = узел('div', 'рг-список');
+      // Показываем не все пять тысяч: на экране их всё равно не разглядеть, а страница
+      // от такого списка начинает спотыкаться.
+      for (const [и, м] of данные.совпадения.slice(0, 50).entries()) {
+        const ряд = узел('div', 'рг-находка');
+        ряд.append(узел('span', 'рг-номер', `${и + 1}`),
+          узел('span', 'рг-значение', м.текст === '' ? '(пусто)' : м.текст),
+          узел('span', 'рг-место', `${м.начало}–${м.конец}`));
+        if (м.группы.length) {
+          const гр = узел('div', 'рг-группы');
+          for (const г of м.группы) {
+            гр.appendChild(узел('span', 'рг-группа',
+              `${г.имя || г.номер}: ${г.текст === null ? '—' : г.текст}`));
+          }
+          ряд.appendChild(гр);
+        }
+        список.appendChild(ряд);
+      }
+      итог.appendChild(список);
+    }
+
+    async function пересчитать() {
+      const шаблон = $('рг-выражение').value;
+      const ф = флаги();
+      const текст = $('рг-текст').value;
+      $('рг-хвост').textContent = ф;
+
+      if (!шаблон) {
+        последнее = { совпадения: [], беда: '', зациклилось: false };
+        показатьИтог({ совпадения: [] }, '');
+        return;
+      }
+
+      // Пометка нужна, чтобы ответ уже неактуального поиска не перебил свежий.
+      const моё = {};
+      ждущий = моё;
+      const данные = await искать(шаблон, ф, текст);
+      if (ждущий !== моё) return;
+
+      последнее = {
+        совпадения: данные.совпадения || [],
+        беда: данные.беда || '',
+        зациклилось: !!данные.зациклилось,
+      };
+      показатьИтог(данные, шаблон);
+      if (!данные.беда && !данные.зациклилось) подсветить(текст, данные.совпадения || []);
+    }
+
+    // Считаем не на каждую букву: поиск уходит в поток, и заваливать его очередью незачем.
+    let ждём = null;
+    const позже = () => { clearTimeout(ждём); ждём = setTimeout(пересчитать, 160); };
+
+    $('рг-выражение').addEventListener('input', позже);
+    $('рг-текст').addEventListener('input', позже);
+    for (const ф of ['g', 'i', 'm']) $('рг-ф-' + ф).addEventListener('change', пересчитать);
+
+    // Слой подсветки должен ехать вместе с текстом, иначе при прокрутке они разойдутся.
+    $('рг-текст').addEventListener('scroll', () => {
+      $('рг-подсветка').scrollTop = $('рг-текст').scrollTop;
+      $('рг-подсветка').scrollLeft = $('рг-текст').scrollLeft;
+    });
+
+    $('рг-очистить').addEventListener('click', () => {
+      $('рг-выражение').value = '';
+      $('рг-текст').value = '';
+      пересчитать();
+      $('рг-выражение').focus();
+    });
+
+    пересчитать();
+
+    window.__ргСостояние = () => ({
+      выражение: $('рг-выражение').value,
+      флаги: флаги(),
+      найдено: последнее.совпадения.length,
+      совпадения: последнее.совпадения.slice(0, 10).map((м) => м.текст),
+      группы: (последнее.совпадения[0] || {}).группы || [],
+      беда: последнее.беда,
+      зациклилось: последнее.зациклилось,
+      состояние: $('рг-состояние').textContent,
+      подсвечено: [...document.querySelectorAll('.рг-метка')].map((э) => э.textContent),
+    });
+    window.__ргЖдать = пересчитать;
+  })();
+</script>

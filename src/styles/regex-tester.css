@@ -1,0 +1,156 @@
+/* СТИЛИ СТРАНИЦЫ «ТЕСТЕР РЕГУЛЯРНЫХ ВЫРАЖЕНИЙ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ГЛАВНОЕ ЗДЕСЬ -- ДВА СЛОЯ. Снизу неподвижная копия текста с отмеченными кусками, сверху
+ * прозрачное поле ввода. Работает это только при полном совпадении шрифта, размера,
+ * межстрочья, отступов и переноса слов: разойдётся хоть одно -- и подсветка съедет с текста.
+ * Поэтому у .рг-поле и .рг-подсветка ВСЕ эти свойства заданы вместе и одинаково.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём, приглушённо-серых подписей не делаем.
+ * Подсветку просили белой заливкой с чёрными буквами -- сделана зелёная подложка с белыми
+ * буквами: на сплошном белом не видно границы между соседними совпадениями, они сливаются
+ * в одно пятно.
+ */
+
+.рг {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+.рг-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden; margin-bottom: 14px }
+.рг-шапка {
+  padding: 9px 14px; border-bottom: 1px solid var(--линия);
+  font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent);
+}
+.рг-тело { display: flex; flex-direction: column; gap: 12px; padding: 16px }
+
+/* ---- Поле выражения ------------------------------------------------------------------------ */
+
+.рг-строка-выражения {
+  display: flex; align-items: center; gap: 8px;
+  padding: 0 12px; height: 46px; border-radius: 8px;
+  background: #0f1115; border: 1px solid var(--линия);
+}
+.рг-строка-выражения:focus-within { border-color: #fff }
+.рг-косая { font: 400 16px var(--цифры); color: var(--accent); flex: none; user-select: none }
+.рг-флаги-хвост { font-size: 13px; min-width: 22px }
+.рг-выражение {
+  flex: 1; min-width: 0; height: 100%; border: 0; background: transparent; color: #fff;
+  font: 500 14px var(--цифры); padding: 0;
+}
+.рг-выражение:focus { outline: none }
+
+.рг-ряд-флагов { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center }
+.рг-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+.рг-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font: 400 12.5px var(--ui); color: #fff }
+.рг-галка b { font: 700 13px var(--цифры); color: #fff }
+.рг-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.рг-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.рг-галка:hover i { border-color: #fff }
+.рг-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.рг-галка input:checked + i { border-color: var(--accent) }
+.рг-галка input:checked + i::after { transform: scale(1) }
+
+/* Место под состояние держится постоянным: сообщение о зацикливании длинное, и без запаса
+   поле текста прыгало бы вниз при каждой ошибке в выражении. */
+.рг-состояние { min-height: 38px; font: 400 12.5px/1.5 var(--ui); color: var(--accent) }
+.рг-состояние.плохо { color: var(--беда) }
+.рг-состояние.хорошо { color: var(--accent) }
+
+/* ---- Два слоя ------------------------------------------------------------------------------- */
+
+.рг-слои { position: relative; min-height: 240px }
+.рг-поле, .рг-подсветка {
+  /* Ниже -- ровно те свойства, от совпадения которых зависит попадание подсветки в текст.
+     Менять их можно только вместе. */
+  margin: 0;
+  padding: 16px;
+  border: 0;
+  font: 400 13px/1.65 var(--цифры);
+  letter-spacing: normal;
+  white-space: pre-wrap;
+  overflow-wrap: break-word;
+  word-break: normal;
+  tab-size: 2;
+}
+.рг-поле {
+  position: relative; z-index: 1;
+  width: 100%; min-height: 240px; resize: vertical;
+  background: transparent; color: transparent; caret-color: #fff;
+  display: block;
+}
+.рг-поле:focus { outline: none }
+.рг-поле::placeholder { color: #8b93a0 }
+/* Выделение мышью должно быть видно, хотя сами буквы прозрачные. */
+.рг-поле::selection { background: rgba(255,255,255,.28); color: transparent }
+.рг-подсветка {
+  position: absolute; inset: 0; z-index: 0; overflow: hidden;
+  color: #fff; pointer-events: none;
+}
+/* Зелёная подложка, а не белая: соседние совпадения на сплошном белом сливаются в пятно,
+   и не видно, где кончилось одно и началось другое. */
+.рг-метка { background: rgba(34,197,94,.42); color: #fff; border-radius: 3px;
+  box-shadow: 0 0 0 1px rgba(34,197,94,.85) }
+/* Пустое совпадение подсветить нечем -- ставим тонкую отметку, иначе человек решит, что
+   его выражение ничего не нашло. */
+.рг-пусто-метка { display: inline-block; width: 2px; height: 1.1em; vertical-align: text-bottom;
+  background: var(--accent) }
+
+/* ---- Итог ------------------------------------------------------------------------------------ */
+
+.рг-окно-итог { margin-bottom: 14px }
+.рг-итог { display: flex; flex-direction: column; gap: 0 }
+.рг-счёт { display: flex; flex-wrap: wrap; align-items: baseline; gap: 6px 12px;
+  padding: 12px 14px; border-bottom: 1px solid rgba(255,255,255,.08);
+  font: 400 13px var(--цифры); color: #fff }
+.рг-счёт-имя { color: var(--accent) }
+.рг-счёт b { font-weight: 700; font-variant-numeric: tabular-nums }
+.рг-оборвано { font: 400 11.5px var(--ui); color: var(--accent) }
+.рг-ничего { padding: 12px 14px; font: 400 13px var(--ui); color: #fff }
+
+.рг-список { display: flex; flex-direction: column }
+.рг-находка { display: grid; grid-template-columns: 34px minmax(0, 1fr) auto; gap: 4px 12px;
+  padding: 9px 14px; border-bottom: 1px solid rgba(255,255,255,.06) }
+.рг-находка:last-child { border-bottom: 0 }
+.рг-номер { font: 400 11.5px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+.рг-значение { font: 500 13px var(--цифры); color: #fff; overflow-wrap: anywhere }
+.рг-место { font: 400 11.5px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+.рг-группы { grid-column: 2 / -1; display: flex; flex-wrap: wrap; gap: 6px }
+.рг-группа { font: 400 11.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 2px 7px;
+  overflow-wrap: anywhere }
+
+.рг-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.рг-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s }
+.рг-обводка:hover { background: #fff; color: #000 }
+
+.рг-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.рг-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.рг-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.рг-заметка b { color: #fff; font-weight: 600 }
+.рг-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .рг-строка-выражения { height: 42px; padding: 0 10px }
+  .рг-выражение { font-size: 13px }
+  .рг-слои, .рг-поле { min-height: 190px }
+  .рг-находка { grid-template-columns: 26px minmax(0, 1fr); gap: 3px 8px }
+  .рг-место { grid-column: 2; font-size: 11px }
+}
