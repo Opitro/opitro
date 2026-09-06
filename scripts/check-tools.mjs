@@ -555,6 +555,74 @@ await иди('/ru/border-radius');
 }
 
 // =============================================================================================
+console.log('\n════ 12. Markdown ↔ HTML: /ru/markdown-html ════');
+await иди('/ru/markdown-html');
+{
+  const подать = (текст) => считай(`(async () => {
+    const п = document.getElementById('мх-ввод');
+    Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set.call(п, ${'$'}{JSON.stringify(текст)});
+    await window.__мхЖдать();
+    return true;
+  })()`.replace('${JSON.stringify(текст)}', JSON.stringify(текст)));
+  const направление = (куда) => считай(`(async () => {
+    const с2 = document.getElementById('мх-направление');
+    с2.value = ${'$'}{JSON.stringify(куда)};
+    await window.__мхЖдать();
+    return с2.value;
+  })()`.replace('${JSON.stringify(куда)}', JSON.stringify(куда)));
+
+  await направление('вhtml');
+  await подать('# Заголовок\n\nтекст **жирный** и [ссылка](https://example.com)');
+  await жди(200);
+  const п1 = await считай('window.__мхСостояние()');
+  так(/<h1>Заголовок<\/h1>/.test(п1.вывод) && /<strong>жирный<\/strong>/.test(п1.вывод)
+    && /href="https:\/\/example\.com"/.test(п1.вывод),
+    'Markdown → HTML: заголовок, выделение и ссылка на месте', п1.вывод.slice(0, 120));
+
+  await направление('вmd');
+  await подать('<h2>Раздел</h2><p>текст <em>косой</em></p>');
+  await жди(250);
+  const п2 = await считай('window.__мхСостояние()');
+  так(/## Раздел/.test(п2.вывод) && /текст \*косой\*/.test(п2.вывод),
+    'HTML → Markdown: заголовок и выделение', п2.вывод.replace(/\n/g, ' | ').slice(0, 120));
+
+  // САМОЕ ВАЖНОЕ: очистка. Приёмы настоящие, а не выдуманные.
+  const опасные = [
+    ['<script>alert(1)</script><p>т</p>', 'script', 'скрипт'],
+    ['<img src=x onerror="alert(1)">', 'onerror', 'обработчик на картинке'],
+    ['<a href="javascript:alert(1)">т</a>', 'javascript:', 'ссылка со скриптом'],
+    ['<a href="jav&#9;ascript:alert(1)">т</a>', 'ascript:', 'схема, скрытая табуляцией'],
+    ['<a href="data:text/html;base64,PHNjcmlwdD4=">т</a>', 'data:text/html', 'разметка в data:'],
+    ['<scr<script>ipt>alert(1)</scr</script>ipt>', '<script', 'разорванный тег'],
+    ['<p style="color:red">т</p>', 'style=', 'стиль в свойстве'],
+    ['<iframe src="https://example.com"></iframe>', '<iframe', 'чужая рамка'],
+    ['<svg><script>alert(1)</script></svg>', '<svg', 'скрипт внутри svg'],
+  ];
+  let отбито = 0;
+  for (const [ввод, чего, имя] of опасные) {
+    await подать(ввод);
+    await жди(160);
+    const с2 = await считай('window.__мхСостояние()');
+    const прошло = !с2.вывод.includes(чего) && !с2.вРамке.includes(чего);
+    if (прошло) отбито++;
+    else console.log(`      ✗ пропущено: ${имя} («${чего}»)`);
+  }
+  так(отбито === опасные.length, `очистка отбила все ${опасные.length} приёма`,
+    `отбито ${отбито} из ${опасные.length}`);
+
+  // Показ заперт ВСЕГДА, даже когда очистка выключена.
+  await считай(`document.getElementById('мх-чистить').checked = false`);
+  await подать('<script>window.ПРОБИЛСЯ = 1</script><p>т</p>');
+  await жди(400);
+  const с3 = await считай('window.__мхСостояние()');
+  const пробился = await считай('typeof window.ПРОБИЛСЯ');
+  так(с3.рамкаЗаперта && !с3.вРамке.includes('<script') && пробился === 'undefined',
+    'показ заперт и при снятой галочке: на странице ничего не выполнилось',
+    `заперта ${с3.рамкаЗаперта}, пробился ${пробился}`);
+  await считай(`document.getElementById('мх-чистить').checked = true`);
+}
+
+// =============================================================================================
 console.log('\n════ ИТОГ ════');
 if (беды.length) {
   console.log(`  НЕ СОШЛОСЬ: ${беды.length}`);

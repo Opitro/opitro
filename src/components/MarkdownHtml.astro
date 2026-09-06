@@ -1,0 +1,307 @@
+---
+// КОНВЕРТЕР MARKDOWN ↔ HTML.
+//
+// Разбор -- marked и turndown, обе подгружаются лениво: на страницу, куда зашли почитать,
+// лишние килобайты ни к чему.
+//
+// ГЛАВНОЕ ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ, И ОНО ПРО БЕЗОПАСНОСТЬ. В задании очистка -- галочка,
+// которую можно снять. Живой предпросмотр при снятой галочке означал бы, что чужой HTML
+// выполняется НА НАШЕЙ СТРАНИЦЕ: вставил человек кусок с чужого сайта, а там script, который
+// читает нашу память и наши ключи. Делать такое переключателем нельзя.
+//
+// Поэтому предпросмотр ВСЕГДА идёт в отдельной рамке с запретом на выполнение (sandbox без
+// allow-scripts). Там ничего не выполняется в принципе, при любом положении галочки. А сама
+// галочка честно управляет только ТЕКСТОМ, который человек уносит к себе: чистить его или
+// отдать как есть.
+import css from '../styles/markdown-html.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    dir: 'Направление', toHtml: 'Markdown → HTML', toMd: 'HTML → Markdown',
+    clean: 'Очищать разметку', input: 'Исходный текст', output: 'Результат',
+    preview: 'Как это будет выглядеть',
+    place: 'Вставьте сюда свой Markdown или HTML…',
+    chars: 'Знаков', removed: 'Убрано',
+    copy: 'Копировать результат', copied: 'Скопировано', clear: 'Очистить всё',
+    nothing: 'ничего лишнего не нашлось',
+    working: 'Читаю разбор…',
+    handlers: 'обработчики событий', links: 'опасные ссылки',
+    n1: '<b>Предпросмотр всегда идёт в отдельной запертой рамке.</b> Чужой HTML может нести в себе <code>&lt;script&gt;</code>, и выполнять его на нашей странице нельзя ни при каком положении галочки: он получил бы доступ ко всему, что тут есть. Поэтому показ живёт в рамке, где выполнение запрещено начисто. Галочка управляет только текстом, который вы уносите к себе.',
+    n2: '<b>Чистим по списку разрешённого, а не запрещённого.</b> Вырезать «всё опасное» нельзя: список опасного бесконечен — сначала script, потом onclick, потом javascript: в ссылке, потом data: с разметкой внутри. Мы оставляем только заранее названные теги и свойства, поэтому новый хитрый приём ничего не даст: его в списке просто нет.',
+    n3: '<b>Разбираем браузером, а не поиском по строке.</b> Разметку читает тот же разборщик, что и при показе страницы, поэтому его не обмануть кривой записью вроде <code>&lt;scr&lt;script&gt;ipt&gt;</code> — регулярное выражение на такое попадается, дерево нет. Делается это в отдельном документе, который никуда не подключён: оттуда ничего не выполняется и не загружается.',
+    n4: '<b>Обратный перевод не бывает точным, и это не поломка.</b> В Markdown просто нет того, чем богат HTML: классов, вложенных таблиц, произвольных свойств. Переводя страницу в Markdown, вы неизбежно теряете оформление и оставляете смысл — заголовки, списки, ссылки, выделения. Если нужен точный перенос вёрстки, Markdown не тот формат.',
+    n5: '<b>Эта очистка не заменяет проверку на сервере.</b> Она приводит в порядок текст у вас в браузере. Если чужой текст попадает к вам на сайт, чистить его надо там, где он сохраняется: у себя человек может открыть инструменты разработчика и отправить что угодно, минуя любую страницу.',
+    n6: 'Ничего никуда не отправляется. Ваши README, статьи и документация разбираются в памяти вкладки; сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    dir: 'Напрямок', toHtml: 'Markdown → HTML', toMd: 'HTML → Markdown',
+    clean: 'Очищати розмітку', input: 'Вихідний текст', output: 'Результат',
+    preview: 'Як це виглядатиме',
+    place: 'Вставте сюди свій Markdown або HTML…',
+    chars: 'Знаків', removed: 'Прибрано',
+    copy: 'Копіювати результат', copied: 'Скопійовано', clear: 'Очистити все',
+    nothing: 'нічого зайвого не знайшлося',
+    working: 'Читаю розбір…',
+    handlers: 'обробники подій', links: 'небезпечні посилання',
+    n1: '<b>Перегляд завжди йде в окремій замкненій рамці.</b> Чужий HTML може нести в собі <code>&lt;script&gt;</code>, і виконувати його на нашій сторінці не можна за жодного положення позначки: він отримав би доступ до всього, що тут є. Тому показ живе в рамці, де виконання заборонено начисто. Позначка керує лише текстом, який ви забираєте до себе.',
+    n2: '<b>Чистимо за списком дозволеного, а не забороненого.</b> Вирізати «все небезпечне» не можна: список небезпечного нескінченний — спершу script, потім onclick, потім javascript: у посиланні, потім data: з розміткою всередині. Ми лишаємо тільки заздалегідь названі теги та властивості, тому новий хитрий прийом нічого не дасть: його в списку просто немає.',
+    n3: '<b>Розбираємо браузером, а не пошуком по рядку.</b> Розмітку читає той самий розбирач, що й під час показу сторінки, тому його не обманути кривим записом на кшталт <code>&lt;scr&lt;script&gt;ipt&gt;</code> — регулярний вираз на таке попадається, дерево ні. Робиться це в окремому документі, який нікуди не підключено: звідти нічого не виконується й не завантажується.',
+    n4: '<b>Зворотний переклад не буває точним, і це не поломка.</b> У Markdown просто немає того, чим багатий HTML: класів, вкладених таблиць, довільних властивостей. Переводячи сторінку в Markdown, ви неминуче втрачаєте оформлення і лишаєте зміст — заголовки, списки, посилання, виділення. Якщо потрібне точне перенесення верстки, Markdown не той формат.',
+    n5: '<b>Ця очистка не заміняє перевірку на сервері.</b> Вона впорядковує текст у вас у браузері. Якщо чужий текст потрапляє до вас на сайт, чистити його треба там, де він зберігається: у себе людина може відкрити інструменти розробника й надіслати будь-що, оминувши будь-яку сторінку.',
+    n6: 'Нічого нікуди не надсилається. Ваші README, статті й документація розбираються в пам’яті вкладки; мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    dir: 'Direction', toHtml: 'Markdown → HTML', toMd: 'HTML → Markdown',
+    clean: 'Clean the markup', input: 'Source', output: 'Result',
+    preview: 'How it will look',
+    place: 'Paste your Markdown or HTML here…',
+    chars: 'Characters', removed: 'Removed',
+    copy: 'Copy the result', copied: 'Copied', clear: 'Clear everything',
+    nothing: 'nothing extraneous found',
+    working: 'Loading the parser…',
+    handlers: 'event handlers', links: 'unsafe links',
+    n1: '<b>The preview always runs inside a locked frame.</b> Someone else\'s HTML may carry a <code>&lt;script&gt;</code>, and running it on our page is out of the question whatever the checkbox says: it would gain access to everything here. So the preview lives in a frame where execution is forbidden outright. The checkbox governs only the text you take away with you.',
+    n2: '<b>We clean by a list of what is allowed, not what is forbidden.</b> Cutting out "everything dangerous" cannot work: that list is endless — first script, then onclick, then javascript: in a link, then data: with markup inside. We keep only the tags and attributes named in advance, so a new clever trick gains nothing: it simply is not on the list.',
+    n3: '<b>We parse with the browser, not with string search.</b> The markup is read by the same parser that renders a page, so it cannot be fooled by mangled input such as <code>&lt;scr&lt;script&gt;ipt&gt;</code> — a regular expression falls for that, a tree does not. It happens in a separate document that is attached to nothing: nothing there executes or loads.',
+    n4: '<b>The reverse conversion is never exact, and that is not a fault.</b> Markdown simply lacks what HTML is rich in: classes, nested tables, arbitrary attributes. Turning a page into Markdown you inevitably lose the presentation and keep the meaning — headings, lists, links, emphasis. If you need the layout carried over exactly, Markdown is the wrong format.',
+    n5: '<b>This cleaning does not replace checking on the server.</b> It tidies text in your browser. If someone else\'s text reaches your site, it has to be cleaned where it is stored: on their own machine a person can open the developer tools and send anything at all, bypassing any page.',
+    n6: 'Nothing is sent anywhere. Your READMEs, articles and documentation are parsed in the tab\'s memory; the page makes no network requests at all.',
+  },
+  es: {
+    dir: 'Dirección', toHtml: 'Markdown → HTML', toMd: 'HTML → Markdown',
+    clean: 'Limpiar el marcado', input: 'Texto de origen', output: 'Resultado',
+    preview: 'Cómo se verá',
+    place: 'Pegue aquí su Markdown o su HTML…',
+    chars: 'Caracteres', removed: 'Eliminado',
+    copy: 'Copiar el resultado', copied: 'Copiado', clear: 'Limpiarlo todo',
+    nothing: 'no se ha encontrado nada sobrante',
+    working: 'Cargando el analizador…',
+    handlers: 'manejadores de eventos', links: 'enlaces peligrosos',
+    n1: '<b>La vista previa siempre se ejecuta dentro de un marco cerrado.</b> El HTML ajeno puede llevar un <code>&lt;script&gt;</code>, y ejecutarlo en nuestra página queda descartado diga lo que diga la casilla: tendría acceso a todo lo que hay aquí. Por eso la vista previa vive en un marco donde la ejecución está prohibida por completo. La casilla gobierna únicamente el texto que usted se lleva.',
+    n2: '<b>Limpiamos por lista de lo permitido, no de lo prohibido.</b> Recortar «todo lo peligroso» no puede funcionar: esa lista es infinita —primero script, luego onclick, luego javascript: en un enlace, luego data: con marcado dentro—. Conservamos solo las etiquetas y atributos nombrados de antemano, así que un truco nuevo no consigue nada: sencillamente no está en la lista.',
+    n3: '<b>Analizamos con el navegador, no buscando en la cadena.</b> El marcado lo lee el mismo analizador que dibuja una página, así que no se le engaña con entradas retorcidas como <code>&lt;scr&lt;script&gt;ipt&gt;</code>: una expresión regular cae en eso, un árbol no. Ocurre en un documento aparte que no está conectado a nada: allí no se ejecuta ni se carga nada.',
+    n4: '<b>La conversión inversa nunca es exacta, y eso no es un fallo.</b> A Markdown le falta sencillamente aquello en lo que HTML es rico: clases, tablas anidadas, atributos arbitrarios. Al pasar una página a Markdown se pierde inevitablemente la presentación y se conserva el sentido: títulos, listas, enlaces, énfasis. Si necesita trasladar la maquetación con exactitud, Markdown no es el formato.',
+    n5: '<b>Esta limpieza no sustituye la comprobación en el servidor.</b> Ordena el texto en su navegador. Si el texto de otra persona llega a su sitio, hay que limpiarlo donde se guarda: desde su propia máquina cualquiera puede abrir las herramientas de desarrollo y enviar lo que quiera, saltándose cualquier página.',
+    n6: 'No se envía nada a ninguna parte. Sus README, artículos y documentación se analizan en la memoria de la pestaña; la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ОБРАЗЕЦ = `# Заголовок
+
+Обычный абзац с **выделением** и [ссылкой](https://example.com).
+
+- первый пункт
+- второй пункт
+
+> Цитата
+
+\`\`\`js
+const привет = 'мир';
+\`\`\``;
+---
+
+<div class="мх" data-words={JSON.stringify(с)}>
+  <div class="мх-пульт">
+    <span class="мх-отступ">
+      <span class="мх-подпись">{с.dir}:</span>
+      <select class="мх-список" id="мх-направление">
+        <option value="вhtml">{с.toHtml}</option>
+        <option value="вmd">{с.toMd}</option>
+      </select>
+    </span>
+    <label class="мх-галка">
+      <input type="checkbox" id="мх-чистить" checked /><i></i>{с.clean}
+    </label>
+  </div>
+
+  <div class="мх-пара">
+    <div class="мх-окно">
+      <div class="мх-шапка">{с.input}</div>
+      <textarea class="мх-поле" id="мх-ввод" spellcheck="false" autocapitalize="off"
+                placeholder={с.place}>{ОБРАЗЕЦ}</textarea>
+      <div class="мх-счёт" id="мх-счёт-ввода"></div>
+    </div>
+
+    <div class="мх-окно">
+      <div class="мх-шапка">{с.output}</div>
+      <textarea class="мх-поле мх-вывод" id="мх-вывод" readonly spellcheck="false"></textarea>
+      <div class="мх-счёт" id="мх-счёт-вывода"></div>
+    </div>
+  </div>
+
+  <div class="мх-окно мх-окно-показ">
+    <div class="мх-шапка">{с.preview}</div>
+    <!-- Рамка заперта наглухо: sandbox без allow-scripts. Что бы ни лежало в разметке, оно
+         здесь не выполнится и до нашей страницы не дотянется. -->
+    <iframe class="мх-рамка" id="мх-рамка" sandbox="" title={с.preview} loading="lazy"></iframe>
+  </div>
+
+  <div class="мх-ряд">
+    <button type="button" class="мх-кнопка" id="мх-копировать">{с.copy}</button>
+    <button type="button" class="мх-обводка" id="мх-очистить">{с.clear}</button>
+  </div>
+
+  <div class="мх-заметки">
+    <div class="мх-заметка" set:html={с.n1}></div>
+    <div class="мх-заметка" set:html={с.n2}></div>
+    <div class="мх-заметка" set:html={с.n3}></div>
+    <div class="мх-заметка" set:html={с.n4}></div>
+    <div class="мх-заметка" set:html={с.n5}></div>
+    <div class="мх-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { почистить } from '../lib/html-clean.js';
+
+  const корень = document.querySelector('.мх');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    let вMd = null;        // marked, подгружается лениво
+    let вРазметку = null;  // turndown
+    let последнее = { html: '', убрано: [] };
+
+    async function взятьMarked() {
+      if (!вMd) {
+        const м = await import('marked');
+        // Переводы строк внутри абзаца превращаем в перенос: так ведёт себя GitHub, и от
+        // README этого и ждут.
+        вMd = new м.Marked({ breaks: true, gfm: true });
+      }
+      return вMd;
+    }
+
+    async function взятьTurndown() {
+      if (!вРазметку) {
+        const м = await import('turndown');
+        const Т = м.default || м;
+        вРазметку = new Т({
+          headingStyle: 'atx',          // «# Заголовок», а не подчёркивание снизу
+          codeBlockStyle: 'fenced',     // тройные обратные кавычки, как на GitHub
+          bulletListMarker: '-',
+          emDelimiter: '*',
+        });
+      }
+      return вРазметку;
+    }
+
+    /** Показ -- всегда в запертой рамке, и всегда со своими стилями, а не с чужими. */
+    function показать(html) {
+      $('мх-рамка').srcdoc = `<!doctype html><meta charset="utf-8">`
+        + `<style>
+             body { margin: 0; padding: 18px 20px; background: #0f1115; color: #fff;
+               font: 400 14px/1.65 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto,
+               "Helvetica Neue", Arial, sans-serif; overflow-wrap: anywhere }
+             h1,h2,h3,h4,h5,h6 { line-height: 1.25; margin: 1.2em 0 .5em }
+             h1 { font-size: 1.7em } h2 { font-size: 1.4em } h3 { font-size: 1.2em }
+             a { color: #4ade80 }
+             code { font: 400 .9em ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+               background: rgba(255,255,255,.08); border-radius: 4px; padding: 1px 5px }
+             pre { background: rgba(255,255,255,.06); padding: 12px 14px; border-radius: 8px;
+               overflow-x: auto } pre code { background: none; padding: 0 }
+             blockquote { margin: 1em 0; padding: 2px 0 2px 14px;
+               border-left: 3px solid rgba(255,255,255,.3); color: #d4d4d8 }
+             table { border-collapse: collapse } td, th { border: 1px solid rgba(255,255,255,.2);
+               padding: 6px 10px } img { max-width: 100% } hr { border: 0;
+               border-top: 1px solid rgba(255,255,255,.2) }
+           </style>`
+        + html;
+    }
+
+    async function пересчитать() {
+      const ввод = $('мх-ввод').value;
+      const направление = $('мх-направление').value;
+      const чистить = $('мх-чистить').checked;
+
+      $('мх-счёт-ввода').textContent = `${с.chars}: ${ввод.length}`;
+
+      if (!ввод.trim()) {
+        $('мх-вывод').value = '';
+        $('мх-счёт-вывода').textContent = `${с.chars}: 0`;
+        показать('');
+        последнее = { html: '', убрано: [] };
+        return;
+      }
+
+      let вывод = '';
+      let убрано = [];
+      if (направление === 'вhtml') {
+        const marked = await взятьMarked();
+        const сырой = marked.parse(ввод);
+        const итог = чистить ? почистить(сырой) : { html: сырой, убрано: [] };
+        вывод = итог.html;
+        убрано = итог.убрано;
+        // В рамку отдаём ВСЕГДА очищенное, как бы ни стояла галочка: рамка заперта, но
+        // лишний скрипт там всё равно ни к чему.
+        показать(почистить(сырой).html);
+      } else {
+        // Обратный путь: сначала чистим, потом переводим -- иначе turndown честно перенесёт
+        // в Markdown чужие обёртки как сырой HTML, и «чистого» текста не выйдет.
+        const итог = чистить ? почистить(ввод) : { html: ввод, убрано: [] };
+        убрано = итог.убрано;
+        const turndown = await взятьTurndown();
+        вывод = turndown.turndown(итог.html);
+        показать(почистить(ввод).html);
+      }
+
+      $('мх-вывод').value = вывод;
+      const счёт = [`${с.chars}: ${вывод.length}`];
+      if (чистить) {
+        счёт.push(убрано.length
+          ? `${с.removed}: ${убрано.map((у) => `${у.что}×${у.сколько}`).join(', ')}`
+          : с.nothing);
+      }
+      $('мх-счёт-вывода').textContent = счёт.join('   ·   ');
+      последнее = { html: вывод, убрано };
+    }
+
+    // Разбор ленивый, а печатают быстро: считаем не на каждую букву, а когда рука
+    // остановилась. Иначе на длинном README страница будет спотыкаться.
+    let ждём = null;
+    const позже = () => { clearTimeout(ждём); ждём = setTimeout(пересчитать, 180); };
+
+    $('мх-ввод').addEventListener('input', позже);
+    $('мх-чистить').addEventListener('change', пересчитать);
+    $('мх-направление').addEventListener('change', () => {
+      // Меняя направление, отдаём в ввод прежний результат: обычно этого и хотят -- проверить
+      // обратный перевод. Пустой результат не переносим, иначе сотрём написанное.
+      if (последнее.html) $('мх-ввод').value = последнее.html;
+      пересчитать();
+    });
+
+    $('мх-копировать').addEventListener('click', async () => {
+      const кнопка = $('мх-копировать');
+      if (!$('мх-вывод').value) return;
+      try { await navigator.clipboard.writeText($('мх-вывод').value); } catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    $('мх-очистить').addEventListener('click', () => {
+      $('мх-ввод').value = '';
+      пересчитать();
+      $('мх-ввод').focus();
+    });
+
+    пересчитать();
+
+    window.__мхСостояние = () => ({
+      направление: $('мх-направление').value,
+      чистить: $('мх-чистить').checked,
+      ввод: $('мх-ввод').value,
+      вывод: $('мх-вывод').value,
+      счётВывода: $('мх-счёт-вывода').textContent,
+      вРамке: $('мх-рамка').srcdoc,
+      рамкаЗаперта: $('мх-рамка').getAttribute('sandbox') === '',
+    });
+    window.__мхЖдать = пересчитать;
+  })();
+</script>

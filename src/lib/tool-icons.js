@@ -16,6 +16,7 @@ const I = {
   notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
   speed: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   convert: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+  разметка: '<path d="M3.5 5.5h17a1 1 0 0 1 1 1v11a1 1 0 0 1-1 1h-17a1 1 0 0 1-1-1v-11a1 1 0 0 1 1-1Z"/><path d="M6 15V9l3 3 3-3v6"/><path d="M16 9v4.5M14 12.5l2 2 2-2"/>',
   скругление: '<path d="M3 20V9a6 6 0 0 1 6-6h12"/><path d="M8 20h13" opacity=".5"/><path d="M21 8v12" opacity=".5"/>',
   тень: '<rect x="3" y="3" width="13" height="13" rx="2"/><path d="M8 21h11a2 2 0 0 0 2-2V8" opacity=".55"/>',
   переход: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M6 15.5h1.6M9 15.5h1.6M12 15.5h1.6M15 15.5h1.6M18 15.5h.4" opacity=".9"/><path d="M6 11.5h12" opacity=".55"/><path d="M6 8.5h12"/>',
@@ -117,6 +118,7 @@ const RULES = [
   [/^css-gradient$/, 'переход'],
   [/^box-shadow$/, 'тень'],
   [/^border-radius$/, 'скругление'],
+  [/^markdown-html$/, 'разметка'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».

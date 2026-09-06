@@ -25,7 +25,9 @@
     "jsbarcode": "^3.12.3",
     "jsqr": "^1.4.0",
     "jszip": "^3.10.1",
+    "marked": "^18.0.11",
     "qrcode-generator": "^2.0.4",
-    "sql-formatter": "^15.8.2"
+    "sql-formatter": "^15.8.2",
+    "turndown": "^7.2.4"
   }
 }
