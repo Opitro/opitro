@@ -10,7 +10,8 @@
     "build": "astro build",
     "preview": "astro preview",
     "astro": "astro",
-    "check:tools": "node scripts/check-tools.mjs"
+    "check:tools": "node scripts/check-tools.mjs",
+    "check:letters": "node scripts/check-letters.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

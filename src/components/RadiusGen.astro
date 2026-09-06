@@ -1,0 +1,333 @@
+---
+// ГЕНЕРАТОР СКРУГЛЕНИЯ УГЛОВ border-radius.
+//
+// Строку собирает border-radius.js, а проверяет её сам браузер: страница отдаёт запись живому
+// свойству и смотрит, приняло ли.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО, НО БЕЗ ЧЕГО СЛОЖНЫЙ РЕЖИМ БЕСПОЛЕЗЕН: кнопка случайной фигуры.
+// Восемь ползунков вслепую не крутят -- «жидкие» фигуры подбирают перебором, и удобнее
+// получить готовую и подправить, чем собирать с нуля.
+//
+// И ещё одно: страница ЧЕСТНО ГОВОРИТ, когда браузер уменьшил скругления сам. По правилам
+// CSS, если на стороне сумма двух радиусов больше её длины, все радиусы уменьшаются на один
+// множитель. Без предупреждения это выглядит поломкой: двигаешь ползунок, а фигура не
+// меняется.
+import css from '../styles/radius-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    mode: 'Режим', simple: 'Простой', blob: 'Сложный', linked: 'Все углы одинаково',
+    unit: 'Единицы', params: 'Скругление', preview: 'Предпросмотр',
+    across: 'поперёк', along: 'вдоль',
+    tl: 'Слева сверху', tr: 'Справа сверху', br: 'Справа снизу', bl: 'Слева снизу',
+    random: 'Случайная фигура',
+    code: 'Готовый код', copy: 'Копировать', copied: 'Скопировано', reset: 'Сбросить',
+    sample: 'Элемент',
+    squeezed: 'Скругления не помещаются, и браузер уменьшил их все — примерно до {д} от заданного. Дальше двигать ползунки почти бессмысленно: фигура уже предельно круглая.',
+    n1: '<b>У каждого угла на самом деле два радиуса.</b> Один поперёк, другой вдоль. Полная запись — восемь чисел через косую черту: до неё горизонтальные, после — вертикальные. Когда они совпадают, вторую четвёрку опускают, и получается привычная короткая строка. Именно из разных пар и получаются «жидкие» фигуры.',
+    n2: '<b>Проценты и пиксели ведут себя по-разному.</b> Пиксели дают одинаковый угол и на маленькой кнопке, и на большом баннере. Проценты считаются от размеров самого элемента: 50 % превращают квадрат в круг, а вытянутый прямоугольник — в овал. Для кнопок обычно берут пиксели, для аватарок и подложек — проценты.',
+    n3: '<b>Если скругления не помещаются, браузер уменьшает их сам.</b> Правило такое: когда на какой-то стороне сумма двух радиусов больше её длины, все радиусы разом умножаются на один и тот же множитель. Об этом почти никто не знает, а следствие заметное — поставив всем углам 100 %, вы получите не «очень круглые углы», а ровный овал, и дальше ползунки перестают что-либо менять. Мы говорим об этом прямо, а не оставляем гадать.',
+    n4: '<b>Порядок углов — по часовой стрелке от левого верхнего.</b> Слева сверху, справа сверху, справа снизу, слева снизу. Перепутать легко, потому что в других свойствах CSS (например, в отступах) порядок другой — там начинают сверху и идут вправо по кругу от верхней стороны, а не от угла.',
+    n5: 'Ничего никуда не отправляется. Подбор идёт в памяти вкладки, сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    mode: 'Режим', simple: 'Простий', blob: 'Складний', linked: 'Усі кути однаково',
+    unit: 'Одиниці', params: 'Зкруглення', preview: 'Перегляд',
+    across: 'упоперек', along: 'уздовж',
+    tl: 'Ліворуч згори', tr: 'Праворуч згори', br: 'Праворуч знизу', bl: 'Ліворуч знизу',
+    random: 'Випадкова фігура',
+    code: 'Готовий код', copy: 'Копіювати', copied: 'Скопійовано', reset: 'Скинути',
+    sample: 'Елемент',
+    squeezed: 'Зкруглення не вміщаються, і браузер зменшив їх усі — приблизно до {д} від заданого. Далі рухати повзунки майже безглуздо: фігура вже гранично кругла.',
+    n1: '<b>У кожного кута насправді два радіуси.</b> Один упоперек, другий уздовж. Повний запис — вісім чисел через скісну: до неї горизонтальні, після — вертикальні. Коли вони збігаються, другу четвірку опускають, і виходить звичний короткий рядок. Саме з різних пар і виходять «рідкі» фігури.',
+    n2: '<b>Відсотки і пікселі поводяться по-різному.</b> Пікселі дають однаковий кут і на маленькій кнопці, і на великому банері. Відсотки рахуються від розмірів самого елемента: 50 % перетворюють квадрат на коло, а витягнутий прямокутник — на овал. Для кнопок зазвичай беруть пікселі, для аватарок і підкладок — відсотки.',
+    n3: '<b>Якщо зкруглення не вміщаються, браузер зменшує їх сам.</b> Правило таке: коли на якійсь стороні сума двох радіусів більша за її довжину, усі радіуси разом множаться на один і той самий множник. Про це майже ніхто не знає, а наслідок помітний — поставивши всім кутам 100 %, ви отримаєте не «дуже круглі кути», а рівний овал, і далі повзунки перестають щось міняти. Ми кажемо про це прямо, а не лишаємо гадати.',
+    n4: '<b>Порядок кутів — за годинниковою стрілкою від лівого верхнього.</b> Ліворуч згори, праворуч згори, праворуч знизу, ліворуч знизу. Переплутати легко, бо в інших властивостях CSS (наприклад, у відступах) порядок інший — там починають згори й ідуть праворуч по колу від верхньої сторони, а не від кута.',
+    n5: 'Нічого нікуди не надсилається. Добір іде в пам’яті вкладки, мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    mode: 'Mode', simple: 'Simple', blob: 'Advanced', linked: 'All corners alike',
+    unit: 'Units', params: 'Corner radii', preview: 'Preview',
+    across: 'across', along: 'along',
+    tl: 'Top left', tr: 'Top right', br: 'Bottom right', bl: 'Bottom left',
+    random: 'Random shape',
+    code: 'Ready-made code', copy: 'Copy', copied: 'Copied', reset: 'Reset',
+    sample: 'Element',
+    squeezed: 'The radii do not fit, so the browser has scaled them all down — to roughly {д} of what you set. Moving the sliders further is now nearly pointless: the shape is already as round as it gets.',
+    n1: '<b>Every corner actually has two radii.</b> One across, one along. The full form is eight numbers separated by a slash: horizontal before it, vertical after. When they match, the second set of four is dropped and you get the familiar short line. Different pairs are exactly what makes “blob” shapes possible.',
+    n2: '<b>Percentages and pixels behave differently.</b> Pixels give the same corner on a small button and on a huge banner alike. Percentages are measured against the element itself: 50% turns a square into a circle and an oblong into an oval. Buttons usually take pixels; avatars and decorative panels take percentages.',
+    n3: '<b>If the radii do not fit, the browser scales them down itself.</b> The rule: when the two radii along any side add up to more than that side\'s length, every radius is multiplied by one and the same factor. Almost nobody knows this, and the consequence is visible — set every corner to 100% and you get not "very round corners" but a plain oval, after which the sliders stop changing anything. We say so plainly rather than leave you guessing.',
+    n4: '<b>Corners go clockwise from the top left.</b> Top left, top right, bottom right, bottom left. It is easy to get wrong, because other CSS properties (padding, for instance) use a different order — they start at the top side and go round from a side, not from a corner.',
+    n5: 'Nothing is sent anywhere. The work happens in the tab\'s memory; the page makes no network requests at all.',
+  },
+  es: {
+    mode: 'Modo', simple: 'Simple', blob: 'Avanzado', linked: 'Todas las esquinas iguales',
+    unit: 'Unidades', params: 'Redondeo', preview: 'Vista previa',
+    across: 'a lo ancho', along: 'a lo alto',
+    tl: 'Arriba izquierda', tr: 'Arriba derecha', br: 'Abajo derecha', bl: 'Abajo izquierda',
+    random: 'Forma aleatoria',
+    code: 'Código listo', copy: 'Copiar', copied: 'Copiado', reset: 'Restablecer',
+    sample: 'Elemento',
+    squeezed: 'Los radios no caben, así que el navegador los ha reducido todos, hasta cerca de {д} de lo indicado. Seguir moviendo los deslizadores ya casi no sirve: la forma es todo lo redonda que puede ser.',
+    n1: '<b>Cada esquina tiene en realidad dos radios.</b> Uno a lo ancho y otro a lo alto. La forma completa son ocho números separados por una barra: horizontales antes, verticales después. Cuando coinciden se omite el segundo grupo de cuatro y queda la línea corta de siempre. De los pares distintos es justo de donde salen las formas «líquidas».',
+    n2: '<b>Porcentajes y píxeles se comportan de distinta manera.</b> Los píxeles dan la misma esquina en un botón pequeño y en un banner enorme. Los porcentajes se miden contra el propio elemento: el 50 % convierte un cuadrado en círculo y un rectángulo alargado en óvalo. Para botones se suelen usar píxeles; para avatares y fondos decorativos, porcentajes.',
+    n3: '<b>Si los radios no caben, el navegador los reduce él solo.</b> La regla es esta: cuando los dos radios de un lado suman más que la longitud de ese lado, todos los radios se multiplican por un mismo factor. Casi nadie lo sabe, y la consecuencia se ve — ponga el 100 % en todas las esquinas y no obtendrá «esquinas muy redondas» sino un óvalo liso, y a partir de ahí los deslizadores dejan de cambiar nada. Lo decimos claramente en lugar de dejarle adivinando.',
+    n4: '<b>Las esquinas van en sentido horario desde la superior izquierda.</b> Arriba izquierda, arriba derecha, abajo derecha, abajo izquierda. Es fácil equivocarse, porque otras propiedades de CSS (el relleno, por ejemplo) usan otro orden: empiezan por el lado superior y giran a partir de un lado, no de una esquina.',
+    n5: 'No se envía nada a ninguna parte. El trabajo ocurre en la memoria de la pestaña; la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const УГЛЫ = [
+  { к: 'лв', имя: 'tl' },
+  { к: 'пв', имя: 'tr' },
+  { к: 'пн', имя: 'br' },
+  { к: 'лн', имя: 'bl' },
+];
+---
+
+<div class="ру" data-words={JSON.stringify(с)}>
+  <div class="ру-пульт">
+    <span class="ру-отступ">
+      <span class="ру-подпись">{с.mode}:</span>
+      <span class="ру-набор">
+        <button type="button" class="ру-выбор выбран" data-р="простой">{с.simple}</button>
+        <button type="button" class="ру-выбор" data-р="сложный">{с.blob}</button>
+      </span>
+    </span>
+
+    <span class="ру-отступ">
+      <span class="ру-подпись">{с.unit}:</span>
+      <span class="ру-набор">
+        <button type="button" class="ру-выбор выбран" data-е="px">px</button>
+        <button type="button" class="ру-выбор" data-е="%">%</button>
+      </span>
+    </span>
+
+    <label class="ру-галка" id="ру-связь-ряд">
+      <input type="checkbox" id="ру-связь" checked /><i></i>{с.linked}
+    </label>
+  </div>
+
+  <div class="ру-пара">
+    <div class="ру-окно">
+      <div class="ру-шапка">{с.params}</div>
+      <div class="ру-тело">
+        {УГЛЫ.map((у) => (
+          <div class="ру-угол">
+            <span class="ру-имя">{с[у.имя]}</span>
+            <div class="ру-строка">
+              <span class="ру-ось" data-ось="поперёк">{с.across}</span>
+              <input type="range" class="ру-ползунок" id={`ру-п-${у.к}`}
+                     min="0" max="200" step="1" data-к={у.к} data-ось="поперёк" />
+              <input type="number" class="ру-число" id={`ру-ч-${у.к}`}
+                     min="0" max="200" step="1" data-к={у.к} data-ось="поперёк" />
+            </div>
+            <div class="ру-строка ру-вторая">
+              <span class="ру-ось">{с.along}</span>
+              <input type="range" class="ру-ползунок" id={`ру-п2-${у.к}`}
+                     min="0" max="200" step="1" data-к={у.к} data-ось="вдоль" />
+              <input type="number" class="ру-число" id={`ру-ч2-${у.к}`}
+                     min="0" max="200" step="1" data-к={у.к} data-ось="вдоль" />
+            </div>
+          </div>
+        ))}
+        <div class="ру-ряд-мелкий">
+          <button type="button" class="ру-простая" id="ру-случай">{с.random}</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="ру-окно">
+      <div class="ру-шапка">{с.preview}</div>
+      <div class="ру-показ">
+        <div class="ру-образец" id="ру-образец">{с.sample}</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Место под предупреждение держится всегда: оно появляется при крайних значениях, и без
+       запаса код внизу прыгал бы. -->
+  <div class="ру-весть" id="ру-весть"></div>
+
+  <div class="ру-окно ру-окно-код">
+    <div class="ру-шапка">{с.code}</div>
+    <div class="ру-тело">
+      <textarea class="ру-код" id="ру-код" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="ру-ряд">
+    <button type="button" class="ру-кнопка" id="ру-копировать">{с.copy}</button>
+    <button type="button" class="ру-обводка" id="ру-сбросить">{с.reset}</button>
+  </div>
+
+  <div class="ру-заметки">
+    <div class="ру-заметка" set:html={с.n1}></div>
+    <div class="ру-заметка" set:html={с.n2}></div>
+    <div class="ру-заметка" set:html={с.n3}></div>
+    <div class="ру-заметка" set:html={с.n4}></div>
+    <div class="ру-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { вСтроку, кодCSS, множительСжатия, случайнаяКлякса, УГЛЫ }
+    from '../lib/border-radius.js';
+
+  const корень = document.querySelector('.ру');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    const НАЧАЛО = () => ({
+      режим: 'простой',
+      единица: 'px',
+      связь: true,
+      поперёк: { лв: 16, пв: 16, пн: 16, лн: 16 },
+      вдоль: { лв: 16, пв: 16, пн: 16, лн: 16 },
+    });
+
+    let s = НАЧАЛО();
+
+    const наиб = () => (s.единица === '%' ? 100 : 200);
+
+    function строкаСостояния() {
+      // В простом режиме вторая четвёрка не нужна: углы круглые, а не эллиптические.
+      return вСтроку({
+        поперёк: s.поперёк,
+        вдоль: s.режим === 'сложный' ? s.вдоль : null,
+        единица: s.единица,
+      });
+    }
+
+    function перерисовать() {
+      const строка = строкаСостояния();
+      $('ру-образец').style.borderRadius = строка;
+      $('ру-код').value = кодCSS({
+        поперёк: s.поперёк,
+        вдоль: s.режим === 'сложный' ? s.вдоль : null,
+        единица: s.единица,
+      });
+
+      for (const у of УГЛЫ) {
+        for (const [ось, п1, п2] of [['поперёк', 'ру-п-', 'ру-ч-'], ['вдоль', 'ру-п2-', 'ру-ч2-']]) {
+          const з = s[ось][у];
+          $(п1 + у).max = наиб();
+          $(п2 + у).max = наиб();
+          $(п1 + у).value = з;
+          $(п2 + у).value = з;
+        }
+      }
+
+      корень.classList.toggle('сложный', s.режим === 'сложный');
+      for (const кн of корень.querySelectorAll('.ру-выбор[data-р]')) {
+        кн.classList.toggle('выбран', кн.dataset.р === s.режим);
+      }
+      for (const кн of корень.querySelectorAll('.ру-выбор[data-е]')) {
+        кн.classList.toggle('выбран', кн.dataset.е === s.единица);
+      }
+      $('ру-связь').checked = s.связь;
+
+      // Браузер уменьшает скругления сам, если они не помещаются. Без предупреждения это
+      // выглядит поломкой: ползунок двигается, а фигура нет.
+      const рамка = $('ру-образец').getBoundingClientRect();
+      const множитель = множительСжатия(
+        { поперёк: s.поперёк, вдоль: s.режим === 'сложный' ? s.вдоль : s.поперёк, единица: s.единица },
+        рамка.width || 190, рамка.height || 150);
+      const весть = $('ру-весть');
+      if (множитель < 0.995) {
+        весть.textContent = с.squeezed.replace('{д}', Math.round(множитель * 100) + ' %');
+        весть.classList.add('видна');
+      } else {
+        весть.textContent = '';
+        весть.classList.remove('видна');
+      }
+    }
+
+    function поставить(ось, угол, значение) {
+      const з = Math.min(наиб(), Math.max(0, Math.round(значение)));
+      if (s.связь) {
+        // Связанные углы: одно значение уходит во все восемь -- и поперёк, и вдоль, иначе
+        // «одинаково» получалось бы только наполовину.
+        for (const у of УГЛЫ) { s.поперёк[у] = з; s.вдоль[у] = з; }
+      } else if (s.режим === 'простой') {
+        // В простом режиме у угла один радиус: держим обе оси равными, чтобы переключение в
+        // сложный режим не давало неожиданной фигуры.
+        s.поперёк[угол] = з;
+        s.вдоль[угол] = з;
+      } else {
+        s[ось][угол] = з;
+      }
+      перерисовать();
+    }
+
+    for (const у of УГЛЫ) {
+      for (const [ось, поля] of [['поперёк', ['ру-п-', 'ру-ч-']], ['вдоль', ['ру-п2-', 'ру-ч2-']]]) {
+        for (const п of поля) {
+          $(п + у).addEventListener('input', () => {
+            const з = Number($(п + у).value);
+            if (Number.isFinite(з)) поставить(ось, у, з);
+          });
+        }
+      }
+    }
+
+    for (const кн of корень.querySelectorAll('.ру-выбор[data-р]')) {
+      кн.addEventListener('click', () => { s.режим = кн.dataset.р; перерисовать(); });
+    }
+    for (const кн of корень.querySelectorAll('.ру-выбор[data-е]')) {
+      кн.addEventListener('click', () => {
+        if (s.единица === кн.dataset.е) return;
+        s.единица = кн.dataset.е;
+        // Проценты и пиксели живут в разных пределах: 200 пикселей это не 200 процентов.
+        // Просто обрезаем по новому потолку -- пересчитывать «на глаз» было бы враньём.
+        for (const у of УГЛЫ) {
+          s.поперёк[у] = Math.min(наиб(), s.поперёк[у]);
+          s.вдоль[у] = Math.min(наиб(), s.вдоль[у]);
+        }
+        перерисовать();
+      });
+    }
+
+    $('ру-связь').addEventListener('change', () => {
+      s.связь = $('ру-связь').checked;
+      if (s.связь) поставить('поперёк', 'лв', s.поперёк.лв);
+      else перерисовать();
+    });
+
+    $('ру-случай').addEventListener('click', () => {
+      const к = случайнаяКлякса();
+      s = { ...s, режим: 'сложный', связь: false, единица: '%', ...к };
+      перерисовать();
+    });
+
+    $('ру-копировать').addEventListener('click', async () => {
+      const кнопка = $('ру-копировать');
+      try { await navigator.clipboard.writeText($('ру-код').value); } catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    $('ру-сбросить').addEventListener('click', () => { s = НАЧАЛО(); перерисовать(); });
+
+    перерисовать();
+
+    window.__руСостояние = () => ({
+      режим: s.режим,
+      единица: s.единица,
+      связь: s.связь,
+      строка: строкаСостояния(),
+      код: $('ру-код').value,
+      наОбразце: $('ру-образец').style.borderRadius,
+      весть: $('ру-весть').textContent,
+      поперёк: { ...s.поперёк },
+      вдоль: { ...s.вдоль },
+    });
+  })();
+</script>
