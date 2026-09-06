@@ -1,0 +1,416 @@
+---
+// ГЕНЕРАТОР .htaccess.
+//
+// Самый опасный инструмент на сайте: ошибка здесь не портит вид, а кладёт чужой сайт --
+// ответом 500 на каждый запрос или вечным кругом перенаправлений.
+//
+// ЧЕМ ПРОВЕРЕНО. Не глазами и не своими же правилами, а НАСТОЯЩИМ Apache 2.4.66: в
+// испытании поднимается httpd с AllowOverride All, в корень кладётся собранный файл, и
+// запросы идут по-настоящему. Сверяются коды ответов и заголовки. Сорок с лишним проверок,
+// в том числе: один прыжок вместо двух, ответ 200 за посредником (вечного круга нет),
+// пустой источник перехода у хотлинка, 403 для чужого сайта и 200 для поиска по картинкам,
+// gzip для стилей и его отсутствие для картинок, нулевой срок хранения у страниц.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО И ПОЧЕМУ ЭТО ЗДЕСЬ:
+//   1. Поле домена. Без него нельзя ни склеить зеркала на www, ни отличить свой сайт от
+//      чужого в защите от хотлинка.
+//   2. Отметка «сайт за посредником». Без неё правило «гнать на https» за Cloudflare
+//      срабатывает всегда и уводит сайт в вечный круг. Это доказано в испытании: тот же
+//      файл без отметки отвечает 301 на запрос, который уже пришёл по https.
+//   3. Схема и хост правятся ОДНИМ правилом -- иначе два перенаправления подряд.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых надписей не делаю.
+import css from '../styles/htaccess.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    domain: 'Домен сайта', domainHint: 'example.com',
+    s1: '1. Маршрутизация и SEO', s2: '2. Безопасность и доступ',
+    s3: '3. Скорость', s4: '4. Свои перенаправления',
+    https: 'Принудительный HTTPS', proxy: 'Сайт за посредником (Cloudflare и подобные)',
+    mirrors: 'Зеркала', mNone: 'не трогать', mBare: 'на без-www', mWww: 'на www',
+    indexes: 'Запретить показ содержимого папок', hotlink: 'Защита от хотлинка',
+    ips: 'Блокировка адресов (по одному в строке)', ipsHint: '192.168.1.1\n2001:db8::1\n10.0.0.0/8',
+    gzip: 'Сжатие ответа (mod_deflate)', cache: 'Сроки хранения в браузере (mod_expires)',
+    from: 'Старый путь', to: 'Новый адрес', add: 'Добавить строку', del: 'Убрать строку',
+    run: 'Собрать файл', copy: 'Копировать код', download: 'Скачать .htaccess', clear: 'Очистить',
+    copied: 'Скопировано', empty: 'Выберите нужное и нажмите кнопку — готовый файл выйдет здесь',
+    e_domain: 'Укажите домен: без него не собрать ни склейку зеркал, ни защиту от хотлинка',
+    e_baddomain: 'Домен записан неверно',
+    e_ip: 'Не похоже на адрес: ',
+    e_from: 'Старый путь должен начинаться с косой черты',
+    e_to: 'Новый адрес должен быть полным (https://…) или начинаться с косой черты',
+    e_empty: 'Ничего не выбрано — выбирать нечего и собирать нечего',
+    e_space: 'В пути или адресе есть пробел — Apache ответит на такое ошибкой 500',
+    e_nofrom: 'Не заполнен старый путь', e_noto: 'Не заполнен новый адрес',
+    n1: '<b>Сохраните прежний файл до замены.</b> Ошибка в .htaccess кладёт сайт целиком: либо ответ 500 на каждый запрос, либо вечный круг перенаправлений. Откатиться будет нечем, если старого файла не осталось. Проверяйте сразу после заливки — и главную, и внутреннюю страницу.',
+    n2: '<b>Отметка про посредника — не мелочь.</b> Когда сайт стоит за Cloudflare, шифрование обрывается на посреднике, и до Apache запрос доходит обычным. Правило «если не https — гнать на https» тогда срабатывает <b>всегда</b>, и сайт уходит в бесконечный круг. Мы это проверили на настоящем сервере: тот же файл без отметки отвечает 301 на запрос, который уже пришёл по https.',
+    n3: '<b>Схема и хост правятся одним правилом.</b> Отдельное правило на https и отдельное на www дают два перенаправления подряд: http://www.сайт → https://www.сайт → https://сайт. Для человека это лишняя задержка, для поиска — лишний прыжок. Здесь прыжок один, и это измерено.',
+    n4: '<b>Защита от хотлинка разрешает пустой источник перехода.</b> Иначе она бьёт по своим: прямое открытие картинки, сохранение её на диск и все, у кого передача источника отключена. Поиск по картинкам тоже разрешён — закрыться от него значит потерять переходы.',
+    n5: '<b>Запрет по адресу написан на двух наречиях сразу.</b> У Apache 2.4 это <code>Require not ip</code>, у 2.2 — <code>Deny from</code>. Написать не то, что ждут, значит получить 500. В файле стоят оба, каждое под своей проверкой наличия модуля, поэтому он годится и там и там.',
+    n6: '<b>Запрет по адресу — не защита.</b> Адрес меняется одним нажатием, а через чужой узел его меняют и вовсе не глядя. Это средство от одного назойливого гостя, а не от того, кто хочет войти.',
+    n7: 'Ничего никуда не отправляется. Устройство вашего сервера, пути и списки адресов остаются в памяти вкладки; страница не делает сетевых запросов.',
+  },
+  uk: {
+    domain: 'Домен сайту', domainHint: 'example.com',
+    s1: '1. Маршрутизація та SEO', s2: '2. Безпека й доступ',
+    s3: '3. Швидкість', s4: '4. Власні перенаправлення',
+    https: 'Примусовий HTTPS', proxy: 'Сайт за посередником (Cloudflare і подібні)',
+    mirrors: 'Дзеркала', mNone: 'не чіпати', mBare: 'на без-www', mWww: 'на www',
+    indexes: 'Заборонити показ вмісту тек', hotlink: 'Захист від хотлінка',
+    ips: 'Блокування адрес (по одній у рядку)', ipsHint: '192.168.1.1\n2001:db8::1\n10.0.0.0/8',
+    gzip: 'Стиснення відповіді (mod_deflate)', cache: 'Терміни зберігання в браузері (mod_expires)',
+    from: 'Старий шлях', to: 'Нова адреса', add: 'Додати рядок', del: 'Прибрати рядок',
+    run: 'Зібрати файл', copy: 'Копіювати код', download: 'Завантажити .htaccess', clear: 'Очистити',
+    copied: 'Скопійовано', empty: 'Оберіть потрібне й натисніть кнопку — готовий файл вийде тут',
+    e_domain: 'Вкажіть домен: без нього не зібрати ні склейку дзеркал, ні захист від хотлінка',
+    e_baddomain: 'Домен записано неправильно',
+    e_ip: 'Не схоже на адресу: ',
+    e_from: 'Старий шлях має починатися з косої риски',
+    e_to: 'Нова адреса має бути повною (https://…) або починатися з косої риски',
+    e_empty: 'Нічого не обрано — вибирати нічого й збирати нічого',
+    e_space: 'У шляху чи адресі є пробіл — Apache відповість на таке помилкою 500',
+    e_nofrom: 'Не заповнено старий шлях', e_noto: 'Не заповнено нову адресу',
+    n1: '<b>Збережіть попередній файл до заміни.</b> Помилка в .htaccess кладе сайт цілком: або відповідь 500 на кожен запит, або вічне коло перенаправлень. Відкотитися буде нічим, якщо старого файлу не лишилося. Перевіряйте одразу після заливання — і головну, і внутрішню сторінку.',
+    n2: '<b>Позначка про посередника — не дрібниця.</b> Коли сайт стоїть за Cloudflare, шифрування обривається на посереднику, і до Apache запит доходить звичайним. Правило «якщо не https — гнати на https» тоді спрацьовує <b>завжди</b>, і сайт іде в нескінченне коло. Ми це перевірили на справжньому сервері: той самий файл без позначки відповідає 301 на запит, який уже прийшов по https.',
+    n3: '<b>Схема й хост правляться одним правилом.</b> Окреме правило на https і окреме на www дають два перенаправлення поспіль: http://www.сайт → https://www.сайт → https://сайт. Для людини це зайва затримка, для пошуку — зайвий стрибок. Тут стрибок один, і це виміряно.',
+    n4: '<b>Захист від хотлінка дозволяє порожнє джерело переходу.</b> Інакше він б’є по своїх: пряме відкриття картинки, збереження її на диск і всі, у кого передача джерела вимкнена. Пошук по картинках теж дозволено — закритися від нього означає втратити переходи.',
+    n5: '<b>Заборону за адресою написано двома говірками одразу.</b> В Apache 2.4 це <code>Require not ip</code>, у 2.2 — <code>Deny from</code>. Написати не те, що чекають, означає отримати 500. У файлі стоять обидві, кожна під своєю перевіркою наявності модуля, тому він годиться і там і там.',
+    n6: '<b>Заборона за адресою — не захист.</b> Адреса змінюється одним натисканням, а через чужий вузол її змінюють і зовсім не дивлячись. Це засіб від одного набридливого гостя, а не від того, хто хоче ввійти.',
+    n7: 'Нічого нікуди не надсилається. Будова вашого сервера, шляхи та списки адрес лишаються в пам’яті вкладки; сторінка не робить мережевих запитів.',
+  },
+  en: {
+    domain: 'Your domain', domainHint: 'example.com',
+    s1: '1. Routing and SEO', s2: '2. Security and access',
+    s3: '3. Speed', s4: '4. Your own redirects',
+    https: 'Force HTTPS', proxy: 'Site sits behind a proxy (Cloudflare and the like)',
+    mirrors: 'Canonical host', mNone: 'leave alone', mBare: 'to non-www', mWww: 'to www',
+    indexes: 'Forbid directory listings', hotlink: 'Hotlink protection',
+    ips: 'Block addresses (one per line)', ipsHint: '192.168.1.1\n2001:db8::1\n10.0.0.0/8',
+    gzip: 'Compress responses (mod_deflate)', cache: 'Browser cache lifetimes (mod_expires)',
+    from: 'Old path', to: 'New address', add: 'Add a row', del: 'Remove the row',
+    run: 'Build the file', copy: 'Copy the code', download: 'Download .htaccess', clear: 'Clear',
+    copied: 'Copied', empty: 'Pick what you need and press the button — the finished file appears here',
+    e_domain: 'A domain is required: without it neither host canonicalisation nor hotlink protection can be built',
+    e_baddomain: 'That domain is not written correctly',
+    e_ip: 'Does not look like an address: ',
+    e_from: 'The old path must begin with a slash',
+    e_to: 'The new address must be absolute (https://…) or begin with a slash',
+    e_empty: 'Nothing is selected — there is nothing to build',
+    e_space: 'There is a space in the path or address — Apache answers such a file with a 500 error',
+    e_nofrom: 'The old path is empty', e_noto: 'The new address is empty',
+    n1: '<b>Keep the previous file before replacing it.</b> A mistake in .htaccess takes the whole site down: either a 500 on every request or an endless redirect loop. There will be nothing to roll back to if the old file is gone. Check immediately after uploading — the home page and an inner page both.',
+    n2: '<b>The proxy checkbox is not a detail.</b> When a site sits behind Cloudflare, encryption terminates at the proxy and the request reaches Apache as plain HTTP. The rule “if not https, redirect to https” then fires <b>every single time</b>, and the site spins in an endless loop. We checked this on a real server: the same file without the checkbox answers 301 to a request that already arrived over https.',
+    n3: '<b>Scheme and host are fixed by one rule.</b> A separate rule for https and another for www produce two redirects in a row: http://www.site → https://www.site → https://site. For a person that is extra delay; for search it is an extra hop. Here there is one hop, and that is measured.',
+    n4: '<b>Hotlink protection allows an empty referrer.</b> Otherwise it hits your own visitors: opening an image directly, saving it to disk, and everyone who has referrer sending switched off. Image search is allowed too — shutting it out means losing the traffic it brings.',
+    n5: '<b>The address block is written in both dialects at once.</b> Apache 2.4 wants <code>Require not ip</code>, Apache 2.2 wants <code>Deny from</code>. Writing the wrong one earns a 500. The file carries both, each behind its own module check, so it works either way.',
+    n6: '<b>Blocking an address is not security.</b> An address changes with one click, and through somebody else\'s node it changes without a thought. This is a remedy for one persistent nuisance, not for somebody who wants in.',
+    n7: 'Nothing is sent anywhere. Your server layout, your paths and your address lists stay in the tab\'s memory; the page makes no network requests.',
+  },
+  es: {
+    domain: 'Su dominio', domainHint: 'example.com',
+    s1: '1. Enrutamiento y SEO', s2: '2. Seguridad y acceso',
+    s3: '3. Velocidad', s4: '4. Redirecciones propias',
+    https: 'Forzar HTTPS', proxy: 'El sitio está detrás de un intermediario (Cloudflare y similares)',
+    mirrors: 'Host canónico', mNone: 'no tocar', mBare: 'a sin www', mWww: 'a con www',
+    indexes: 'Prohibir el listado de carpetas', hotlink: 'Protección contra hotlinking',
+    ips: 'Bloquear direcciones (una por línea)', ipsHint: '192.168.1.1\n2001:db8::1\n10.0.0.0/8',
+    gzip: 'Comprimir las respuestas (mod_deflate)', cache: 'Caducidad en el navegador (mod_expires)',
+    from: 'Ruta antigua', to: 'Dirección nueva', add: 'Añadir fila', del: 'Quitar la fila',
+    run: 'Construir el archivo', copy: 'Copiar el código', download: 'Descargar .htaccess', clear: 'Limpiar',
+    copied: 'Copiado', empty: 'Elija lo que necesite y pulse el botón: el archivo terminado aparecerá aquí',
+    e_domain: 'Hace falta un dominio: sin él no se puede construir ni la unificación de espejos ni la protección contra hotlinking',
+    e_baddomain: 'Ese dominio no está bien escrito',
+    e_ip: 'No parece una dirección: ',
+    e_from: 'La ruta antigua debe empezar por barra',
+    e_to: 'La dirección nueva debe ser absoluta (https://…) o empezar por barra',
+    e_empty: 'No hay nada seleccionado: no hay nada que construir',
+    e_space: 'Hay un espacio en la ruta o en la dirección; Apache responde a eso con un error 500',
+    e_nofrom: 'Falta la ruta antigua', e_noto: 'Falta la dirección nueva',
+    n1: '<b>Guarde el archivo anterior antes de sustituirlo.</b> Un error en .htaccess tumba el sitio entero: o un 500 en cada petición o un bucle infinito de redirecciones. No habrá a qué volver si el archivo viejo ya no existe. Compruebe inmediatamente después de subirlo: la portada y una página interior.',
+    n2: '<b>La casilla del intermediario no es un detalle.</b> Cuando el sitio está detrás de Cloudflare, el cifrado termina en el intermediario y la petición llega a Apache como HTTP normal. La regla «si no es https, redirige a https» se dispara entonces <b>siempre</b>, y el sitio entra en un bucle infinito. Lo comprobamos en un servidor real: el mismo archivo sin la casilla responde 301 a una petición que ya venía por https.',
+    n3: '<b>Esquema y host se corrigen con una sola regla.</b> Una regla para https y otra para www producen dos redirecciones seguidas: http://www.sitio → https://www.sitio → https://sitio. Para una persona es retraso de más; para el buscador, un salto de más. Aquí el salto es uno, y está medido.',
+    n4: '<b>La protección contra hotlinking permite el origen vacío.</b> De lo contrario golpea a los suyos: abrir una imagen directamente, guardarla en disco y todo aquel que tenga desactivado el envío del origen. La búsqueda de imágenes también se permite: cerrarle la puerta es perder las visitas que trae.',
+    n5: '<b>El bloqueo por dirección va escrito en los dos dialectos a la vez.</b> Apache 2.4 quiere <code>Require not ip</code>; Apache 2.2, <code>Deny from</code>. Escribir el que no toca se paga con un 500. El archivo lleva ambos, cada uno tras su comprobación de módulo, así que sirve en los dos casos.',
+    n6: '<b>Bloquear una dirección no es seguridad.</b> Una dirección se cambia con un clic, y a través del nodo de otro se cambia sin pensarlo. Es un remedio contra un visitante pesado, no contra alguien que quiere entrar.',
+    n7: 'No se envía nada a ninguna parte. La estructura de su servidor, sus rutas y sus listas de direcciones se quedan en la memoria de la pestaña; la página no hace peticiones de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="хт" data-words={JSON.stringify(с)}>
+
+  <div class="хт-раздел">
+    <div class="хт-имя-раздела">{с.s1}</div>
+    <label class="хт-поле">
+      <span class="хт-подпись">{с.domain}</span>
+      <input type="text" class="хт-строка" id="хт-домен" spellcheck="false" autocomplete="off"
+             autocapitalize="off" placeholder={с.domainHint} />
+    </label>
+    <div class="хт-галки">
+      <label class="хт-галка"><input type="checkbox" id="хт-https" checked /><i></i>{с.https}</label>
+      <label class="хт-галка"><input type="checkbox" id="хт-посредник" /><i></i>{с.proxy}</label>
+    </div>
+    <div class="хт-выбор">
+      <span class="хт-подпись">{с.mirrors}:</span>
+      <span class="хт-набор" id="хт-зеркала" role="radiogroup" aria-label={с.mirrors}>
+        <button type="button" class="хт-кнопка-выбора хт-выбран" data-з="без-www" role="radio" aria-checked="true">{с.mBare}</button>
+        <button type="button" class="хт-кнопка-выбора" data-з="с-www" role="radio" aria-checked="false">{с.mWww}</button>
+        <button type="button" class="хт-кнопка-выбора" data-з="нет" role="radio" aria-checked="false">{с.mNone}</button>
+      </span>
+    </div>
+  </div>
+
+  <div class="хт-раздел">
+    <div class="хт-имя-раздела">{с.s2}</div>
+    <div class="хт-галки">
+      <label class="хт-галка"><input type="checkbox" id="хт-листинг" checked /><i></i>{с.indexes}</label>
+      <label class="хт-галка"><input type="checkbox" id="хт-хотлинк" /><i></i>{с.hotlink}</label>
+    </div>
+    <label class="хт-поле">
+      <span class="хт-подпись">{с.ips}</span>
+      <textarea class="хт-окошко" id="хт-адреса" spellcheck="false" autocomplete="off"
+                placeholder={с.ipsHint}></textarea>
+    </label>
+  </div>
+
+  <div class="хт-раздел">
+    <div class="хт-имя-раздела">{с.s3}</div>
+    <div class="хт-галки">
+      <label class="хт-галка"><input type="checkbox" id="хт-сжатие" checked /><i></i>{с.gzip}</label>
+      <label class="хт-галка"><input type="checkbox" id="хт-кэш" checked /><i></i>{с.cache}</label>
+    </div>
+  </div>
+
+  <div class="хт-раздел">
+    <div class="хт-имя-раздела">{с.s4}</div>
+    <div class="хт-переносы" id="хт-переносы"></div>
+    <button type="button" class="хт-обводка хт-узкая" id="хт-добавить">+ {с.add}</button>
+  </div>
+
+  <div class="хт-ряд-пуска">
+    <button type="button" class="хт-кнопка хт-пуск" id="хт-собрать">{с.run}</button>
+  </div>
+
+  <div class="хт-окно">
+    <textarea class="хт-вывод" id="хт-вывод" readonly spellcheck="false"
+              placeholder={с.empty}></textarea>
+    <div class="хт-счёт" id="хт-счёт">
+      <span class="хт-беда" id="хт-беда" hidden></span>
+      <span class="хт-числа" id="хт-числа"></span>
+    </div>
+  </div>
+
+  <div class="хт-ряд">
+    <button type="button" class="хт-кнопка" id="хт-копировать" disabled>{с.copy}</button>
+    <button type="button" class="хт-обводка" id="хт-скачать" disabled>{с.download}</button>
+    <button type="button" class="хт-обводка" id="хт-очистить">{с.clear}</button>
+  </div>
+
+  <div class="хт-заметки">
+    <div class="хт-заметка" set:html={с.n1}></div>
+    <div class="хт-заметка" set:html={с.n2}></div>
+    <div class="хт-заметка" set:html={с.n3}></div>
+    <div class="хт-заметка" set:html={с.n4}></div>
+    <div class="хт-заметка" set:html={с.n5}></div>
+    <div class="хт-заметка" set:html={с.n6}></div>
+    <div class="хт-заметка">{с.n7}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { собрать } from '../lib/htaccess.js';
+
+  const корень = document.querySelector('.хт');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    let зеркала = 'без-www';
+    let собрано = false;      // после первой сборки пересобираем на каждое изменение
+
+    /* ---- Строки своих перенаправлений ------------------------------------------------ */
+    function строкаПереноса(откуда = '', куда = '') {
+      const ряд = document.createElement('div');
+      ряд.className = 'хт-перенос';
+      const а = document.createElement('input');
+      а.type = 'text'; а.className = 'хт-строка'; а.spellcheck = false;
+      а.placeholder = '/old-page'; а.value = откуда;
+      а.setAttribute('aria-label', с.from);
+      const стрелка = document.createElement('span');
+      стрелка.className = 'хт-стрелка'; стрелка.textContent = '→'; стрелка.setAttribute('aria-hidden', 'true');
+      const б = document.createElement('input');
+      б.type = 'text'; б.className = 'хт-строка'; б.spellcheck = false;
+      б.placeholder = 'https://example.com/new'; б.value = куда;
+      б.setAttribute('aria-label', с.to);
+      const убрать = document.createElement('button');
+      убрать.type = 'button'; убрать.className = 'хт-минус';
+      убрать.textContent = '−';
+      убрать.setAttribute('aria-label', с.del);
+      убрать.title = с.del;
+      убрать.addEventListener('click', () => {
+        ряд.remove();
+        if (!$('хт-переносы').children.length) добавить();
+        пересобрать();
+      });
+      for (const п of [а, б]) п.addEventListener('input', пересобрать);
+      ряд.append(а, стрелка, б, убрать);
+      return ряд;
+    }
+    function добавить(откуда, куда) {
+      $('хт-переносы').appendChild(строкаПереноса(откуда, куда));
+    }
+    добавить();
+
+    /* ---- Сбор наладок ----------------------------------------------------------------- */
+    const наладки = () => ({
+      домен: $('хт-домен').value,
+      https: $('хт-https').checked,
+      заПосредником: $('хт-посредник').checked,
+      зеркала,
+      листинг: $('хт-листинг').checked,
+      адреса: $('хт-адреса').value,
+      хотлинк: $('хт-хотлинк').checked,
+      сжатие: $('хт-сжатие').checked,
+      кэш: $('хт-кэш').checked,
+      переносы: [...$('хт-переносы').children].map((р) => {
+        const [а, , б] = р.querySelectorAll('input, span');
+        const поля = р.querySelectorAll('input');
+        return { откуда: поля[0].value, куда: поля[1].value };
+      }),
+      дата: new Date().toISOString().slice(0, 10),
+    });
+
+    const ИМЕНА = {
+      НЕТ_ДОМЕНА: () => с.e_domain,
+      ПЛОХОЙ_ДОМЕН: () => с.e_baddomain,
+      НИЧЕГО_НЕ_ВЫБРАНО: () => с.e_empty,
+      СТАРЫЙ_БЕЗ_КОСОЙ: (х) => с.e_from + (х ? ` — «${х}»` : ''),
+      НОВЫЙ_НЕ_АДРЕС: (х) => с.e_to + (х ? ` — «${х}»` : ''),
+      ПРОБЕЛ_ИЛИ_УПРАВЛЯЮЩИЙ: (х) => с.e_space + (х ? ` — «${х}»` : ''),
+      НЕТ_СТАРОГО: () => с.e_nofrom,
+      НЕТ_НОВОГО: () => с.e_noto,
+      ПЛОХОЙ_АДРЕС: (х) => с.e_ip + х,
+    };
+    const пояснить = (беда) => {
+      const [имя, ...остальное] = String(беда).split(':');
+      const хвост = остальное.join(':');
+      return (ИМЕНА[имя] || (() => беда))(хвост);
+    };
+
+    const сказать = (текст) => {
+      $('хт-беда').textContent = текст || '';
+      $('хт-беда').hidden = !текст;
+    };
+
+    function пересобрать() { if (собрано) сделать(); }
+
+    function сделать() {
+      const р = собрать(наладки());
+      if (р.беды.length) {
+        $('хт-вывод').value = '';
+        $('хт-числа').textContent = '';
+        $('хт-копировать').disabled = true;
+        $('хт-скачать').disabled = true;
+        сказать(р.беды.map(пояснить).join(' · '));
+        собрано = true;
+        return;
+      }
+      сказать('');
+      $('хт-вывод').value = р.код;
+      const строк = р.код.split('\n').filter((с2) => с2.trim() && !с2.trim().startsWith('#')).length;
+      $('хт-числа').textContent = `${строк} · ${new TextEncoder().encode(р.код).length} B`;
+      $('хт-копировать').disabled = false;
+      $('хт-скачать').disabled = false;
+      собрано = true;
+    }
+
+    $('хт-собрать').addEventListener('click', сделать);
+    $('хт-добавить').addEventListener('click', () => { добавить(); });
+    for (const и of ['хт-домен', 'хт-адреса']) $(и).addEventListener('input', пересобрать);
+    for (const и of ['хт-https', 'хт-посредник', 'хт-листинг', 'хт-хотлинк', 'хт-сжатие', 'хт-кэш']) {
+      $(и).addEventListener('change', пересобрать);
+    }
+    for (const к of $('хт-зеркала').querySelectorAll('[data-з]')) {
+      к.addEventListener('click', () => {
+        зеркала = к.dataset.з;
+        for (const д of $('хт-зеркала').querySelectorAll('[data-з]')) {
+          const он = д === к;
+          д.classList.toggle('хт-выбран', он);
+          д.setAttribute('aria-checked', он ? 'true' : 'false');
+        }
+        пересобрать();
+      });
+    }
+
+    $('хт-копировать').addEventListener('click', async () => {
+      const к = $('хт-копировать');
+      if (!$('хт-вывод').value) return;
+      try { await navigator.clipboard.writeText($('хт-вывод').value); } catch (е) { return; }
+      к.textContent = с.copied;
+      clearTimeout(к._т);
+      к._т = setTimeout(() => { к.textContent = с.copy; }, 1500);
+    });
+
+    $('хт-скачать').addEventListener('click', () => {
+      const текст = $('хт-вывод').value;
+      if (!текст) return;
+      const пятно = new Blob([текст], { type: 'text/plain;charset=utf-8' });
+      const адрес = URL.createObjectURL(пятно);
+      const ссылка = document.createElement('a');
+      ссылка.href = адрес;
+      ссылка.download = '.htaccess';
+      document.body.appendChild(ссылка);
+      ссылка.click();
+      ссылка.remove();
+      // Отпускаем память не сразу: некоторые браузеры ещё читают ссылку в этот миг.
+      setTimeout(() => URL.revokeObjectURL(адрес), 4000);
+    });
+
+    $('хт-очистить').addEventListener('click', () => {
+      $('хт-домен').value = '';
+      $('хт-адреса').value = '';
+      $('хт-вывод').value = '';
+      $('хт-числа').textContent = '';
+      сказать('');
+      $('хт-переносы').replaceChildren();
+      добавить();
+      $('хт-копировать').disabled = true;
+      $('хт-скачать').disabled = true;
+      собрано = false;
+    });
+
+    window.__хтСостояние = () => ({
+      вывод: $('хт-вывод').value,
+      беда: $('хт-беда').hidden ? '' : $('хт-беда').textContent,
+      числа: $('хт-числа').textContent,
+      зеркала,
+      строкПереносов: $('хт-переносы').children.length,
+      копироватьЖива: !$('хт-копировать').disabled,
+      скачатьЖива: !$('хт-скачать').disabled,
+    });
+    window.__хтСобрать = (н) => {
+      if (н.домен !== undefined) $('хт-домен').value = н.домен;
+      if (н.адреса !== undefined) $('хт-адреса').value = н.адреса;
+      for (const [ключ, и] of [['https', 'хт-https'], ['заПосредником', 'хт-посредник'],
+        ['листинг', 'хт-листинг'], ['хотлинк', 'хт-хотлинк'], ['сжатие', 'хт-сжатие'], ['кэш', 'хт-кэш']]) {
+        if (н[ключ] !== undefined) $(и).checked = н[ключ];
+      }
+      if (н.зеркала !== undefined) {
+        const к = $('хт-зеркала').querySelector(`[data-з="${н.зеркала}"]`);
+        if (к) к.click();
+      }
+      if (н.переносы !== undefined) {
+        $('хт-переносы').replaceChildren();
+        for (const п of н.переносы) добавить(п.откуда, п.куда);
+        if (!н.переносы.length) добавить();
+      }
+      сделать();
+      return window.__хтСостояние();
+    };
+  })();
+</script>

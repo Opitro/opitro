@@ -34,6 +34,8 @@ const I = {
   link: '<path d="M10 13.5a3.5 3.5 0 0 0 5 0l3-3a3.5 3.5 0 0 0-5-5l-1.5 1.5"/><path d="M14 10.5a3.5 3.5 0 0 0-5 0l-3 3a3.5 3.5 0 0 0 5 5l1.5-1.5"/>',
   cipher: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5V7h-3.5"/><path d="M9.5 15l2.5-6.5 2.5 6.5M10.4 13h3.2"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
+  // Стойка сервера с замком: настройки доступа.
+  'сервер': '<rect x="3" y="3.5" width="18" height="7" rx="1.8"/><rect x="3" y="13.5" width="18" height="7" rx="1.8"/><path d="M6.5 7h.01M6.5 17h.01"/><path d="M13 7h5M13 17h5"/>',
   // Две стрелки навстречу: то, что делает минификатор.
   'сжатие': '<path d="M3 5.5h18M3 18.5h18"/><path d="M8.5 9.5 12 13l3.5-3.5"/><path d="M8.5 14.5 12 11l3.5 3.5" opacity=".45"/>',
   filler: '<path d="M4 6h16M4 10h16M4 14h11M4 18h7"/>',
@@ -127,6 +129,7 @@ const RULES = [
   [/^uuid-generator$/, 'ключик'],
   [/^unix-timestamp$/, 'clock'],
   [/^minify-(html|css|js)$/, 'сжатие'],
+  [/^htaccess-generator$/, 'сервер'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
@@ -210,7 +213,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  'сжатие': '#7dd3fc',
+  'сжатие': '#7dd3fc', 'сервер': '#f0abfc',
   diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee', таблица: '#f59e0b', бочка: '#a78bfa', кубики: '#34d399', файлкод: '#fbbf24', кьюар: '#60a5fa', прицел: '#2dd4bf', полосы: '#f0abfc',
 };
 

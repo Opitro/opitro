@@ -1,0 +1,156 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР .htaccess».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); вывод и счётчики не
+ * приглушённо-серые, а белые -- мелкое сделано тонким начертанием, а не полупрозрачным.
+ * Выбор зеркала -- ряд кнопок, а не выпадающий список: вариантов три, и все видны сразу.
+ */
+
+.хт {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Разделы --------------------------------------------------------------------------- */
+
+.хт-раздел { padding: 16px 0; border-top: 1px solid var(--линия) }
+.хт-раздел:first-child { padding-top: 0; border-top: 0 }
+.хт-имя-раздела { font: 600 12px var(--цифры); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent); margin-bottom: 12px }
+
+.хт-поле { display: block; margin-bottom: 12px }
+.хт-подпись { display: block; font: 400 12px var(--цифры); color: #fff; margin-bottom: 6px }
+
+.хт-строка {
+  width: 100%; height: 44px; padding: 0 13px; border-radius: 8px;
+  font: 400 13px var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия); transition: border-color .15s;
+}
+.хт-строка:hover { border-color: #6b7280 }
+.хт-строка:focus { border-color: #fff; outline: none }
+.хт-строка::placeholder { color: #8b93a0 }
+
+.хт-окошко {
+  width: 100%; min-height: 86px; resize: vertical; display: block;
+  padding: 11px 13px; border-radius: 8px;
+  font: 400 13px/1.6 var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия); transition: border-color .15s;
+}
+.хт-окошко:hover { border-color: #6b7280 }
+.хт-окошко:focus { border-color: #fff; outline: none }
+.хт-окошко::placeholder { color: #8b93a0 }
+
+/* ---- Галочки и выбор -------------------------------------------------------------------- */
+
+.хт-галки { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
+  margin-bottom: 12px }
+.хт-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.хт-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.хт-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color .15s }
+.хт-галка:hover i { border-color: #fff }
+.хт-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.хт-галка input:checked + i { border-color: var(--accent) }
+.хт-галка input:checked + i::after { transform: scale(1) }
+.хт-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.хт-выбор { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px }
+.хт-выбор .хт-подпись { margin-bottom: 0 }
+.хт-набор { display: inline-flex; gap: 6px; flex-wrap: wrap }
+/* Выбранное -- обводкой, без заливки: залитая кнопка читалась бы как нажатая навсегда. */
+.хт-кнопка-выбора {
+  height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; flex: 0 0 auto;
+  font: 600 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.хт-кнопка-выбора:hover { border-color: #fff }
+.хт-кнопка-выбора.хт-выбран { border-color: var(--accent); color: var(--accent);
+  background: transparent }
+.хт-кнопка-выбора:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Строки перенаправлений --------------------------------------------------------------- */
+
+.хт-переносы { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px }
+.хт-перенос { display: flex; align-items: center; gap: 8px }
+.хт-перенос .хт-строка { flex: 1 1 0; min-width: 0 }
+.хт-стрелка { flex: none; color: var(--accent); font: 400 15px var(--цифры) }
+.хт-минус {
+  flex: none; width: 44px; height: 44px; border-radius: 8px; cursor: pointer; padding: 0;
+  font: 400 19px var(--цифры); color: #fff; background: #1c1f26; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s;
+}
+.хт-минус:hover { border-color: #fff; background: #23272f }
+
+/* ---- Пуск, вывод, кнопки ------------------------------------------------------------------- */
+
+.хт-ряд-пуска { margin: 16px 0 12px }
+.хт-пуск { height: 48px; padding: 0 26px; font-size: 14px }
+
+.хт-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden }
+.хт-вывод {
+  width: 100%; min-height: 360px; resize: vertical;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.65 var(--цифры);
+  /* Переносим, а не прокручиваем вбок: строки настроек длинные, а горизонтальная полоса
+     делает их нечитаемыми. */
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.хт-вывод:focus { outline: none }
+.хт-вывод::placeholder { color: #8b93a0 }
+
+/* Высота строки одна во всех состояниях: обе половины флексовые с одинаковой наименьшей
+   высотой, иначе выравнивание по базовой линии разводит их на пиксель и кнопки прыгают. */
+.хт-счёт { min-height: 36px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  font: 400 12px/18px var(--цифры); color: #fff; font-variant-numeric: tabular-nums }
+.хт-счёт > span { display: flex; align-items: center; gap: 5px; min-height: 19px }
+.хт-беда { color: #ff8f8f; overflow-wrap: anywhere }
+/* Правило display выше сильнее, чем display:none у браузера для [hidden]. */
+.хт-беда[hidden] { display: none }
+
+.хт-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px }
+.хт-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+  transition: background .15s, border-color .15s, color .15s }
+.хт-кнопка:hover { background: #0b0c0f; color: #fff }
+.хт-кнопка[disabled] { cursor: not-allowed; color: #8b93a0; background: #14161b;
+  border-color: #2c313a }
+.хт-кнопка[disabled]:hover { background: #14161b; color: #8b93a0 }
+.хт-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s }
+.хт-обводка:hover { background: #fff; color: #000 }
+.хт-обводка[disabled] { cursor: not-allowed; color: #8b93a0; border-color: #2c313a }
+.хт-обводка[disabled]:hover { background: #0b0c0f; color: #8b93a0 }
+.хт-узкая { height: 38px; padding: 0 14px; font-size: 12.5px }
+
+.хт-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.хт-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.хт-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.хт-заметка b { color: #fff; font-weight: 600 }
+.хт-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .хт-вывод { font-size: 12px; min-height: 280px }
+  .хт-строка, .хт-окошко { font-size: 12.5px }
+  /* Строка перенаправления в две полосы: три поля в ряд на узком экране не помещаются. */
+  .хт-перенос { flex-wrap: wrap }
+  .хт-перенос .хт-строка { flex: 1 1 100% }
+  .хт-стрелка { display: none }
+  /* Кнопку во всю ширину не растягиваем: полоса во весь экран кнопкой не читается. */
+  .хт-минус { width: 44px; height: 38px }
+  .хт-счёт { font-size: 11.5px; gap: 6px }
+}
