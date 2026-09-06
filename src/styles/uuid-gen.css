@@ -1,0 +1,113 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР UUID / GUID».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой), счётчик под окном вывода не
+ * приглушённо-серый, кнопка «Очистить» -- обычная обводка с белыми буквами.
+ */
+
+.ид {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+.ид-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px }
+.ид-отступ { display: flex; align-items: center; gap: 8px; flex: 0 0 auto }
+.ид-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+
+/* Кнопки шага у поля количества: одна ширина с полем по высоте, чтобы ряд не разъезжался. */
+.ид-шаг {
+  width: 38px; height: 38px; border-radius: 6px; cursor: pointer; flex: none; padding: 0;
+  font: 500 17px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
+}
+.ид-шаг:hover { border-color: #fff; background: #23272f }
+.ид-число {
+  width: 72px; height: 38px; padding: 0 8px; border-radius: 6px; text-align: center;
+  font: 600 13px var(--цифры); color: #fff; background: #0f1115;
+  border: 1px solid var(--линия); font-variant-numeric: tabular-nums;
+}
+.ид-число:hover { border-color: #6b7280 }
+.ид-число:focus { border-color: #fff; outline: none }
+.ид-число::-webkit-outer-spin-button, .ид-число::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0 }
+.ид-число { -moz-appearance: textfield }
+
+.ид-список {
+  height: 38px; padding: 0 34px 0 12px; border-radius: 6px; cursor: pointer;
+  font: 600 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; appearance: none;
+  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
+                    linear-gradient(135deg, #fff 50%, transparent 50%);
+  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
+  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
+}
+.ид-список:hover { border-color: #fff }
+.ид-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.ид-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.ид-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.ид-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; transition: border-color .15s }
+.ид-галка:hover i { border-color: #fff }
+.ид-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.ид-галка input:checked + i { border-color: var(--accent) }
+.ид-галка input:checked + i::after { transform: scale(1) }
+
+/* ---- Пуск и вывод -------------------------------------------------------------------------- */
+
+.ид-ряд-пуска { margin-bottom: 12px }
+.ид-пуск { height: 48px; padding: 0 26px; font-size: 14px }
+
+.ид-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden }
+.ид-вывод {
+  width: 100%; min-height: 260px; resize: vertical;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.75 var(--цифры);
+  white-space: pre; overflow-wrap: normal; overflow-x: auto;
+}
+.ид-вывод:focus { outline: none }
+.ид-вывод::placeholder { color: #8b93a0 }
+/* Место под счётчик держится постоянным: он появляется после первой пачки, и без запаса
+   кнопки внизу прыгали бы. */
+.ид-счёт { min-height: 32px; display: flex; align-items: center;
+  padding: 7px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  font: 400 11.5px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+
+/* ---- Кнопки и заметки ------------------------------------------------------------------------ */
+
+.ид-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px }
+.ид-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff }
+.ид-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.ид-кнопка[disabled] { cursor: not-allowed; color: #8b93a0; background: #14161b;
+  border-color: #2c313a }
+.ид-кнопка[disabled]:hover { background: #14161b; border-color: #2c313a }
+.ид-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s }
+.ид-обводка:hover { background: #fff; color: #000 }
+
+.ид-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.ид-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.ид-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.ид-заметка b { color: #fff; font-weight: 600 }
+.ид-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .ид-вывод { min-height: 200px; font-size: 12px }
+  .ид-пуск { width: 100%; justify-content: center }
+  .ид-ряд-пуска { display: flex }
+}

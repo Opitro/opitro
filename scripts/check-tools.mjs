@@ -783,6 +783,73 @@ await иди('/ru/regex-tester');
 }
 
 // =============================================================================================
+console.log('\n════ 15. UUID: /ru/uuid-generator ════');
+await иди('/ru/uuid-generator');
+{
+  const задать = (сколько, версия, заглавными, безДефисов) => считай(`(async () => {
+    const п = document.getElementById('ид-сколько');
+    Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call(п, '` + сколько + `');
+    document.getElementById('ид-версия').value = '` + версия + `';
+    document.getElementById('ид-заглавными').checked = ` + !!заглавными + `;
+    document.getElementById('ид-безДефисов').checked = ` + !!безДефисов + `;
+    window.__идСделать();
+    return true;
+  })()`);
+
+  // Судья -- разбор строки по стандарту, написанный ПРЯМО ЗДЕСЬ, а не наш же uuid.js.
+  const годенТут = (с2, версия) => {
+    const без = String(с2).trim().toLowerCase().replace(/-/g, '');
+    if (!/^[0-9a-f]{32}$/.test(без)) return false;
+    if (String(без[12]) !== String(версия)) return false;
+    return '89ab'.includes(без[16]);
+  };
+
+  await задать(200, 4, false, false);
+  await жди(400);
+  const с4 = await считай('window.__идСостояние()');
+  const всеГодны = с4.строки.length === 200 && с4.строки.every((к) => годенТут(к, 4));
+  const всеРазные = new Set(с4.строки).size === 200;
+  так(всеГодны && всеРазные,
+    '200 ключей v4: у всех верны версия и разновидность, все разные',
+    `строк ${с4.строки.length}, разных ${new Set(с4.строки).size}`);
+
+  await задать(200, 7, false, false);
+  await жди(400);
+  const с7 = await считай('window.__идСостояние()');
+  const порядок = с7.строки.every((к, и) => и === 0 || к > с7.строки[и - 1]);
+  так(с7.строки.every((к) => годенТут(к, 7)) && порядок,
+    'v7: стандарту соответствуют и идут строго по возрастанию',
+    `порядок ${порядок}`);
+  // И проверка не пустая: v4 порядка держать не должен.
+  const безПорядка = !с4.строки.every((к, и) => и === 0 || к > с4.строки[и - 1]);
+  так(безПорядка, 'v4 порядка не держит -- значит проверка выше не пустая');
+
+  // Вид записи меняется НА МЕСТЕ, не выдавая новых ключей.
+  await задать(5, 4, false, false);
+  await жди(300);
+  const было = (await считай('window.__идСостояние()')).ключи;
+  await считай(`(() => {
+    const г = document.getElementById('ид-безДефисов');
+    г.checked = true; г.dispatchEvent(new Event('change', { bubbles: true }));
+    const з = document.getElementById('ид-заглавными');
+    з.checked = true; з.dispatchEvent(new Event('change', { bubbles: true }));
+    return true;
+  })()`);
+  await жди(250);
+  const стало = await считай('window.__идСостояние()');
+  так(JSON.stringify(стало.ключи) === JSON.stringify(было)
+    && стало.строки.every((к) => /^[0-9A-F]{32}$/.test(к)),
+    'галочки меняют вид записи, а не выдают новые ключи',
+    стало.строки[0]);
+
+  // Границы количества.
+  await задать(9999, 4, false, false);
+  await жди(500);
+  так((await считай('window.__идСостояние()')).строки.length === 500,
+    'больше пятисот за раз не выдаём');
+}
+
+// =============================================================================================
 console.log('\n════ ИТОГ ════');
 if (беды.length) {
   console.log(`  НЕ СОШЛОСЬ: ${беды.length}`);

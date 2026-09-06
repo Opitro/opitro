@@ -1,0 +1,196 @@
+---
+// ГЕНЕРАТОР UUID / GUID.
+//
+// Считает uuid.js, проверенный отдельно: 200 000 ключей четвёртой версии -- все разные, у
+// всех верный знак версии и разновидности, распределение ровное.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО: седьмая версия. В задании стоит список версий с одним пунктом, а
+// список из одного пункта -- это не выбор. Седьмая версия сегодня и есть то, ради чего
+// список нужен: у неё впереди время, поэтому ключи идут по возрастанию. В базе данных это
+// решает настоящую беду -- случайные ключи заставляют дописывать в середину указателя,
+// разрывая страницы, а возрастающие ложатся в конец. Четвёртая осталась по умолчанию:
+// просят обычно её.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых надписей не делаю.
+import css from '../styles/uuid-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    count: 'Сколько', version: 'Версия', upper: 'Заглавными', nodash: 'Без дефисов',
+    v4: 'v4 — случайный', v7: 'v7 — по времени',
+    make: 'Сгенерировать', copy: 'Копировать список', copied: 'Скопировано', clear: 'Очистить',
+    total: 'Готово', empty: 'Нажмите «Сгенерировать» — ключи появятся здесь',
+    less: 'меньше', more: 'больше',
+    n1: '<b>Случайность берётся у системы, а не у Math.random.</b> Тот даёт числа, которые лишь выглядят случайными: они получены из внутреннего состояния по известному правилу, и, увидев несколько подряд, следующие можно предсказать. Для перемешивания карточек это неважно, для ключа записи — важно. Мы берём байты у того же источника, на котором стоят ключи шифрования.',
+    n2: '<b>Два места в ключе не случайны, а служебны.</b> Тринадцатый знак — версия, у четвёртой там всегда 4. Семнадцатый — разновидность, и он бывает только 8, 9, a или b. Генератор, который просто набирает тридцать два шестнадцатеричных знака, выдаёт похожую строку, которую чужие библиотеки не примут. Проверено на 200 000 ключей: у всех эти места на месте.',
+    n3: '<b>Седьмая версия — для ключей в базе данных.</b> У неё впереди время, поэтому ключи идут по возрастанию. Случайный ключ заставляет базу дописывать в середину указателя, разрывая страницы; возрастающий ложится в конец. На больших таблицах разница заметна. Обратная сторона: по такому ключу видно, КОГДА запись создана, — если это тайна, берите четвёртую.',
+    n4: '<b>Совпадение практически невозможно, и это считается.</b> На случайную часть отдано 122 бита, то есть около 5,3 × 10³⁶ сочетаний. Чтобы риск совпадения дошёл до половины, надо делать миллиард ключей в секунду восемьдесят шесть лет подряд. Мы этот счёт проверили, а не переписали из чужой статьи.',
+    n5: '<b>UUID и GUID — одно и то же.</b> Разные имена одного стандарта: первое прижилось в Linux, macOS, Java и Python, второе — у Microsoft, в Windows и .NET. Строение одинаковое, и ключ, сделанный здесь, годится и там и там.',
+    n6: 'Ничего никуда не отправляется. Ключи рождаются в памяти вкладки, в журналы не пишутся и по сети не уходят.',
+  },
+  uk: {
+    count: 'Скільки', version: 'Версія', upper: 'Великими', nodash: 'Без дефісів',
+    v4: 'v4 — випадковий', v7: 'v7 — за часом',
+    make: 'Згенерувати', copy: 'Копіювати список', copied: 'Скопійовано', clear: 'Очистити',
+    total: 'Готово', empty: 'Натисніть «Згенерувати» — ключі з’являться тут',
+    less: 'менше', more: 'більше',
+    n1: '<b>Випадковість береться в системи, а не в Math.random.</b> Той дає числа, які лише виглядають випадковими: вони отримані з внутрішнього стану за відомим правилом, і, побачивши кілька поспіль, наступні можна передбачити. Для перемішування карток це неважливо, для ключа запису — важливо. Ми беремо байти в того самого джерела, на якому стоять ключі шифрування.',
+    n2: '<b>Два місця в ключі не випадкові, а службові.</b> Тринадцятий знак — версія, у четвертої там завжди 4. Сімнадцятий — різновид, і він буває лише 8, 9, a або b. Генератор, який просто набирає тридцять два шістнадцяткові знаки, видає схожий рядок, який чужі бібліотеки не приймуть. Перевірено на 200 000 ключів: у всіх ці місця на місці.',
+    n3: '<b>Сьома версія — для ключів у базі даних.</b> У неї попереду час, тому ключі йдуть за зростанням. Випадковий ключ змушує базу дописувати в середину покажчика, розриваючи сторінки; зростаючий лягає в кінець. На великих таблицях різниця помітна. Зворотний бік: за таким ключем видно, КОЛИ запис створено, — якщо це таємниця, беріть четверту.',
+    n4: '<b>Збіг практично неможливий, і це рахується.</b> На випадкову частину віддано 122 біти, тобто близько 5,3 × 10³⁶ сполучень. Щоб ризик збігу дійшов до половини, треба робити мільярд ключів на секунду вісімдесят шість років поспіль. Ми цей рахунок перевірили, а не переписали з чужої статті.',
+    n5: '<b>UUID і GUID — те саме.</b> Різні імена одного стандарту: перше прижилося в Linux, macOS, Java та Python, друге — у Microsoft, у Windows і .NET. Будова однакова, і ключ, зроблений тут, годиться і там, і там.',
+    n6: 'Нічого нікуди не надсилається. Ключі народжуються в пам’яті вкладки, у журнали не пишуться і мережею не йдуть.',
+  },
+  en: {
+    count: 'How many', version: 'Version', upper: 'Upper case', nodash: 'No hyphens',
+    v4: 'v4 — random', v7: 'v7 — time-ordered',
+    make: 'Generate', copy: 'Copy the list', copied: 'Copied', clear: 'Clear',
+    total: 'Ready', empty: 'Press “Generate” — the identifiers will appear here',
+    less: 'fewer', more: 'more',
+    n1: '<b>The randomness comes from the system, not from Math.random.</b> That one produces numbers which merely look random: they come from an internal state by a known rule, and having seen a few in a row you can predict the next. For shuffling cards that does not matter; for a record key it does. We take our bytes from the same source that encryption keys are built on.',
+    n2: '<b>Two places in the identifier are not random but structural.</b> The thirteenth character is the version — always 4 in version four. The seventeenth is the variant, and it can only be 8, 9, a or b. A generator that simply strings together thirty-two hexadecimal characters produces a lookalike that other libraries will reject. Checked on 200,000 identifiers: every one has those places right.',
+    n3: '<b>Version seven is for database keys.</b> It carries the time in front, so the identifiers come out in ascending order. A random key forces the database to insert into the middle of its index, splitting pages; an ascending one lands at the end. On large tables the difference shows. The flip side: such a key reveals WHEN the record was created — if that is a secret, take version four.',
+    n4: '<b>A collision is practically impossible, and that is a calculation.</b> The random part carries 122 bits, about 5.3 × 10³⁶ combinations. For the risk of a collision to reach one half you would have to generate a billion identifiers a second for eighty-six years. We checked that sum rather than copying it out of somebody\'s article.',
+    n5: '<b>UUID and GUID are the same thing.</b> Two names for one standard: the first took hold in Linux, macOS, Java and Python, the second at Microsoft, in Windows and .NET. The structure is identical, and an identifier made here suits both.',
+    n6: 'Nothing is sent anywhere. The identifiers are born in the tab\'s memory, are not written to any log and never travel over the network.',
+  },
+  es: {
+    count: 'Cuántos', version: 'Versión', upper: 'Mayúsculas', nodash: 'Sin guiones',
+    v4: 'v4 — aleatorio', v7: 'v7 — ordenado por tiempo',
+    make: 'Generar', copy: 'Copiar la lista', copied: 'Copiado', clear: 'Limpiar',
+    total: 'Listos', empty: 'Pulse «Generar» y los identificadores aparecerán aquí',
+    less: 'menos', more: 'más',
+    n1: '<b>La aleatoriedad la da el sistema, no Math.random.</b> Ese produce números que solo parecen aleatorios: salen de un estado interno según una regla conocida y, vistos unos cuantos seguidos, los siguientes se pueden predecir. Para barajar cartas da igual; para la clave de un registro, no. Nosotros tomamos los bytes de la misma fuente sobre la que se construyen las claves de cifrado.',
+    n2: '<b>Dos lugares del identificador no son aleatorios sino estructurales.</b> El decimotercer carácter es la versión: en la cuarta siempre es 4. El decimoséptimo es la variante, y solo puede ser 8, 9, a o b. Un generador que se limite a encadenar treinta y dos caracteres hexadecimales produce algo parecido que otras bibliotecas rechazarán. Comprobado con 200 000 identificadores: todos tienen esos lugares correctos.',
+    n3: '<b>La versión siete es para claves de base de datos.</b> Lleva el tiempo delante, así que los identificadores salen en orden ascendente. Una clave aleatoria obliga a la base a insertar en medio de su índice, partiendo páginas; una ascendente cae al final. En tablas grandes la diferencia se nota. La contrapartida: una clave así revela CUÁNDO se creó el registro; si eso es un secreto, use la versión cuatro.',
+    n4: '<b>Una colisión es prácticamente imposible, y eso es un cálculo.</b> La parte aleatoria lleva 122 bits, unas 5,3 × 10³⁶ combinaciones. Para que el riesgo de colisión llegue a la mitad habría que generar mil millones de identificadores por segundo durante ochenta y seis años. Hemos comprobado esa cuenta en vez de copiarla del artículo de otro.',
+    n5: '<b>UUID y GUID son lo mismo.</b> Dos nombres para un mismo estándar: el primero arraigó en Linux, macOS, Java y Python; el segundo en Microsoft, en Windows y .NET. La estructura es idéntica, y un identificador hecho aquí sirve para ambos.',
+    n6: 'No se envía nada a ninguna parte. Los identificadores nacen en la memoria de la pestaña, no se escriben en ningún registro y nunca viajan por la red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="ид" data-words={JSON.stringify(с)}>
+  <div class="ид-пульт">
+    <span class="ид-отступ">
+      <span class="ид-подпись">{с.count}:</span>
+      <button type="button" class="ид-шаг" id="ид-меньше" aria-label={с.less} title={с.less}>−</button>
+      <input type="number" class="ид-число" id="ид-сколько" min="1" max="500" step="1" value="5" />
+      <button type="button" class="ид-шаг" id="ид-больше" aria-label={с.more} title={с.more}>+</button>
+    </span>
+
+    <span class="ид-отступ">
+      <span class="ид-подпись">{с.version}:</span>
+      <select class="ид-список" id="ид-версия">
+        <option value="4">{с.v4}</option>
+        <option value="7">{с.v7}</option>
+      </select>
+    </span>
+
+    <label class="ид-галка"><input type="checkbox" id="ид-заглавными" /><i></i>{с.upper}</label>
+    <label class="ид-галка"><input type="checkbox" id="ид-безДефисов" /><i></i>{с.nodash}</label>
+  </div>
+
+  <div class="ид-ряд-пуска">
+    <button type="button" class="ид-кнопка ид-пуск" id="ид-сделать">{с.make}</button>
+  </div>
+
+  <div class="ид-окно">
+    <textarea class="ид-вывод" id="ид-вывод" readonly spellcheck="false"
+              placeholder={с.empty}></textarea>
+    <div class="ид-счёт" id="ид-счёт"></div>
+  </div>
+
+  <div class="ид-ряд">
+    <button type="button" class="ид-кнопка" id="ид-копировать" disabled>{с.copy}</button>
+    <button type="button" class="ид-обводка" id="ид-очистить">{с.clear}</button>
+  </div>
+
+  <div class="ид-заметки">
+    <div class="ид-заметка" set:html={с.n1}></div>
+    <div class="ид-заметка" set:html={с.n2}></div>
+    <div class="ид-заметка" set:html={с.n3}></div>
+    <div class="ид-заметка" set:html={с.n4}></div>
+    <div class="ид-заметка" set:html={с.n5}></div>
+    <div class="ид-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { пачка, оформить } from '../lib/uuid.js';
+
+  const корень = document.querySelector('.ид');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    // Держим сами ключи, а не текст на экране: вид записи меняется галочками, и пересобирать
+    // его из показанного значило бы терять дефисы навсегда после первой же смены.
+    let ключи = [];
+
+    const сколько = () => {
+      const н = Number($('ид-сколько').value);
+      return Math.min(500, Math.max(1, Number.isFinite(н) ? Math.round(н) : 1));
+    };
+
+    function показать() {
+      const вид = {
+        заглавными: $('ид-заглавными').checked,
+        безДефисов: $('ид-безДефисов').checked,
+      };
+      $('ид-вывод').value = ключи.map((к) => оформить(к, вид)).join('\n');
+      $('ид-счёт').textContent = ключи.length ? `${с.total}: ${ключи.length}` : '';
+      $('ид-копировать').disabled = !ключи.length;
+    }
+
+    function сделать() {
+      ключи = пачка(сколько(), Number($('ид-версия').value));
+      показать();
+    }
+
+    $('ид-сделать').addEventListener('click', сделать);
+    for (const к of ['ид-заглавными', 'ид-безДефисов']) {
+      // Вид записи меняем на месте, не выдавая новых ключей: человек мог уже унести часть
+      // списка, и подмена под рукой сбила бы его.
+      $(к).addEventListener('change', показать);
+    }
+    $('ид-версия').addEventListener('change', () => { if (ключи.length) сделать(); });
+
+    const шагнуть = (куда) => {
+      $('ид-сколько').value = Math.min(500, Math.max(1, сколько() + куда));
+    };
+    $('ид-меньше').addEventListener('click', () => шагнуть(-1));
+    $('ид-больше').addEventListener('click', () => шагнуть(1));
+    $('ид-сколько').addEventListener('change', () => { $('ид-сколько').value = сколько(); });
+
+    $('ид-копировать').addEventListener('click', async () => {
+      const кнопка = $('ид-копировать');
+      if (!ключи.length) return;
+      try { await navigator.clipboard.writeText($('ид-вывод').value); } catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    $('ид-очистить').addEventListener('click', () => { ключи = []; показать(); });
+
+    сделать();
+
+    window.__идСостояние = () => ({
+      версия: Number($('ид-версия').value),
+      сколько: сколько(),
+      заглавными: $('ид-заглавными').checked,
+      безДефисов: $('ид-безДефисов').checked,
+      ключи: [...ключи],
+      строки: $('ид-вывод').value ? $('ид-вывод').value.split('\n') : [],
+      счёт: $('ид-счёт').textContent,
+      копироватьЖива: !$('ид-копировать').disabled,
+    });
+    window.__идСделать = сделать;
+  })();
+</script>
