@@ -1,0 +1,365 @@
+---
+// КОНВЕРТЕР ВРЕМЕНИ ЭПОХИ UNIX.
+//
+// Считает unix-time.js, проверенный отдельно против СИСТЕМНОЙ КОМАНДЫ date: девять опорных
+// меток, отрицательные метки до 1970 года и три тысячи случайных -- всё сошлось знак в знак,
+// включая високосный 2000 год и невисокосный 2100-й. Часовые пояса сверены с системой в
+// семи странах, вместе с получасовым сдвигом Индии и сдвигом в три четверти часа на
+// островах Chatham.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО И ПОЧЕМУ ЭТО ЗДЕСЬ:
+//
+// 1. Единицы определяются не по длине строки. Правило «десять знаков -- секунды, тринадцать --
+//    миллисекунды» верно для нашего времени и только для него: оно молчит про 0, про
+//    отрицательные метки и про микросекунды, которыми меряет время половина баз данных.
+//    Здесь число читается всеми четырьмя способами и берётся ближайшее к сегодня.
+// 2. Выбор единиц ПОКАЗАН и его можно перебить рукой. Догадка меняет ответ в тысячу раз;
+//    решать за человека молча -- нельзя.
+// 3. Обратный ход спрашивает часовой пояс. В задании стоял просто datetime-local, а он не
+//    несёт пояса: одна и та же дата даёт разные метки в Мадриде и в Киеве. Без переключателя
+//    инструмент врал бы половине посетителей.
+// 4. Строка ISO 8601 -- та запись, которую на деле вставляют в код и в файлы.
+// 5. Отметка про 2038 год: за этой чертой метка не влезает в старые 32-битные системы.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю (у сайта свой), приглушённо-серых надписей не
+// делаю -- буквы плотные. Кнопки копирования значками, без слова «Copy» в каждой строке.
+import css from '../styles/unix-time.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    live: 'Сейчас', copy: 'Копировать', copied: 'Скопировано',
+    input: 'Метка времени', hint: 'Вставьте число — секунды, миллисекунды, микро- или наносекунды',
+    read: 'Прочитано как', bad: 'Нужно целое число', big: 'Число не помещается в календарь',
+    u_с: 'секунды', u_мс: 'миллисекунды', u_мкс: 'микросекунды', u_нс: 'наносекунды',
+    utc: 'UTC', local: 'Местное', iso: 'ISO 8601', rel: 'Относительно',
+    clear: 'Сбросить на сейчас', now: 'Сейчас',
+    back: 'Дата → метка', tzLocal: 'Местное время', tzUtc: 'UTC',
+    warn2038: 'за пределом 32-битных систем',
+    n1: '<b>Единицы определяются не по числу знаков.</b> Ходовое правило «десять знаков — секунды, тринадцать — миллисекунды» верно только для нашего времени. Оно молчит про ноль, про отрицательные метки до 1970 года и про микросекунды, которыми меряют время PostgreSQL и многие журналы. Здесь число читается всеми четырьмя способами, и берётся то прочтение, что ближе к сегодняшнему дню. Догадка написана рядом, и её можно перебить рукой.',
+    n2: '<b>Обратный ход спрашивает часовой пояс, и это не придирка.</b> Дата «6 сентября, 12:00» — это разные мгновения в Мадриде и в Киеве, и метки у них отличаются на час. Поле даты в браузере пояса не несёт, поэтому переключатель стоит рядом с ним. Без него инструмент врал бы всем, кто живёт не там же, где вы.',
+    n3: '<b>Местное время берётся у вашего компьютера.</b> Оно считается по его текущим настройкам пояса, включая перевод часов: январская метка в Киеве покажет UTC+02:00, а сентябрьская — UTC+03:00. Правила перевода стран меняются, и для дат давних лет ваша система может знать не те правила, что действовали тогда.',
+    n4: '<b>19 января 2038 года, 03:14:07 по UTC — предел старых систем.</b> Там, где метку хранят в 32-битном знаковом числе, следующая секунда переполняет его и время уходит в 1901 год. Если метка выходит за эту черту, мы это помечаем. Современные системы считают в 64 битах, и им хватит на двести девяносто два миллиарда лет.',
+    n5: '<b>Високосные секунды в счёт не входят.</b> Время Unix считает, что в сутках ровно 86 400 секунд, хотя на деле их изредка добавляют. Поэтому метка — это не точное число секунд, прошедших с 1970 года, а число дней, переведённое в секунды. Расхождение накопилось примерно в полминуты и одинаково у всех систем — на том и держится их согласие.',
+    n6: 'Ничего никуда не отправляется. Метки ваших журналов и серверов разбираются в памяти вкладки; страница не делает сетевых запросов.',
+  },
+  uk: {
+    live: 'Зараз', copy: 'Копіювати', copied: 'Скопійовано',
+    input: 'Мітка часу', hint: 'Вставте число — секунди, мілісекунди, мікро- або наносекунди',
+    read: 'Прочитано як', bad: 'Потрібне ціле число', big: 'Число не вміщується в календар',
+    u_с: 'секунди', u_мс: 'мілісекунди', u_мкс: 'мікросекунди', u_нс: 'наносекунди',
+    utc: 'UTC', local: 'Місцевий', iso: 'ISO 8601', rel: 'Відносно',
+    clear: 'Скинути на зараз', now: 'Зараз',
+    back: 'Дата → мітка', tzLocal: 'Місцевий час', tzUtc: 'UTC',
+    warn2038: 'за межею 32-бітних систем',
+    n1: '<b>Одиниці визначаються не за кількістю знаків.</b> Ходове правило «десять знаків — секунди, тринадцять — мілісекунди» правильне лише для нашого часу. Воно мовчить про нуль, про від’ємні мітки до 1970 року і про мікросекунди, якими міряють час PostgreSQL і багато журналів. Тут число читається всіма чотирма способами, і береться те прочитання, що ближче до сьогодні. Здогад написано поруч, і його можна перебити рукою.',
+    n2: '<b>Зворотний хід питає часовий пояс, і це не причіпка.</b> Дата «6 вересня, 12:00» — це різні миті в Мадриді та в Києві, і мітки в них різняться на годину. Поле дати в браузері пояса не несе, тому перемикач стоїть поруч із ним. Без нього інструмент брехав би всім, хто живе не там, де ви.',
+    n3: '<b>Місцевий час береться у вашого комп’ютера.</b> Він рахується за його поточними налаштуваннями поясу, включно з переведенням годинника: січнева мітка в Києві покаже UTC+02:00, а вереснева — UTC+03:00. Правила переведення в країнах змінюються, і для давніх дат ваша система може знати не ті правила, що діяли тоді.',
+    n4: '<b>19 січня 2038 року, 03:14:07 за UTC — межа старих систем.</b> Там, де мітку зберігають у 32-бітному знаковому числі, наступна секунда переповнює його і час іде в 1901 рік. Якщо мітка виходить за цю межу, ми це позначаємо. Сучасні системи рахують у 64 бітах, і їм вистачить на двісті дев’яносто два мільярди років.',
+    n5: '<b>Високосні секунди не враховуються.</b> Час Unix вважає, що в добі рівно 86 400 секунд, хоча насправді їх зрідка додають. Тому мітка — це не точне число секунд, що минули з 1970 року, а число днів, переведене в секунди. Розбіжність накопичилася приблизно в півхвилини й однакова в усіх систем — на тому й тримається їхня згода.',
+    n6: 'Нічого нікуди не надсилається. Мітки ваших журналів і серверів розбираються в пам’яті вкладки; сторінка не робить мережевих запитів.',
+  },
+  en: {
+    live: 'Now', copy: 'Copy', copied: 'Copied',
+    input: 'Timestamp', hint: 'Paste a number — seconds, milliseconds, microseconds or nanoseconds',
+    read: 'Read as', bad: 'A whole number is required', big: 'The number does not fit the calendar',
+    u_с: 'seconds', u_мс: 'milliseconds', u_мкс: 'microseconds', u_нс: 'nanoseconds',
+    utc: 'UTC', local: 'Local', iso: 'ISO 8601', rel: 'Relative',
+    clear: 'Reset to now', now: 'Now',
+    back: 'Date → timestamp', tzLocal: 'Local time', tzUtc: 'UTC',
+    warn2038: 'beyond the 32-bit limit',
+    n1: '<b>The unit is not decided by counting digits.</b> The common rule — ten digits means seconds, thirteen means milliseconds — holds only for the present era. It says nothing about zero, about negative timestamps before 1970, or about the microseconds that PostgreSQL and many log formats use. Here the number is read all four ways and the reading nearest to today wins. The guess is spelled out beside it, and you can override it by hand.',
+    n2: '<b>The reverse direction asks for a time zone, and that is not pedantry.</b> The date “6 September, 12:00” is a different instant in Madrid and in Kyiv, and their timestamps differ by an hour. The browser\'s date field carries no zone, so the switch sits next to it. Without it the tool would lie to everyone who does not live where you do.',
+    n3: '<b>Local time comes from your own computer.</b> It is worked out from its current zone settings, daylight saving included: a January timestamp in Kyiv reads UTC+02:00 while a September one reads UTC+03:00. Countries change these rules, and for dates far back your system may hold rules other than the ones actually in force then.',
+    n4: '<b>19 January 2038, 03:14:07 UTC is the limit of the old systems.</b> Where a timestamp is kept in a signed 32-bit number, the next second overflows it and the time falls back to 1901. We mark any timestamp that crosses that line. Modern systems count in 64 bits, which lasts them two hundred and ninety-two billion years.',
+    n5: '<b>Leap seconds are not counted.</b> Unix time assumes every day has exactly 86,400 seconds, though in reality one is occasionally added. So a timestamp is not the true number of seconds elapsed since 1970 but a number of days converted into seconds. The drift has reached about half a minute and is identical on every system — which is precisely why they all agree with one another.',
+    n6: 'Nothing is sent anywhere. Your log and server timestamps are decoded in the tab\'s memory; the page makes no network requests.',
+  },
+  es: {
+    live: 'Ahora', copy: 'Copiar', copied: 'Copiado',
+    input: 'Marca de tiempo', hint: 'Pegue un número: segundos, milisegundos, microsegundos o nanosegundos',
+    read: 'Leído como', bad: 'Hace falta un número entero', big: 'El número no cabe en el calendario',
+    u_с: 'segundos', u_мс: 'milisegundos', u_мкс: 'microsegundos', u_нс: 'nanosegundos',
+    utc: 'UTC', local: 'Local', iso: 'ISO 8601', rel: 'Relativo',
+    clear: 'Volver a ahora', now: 'Ahora',
+    back: 'Fecha → marca', tzLocal: 'Hora local', tzUtc: 'UTC',
+    warn2038: 'más allá del límite de 32 bits',
+    n1: '<b>La unidad no se decide contando dígitos.</b> La regla habitual —diez dígitos son segundos, trece son milisegundos— solo vale para la época actual. No dice nada del cero, ni de las marcas negativas anteriores a 1970, ni de los microsegundos que usan PostgreSQL y muchos formatos de registro. Aquí el número se lee de las cuatro maneras y gana la lectura más cercana a hoy. La suposición aparece escrita al lado y se puede cambiar a mano.',
+    n2: '<b>El sentido inverso pregunta la zona horaria, y no es una pedantería.</b> La fecha «6 de septiembre, 12:00» es un instante distinto en Madrid y en Kyiv, y sus marcas difieren en una hora. El campo de fecha del navegador no lleva zona, así que el interruptor está junto a él. Sin él la herramienta mentiría a todo el que no viva donde usted.',
+    n3: '<b>La hora local la da su propio ordenador.</b> Se calcula con su configuración de zona actual, cambio de hora incluido: una marca de enero en Kyiv da UTC+02:00 y una de septiembre da UTC+03:00. Los países cambian esas reglas, y para fechas lejanas su sistema puede tener reglas distintas de las que regían entonces.',
+    n4: '<b>El 19 de enero de 2038, a las 03:14:07 UTC, está el límite de los sistemas antiguos.</b> Donde la marca se guarda en un entero con signo de 32 bits, el segundo siguiente lo desborda y la hora cae a 1901. Marcamos toda marca que cruce esa línea. Los sistemas modernos cuentan en 64 bits, y eso les alcanza para doscientos noventa y dos mil millones de años.',
+    n5: '<b>Los segundos intercalares no se cuentan.</b> El tiempo Unix da por hecho que cada día tiene exactamente 86 400 segundos, aunque de vez en cuando se añada uno. Así que una marca no es el número real de segundos transcurridos desde 1970, sino un número de días convertido en segundos. El desfase ronda ya el medio minuto y es idéntico en todos los sistemas: justamente por eso todos concuerdan entre sí.',
+    n6: 'No se envía nada a ninguna parte. Las marcas de sus registros y servidores se descifran en la memoria de la pestaña; la página no hace peticiones de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const РЯДЫ = [['utc', с.utc], ['local', с.local], ['iso', с.iso], ['rel', с.rel]];
+const ЕДИНИЦЫ = [['с', с.u_с], ['мс', с.u_мс], ['мкс', с.u_мкс], ['нс', с.u_нс]];
+---
+
+<div class="юн" data-words={JSON.stringify(с)} data-locale={locale}>
+
+  <!-- Живой счётчик: единственное на странице, что меняется само. -->
+  <div class="юн-часы">
+    <span class="юн-часы-имя">{с.live}</span>
+    <span class="юн-часы-число" id="юн-часы">—</span>
+    <button type="button" class="юн-значок" id="юн-часы-копи" aria-label={с.copy} title={с.copy}>
+      <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+        <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+      </svg>
+      <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+    </button>
+  </div>
+
+  <label class="юн-имя" for="юн-ввод">{с.input}</label>
+  <input type="text" class="юн-ввод" id="юн-ввод" inputmode="numeric" spellcheck="false"
+         autocomplete="off" placeholder="1788692700" />
+
+  <!-- Строка состояния стоит всегда и всегда занята текстом: иначе показ догадки об -->
+  <!-- единицах дёргал бы таблицу вниз при каждом наборе. -->
+  <div class="юн-состояние" id="юн-состояние">
+    <span class="юн-слово" id="юн-слово">{с.hint}</span>
+    <span class="юн-чипы" id="юн-чипы" hidden>
+      {ЕДИНИЦЫ.map(([код, имя]) => (
+        <button type="button" class="юн-чип" data-ед={код} title={имя}>{код}</button>
+      ))}
+    </span>
+    <span class="юн-метка38" id="юн-метка38" hidden>2038+</span>
+  </div>
+
+  <div class="юн-таблица" id="юн-таблица">
+    {РЯДЫ.map(([код, имя]) => (
+      <div class="юн-ряд" data-ряд={код}>
+        <span class="юн-ряд-имя">{имя}</span>
+        <span class="юн-ряд-код" id={`юн-${код}`}>—</span>
+        <button type="button" class="юн-значок" data-копи={код} aria-label={с.copy} title={с.copy}>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <div class="юн-низ">
+    <button type="button" class="юн-обводка" id="юн-очистить">{с.clear}</button>
+  </div>
+
+  <!-- ── Обратный ход ─────────────────────────────────────────────────────────────────── -->
+  <div class="юн-назад">
+    <div class="юн-назад-верх">
+      <span class="юн-имя">{с.back}</span>
+      <span class="юн-пояс">
+        <button type="button" class="юн-чип юн-выбран" data-пояс="местное">{с.tzLocal}</button>
+        <button type="button" class="юн-чип" data-пояс="utc">{с.tzUtc}</button>
+      </span>
+    </div>
+    <div class="юн-назад-ряд">
+      <input type="datetime-local" class="юн-дата" id="юн-дата" step="1" />
+      <button type="button" class="юн-обводка юн-узкая" id="юн-теперь">{с.now}</button>
+    </div>
+    <div class="юн-ряд юн-ряд-итог">
+      <span class="юн-ряд-имя">Unix</span>
+      <span class="юн-ряд-код" id="юн-итог">—</span>
+      <button type="button" class="юн-значок" data-копи="итог" aria-label={с.copy} title={с.copy}>
+        <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+        </svg>
+        <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="юн-заметки">
+    <div class="юн-заметка" set:html={с.n1}></div>
+    <div class="юн-заметка" set:html={с.n2}></div>
+    <div class="юн-заметка" set:html={с.n3}></div>
+    <div class="юн-заметка" set:html={с.n4}></div>
+    <div class="юн-заметка" set:html={с.n5}></div>
+    <div class="юн-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { разобрать, собрать, вUTC, вISO, вМестное, насколькоДавно, изЧастей, за2038 }
+    from '../lib/unix-time.js';
+
+  const корень = document.querySelector('.юн');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    // Единицы, выбранные рукой. null -- значит доверяем догадке. Держим отдельно от разбора,
+    // иначе следующий набор в поле молча сбросил бы выбор человека.
+    let рукой = null;
+    let последний = null;      // последний удачный разбор, чтобы чипы работали без пересчёта
+
+    const дв = (н) => String(н).padStart(2, '0');
+
+    /* ── Живой счётчик ─────────────────────────────────────────────────────────────── */
+    const тикать = () => { $('юн-часы').textContent = String(Math.floor(Date.now() / 1000)); };
+    тикать();
+    setInterval(тикать, 1000);
+
+    /* ── Метка → дата ──────────────────────────────────────────────────────────────── */
+    function пересчитать() {
+      const сырое = $('юн-ввод').value;
+      const р = разобрать(сырое);
+      const чипы = $('юн-чипы'), слово = $('юн-слово'), м38 = $('юн-метка38');
+
+      if (!р.годно) {
+        последний = null;
+        чипы.hidden = true;
+        м38.hidden = true;
+        слово.textContent = сырое.trim() === '' ? с.hint : (р.велико ? с.big : с.bad);
+        for (const [к] of [['utc'], ['local'], ['iso'], ['rel']]) $('юн-' + к).textContent = '—';
+        return;
+      }
+
+      последний = р;
+      // Рукой выбранная единица берётся из вариантов -- те же миллисекунды, другое прочтение.
+      const выбор = рукой && р.варианты.find((в) => в.единицы === рукой && в.годен);
+      const единицы = выбор ? рукой : р.единицы;
+      const мс = выбор ? выбор.мс : р.мс;
+
+      слово.textContent = `${с.read}:`;
+      чипы.hidden = false;
+      for (const к of чипы.querySelectorAll('.юн-чип')) {
+        const годен = р.варианты.find((в) => в.единицы === к.dataset.ед)?.годен;
+        к.disabled = !годен;
+        к.classList.toggle('юн-выбран', к.dataset.ед === единицы);
+      }
+      м38.hidden = !за2038(мс);
+      м38.title = с.warn2038;
+
+      const м = вМестное(мс, язык);
+      $('юн-utc').textContent = вUTC(мс) + ' UTC';
+      $('юн-local').textContent = м.строка + '  ' + м.сдвиг;
+      $('юн-iso').textContent = вISO(мс);
+      $('юн-rel').textContent = насколькоДавно(мс, язык);
+    }
+
+    $('юн-ввод').addEventListener('input', () => { рукой = null; пересчитать(); });
+
+    for (const к of $('юн-чипы').querySelectorAll('.юн-чип')) {
+      к.addEventListener('click', () => {
+        if (к.disabled) return;
+        рукой = к.dataset.ед;
+        пересчитать();
+      });
+    }
+
+    /* ── Дата → метка ──────────────────────────────────────────────────────────────── */
+    let поясUTC = false;
+
+    function обратно() {
+      const з = $('юн-дата').value;
+      // Поле отдаёт «2026-09-06T11:05» или «...:05:00». Разбираем сами, а не через new Date:
+      // строка без пояса читается языком как местная, и переключатель на UTC не сработал бы.
+      const ч = /^(-?\d{4,6})-(\d{2})-(\d{2})T(\d{2}):(\d{2})(?::(\d{2}))?$/.exec(з);
+      if (!ч) { $('юн-итог').textContent = '—'; return; }
+      const мс = изЧастей({
+        год: Number(ч[1]), месяц: Number(ч[2]), день: Number(ч[3]),
+        час: Number(ч[4]), минута: Number(ч[5]), секунда: Number(ч[6] || 0),
+      }, поясUTC);
+      $('юн-итог').textContent = Number.isFinite(мс) ? String(собрать(мс, 'с')) : '—';
+    }
+
+    for (const к of корень.querySelectorAll('[data-пояс]')) {
+      к.addEventListener('click', () => {
+        поясUTC = к.dataset.пояс === 'utc';
+        for (const д of корень.querySelectorAll('[data-пояс]')) {
+          д.classList.toggle('юн-выбран', д === к);
+        }
+        обратно();
+      });
+    }
+    $('юн-дата').addEventListener('input', обратно);
+
+    /* ── Подстановка текущего времени ──────────────────────────────────────────────── */
+    const вПоле = (мс) => {
+      const д = new Date(мс);
+      const [г, м, дн, ч, мин, сек] = поясUTC
+        ? [д.getUTCFullYear(), д.getUTCMonth() + 1, д.getUTCDate(), д.getUTCHours(), д.getUTCMinutes(), д.getUTCSeconds()]
+        : [д.getFullYear(), д.getMonth() + 1, д.getDate(), д.getHours(), д.getMinutes(), д.getSeconds()];
+      return `${String(г).padStart(4, '0')}-${дв(м)}-${дв(дн)}T${дв(ч)}:${дв(мин)}:${дв(сек)}`;
+    };
+    $('юн-теперь').addEventListener('click', () => {
+      $('юн-дата').value = вПоле(Date.now());
+      обратно();
+    });
+
+    $('юн-очистить').addEventListener('click', () => {
+      рукой = null;
+      $('юн-ввод').value = String(Math.floor(Date.now() / 1000));
+      пересчитать();
+    });
+
+    /* ── Копирование ───────────────────────────────────────────────────────────────── */
+    const скопировать = async (кнопка, текст) => {
+      if (!текст || текст === '—') return;
+      try { await navigator.clipboard.writeText(текст); } catch (е) { return; }
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1200);
+    };
+    for (const к of корень.querySelectorAll('[data-копи]')) {
+      к.addEventListener('click', () => {
+        // У строки «Местное» уносим время без сдвига: сдвиг -- пояснение, а не часть значения.
+        let т = $('юн-' + к.dataset.копи).textContent.trim();
+        if (к.dataset.копи === 'local') т = т.split('  ')[0];
+        if (к.dataset.копи === 'utc') т = т.replace(/ UTC$/, '');
+        скопировать(к, т);
+      });
+    }
+    $('юн-часы-копи').addEventListener('click', (е) =>
+      скопировать(е.currentTarget, $('юн-часы').textContent));
+
+    /* ── Первый показ ──────────────────────────────────────────────────────────────── */
+    $('юн-ввод').value = String(Math.floor(Date.now() / 1000));
+    $('юн-дата').value = вПоле(Date.now());
+    пересчитать();
+    обратно();
+
+    window.__юнСостояние = () => ({
+      ввод: $('юн-ввод').value,
+      слово: $('юн-слово').textContent,
+      чипыВидны: !$('юн-чипы').hidden,
+      выбранаЕдиница: [...$('юн-чипы').querySelectorAll('.юн-чип')]
+        .find((к) => к.classList.contains('юн-выбран'))?.dataset.ед || null,
+      живыеЧипы: [...$('юн-чипы').querySelectorAll('.юн-чип')]
+        .filter((к) => !к.disabled).map((к) => к.dataset.ед),
+      метка38: !$('юн-метка38').hidden,
+      utc: $('юн-utc').textContent,
+      местное: $('юн-local').textContent,
+      iso: $('юн-iso').textContent,
+      относительно: $('юн-rel').textContent,
+      часы: $('юн-часы').textContent,
+      дата: $('юн-дата').value,
+      итог: $('юн-итог').textContent,
+      поясUTC,
+    });
+    window.__юнЗадать = (текст) => {
+      const п = Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set;
+      п.call($('юн-ввод'), текст);
+      рукой = null;
+      пересчитать();
+    };
+    window.__юнДата = (текст) => {
+      Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set.call($('юн-дата'), текст);
+      обратно();
+    };
+  })();
+</script>

@@ -1,0 +1,158 @@
+/* СТИЛИ СТРАНИЦЫ «КОНВЕРТЕР ВРЕМЕНИ UNIX».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой), подписи строк не
+ * приглушённо-серые -- буквы плотные, мелкое сделано тонким начертанием. Кнопка «Copy» в
+ * каждой строке заменена значком: слово повторялось бы пять раз подряд.
+ */
+
+.юн {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Живой счётчик ------------------------------------------------------------------------- */
+
+.юн-часы {
+  display: flex; align-items: center; gap: 12px; flex-wrap: wrap;
+  padding: 12px 14px; margin-bottom: 18px;
+  border: 1px solid var(--линия); border-radius: 10px; background: #16181d;
+}
+.юн-часы-имя { font: 400 11.5px var(--цифры); letter-spacing: .06em; color: var(--accent);
+  flex: none }
+/* Счётчик меняется каждую секунду: без табличных цифр строка дёргалась бы по ширине. */
+.юн-часы-число { font: 700 20px var(--цифры); color: #fff; flex: 1 1 auto;
+  font-variant-numeric: tabular-nums; user-select: text }
+
+/* ---- Ввод метки ---------------------------------------------------------------------------- */
+
+.юн-имя { display: block; font: 400 11.5px var(--цифры); letter-spacing: .06em;
+  color: var(--accent); margin-bottom: 7px }
+.юн-ввод {
+  width: 100%; height: 52px; padding: 0 14px; border-radius: 8px;
+  font: 700 17px var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия); font-variant-numeric: tabular-nums;
+  transition: border-color .15s;
+}
+.юн-ввод:hover { border-color: #6b7280 }
+.юн-ввод:focus { border-color: #fff; outline: none }
+.юн-ввод::placeholder { color: #8b93a0; font-weight: 400 }
+
+/* Строка состояния занята всегда -- либо подсказкой, либо догадкой об единицах. Постоянная
+   высота держит таблицу под ней на месте. */
+.юн-состояние {
+  display: flex; align-items: center; flex-wrap: wrap; gap: 8px;
+  min-height: 34px; margin: 9px 0 4px;
+}
+.юн-слово { font: 400 12px var(--ui); color: #fff }
+.юн-чипы { display: inline-flex; gap: 6px; flex-wrap: wrap }
+/* display в правиле выше сильнее, чем display:none у самого браузера для [hidden], и без
+   этой строки спрятанное остаётся на виду. Свойство .hidden при этом честно говорит «да»,
+   поэтому проверки такое не ловят -- только снимок экрана. */
+.юн-чипы[hidden], .юн-метка38[hidden] { display: none }
+
+/* Выбранное -- обводкой, без заливки: залитая кнопка тут читалась бы как нажатая навсегда. */
+.юн-чип {
+  height: 28px; padding: 0 11px; border-radius: 6px; cursor: pointer; flex: 0 0 auto;
+  font: 600 12px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.юн-чип:hover:not([disabled]) { border-color: #fff }
+.юн-чип.юн-выбран { border-color: var(--accent); color: var(--accent); background: transparent }
+.юн-чип[disabled] { cursor: not-allowed; color: #8b93a0; border-color: #2c313a;
+  background: #14161b }
+.юн-чип:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.юн-метка38 {
+  height: 28px; display: inline-flex; align-items: center; padding: 0 10px; flex: none;
+  border-radius: 6px; border: 1px solid #b45309; color: #fbbf24; background: transparent;
+  font: 600 11.5px var(--цифры); cursor: help;
+}
+
+/* ---- Таблица разбора ------------------------------------------------------------------------ */
+
+.юн-таблица { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  overflow: hidden }
+.юн-ряд {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 14px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.юн-ряд:last-child { border-bottom: 0 }
+/* Столбец подписей: не жёсткая ширина, а наименьшая. Жёсткие 84px обрезали бы «Относительно»
+   и «dentro de», и значение налезало бы на подпись -- у каждого языка слова своей длины. */
+.юн-ряд-имя { font: 400 11.5px var(--цифры); letter-spacing: .06em; color: var(--accent);
+  flex: none; min-width: 100px }
+/* Само значение -- главное в строке: белое и плотное, его уносят к себе. */
+.юн-ряд-код { flex: 1 1 auto; font: 600 14px var(--цифры); color: #fff;
+  overflow-wrap: anywhere; user-select: text; font-variant-numeric: tabular-nums }
+
+.юн-значок {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 32px; height: 32px; border-radius: 6px; cursor: pointer; color: #fff;
+  background: transparent; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.юн-значок:hover { border-color: #fff; background: #1c1f26 }
+.юн-значок svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+.юн-значок .галка { display: none }
+.юн-значок.готово { border-color: var(--accent); color: var(--accent) }
+.юн-значок.готово .лист { display: none }
+.юн-значок.готово .галка { display: block }
+
+.юн-низ { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 0 }
+.юн-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s;
+}
+.юн-обводка:hover { background: #fff; color: #000 }
+.юн-узкая { height: 52px; padding: 0 16px; flex: none }
+
+/* ---- Обратный ход --------------------------------------------------------------------------- */
+
+.юн-назад { margin-top: 26px; padding-top: 22px; border-top: 1px solid var(--линия) }
+.юн-назад-верх { display: flex; align-items: center; flex-wrap: wrap; gap: 10px 14px;
+  margin-bottom: 9px }
+.юн-назад-верх .юн-имя { margin-bottom: 0 }
+.юн-пояс { display: inline-flex; gap: 6px }
+
+.юн-назад-ряд { display: flex; gap: 8px; align-items: stretch }
+.юн-дата {
+  flex: 1 1 auto; min-width: 0; height: 52px; padding: 0 14px; border-radius: 8px;
+  font: 600 15px var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия); transition: border-color .15s;
+}
+.юн-дата:hover { border-color: #6b7280 }
+.юн-дата:focus { border-color: #fff; outline: none }
+/* Значок календаря родной, но в тёмной теме он выходит чёрным на чёрном. */
+.юн-дата::-webkit-calendar-picker-indicator { filter: invert(1); opacity: .75; cursor: pointer }
+
+.юн-ряд-итог { margin-top: 10px; border: 1px solid var(--линия); border-radius: 12px;
+  background: #16181d; border-bottom: 1px solid var(--линия) }
+.юн-ряд-итог .юн-ряд-код { font-size: 17px; font-weight: 700 }
+
+/* ---- Заметки -------------------------------------------------------------------------------- */
+
+.юн-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.юн-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.юн-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.юн-заметка b { color: #fff; font-weight: 600 }
+
+@media (max-width: 560px) {
+  .юн-часы-число { font-size: 17px }
+  .юн-ввод { font-size: 15px; height: 48px }
+  .юн-ряд { gap: 8px; padding: 10px 12px }
+  /* Подпись уходит над значением: 84 пикселя слева на узком экране съедали половину строки. */
+  .юн-ряд { flex-wrap: wrap }
+  .юн-ряд-имя { min-width: 0; flex: 1 0 100% }
+  .юн-ряд-код { font-size: 13px; flex: 1 1 auto }
+  .юн-дата { font-size: 13px; height: 48px }
+  .юн-узкая { height: 48px; padding: 0 12px }
+}

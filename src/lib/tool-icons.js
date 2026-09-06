@@ -123,6 +123,7 @@ const RULES = [
   [/^markdown-html$/, 'разметка'],
   [/^regex-tester$/, 'узор'],
   [/^uuid-generator$/, 'ключик'],
+  [/^unix-timestamp$/, 'clock'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
