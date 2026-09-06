@@ -90,23 +90,44 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       </select>
     </span>
 
-    <label class="ид-галка"><input type="checkbox" id="ид-заглавными" /><i></i>{с.upper}</label>
-    <label class="ид-галка"><input type="checkbox" id="ид-безДефисов" /><i></i>{с.nodash}</label>
-  </div>
+    <!-- Обе галочки -- одним куском: порознь они разъезжались по разным строкам, и вторая
+         вставала под «Версией» криво, со сдвигом в дюжину пикселей. -->
+    <span class="ид-галки">
+      <label class="ид-галка"><input type="checkbox" id="ид-заглавными" /><i></i>{с.upper}</label>
+      <label class="ид-галка"><input type="checkbox" id="ид-безДефисов" /><i></i>{с.nodash}</label>
+    </span>
 
-  <div class="ид-ряд-пуска">
+    <!-- Кнопка живёт в том же ряду, что и наладки: на широком экране весь пульт умещается
+         в одну строку, на узком переносится, но во всю ширину не растягивается. -->
     <button type="button" class="ид-кнопка ид-пуск" id="ид-сделать">{с.make}</button>
   </div>
 
   <div class="ид-окно">
     <textarea class="ид-вывод" id="ид-вывод" readonly spellcheck="false"
               placeholder={с.empty}></textarea>
-    <div class="ид-счёт" id="ид-счёт"></div>
-  </div>
-
-  <div class="ид-ряд">
-    <button type="button" class="ид-кнопка" id="ид-копировать" disabled>{с.copy}</button>
-    <button type="button" class="ид-обводка" id="ид-очистить">{с.clear}</button>
+    <!-- Кнопки стоят в той же полосе, где счётчик, у нижнего края окна: так видно, из
+         какого поля берётся список. -->
+    <div class="ид-счёт">
+      <span class="ид-итог" id="ид-счёт"></span>
+      <span class="ид-знаки">
+        <button type="button" class="ид-копи" id="ид-копировать" aria-label={с.copy}
+                title={с.copy} disabled>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+        <button type="button" class="ид-корзина" id="ид-очистить" aria-label={с.clear} title={с.clear}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16"></path>
+            <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+            <path d="M10 11v6M14 11v6"></path>
+          </svg>
+        </button>
+      </span>
+    </div>
   </div>
 
   <div class="ид-заметки">
@@ -146,6 +167,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('ид-вывод').value = ключи.map((к) => оформить(к, вид)).join('\n');
       $('ид-счёт').textContent = ключи.length ? `${с.total}: ${ключи.length}` : '';
       $('ид-копировать').disabled = !ключи.length;
+      $('ид-очистить').disabled = !ключи.length;
     }
 
     function сделать() {
@@ -172,9 +194,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const кнопка = $('ид-копировать');
       if (!ключи.length) return;
       try { await navigator.clipboard.writeText($('ид-вывод').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     $('ид-очистить').addEventListener('click', () => { ключи = []; показать(); });

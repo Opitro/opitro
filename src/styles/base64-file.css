@@ -94,18 +94,16 @@
   width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
 }
-/* Копирование -- главное действие окна, потому светлая заливка. */
-.бф-копи { color: #000; background: #fff; border: 1px solid #fff }
-.бф-копи:hover { background: #e9ecef; border-color: #e9ecef }
+/* Обе кнопки одинаковы: белый значок в обводке, без заливки. Светлая заливка выделяла
+   коробку, а не сам знак. Сделано заодно с генератором UUID -- кнопка та же самая, и разный
+   вид на двух страницах читался бы как недосмотр. */
+.бф-копи, .бф-корзина { color: #fff; background: transparent; border: 1px solid #3f4652 }
+.бф-копи:hover, .бф-корзина:hover { border-color: #fff; background: #1c1f26 }
 .бф-копи .галка { display: none }
-/* Готово -- тёмный фон и зелёная галочка. Зелёная ЗАЛИВКА с тёмным знаком читалась бы
-   плохо, это уже проверено на других страницах. */
-.бф-копи.готово { background: #0b0c0f; border-color: var(--accent); color: var(--accent) }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.бф-копи.готово { border-color: var(--accent); color: var(--accent); background: transparent }
 .бф-копи.готово .лист { display: none }
 .бф-копи.готово .галка { display: block }
-/* Корзина -- действие второстепенное и необратимое, потому тише: обводка, без заливки. */
-.бф-корзина { color: #fff; background: transparent; border: 1px solid #3f4652 }
-.бф-корзина:hover { border-color: #fff; background: #1c1f26 }
 .бф-копи:focus-visible, .бф-корзина:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px }
 
