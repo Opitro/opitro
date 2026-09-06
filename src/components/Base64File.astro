@@ -117,24 +117,30 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </span>
   </div>
 
+  <!-- Кнопки стоят В САМОМ окне вывода, а не под ним. Так видно, из какого поля берётся
+       текст, и заголовок «Результат» становится не нужен. -->
   <div class="бф-поле бф-вывод">
+    <div class="бф-шапка">
+      <button type="button" class="бф-копи" id="бф-копировать" aria-label={с.copy} title={с.copy}>
+        <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+          <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+        </svg>
+        <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+      </button>
+      <button type="button" class="бф-корзина" id="бф-очистить" aria-label={с.clear} title={с.clear}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"></path>
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+          <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+          <path d="M10 11v6M14 11v6"></path>
+        </svg>
+      </button>
+    </div>
     <textarea class="бф-ввод" id="бф-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
   </div>
   <div class="бф-весть" id="бф-весть"></div>
   <div class="бф-отчёт" id="бф-отчёт"><span class="бф-сказ" id="бф-сказ"></span></div>
-
-  <div class="бф-ряд">
-    <!-- Копирование значком, без надписи: слово занимало полстроки, а лист с уголком
-         узнают и без подписи. Само действие названо в aria-label и во всплывающей подсказке. -->
-    <button type="button" class="бф-копи" id="бф-копировать" aria-label={с.copy} title={с.copy}>
-      <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
-        <rect x="9" y="9" width="11" height="12" rx="2"></rect>
-        <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
-      </svg>
-      <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
-    </button>
-    <button type="button" class="бф-простая" id="бф-очистить">{с.clear}</button>
-  </div>
 
   <div class="бф-заметки">
     <div class="бф-заметка" set:html={с.n1}></div>
