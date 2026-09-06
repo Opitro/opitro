@@ -1,0 +1,301 @@
+---
+// ГЕНЕРАТОР ЦВЕТОВЫХ ПАЛИТР.
+//
+// Правила считает palette.js, подпись на плашке выбирает contrast.js. Оба проверены отдельно:
+// правила -- сдвигами по кругу на известных значениях, подпись -- на 60 000 случайных цветов
+// (всегда выбирается более контрастная из двух, худший случай 4,58 при пороге 4,5).
+//
+// ЧЕСТНО ПРО ПЯТЬ ПЛАШЕК. Правил, дающих ровно пять цветов, тут нет: у комплиментарного их
+// два, у триады три. Пятёрка набирается светлым и тёмным оттенком, и под каждой плашкой прямо
+// написано, что она такое, -- иначе человек решит, будто «третий цвет триады» это отдельное
+// правило гармонии.
+//
+// ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаю, приглушённых букв не делаю, «Copy» заменён
+// значком -- всё по прежним решениям владельца.
+import css from '../styles/palette-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    base: 'Основа', rule: 'Правило', random: 'Случайная палитра',
+    ruleC: 'Комплиментарная', ruleA: 'Аналоговая', ruleT: 'Триада', ruleM: 'Монохромная',
+    spaceHint: 'Пробел — случайная палитра',
+    copy: 'Копировать', copied: 'Скопировано',
+    exportCss: 'Скопировать как переменные CSS', exportJson: 'Скопировать как JSON',
+    bad: 'Не похоже на цвет. Подойдут #1a2b3c, rgb(26, 43, 60) или hsl(210, 40%, 17%).',
+    rОснова: 'основа', rТемнее: 'темнее', rСветлее: 'светлее',
+    rПротив: 'напротив, 180°', rПротивТемнее: 'напротив, темнее',
+    rСосед: 'сосед', rВторой: 'второй, 120°', rТретий: 'третий, 240°',
+    n1: '<b>Пять плашек — это не пять правил.</b> Комплиментарная пара — это два цвета, триада — три. До пяти ряд дополняется светлым и тёмным оттенком того же тона, и под каждой плашкой написано, что она такое: «основа», «напротив, 180°», «светлее». Так видно, где настоящее правило, а где просто оттенок.',
+    n2: '<b>Круг HSL — не то же самое, что круг художника.</b> Сдвиг на 180° даёт формально противоположный цвет, но глаз видит иначе: жёлтый при той же светлоте выглядит гораздо ярче синего. Эти правила живут в вебе именно в арифметическом виде, так их и считаем — но подбирать по ним стоит глазами, а не вслепую.',
+    n3: '<b>Подпись на плашке выбирается по правилам доступности, а не на глаз.</b> Ходовой приём — сложить R, G и B и сравнить с серединой — ошибается на насыщенных цветах. Мы считаем относительную яркость, где у зелёного вес почти три четверти, а у синего семь сотых. Проверено на 60 000 цветов: подпись всегда та, что контрастнее, и даже в худшем случае её контраст 4,58 при пороге 4,5.',
+    n4: '<b>У монохромной лесенки края прижаты.</b> Светлее 88 % и темнее 12 % плашки не уходят: там цвет почти белый или почти чёрный, пользы от него в палитре нет, а тон начинает гулять — на тёмных ступенях на весь цветовой круг остаётся десяток значений RGB.',
+    n5: 'Ничего никуда не отправляется. Подбор фирменных цветов идёт в памяти вкладки: сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    base: 'Основа', rule: 'Правило', random: 'Випадкова палітра',
+    ruleC: 'Компліментарна', ruleA: 'Аналогова', ruleT: 'Тріада', ruleM: 'Монохромна',
+    spaceHint: 'Пробіл — випадкова палітра',
+    copy: 'Копіювати', copied: 'Скопійовано',
+    exportCss: 'Скопіювати як змінні CSS', exportJson: 'Скопіювати як JSON',
+    bad: 'Не схоже на колір. Підійдуть #1a2b3c, rgb(26, 43, 60) або hsl(210, 40%, 17%).',
+    rОснова: 'основа', rТемнее: 'темніше', rСветлее: 'світліше',
+    rПротив: 'навпроти, 180°', rПротивТемнее: 'навпроти, темніше',
+    rСосед: 'сусід', rВторой: 'другий, 120°', rТретий: 'третій, 240°',
+    n1: '<b>П’ять плашок — це не п’ять правил.</b> Компліментарна пара — це два кольори, тріада — три. До п’яти ряд доповнюється світлим і темним відтінком того самого тону, і під кожною плашкою написано, що вона таке: «основа», «навпроти, 180°», «світліше». Так видно, де справжнє правило, а де просто відтінок.',
+    n2: '<b>Коло HSL — не те саме, що коло художника.</b> Зсув на 180° дає формально протилежний колір, але око бачить інакше: жовтий за тієї самої світлості виглядає значно яскравішим за синій. Ці правила живуть у вебі саме в арифметичному вигляді, так їх і рахуємо — але добирати за ними варто очима, а не наосліп.',
+    n3: '<b>Підпис на плашці обирається за правилами доступності, а не на око.</b> Ходовий прийом — скласти R, G і B та порівняти із серединою — помиляється на насичених кольорах. Ми рахуємо відносну яскравість, де в зеленого вага майже три чверті, а в синього сім сотих. Перевірено на 60 000 кольорів: підпис завжди той, що контрастніший, і навіть у найгіршому разі його контраст 4,58 за порога 4,5.',
+    n4: '<b>У монохромної драбинки краї притиснуті.</b> Світліше 88 % і темніше 12 % плашки не йдуть: там колір майже білий або майже чорний, користі від нього в палітрі немає, а тон починає гуляти — на темних щаблях на все колірне коло лишається десяток значень RGB.',
+    n5: 'Нічого нікуди не надсилається. Добір фірмових кольорів іде в пам’яті вкладки: мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    base: 'Base', rule: 'Rule', random: 'Random palette',
+    ruleC: 'Complementary', ruleA: 'Analogous', ruleT: 'Triadic', ruleM: 'Monochromatic',
+    spaceHint: 'Space — random palette',
+    copy: 'Copy', copied: 'Copied',
+    exportCss: 'Copy as CSS variables', exportJson: 'Copy as JSON',
+    bad: 'That does not look like a colour. Try #1a2b3c, rgb(26, 43, 60) or hsl(210, 40%, 17%).',
+    rОснова: 'base', rТемнее: 'darker', rСветлее: 'lighter',
+    rПротив: 'opposite, 180°', rПротивТемнее: 'opposite, darker',
+    rСосед: 'neighbour', rВторой: 'second, 120°', rТретий: 'third, 240°',
+    n1: '<b>Five swatches are not five rules.</b> A complementary pair is two colours; a triad is three. The row is filled out to five with a lighter and a darker shade of the same hue, and every swatch says what it is: “base”, “opposite, 180°”, “lighter”. That way you can see where the actual rule ends and a mere tint begins.',
+    n2: '<b>The HSL wheel is not the painter\'s wheel.</b> Shifting by 180° gives the formally opposite colour, but the eye disagrees: yellow at the same lightness looks far brighter than blue. These rules live on the web in exactly this arithmetic form, so that is how we compute them — but choose with your eyes, not blindly.',
+    n3: '<b>The label on a swatch is chosen by the accessibility rules, not by eye.</b> The common trick — add R, G and B and compare with the middle — goes wrong on saturated colours. We compute relative luminance, where green carries almost three quarters of the weight and blue seven hundredths. Checked on 60,000 colours: the label is always the more contrasting one, and even in the worst case its contrast is 4.58 against a threshold of 4.5.',
+    n4: '<b>The monochrome ladder has clamped ends.</b> Swatches go no lighter than 88% and no darker than 12%: beyond that the colour is nearly white or nearly black, useless in a palette, and the hue starts to wander — at the dark end only a dozen RGB values are left for the whole colour wheel.',
+    n5: 'Nothing is sent anywhere. Choosing brand colours happens in the tab\'s memory: the page makes no network requests at all.',
+  },
+  es: {
+    base: 'Base', rule: 'Regla', random: 'Paleta aleatoria',
+    ruleC: 'Complementaria', ruleA: 'Análoga', ruleT: 'Tríada', ruleM: 'Monocromática',
+    spaceHint: 'Espacio — paleta aleatoria',
+    copy: 'Copiar', copied: 'Copiado',
+    exportCss: 'Copiar como variables CSS', exportJson: 'Copiar como JSON',
+    bad: 'Eso no parece un color. Pruebe #1a2b3c, rgb(26, 43, 60) o hsl(210, 40%, 17%).',
+    rОснова: 'base', rТемнее: 'más oscuro', rСветлее: 'más claro',
+    rПротив: 'opuesto, 180°', rПротивТемнее: 'opuesto, más oscuro',
+    rСосед: 'vecino', rВторой: 'segundo, 120°', rТретий: 'tercero, 240°',
+    n1: '<b>Cinco muestras no son cinco reglas.</b> Una pareja complementaria son dos colores; una tríada, tres. La fila se completa hasta cinco con un tono más claro y otro más oscuro del mismo matiz, y bajo cada muestra pone qué es: «base», «opuesto, 180°», «más claro». Así se ve dónde acaba la regla de verdad y dónde empieza un simple matiz.',
+    n2: '<b>El círculo HSL no es el círculo del pintor.</b> Desplazar 180° da el color formalmente opuesto, pero el ojo opina otra cosa: el amarillo, con la misma luminosidad, se ve mucho más brillante que el azul. Estas reglas viven en la web precisamente en esa forma aritmética, y así las calculamos, pero elija con los ojos, no a ciegas.',
+    n3: '<b>La etiqueta sobre la muestra se elige por las reglas de accesibilidad, no a ojo.</b> El truco habitual —sumar R, G y B y compararlo con la mitad— se equivoca en los colores saturados. Calculamos la luminancia relativa, donde el verde pesa casi tres cuartas partes y el azul siete centésimas. Comprobado en 60 000 colores: la etiqueta es siempre la más contrastada, y aun en el peor caso su contraste es 4,58 frente a un umbral de 4,5.',
+    n4: '<b>La escalera monocromática tiene los extremos recortados.</b> Las muestras no pasan del 88 % ni bajan del 12 %: más allá el color es casi blanco o casi negro, no sirve en una paleta, y el tono empieza a bailar, porque en la zona oscura quedan apenas una docena de valores RGB para todo el círculo cromático.',
+    n5: 'No se envía nada a ninguna parte. La elección de colores corporativos ocurre en la memoria de la pestaña: la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="пл" data-words={JSON.stringify(с)}>
+  <div class="пл-пульт">
+    <span class="пл-отступ">
+      <span class="пл-подпись">{с.base}:</span>
+      <!-- Родной выбор цвета браузера: свою пипетку рисовать незачем, эта человеку знакома
+           и работает с системным подборщиком. -->
+      <input type="color" class="пл-пипетка" id="пл-пипетка" value="#22c55e"
+             aria-label={с.base} title={с.base} />
+      <input type="text" class="пл-текст" id="пл-hex" spellcheck="false"
+             autocapitalize="off" autocomplete="off" value="#22c55e" />
+    </span>
+
+    <span class="пл-отступ">
+      <span class="пл-подпись">{с.rule}:</span>
+      <select class="пл-список" id="пл-правило">
+        <option value="комплиментарная">{с.ruleC}</option>
+        <option value="аналоговая">{с.ruleA}</option>
+        <option value="триада">{с.ruleT}</option>
+        <option value="монохромная">{с.ruleM}</option>
+      </select>
+    </span>
+
+    <button type="button" class="пл-значок пл-кости" id="пл-случай"
+            aria-label={с.random} title={с.random}>
+      <svg viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="3.5" y="3.5" width="17" height="17" rx="3"/>
+        <circle cx="8.5" cy="8.5" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="15.5" cy="15.5" r="1.3" fill="currentColor" stroke="none"/>
+        <circle cx="12" cy="12" r="1.3" fill="currentColor" stroke="none"/>
+      </svg>
+    </button>
+    <span class="пл-намёк">{с.spaceHint}</span>
+  </div>
+
+  <div class="пл-беда" id="пл-беда" hidden></div>
+
+  <div class="пл-полосы" id="пл-полосы"></div>
+
+  <div class="пл-ряд">
+    <button type="button" class="пл-кнопка" id="пл-css">{с.exportCss}</button>
+    <button type="button" class="пл-обводка" id="пл-json">{с.exportJson}</button>
+  </div>
+
+  <div class="пл-заметки">
+    <div class="пл-заметка" set:html={с.n1}></div>
+    <div class="пл-заметка" set:html={с.n2}></div>
+    <div class="пл-заметка" set:html={с.n3}></div>
+    <div class="пл-заметка" set:html={с.n4}></div>
+    <div class="пл-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { палитра, случайнаяОснова } from '../lib/palette.js';
+  import { буквыНа } from '../lib/contrast.js';
+  import { изHex, вHex, разобрать } from '../lib/color-convert.js';
+
+  const корень = document.querySelector('.пл');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    let основа = изHex('#22c55e');
+    let ряд = [];
+
+    const ИМЕНА = {
+      основа: 'rОснова', темнее: 'rТемнее', светлее: 'rСветлее',
+      против: 'rПротив', противТемнее: 'rПротивТемнее',
+      сосед: 'rСосед', второй: 'rВторой', третий: 'rТретий',
+    };
+    // Названия правил для вывоза наружу -- по-английски: это машинное поле, его читает не
+    // человек, а чужой код.
+    const ПОАНГЛИЙСКИ = {
+      комплиментарная: 'complementary', аналоговая: 'analogous',
+      триада: 'triadic', монохромная: 'monochromatic',
+    };
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    function отклик(кнопка) {
+      кнопка.classList.add('готово');
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => кнопка.classList.remove('готово'), 1200);
+    }
+
+    async function вБуфер(текст, кнопка) {
+      try { await navigator.clipboard.writeText(текст); } catch (е) { return; }
+      отклик(кнопка);
+    }
+
+    function перерисовать() {
+      ряд = палитра(основа, $('пл-правило').value);
+      const место = $('пл-полосы');
+      место.replaceChildren();
+
+      for (const плашка of ряд) {
+        const hex = вHex(плашка.цвет);
+        // Буквы -- чёрные или белые, смотря что читается на этом цвете. Считается по
+        // относительной яркости, а не «на глаз».
+        const буквы = буквыНа(плашка.цвет);
+        const полоса = узел('div', 'пл-полоса');
+        полоса.style.background = hex;
+        полоса.style.color = буквы;
+
+        полоса.appendChild(узел('span', 'пл-роль', с[ИМЕНА[плашка.роль]] || плашка.роль));
+        полоса.appendChild(узел('span', 'пл-код', hex));
+
+        const кн = узел('button', 'пл-взять');
+        кн.type = 'button';
+        кн.setAttribute('aria-label', `${с.copy} ${hex}`);
+        кн.setAttribute('title', с.copy);
+        // Обводка кнопки -- тем же цветом букв: на любой плашке она остаётся видимой.
+        кн.style.color = буквы;
+        кн.style.borderColor = буквы;
+        кн.innerHTML = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
+          + '<rect x="9" y="9" width="11" height="12" rx="2"/>'
+          + '<path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>'
+          + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true">'
+          + '<path d="M4 12.5l5.5 5.5L20 7"/></svg>';
+        кн.addEventListener('click', () => вБуфер(hex, кн));
+        полоса.appendChild(кн);
+        место.appendChild(полоса);
+      }
+
+      const hex = вHex(основа);
+      $('пл-пипетка').value = hex;
+      if ($('пл-hex').value.trim().toLowerCase() !== hex) $('пл-hex').value = hex;
+    }
+
+    const сказать = (текст) => {
+      $('пл-беда').textContent = текст || '';
+      $('пл-беда').hidden = !текст;
+    };
+
+    $('пл-hex').addEventListener('input', () => {
+      const разбор = разобрать($('пл-hex').value);
+      if (!разбор) { сказать($('пл-hex').value.trim() ? с.bad : ''); return; }
+      сказать('');
+      основа = { ...разбор, a: 1 };       // прозрачность в палитре ни к чему
+      $('пл-пипетка').value = вHex(основа);
+      перерисовать();
+    });
+
+    $('пл-пипетка').addEventListener('input', () => {
+      основа = изHex($('пл-пипетка').value);
+      сказать('');
+      $('пл-hex').value = вHex(основа);
+      перерисовать();
+    });
+
+    $('пл-правило').addEventListener('change', перерисовать);
+
+    function случайно() {
+      основа = случайнаяОснова();
+      сказать('');
+      перерисовать();
+    }
+    $('пл-случай').addEventListener('click', случайно);
+
+    // Пробел -- случайная палитра. Но только когда человек не набирает текст и не жмёт
+    // пробелом кнопку: иначе клавиша отберёт у страницы обычное поведение.
+    document.addEventListener('keydown', (е) => {
+      if (е.code !== 'Space' || е.metaKey || е.ctrlKey || е.altKey) return;
+      const где = document.activeElement;
+      const тег = где && где.tagName;
+      if (тег === 'INPUT' || тег === 'TEXTAREA' || тег === 'SELECT' || тег === 'BUTTON') return;
+      if (где && где.isContentEditable) return;
+      е.preventDefault();
+      случайно();
+    });
+
+    $('пл-css').addEventListener('click', () => {
+      const строки = ряд.map((п, и) => `  --color-${и + 1}: ${вHex(п.цвет)};`).join('\n');
+      вБуфер(`:root {\n${строки}\n}`, $('пл-css'));
+    });
+
+    $('пл-json').addEventListener('click', () => {
+      вБуфер(JSON.stringify({
+        base: вHex(основа),
+        rule: ПОАНГЛИЙСКИ[$('пл-правило').value] || $('пл-правило').value,
+        colors: ряд.map((п) => вHex(п.цвет)),
+      }, null, 2), $('пл-json'));
+    });
+
+    перерисовать();
+
+    window.__плСостояние = () => ({
+      основа: вHex(основа),
+      правило: $('пл-правило').value,
+      цвета: [...document.querySelectorAll('.пл-полоса')].map((п) => ({
+        код: п.querySelector('.пл-код').textContent,
+        роль: п.querySelector('.пл-роль').textContent,
+        буквы: п.style.color,
+      })),
+      беда: $('пл-беда').hidden ? '' : $('пл-беда').textContent,
+    });
+    window.__плCss = () => {
+      const строки = ряд.map((п, и) => `  --color-${и + 1}: ${вHex(п.цвет)};`).join('\n');
+      return `:root {\n${строки}\n}`;
+    };
+    window.__плJson = () => JSON.stringify({
+      base: вHex(основа),
+      rule: ПОАНГЛИЙСКИ[$('пл-правило').value] || $('пл-правило').value,
+      colors: ряд.map((п) => вHex(п.цвет)),
+    }, null, 2);
+  })();
+</script>
