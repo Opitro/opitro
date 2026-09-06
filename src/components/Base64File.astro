@@ -117,10 +117,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </span>
   </div>
 
-  <!-- Кнопки стоят В САМОМ окне вывода, а не под ним. Так видно, из какого поля берётся
-       текст, и заголовок «Результат» становится не нужен. -->
+  <!-- Кнопки стоят В САМОМ окне вывода, полосой у нижнего края. Так видно, из какого поля
+       берётся текст, и заголовок «Результат» становится не нужен. -->
   <div class="бф-поле бф-вывод">
-    <div class="бф-шапка">
+    <textarea class="бф-ввод" id="бф-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+    <div class="бф-подвал">
       <button type="button" class="бф-копи" id="бф-копировать" aria-label={с.copy} title={с.copy}>
         <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
           <rect x="9" y="9" width="11" height="12" rx="2"></rect>
@@ -137,7 +138,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         </svg>
       </button>
     </div>
-    <textarea class="бф-ввод" id="бф-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
   </div>
   <div class="бф-весть" id="бф-весть"></div>
   <div class="бф-отчёт" id="бф-отчёт"><span class="бф-сказ" id="бф-сказ"></span></div>
