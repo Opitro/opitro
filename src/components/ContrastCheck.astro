@@ -1,0 +1,283 @@
+---
+// ПРОВЕРКА КОНТРАСТА ПО ПРАВИЛАМ ДОСТУПНОСТИ (WCAG).
+//
+// Считает contrast.js -- тот же движок, что выбирает подпись на плашке в генераторе палитр.
+// Он сверен с числами из самого описания WCAG: чёрный с белым дают 21, #777777 на белом --
+// 4,478 (то есть НЕ проходит порог 4,5), а #767676 -- проходит. Граница ровно там, где в
+// правилах, и это проверено, а не заявлено.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО, НО БЕЗ ЧЕГО НЕУДОБНО: кнопка «поменять местами». Пара «текст на
+// фоне» и «фон под текстом» -- это одно и то же число, но подбирают их по-разному, и
+// перещёлкивать два поля руками ради проверки обратного сочетания глупо.
+//
+// ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаю, приглушённых букв не делаю, значок провала
+// не смайлик, а тот же набор очертаний, что на всём сайте.
+import css from '../styles/contrast-check.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    params: 'Цвета', text: 'Текст', back: 'Фон', swap: 'Поменять местами',
+    ratio: 'Коэффициент', levels: 'Уровни доступности', preview: 'Как это выглядит',
+    pass: 'ПРОХОДИТ', fail: 'НЕ ПРОХОДИТ', least: 'не меньше',
+    aaNormal: 'AA · обычный текст', aaLarge: 'AA · крупный текст и значки',
+    aaaNormal: 'AAA · обычный текст', aaaLarge: 'AAA · крупный текст',
+    bad: 'Не похоже на цвет. Подойдут #1a2b3c, rgb(26, 43, 60) или hsl(210, 40%, 17%).',
+    sampleBig: 'Крупный заголовок',
+    sampleSmall: 'Обычный текст в четырнадцать пикселей — тот размер, которым набрано почти всё на сайтах: подписи, описания, строки таблиц. Именно его читать труднее всего, и именно для него нужен коэффициент 4,5.',
+    sampleLink: 'а это ссылка внутри строки',
+    n1: '<b>Крупный текст — это от 24 пикселей, или от 18,7 если он жирный.</b> Правило считает в пунктах: 18pt и 14pt жирного. Всё, что мельче, — обычный текст, и порог для него 4,5, а не 3. Ошибиться тут легко: заголовок в 20 пикселей выглядит крупным, но по правилам он обычный.',
+    n2: '<b>Порог 4,5 взят не с потолка.</b> Это примерно то отношение, при котором текст остаётся читаемым для человека со зрением около 20/40 — обычное возрастное ухудшение, очки при этом не в счёт. Уровень AAA с порогом 7 рассчитан на зрение около 20/80.',
+    n3: '<b>Прозрачность в расчёт не входит.</b> Отношение считается для двух плотных цветов. Если у вашего текста или фона есть прозрачность, сначала посмотрите, какой цвет получается поверх настоящей подложки, и проверяйте уже его — иначе число выйдет красивее правды.',
+    n4: '<b>Эта мерка не идеальна, и об этом честно сказано в самих правилах.</b> Формула плохо ловит разницу на тёмных фонах: пара, проходящая с запасом, глазами может выглядеть хуже, чем едва прошедшая светлая. В следующей редакции правил считать будут иначе (APCA). Пока же порог 4,5 — то, что спрашивают заказчики и проверяют инспекции, поэтому считаем по нему, но смотрите и глазами на образец ниже.',
+    n5: 'Ничего никуда не отправляется. Вся проверка — арифметика в самой вкладке, сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    params: 'Кольори', text: 'Текст', back: 'Тло', swap: 'Поміняти місцями',
+    ratio: 'Коефіцієнт', levels: 'Рівні доступності', preview: 'Як це виглядає',
+    pass: 'ПРОХОДИТЬ', fail: 'НЕ ПРОХОДИТЬ', least: 'не менше',
+    aaNormal: 'AA · звичайний текст', aaLarge: 'AA · великий текст і значки',
+    aaaNormal: 'AAA · звичайний текст', aaaLarge: 'AAA · великий текст',
+    bad: 'Не схоже на колір. Підійдуть #1a2b3c, rgb(26, 43, 60) або hsl(210, 40%, 17%).',
+    sampleBig: 'Великий заголовок',
+    sampleSmall: 'Звичайний текст у чотирнадцять пікселів — той розмір, яким набрано майже все на сайтах: підписи, описи, рядки таблиць. Саме його читати найважче, і саме для нього потрібен коефіцієнт 4,5.',
+    sampleLink: 'а це посилання всередині рядка',
+    n1: '<b>Великий текст — це від 24 пікселів, або від 18,7 якщо він жирний.</b> Правило рахує в пунктах: 18pt і 14pt жирного. Усе, що дрібніше, — звичайний текст, і поріг для нього 4,5, а не 3. Помилитися тут легко: заголовок у 20 пікселів виглядає великим, але за правилами він звичайний.',
+    n2: '<b>Поріг 4,5 узятий не зі стелі.</b> Це приблизно те відношення, за якого текст лишається читабельним для людини із зором близько 20/40 — звичайне вікове погіршення, окуляри при цьому не рахуються. Рівень AAA з порогом 7 розрахований на зір близько 20/80.',
+    n3: '<b>Прозорість у розрахунок не входить.</b> Відношення рахується для двох щільних кольорів. Якщо у вашого тексту чи тла є прозорість, спершу подивіться, який колір виходить поверх справжньої підкладки, і перевіряйте вже його — інакше число вийде гарнішим за правду.',
+    n4: '<b>Ця мірка не ідеальна, і про це чесно сказано в самих правилах.</b> Формула погано ловить різницю на темних тлах: пара, що проходить із запасом, очима може виглядати гірше за ледь прохідну світлу. У наступній редакції правил рахуватимуть інакше (APCA). Поки ж поріг 4,5 — те, що питають замовники і перевіряють інспекції, тому рахуємо за ним, але дивіться й очима на зразок нижче.',
+    n5: 'Нічого нікуди не надсилається. Уся перевірка — арифметика в самій вкладці, мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    params: 'Colours', text: 'Text', back: 'Background', swap: 'Swap them round',
+    ratio: 'Ratio', levels: 'Accessibility levels', preview: 'How it looks',
+    pass: 'PASSES', fail: 'FAILS', least: 'at least',
+    aaNormal: 'AA · normal text', aaLarge: 'AA · large text and icons',
+    aaaNormal: 'AAA · normal text', aaaLarge: 'AAA · large text',
+    bad: 'That does not look like a colour. Try #1a2b3c, rgb(26, 43, 60) or hsl(210, 40%, 17%).',
+    sampleBig: 'A large heading',
+    sampleSmall: 'Ordinary text at fourteen pixels — the size almost everything on a website is set in: captions, descriptions, table rows. It is the hardest to read, and it is precisely what the 4.5 ratio is for.',
+    sampleLink: 'and this is a link inside the line',
+    n1: '<b>Large text starts at 24 pixels, or 18.7 if it is bold.</b> The rule counts in points: 18pt, and 14pt bold. Anything smaller is normal text, and its threshold is 4.5, not 3. It is easy to slip here: a 20-pixel heading looks large, but by the rules it is normal text.',
+    n2: '<b>The 4.5 threshold was not plucked from the air.</b> It is roughly the ratio at which text stays readable for someone with about 20/40 vision — ordinary age-related decline, with spectacles not counted. Level AAA, at 7, is aimed at roughly 20/80 vision.',
+    n3: '<b>Transparency does not enter the calculation.</b> The ratio is computed for two solid colours. If your text or background is partly transparent, first work out what colour actually results over the real backing, and check that instead — otherwise the number comes out prettier than the truth.',
+    n4: '<b>This measure is not perfect, and the rules themselves say so.</b> The formula copes badly with dark backgrounds: a pair that passes with room to spare can look worse to the eye than a light pair that barely scrapes through. The next edition of the rules will compute it differently (APCA). For now 4.5 is what clients ask for and audits check, so that is what we compute — but look at the sample below with your own eyes as well.',
+    n5: 'Nothing is sent anywhere. The whole check is arithmetic inside the tab; the page makes no network requests at all.',
+  },
+  es: {
+    params: 'Colores', text: 'Texto', back: 'Fondo', swap: 'Intercambiarlos',
+    ratio: 'Relación', levels: 'Niveles de accesibilidad', preview: 'Cómo se ve',
+    pass: 'CUMPLE', fail: 'NO CUMPLE', least: 'mínimo',
+    aaNormal: 'AA · texto normal', aaLarge: 'AA · texto grande e iconos',
+    aaaNormal: 'AAA · texto normal', aaaLarge: 'AAA · texto grande',
+    bad: 'Eso no parece un color. Pruebe #1a2b3c, rgb(26, 43, 60) o hsl(210, 40%, 17%).',
+    sampleBig: 'Un titular grande',
+    sampleSmall: 'Texto corriente a catorce píxeles: el tamaño con el que está compuesto casi todo en un sitio web —pies, descripciones, filas de tablas—. Es el más difícil de leer, y es justamente para él la relación 4,5.',
+    sampleLink: 'y esto es un enlace dentro de la línea',
+    n1: '<b>El texto grande empieza en 24 píxeles, o en 18,7 si es negrita.</b> La regla cuenta en puntos: 18pt, y 14pt en negrita. Todo lo menor es texto normal, y su umbral es 4,5, no 3. Aquí se resbala fácil: un titular de 20 píxeles parece grande, pero según las reglas es texto normal.',
+    n2: '<b>El umbral de 4,5 no sale de la nada.</b> Es aproximadamente la relación con la que el texto sigue siendo legible para alguien con una visión de en torno a 20/40 —el deterioro habitual con la edad, sin contar las gafas—. El nivel AAA, con 7, apunta a una visión de alrededor de 20/80.',
+    n3: '<b>La transparencia no entra en el cálculo.</b> La relación se calcula entre dos colores sólidos. Si su texto o su fondo tienen transparencia, averigüe primero qué color resulta realmente sobre el soporte de debajo y compruebe ese: de lo contrario el número saldrá más bonito que la verdad.',
+    n4: '<b>Esta medida no es perfecta, y las propias reglas lo reconocen.</b> La fórmula se lleva mal con los fondos oscuros: una pareja que cumple con holgura puede verse peor que una clara que aprueba por los pelos. La próxima edición de las pautas lo calculará de otro modo (APCA). Por ahora 4,5 es lo que piden los clientes y comprueban las auditorías, así que es lo que calculamos, pero mire también con sus ojos la muestra de abajo.',
+    n5: 'No se envía nada a ninguna parte. Toda la comprobación es aritmética dentro de la pestaña; la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const УРОВНИ = [
+  { к: 'aaNormal', порог: 4.5 },
+  { к: 'aaLarge', порог: 3 },
+  { к: 'aaaNormal', порог: 7 },
+  { к: 'aaaLarge', порог: 4.5 },
+];
+---
+
+<div class="кн" data-words={JSON.stringify(с)}>
+  <div class="кн-пара">
+    <div class="кн-окно">
+      <div class="кн-шапка">{с.params}</div>
+      <div class="кн-тело">
+        <div class="кн-строка">
+          <span class="кн-имя">{с.text}</span>
+          <input type="text" class="кн-текст" id="кн-текст-hex" spellcheck="false"
+                 autocapitalize="off" autocomplete="off" value="#a1a1aa" />
+          <input type="color" class="кн-пипетка" id="кн-текст-цвет" value="#a1a1aa"
+                 aria-label={с.text} title={с.text} />
+        </div>
+
+        <!-- Кнопка обмена: пара «текст на фоне» и «фон под текстом» даёт одно и то же число,
+             но подбирают их по-разному, и перещёлкивать два поля руками незачем. -->
+        <div class="кн-обмен-ряд">
+          <button type="button" class="кн-значок" id="кн-обмен"
+                  aria-label={с.swap} title={с.swap}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M7 4v13m0 0l-3.5-3.5M7 17l3.5-3.5"/>
+              <path d="M17 20V7m0 0l-3.5 3.5M17 7l3.5 3.5"/>
+            </svg>
+          </button>
+        </div>
+
+        <div class="кн-строка">
+          <span class="кн-имя">{с.back}</span>
+          <input type="text" class="кн-текст" id="кн-фон-hex" spellcheck="false"
+                 autocapitalize="off" autocomplete="off" value="#000000" />
+          <input type="color" class="кн-пипетка" id="кн-фон-цвет" value="#000000"
+                 aria-label={с.back} title={с.back} />
+        </div>
+
+        <div class="кн-беда" id="кн-беда" hidden></div>
+      </div>
+    </div>
+
+    <div class="кн-окно">
+      <div class="кн-шапка">{с.ratio}</div>
+      <div class="кн-тело кн-тело-число">
+        <div class="кн-число" id="кн-число">—</div>
+        <!-- Полоса от 1 до 21 с отметками порогов: видно не только число, но и насколько
+             далеко до ближайшей границы. -->
+        <div class="кн-шкала">
+          <div class="кн-шкала-ход" id="кн-шкала-ход"></div>
+          <i class="кн-метка" style="left: 10%"><span>3</span></i>
+          <i class="кн-метка" style="left: 17.5%"><span>4,5</span></i>
+          <i class="кн-метка" style="left: 30%"><span>7</span></i>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <div class="кн-окно кн-окно-уровни">
+    <div class="кн-шапка">{с.levels}</div>
+    <div class="кн-тело кн-тело-уровни" id="кн-уровни">
+      {УРОВНИ.map((у) => (
+        <div class="кн-уровень" data-порог={у.порог}>
+          <span class="кн-уровень-имя">{с[у.к]}</span>
+          <span class="кн-нужно">{с.least} {String(у.порог).replace('.', ',')}:1</span>
+          <span class="кн-знак"></span>
+        </div>
+      ))}
+    </div>
+  </div>
+
+  <div class="кн-окно кн-окно-показ">
+    <div class="кн-шапка">{с.preview}</div>
+    <div class="кн-показ" id="кн-показ">
+      <div class="кн-образец-крупно" id="кн-крупно">{с.sampleBig}</div>
+      <p class="кн-образец-мелко" id="кн-мелко">{с.sampleSmall}</p>
+      <p class="кн-образец-ссылка"><u id="кн-ссылка">{с.sampleLink}</u></p>
+    </div>
+  </div>
+
+  <div class="кн-заметки">
+    <div class="кн-заметка" set:html={с.n1}></div>
+    <div class="кн-заметка" set:html={с.n2}></div>
+    <div class="кн-заметка" set:html={с.n3}></div>
+    <div class="кн-заметка" set:html={с.n4}></div>
+    <div class="кн-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { контраст } from '../lib/contrast.js';
+  import { изHex, вHex, разобрать } from '../lib/color-convert.js';
+
+  const корень = document.querySelector('.кн');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    let буквы = изHex('#a1a1aa');
+    let фон = изHex('#000000');
+
+    const ГАЛКА = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"/></svg>';
+    const КРЕСТ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>';
+
+    /** Число с запятой: в русском и украинском дробная часть отделяется ею, а не точкой. */
+    const дробью = (з) => з.toFixed(2).replace('.', ',');
+
+    function пересчитать(кроме) {
+      const отношение = контраст(буквы, фон);
+      $('кн-число').textContent = `${дробью(отношение)} : 1`;
+
+      // Шкала от 1 до 21. Ход считается от единицы, чтобы отметки порогов стояли там же,
+      // где написаны: 3 -- десятая часть пути, 4,5 -- семнадцать с половиной сотых.
+      const доля = Math.min(1, Math.max(0, (отношение - 1) / 20));
+      $('кн-шкала-ход').style.width = (доля * 100).toFixed(2) + '%';
+
+      for (const строка of корень.querySelectorAll('.кн-уровень')) {
+        const порог = Number(строка.dataset.порог);
+        const прошло = отношение >= порог;
+        строка.classList.toggle('прошло', прошло);
+        строка.classList.toggle('нет', !прошло);
+        const знак = строка.querySelector('.кн-знак');
+        знак.innerHTML = (прошло ? ГАЛКА : КРЕСТ)
+          + `<b>${прошло ? с.pass : с.fail}</b>`;
+      }
+
+      const показ = $('кн-показ');
+      показ.style.background = вHex(фон);
+      показ.style.color = вHex(буквы);
+
+      if (кроме !== 'текст') {
+        $('кн-текст-hex').value = вHex(буквы);
+        $('кн-текст-цвет').value = вHex(буквы);
+      }
+      if (кроме !== 'фон') {
+        $('кн-фон-hex').value = вHex(фон);
+        $('кн-фон-цвет').value = вHex(фон);
+      }
+    }
+
+    const сказать = (текст) => {
+      $('кн-беда').textContent = текст || '';
+      $('кн-беда').hidden = !текст;
+    };
+
+    function привязать(поле, пипетка, какой) {
+      $(поле).addEventListener('input', () => {
+        const разбор = разобрать($(поле).value);
+        if (!разбор) { сказать($(поле).value.trim() ? с.bad : ''); return; }
+        сказать('');
+        // Прозрачность в расчёте не участвует: правила считают два плотных цвета.
+        const цвет = { ...разбор, a: 1 };
+        if (какой === 'текст') буквы = цвет; else фон = цвет;
+        $(пипетка).value = вHex(цвет);
+        пересчитать(какой);
+      });
+      $(пипетка).addEventListener('input', () => {
+        сказать('');
+        const цвет = изHex($(пипетка).value);
+        if (какой === 'текст') буквы = цвет; else фон = цвет;
+        пересчитать();
+      });
+    }
+    привязать('кн-текст-hex', 'кн-текст-цвет', 'текст');
+    привязать('кн-фон-hex', 'кн-фон-цвет', 'фон');
+
+    $('кн-обмен').addEventListener('click', () => {
+      const было = буквы;
+      буквы = фон;
+      фон = было;
+      сказать('');
+      пересчитать();
+    });
+
+    пересчитать();
+
+    window.__кнСостояние = () => ({
+      буквы: вHex(буквы),
+      фон: вHex(фон),
+      отношение: контраст(буквы, фон),
+      число: $('кн-число').textContent,
+      уровни: [...корень.querySelectorAll('.кн-уровень')].map((с2) => ({
+        имя: с2.querySelector('.кн-уровень-имя').textContent,
+        порог: Number(с2.dataset.порог),
+        прошло: с2.classList.contains('прошло'),
+      })),
+      показФон: $('кн-показ').style.background,
+      показБуквы: $('кн-показ').style.color,
+      беда: $('кн-беда').hidden ? '' : $('кн-беда').textContent,
+    });
+  })();
+</script>

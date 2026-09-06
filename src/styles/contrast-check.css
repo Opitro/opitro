@@ -1,0 +1,143 @@
+/* СТИЛИ СТРАНИЦЫ «ПРОВЕРКА КОНТРАСТА (WCAG)».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой), названия уровней не делаем
+ * приглушённо-серыми (#A1A1AA) -- приглушённых букв у нас нет, значок провала не смайлик, а
+ * то же очертание, что во всём наборе сайта.
+ *
+ * Отдельно про окно показа: цвета в нём задаёт скрипт, и это единственное место на сайте, где
+ * фон и буквы назначаются извне. Поэтому у него свои правила -- ничего из общей темы туда не
+ * протекает, иначе проверка врала бы.
+ */
+
+.кн {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+.кн-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch }
+.кн-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden }
+.кн-шапка {
+  padding: 9px 14px; border-bottom: 1px solid var(--линия);
+  font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent);
+}
+.кн-тело { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px }
+
+/* ---- Поля цветов ------------------------------------------------------------------------- */
+
+.кн-строка { display: grid; grid-template-columns: 52px minmax(0, 1fr) 38px; gap: 10px;
+  align-items: center }
+.кн-имя { font: 500 12.5px var(--цифры); color: var(--accent) }
+.кн-текст {
+  height: 38px; padding: 0 12px; border-radius: 6px; min-width: 0;
+  font: 500 13px var(--цифры); color: #fff; background: #0f1115;
+  border: 1px solid var(--линия);
+}
+.кн-текст:hover { border-color: #6b7280 }
+.кн-текст:focus { border-color: #fff; outline: none }
+.кн-пипетка { width: 38px; height: 38px; border-radius: 6px; flex: none; cursor: pointer;
+  padding: 0; border: 1px solid var(--линия); background: #16181d }
+.кн-пипетка:hover { border-color: #fff }
+.кн-пипетка::-webkit-color-swatch-wrapper { padding: 2px }
+.кн-пипетка::-webkit-color-swatch { border: 0; border-radius: 4px }
+
+/* Кнопка обмена стоит между полями и выровнена по колонке значений -- так видно, что она
+   относится к обеим строкам, а не к одной. */
+.кн-обмен-ряд { display: grid; grid-template-columns: 52px minmax(0, 1fr) 38px; gap: 10px;
+  margin: -2px 0 }
+.кн-обмен-ряд .кн-значок { grid-column: 2; justify-self: start }
+.кн-значок {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; color: #fff;
+  background: #1c1f26; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.кн-значок:hover { border-color: #fff; background: #23272f }
+.кн-значок:active { transform: scale(.94) }
+.кн-значок svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+
+.кн-беда { font: 400 12.5px/1.5 var(--ui); color: var(--беда) }
+.кн-беда[hidden] { display: none }
+
+/* ---- Число и шкала ------------------------------------------------------------------------ */
+
+.кн-тело-число { justify-content: center; gap: 18px; min-height: 150px }
+.кн-число { font: 700 34px var(--цифры); color: #fff; text-align: center;
+  font-variant-numeric: tabular-nums; letter-spacing: .02em }
+
+/* Шкала от 1 до 21 с отметками порогов: число само по себе мало говорит, а тут видно,
+   насколько далеко до ближайшей границы. */
+.кн-шкала { position: relative; height: 8px; border-radius: 4px; background: #0f1115;
+  border: 1px solid var(--линия); margin-bottom: 22px }
+.кн-шкала-ход { height: 100%; border-radius: 4px; background: var(--accent);
+  transition: width .18s ease }
+.кн-метка { position: absolute; top: -3px; bottom: -3px; width: 1px;
+  background: rgba(255,255,255,.55) }
+.кн-метка span { position: absolute; top: 12px; left: 50%; transform: translateX(-50%);
+  font: 400 10.5px var(--цифры); color: var(--accent); white-space: nowrap }
+
+/* ---- Уровни -------------------------------------------------------------------------------- */
+
+.кн-тело-уровни { padding: 0; gap: 0 }
+.кн-уровень {
+  display: grid; grid-template-columns: minmax(0, 1fr) auto auto; gap: 12px;
+  align-items: center; padding: 12px 14px;
+  border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.кн-уровень:last-child { border-bottom: 0 }
+.кн-уровень-имя { font: 600 13px var(--цифры); color: #fff }
+.кн-нужно { font: 400 11.5px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+
+/* Итог -- заливкой при прохождении и обводкой при провале: провал не должен кричать цветом
+   сильнее, чем успех, но и потеряться не должен. */
+.кн-знак {
+  display: inline-flex; align-items: center; gap: 7px; flex: none;
+  height: 28px; padding: 0 11px; border-radius: 6px;
+  font: 700 10.5px var(--ui); letter-spacing: .06em;
+}
+.кн-знак svg { width: 13px; height: 13px; fill: none; stroke: currentColor;
+  stroke-width: 2.4; stroke-linecap: round; stroke-linejoin: round }
+.кн-уровень.прошло .кн-знак { background: #fff; color: #000; border: 1px solid #fff }
+.кн-уровень.нет .кн-знак { background: transparent; color: var(--беда);
+  border: 1px solid var(--беда) }
+
+/* ---- Окно показа ---------------------------------------------------------------------------
+   Единственное место, где цвета назначает скрипт. Ничего из общей темы сюда не протекает:
+   иначе проверка показывала бы не ту пару, что считает. */
+.кн-окно-показ { margin-top: 14px }
+.кн-показ { padding: 22px 20px; display: flex; flex-direction: column; gap: 14px;
+  transition: background .15s, color .15s }
+.кн-образец-крупно { font: 700 24px/1.25 var(--ui); color: inherit }
+.кн-образец-мелко { margin: 0; font: 400 14px/1.6 var(--ui); color: inherit; max-width: 70ch }
+.кн-образец-ссылка { margin: 0; font: 400 14px/1.6 var(--ui); color: inherit }
+.кн-образец-ссылка u { text-underline-offset: 3px }
+
+.кн-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.кн-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.кн-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.кн-заметка b { color: #fff; font-weight: 600 }
+.кн-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (min-width: 900px) {
+  .кн-пара { grid-template-columns: minmax(0, 1fr) minmax(0, 340px) }
+}
+@media (max-width: 560px) {
+  .кн-строка, .кн-обмен-ряд { grid-template-columns: 44px minmax(0, 1fr) 38px; gap: 8px }
+  .кн-число { font-size: 28px }
+  /* На узком экране уровень и его итог не помещаются в строку -- разводим на две. */
+  .кн-уровень { grid-template-columns: minmax(0, 1fr) auto; gap: 4px 10px }
+  .кн-нужно { grid-column: 1; grid-row: 2 }
+  .кн-знак { grid-column: 2; grid-row: 1 / span 2 }
+  .кн-образец-крупно { font-size: 21px }
+}
