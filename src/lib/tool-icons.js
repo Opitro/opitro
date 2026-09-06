@@ -16,6 +16,7 @@ const I = {
   notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
   speed: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   convert: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+  пипетка: '<path d="M17.5 3.5a2.8 2.8 0 0 1 4 4L18 11l-2-2 1.5-5.5z"/><path d="M16 9l-8.5 8.5a3 3 0 0 0-.8 1.4L6 22l3.1-.7a3 3 0 0 0 1.4-.8L19 12z"/><path d="M8.5 13.5l2 2"/>',
   wave: '<path d="M3 12h2M7 8v8M11 5v14M15 9v6M19 11v2"/>',
   sliders: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3M1 14h6M9 8h6M17 16h6"/>',
   video: '<rect x="2.5" y="5" width="19" height="14" rx="2.5"/><path d="M10 9.5l5 2.5-5 2.5z"/>',
@@ -105,6 +106,7 @@ const RULES = [
   [/^qr-scan$/, 'прицел'],
   [/^barcode-scan$/, 'прицел'],
   [/^favicon-generator$/, 'кубики'],
+  [/^color-converter$/, 'пипетка'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».

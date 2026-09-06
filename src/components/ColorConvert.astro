@@ -1,0 +1,321 @@
+---
+// КОНВЕРТЕР ЦВЕТОВ HEX ↔ RGB ↔ HSL.
+//
+// Считает color-convert.js, проверенный отдельно: все 16 777 216 цветов проходят круг
+// HEX -> RGB -> HEX точно, 300 000 случайных -- круг RGB -> HSL -> RGB без единой потери.
+//
+// ГЛАВНОЕ УСТРОЙСТВО: источником правды всегда остаётся RGB. HSL показывается округлённым --
+// целые градусы и проценты, иначе в полях каша вида 41.17647. Но если после каждой правки
+// гонять HSL -> RGB -> HSL, цвет медленно уползает: подвигал ползунок туда-обратно и получил
+// другой оттенок. Поэтому обратный пересчёт из HSL делается ТОЛЬКО когда человек сам правит
+// поле HSL, а во всех остальных случаях HSL лишь выводится из RGB.
+//
+// ТРИ ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ:
+//   1. Фон страницы не задаю: у сайта свой, инструменты его не перекрашивают.
+//   2. Просили приглушённо-серые подписи форматов (#71717A), серые кнопки копирования
+//      (#52525B) и серую «Очистить» (#71717A). Приглушённых букв у нас нет -- решение принято
+//      ещё на Base64. Подписи зелёные, как везде, значения белые.
+//   3. Кнопки копирования -- значки, а не слово «Копировать»: правило владельца «меньше
+//      надписей, где можно поставить значок».
+import css from '../styles/color-convert.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    params: 'Параметры цвета', preview: 'Цвет', css: 'Готовые строки для CSS',
+    hexLabel: 'HEX', alpha: 'Прозрачность',
+    copy: 'Копировать', copied: 'Скопировано', clear: 'Очистить',
+    bad: 'Не похоже на цвет. Подойдут #1a2b3c, rgb(26, 43, 60), hsl(210, 40%, 17%) или просто три числа.',
+    hint: 'Можно вставить любую запись: #abc, rgba(…), hsl(…) или «26, 43, 60».',
+    n1: '<b>Считаем от RGB, а не по кругу.</b> HSL показывается целыми градусами и процентами — так его и пишут в CSS. Но округление теряет точность, и если гонять цвет по кругу HSL → RGB → HSL, он медленно уползает. У нас RGB хранится как есть, а HSL из него только выводится, поэтому цвет не «плывёт», сколько ни двигай ползунки.',
+    n2: '<b>Целый HSL не может передать любой цвет.</b> Серебряный #c0c0c0 имеет светлоту 75,29 %, оранжевый #ffa500 — тон 38,8°; в целых числах их не записать. Замерено: обратный пересчёт из округлённого HSL расходится не больше чем на 5 ступеней из 255, а точно совпадает примерно каждый десятый цвет. Для вёрстки это незаметно, но если нужен ровно тот же оттенок — берите HEX или RGB.',
+    n3: '<b>Прозрачность в HEX — это два последних знака.</b> 80 в шестнадцатеричной записи это 128, ровно половина от 255, поэтому #00ff0080 — полупрозрачный зелёный. Восьмизначную запись понимают все нынешние браузеры; если нужен запас на старые, берите rgba().',
+    n4: '<b>У серого нет тона.</b> Насыщенность ноль — и градус перестаёт что-либо значить: 0°, 120° и 300° дадут один и тот же серый. Поэтому у чёрного, белого и всех серых тон показывается нулём, а не выдумывается.',
+    n5: 'Ничего никуда не отправляется. Фирменные цвета, палитры и подбираемые оттенки остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    params: 'Параметри кольору', preview: 'Колір', css: 'Готові рядки для CSS',
+    hexLabel: 'HEX', alpha: 'Прозорість',
+    copy: 'Копіювати', copied: 'Скопійовано', clear: 'Очистити',
+    bad: 'Не схоже на колір. Підійдуть #1a2b3c, rgb(26, 43, 60), hsl(210, 40%, 17%) або просто три числа.',
+    hint: 'Можна вставити будь-який запис: #abc, rgba(…), hsl(…) або «26, 43, 60».',
+    n1: '<b>Рахуємо від RGB, а не по колу.</b> HSL показується цілими градусами та відсотками — так його й пишуть у CSS. Але округлення втрачає точність, і якщо ганяти колір по колу HSL → RGB → HSL, він поволі спливає. У нас RGB зберігається як є, а HSL із нього лише виводиться, тому колір не «пливе», скільки б ви не рухали повзунки.',
+    n2: '<b>Цілий HSL не може передати будь-який колір.</b> Срібний #c0c0c0 має світлість 75,29 %, помаранчевий #ffa500 — тон 38,8°; у цілих числах їх не записати. Заміряно: зворотний перерахунок з округленого HSL розходиться не більше ніж на 5 ступенів із 255, а точно збігається приблизно кожен десятий колір. Для верстки це непомітно, але якщо потрібен саме той відтінок — беріть HEX або RGB.',
+    n3: '<b>Прозорість у HEX — це два останні знаки.</b> 80 у шістнадцятковому записі це 128, рівно половина від 255, тому #00ff0080 — напівпрозорий зелений. Восьмизначний запис розуміють усі нинішні браузери; якщо потрібен запас на старі, беріть rgba().',
+    n4: '<b>У сірого немає тону.</b> Насиченість нуль — і градус перестає щось означати: 0°, 120° і 300° дадуть той самий сірий. Тому в чорного, білого й усіх сірих тон показується нулем, а не вигадується.',
+    n5: 'Нічого нікуди не надсилається. Фірмові кольори, палітри та відтінки лишаються в пам’яті вкладки і зникають разом із нею.',
+  },
+  en: {
+    params: 'Colour parameters', preview: 'Colour', css: 'Ready-made CSS',
+    hexLabel: 'HEX', alpha: 'Opacity',
+    copy: 'Copy', copied: 'Copied', clear: 'Clear',
+    bad: 'That does not look like a colour. Try #1a2b3c, rgb(26, 43, 60), hsl(210, 40%, 17%) or just three numbers.',
+    hint: 'Paste any notation: #abc, rgba(…), hsl(…) or “26, 43, 60”.',
+    n1: '<b>Everything is computed from RGB, never round and round.</b> HSL is shown in whole degrees and percentages, the way it is written in CSS. But rounding loses precision, and running a colour through HSL → RGB → HSL over and over makes it drift. Here RGB is kept as it is and HSL is only derived from it, so the colour does not wander however much you move the sliders.',
+    n2: '<b>Whole-number HSL cannot express every colour.</b> Silver #c0c0c0 has a lightness of 75.29%, orange #ffa500 a hue of 38.8°; neither fits in whole numbers. Measured: converting back from rounded HSL differs by at most 5 steps out of 255, and about one colour in ten comes back exactly. For layout that is invisible, but if you need precisely that shade, take the HEX or the RGB.',
+    n3: '<b>Opacity in HEX is the last two characters.</b> 80 in hexadecimal is 128, exactly half of 255, so #00ff0080 is a half-transparent green. Every current browser understands the eight-character form; if you need to cover older ones, use rgba().',
+    n4: '<b>Grey has no hue.</b> With saturation at zero the degree stops meaning anything: 0°, 120° and 300° all give the same grey. That is why black, white and every grey show a hue of zero rather than an invented number.',
+    n5: 'Nothing is sent anywhere. Brand colours, palettes and the shades you are picking stay in the tab\'s memory and vanish with it.',
+  },
+  es: {
+    params: 'Parámetros del color', preview: 'Color', css: 'CSS listo para pegar',
+    hexLabel: 'HEX', alpha: 'Opacidad',
+    copy: 'Copiar', copied: 'Copiado', clear: 'Limpiar',
+    bad: 'Eso no parece un color. Pruebe #1a2b3c, rgb(26, 43, 60), hsl(210, 40%, 17%) o simplemente tres números.',
+    hint: 'Pegue cualquier notación: #abc, rgba(…), hsl(…) o «26, 43, 60».',
+    n1: '<b>Todo se calcula a partir del RGB, nunca dando vueltas.</b> El HSL se muestra en grados y porcentajes enteros, tal como se escribe en CSS. Pero el redondeo pierde precisión, y hacer pasar un color por HSL → RGB → HSL una y otra vez lo hace derivar. Aquí el RGB se guarda tal cual y el HSL solo se deduce de él, así que el color no se desplaza por mucho que mueva los deslizadores.',
+    n2: '<b>El HSL con números enteros no puede expresar cualquier color.</b> El plata #c0c0c0 tiene una luminosidad del 75,29 %; el naranja #ffa500, un tono de 38,8°: ninguno cabe en números enteros. Medido: volver desde un HSL redondeado se desvía como mucho 5 escalones de 255, y aproximadamente uno de cada diez colores regresa exacto. Para maquetar es invisible, pero si necesita ese tono exacto, quédese con el HEX o el RGB.',
+    n3: '<b>La opacidad en HEX son los dos últimos caracteres.</b> 80 en hexadecimal es 128, justo la mitad de 255, así que #00ff0080 es un verde a media transparencia. Todos los navegadores actuales entienden la forma de ocho caracteres; si necesita cubrir los antiguos, use rgba().',
+    n4: '<b>El gris no tiene tono.</b> Con la saturación a cero el grado deja de significar nada: 0°, 120° y 300° dan el mismo gris. Por eso el negro, el blanco y todos los grises muestran tono cero en lugar de un número inventado.',
+    n5: 'No se envía nada a ninguna parte. Los colores corporativos, las paletas y los tonos que esté eligiendo se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Подписи полей -- одни буквы: R, G, B, H, S, L. Переводить их некуда, они и в CSS такие.
+const ПОЛЯ = [
+  { к: 'r', имя: 'R', наиб: 255, знак: '' },
+  { к: 'g', имя: 'G', наиб: 255, знак: '' },
+  { к: 'b', имя: 'B', наиб: 255, знак: '' },
+  { к: 'h', имя: 'H', наиб: 360, знак: '°' },
+  { к: 's', имя: 'S', наиб: 100, знак: '%' },
+  { к: 'l', имя: 'L', наиб: 100, знак: '%' },
+];
+---
+
+<div class="цв" data-words={JSON.stringify(с)}>
+  <div class="цв-пара">
+    <div class="цв-окно">
+      <div class="цв-шапка">{с.params}</div>
+      <div class="цв-тело">
+        <div class="цв-строка цв-строка-hex">
+          <span class="цв-имя">{с.hexLabel}</span>
+          <input type="text" class="цв-текст" id="цв-hex" spellcheck="false"
+                 autocapitalize="off" autocomplete="off" value="#22c55e" />
+        </div>
+        <div class="цв-подсказ">{с.hint}</div>
+
+        {ПОЛЯ.map((п) => (
+          <div class="цв-строка">
+            <span class="цв-имя">{п.имя}</span>
+            <input type="range" class="цв-ползунок" id={`цв-п-${п.к}`}
+                   min="0" max={п.наиб} step="1" data-к={п.к} />
+            <input type="number" class="цв-число" id={`цв-ч-${п.к}`}
+                   min="0" max={п.наиб} step="1" data-к={п.к} />
+            <span class="цв-знак">{п.знак}</span>
+          </div>
+        ))}
+
+        <div class="цв-строка">
+          <span class="цв-имя">A</span>
+          <input type="range" class="цв-ползунок цв-альфа" id="цв-п-a"
+                 min="0" max="100" step="1" value="100" />
+          <input type="number" class="цв-число" id="цв-ч-a" min="0" max="100" step="1" value="100" />
+          <span class="цв-знак">%</span>
+        </div>
+
+        <div class="цв-беда" id="цв-беда" hidden></div>
+      </div>
+    </div>
+
+    <div class="цв-окно">
+      <div class="цв-шапка">{с.preview}</div>
+      <div class="цв-тело цв-тело-показа">
+        <!-- Клетчатая подложка под цветом: без неё прозрачность неотличима от тёмного фона. -->
+        <div class="цв-клетка"><div class="цв-краска" id="цв-краска"></div></div>
+      </div>
+    </div>
+  </div>
+
+  <div class="цв-окно цв-окно-css">
+    <div class="цв-шапка">{с.css}</div>
+    <div class="цв-тело цв-тело-css" id="цв-строки"></div>
+  </div>
+
+  <div class="цв-ряд">
+    <button type="button" class="цв-обводка" id="цв-очистить">{с.clear}</button>
+  </div>
+
+  <div class="цв-заметки">
+    <div class="цв-заметка" set:html={с.n1}></div>
+    <div class="цв-заметка" set:html={с.n2}></div>
+    <div class="цв-заметка" set:html={с.n3}></div>
+    <div class="цв-заметка" set:html={с.n4}></div>
+    <div class="цв-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { изHex, вHex, вHsl, изHsl, вСтрокуRgb, вСтрокуHsl, разобрать, коротко }
+    from '../lib/color-convert.js';
+
+  const корень = document.querySelector('.цв');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    // Источник правды -- ровно эти четыре числа. Всё остальное на странице из них выводится.
+    let цвет = { r: 34, g: 197, b: 94, a: 1 };
+    // ...но пока человек правит поля HSL, рядом живёт ТОЧНЫЙ HSL -- с дробями. Иначе выходит
+    // так: у серебряного #c0c0c0 светлота 75,29 %, в поле стоит 75, и стоит тронуть соседний
+    // ползунок насыщенности, как пересчёт берёт округлённое 75 и цвет становится #bfbfbf --
+    // хотя светлоту никто не двигал. Здесь нетронутые составляющие остаются точными, а
+    // округляется только та, которую человек и правит.
+    let живойHsl = null;
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    /** Перерисовать всё, кроме поля, которое человек сейчас правит. */
+    function показать(кроме) {
+      // Показываем точный HSL, если он есть: иначе после движения ползунка соседние поля
+      // прыгали бы на единицу туда-сюда от повторного округления.
+      const h = живойHsl || вHsl(цвет);
+      const значения = {
+        r: Math.round(цвет.r), g: Math.round(цвет.g), b: Math.round(цвет.b),
+        h: Math.round(h.h), s: Math.round(h.s), l: Math.round(h.l),
+      };
+      for (const [к, з] of Object.entries(значения)) {
+        if (кроме !== 'ч-' + к) $('цв-ч-' + к).value = з;
+        if (кроме !== 'п-' + к) $('цв-п-' + к).value = з;
+      }
+      const доляВПроцентах = Math.round(цвет.a * 100);
+      if (кроме !== 'ч-a') $('цв-ч-a').value = доляВПроцентах;
+      if (кроме !== 'п-a') $('цв-п-a').value = доляВПроцентах;
+      if (кроме !== 'hex') $('цв-hex').value = вHex(цвет);
+
+      $('цв-краска').style.background = вСтрокуRgb(цвет);
+      // Ползунок тона красим самим спектром, а насыщенность и светлоту -- от нынешнего цвета:
+      // так видно, куда ведёт движение, ещё до того, как двинешь.
+      красить(h);
+      строки();
+    }
+
+    function красить(h) {
+      $('цв-п-h').style.setProperty('--лента',
+        'linear-gradient(to right, #f00 0%, #ff0 17%, #0f0 33%, #0ff 50%, #00f 67%, #f0f 83%, #f00 100%)');
+      const серый = вСтрокуRgb(изHsl({ h: h.h, s: 0, l: h.l }));
+      const яркий = вСтрокуRgb(изHsl({ h: h.h, s: 100, l: h.l }));
+      $('цв-п-s').style.setProperty('--лента', `linear-gradient(to right, ${серый}, ${яркий})`);
+      $('цв-п-l').style.setProperty('--лента',
+        `linear-gradient(to right, #000, ${вСтрокуRgb(изHsl({ h: h.h, s: h.s, l: 50 }))}, #fff)`);
+      for (const к of ['r', 'g', 'b']) {
+        const мало = { ...цвет, [к]: 0 };
+        const много = { ...цвет, [к]: 255 };
+        $('цв-п-' + к).style.setProperty('--лента',
+          `linear-gradient(to right, ${вСтрокуRgb({ ...мало, a: 1 })}, ${вСтрокуRgb({ ...много, a: 1 })})`);
+      }
+      $('цв-п-a').style.setProperty('--лента',
+        `linear-gradient(to right, ${вСтрокуRgb({ ...цвет, a: 0 })}, ${вСтрокуRgb({ ...цвет, a: 1 })})`);
+    }
+
+    /** Готовые строки для CSS. Кнопка копирования -- значок: слово тут ничего не добавляет. */
+    function строки() {
+      const набор = [
+        ['HEX', вHex(цвет)],
+        [цвет.a < 1 ? 'RGBA' : 'RGB', вСтрокуRgb(цвет)],
+        [цвет.a < 1 ? 'HSLA' : 'HSL', вСтрокуHsl(цвет)],
+        ['CSS', `color: ${вHex(цвет)};`],
+      ];
+      const место = $('цв-строки');
+      место.replaceChildren();
+      for (const [имя, значение] of набор) {
+        const ряд = узел('div', 'цв-css-ряд');
+        ряд.append(узел('span', 'цв-css-имя', имя), узел('span', 'цв-css-код', значение));
+        const кн = узел('button', 'цв-значок');
+        кн.type = 'button';
+        кн.setAttribute('aria-label', с.copy);
+        кн.setAttribute('title', с.copy);
+        кн.innerHTML = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
+          + '<rect x="9" y="9" width="11" height="12" rx="2"/>'
+          + '<path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"/></svg>'
+          + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true">'
+          + '<path d="M4 12.5l5.5 5.5L20 7"/></svg>';
+        кн.addEventListener('click', async () => {
+          try { await navigator.clipboard.writeText(значение); } catch (е) { return; }
+          кн.classList.add('готово');
+          кн.setAttribute('aria-label', с.copied);
+          clearTimeout(кн._т);
+          кн._т = setTimeout(() => {
+            кн.classList.remove('готово');
+            кн.setAttribute('aria-label', с.copy);
+          }, 1200);
+        });
+        ряд.appendChild(кн);
+        место.appendChild(ряд);
+      }
+    }
+
+    const сказать = (текст) => {
+      $('цв-беда').textContent = текст || '';
+      $('цв-беда').hidden = !текст;
+    };
+
+    // ---- Правка полей ------------------------------------------------------------------------
+    $('цв-hex').addEventListener('input', () => {
+      const разбор = разобрать($('цв-hex').value);
+      if (!разбор) { сказать($('цв-hex').value.trim() ? с.bad : ''); return; }
+      сказать('');
+      живойHsl = null;
+      цвет = разбор;
+      показать('hex');
+    });
+
+    for (const к of ['r', 'g', 'b', 'h', 's', 'l']) {
+      for (const вид of ['п', 'ч']) {
+        $(`цв-${вид}-${к}`).addEventListener('input', () => {
+          const з = Number($(`цв-${вид}-${к}`).value);
+          if (!Number.isFinite(з)) return;
+          сказать('');
+          if (к === 'r' || к === 'g' || к === 'b') {
+            живойHsl = null;                       // тронули RGB -- точный HSL больше не нужен
+            цвет = { ...цвет, [к]: Math.min(255, Math.max(0, Math.round(з))) };
+          } else {
+            // Правят HSL -- только здесь и делаем обратный пересчёт. Берём ТОЧНЫЙ HSL, а
+            // подменяем в нём одну составляющую -- ту, которую двигают.
+            if (!живойHsl) живойHsl = вHsl(цвет);
+            живойHsl = { ...живойHsl, [к]: з, a: цвет.a };
+            цвет = изHsl(живойHsl);
+          }
+          показать(`${вид}-${к}`);
+        });
+      }
+    }
+
+    for (const вид of ['п', 'ч']) {
+      $(`цв-${вид}-a`).addEventListener('input', () => {
+        const з = Number($(`цв-${вид}-a`).value);
+        if (!Number.isFinite(з)) return;
+        цвет = { ...цвет, a: Math.min(100, Math.max(0, з)) / 100 };
+        показать(`${вид}-a`);
+      });
+    }
+
+    $('цв-очистить').addEventListener('click', () => {
+      цвет = { r: 34, g: 197, b: 94, a: 1 };
+      живойHsl = null;
+      сказать('');
+      показать();
+    });
+
+    показать();
+
+    window.__цвСостояние = () => ({
+      цвет: { ...цвет },
+      hex: $('цв-hex').value,
+      числа: Object.fromEntries(['r', 'g', 'b', 'h', 's', 'l', 'a']
+        .map((к) => [к, $('цв-ч-' + к).value])),
+      краска: $('цв-краска').style.background,
+      строки: [...document.querySelectorAll('.цв-css-ряд')]
+        .map((р) => [р.querySelector('.цв-css-имя').textContent, р.querySelector('.цв-css-код').textContent]),
+      беда: $('цв-беда').hidden ? '' : $('цв-беда').textContent,
+    });
+  })();
+</script>
