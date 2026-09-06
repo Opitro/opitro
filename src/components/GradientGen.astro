@@ -1,0 +1,381 @@
+---
+// ГЕНЕРАТОР CSS-ГРАДИЕНТОВ.
+//
+// Строку собирает gradient.js, а проверяет её сам браузер: страница отдаёт полученную запись
+// настоящему свойству background-image и смотрит, приняло ли. Судья тут чужой, и это лучшее,
+// что можно устроить для такой задачи.
+//
+// ПРО ЗАПАСНОЙ ЦВЕТ. Берём цвет ровно из середины перехода и убираем прозрачность. Первый
+// цвет ряда, как делают многие, не годится: если он прозрачный, запасной цвет окажется
+// невидимым -- а ставится он ровно затем, чтобы текст поверх остался читаемым.
+//
+// ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаю, приглушённо-серых надписей не делаю, а
+// «Копировать» и «Очистить» рядом с точками заменены значками -- меньше надписей там, где
+// значок понятен.
+import css from '../styles/gradient-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    kind: 'Вид', linear: 'Линейный', radial: 'Радиальный', angle: 'Угол',
+    stops: 'Точки перехода', stopsHint: 'Нажмите на полосу, чтобы добавить точку. Точку можно тянуть.',
+    color: 'Цвет', alpha: 'Плотность', position: 'Место', remove: 'Убрать точку',
+    code: 'Готовый код', copy: 'Копировать', copied: 'Скопировано', clear: 'Очистить',
+    preview: 'Предпросмотр',
+    least: 'Меньше двух точек градиента не бывает — последнюю убрать нельзя.',
+    n1: '<b>Запасной цвет берётся из середины перехода, а не с краю.</b> Он ставится на случай, когда градиент не поддержан — в старой почтовой программе, в упрощённом режиме чтения. Многие генераторы подставляют первый цвет ряда, но если он прозрачный, запасной фон окажется никаким, и белый текст поверх пропадёт. Мы берём цвет из середины и убираем у него прозрачность.',
+    n2: '<b>Прозрачность смешивается не в лоб.</b> На переходе из цветного в прозрачное наивное смешивание подмешивает чёрный, и у края появляется грязная серая полоса. Браузеры считают с предварительным умножением на плотность; мы считаем так же, поэтому запасной цвет совпадает с тем, что видно на экране. Если увидели серую кайму на чужом градиенте — там как раз старая беда.',
+    n3: '<b>Угол в CSS отсчитывается от направления «вверх», по часовой стрелке.</b> 0° — снизу вверх, 90° — слева направо, 180° — сверху вниз. Это не то же самое, что в графических редакторах, где ноль обычно смотрит вправо: перенося градиент из макета, угол приходится пересчитывать.',
+    n4: '<b>Круг у радиального задан явно.</b> Без указания браузер строит эллипс по размеру блока: в предпросмотре круглое пятно на широкой полосе растянется. Мы пишем circle at center, чтобы на любой ширине получалось то же, что видно здесь.',
+    n5: 'Ничего никуда не отправляется. Подбор идёт в памяти вкладки, сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    kind: 'Вид', linear: 'Лінійний', radial: 'Радіальний', angle: 'Кут',
+    stops: 'Точки переходу', stopsHint: 'Натисніть на смугу, щоб додати точку. Точку можна тягнути.',
+    color: 'Колір', alpha: 'Щільність', position: 'Місце', remove: 'Прибрати точку',
+    code: 'Готовий код', copy: 'Копіювати', copied: 'Скопійовано', clear: 'Очистити',
+    preview: 'Перегляд',
+    least: 'Менше двох точок градієнта не буває — останню прибрати не можна.',
+    n1: '<b>Запасний колір береться із середини переходу, а не з краю.</b> Він ставиться на випадок, коли градієнт не підтримано — у старій поштовій програмі, у спрощеному режимі читання. Багато генераторів підставляють перший колір ряду, але якщо він прозорий, запасне тло виявиться ніяким, і білий текст поверх зникне. Ми беремо колір із середини й прибираємо в нього прозорість.',
+    n2: '<b>Прозорість змішується не в лоб.</b> На переході з кольорового в прозоре наївне змішування підмішує чорний, і скраю з’являється брудна сіра смуга. Браузери рахують із попереднім множенням на щільність; ми рахуємо так само, тому запасний колір збігається з тим, що видно на екрані. Побачили сіру облямівку на чужому градієнті — там саме ця стара біда.',
+    n3: '<b>Кут у CSS відлічується від напрямку «вгору», за годинниковою стрілкою.</b> 0° — знизу вгору, 90° — зліва направо, 180° — згори вниз. Це не те саме, що в графічних редакторах, де нуль зазвичай дивиться праворуч: переносячи градієнт із макета, кут доводиться перераховувати.',
+    n4: '<b>Коло в радіального задано явно.</b> Без вказівки браузер будує еліпс за розміром блока: у перегляді кругла пляма на широкій смузі розтягнеться. Ми пишемо circle at center, щоб на будь-якій ширині виходило те саме, що видно тут.',
+    n5: 'Нічого нікуди не надсилається. Добір іде в пам’яті вкладки, мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    kind: 'Kind', linear: 'Linear', radial: 'Radial', angle: 'Angle',
+    stops: 'Colour stops', stopsHint: 'Click the bar to add a stop. Stops can be dragged.',
+    color: 'Colour', alpha: 'Opacity', position: 'Position', remove: 'Remove the stop',
+    code: 'Ready-made code', copy: 'Copy', copied: 'Copied', clear: 'Clear',
+    preview: 'Preview',
+    least: 'A gradient needs at least two stops — the last one cannot be removed.',
+    n1: '<b>The fallback colour is taken from the middle of the transition, not the edge.</b> It exists for the case where the gradient is not supported — an old mail client, a simplified reading mode. Many generators substitute the first colour of the row, but if that one is transparent the fallback background comes out as nothing at all, and white text over it disappears. We take the colour from the middle and strip its transparency.',
+    n2: '<b>Transparency is not blended naively.</b> On a transition from a colour into transparency, naive blending mixes in black and a dirty grey band appears at the edge. Browsers compute it with premultiplied alpha; we do the same, which is why the fallback colour matches what you see on screen. If you have ever seen a grey fringe on someone else\'s gradient, that is exactly this old fault.',
+    n3: '<b>In CSS the angle is measured from “up”, clockwise.</b> 0° runs bottom to top, 90° left to right, 180° top to bottom. That is not the same as in graphics editors, where zero usually points right: carrying a gradient over from a mock-up means recalculating the angle.',
+    n4: '<b>The radial gradient is pinned to a circle.</b> Left unspecified, the browser builds an ellipse sized to the box, so a round spot in the preview stretches out on a wide strip. We write circle at center so that any width gives what you see here.',
+    n5: 'Nothing is sent anywhere. The work happens in the tab\'s memory; the page makes no network requests at all.',
+  },
+  es: {
+    kind: 'Tipo', linear: 'Lineal', radial: 'Radial', angle: 'Ángulo',
+    stops: 'Puntos de color', stopsHint: 'Pulse la barra para añadir un punto. Los puntos se pueden arrastrar.',
+    color: 'Color', alpha: 'Opacidad', position: 'Posición', remove: 'Quitar el punto',
+    code: 'Código listo', copy: 'Copiar', copied: 'Copiado', clear: 'Limpiar',
+    preview: 'Vista previa',
+    least: 'Un degradado necesita al menos dos puntos: el último no se puede quitar.',
+    n1: '<b>El color de reserva se toma del centro de la transición, no del borde.</b> Está ahí para cuando el degradado no se admite: un cliente de correo antiguo, un modo de lectura simplificado. Muchos generadores ponen el primer color de la fila, pero si ese es transparente el fondo de reserva se queda en nada y el texto blanco encima desaparece. Nosotros tomamos el color del centro y le quitamos la transparencia.',
+    n2: '<b>La transparencia no se mezcla a lo bruto.</b> En una transición de color a transparente, la mezcla ingenua añade negro y aparece una franja gris sucia en el borde. Los navegadores lo calculan con alfa premultiplicado; nosotros hacemos lo mismo, y por eso el color de reserva coincide con lo que se ve en pantalla. Si alguna vez ha visto un halo gris en el degradado de otro, es justo ese viejo fallo.',
+    n3: '<b>En CSS el ángulo se mide desde «arriba», en sentido horario.</b> 0° va de abajo arriba, 90° de izquierda a derecha, 180° de arriba abajo. No es lo mismo que en los editores gráficos, donde el cero suele apuntar a la derecha: al traer un degradado de una maqueta hay que recalcular el ángulo.',
+    n4: '<b>El radial está fijado a un círculo.</b> Si no se indica, el navegador construye una elipse del tamaño de la caja, y la mancha redonda de la vista previa se estira en una franja ancha. Escribimos circle at center para que a cualquier anchura salga lo que se ve aquí.',
+    n5: 'No se envía nada a ninguna parte. El trabajo ocurre en la memoria de la pestaña; la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="гр" data-words={JSON.stringify(с)}>
+  <div class="гр-пульт">
+    <span class="гр-отступ">
+      <span class="гр-подпись">{с.kind}:</span>
+      <span class="гр-набор">
+        <button type="button" class="гр-выбор выбран" data-в="linear">{с.linear}</button>
+        <button type="button" class="гр-выбор" data-в="radial">{с.radial}</button>
+      </span>
+    </span>
+
+    <!-- Угол нужен только линейному. Место под него держится всегда, чтобы пульт не прыгал
+         при переключении вида. -->
+    <span class="гр-отступ гр-угол-ряд" id="гр-угол-ряд">
+      <span class="гр-подпись">{с.angle}:</span>
+      <input type="range" class="гр-ползунок" id="гр-угол-п" min="0" max="360" step="1" value="90" />
+      <input type="number" class="гр-число" id="гр-угол-ч" min="0" max="360" step="1" value="90" />
+      <span class="гр-знак">°</span>
+    </span>
+  </div>
+
+  <div class="гр-окно">
+    <div class="гр-шапка">{с.preview}</div>
+    <div class="гр-тело-показ">
+      <!-- Клетка под градиентом: без неё прозрачность неотличима от тёмного фона окна. -->
+      <div class="гр-клетка"><div class="гр-краска" id="гр-краска"></div></div>
+    </div>
+  </div>
+
+  <div class="гр-окно гр-окно-точки">
+    <div class="гр-шапка">{с.stops}</div>
+    <div class="гр-тело">
+      <div class="гр-полоса-обёртка">
+        <div class="гр-полоса" id="гр-полоса">
+          <div class="гр-полоса-краска" id="гр-полоса-краска"></div>
+          <div class="гр-точки" id="гр-точки"></div>
+        </div>
+      </div>
+      <div class="гр-подсказ">{с.stopsHint}</div>
+
+      <div class="гр-строка">
+        <span class="гр-имя">{с.color}</span>
+        <input type="text" class="гр-текст" id="гр-цвет-hex" spellcheck="false"
+               autocapitalize="off" autocomplete="off" />
+        <input type="color" class="гр-пипетка" id="гр-цвет" aria-label={с.color} title={с.color} />
+        <button type="button" class="гр-значок" id="гр-убрать"
+                aria-label={с.remove} title={с.remove}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/>
+          </svg>
+        </button>
+      </div>
+
+      <div class="гр-строка">
+        <span class="гр-имя">{с.alpha}</span>
+        <input type="range" class="гр-ползунок" id="гр-альфа-п" min="0" max="100" step="1" />
+        <input type="number" class="гр-число" id="гр-альфа-ч" min="0" max="100" step="1" />
+        <span class="гр-знак">%</span>
+      </div>
+
+      <div class="гр-строка">
+        <span class="гр-имя">{с.position}</span>
+        <input type="range" class="гр-ползунок" id="гр-место-п" min="0" max="100" step="1" />
+        <input type="number" class="гр-число" id="гр-место-ч" min="0" max="100" step="1" />
+        <span class="гр-знак">%</span>
+      </div>
+
+      <div class="гр-беда" id="гр-беда" hidden></div>
+    </div>
+  </div>
+
+  <div class="гр-окно гр-окно-код">
+    <div class="гр-шапка">{с.code}</div>
+    <div class="гр-тело">
+      <textarea class="гр-код" id="гр-код" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="гр-ряд">
+    <button type="button" class="гр-кнопка" id="гр-копировать">{с.copy}</button>
+    <button type="button" class="гр-обводка" id="гр-очистить">{с.clear}</button>
+  </div>
+
+  <div class="гр-заметки">
+    <div class="гр-заметка" set:html={с.n1}></div>
+    <div class="гр-заметка" set:html={с.n2}></div>
+    <div class="гр-заметка" set:html={с.n3}></div>
+    <div class="гр-заметка" set:html={с.n4}></div>
+    <div class="гр-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { вСтроку, кодCSS, поПорядку, запаснойЦвет } from '../lib/gradient.js';
+  import { изHex, вHex, разобрать } from '../lib/color-convert.js';
+
+  const корень = document.querySelector('.гр');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    const НАЧАЛО = () => ({
+      вид: 'linear',
+      угол: 90,
+      точки: [
+        { цвет: изHex('#22c55e'), доля: 0 },
+        { цвет: изHex('#0ea5e9'), доля: 100 },
+      ],
+    });
+
+    let состояние = НАЧАЛО();
+    let выбрана = 0;          // какая точка сейчас правится
+    let тянем = null;         // индекс точки, которую тащат
+
+    const сказать = (текст) => {
+      $('гр-беда').textContent = текст || '';
+      $('гр-беда').hidden = !текст;
+    };
+
+    /** Полоса точек рисуется своим градиентом -- всегда слева направо, каким бы ни был угол:
+        это шкала мест, а не показ. */
+    function полосаЦветом() {
+      return вСтроку({ вид: 'linear', угол: 90, точки: состояние.точки });
+    }
+
+    function перерисовать() {
+      $('гр-краска').style.background = вСтроку(состояние);
+      $('гр-полоса-краска').style.background = полосаЦветом();
+      $('гр-код').value = кодCSS(состояние);
+
+      // Метки точек.
+      const место = $('гр-точки');
+      место.replaceChildren();
+      состояние.точки.forEach((т, и) => {
+        const метка = document.createElement('button');
+        метка.type = 'button';
+        метка.className = 'гр-метка' + (и === выбрана ? ' выбрана' : '');
+        метка.style.left = т.доля + '%';
+        метка.style.setProperty('--цвет', вHex({ ...т.цвет, a: 1 }));
+        метка.setAttribute('aria-label', `${вHex(т.цвет)} · ${Math.round(т.доля)}%`);
+        метка.dataset.и = String(и);
+        место.appendChild(метка);
+      });
+
+      const т = состояние.точки[выбрана];
+      if (т) {
+        $('гр-цвет-hex').value = вHex({ ...т.цвет, a: 1 });
+        $('гр-цвет').value = вHex({ ...т.цвет, a: 1 });
+        const плотность = Math.round((т.цвет.a ?? 1) * 100);
+        $('гр-альфа-п').value = плотность;
+        $('гр-альфа-ч').value = плотность;
+        $('гр-место-п').value = Math.round(т.доля);
+        $('гр-место-ч').value = Math.round(т.доля);
+      }
+
+      const линейный = состояние.вид === 'linear';
+      $('гр-угол-ряд').classList.toggle('нужен', линейный);
+      for (const кн of корень.querySelectorAll('.гр-выбор[data-в]')) {
+        кн.classList.toggle('выбран', кн.dataset.в === состояние.вид);
+      }
+    }
+
+    // ---- Точки --------------------------------------------------------------------------------
+    function долюИзСобытия(е) {
+      const рамка = $('гр-полоса').getBoundingClientRect();
+      return Math.min(100, Math.max(0, ((е.clientX - рамка.left) / рамка.width) * 100));
+    }
+
+    $('гр-полоса').addEventListener('pointerdown', (е) => {
+      const метка = е.target.closest('.гр-метка');
+      if (метка) {
+        выбрана = Number(метка.dataset.и);
+        тянем = выбрана;
+        // Захват указателя нужен, чтобы точка тянулась и за пределами полосы. Но он падает,
+        // когда события приходят не от живой мыши -- а страница не имеет права ронять
+        // исключение из-за необязательного удобства.
+        try { метка.setPointerCapture(е.pointerId); } catch (о) { /* тянуть можно и без него */ }
+        перерисовать();
+        return;
+      }
+      // Нажали по пустому месту полосы -- добавляем точку с цветом, который тут и был.
+      const доля = долюИзСобытия(е);
+      const ц = цветВДоле(доля);
+      состояние.точки.push({ цвет: ц, доля });
+      состояние.точки = поПорядку(состояние.точки);
+      выбрана = состояние.точки.findIndex((т) => т.доля === доля);
+      сказать('');
+      перерисовать();
+    });
+
+    document.addEventListener('pointermove', (е) => {
+      if (тянем === null) return;
+      состояние.точки[тянем] = { ...состояние.точки[тянем], доля: долюИзСобытия(е) };
+      // После сдвига порядок может измениться -- пересобираем и находим свою точку заново.
+      const своя = состояние.точки[тянем];
+      состояние.точки = поПорядку(состояние.точки);
+      тянем = состояние.точки.indexOf(своя);
+      выбрана = тянем;
+      перерисовать();
+    });
+    document.addEventListener('pointerup', () => { тянем = null; });
+
+    /** Цвет, который сейчас в этой доле полосы: новая точка не должна менять картинку. */
+    function цветВДоле(доля) {
+      const ряд = поПорядку(состояние.точки);
+      if (!ряд.length) return изHex('#ffffff');
+      let л = ряд[0], п = ряд[ряд.length - 1];
+      for (let и = 0; и < ряд.length - 1; и++) {
+        if (доля >= ряд[и].доля && доля <= ряд[и + 1].доля) { л = ряд[и]; п = ряд[и + 1]; break; }
+      }
+      const шаг = п.доля - л.доля;
+      const к = шаг === 0 ? 0 : (доля - л.доля) / шаг;
+      const см = (ключ) => Math.round(л.цвет[ключ] + (п.цвет[ключ] - л.цвет[ключ]) * к);
+      return { r: см('r'), g: см('g'), b: см('b'),
+        a: (л.цвет.a ?? 1) + (((п.цвет.a ?? 1) - (л.цвет.a ?? 1)) * к) };
+    }
+
+    $('гр-убрать').addEventListener('click', () => {
+      if (состояние.точки.length <= 2) { сказать(с.least); return; }
+      состояние.точки.splice(выбрана, 1);
+      выбрана = Math.max(0, выбрана - 1);
+      сказать('');
+      перерисовать();
+    });
+
+    // ---- Поля правки --------------------------------------------------------------------------
+    const правитьТочку = (изменение) => {
+      состояние.точки[выбрана] = { ...состояние.точки[выбрана], ...изменение };
+      перерисовать();
+    };
+
+    $('гр-цвет-hex').addEventListener('input', () => {
+      const разбор = разобрать($('гр-цвет-hex').value);
+      if (!разбор) return;
+      сказать('');
+      const было = состояние.точки[выбрана].цвет;
+      правитьТочку({ цвет: { ...разбор, a: было.a ?? 1 } });
+    });
+    $('гр-цвет').addEventListener('input', () => {
+      const было = состояние.точки[выбрана].цвет;
+      правитьТочку({ цвет: { ...изHex($('гр-цвет').value), a: было.a ?? 1 } });
+    });
+
+    for (const [поле, дело] of [
+      ['гр-альфа-п', (з) => правитьТочку({ цвет: { ...состояние.точки[выбрана].цвет, a: з / 100 } })],
+      ['гр-альфа-ч', (з) => правитьТочку({ цвет: { ...состояние.точки[выбрана].цвет, a: з / 100 } })],
+      ['гр-место-п', (з) => { правитьТочку({ доля: з }); состояние.точки = поПорядку(состояние.точки); }],
+      ['гр-место-ч', (з) => { правитьТочку({ доля: з }); состояние.точки = поПорядку(состояние.точки); }],
+    ]) {
+      $(поле).addEventListener('input', () => {
+        const з = Number($(поле).value);
+        if (!Number.isFinite(з)) return;
+        дело(Math.min(100, Math.max(0, з)));
+        перерисовать();
+      });
+    }
+
+    for (const [поле] of [['гр-угол-п'], ['гр-угол-ч']]) {
+      $(поле).addEventListener('input', () => {
+        const з = Number($(поле).value);
+        if (!Number.isFinite(з)) return;
+        состояние.угол = Math.min(360, Math.max(0, з));
+        $('гр-угол-п').value = состояние.угол;
+        $('гр-угол-ч').value = состояние.угол;
+        перерисовать();
+      });
+    }
+
+    for (const кн of корень.querySelectorAll('.гр-выбор[data-в]')) {
+      кн.addEventListener('click', () => {
+        состояние.вид = кн.dataset.в;
+        перерисовать();
+      });
+    }
+
+    $('гр-копировать').addEventListener('click', async () => {
+      const кнопка = $('гр-копировать');
+      try { await navigator.clipboard.writeText($('гр-код').value); } catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    $('гр-очистить').addEventListener('click', () => {
+      состояние = НАЧАЛО();
+      выбрана = 0;
+      сказать('');
+      перерисовать();
+    });
+
+    перерисовать();
+
+    window.__грСостояние = () => ({
+      вид: состояние.вид,
+      угол: состояние.угол,
+      точки: поПорядку(состояние.точки).map((т) => ({ цвет: вHex(т.цвет), доля: Math.round(т.доля) })),
+      выбрана,
+      строка: вСтроку(состояние),
+      запасной: запаснойЦвет(состояние.точки),
+      код: $('гр-код').value,
+      краска: $('гр-краска').style.background,
+      беда: $('гр-беда').hidden ? '' : $('гр-беда').textContent,
+    });
+  })();
+</script>

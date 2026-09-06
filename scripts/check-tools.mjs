@@ -411,6 +411,51 @@ await иди('/ru/contrast-checker');
 }
 
 // =============================================================================================
+console.log('\n════ 9. Градиенты: /ru/css-gradient ════');
+await иди('/ru/css-gradient');
+{
+  // Судья -- сам браузер: отдаём собранную строку живому свойству и смотрим, приняло ли.
+  // Мусор он молча отбрасывает, и computed остаётся пустым.
+  const принял = () => считай(`(() => {
+    const с2 = window.__грСостояние();
+    const э = document.createElement('div');
+    э.style.backgroundImage = с2.строка;
+    document.body.appendChild(э);
+    const п2 = getComputedStyle(э).backgroundImage;
+    э.remove();
+    return { строка: с2.строка, принято: п2 !== 'none' && п2.length > 5 };
+  })()`);
+
+  const л = await принял();
+  так(л.принято, 'линейный: браузер принял строку', л.строка);
+
+  await считай(`document.querySelector('.гр-выбор[data-в="radial"]').click()`);
+  await жди(250);
+  const р = await принял();
+  так(р.принято && /radial-gradient\(circle at center/.test(р.строка),
+    'радиальный: принят и привязан к кругу', р.строка);
+  await считай(`document.querySelector('.гр-выбор[data-в="linear"]').click()`);
+  await жди(200);
+
+  const с3 = await считай('window.__грСостояние()');
+  так(с3.код.startsWith('background-color:') && /background-image: linear-gradient/.test(с3.код),
+    'запасной цвет идёт ПЕРВОЙ строкой, градиент второй', с3.код.replace(/\n/g, ' | '));
+
+  // Прозрачная точка не должна обесцветить запасной цвет: он ставится ради читаемости текста.
+  await считай(`(() => { const м = document.querySelectorAll('.гр-метка')[0];
+    м.dispatchEvent(new PointerEvent('pointerdown', { bubbles: true, clientX: 0, clientY: 0 })); return true; })()`);
+  await жди(200);
+  await вписать('гр-альфа-ч', '0');
+  await жди(250);
+  const п3 = await считай('window.__грСостояние()');
+  так(/^#[0-9a-f]{6}$/.test(п3.запасной) && п3.запасной !== '#000000' && /rgba\(/.test(п3.строка),
+    'при прозрачной точке запасной цвет остался плотным и осмысленным',
+    `${п3.запасной} | ${п3.строка}`);
+  const пп = await принял();
+  так(пп.принято, 'строка с прозрачной точкой тоже принята браузером', пп.строка);
+}
+
+// =============================================================================================
 console.log('\n════ ИТОГ ════');
 if (беды.length) {
   console.log(`  НЕ СОШЛОСЬ: ${беды.length}`);

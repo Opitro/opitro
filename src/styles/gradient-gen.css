@@ -1,0 +1,169 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР CSS-ГРАДИЕНТОВ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой), приглушённо-серых надписей
+ * не делаем, «Удалить» рядом с точками заменено значком корзины.
+ */
+
+.гр {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  --клетка:
+    linear-gradient(45deg, #2a2e36 25%, transparent 25%),
+    linear-gradient(-45deg, #2a2e36 25%, transparent 25%),
+    linear-gradient(45deg, transparent 75%, #2a2e36 75%),
+    linear-gradient(-45deg, transparent 75%, #2a2e36 75%);
+  font-family: var(--цифры);
+}
+
+/* ---- Пульт ------------------------------------------------------------------------------- */
+
+.гр-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
+  margin-bottom: 12px; min-height: 38px }
+.гр-отступ { display: flex; align-items: center; gap: 9px; flex: 0 0 auto }
+.гр-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+.гр-знак { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+.гр-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
+.гр-выбор {
+  height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
+  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
+  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
+}
+.гр-выбор:hover { border-color: #fff; background: #23272f }
+.гр-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
+
+/* Угол нужен только линейному, но место под него держим всегда: иначе пульт прыгал бы при
+   переключении вида. */
+.гр-угол-ряд { visibility: hidden }
+.гр-угол-ряд.нужен { visibility: visible }
+.гр-угол-ряд .гр-ползунок { width: 150px }
+
+/* ---- Окна -------------------------------------------------------------------------------- */
+
+.гр-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden; margin-bottom: 14px }
+.гр-шапка {
+  padding: 9px 14px; border-bottom: 1px solid var(--линия);
+  font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent);
+}
+.гр-тело { display: flex; flex-direction: column; gap: 12px; padding: 16px }
+.гр-тело-показ { padding: 16px }
+
+/* Клетчатая подложка обязательна: прозрачный градиент на тёмном фоне неотличим от плотного. */
+.гр-клетка {
+  border-radius: 10px; overflow: hidden; border: 1px solid var(--линия);
+  background-image: var(--клетка); background-size: 16px 16px;
+  background-position: 0 0, 0 8px, 8px -8px, -8px 0; background-color: #14161b;
+}
+.гр-краска { height: 240px }
+
+/* ---- Полоса точек --------------------------------------------------------------------------- */
+
+.гр-полоса-обёртка { padding: 0 9px }
+.гр-полоса { position: relative; height: 34px; border-radius: 8px; cursor: crosshair;
+  border: 1px solid var(--линия); overflow: visible;
+  background-image: var(--клетка); background-size: 12px 12px;
+  background-position: 0 0, 0 6px, 6px -6px, -6px 0; background-color: #14161b }
+.гр-полоса-краска { position: absolute; inset: 0; border-radius: 7px }
+.гр-точки { position: absolute; inset: 0 }
+
+/* Метка -- вертикальный прямоугольник, залитый своим цветом, с белой обводкой: так её видно
+   и на светлом, и на тёмном участке полосы. */
+.гр-метка {
+  position: absolute; top: -7px; bottom: -7px; width: 14px; padding: 0;
+  transform: translateX(-50%); cursor: grab; border-radius: 4px;
+  background: var(--цвет); border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.65);
+}
+.гр-метка.выбрана { border-color: var(--accent); box-shadow: 0 0 0 1px #000, 0 0 8px rgba(80,255,170,.6) }
+.гр-метка:active { cursor: grabbing }
+
+.гр-подсказ { font: 400 11.5px/1.5 var(--ui); color: var(--accent) }
+.гр-беда { font: 400 12.5px/1.5 var(--ui); color: var(--беда) }
+.гр-беда[hidden] { display: none }
+
+/* ---- Строки правки --------------------------------------------------------------------------- */
+
+.гр-строка { display: grid; grid-template-columns: 84px minmax(0, 1fr) 74px 18px; gap: 10px;
+  align-items: center }
+.гр-имя { font: 500 12.5px var(--цифры); color: var(--accent) }
+.гр-текст, .гр-число {
+  height: 38px; padding: 0 12px; border-radius: 6px; min-width: 0;
+  font: 500 13px var(--цифры); color: #fff; background: #0f1115;
+  border: 1px solid var(--линия); font-variant-numeric: tabular-nums;
+}
+.гр-текст:hover, .гр-число:hover { border-color: #6b7280 }
+.гр-текст:focus, .гр-число:focus { border-color: #fff; outline: none }
+.гр-число { text-align: right; padding: 0 8px }
+.гр-число::-webkit-outer-spin-button, .гр-число::-webkit-inner-spin-button {
+  -webkit-appearance: none; margin: 0 }
+.гр-число { -moz-appearance: textfield }
+.гр-пипетка { width: 38px; height: 38px; border-radius: 6px; flex: none; cursor: pointer;
+  padding: 0; border: 1px solid var(--линия); background: #16181d }
+.гр-пипетка:hover { border-color: #fff }
+.гр-пипетка::-webkit-color-swatch-wrapper { padding: 2px }
+.гр-пипетка::-webkit-color-swatch { border: 0; border-radius: 4px }
+
+.гр-значок {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 38px; height: 38px; border-radius: 6px; cursor: pointer; color: #fff;
+  background: transparent; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s;
+}
+.гр-значок:hover { border-color: #fff; background: #1c1f26 }
+.гр-значок svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
+
+.гр-ползунок {
+  -webkit-appearance: none; appearance: none; width: 100%; height: 22px;
+  background: transparent; cursor: pointer; margin: 0;
+}
+.гр-ползунок::-webkit-slider-runnable-track { height: 8px; border-radius: 4px;
+  border: 1px solid var(--линия); background: #2a2e36 }
+.гр-ползунок::-moz-range-track { height: 8px; border-radius: 4px;
+  border: 1px solid var(--линия); background: #2a2e36 }
+.гр-ползунок::-webkit-slider-thumb {
+  -webkit-appearance: none; width: 16px; height: 16px; margin-top: -5px;
+  border-radius: 50%; background: #fff; border: 2px solid #0b0c0f;
+  box-shadow: 0 0 0 1px rgba(255,255,255,.5) }
+.гр-ползунок::-moz-range-thumb { width: 14px; height: 14px; border-radius: 50%;
+  background: #fff; border: 2px solid #0b0c0f; box-shadow: 0 0 0 1px rgba(255,255,255,.5) }
+
+/* ---- Код и кнопки ----------------------------------------------------------------------------- */
+
+.гр-код {
+  width: 100%; min-height: 76px; resize: vertical;
+  padding: 0; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.7 var(--цифры); overflow-wrap: anywhere;
+}
+.гр-код:focus { outline: none }
+
+.гр-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.гр-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff }
+.гр-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
+.гр-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s }
+.гр-обводка:hover { background: #fff; color: #000 }
+
+.гр-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.гр-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.гр-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.гр-заметка b { color: #fff; font-weight: 600 }
+.гр-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .гр-строка { grid-template-columns: 68px minmax(0, 1fr) 62px 16px; gap: 8px }
+  .гр-краска { height: 180px }
+  .гр-угол-ряд .гр-ползунок { width: 110px }
+}
