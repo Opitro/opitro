@@ -18,7 +18,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    drop: 'Перетащите файл сюда', or: 'или', pick: 'Выбрать файл на диске',
+    drop: 'Перетащите файл сюда', or: 'или', pick: 'Выбрать файл',
     view: 'Вид', dataUrl: 'Data URL', plain: 'Чистый Base64', asImg: 'Тег <img>', asCss: 'CSS-фон',
     file: 'Файл', type: 'Тип', size: 'Размер', after: 'После кодирования', growth: 'Прирост',
     unknown: 'неизвестен',
@@ -36,7 +36,7 @@ const СЛОВА = {
     n5: 'Файл не покидает ваше устройство. Он читается прямо в браузере и никуда не отправляется: ни на наш сервер, ни на чужой.',
   },
   uk: {
-    drop: 'Перетягніть файл сюди', or: 'або', pick: 'Вибрати файл на диску',
+    drop: 'Перетягніть файл сюди', or: 'або', pick: 'Вибрати файл',
     view: 'Вид', dataUrl: 'Data URL', plain: 'Чистий Base64', asImg: 'Тег <img>', asCss: 'CSS-фон',
     file: 'Файл', type: 'Тип', size: 'Розмір', after: 'Після кодування', growth: 'Приріст',
     unknown: 'невідомий',
@@ -72,7 +72,7 @@ const СЛОВА = {
     n5: 'The file never leaves your device. It is read right in the browser and sent nowhere — neither to our server nor to anyone else’s.',
   },
   es: {
-    drop: 'Arrastra un archivo aquí', or: 'o', pick: 'Elegir archivo del disco',
+    drop: 'Arrastra un archivo aquí', or: 'o', pick: 'Elegir archivo',
     view: 'Salida', dataUrl: 'Data URL', plain: 'Base64 puro', asImg: 'Etiqueta <img>', asCss: 'Fondo CSS',
     file: 'Archivo', type: 'Tipo', size: 'Tamaño', after: 'Tras codificar', growth: 'Aumento',
     unknown: 'desconocido',
@@ -97,7 +97,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <div class="бф" data-words={JSON.stringify(с)}>
   <label class="бф-зона" id="бф-зона">
-    <p>{с.drop}<br /><span style="opacity:.75">{с.or}</span></p>
+    <!-- «или» -- обычными буквами, без полупрозрачности: тише оно за счёт размера. -->
+    <p>{с.drop}<br /><span class="бф-или">{с.or}</span></p>
     <span class="бф-выбрать" id="бф-выбрать">{с.pick}</span>
     <input type="file" id="бф-файл" />
   </label>
@@ -123,7 +124,15 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="бф-отчёт" id="бф-отчёт"><span class="бф-сказ" id="бф-сказ"></span></div>
 
   <div class="бф-ряд">
-    <button type="button" class="бф-кнопка" id="бф-копировать">{с.copy}</button>
+    <!-- Копирование значком, без надписи: слово занимало полстроки, а лист с уголком
+         узнают и без подписи. Само действие названо в aria-label и во всплывающей подсказке. -->
+    <button type="button" class="бф-копи" id="бф-копировать" aria-label={с.copy} title={с.copy}>
+      <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+        <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+        <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+      </svg>
+      <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+    </button>
     <button type="button" class="бф-простая" id="бф-очистить">{с.clear}</button>
   </div>
 
@@ -301,9 +310,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       try { await navigator.clipboard.writeText(вся); вышло = true; }
       catch (ошибка) { вышло = false; }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     видКнопок();
