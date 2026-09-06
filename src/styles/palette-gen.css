@@ -52,7 +52,9 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .пл-список:hover { border-color: #fff }
-.пл-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
+   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+.пл-список:focus { border-color: #fff; outline: none }
 
 .пл-значок {
   display: inline-flex; align-items: center; justify-content: center; flex: none;

@@ -113,7 +113,9 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .тел-список:hover { border-color: #fff }
-.тел-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
+   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+.тел-список:focus { border-color: #fff; outline: none }
 
 /* Число ошибок горит красным только когда они есть -- иначе строка отчёта пугала бы зря. */
 .тел-беды b { color: #fff }

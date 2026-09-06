@@ -64,7 +64,9 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .рч-список:hover { border-color: #fff }
-.рч-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
+   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+.рч-список:focus { border-color: #fff; outline: none }
 .рч-список[disabled] { color: #71717a; cursor: default; border-color: #2a2f38 }
 
 /* Ползунок. Дорожка тонкая, бегунок -- белый квадрат, как просил владелец. Закраска слева

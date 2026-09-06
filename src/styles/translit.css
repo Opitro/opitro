@@ -35,7 +35,9 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .тл-выбор:hover { border-color: #fff }
-.тл-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
+   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+.тл-выбор:focus { border-color: #fff; outline: none }
 
 /* Кнопка смены направления. Квадратная, со знаком обмена. */
 .тл-реверс {

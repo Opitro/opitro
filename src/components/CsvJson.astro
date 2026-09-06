@@ -141,14 +141,28 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <span class="цс-имя" id="цс-имя-вывода">{с.outJson}</span>
       <div class="цс-поле цс-вывод">
         <textarea class="цс-ввод" id="цс-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+        <!-- Кнопки встроены в само окно вывода, полосой у нижнего края: так видно, из
+             какого из двух окон берётся текст. -->
+        <div class="цс-подвал">
+          <button type="button" class="цс-копи" id="цс-копировать" aria-label={с.copy} title={с.copy}>
+            <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+              <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+              <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+            </svg>
+            <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+          </button>
+          <button type="button" class="цс-корзина" id="цс-очистить" aria-label={с.clear} title={с.clear}>
+            <svg viewBox="0 0 24 24" aria-hidden="true">
+              <path d="M4 7h16"></path>
+              <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+              <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+              <path d="M10 11v6M14 11v6"></path>
+            </svg>
+          </button>
+        </div>
       </div>
       <div class="цс-счёт" id="цс-счёт-вывода"></div>
     </div>
-  </div>
-
-  <div class="цс-ряд">
-    <button type="button" class="цс-кнопка" id="цс-копировать">{с.copy}</button>
-    <button type="button" class="цс-простая" id="цс-очистить">{с.clear}</button>
   </div>
 
   <div class="цс-заметки">
@@ -293,9 +307,20 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         вывод.select();
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
-      кнопка.textContent = вышло ? с.copied : с.copyFail;
+      if (!вышло) {
+        // Надписи на кнопке больше нет -- жалобу пишем в строку под окном вывода, где
+        // человек и так читает счёт.
+        $('цс-счёт-вывода').innerHTML = `<span class="беда">${с.copyFail}</span>`;
+        return;
+      }
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, вышло ? 1500 : 3000);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     пересчитать();
