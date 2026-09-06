@@ -1,0 +1,332 @@
+---
+// ГЕНЕРАТОР ТЕНЕЙ box-shadow.
+//
+// Строку собирает box-shadow.js, а проверяет её сам браузер: страница отдаёт запись живому
+// свойству и смотрит, приняло ли. Судья чужой -- лучшее, что можно устроить для такой задачи.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО: кнопка готовой мягкой тени. В самом задании написано, ради чего
+// нужна многослойность -- ради того, чтобы тень не выглядела наклейкой. Но набрать такую
+// тень руками с нуля трудно: надо угадать, как быстро падает плотность при росте размытия.
+// Кнопка ставит три слоя сразу, и дальше их можно править как любые другие.
+//
+// ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаю, приглушённо-серых надписей не делаю,
+// «Удалить слой» заменено значком.
+import css from '../styles/shadow-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    params: 'Параметры тени', preview: 'Предпросмотр', layers: 'Слои',
+    x: 'Сдвиг вбок', y: 'Сдвиг вниз', blur: 'Размытие', spread: 'Растяжение',
+    color: 'Цвет', alpha: 'Плотность', inset: 'Тень внутрь',
+    add: 'Добавить слой', remove: 'Убрать слой', soft: 'Готовая мягкая тень',
+    code: 'Готовый код', copy: 'Копировать', copied: 'Скопировано', reset: 'Сбросить',
+    layer: 'Слой', least: 'Хотя бы один слой нужен — последний убрать нельзя.',
+    sample: 'Элемент',
+    n1: '<b>Размытие и растяжение — разное.</b> Размытие делает край мягким: при нуле тень повторяет предмет точь-в-точь, дальше расплывается. Растяжение меняет её размер до размытия: положительное раздувает во все стороны, отрицательное поджимает. Приём, который стоит знать: небольшое отрицательное растяжение вместе с большим размытием даёт тень, собранную под предметом, а не расползшуюся вокруг него.',
+    n2: '<b>Одиночная тень почти всегда выглядит наклейкой.</b> У настоящей тени край у самого предмета резкий, а дальше она размывается и слабеет. Одним слоем это не передать: приходится выбирать между резкой и размытой. Несколько слоёв — ближний плотный и дальние размытые с падающей плотностью — дают то, что глаз принимает за объём. Кнопка «готовая мягкая тень» ставит такие три слоя сразу.',
+    n3: '<b>Порядок слоёв важен.</b> Первый в списке лежит поверх остальных. Это заметно, когда слои разного цвета или когда один из них внутренний: поменяйте их местами — и картинка изменится, хотя числа те же.',
+    n4: '<b>Тень не занимает места в разметке.</b> Она рисуется поверх соседей и не раздвигает их, в отличие от рамки. Поэтому крупная тень у края блока может уйти под соседний элемент или обрезаться, если у родителя стоит overflow: hidden — и это самая частая причина, по которой «тень пропала».',
+    n5: 'Ничего никуда не отправляется. Подбор идёт в памяти вкладки, сетевых запросов страница не делает вовсе.',
+  },
+  uk: {
+    params: 'Параметри тіні', preview: 'Перегляд', layers: 'Шари',
+    x: 'Зсув убік', y: 'Зсув униз', blur: 'Розмиття', spread: 'Розтягнення',
+    color: 'Колір', alpha: 'Щільність', inset: 'Тінь усередину',
+    add: 'Додати шар', remove: 'Прибрати шар', soft: 'Готова м’яка тінь',
+    code: 'Готовий код', copy: 'Копіювати', copied: 'Скопійовано', reset: 'Скинути',
+    layer: 'Шар', least: 'Хоча б один шар потрібен — останній прибрати не можна.',
+    sample: 'Елемент',
+    n1: '<b>Розмиття і розтягнення — різне.</b> Розмиття робить край м’яким: при нулі тінь повторює предмет точнісінько, далі розпливається. Розтягнення змінює її розмір до розмиття: додатне роздуває на всі боки, від’ємне підтискає. Прийом, який варто знати: невелике від’ємне розтягнення разом із великим розмиттям дає тінь, зібрану під предметом, а не розповзлу навколо нього.',
+    n2: '<b>Одиночна тінь майже завжди виглядає наліпкою.</b> У справжньої тіні край біля самого предмета різкий, а далі вона розмивається і слабшає. Одним шаром цього не передати: доводиться обирати між різкою і розмитою. Кілька шарів — ближній щільний і дальні розмиті зі спадною щільністю — дають те, що око приймає за об’єм. Кнопка «готова м’яка тінь» ставить такі три шари одразу.',
+    n3: '<b>Порядок шарів важливий.</b> Перший у списку лежить поверх решти. Це помітно, коли шари різного кольору або коли один із них внутрішній: поміняйте їх місцями — і картинка зміниться, хоча числа ті самі.',
+    n4: '<b>Тінь не займає місця в розмітці.</b> Вона малюється поверх сусідів і не розсуває їх, на відміну від рамки. Тому велика тінь скраю блока може піти під сусідній елемент або обрізатися, якщо в батька стоїть overflow: hidden — і це найчастіша причина, чому «тінь зникла».',
+    n5: 'Нічого нікуди не надсилається. Добір іде в пам’яті вкладки, мережевих запитів сторінка не робить зовсім.',
+  },
+  en: {
+    params: 'Shadow settings', preview: 'Preview', layers: 'Layers',
+    x: 'Offset across', y: 'Offset down', blur: 'Blur', spread: 'Spread',
+    color: 'Colour', alpha: 'Opacity', inset: 'Shadow inside',
+    add: 'Add a layer', remove: 'Remove the layer', soft: 'Ready-made soft shadow',
+    code: 'Ready-made code', copy: 'Copy', copied: 'Copied', reset: 'Reset',
+    layer: 'Layer', least: 'At least one layer is needed — the last cannot be removed.',
+    sample: 'Element',
+    n1: '<b>Blur and spread are different things.</b> Blur softens the edge: at zero the shadow traces the object exactly, and beyond that it dissolves. Spread changes its size before the blur is applied: positive inflates it in every direction, negative pulls it in. A trick worth knowing: a small negative spread together with a large blur gives a shadow gathered underneath the object rather than sprawling around it.',
+    n2: '<b>A single shadow nearly always looks like a sticker.</b> A real shadow is sharp right against the object and grows softer and weaker further out. One layer cannot express that: you have to choose between sharp and soft. Several layers — a near dense one and far blurred ones with falling opacity — give what the eye reads as depth. The “ready-made soft shadow” button lays down three such layers at once.',
+    n3: '<b>Layer order matters.</b> The first in the list sits on top of the rest. It shows when layers differ in colour, or when one of them is inset: swap them and the picture changes although the numbers do not.',
+    n4: '<b>A shadow takes up no space in the layout.</b> It is drawn over its neighbours and does not push them apart, unlike a border. So a large shadow at the edge of a block can slide under the next element, or be clipped if the parent has overflow: hidden — which is the most common reason a shadow "disappears".',
+    n5: 'Nothing is sent anywhere. The work happens in the tab\'s memory; the page makes no network requests at all.',
+  },
+  es: {
+    params: 'Parámetros de la sombra', preview: 'Vista previa', layers: 'Capas',
+    x: 'Desplazamiento lateral', y: 'Desplazamiento vertical', blur: 'Desenfoque', spread: 'Propagación',
+    color: 'Color', alpha: 'Opacidad', inset: 'Sombra hacia dentro',
+    add: 'Añadir capa', remove: 'Quitar la capa', soft: 'Sombra suave lista',
+    code: 'Código listo', copy: 'Copiar', copied: 'Copiado', reset: 'Restablecer',
+    layer: 'Capa', least: 'Hace falta al menos una capa: la última no se puede quitar.',
+    sample: 'Elemento',
+    n1: '<b>Desenfoque y propagación son cosas distintas.</b> El desenfoque suaviza el borde: a cero la sombra calca el objeto, y a partir de ahí se disuelve. La propagación cambia su tamaño antes del desenfoque: en positivo la infla en todas direcciones, en negativo la recoge. Un truco que conviene saber: una propagación algo negativa junto con mucho desenfoque da una sombra recogida bajo el objeto en lugar de esparcida a su alrededor.',
+    n2: '<b>Una sombra de una sola capa casi siempre parece una pegatina.</b> La sombra real es nítida junto al objeto y se vuelve más difusa y débil según se aleja. Con una capa no se puede expresar eso: hay que elegir entre nítida y difusa. Varias capas —una cercana densa y otras lejanas difusas con opacidad decreciente— dan lo que el ojo lee como volumen. El botón «sombra suave lista» coloca tres capas así de golpe.',
+    n3: '<b>El orden de las capas importa.</b> La primera de la lista queda por encima de las demás. Se nota cuando las capas son de distinto color o cuando una es interior: intercámbielas y la imagen cambia aunque los números sean los mismos.',
+    n4: '<b>Una sombra no ocupa sitio en la maqueta.</b> Se dibuja sobre sus vecinos y no los aparta, al contrario que un borde. Por eso una sombra grande en el borde de un bloque puede meterse bajo el elemento contiguo, o quedar recortada si el padre lleva overflow: hidden, que es la razón más frecuente de que una sombra «desaparezca».',
+    n5: 'No se envía nada a ninguna parte. El trabajo ocurre en la memoria de la pestaña; la página no hace ninguna petición de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ПОЛЗУНКИ = [
+  { к: 'x', имя: 'x', наим: -50, наиб: 50 },
+  { к: 'y', имя: 'y', наим: -50, наиб: 50 },
+  { к: 'размытие', имя: 'blur', наим: 0, наиб: 100 },
+  { к: 'растяжение', имя: 'spread', наим: -20, наиб: 40 },
+];
+---
+
+<div class="тн" data-words={JSON.stringify(с)}>
+  <div class="тн-пара">
+    <div class="тн-окно">
+      <div class="тн-шапка">{с.params}</div>
+      <div class="тн-тело">
+        {ПОЛЗУНКИ.map((п) => (
+          <div class="тн-строка">
+            <span class="тн-имя">{с[п.имя]}</span>
+            <input type="range" class="тн-ползунок" id={`тн-п-${п.к}`}
+                   min={п.наим} max={п.наиб} step="1" data-к={п.к} />
+            <input type="number" class="тн-число" id={`тн-ч-${п.к}`}
+                   min={п.наим} max={п.наиб} step="1" data-к={п.к} />
+            <span class="тн-знак">px</span>
+          </div>
+        ))}
+
+        <div class="тн-строка">
+          <span class="тн-имя">{с.color}</span>
+          <input type="text" class="тн-текст" id="тн-цвет-hex" spellcheck="false"
+                 autocapitalize="off" autocomplete="off" />
+          <input type="color" class="тн-пипетка" id="тн-цвет"
+                 aria-label={с.color} title={с.color} />
+          <span class="тн-знак"></span>
+        </div>
+
+        <div class="тн-строка">
+          <span class="тн-имя">{с.alpha}</span>
+          <input type="range" class="тн-ползунок" id="тн-п-альфа" min="0" max="100" step="1" />
+          <input type="number" class="тн-число" id="тн-ч-альфа" min="0" max="100" step="1" />
+          <span class="тн-знак">%</span>
+        </div>
+
+        <label class="тн-галка">
+          <input type="checkbox" id="тн-внутрь" /><i></i>{с.inset}
+        </label>
+      </div>
+    </div>
+
+    <div class="тн-окно">
+      <div class="тн-шапка">{с.preview}</div>
+      <!-- Клетчатая подложка: полупрозрачная тень на ровном фоне неотличима от плотной. -->
+      <div class="тн-показ">
+        <div class="тн-образец" id="тн-образец">{с.sample}</div>
+      </div>
+    </div>
+  </div>
+
+  <div class="тн-окно тн-окно-слои">
+    <div class="тн-шапка">{с.layers}</div>
+    <div class="тн-тело">
+      <div class="тн-слои" id="тн-слои"></div>
+      <div class="тн-ряд-мелкий">
+        <button type="button" class="тн-простая" id="тн-добавить">{с.add}</button>
+        <button type="button" class="тн-простая" id="тн-мягкая">{с.soft}</button>
+        <button type="button" class="тн-значок" id="тн-убрать"
+                aria-label={с.remove} title={с.remove}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/>
+          </svg>
+        </button>
+      </div>
+      <div class="тн-беда" id="тн-беда" hidden></div>
+    </div>
+  </div>
+
+  <div class="тн-окно тн-окно-код">
+    <div class="тн-шапка">{с.code}</div>
+    <div class="тн-тело">
+      <textarea class="тн-код" id="тн-код" readonly spellcheck="false"></textarea>
+    </div>
+  </div>
+
+  <div class="тн-ряд">
+    <button type="button" class="тн-кнопка" id="тн-копировать">{с.copy}</button>
+    <button type="button" class="тн-обводка" id="тн-сбросить">{с.reset}</button>
+  </div>
+
+  <div class="тн-заметки">
+    <div class="тн-заметка" set:html={с.n1}></div>
+    <div class="тн-заметка" set:html={с.n2}></div>
+    <div class="тн-заметка" set:html={с.n3}></div>
+    <div class="тн-заметка" set:html={с.n4}></div>
+    <div class="тн-заметка">{с.n5}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { вСтроку, кодCSS, слойВСтроку, мягкаяТень } from '../lib/box-shadow.js';
+  import { изHex, вHex, разобрать } from '../lib/color-convert.js';
+
+  const корень = document.querySelector('.тн');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    const НАЧАЛО = () => ([{
+      x: 0, y: 8, размытие: 16, растяжение: 0,
+      цвет: { r: 0, g: 0, b: 0, a: 0.35 }, внутрь: false,
+    }]);
+
+    let слои = НАЧАЛО();
+    let выбран = 0;
+
+    const сказать = (текст) => {
+      $('тн-беда').textContent = текст || '';
+      $('тн-беда').hidden = !текст;
+    };
+
+    const узел = (тег, класс, текст) => {
+      const э = document.createElement(тег);
+      if (класс) э.className = класс;
+      if (текст !== undefined) э.textContent = текст;
+      return э;
+    };
+
+    function перерисовать() {
+      const строка = вСтроку(слои);
+      $('тн-образец').style.boxShadow = строка;
+      $('тн-код').value = кодCSS(слои);
+
+      // Список слоёв: у каждого своя строка кода -- по ней и видно, чем они отличаются.
+      const место = $('тн-слои');
+      место.replaceChildren();
+      слои.forEach((слой, и) => {
+        const кн = узел('button', 'тн-слой' + (и === выбран ? ' выбран' : ''));
+        кн.type = 'button';
+        кн.append(
+          узел('span', 'тн-слой-номер', `${с.layer} ${и + 1}`),
+          узел('span', 'тн-слой-код', слойВСтроку(слой)),
+        );
+        кн.addEventListener('click', () => { выбран = и; сказать(''); перерисовать(); });
+        место.appendChild(кн);
+      });
+
+      const т = слои[выбран];
+      if (т) {
+        for (const к of ['x', 'y', 'размытие', 'растяжение']) {
+          $('тн-п-' + к).value = т[к];
+          $('тн-ч-' + к).value = т[к];
+        }
+        $('тн-цвет-hex').value = вHex({ ...т.цвет, a: 1 });
+        $('тн-цвет').value = вHex({ ...т.цвет, a: 1 });
+        const плотность = Math.round((т.цвет.a ?? 1) * 100);
+        $('тн-п-альфа').value = плотность;
+        $('тн-ч-альфа').value = плотность;
+        $('тн-внутрь').checked = !!т.внутрь;
+      }
+    }
+
+    const правитьСлой = (изменение) => {
+      слои[выбран] = { ...слои[выбран], ...изменение };
+      перерисовать();
+    };
+
+    for (const к of ['x', 'y', 'размытие', 'растяжение']) {
+      for (const вид of ['п', 'ч']) {
+        $(`тн-${вид}-${к}`).addEventListener('input', () => {
+          const з = Number($(`тн-${вид}-${к}`).value);
+          if (!Number.isFinite(з)) return;
+          const поле = $(`тн-п-${к}`);
+          правитьСлой({ [к]: Math.min(Number(поле.max), Math.max(Number(поле.min), з)) });
+        });
+      }
+    }
+
+    for (const вид of ['п', 'ч']) {
+      $(`тн-${вид}-альфа`).addEventListener('input', () => {
+        const з = Number($(`тн-${вид}-альфа`).value);
+        if (!Number.isFinite(з)) return;
+        правитьСлой({ цвет: { ...слои[выбран].цвет, a: Math.min(100, Math.max(0, з)) / 100 } });
+      });
+    }
+
+    $('тн-цвет-hex').addEventListener('input', () => {
+      const разбор = разобрать($('тн-цвет-hex').value);
+      if (!разбор) return;
+      сказать('');
+      правитьСлой({ цвет: { ...разбор, a: слои[выбран].цвет.a ?? 1 } });
+    });
+    $('тн-цвет').addEventListener('input', () => {
+      правитьСлой({ цвет: { ...изHex($('тн-цвет').value), a: слои[выбран].цвет.a ?? 1 } });
+    });
+
+    $('тн-внутрь').addEventListener('change', () => {
+      правитьСлой({ внутрь: $('тн-внутрь').checked });
+    });
+
+    $('тн-добавить').addEventListener('click', () => {
+      // Новый слой -- копия нынешнего с большим размытием и меньшей плотностью: так его
+      // сразу видно, и он сразу похож на то, ради чего слои и добавляют.
+      const т = слои[выбран];
+      слои.splice(выбран + 1, 0, {
+        ...т,
+        y: Math.min(50, т.y + 4),
+        размытие: Math.min(100, т.размытие * 2 || 12),
+        цвет: { ...т.цвет, a: Math.max(0.05, Math.round((т.цвет.a ?? 1) * 60) / 100) },
+      });
+      выбран += 1;
+      сказать('');
+      перерисовать();
+    });
+
+    $('тн-убрать').addEventListener('click', () => {
+      if (слои.length <= 1) { сказать(с.least); return; }
+      слои.splice(выбран, 1);
+      выбран = Math.max(0, выбран - 1);
+      сказать('');
+      перерисовать();
+    });
+
+    $('тн-мягкая').addEventListener('click', () => {
+      слои = мягкаяТень(3, изHex($('тн-цвет-hex').value) || { r: 0, g: 0, b: 0 });
+      выбран = 0;
+      сказать('');
+      перерисовать();
+    });
+
+    $('тн-копировать').addEventListener('click', async () => {
+      const кнопка = $('тн-копировать');
+      try { await navigator.clipboard.writeText($('тн-код').value); } catch (е) { return; }
+      кнопка.textContent = с.copied;
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+    });
+
+    $('тн-сбросить').addEventListener('click', () => {
+      слои = НАЧАЛО();
+      выбран = 0;
+      сказать('');
+      перерисовать();
+    });
+
+    перерисовать();
+
+    window.__тнСостояние = () => ({
+      слоёв: слои.length,
+      выбран,
+      строка: вСтроку(слои),
+      код: $('тн-код').value,
+      наОбразце: $('тн-образец').style.boxShadow,
+      слои: слои.map(слойВСтроку),
+      беда: $('тн-беда').hidden ? '' : $('тн-беда').textContent,
+    });
+  })();
+</script>

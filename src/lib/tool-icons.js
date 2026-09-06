@@ -16,6 +16,7 @@ const I = {
   notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
   speed: '<circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/>',
   convert: '<path d="M4 8h13l-3-3M20 16H7l3 3"/>',
+  тень: '<rect x="3" y="3" width="13" height="13" rx="2"/><path d="M8 21h11a2 2 0 0 0 2-2V8" opacity=".55"/>',
   переход: '<rect x="3.5" y="5.5" width="17" height="13" rx="2"/><path d="M6 15.5h1.6M9 15.5h1.6M12 15.5h1.6M15 15.5h1.6M18 15.5h.4" opacity=".9"/><path d="M6 11.5h12" opacity=".55"/><path d="M6 8.5h12"/>',
   контраст: '<circle cx="12" cy="12" r="9"/><path d="M12 3a9 9 0 0 0 0 18z" fill="currentColor" stroke="none"/>',
   палитра: '<circle cx="12" cy="12" r="9"/><circle cx="8" cy="9" r="1.4" fill="currentColor" stroke="none"/><circle cx="12.5" cy="7.5" r="1.4" fill="currentColor" stroke="none"/><circle cx="16" cy="11" r="1.4" fill="currentColor" stroke="none"/><path d="M12 21a3 3 0 0 1 0-6 2 2 0 0 0 0-4"/>',
@@ -113,6 +114,7 @@ const RULES = [
   [/^color-palette$/, 'палитра'],
   [/^contrast-checker$/, 'контраст'],
   [/^css-gradient$/, 'переход'],
+  [/^box-shadow$/, 'тень'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
