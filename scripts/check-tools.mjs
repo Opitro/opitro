@@ -14,7 +14,9 @@
 //   -- SQL         -- неизменность набора знаков: форматирование не имеет права ничего
 //                     потерять или дописать, кроме пробелов;
 //   -- CSV         -- образцы из RFC 4180 и обратный круг;
-//   -- время Unix  -- системная команда date, то есть часы самой операционной системы.
+//   -- время Unix  -- системная команда date, то есть часы самой операционной системы;
+//   -- минификаторы -- разбор самого браузера: из сжатых стилей он обязан построить те же
+//                     правила, а сжатая разметка обязана дать то же дерево и тот же текст.
 
 import { spawn, execSync } from 'node:child_process';
 import { readFileSync } from 'node:fs';
@@ -951,6 +953,118 @@ await иди('/ru/unix-timestamp');
   так(круг === 5, 'круг «метка → дата → метка» замкнулся на пяти метках, включая отрицательную');
 
   так(ошибки.length === 0, 'на странице времени не было исключений', ошибки[0]);
+}
+
+// =============================================================================================
+console.log('\n════ 17. Минификаторы: /ru/minify-css, /ru/minify-html, /ru/minify-js ════');
+{
+  const сжать = async (текст, н) =>
+    считай(`window.__мнСжать(${JSON.stringify(текст)}, ${JSON.stringify(н || null)})`);
+
+  // ---- CSS -------------------------------------------------------------------------------
+  await иди('/ru/minify-css');
+  const ловушкиCSS = [
+    ['.a{width:calc(100% - 10px)}', '.a{width:calc(100% - 10px)}', 'пробелы в calc'],
+    ['#aabbcc{color:#aabbcc}', '#aabbcc{color:#abc}', 'селектор по имени против цвета'],
+    ['a{transition:0s}', 'a{transition:0s}', 'единица времени у нуля'],
+    ['@keyframes к{0%{opacity:0}}', '@keyframes к{0%{opacity:0}}', 'проценты в @keyframes'],
+    [':root{--о:0px}.a{width:calc(100% - var(--о))}',
+     ':root{--о:0px}.a{width:calc(100% - var(--о))}', 'собственное свойство'],
+    ['a{content:"/* не комментарий */"}', 'a{content:"/* не комментарий */"}', 'строка с комментарием'],
+    ['a{margin:0px;padding:0.50rem;color:rgb(0,0,0)}', 'a{margin:0;padding:.5rem;color:#000}',
+     'что и должно сжаться'],
+  ];
+  let целых = 0;
+  for (const [вход, ждём, имя] of ловушкиCSS) {
+    const р = await сжать(вход);
+    if (р.вывод === ждём) целых++;
+    else так(false, `CSS, ${имя}`, `${р.вывод} вместо ${ждём}`);
+  }
+  так(целых === ловушкиCSS.length, `CSS: все ${ловушкиCSS.length} ловушек обойдены`);
+
+  // СУДЬЯ: настоящий разбор браузера. Сжимаем стили самой этой страницы и требуем, чтобы
+  // браузер построил из сжатого тот же состав правил, что из исходного.
+  await считай(`window.__состав = (css) => {
+    const с = document.createElement('style');
+    с.textContent = css; document.head.appendChild(с);
+    const собрать = (п) => [...п].map((г) => {
+      if (г.style) return (г.selectorText || г.keyText || '@') + '{'
+        + [...г.style].map((и) => и + '=' + г.style.getPropertyValue(и).replace(/\\s+/g, '')).join(';') + '}';
+      if (г.cssRules) return (г.conditionText || г.name || '@') + '[' + собрать(г.cssRules).join('|') + ']';
+      return г.cssText;
+    });
+    let итог; try { итог = собрать(с.sheet.cssRules); } catch (е) { итог = ['ОШИБКА']; }
+    с.remove(); return итог;
+  }`);
+  {
+    // Берём стили, которые уже лежат на странице, -- настоящие, не придуманные.
+    const исходник = await считай(`[...document.querySelectorAll('style')]
+      .map((у) => у.textContent).join('\\n').slice(0, 60000)`);
+    const р = await сжать(исходник);
+    const было = await считай(`window.__состав(${JSON.stringify(исходник)})`);
+    const стало = await считай(`window.__состав(${JSON.stringify(р.вывод)})`);
+    так(JSON.stringify(было) === JSON.stringify(стало) && (было || []).length > 20,
+      `CSS: браузер строит из сжатого тот же состав правил (${(было || []).length} правил)`,
+      JSON.stringify(стало).slice(0, 200));
+    // И судья не спит: от порчи calc свойство пропадает.
+    const порча = await считай(`window.__состав('a{width:calc(100%-10px)}')`);
+    const цело = await считай(`window.__состав('a{width:calc(100% - 10px)}')`);
+    так(JSON.stringify(порча) !== JSON.stringify(цело), 'CSS: судья не спит');
+  }
+
+  // ---- HTML ------------------------------------------------------------------------------
+  await иди('/ru/minify-html');
+  const ловушкиHTML = [
+    ['<p><b>два</b> <i>слова</i></p>', '<p><b>два</b> <i>слова</i></p>', 'пробел между строчными'],
+    ['<div>\n  <h1>Х</h1>\n</div>', '<div><h1>Х</h1></div>', 'пробел между блочными'],
+    ['<pre>  два  пробела</pre>', '<pre>  два  пробела</pre>', 'дословное pre'],
+    ['<a title="раз>два">я</a>', '<a title="раз>два">я</a>', 'знак больше в кавычках'],
+    ['<!--[if lt IE 9]><p>x</p><![endif]-->', '<!--[if lt IE 9]><p>x</p><![endif]-->',
+     'условный комментарий'],
+    ['<input disabled="disabled">', '<input disabled>', 'избыточное свойство'],
+    ['<style>a { color : red ; }</style>', '<style>a{color:red}</style>', 'встроенный CSS'],
+    ['<!-- Test Comment -->\n<div class="container">\n    <h1>Hello World</h1>\n</div>',
+     '<div class="container"><h1>Hello World</h1></div>', 'пример из задания'],
+  ];
+  let целыхH = 0;
+  for (const [вход, ждём, имя] of ловушкиHTML) {
+    const р = await сжать(вход);
+    if (р.вывод === ждём) целыхH++;
+    else так(false, `HTML, ${имя}`, `${р.вывод} вместо ${ждём}`);
+  }
+  так(целыхH === ловушкиHTML.length, `HTML: все ${ловушкиHTML.length} ловушек обойдены`);
+
+  // ---- JS --------------------------------------------------------------------------------
+  await иди('/ru/minify-js');
+  {
+    const пример = 'function calculateTotal(price, quantity) {\n  // Налог\n'
+      + '  let taxRate = 0.2;\n  return (price * quantity) * (1 + taxRate);\n}';
+    const р = await сжать(пример);
+    так(р.вывод === 'function calculateTotal(t,a){return t*a*1.2}',
+      'JS: имена сокращены, арифметика свёрнута', р.вывод);
+    так(/%/.test(р.числа), `JS: счётчики заполнены`, р.числа);
+  }
+  {
+    const р = await сжать('function f(){ let свой=1; return window.глобальный + свой; }');
+    так(/window\.глобальный/.test(р.вывод), 'JS: чужие имена не тронуты', р.вывод);
+  }
+  {
+    const р = await сжать('function f(){\n let a=1;\n return a;\n');
+    так(!р.вывод && /строка/.test(р.беда), 'JS: незакрытая скобка названа со строкой', р.беда);
+    const видна = await считай(`(() => { const у = document.querySelector('.мн-беда');
+      return getComputedStyle(у).display !== 'none' && у.getBoundingClientRect().height > 0; })()`);
+    так(видна, 'JS: жалоба видна на экране, а не только в свойстве');
+  }
+  так((await сжать('let a=1;')).вывод === 'let a=1;', 'JS: после ошибки работа продолжается');
+
+  // Разбор не должен грузиться раньше нажатия -- это обещание страницы про её лёгкость.
+  {
+    const ряд = await считай(`JSON.stringify([...document.querySelectorAll('script[src]')]
+      .map((у) => у.getAttribute('src')))`);
+    так(!/\/main\./.test(ряд), 'JS: разбор не подключён к странице, а подтягивается по нажатию');
+  }
+
+  так(ошибки.length === 0, 'на страницах минификаторов не было исключений', ошибки[0]);
 }
 
 // =============================================================================================

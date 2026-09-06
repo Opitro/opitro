@@ -1,0 +1,132 @@
+/* СТИЛИ СТРАНИЦ «МИНИФИКАТОР HTML / CSS / JS».
+ *
+ * Один файл на три страницы: вид у них общий, разнятся только наладки и заметки.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); вывод и счётчики не
+ * приглушённо-серые, а белые -- мелкое сделано тонким начертанием, а не полупрозрачным.
+ */
+
+.мн {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+/* ---- Ряд соседей ---------------------------------------------------------------------------- */
+
+.мн-соседи { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap }
+.мн-сосед {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  height: 34px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  font: 600 12.5px var(--цифры); letter-spacing: .04em; text-decoration: none;
+  color: #fff; background: #1c1f26; border: 1px solid #3f4652;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.мн-сосед:hover { border-color: #fff; background: #23272f; color: #fff }
+/* Своя страница -- обводкой, без заливки: залитая читалась бы как нажатая кнопка. */
+.мн-тут { border-color: var(--accent); color: var(--accent); background: transparent;
+  cursor: default }
+.мн-сосед:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Галочки -------------------------------------------------------------------------------- */
+
+.мн-галки { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
+  margin-bottom: 12px }
+.мн-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.мн-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.мн-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color .15s }
+.мн-галка:hover i { border-color: #fff }
+.мн-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.мн-галка input:checked + i { border-color: var(--accent) }
+.мн-галка input:checked + i::after { transform: scale(1) }
+.мн-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Окна кода ------------------------------------------------------------------------------ */
+
+.мн-ввод {
+  width: 100%; min-height: 220px; resize: vertical; display: block;
+  padding: 14px 16px; border-radius: 12px;
+  font: 400 13px/1.7 var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия);
+  /* Переносим, а не прокручиваем вбок: сжатый код -- это одна строка в тысячи знаков, и
+     горизонтальная полоса сделала бы её нечитаемой. Отступы исходника при этом целы. */
+  white-space: pre-wrap; overflow-wrap: anywhere;
+  transition: border-color .15s;
+}
+.мн-ввод:hover { border-color: #6b7280 }
+.мн-ввод:focus { border-color: #fff; outline: none }
+.мн-ввод::placeholder { color: #8b93a0 }
+
+.мн-ряд-пуска { margin: 12px 0 }
+.мн-пуск { height: 48px; padding: 0 26px; font-size: 14px }
+
+.мн-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #16181d; overflow: hidden }
+.мн-вывод {
+  width: 100%; min-height: 200px; resize: vertical;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.7 var(--цифры);
+  /* Переносим, а не прокручиваем вбок: сжатый код -- это одна строка в тысячи знаков, и
+     горизонтальная полоса сделала бы её нечитаемой. Отступы исходника при этом целы. */
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.мн-вывод:focus { outline: none }
+.мн-вывод::placeholder { color: #8b93a0 }
+
+/* Строка счётчиков занимает место всегда -- иначе кнопки под ней прыгали бы после первого
+   сжатия. */
+/* ВЫСОТА ЭТОЙ СТРОКИ ОДНА И ТА ЖЕ ВО ВСЕХ ТРЁХ СОСТОЯНИЯХ. Мерил, а не прикидывал: пустая
+   выходила 34 пикселя, с числами 36, с сообщением об ошибке 35 -- и кнопки под окном
+   прыгали при каждом сжатии. Виновата была не разница шрифтов сама по себе, а выравнивание
+   строчных боксов по базовой линии: подпись в 11 пунктов растягивала строку до 19 пикселей,
+   а сообщение в 12 давало 18. Обе половины сделаны флексовыми с одинаковой наименьшей
+   высотой, и выравнивание по базовой линии из счёта выпадает. */
+.мн-счёт { min-height: 36px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
+  padding: 8px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  font: 400 12px/18px var(--цифры); color: #fff; font-variant-numeric: tabular-nums }
+.мн-счёт > span { display: flex; align-items: center; gap: 5px; min-height: 19px }
+.мн-имя { font-size: 11px; letter-spacing: .06em; color: var(--accent) }
+.мн-числа b { font-weight: 700; color: #fff }
+.мн-беда { color: #ff8f8f; overflow-wrap: anywhere }
+/* Правило display выше сильнее, чем display:none у браузера для [hidden], -- без этой
+   строки спрятанное сообщение осталось бы на виду. */
+.мн-беда[hidden] { display: none }
+
+/* ---- Кнопки и заметки ------------------------------------------------------------------------ */
+
+.мн-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px }
+.мн-кнопка {
+  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+  transition: background .15s, border-color .15s, color .15s }
+.мн-кнопка:hover { background: #0b0c0f; color: #fff }
+.мн-кнопка[disabled] { cursor: not-allowed; color: #8b93a0; background: #14161b;
+  border-color: #2c313a }
+.мн-кнопка[disabled]:hover { background: #14161b; color: #8b93a0 }
+.мн-обводка {
+  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
+  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
+  transition: background .15s, color .15s }
+.мн-обводка:hover { background: #fff; color: #000 }
+
+.мн-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.мн-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.мн-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.мн-заметка b { color: #fff; font-weight: 600 }
+.мн-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .мн-ввод, .мн-вывод { font-size: 12px; min-height: 170px }
+  /* Кнопку на всю ширину не растягиваем: полоса во весь экран кнопкой не читается. */
+  .мн-пуск { padding: 0 22px }
+  .мн-счёт { font-size: 11.5px; gap: 6px }
+}
