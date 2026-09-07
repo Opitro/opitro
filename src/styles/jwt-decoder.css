@@ -1,0 +1,146 @@
+/* СТИЛИ СТРАНИЦЫ «ДЕКОДЕР JWT».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); приглушённо-серых надписей
+ * нет; корзина стоит в полосе под полем, а не поверх текста. Знак подписи -- обводкой, без
+ * заливки: тёмный знак на насыщенном фоне читается плохо.
+ */
+
+.жв {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Поле токена -------------------------------------------------------------------------- */
+
+.жв-поле { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #09090b; transition: border-color .15s }
+.жв-поле:focus-within { border-color: #fff }
+.жв-ввод {
+  width: 100%; min-height: 130px; resize: vertical; display: block;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 13px/1.7 var(--цифры); border-radius: 11px 11px 0 0;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.жв-ввод:focus { outline: none }
+.жв-ввод::placeholder { color: #8b93a0 }
+
+/* Слева состояние токена, справа корзина. Высота постоянная: строка появляется сразу после
+   первого знака, и без запаса всё под ней дёргалось бы. */
+.жв-подвал {
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: 6px 8px 6px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 11px 11px;
+}
+.жв-строка-состояния { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: #fff }
+.жв-строка-состояния.добро { color: var(--accent) }
+.жв-строка-состояния.беда { color: var(--беда) }
+.жв-строка-состояния.тихо { color: #fff }
+
+.жв-корзина {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.жв-корзина:hover { border-color: #fff; background: #1c1f26 }
+.жв-корзина svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.жв-корзина:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.жв-беда { margin-top: 10px; padding: 11px 14px; border-radius: 9px;
+  border: 1px solid rgba(255,154,168,.45); color: var(--беда);
+  font: 400 13px/1.5 var(--ui) }
+/* Правило display выше сильнее, чем display:none у браузера для [hidden]. */
+.жв-беда[hidden] { display: none }
+
+/* ---- Разобранные куски ---------------------------------------------------------------------- */
+
+.жв-имя-раздела { margin: 18px 0 10px; font: 600 12px var(--цифры); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
+
+.жв-кусок { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  margin-bottom: 10px; overflow: hidden }
+.жв-шапка { padding: 10px 16px; border-bottom: 1px solid rgba(255,255,255,.08) }
+.жв-подпись { font: 400 11.5px var(--цифры); letter-spacing: .06em; color: var(--accent) }
+
+.жв-код {
+  margin: 0; padding: 14px 16px; color: #fff; font: 400 13px/1.6 var(--цифры);
+  white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;
+}
+
+/* Сроки: подпись слева, значение справа, обе строки плотные. */
+.жв-сроки { padding: 0 16px 8px }
+.жв-срок { display: flex; flex-wrap: wrap; gap: 4px 12px; padding: 3px 0;
+  font: 400 12px var(--цифры) }
+.жв-срок-имя { flex: none; min-width: 96px; color: var(--accent) }
+.жв-срок-значение { flex: 1 1 auto; min-width: 0; color: #fff; overflow-wrap: anywhere }
+
+.жв-полоса {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 48px;
+  padding: 6px 8px; border-top: 1px solid rgba(255,255,255,.08);
+}
+.жв-полоса-подписи { justify-content: flex-start; padding-left: 16px }
+
+.жв-копи {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.жв-копи:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.жв-копи svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.жв-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.жв-копи.готово { border-color: var(--accent); color: var(--accent) }
+.жв-копи.готово .лист { display: none }
+.жв-копи.готово .галка { display: block }
+.жв-копи[disabled] { cursor: not-allowed; color: #6b7280; background: #14161b;
+  border-color: #2c313a }
+.жв-копи:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Ключ и знак подписи --------------------------------------------------------------------- */
+
+.жв-ключ-ряд { padding: 12px 16px 0 }
+.жв-имя-поля { display: block; font: 400 12px var(--цифры); color: #fff; margin-bottom: 6px }
+.жв-ключ {
+  width: 100%; height: 44px; padding: 0 13px; border-radius: 8px;
+  font: 400 13px var(--цифры); color: #fff; background: #09090b;
+  border: 1px solid var(--линия); transition: border-color .15s;
+}
+.жв-ключ:hover { border-color: #6b7280 }
+.жв-ключ:focus { border-color: #fff; outline: none }
+.жв-ключ::placeholder { color: #8b93a0 }
+
+/* Знак подписи -- обводкой, без заливки: тёмный знак на насыщенном фоне читается плохо. */
+.жв-знак {
+  display: inline-flex; align-items: center; flex: 0 0 auto;
+  min-height: 34px; padding: 6px 14px; border-radius: 6px;
+  font: 600 12.5px/1.4 var(--цифры); color: #fff; border: 1px solid #3f4652;
+}
+.жв-знак.добро { color: var(--accent); border-color: var(--accent) }
+.жв-знак.беда { color: var(--беда); border-color: rgba(255,154,168,.55) }
+
+.жв-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.жв-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.жв-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.жв-заметка b { color: #fff; font-weight: 600 }
+.жв-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .жв-ввод, .жв-код { font-size: 12px }
+  .жв-ввод { min-height: 110px }
+  /* Подпись срока уходит над значением: 96 пикселей слева на узком экране съедали бы
+     половину строки. */
+  .жв-срок-имя { flex: 1 0 100%; min-width: 0 }
+  .жв-строка-состояния { font-size: 11.5px }
+}

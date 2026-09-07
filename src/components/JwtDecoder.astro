@@ -1,0 +1,374 @@
+---
+// ДЕКОДЕР JWT.
+//
+// Считает jwt.js, проверенный отдельно против OPENSSL: триста токенов, подписанных чужой
+// программой на трёх длинах HMAC, -- верный ключ сошёлся у всех, изменённый не сошёлся ни у
+// одного. Плюс известный токен с jwt.io собран openssl знак в знак.
+//
+// ГЛАВНОЕ, ЧТО ЭТА СТРАНИЦА ОБЯЗАНА СКАЗАТЬ: токен НЕ зашифрован. Заголовок и нагрузка лежат
+// в нём открыто и читаются кем угодно без ключа -- в этом и смысл первого окна. Подпись
+// защищает от подмены, но не от чтения.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО И ПОЧЕМУ ЭТО ЗДЕСЬ:
+//   1. Отдельный ответ на alg: none. Это не «подпись неверна», а «подписи нет вовсе» --
+//      разница между сломанным замком и его отсутствием.
+//   2. Отдельный ответ на RS256/ES256. Их проверяют ОТКРЫТЫМ КЛЮЧОМ, и написать «подпись
+//      неверна» человеку, который ввёл пароль, значит соврать.
+//   3. Сроки разобраны в понятные даты. exp и nbf -- в секундах, и сравнение с Date.now()
+//      в миллисекундах даёт разницу в тысячу раз.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых надписей нет; корзина стоит
+// в полосе под полем, а не поверх текста.
+import css from '../styles/jwt-decoder.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте токен вида xxxxx.yyyyy.zzzzz…', label: 'JWT токен',
+    clear: 'Очистить', copy: 'Копировать', copied: 'Скопировано',
+    header: 'Заголовок', payload: 'Нагрузка', verify: 'Проверка подписи',
+    secret: 'Секретный ключ (HMAC)', secretPlace: 'Ключ, которым подписан токен…',
+    alg: 'Алгоритм', decoded: 'Расшифровано',
+    ok: 'Подпись сошлась', bad: 'Подпись не сошлась',
+    noSig: 'Подписи нет вовсе — alg: none', needPub: 'Нужен открытый ключ, а не пароль',
+    noKey: 'Введите ключ, чтобы проверить', unknownAlg: 'Алгоритм неизвестен',
+    noCrypto: 'Проверка подписи требует защищённого соединения (https).',
+    active: 'Действует', expired: 'Срок истёк', notYet: 'Ещё не действует', noExp: 'Срока нет',
+    issued: 'Выдан', expires: 'Истекает', notBefore: 'Действует с', left: 'осталось',
+    e_empty: 'Вставьте токен — он разберётся сам',
+    e_parts: 'В токене должно быть три части, разделённые точками',
+    e_b64: 'Части токена записаны не по правилам base64url',
+    e_header: 'Заголовок токена — не JSON',
+    e_payload: 'Нагрузка токена — не JSON',
+    n1: '<b>Токен не зашифрован — он всего лишь закодирован.</b> Заголовок и нагрузку читает кто угодно без всякого ключа: именно это и делает окно выше. Подпись защищает от <b>подмены</b>, а не от <b>чтения</b>. Класть в токен пароли, номера карт и прочее тайное нельзя — это самое частое заблуждение о JWT.',
+    n2: '<b>alg: none — это не «подпись неверна», а «подписи нет».</b> Стандарт такое допускает, и когда-то целые библиотеки принимали такие токены как подлинные: достаточно было переписать нагрузку и стереть подпись. Мы показываем это отдельной строкой, а не наравне с прочими ответами.',
+    n3: '<b>RS256 и ES256 паролем не проверяются.</b> У них подпись проверяется открытым ключом, а не общим секретом. Написать «подпись неверна» человеку, который ввёл пароль к такому токену, значит соврать: она не неверна — её просто нечем проверить здесь.',
+    n4: '<b>exp и nbf — в секундах, а не в миллисекундах.</b> Ходовая ошибка: сравнить exp с <code>Date.now()</code> напрямую. Разница в тысячу раз, и живой токен то «истёк в 1970-м», то действует до пятьдесят восьмого тысячелетия. Мы переводим сроки в даты и говорим, сколько осталось.',
+    n5: '<b>Про ключ — честно.</b> Эта страница не делает ни одного сетевого запроса, и это можно проверить самому: откройте в браузере вкладку «Сеть» и наберите ключ — запросов не появится. Но привычка вставлять рабочие ключи в веб-страницы опасна сама по себе, потому что большинство таких страниц устроены иначе. Для проверки чужого инструмента берите отдельный, тестовый ключ.',
+    n6: 'Ничего никуда не отправляется. Токен и ключ остаются в памяти вкладки и исчезают вместе с ней.',
+  },
+  uk: {
+    place: 'Вставте токен вигляду xxxxx.yyyyy.zzzzz…', label: 'JWT токен',
+    clear: 'Очистити', copy: 'Копіювати', copied: 'Скопійовано',
+    header: 'Заголовок', payload: 'Навантаження', verify: 'Перевірка підпису',
+    secret: 'Секретний ключ (HMAC)', secretPlace: 'Ключ, яким підписано токен…',
+    alg: 'Алгоритм', decoded: 'Розшифровано',
+    ok: 'Підпис зійшовся', bad: 'Підпис не зійшовся',
+    noSig: 'Підпису немає взагалі — alg: none', needPub: 'Потрібен відкритий ключ, а не пароль',
+    noKey: 'Введіть ключ, щоб перевірити', unknownAlg: 'Алгоритм невідомий',
+    noCrypto: 'Перевірка підпису потребує захищеного зʼєднання (https).',
+    active: 'Діє', expired: 'Строк минув', notYet: 'Ще не діє', noExp: 'Строку немає',
+    issued: 'Видано', expires: 'Спливає', notBefore: 'Діє з', left: 'лишилось',
+    e_empty: 'Вставте токен — він розбереться сам',
+    e_parts: 'У токені має бути три частини, розділені крапками',
+    e_b64: 'Частини токена записані не за правилами base64url',
+    e_header: 'Заголовок токена — не JSON',
+    e_payload: 'Навантаження токена — не JSON',
+    n1: '<b>Токен не зашифровано — його лише закодовано.</b> Заголовок і навантаження читає хто завгодно без жодного ключа: саме це й робить вікно вище. Підпис захищає від <b>підміни</b>, а не від <b>читання</b>. Класти в токен паролі, номери карток та інше таємне не можна — це найчастіша хибна думка про JWT.',
+    n2: '<b>alg: none — це не «підпис невірний», а «підпису немає».</b> Стандарт таке припускає, і колись цілі бібліотеки приймали такі токени як справжні: досить було переписати навантаження й стерти підпис. Ми показуємо це окремим рядком, а не нарівні з рештою відповідей.',
+    n3: '<b>RS256 та ES256 паролем не перевіряються.</b> У них підпис перевіряється відкритим ключем, а не спільним секретом. Написати «підпис невірний» людині, яка ввела пароль до такого токена, означає збрехати: він не невірний — його просто нічим перевірити тут.',
+    n4: '<b>exp і nbf — у секундах, а не в мілісекундах.</b> Ходова помилка: порівняти exp з <code>Date.now()</code> напряму. Різниця в тисячу разів, і живий токен то «сплив у 1970-му», то діє до пʼятдесят восьмого тисячоліття. Ми переводимо строки в дати й кажемо, скільки лишилось.',
+    n5: '<b>Про ключ — чесно.</b> Ця сторінка не робить жодного мережевого запиту, і це можна перевірити самому: відкрийте в браузері вкладку «Мережа» й наберіть ключ — запитів не зʼявиться. Але звичка вставляти робочі ключі у вебсторінки небезпечна сама по собі, бо більшість таких сторінок влаштовано інакше. Для перевірки чужого інструмента беріть окремий, тестовий ключ.',
+    n6: 'Нічого нікуди не надсилається. Токен і ключ лишаються в памʼяті вкладки й зникають разом із нею.',
+  },
+  en: {
+    place: 'Paste a token shaped xxxxx.yyyyy.zzzzz…', label: 'JWT token',
+    clear: 'Clear', copy: 'Copy', copied: 'Copied',
+    header: 'Header', payload: 'Payload', verify: 'Signature check',
+    secret: 'Secret key (HMAC)', secretPlace: 'The key the token was signed with…',
+    alg: 'Algorithm', decoded: 'Decoded',
+    ok: 'Signature matches', bad: 'Signature does not match',
+    noSig: 'There is no signature at all — alg: none', needPub: 'Needs a public key, not a password',
+    noKey: 'Enter a key to check the signature', unknownAlg: 'Unknown algorithm',
+    noCrypto: 'Checking a signature needs a secure connection (https).',
+    active: 'Valid', expired: 'Expired', notYet: 'Not valid yet', noExp: 'No expiry',
+    issued: 'Issued', expires: 'Expires', notBefore: 'Valid from', left: 'left',
+    e_empty: 'Paste a token — it decodes itself',
+    e_parts: 'A token must have three parts separated by dots',
+    e_b64: 'The parts are not written as base64url',
+    e_header: 'The header is not JSON',
+    e_payload: 'The payload is not JSON',
+    n1: '<b>A token is not encrypted — it is merely encoded.</b> Anyone can read the header and the payload without any key at all: that is exactly what the box above does. The signature protects against <b>tampering</b>, not against <b>reading</b>. Passwords, card numbers and anything else secret must never go inside a token — this is the commonest misconception about JWT.',
+    n2: '<b>alg: none is not “bad signature”, it is “no signature”.</b> The standard permits it, and there was a time when whole libraries accepted such tokens as genuine: rewriting the payload and deleting the signature was enough. We show it on its own line rather than alongside the other answers.',
+    n3: '<b>RS256 and ES256 cannot be checked with a password.</b> Their signature is verified with a public key, not a shared secret. Telling someone who entered a password that the signature is wrong would be a lie: it is not wrong — there is simply nothing here to check it with.',
+    n4: '<b>exp and nbf are in seconds, not milliseconds.</b> A common mistake is comparing exp with <code>Date.now()</code> directly. That is a thousandfold difference, and a live token appears either to have expired in 1970 or to run until the fifty-eighth millennium. We turn the timestamps into dates and say how much time is left.',
+    n5: '<b>An honest word about the key.</b> This page makes no network requests at all, and you can check that yourself: open the browser\'s Network tab and type a key — nothing will appear. But the habit of pasting working keys into web pages is dangerous in itself, because most such pages are built differently. When testing somebody else\'s tool, use a separate, throwaway key.',
+    n6: 'Nothing is sent anywhere. The token and the key stay in the tab\'s memory and vanish with it.',
+  },
+  es: {
+    place: 'Pegue un token con la forma xxxxx.yyyyy.zzzzz…', label: 'Token JWT',
+    clear: 'Limpiar', copy: 'Copiar', copied: 'Copiado',
+    header: 'Cabecera', payload: 'Carga útil', verify: 'Comprobación de la firma',
+    secret: 'Clave secreta (HMAC)', secretPlace: 'La clave con la que se firmó el token…',
+    alg: 'Algoritmo', decoded: 'Descodificado',
+    ok: 'La firma coincide', bad: 'La firma no coincide',
+    noSig: 'No hay firma en absoluto: alg: none', needPub: 'Hace falta una clave pública, no una contraseña',
+    noKey: 'Introduzca una clave para comprobar la firma', unknownAlg: 'Algoritmo desconocido',
+    noCrypto: 'Comprobar la firma requiere una conexión segura (https).',
+    active: 'Vigente', expired: 'Caducado', notYet: 'Todavía no vigente', noExp: 'Sin caducidad',
+    issued: 'Emitido', expires: 'Caduca', notBefore: 'Vigente desde', left: 'quedan',
+    e_empty: 'Pegue un token: se descodifica solo',
+    e_parts: 'Un token debe tener tres partes separadas por puntos',
+    e_b64: 'Las partes no están escritas como base64url',
+    e_header: 'La cabecera no es JSON',
+    e_payload: 'La carga útil no es JSON',
+    n1: '<b>Un token no está cifrado: solo está codificado.</b> Cualquiera puede leer la cabecera y la carga útil sin clave alguna: es justo lo que hace el cuadro de arriba. La firma protege contra la <b>manipulación</b>, no contra la <b>lectura</b>. Contraseñas, números de tarjeta y cualquier otro secreto no deben ir nunca dentro de un token: es el error de concepto más común sobre JWT.',
+    n2: '<b>alg: none no es «firma incorrecta», es «sin firma».</b> El estándar lo permite, y hubo un tiempo en que bibliotecas enteras aceptaban esos tokens como auténticos: bastaba con reescribir la carga útil y borrar la firma. Lo mostramos en su propia línea y no junto al resto de respuestas.',
+    n3: '<b>RS256 y ES256 no se comprueban con una contraseña.</b> Su firma se verifica con una clave pública, no con un secreto compartido. Decirle a quien ha escrito una contraseña que la firma es incorrecta sería mentir: no es incorrecta, sencillamente aquí no hay con qué comprobarla.',
+    n4: '<b>exp y nbf van en segundos, no en milisegundos.</b> Error frecuente: comparar exp con <code>Date.now()</code> directamente. Es una diferencia de mil veces, y un token vivo parece haber caducado en 1970 o durar hasta el quincuagésimo octavo milenio. Nosotros convertimos las marcas en fechas y decimos cuánto queda.',
+    n5: '<b>Una palabra honesta sobre la clave.</b> Esta página no hace ninguna petición de red, y puede comprobarlo usted mismo: abra la pestaña «Red» del navegador y escriba una clave; no aparecerá nada. Pero la costumbre de pegar claves de producción en páginas web es peligrosa de por sí, porque la mayoría de esas páginas están hechas de otro modo. Para probar la herramienta de otro, use una clave aparte, desechable.',
+    n6: 'No se envía nada a ninguna parte. El token y la clave se quedan en la memoria de la pestaña y desaparecen con ella.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const ЛИСТ = `<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+</svg><svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>`;
+---
+
+<div class="жв" data-words={JSON.stringify(с)} data-locale={locale}>
+
+  <div class="жв-поле">
+    <textarea class="жв-ввод" id="жв-токен" spellcheck="false" autocapitalize="off"
+              autocorrect="off" placeholder={с.place} aria-label={с.label}></textarea>
+    <div class="жв-подвал">
+      <span class="жв-строка-состояния" id="жв-состояние"></span>
+      <button type="button" class="жв-корзина" id="жв-очистить" aria-label={с.clear} title={с.clear}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"></path>
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+          <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+          <path d="M10 11v6M14 11v6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="жв-беда" id="жв-беда" hidden></div>
+
+  <div class="жв-имя-раздела">{с.decoded}</div>
+
+  <div class="жв-кусок">
+    <div class="жв-шапка"><span class="жв-подпись">{с.header}</span></div>
+    <pre class="жв-код" id="жв-заголовок">—</pre>
+    <div class="жв-полоса">
+      <button type="button" class="жв-копи" id="жв-копи-заголовок" aria-label={с.copy}
+              title={с.copy} disabled set:html={ЛИСТ}></button>
+    </div>
+  </div>
+
+  <div class="жв-кусок">
+    <div class="жв-шапка"><span class="жв-подпись">{с.payload}</span></div>
+    <pre class="жв-код" id="жв-нагрузка">—</pre>
+    <div class="жв-сроки" id="жв-сроки"></div>
+    <div class="жв-полоса">
+      <button type="button" class="жв-копи" id="жв-копи-нагрузка" aria-label={с.copy}
+              title={с.copy} disabled set:html={ЛИСТ}></button>
+    </div>
+  </div>
+
+  <div class="жв-кусок">
+    <div class="жв-шапка"><span class="жв-подпись">{с.verify}</span></div>
+    <div class="жв-ключ-ряд">
+      <label class="жв-имя-поля" for="жв-ключ">{с.secret}</label>
+      <input type="text" class="жв-ключ" id="жв-ключ" spellcheck="false" autocomplete="off"
+             autocapitalize="off" autocorrect="off" placeholder={с.secretPlace} />
+    </div>
+    <div class="жв-полоса жв-полоса-подписи">
+      <span class="жв-знак" id="жв-знак">{с.noKey}</span>
+    </div>
+  </div>
+
+  <div class="жв-заметки">
+    <div class="жв-заметка" set:html={с.n1}></div>
+    <div class="жв-заметка" set:html={с.n2}></div>
+    <div class="жв-заметка" set:html={с.n3}></div>
+    <div class="жв-заметка" set:html={с.n4}></div>
+    <div class="жв-заметка" set:html={с.n5}></div>
+    <div class="жв-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { разобрать, проверить, сроки } from '../lib/jwt.js';
+  import { вUTC, насколькоДавно } from '../lib/unix-time.js';
+
+  const корень = document.querySelector('.жв');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    let разбор = null;
+    let счётПроверок = 0;
+
+    const БЕДЫ = {
+      ПУСТО: () => '', НЕ_ТРИ_ЧАСТИ: () => с.e_parts, НЕ_BASE64URL: () => с.e_b64,
+      ЗАГОЛОВОК_НЕ_JSON: () => с.e_header, НАГРУЗКА_НЕ_JSON: () => с.e_payload,
+    };
+    const сказать = (текст) => {
+      $('жв-беда').textContent = текст || '';
+      $('жв-беда').hidden = !текст;
+    };
+
+    const ВИД_СРОКА = {
+      ДЕЙСТВУЕТ: ['active', 'добро'], ИСТЁК: ['expired', 'беда'],
+      ЕЩЁ_НЕ_ДЕЙСТВУЕТ: ['notYet', 'беда'], НЕТ_СРОКА: ['noExp', 'тихо'],
+    };
+
+    function показатьСроки(нагрузка) {
+      const гнездо = $('жв-сроки');
+      гнездо.replaceChildren();
+      const п = сроки(нагрузка);
+      const пары = [];
+      if (п.выдан !== null) пары.push([с.issued, п.выдан]);
+      if (п.неРаньше !== null) пары.push([с.notBefore, п.неРаньше]);
+      if (п.истекает !== null) пары.push([с.expires, п.истекает]);
+      for (const [имя, секунды] of пары) {
+        const ряд = document.createElement('div');
+        ряд.className = 'жв-срок';
+        const и = document.createElement('span');
+        и.className = 'жв-срок-имя';
+        и.textContent = имя;
+        const з = document.createElement('span');
+        з.className = 'жв-срок-значение';
+        // Сроки в токене -- в СЕКУНДАХ. Показываем и дату, и «сколько назад/через сколько».
+        з.textContent = `${вUTC(секунды * 1000)} UTC · ${насколькоДавно(секунды * 1000, язык)}`;
+        ряд.append(и, з);
+        гнездо.appendChild(ряд);
+      }
+      return п;
+    }
+
+    function состояние(текст, вид) {
+      const у = $('жв-состояние');
+      у.textContent = текст || '';
+      у.className = 'жв-строка-состояния' + (вид ? ' ' + вид : '');
+    }
+
+    function знак(текст, вид) {
+      const у = $('жв-знак');
+      у.textContent = текст;
+      у.className = 'жв-знак' + (вид ? ' ' + вид : '');
+    }
+
+    async function пересчитать() {
+      const токен = $('жв-токен').value.trim();
+      if (!токен) {
+        разбор = null;
+        $('жв-заголовок').textContent = '—';
+        $('жв-нагрузка').textContent = '—';
+        $('жв-сроки').replaceChildren();
+        for (const и of ['жв-копи-заголовок', 'жв-копи-нагрузка']) $(и).disabled = true;
+        состояние(с.e_empty, 'тихо');
+        сказать('');
+        знак(с.noKey, 'тихо');
+        return;
+      }
+
+      const р = разобрать(токен);
+      if (!р.годен) {
+        разбор = null;
+        $('жв-заголовок').textContent = '—';
+        $('жв-нагрузка').textContent = '—';
+        $('жв-сроки').replaceChildren();
+        for (const и of ['жв-копи-заголовок', 'жв-копи-нагрузка']) $(и).disabled = true;
+        состояние('', '');
+        сказать((БЕДЫ[р.беда] || (() => р.беда))());
+        знак(с.noKey, 'тихо');
+        return;
+      }
+
+      разбор = р;
+      сказать('');
+      $('жв-заголовок').textContent = JSON.stringify(р.заголовок, null, 2);
+      $('жв-нагрузка').textContent = JSON.stringify(р.нагрузка, null, 2);
+      for (const и of ['жв-копи-заголовок', 'жв-копи-нагрузка']) $(и).disabled = false;
+
+      const п = показатьСроки(р.нагрузка);
+      const [ключСлова, вид] = ВИД_СРОКА[п.состояние];
+      const алг = р.алгоритм || '—';
+      состояние(`${с.alg}: ${алг} · ${с[ключСлова]}`, вид);
+
+      await проверитьПодпись();
+    }
+
+    async function проверитьПодпись() {
+      if (!разбор) { знак(с.noKey, 'тихо'); return; }
+      const ключ = $('жв-ключ').value;
+      const мой = ++счётПроверок;
+      let о;
+      try { о = await проверить($('жв-токен').value.trim(), ключ); }
+      catch (е) { о = { итог: 'НЕТ_CRYPTO' }; }
+      if (мой !== счётПроверок) return;
+      const ОТВЕТЫ = {
+        СОШЛАСЬ: [с.ok, 'добро'],
+        НЕ_СОШЛАСЬ: [с.bad, 'беда'],
+        НЕТ_ПОДПИСИ: [с.noSig, 'беда'],
+        НУЖЕН_ОТКРЫТЫЙ_КЛЮЧ: [с.needPub, 'тихо'],
+        АЛГОРИТМ_НЕИЗВЕСТЕН: [с.unknownAlg, 'тихо'],
+        НЕТ_КЛЮЧА: [с.noKey, 'тихо'],
+        НЕТ_CRYPTO: [с.noCrypto, 'беда'],
+        НЕ_РАЗОБРАН: [с.noKey, 'тихо'],
+      };
+      const [текст, вид] = ОТВЕТЫ[о.итог] || [о.итог, 'тихо'];
+      знак(текст, вид);
+    }
+
+    $('жв-токен').addEventListener('input', пересчитать);
+    $('жв-ключ').addEventListener('input', проверитьПодпись);
+    $('жв-очистить').addEventListener('click', () => {
+      $('жв-токен').value = '';
+      $('жв-ключ').value = '';
+      пересчитать();
+      $('жв-токен').focus();
+    });
+
+    for (const [кнопка, гнездо] of [['жв-копи-заголовок', 'жв-заголовок'],
+      ['жв-копи-нагрузка', 'жв-нагрузка']]) {
+      $(кнопка).addEventListener('click', async () => {
+        const к = $(кнопка);
+        const текст = $(гнездо).textContent;
+        if (!текст || текст === '—') return;
+        try { await navigator.clipboard.writeText(текст); } catch (е) { return; }
+        к.classList.add('готово');
+        к.setAttribute('aria-label', с.copied);
+        clearTimeout(к._т);
+        к._т = setTimeout(() => {
+          к.classList.remove('готово');
+          к.setAttribute('aria-label', с.copy);
+        }, 1500);
+      });
+    }
+
+    пересчитать();
+
+    window.__жвСостояние = () => ({
+      токен: $('жв-токен').value,
+      заголовок: $('жв-заголовок').textContent,
+      нагрузка: $('жв-нагрузка').textContent,
+      состояние: $('жв-состояние').textContent,
+      видСостояния: $('жв-состояние').className,
+      знак: $('жв-знак').textContent,
+      видЗнака: $('жв-знак').className,
+      сроков: $('жв-сроки').children.length,
+      беда: $('жв-беда').hidden ? '' : $('жв-беда').textContent,
+      копииЖивы: ['жв-копи-заголовок', 'жв-копи-нагрузка'].filter((и) => !$(и).disabled).length,
+    });
+    window.__жвВвод = async (токен, ключ) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call($('жв-токен'), токен);
+      if (ключ !== undefined) {
+        Object.getOwnPropertyDescriptor(HTMLInputElement.prototype, 'value').set
+          .call($('жв-ключ'), ключ);
+      }
+      await пересчитать();
+      return window.__жвСостояние();
+    };
+  })();
+</script>
