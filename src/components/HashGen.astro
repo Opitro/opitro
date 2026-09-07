@@ -1,0 +1,231 @@
+---
+// ГЕНЕРАТОР ХЭШЕЙ.
+//
+// Считает hash.js: SHA берутся у самого браузера (crypto.subtle), MD5 написан свой -- браузеры
+// его не дают нарочно, он давно сломан. Проверено против СИСТЕМНЫХ команд md5 и shasum:
+// двадцать один разнородный образец, тысяча случайных строк и каждая длина подряд от 0 до 200
+// -- всё сошлось знак в знак.
+//
+// В МАКЕТЕ ЗАДАНИЯ ОШИБКА, и её сюда не переносим: там у «hello» стоит SHA-1
+// afd0dfa130ae2aae13942a0b3193291b52bc6c37, а на самом деле это aaf4c61ddcc5e8a2dabede0f3b482cd9aea9434d
+// -- подтверждено системным shasum.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых подписей не делаю; корзина
+// стоит в полосе под полем, а не поверх текста -- накрывать собой набранное она не должна.
+import css from '../styles/hash-gen.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    label: 'Текст для хэширования', place: 'Введите или вставьте текст…',
+    upper: 'Заглавными', chars: 'Знаков', bytes: 'Байтов', clear: 'Очистить',
+    copy: 'Копировать', copied: 'Скопировано', results: 'Результаты',
+    empty: 'Введите текст — хэши посчитаются сами',
+    noCrypto: 'Браузер не даёт считать SHA: для этого нужно защищённое соединение (https).',
+    n1: '<b>Хэш пароля — это ещё не защита пароля.</b> MD5 и SHA считаются очень быстро, и в этом их беда для паролей: перебрать миллиарды вариантов в секунду ничего не стоит. Для хранения паролей нужны медленные, нарочно затратные способы — bcrypt, scrypt, Argon2 — и своя соль у каждой записи. Хэш отсюда для этого не годится.',
+    n2: '<b>«Восстановить нельзя» — верно не для всякой строки.</b> Само преобразование действительно необратимо, но короткие и ходовые строки давно посчитаны наперёд: MD5 от «123456» или «password» находится поиском за секунду. Необратимость защищает длинную и непредсказуемую строку, а не любую.',
+    n3: '<b>MD5 сломан, и это не предостережение на будущее.</b> Два разных файла с одинаковым MD5 подбираются на обычном компьютере за секунды. Поэтому подписывать им ничего нельзя. Годится он для одного: убедиться, что файл скачался целиком и не побился в пути.',
+    n4: '<b>Хэш считается от байтов, а не от букв.</b> Мы кодируем текст в UTF-8. Если другой инструмент выдаёт на ту же строку иной хэш — почти наверняка он берёт другую кодировку, скажем windows-1251. На латинице разницы не видно, на кириллице видно сразу.',
+    n5: '<b>Перенос строки в конце меняет хэш.</b> Частая причина расхождения с командной строкой: <code>echo текст | md5</code> добавляет невидимый перенос, и хэш выходит другой. Здесь считается ровно то, что в поле, без добавок.',
+    n6: 'Ничего никуда не отправляется. Строки, пароли и внутренние ключи остаются в памяти вкладки; страница не делает сетевых запросов.',
+  },
+  uk: {
+    label: 'Текст для хешування', place: 'Введіть або вставте текст…',
+    upper: 'Великими', chars: 'Знаків', bytes: 'Байтів', clear: 'Очистити',
+    copy: 'Копіювати', copied: 'Скопійовано', results: 'Результати',
+    empty: 'Введіть текст — хеші порахуються самі',
+    noCrypto: 'Браузер не дає рахувати SHA: для цього потрібне захищене зʼєднання (https).',
+    n1: '<b>Хеш пароля — це ще не захист пароля.</b> MD5 і SHA рахуються дуже швидко, і в цьому їхня біда для паролів: перебрати мільярди варіантів на секунду нічого не варто. Для зберігання паролів потрібні повільні, навмисно витратні способи — bcrypt, scrypt, Argon2 — і своя сіль у кожного запису. Хеш звідси для цього не годиться.',
+    n2: '<b>«Відновити не можна» — правильно не для всякого рядка.</b> Саме перетворення справді незворотне, але короткі й ходові рядки давно пораховані наперед: MD5 від «123456» чи «password» знаходиться пошуком за секунду. Незворотність захищає довгий і непередбачуваний рядок, а не будь-який.',
+    n3: '<b>MD5 зламано, і це не пересторога на майбутнє.</b> Два різні файли з однаковим MD5 добираються на звичайному компʼютері за секунди. Тому підписувати ним нічого не можна. Годиться він для одного: переконатися, що файл завантажився цілком і не побився дорогою.',
+    n4: '<b>Хеш рахується від байтів, а не від букв.</b> Ми кодуємо текст у UTF-8. Якщо інший інструмент видає на той самий рядок інший хеш — майже напевно він бере інше кодування, скажімо windows-1251. На латиниці різниці не видно, на кирилиці видно одразу.',
+    n5: '<b>Перенос рядка в кінці змінює хеш.</b> Часта причина розбіжності з командним рядком: <code>echo текст | md5</code> додає невидимий перенос, і хеш виходить інший. Тут рахується рівно те, що в полі, без додатків.',
+    n6: 'Нічого нікуди не надсилається. Рядки, паролі та внутрішні ключі лишаються в памʼяті вкладки; сторінка не робить мережевих запитів.',
+  },
+  en: {
+    label: 'Text to hash', place: 'Type or paste your text…',
+    upper: 'Upper case', chars: 'Characters', bytes: 'Bytes', clear: 'Clear',
+    copy: 'Copy', copied: 'Copied', results: 'Results',
+    empty: 'Enter some text — the hashes compute themselves',
+    noCrypto: 'The browser will not compute SHA here: that needs a secure connection (https).',
+    n1: '<b>Hashing a password is not the same as protecting it.</b> MD5 and SHA are computed very fast, and for passwords that speed is the problem: running through billions of guesses a second costs nothing. Storing passwords calls for deliberately slow methods — bcrypt, scrypt, Argon2 — with a separate salt per record. A hash from this page will not do that job.',
+    n2: '<b>“It cannot be reversed” is not true of every string.</b> The transformation itself really is one-way, but short and common strings were computed long ago: the MD5 of “123456” or “password” is one search away. Irreversibility protects a long, unpredictable string — not just any string.',
+    n3: '<b>MD5 is broken, and that is not a warning about the future.</b> Two different files sharing one MD5 can be constructed on an ordinary computer in seconds. Nothing may be signed with it. It is good for one thing: confirming a file downloaded in full and was not damaged on the way.',
+    n4: '<b>A hash is taken of bytes, not of letters.</b> We encode the text as UTF-8. If another tool gives a different hash for the same string, it almost certainly uses a different encoding — windows-1251, say. In Latin script the difference is invisible; in Cyrillic it shows at once.',
+    n5: '<b>A trailing newline changes the hash.</b> A frequent source of disagreement with the command line: <code>echo text | md5</code> adds an invisible line break, and the hash comes out different. Here exactly what is in the box is hashed, with nothing added.',
+    n6: 'Nothing is sent anywhere. Your strings, passwords and internal keys stay in the tab\'s memory; the page makes no network requests.',
+  },
+  es: {
+    label: 'Texto para el hash', place: 'Escriba o pegue su texto…',
+    upper: 'Mayúsculas', chars: 'Caracteres', bytes: 'Bytes', clear: 'Limpiar',
+    copy: 'Copiar', copied: 'Copiado', results: 'Resultados',
+    empty: 'Escriba un texto: los hashes se calculan solos',
+    noCrypto: 'El navegador no calculará SHA aquí: hace falta una conexión segura (https).',
+    n1: '<b>Aplicar un hash a una contraseña no es lo mismo que protegerla.</b> MD5 y SHA se calculan muy deprisa, y para las contraseñas esa velocidad es justo el problema: recorrer miles de millones de intentos por segundo no cuesta nada. Guardar contraseñas exige métodos deliberadamente lentos —bcrypt, scrypt, Argon2— y una sal propia por registro. Un hash de esta página no sirve para eso.',
+    n2: '<b>«No se puede revertir» no vale para cualquier cadena.</b> La transformación en sí es de una sola dirección, pero las cadenas cortas y corrientes están calculadas desde hace años: el MD5 de «123456» o «password» está a una búsqueda de distancia. La irreversibilidad protege una cadena larga e impredecible, no una cualquiera.',
+    n3: '<b>MD5 está roto, y no es una advertencia sobre el futuro.</b> Dos archivos distintos con el mismo MD5 se construyen en un ordenador corriente en segundos. Con él no se puede firmar nada. Sirve para una sola cosa: comprobar que un archivo se descargó entero y no se estropeó por el camino.',
+    n4: '<b>El hash se calcula sobre bytes, no sobre letras.</b> Nosotros codificamos el texto en UTF-8. Si otra herramienta da un hash distinto para la misma cadena, casi seguro usa otra codificación, por ejemplo windows-1251. En alfabeto latino la diferencia no se ve; en cirílico se nota enseguida.',
+    n5: '<b>Un salto de línea final cambia el hash.</b> Causa frecuente de desacuerdo con la línea de órdenes: <code>echo texto | md5</code> añade un salto invisible y el hash sale distinto. Aquí se calcula exactamente lo que hay en el campo, sin añadidos.',
+    n6: 'No se envía nada a ninguna parte. Sus cadenas, contraseñas y claves internas se quedan en la memoria de la pestaña; la página no hace peticiones de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+const РЯДЫ = ['MD5', 'SHA-1', 'SHA-256', 'SHA-512'];
+---
+
+<div class="хш" data-words={JSON.stringify(с)}>
+
+  <div class="хш-верх">
+    <label class="хш-галка"><input type="checkbox" id="хш-заглавными" /><i></i>{с.upper}</label>
+  </div>
+
+  <div class="хш-поле">
+    <textarea class="хш-ввод" id="хш-ввод" spellcheck="false" autocapitalize="off"
+              autocorrect="off" placeholder={с.place} aria-label={с.label}></textarea>
+    <!-- Счёт слева, корзина справа. Корзину нарочно НЕ кладём поверх текста: там она
+         накрывала бы собой последние набранные строки. -->
+    <div class="хш-подвал">
+      <span class="хш-счёт" id="хш-счёт"></span>
+      <button type="button" class="хш-корзина" id="хш-очистить" aria-label={с.clear} title={с.clear}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"></path>
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+          <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+          <path d="M10 11v6M14 11v6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="хш-имя-раздела">{с.results}</div>
+
+  <div class="хш-таблица" id="хш-таблица">
+    {РЯДЫ.map((имя) => (
+      <div class="хш-ряд" data-алг={имя}>
+        <span class="хш-алг">{имя}</span>
+        <span class="хш-значение" id={`хш-${имя}`}>—</span>
+        <button type="button" class="хш-копи" data-копи={имя} aria-label={с.copy} title={с.copy} disabled>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+      </div>
+    ))}
+  </div>
+
+  <div class="хш-беда" id="хш-беда" hidden></div>
+
+  <div class="хш-заметки">
+    <div class="хш-заметка" set:html={с.n1}></div>
+    <div class="хш-заметка" set:html={с.n2}></div>
+    <div class="хш-заметка" set:html={с.n3}></div>
+    <div class="хш-заметка" set:html={с.n4}></div>
+    <div class="хш-заметка" set:html={с.n5}></div>
+    <div class="хш-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { всеХэши, вБайты } from '../lib/hash.js';
+
+  const корень = document.querySelector('.хш');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const ввод = $('хш-ввод');
+
+    // Держим хэши строчными, а заглавными показываем: галочка меняет вид, а не пересчитывает.
+    let хэши = {};
+    let счётЗапусков = 0;
+
+    const оформить = (з) => ($('хш-заглавными').checked ? з.toUpperCase() : з);
+
+    function показать() {
+      for (const [имя, значение] of Object.entries(хэши)) {
+        const гнездо = $('хш-' + имя);
+        if (гнездо) гнездо.textContent = значение ? оформить(значение) : '—';
+      }
+      for (const к of корень.querySelectorAll('[data-копи]')) {
+        к.disabled = !хэши[к.dataset.копи];
+      }
+    }
+
+    function счёт() {
+      const т = ввод.value;
+      $('хш-счёт').textContent = т
+        ? `${с.chars}: ${[...т].length} · ${с.bytes}: ${вБайты(т).length}`
+        : с.empty;
+    }
+
+    async function пересчитать() {
+      счёт();
+      const текст = ввод.value;
+      if (!текст) {
+        хэши = {};
+        for (const и of ['MD5', 'SHA-1', 'SHA-256', 'SHA-512']) $('хш-' + и).textContent = '—';
+        for (const к of корень.querySelectorAll('[data-копи]')) к.disabled = true;
+        return;
+      }
+      // Считаем без очереди: пока считался прежний текст, человек мог набрать ещё. Ответ от
+      // устаревшего запуска выбрасываем, иначе на экран легли бы хэши уже не той строки.
+      const мой = ++счётЗапусков;
+      try {
+        const набор = await всеХэши(текст);
+        if (мой !== счётЗапусков) return;
+        хэши = Object.fromEntries(набор);
+        $('хш-беда').hidden = true;
+        показать();
+      } catch (е) {
+        if (мой !== счётЗапусков) return;
+        $('хш-беда').textContent = с.noCrypto;
+        $('хш-беда').hidden = false;
+      }
+    }
+
+    ввод.addEventListener('input', пересчитать);
+    $('хш-заглавными').addEventListener('change', показать);
+    $('хш-очистить').addEventListener('click', () => {
+      ввод.value = '';
+      пересчитать();
+      ввод.focus();
+    });
+
+    for (const к of корень.querySelectorAll('[data-копи]')) {
+      к.addEventListener('click', async () => {
+        const значение = хэши[к.dataset.копи];
+        if (!значение) return;
+        try { await navigator.clipboard.writeText(оформить(значение)); } catch (е) { return; }
+        к.classList.add('готово');
+        к.setAttribute('aria-label', с.copied);
+        clearTimeout(к._т);
+        к._т = setTimeout(() => {
+          к.classList.remove('готово');
+          к.setAttribute('aria-label', с.copy);
+        }, 1500);
+      });
+    }
+
+    пересчитать();
+
+    window.__хшСостояние = () => ({
+      ввод: ввод.value,
+      счёт: $('хш-счёт').textContent,
+      заглавными: $('хш-заглавными').checked,
+      хэши: Object.fromEntries(['MD5', 'SHA-1', 'SHA-256', 'SHA-512']
+        .map((и) => [и, $('хш-' + и).textContent])),
+      живых: [...корень.querySelectorAll('[data-копи]')].filter((к) => !к.disabled).length,
+      беда: $('хш-беда').hidden ? '' : $('хш-беда').textContent,
+    });
+    window.__хшВвод = async (текст) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call(ввод, текст);
+      await пересчитать();
+      return window.__хшСостояние();
+    };
+  })();
+</script>

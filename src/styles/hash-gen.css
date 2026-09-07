@@ -1,0 +1,127 @@
+/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР ХЭШЕЙ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); подписи алгоритмов не
+ * приглушённо-серые (#71717A), а цветом накладки -- полупрозрачных букв на сайте нет.
+ * Корзина стоит в полосе под полем, а не поверх текста: накрывать собой набранное она
+ * не должна.
+ */
+
+.хш {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  font-family: var(--цифры);
+}
+
+.хш-верх { display: flex; flex-wrap: wrap; align-items: center; gap: 10px 20px;
+  margin-bottom: 12px }
+.хш-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
+  font: 400 13px var(--цифры); color: #fff }
+.хш-галка input { position: absolute; opacity: 0; width: 0; height: 0 }
+.хш-галка i { width: 15px; height: 15px; border: 1px solid #3f4652; flex: none;
+  display: inline-flex; align-items: center; justify-content: center;
+  transition: border-color .15s }
+.хш-галка:hover i { border-color: #fff }
+.хш-галка i::after { content: ""; width: 9px; height: 9px; background: var(--accent);
+  transform: scale(0); transition: transform .12s ease }
+.хш-галка input:checked + i { border-color: var(--accent) }
+.хш-галка input:checked + i::after { transform: scale(1) }
+.хш-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Поле ввода ------------------------------------------------------------------------- */
+
+.хш-поле { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #09090b; transition: border-color .15s }
+.хш-поле:focus-within { border-color: #fff }
+.хш-ввод {
+  width: 100%; min-height: 150px; resize: vertical; display: block;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.6 var(--цифры); border-radius: 11px 11px 0 0;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.хш-ввод:focus { outline: none }
+.хш-ввод::placeholder { color: #8b93a0 }
+
+/* Слева счёт, справа корзина. Высота постоянная: подпись меняется при каждом знаке, и
+   без запаса таблица под полем дёргалась бы. */
+.хш-подвал {
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: 6px 8px 6px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 11px 11px;
+}
+.хш-счёт { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+.хш-корзина {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.хш-корзина:hover { border-color: #fff; background: #1c1f26 }
+.хш-корзина svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.хш-корзина:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Таблица хэшей ---------------------------------------------------------------------- */
+
+.хш-имя-раздела { margin: 18px 0 10px; font: 600 12px var(--цифры); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
+
+.хш-таблица { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  overflow: hidden }
+.хш-ряд {
+  display: flex; align-items: center; gap: 12px;
+  padding: 11px 10px 11px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.хш-ряд:last-child { border-bottom: 0 }
+.хш-алг { flex: none; min-width: 78px; font: 400 11.5px var(--цифры); letter-spacing: .06em;
+  color: var(--accent) }
+/* Сам хэш -- главное в строке: белый, плотный, переносится по знакам, его уносят к себе. */
+.хш-значение { flex: 1 1 auto; min-width: 0; font: 400 13px/1.5 var(--цифры); color: #fff;
+  overflow-wrap: anywhere; user-select: text }
+
+.хш-копи {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.хш-копи:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.хш-копи svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.хш-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.хш-копи.готово { border-color: var(--accent); color: var(--accent) }
+.хш-копи.готово .лист { display: none }
+.хш-копи.готово .галка { display: block }
+.хш-копи[disabled] { cursor: not-allowed; color: #6b7280; background: #14161b;
+  border-color: #2c313a }
+.хш-копи:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.хш-беда { margin-top: 10px; padding: 11px 14px; border-radius: 9px;
+  border: 1px solid rgba(255,154,168,.45); color: #ff9aa8;
+  font: 400 13px/1.5 var(--ui) }
+/* Правило display выше сильнее, чем display:none у браузера для [hidden]. */
+.хш-беда[hidden] { display: none }
+
+.хш-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.хш-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.хш-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.хш-заметка b { color: #fff; font-weight: 600 }
+.хш-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .хш-ввод { font-size: 13px; min-height: 120px }
+  /* Подпись алгоритма уходит над хэшем: 78 пикселей слева на узком экране съедали бы
+     половину строки. */
+  .хш-ряд { flex-wrap: wrap; gap: 6px 10px; padding: 10px 8px 10px 12px }
+  .хш-алг { flex: 1 0 100%; min-width: 0 }
+  .хш-значение { font-size: 12px }
+  .хш-счёт { font-size: 11.5px }
+}
