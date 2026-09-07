@@ -232,12 +232,27 @@ const заметки = ЗАМЕТКИ[kind][locale] || ЗАМЕТКИ[kind].ru;
     <div class="мн-счёт" id="мн-счёт">
       <span class="мн-беда" id="мн-беда" hidden></span>
       <span class="мн-числа" id="мн-числа"></span>
+      <!-- Кнопки встроены в ту же полосу, где счётчики: место там уже было, а отдельный ряд
+           под окном заставлял искать, к какому полю он относится. -->
+      <span class="мн-знаки">
+        <button type="button" class="мн-копи" id="мн-копировать" aria-label={с.copy}
+                title={с.copy} disabled>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+        <button type="button" class="мн-корзина" id="мн-очистить" aria-label={с.clear} title={с.clear}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16"></path>
+            <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+            <path d="M10 11v6M14 11v6"></path>
+          </svg>
+        </button>
+      </span>
     </div>
-  </div>
-
-  <div class="мн-ряд">
-    <button type="button" class="мн-кнопка" id="мн-копировать" disabled>{с.copy}</button>
-    <button type="button" class="мн-обводка" id="мн-очистить">{с.clear}</button>
   </div>
 
   <div class="мн-заметки">
@@ -357,9 +372,14 @@ const заметки = ЗАМЕТКИ[kind][locale] || ЗАМЕТКИ[kind].ru;
       const кнопка = $('мн-копировать');
       if (!$('мн-вывод').value) return;
       try { await navigator.clipboard.writeText($('мн-вывод').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     $('мн-очистить').addEventListener('click', () => {
