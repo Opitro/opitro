@@ -1,0 +1,91 @@
+/* СТИЛИ СТРАНИЦЫ «СИСТЕМЫ СЧИСЛЕНИЯ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ:
+ *   — фон страницы не задаём: он у сайта свой, а инструмент в него встраивается;
+ *   — значки стоят в полосе ПОД полем, а не поверх него. Двоичное число из 64 разрядов
+ *     занимает две строки, и значки в правом нижнем углу накрыли бы собой цифры;
+ *   — значки белые на прозрачном фоне с серой рамкой, а не матово-серые: приглушённый
+ *     текст и приглушённые значки на этом сайте не водятся;
+ *   — «скопировано» показываем зелёной галочкой, как на остальных страницах, а не словом.
+ */
+
+.сс {
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, Monaco, monospace;
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --линия: #222;
+  font-family: var(--цифры);
+}
+
+.сс-ряды { display: flex; flex-direction: column; gap: 14px }
+
+.сс-имя {
+  margin: 0 0 8px; font: 600 12px var(--цифры); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent);
+}
+.сс-имя span { color: #fff; font-weight: 400 }
+
+.сс-поле { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 10px; background: #09090b; transition: border-color .15s }
+.сс-поле:focus-within { border-color: #fff }
+
+.сс-ввод {
+  width: 100%; display: block; padding: 13px 15px; border: 0; background: transparent;
+  color: #fff; font: 400 14px/1.6 var(--цифры); border-radius: 9px 9px 0 0;
+  /* Переносим, а не прокручиваем вбок: 64 разряда в строку не влезают. */
+  white-space: pre-wrap; overflow-wrap: anywhere; resize: none; min-height: 46px;
+}
+.сс-ввод:focus { outline: none }
+.сс-ввод::placeholder { color: #8b93a0 }
+
+/* Слева счёт, справа значки. Высота постоянная: счёт появляется на первой же цифре. */
+.сс-полоса {
+  display: flex; align-items: center; gap: 6px; min-height: 46px;
+  padding: 6px 8px 6px 15px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 9px 9px;
+}
+.сс-счёт { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+
+.сс-копи, .сс-корзина {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.сс-копи:hover:not([disabled]), .сс-корзина:hover:not([disabled]) {
+  border-color: #fff; background: #1c1f26 }
+.сс-копи svg, .сс-корзина svg {
+  width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.сс-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.сс-копи.готово { border-color: var(--accent); color: var(--accent) }
+.сс-копи.готово .лист { display: none }
+.сс-копи.готово .галка { display: block }
+.сс-копи[disabled], .сс-корзина[disabled] {
+  cursor: not-allowed; color: #6b7280; background: #14161b; border-color: #2c313a }
+.сс-копи:focus-visible, .сс-корзина:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* Строка под рядами: разрядность и ближайший размер. Место под неё есть всегда. */
+.сс-итог { display: flex; flex-wrap: wrap; gap: 6px 16px; align-items: center;
+  min-height: 22px; margin-top: 14px; font: 400 12.5px var(--цифры); color: #fff }
+.сс-итог b { color: var(--accent); font-weight: 400 }
+
+.сс-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.сс-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.сс-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.сс-заметка b { color: #fff; font-weight: 600 }
+.сс-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .сс-ввод { font-size: 13px }
+  .сс-счёт { font-size: 11.5px }
+  .сс-итог { font-size: 12px }
+}

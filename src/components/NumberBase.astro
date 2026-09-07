@@ -1,0 +1,238 @@
+---
+// ПЕРЕВОД ЧИСЕЛ МЕЖДУ СИСТЕМАМИ СЧИСЛЕНИЯ.
+//
+// Считает number-base.js на BigInt. Проверено против python3 -- у него целые тоже без предела.
+//
+// ГЛАВНОЕ ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: не parseInt и не Number.toString. Обычное число в
+// JavaScript точно хранит целые только до 2^53, а шестнадцатеричные нужны ровно там, где эта
+// граница перейдена -- адреса, маски, куски хэшей. parseInt('FFFFFFFFFFFFFFFF',16) уже
+// округляет. Считаем на BigInt.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: значки в полосе ПОД полем, а не поверх цифр (64 разряда занимают две
+// строки, значки в углу накрыли бы их); значки белые, а не матово-серые; «скопировано» --
+// зелёная галочка, как на остальных страницах. Фон страницы не задаю.
+import css from '../styles/number-base.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    bin: 'Двоичная', oct: 'Восьмеричная', dec: 'Десятичная', hex: 'Шестнадцатеричная',
+    place: 'Введите число…',
+    copy: 'Копировать', copied: 'Скопировано', clear: 'Очистить всё',
+    digits: 'Разрядов', bits: 'Битов', fits: 'Помещается в', bit: 'бит',
+    tooBig: 'Больше 64 бит',
+    n1: '<b>Считаем на BigInt, а не на обычном числе.</b> Обычное число в JavaScript точно хранит целые только до 2⁵³. А шестнадцатеричные нужны ровно там, где эта граница перейдена: адреса памяти, битовые маски, куски хэшей — это 64 бита. Ходовой рецепт <code>parseInt(строка, 16)</code> на числе <code>FFFFFFFFFFFFFFFF</code> вернёт <code>10000000000000000</code> — единицу с нулями вместо шестнадцати букв F. Здесь такого не будет: длина числа не ограничена.',
+    n2: '<b>Дробей нет намеренно.</b> Дробная часть в двоичном виде почти всегда бесконечна: десятичное 0,1 — это 0,000110011001100… в двоичной. Любой ответ пришлось бы обрезать, то есть соврать. Точка в поля просто не пропускается.',
+    n3: '<b>Четвёрка разрядов — один знак HEX.</b> Двоичное число делится на группы по 4 бита (тетрады), и каждая группа — ровно один шестнадцатеричный знак: <code>1010</code> = A, <code>0010 1010</code> = 2A. Поэтому маску удобнее читать в HEX: 64 разряда сжимаются до 16 знаков без потери смысла.',
+    n4: '<b>Восьмеричная жива в правах доступа.</b> В Linux и Unix права записывают тройками битов: чтение, запись, выполнение. Тройка битов — это ровно одна восьмеричная цифра, поэтому <code>0755</code> читается сразу: 7 = rwx владельцу, 5 = r-x остальным.',
+    n5: '<b>Негодные знаки не пропускаются.</b> В двоичное поле не введётся цифра 2, в восьмеричное — 8 и 9, в шестнадцатеричное — буквы после F. Регистр не важен: <code>2a</code> и <code>2A</code> — одно и то же. Минус можно поставить первым знаком.',
+    n6: 'Ничего никуда не отправляется. Числа остаются в памяти вкладки; страница не делает сетевых запросов.',
+  },
+  uk: {
+    bin: 'Двійкова', oct: 'Вісімкова', dec: 'Десяткова', hex: 'Шістнадцяткова',
+    place: 'Введіть число…',
+    copy: 'Копіювати', copied: 'Скопійовано', clear: 'Очистити все',
+    digits: 'Розрядів', bits: 'Бітів', fits: 'Уміщується в', bit: 'біт',
+    tooBig: 'Більше за 64 біти',
+    n1: '<b>Рахуємо на BigInt, а не на звичайному числі.</b> Звичайне число в JavaScript точно тримає цілі лише до 2⁵³. А шістнадцяткові потрібні саме там, де ця межа перейдена: адреси памʼяті, бітові маски, шматки хешів — це 64 біти. Ходовий рецепт <code>parseInt(рядок, 16)</code> на числі <code>FFFFFFFFFFFFFFFF</code> поверне <code>10000000000000000</code> — одиницю з нулями замість шістнадцяти літер F. Тут такого не буде: довжина числа не обмежена.',
+    n2: '<b>Дробів немає навмисно.</b> Дробова частина у двійковому вигляді майже завжди нескінченна: десяткове 0,1 — це 0,000110011001100… у двійковій. Будь-яку відповідь довелося б обрізати, тобто збрехати. Крапка в поля просто не пропускається.',
+    n3: '<b>Четвірка розрядів — один знак HEX.</b> Двійкове число ділиться на групи по 4 біти (тетради), і кожна група — рівно один шістнадцятковий знак: <code>1010</code> = A, <code>0010 1010</code> = 2A. Тому маску зручніше читати в HEX: 64 розряди стискаються до 16 знаків без утрати змісту.',
+    n4: '<b>Вісімкова жива в правах доступу.</b> У Linux і Unix права записують трійками бітів: читання, запис, виконання. Трійка бітів — це рівно одна вісімкова цифра, тому <code>0755</code> читається одразу: 7 = rwx власнику, 5 = r-x решті.',
+    n5: '<b>Негодящі знаки не пропускаються.</b> У двійкове поле не введеться цифра 2, у вісімкове — 8 і 9, у шістнадцяткове — літери після F. Регістр не важливий: <code>2a</code> і <code>2A</code> — те саме. Мінус можна поставити першим знаком.',
+    n6: 'Нічого нікуди не надсилається. Числа лишаються в памʼяті вкладки; сторінка не робить мережевих запитів.',
+  },
+  en: {
+    bin: 'Binary', oct: 'Octal', dec: 'Decimal', hex: 'Hexadecimal',
+    place: 'Enter a number…',
+    copy: 'Copy', copied: 'Copied', clear: 'Clear all',
+    digits: 'Digits', bits: 'Bits', fits: 'Fits in', bit: 'bit',
+    tooBig: 'Over 64 bits',
+    n1: '<b>We count with BigInt, not with an ordinary number.</b> An ordinary JavaScript number holds integers exactly only up to 2⁵³. Yet hexadecimal is needed precisely past that line: memory addresses, bit masks, pieces of hashes — those are 64 bits. The usual recipe <code>parseInt(string, 16)</code> on <code>FFFFFFFFFFFFFFFF</code> returns <code>10000000000000000</code> — a one followed by zeros instead of sixteen F characters. That cannot happen here: the length of a number is not capped.',
+    n2: '<b>No fractions, deliberately.</b> A fractional part in binary is almost always infinite: decimal 0.1 is 0.000110011001100… in binary. Any answer would have to be cut short, which means lying. The dot simply is not accepted into the fields.',
+    n3: '<b>Four bits make one hex character.</b> A binary number splits into groups of four bits (nibbles), and each group is exactly one hexadecimal character: <code>1010</code> = A, <code>0010 1010</code> = 2A. That is why a mask reads more easily in hex: 64 bits shrink to 16 characters with nothing lost.',
+    n4: '<b>Octal is still alive in file permissions.</b> Linux and Unix write permissions in triples of bits: read, write, execute. A triple of bits is exactly one octal digit, so <code>0755</code> reads straight off: 7 = rwx for the owner, 5 = r-x for everyone else.',
+    n5: '<b>Invalid characters are not accepted.</b> The binary field will not take a 2, the octal one will not take 8 or 9, the hexadecimal one will not take letters past F. Case does not matter: <code>2a</code> and <code>2A</code> are the same. A minus may go first.',
+    n6: 'Nothing is sent anywhere. The numbers stay in the tab\'s memory; the page makes no network requests.',
+  },
+  es: {
+    bin: 'Binario', oct: 'Octal', dec: 'Decimal', hex: 'Hexadecimal',
+    place: 'Escriba un número…',
+    copy: 'Copiar', copied: 'Copiado', clear: 'Limpiar todo',
+    digits: 'Dígitos', bits: 'Bits', fits: 'Cabe en', bit: 'bits',
+    tooBig: 'Más de 64 bits',
+    n1: '<b>Calculamos con BigInt, no con un número corriente.</b> Un número corriente de JavaScript guarda enteros exactos solo hasta 2⁵³. Y el hexadecimal hace falta justo pasada esa línea: direcciones de memoria, máscaras de bits, trozos de hashes son 64 bits. La receta habitual <code>parseInt(cadena, 16)</code> sobre <code>FFFFFFFFFFFFFFFF</code> devuelve <code>10000000000000000</code>: un uno con ceros en lugar de dieciséis letras F. Aquí eso no ocurre: la longitud del número no tiene tope.',
+    n2: '<b>Sin decimales, a propósito.</b> La parte fraccionaria en binario es casi siempre infinita: el 0,1 decimal es 0,000110011001100… en binario. Cualquier respuesta habría que cortarla, es decir, mentir. El punto sencillamente no entra en los campos.',
+    n3: '<b>Cuatro bits son un carácter hexadecimal.</b> Un número binario se parte en grupos de cuatro bits (nibbles), y cada grupo es exactamente un carácter hexadecimal: <code>1010</code> = A, <code>0010 1010</code> = 2A. Por eso una máscara se lee mejor en hexadecimal: 64 bits se encogen a 16 caracteres sin perder nada.',
+    n4: '<b>El octal sigue vivo en los permisos.</b> Linux y Unix escriben los permisos en tríos de bits: lectura, escritura, ejecución. Un trío de bits es exactamente un dígito octal, así que <code>0755</code> se lee de un vistazo: 7 = rwx para el propietario, 5 = r-x para los demás.',
+    n5: '<b>Los caracteres imposibles no entran.</b> El campo binario no admite un 2, el octal no admite 8 ni 9, el hexadecimal no admite letras posteriores a la F. Las mayúsculas dan igual: <code>2a</code> y <code>2A</code> son lo mismo. El menos puede ir en primer lugar.',
+    n6: 'No se envía nada a ninguna parte. Los números se quedan en la memoria de la pestaña; la página no hace peticiones de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Порядок как в задании: двоичная, десятичная, шестнадцатеричная, восьмеричная.
+const РЯДЫ = [
+  { о: 2, имя: с.bin }, { о: 10, имя: с.dec }, { о: 16, имя: с.hex }, { о: 8, имя: с.oct },
+];
+
+const КОРЗИНА = `<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4 7h16"></path>
+  <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+  <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+  <path d="M10 11v6M14 11v6"></path>
+</svg>`;
+const ЛИСТ = `<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+</svg><svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>`;
+---
+
+<div class="сс" data-words={JSON.stringify(с)}>
+
+  <div class="сс-ряды">
+    {РЯДЫ.map(({ о, имя }) => (
+      <div class="сс-ряд">
+        <div class="сс-имя">{имя} <span>({о})</span></div>
+        <div class="сс-поле">
+          <textarea class="сс-ввод" id={`сс-ввод-${о}`} rows="1" spellcheck="false"
+                    autocomplete="off" autocapitalize="off" placeholder={с.place}
+                    aria-label={`${имя} (${о})`}></textarea>
+          <div class="сс-полоса">
+            <span class="сс-счёт" id={`сс-счёт-${о}`}></span>
+            <button type="button" class="сс-копи" id={`сс-копи-${о}`} data-о={о}
+                    aria-label={с.copy} title={с.copy} disabled set:html={ЛИСТ}></button>
+            <button type="button" class="сс-корзина" id={`сс-корзина-${о}`} data-о={о}
+                    aria-label={с.clear} title={с.clear} disabled set:html={КОРЗИНА}></button>
+          </div>
+        </div>
+      </div>
+    ))}
+  </div>
+
+  <div class="сс-итог" id="сс-итог"></div>
+
+  <div class="сс-заметки">
+    <div class="сс-заметка" set:html={с.n1}></div>
+    <div class="сс-заметка" set:html={с.n2}></div>
+    <div class="сс-заметка" set:html={с.n3}></div>
+    <div class="сс-заметка" set:html={с.n4}></div>
+    <div class="сс-заметка" set:html={с.n5}></div>
+    <div class="сс-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { ОСНОВАНИЯ, процедить, вЧисло, изЧисла, разрядов, размер } from '../lib/number-base.js';
+
+  const корень = document.querySelector('.сс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const поле = (о) => $(`сс-ввод-${о}`);
+
+    /** Высота поля по содержимому: 64 разряда занимают две строки, полоса не должна прыгать. */
+    function подогнать(п) {
+      п.style.height = 'auto';
+      п.style.height = Math.max(46, п.scrollHeight) + 'px';
+    }
+
+    function показатьИтог(значение) {
+      if (значение === null) { $('сс-итог').textContent = ''; return; }
+      const б = разрядов(значение);
+      // У отрицательного числа размер не показываем вовсе: он зависит от способа кодирования
+      // (дополнительный код, знак-величина), и одного верного ответа нет. Написать про такое
+      // «больше 64 бит» было бы прямой неправдой.
+      if (значение < 0n) { $('сс-итог').innerHTML = `${с.bits}: <b>${б}</b>`; return; }
+      const р = размер(значение);
+      $('сс-итог').innerHTML =
+        `${с.bits}: <b>${б}</b>` +
+        (р ? ` · ${с.fits} <b>${р}</b> ${с.bit}` : ` · <b>${с.tooBig}</b>`);
+    }
+
+    /** Пересчитать всё, кроме поля, в котором сейчас набирают. */
+    function пересчитать(откуда) {
+      const исходное = поле(откуда).value;
+      // Процеживаем на лету: негодный знак просто не появляется.
+      const чистое = процедить(исходное, откуда);
+      if (чистое !== исходное) {
+        const к = поле(откуда).selectionStart;
+        поле(откуда).value = чистое;
+        const назад = Math.max(0, к - (исходное.length - чистое.length));
+        поле(откуда).setSelectionRange(назад, назад);
+      }
+      подогнать(поле(откуда));
+
+      const значение = вЧисло(чистое, откуда);
+      for (const о of ОСНОВАНИЯ) {
+        if (о !== откуда) {
+          поле(о).value = значение === null ? '' : изЧисла(значение, о);
+          подогнать(поле(о));
+        }
+        const есть = поле(о).value.length > 0;
+        $(`сс-счёт-${о}`).textContent = есть ? `${с.digits}: ${поле(о).value.replace('-', '').length}` : '';
+        $(`сс-копи-${о}`).disabled = !есть;
+        $(`сс-корзина-${о}`).disabled = !есть;
+      }
+      показатьИтог(значение);
+    }
+
+    function очистить(фокус) {
+      for (const о of ОСНОВАНИЯ) {
+        поле(о).value = '';
+        подогнать(поле(о));
+        $(`сс-счёт-${о}`).textContent = '';
+        $(`сс-копи-${о}`).disabled = true;
+        $(`сс-корзина-${о}`).disabled = true;
+      }
+      $('сс-итог').textContent = '';
+      if (фокус) поле(фокус).focus();
+    }
+
+    for (const о of ОСНОВАНИЯ) {
+      поле(о).addEventListener('input', () => пересчитать(о));
+
+      // Корзина стирает все четыре окна: они и так связаны -- очистив одно, опустошаешь
+      // остальные. Фокус остаётся там, где нажали.
+      $(`сс-корзина-${о}`).addEventListener('click', () => очистить(о));
+
+      $(`сс-копи-${о}`).addEventListener('click', async () => {
+        const к = $(`сс-копи-${о}`);
+        if (!поле(о).value) return;
+        try { await navigator.clipboard.writeText(поле(о).value); } catch (е) { return; }
+        к.classList.add('готово');
+        к.setAttribute('aria-label', с.copied);
+        clearTimeout(к._т);
+        к._т = setTimeout(() => {
+          к.classList.remove('готово');
+          к.setAttribute('aria-label', с.copy);
+        }, 1500);
+      });
+    }
+
+    очистить();
+
+    window.__ссСостояние = () => {
+      const о = {};
+      for (const б of ОСНОВАНИЯ) {
+        о[б] = {
+          значение: поле(б).value,
+          счёт: $(`сс-счёт-${б}`).textContent,
+          копиЖива: !$(`сс-копи-${б}`).disabled,
+          высота: Math.round(поле(б).getBoundingClientRect().height),
+        };
+      }
+      о.итог = $('сс-итог').textContent;
+      return о;
+    };
+    window.__ссВвод = (текст, основание) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call(поле(основание), текст);
+      поле(основание).dispatchEvent(new Event('input', { bubbles: true }));
+      return window.__ссСостояние();
+    };
+    window.__ссОчистить = () => { очистить(); return window.__ссСостояние(); };
+  })();
+</script>
