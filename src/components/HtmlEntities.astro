@@ -1,0 +1,246 @@
+---
+// ЭКРАНИРОВАНИЕ И РАЗЭКРАНИРОВАНИЕ HTML.
+//
+// Считает html-entities.js. Проверено против python3 html.escape / html.unescape -- другой
+// программы с полной таблицей мнемоник HTML5.
+//
+// ДВЕ ГЛАВНЫЕ ЛОВУШКИ РАЗОБРАНЫ В ДВИЖКЕ:
+//   1. Амперсанд заменяется первым -- иначе «<» превращается в «&amp;lt;».
+//   2. Разэкранирование идёт через <textarea>, а не через innerHTML обычного узла: во втором
+//      случае разметка разбирается по-настоящему, и картинка с onerror начинает грузиться.
+//
+// ЧЕГО В ЗАДАНИИ НЕ БЫЛО: галочка «кодировать и не-ASCII». Нужна редко (страницы давно в
+// UTF-8), но для писем и старых систем -- единственный способ. По умолчанию выключена: лишнее
+// кодирование раздувает текст вчетверо и ничего не улучшает.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых надписей нет; корзина и
+// копирование стоят в полосах под полями, а не поверх текста.
+import css from '../styles/html-entities.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    mode: 'Режим', enc: 'Кодировать', dec: 'Раскодировать',
+    nonAscii: 'Кодировать и не-ASCII знаки',
+    src: 'Исходный текст', out: 'Результат',
+    place: 'Вставьте текст или разметку…', result: 'Результат появится здесь…',
+    clear: 'Очистить', copy: 'Копировать', copied: 'Скопировано',
+    chars: 'Знаков', escaped: 'Экранировано', swap: 'Поменять местами',
+    guess: 'Похоже на мнемоники — включён режим раскодирования',
+    n1: '<b>Амперсанд заменяется первым — иначе выйдет ерунда.</b> Если сперва превратить «&lt;» в <code>&amp;lt;</code>, а потом взяться за амперсанды, только что поставленный амперсанд превратится в <code>&amp;amp;</code>, и человек увидит на странице <code>&amp;lt;</code> вместо «&lt;». Мы идём по знакам одним проходом: испортить своё же он не может.',
+    n2: '<b>Раскодируем через &lt;textarea&gt;, а не через innerHTML.</b> Ходовой приём — положить строку в innerHTML обычного узла и взять textContent. Так делать нельзя: разметка при этом по-настоящему разбирается, из строки рождаются узлы, и картинка с <code>onerror</code> уже пытается загрузиться. Внутри textarea содержимое читается как чистый текст: теги узлами не становятся, а мнемоники раскрываются — все, какие знает браузер.',
+    n3: '<b>Апостроф кодируем числом, а не как &amp;apos;.</b> Такой мнемоники в HTML 4 не было — её ввели только в XML и HTML5, и старые браузеры показывали её буквами, как есть. <code>&amp;#39;</code> понимают все и всегда.',
+    n4: '<b>Пять знаков, а не все подряд.</b> Разметку несут только <code>&amp; &lt; &gt; " \'</code> — их и хватает. Кодировать всё подряд не вредно, но раздувает текст вчетверо без всякой пользы: страницы давно в UTF-8 и русские буквы понимают. Галочка для не-ASCII оставлена для писем и старых систем, где это ещё нужно.',
+    n5: '<b>Экранирование — не защита само по себе.</b> Оно спасает, когда текст попадает в <b>содержимое</b> страницы. В значении свойства нужны ещё кавычки, внутри <code>&lt;script&gt;</code> правила совсем другие, а в адресе ссылки не помогает вовсе: <code>javascript:</code> останется рабочим и в экранированном виде. Правило простое: экранировать надо там, куда текст вставляют, и тем способом, который подходит этому месту.',
+    n6: 'Ничего никуда не отправляется. Ваш код и тексты остаются в памяти вкладки; страница не делает сетевых запросов.',
+  },
+  uk: {
+    mode: 'Режим', enc: 'Кодувати', dec: 'Розкодувати',
+    nonAscii: 'Кодувати й не-ASCII знаки',
+    src: 'Вихідний текст', out: 'Результат',
+    place: 'Вставте текст або розмітку…', result: 'Результат зʼявиться тут…',
+    clear: 'Очистити', copy: 'Копіювати', copied: 'Скопійовано',
+    chars: 'Знаків', escaped: 'Екрановано', swap: 'Поміняти місцями',
+    guess: 'Схоже на мнемоніки — увімкнено режим розкодування',
+    n1: '<b>Амперсанд замінюється першим — інакше вийде дурниця.</b> Якщо спершу перетворити «&lt;» на <code>&amp;lt;</code>, а потім узятися за амперсанди, щойно поставлений амперсанд перетвориться на <code>&amp;amp;</code>, і людина побачить на сторінці <code>&amp;lt;</code> замість «&lt;». Ми йдемо по знаках одним проходом: зіпсувати своє ж він не може.',
+    n2: '<b>Розкодовуємо через &lt;textarea&gt;, а не через innerHTML.</b> Ходовий прийом — покласти рядок в innerHTML звичайного вузла і взяти textContent. Так робити не можна: розмітка при цьому по-справжньому розбирається, з рядка народжуються вузли, і картинка з <code>onerror</code> уже намагається завантажитися. Усередині textarea вміст читається як чистий текст.',
+    n3: '<b>Апостроф кодуємо числом, а не як &amp;apos;.</b> Такої мнемоніки в HTML 4 не було — її ввели лише в XML і HTML5, і старі браузери показували її літерами, як є. <code>&amp;#39;</code> розуміють усі й завжди.',
+    n4: '<b>Пʼять знаків, а не всі поспіль.</b> Розмітку несуть лише <code>&amp; &lt; &gt; " \'</code> — їх і досить. Кодувати все поспіль не шкідливо, але роздуває текст учетверо без жодної користі: сторінки давно в UTF-8. Позначку для не-ASCII лишено для листів і старих систем.',
+    n5: '<b>Екранування — не захист саме по собі.</b> Воно рятує, коли текст потрапляє у <b>вміст</b> сторінки. У значенні атрибута потрібні ще лапки, всередині <code>&lt;script&gt;</code> правила зовсім інші, а в адресі посилання не допомагає взагалі: <code>javascript:</code> лишиться робочим і в екранованому вигляді.',
+    n6: 'Нічого нікуди не надсилається. Ваш код і тексти лишаються в памʼяті вкладки; сторінка не робить мережевих запитів.',
+  },
+  en: {
+    mode: 'Mode', enc: 'Encode', dec: 'Decode',
+    nonAscii: 'Encode non-ASCII characters too',
+    src: 'Source text', out: 'Result',
+    place: 'Paste text or markup…', result: 'The result will appear here…',
+    clear: 'Clear', copy: 'Copy', copied: 'Copied',
+    chars: 'Characters', escaped: 'Escaped', swap: 'Swap',
+    guess: 'Looks like entities — decode mode switched on',
+    n1: '<b>The ampersand is replaced first, or nonsense follows.</b> Turn “&lt;” into <code>&amp;lt;</code> first and then go after the ampersands, and the ampersand you just wrote becomes <code>&amp;amp;</code>, so the page shows <code>&amp;lt;</code> instead of “&lt;”. We walk through the characters in a single pass: it cannot spoil its own work.',
+    n2: '<b>We decode through a &lt;textarea&gt;, not through innerHTML.</b> The usual trick is to put the string into an ordinary node\'s innerHTML and read textContent. That must not be done: the markup is genuinely parsed, real nodes are created from the string, and an image with <code>onerror</code> already starts loading. Inside a textarea the content is read as plain text: tags never become nodes, while entities are expanded — all of them, as the browser knows them.',
+    n3: '<b>The apostrophe is encoded as a number, not as &amp;apos;.</b> That entity did not exist in HTML 4 — it arrived with XML and HTML5, and old browsers displayed it literally. <code>&amp;#39;</code> is understood everywhere, always.',
+    n4: '<b>Five characters, not everything.</b> Only <code>&amp; &lt; &gt; " \'</code> carry markup, and escaping those is enough. Escaping everything does no harm but inflates the text fourfold for nothing: pages have long been UTF-8. The non-ASCII checkbox is there for email and older systems where it is still needed.',
+    n5: '<b>Escaping is not protection by itself.</b> It saves you when text lands in the <b>content</b> of a page. Inside an attribute value you also need the quotes; inside <code>&lt;script&gt;</code> the rules are different altogether; and in a link\'s address it does not help at all: <code>javascript:</code> stays functional even when escaped. The rule is simple — escape for the place the text is going into, using the method that place requires.',
+    n6: 'Nothing is sent anywhere. Your code and text stay in the tab\'s memory; the page makes no network requests.',
+  },
+  es: {
+    mode: 'Modo', enc: 'Codificar', dec: 'Descodificar',
+    nonAscii: 'Codificar también los caracteres no ASCII',
+    src: 'Texto original', out: 'Resultado',
+    place: 'Pegue texto o marcado…', result: 'El resultado aparecerá aquí…',
+    clear: 'Limpiar', copy: 'Copiar', copied: 'Copiado',
+    chars: 'Caracteres', escaped: 'Escapados', swap: 'Intercambiar',
+    guess: 'Parece contener entidades: se activó el modo de descodificación',
+    n1: '<b>El ampersand se sustituye primero, o saldrá un disparate.</b> Si primero convierte «&lt;» en <code>&amp;lt;</code> y después va a por los ampersands, el que acaba de escribir se convertirá en <code>&amp;amp;</code> y la página mostrará <code>&amp;lt;</code> en vez de «&lt;». Nosotros recorremos los caracteres en una sola pasada: así no puede estropear su propio trabajo.',
+    n2: '<b>Descodificamos con un &lt;textarea&gt;, no con innerHTML.</b> El truco habitual es meter la cadena en el innerHTML de un nodo corriente y leer textContent. No debe hacerse: el marcado se analiza de verdad, se crean nodos reales y una imagen con <code>onerror</code> ya empieza a cargarse. Dentro de un textarea el contenido se lee como texto plano: las etiquetas nunca se convierten en nodos y las entidades sí se expanden.',
+    n3: '<b>El apóstrofo se codifica como número, no como &amp;apos;.</b> Esa entidad no existía en HTML 4: llegó con XML y HTML5, y los navegadores antiguos la mostraban tal cual. <code>&amp;#39;</code> lo entiende todo el mundo, siempre.',
+    n4: '<b>Cinco caracteres, no todos.</b> Solo <code>&amp; &lt; &gt; " \'</code> llevan marcado, y escaparlos basta. Escaparlo todo no hace daño, pero infla el texto cuatro veces sin ganar nada: las páginas llevan mucho en UTF-8. La casilla de no ASCII está ahí para el correo y los sistemas antiguos donde aún hace falta.',
+    n5: '<b>Escapar no es protección por sí solo.</b> Sirve cuando el texto va al <b>contenido</b> de la página. Dentro del valor de un atributo hacen falta además las comillas; dentro de <code>&lt;script&gt;</code> las reglas son otras; y en la dirección de un enlace no ayuda en absoluto: <code>javascript:</code> sigue funcionando aunque se escape. La regla es simple: escape para el sitio al que va el texto, con el método que ese sitio exige.',
+    n6: 'No se envía nada a ninguna parte. Su código y sus textos se quedan en la memoria de la pestaña; la página no hace peticiones de red.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const КОРЗИНА = `<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4 7h16"></path>
+  <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+  <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+  <path d="M10 11v6M14 11v6"></path>
+</svg>`;
+const ЛИСТ = `<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+</svg><svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>`;
+---
+
+<div class="мм" data-words={JSON.stringify(с)}>
+
+  <div class="мм-пульт">
+    <span class="мм-подпись">{с.mode}:</span>
+    <span class="мм-набор" id="мм-режим" role="radiogroup" aria-label={с.mode}>
+      <button type="button" class="мм-выбор мм-выбран" data-р="enc" role="radio" aria-checked="true">{с.enc}</button>
+      <button type="button" class="мм-выбор" data-р="dec" role="radio" aria-checked="false">{с.dec}</button>
+    </span>
+    <label class="мм-галка" id="мм-гнездо-неascii">
+      <input type="checkbox" id="мм-неascii" /><i></i>{с.nonAscii}
+    </label>
+  </div>
+
+  <div class="мм-имя-раздела">{с.src}</div>
+  <div class="мм-поле">
+    <textarea class="мм-ввод" id="мм-ввод" spellcheck="false" autocapitalize="off"
+              autocorrect="off" placeholder={с.place} aria-label={с.src}></textarea>
+    <div class="мм-полоса">
+      <span class="мм-счёт" id="мм-счёт-ввода"></span>
+      <button type="button" class="мм-корзина" id="мм-очистить" aria-label={с.clear}
+              title={с.clear} set:html={КОРЗИНА}></button>
+    </div>
+  </div>
+
+  <div class="мм-имя-раздела">{с.out}</div>
+  <div class="мм-поле мм-вывод">
+    <textarea class="мм-ввод" id="мм-вывод" readonly spellcheck="false"
+              placeholder={с.result} aria-label={с.out}></textarea>
+    <div class="мм-полоса">
+      <span class="мм-счёт" id="мм-счёт-вывода"></span>
+      <button type="button" class="мм-обмен" id="мм-обмен" aria-label={с.swap} title={с.swap}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 8h13l-3.5-3.5"></path>
+          <path d="M20 16H7l3.5 3.5"></path>
+        </svg>
+      </button>
+      <button type="button" class="мм-копи" id="мм-копировать" aria-label={с.copy}
+              title={с.copy} disabled set:html={ЛИСТ}></button>
+    </div>
+  </div>
+
+  <div class="мм-заметки">
+    <div class="мм-заметка" set:html={с.n1}></div>
+    <div class="мм-заметка" set:html={с.n2}></div>
+    <div class="мм-заметка" set:html={с.n3}></div>
+    <div class="мм-заметка" set:html={с.n4}></div>
+    <div class="мм-заметка" set:html={с.n5}></div>
+    <div class="мм-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { закодировать, раскодировать, сколькоТронуто } from '../lib/html-entities.js';
+
+  const корень = document.querySelector('.мм');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    let режим = 'enc';
+
+    function пересчитать() {
+      const вход = $('мм-ввод').value;
+      let выход = '';
+      if (вход) {
+        выход = режим === 'enc'
+          ? закодировать(вход, { всеНеASCII: $('мм-неascii').checked })
+          : раскодировать(вход);
+      }
+      $('мм-вывод').value = выход;
+      $('мм-копировать').disabled = !выход;
+
+      $('мм-счёт-ввода').textContent = вход ? `${с.chars}: ${[...вход].length}` : '';
+      if (!выход) { $('мм-счёт-вывода').textContent = ''; return; }
+      $('мм-счёт-вывода').textContent = режим === 'enc'
+        ? `${с.chars}: ${[...выход].length} · ${с.escaped}: ${сколькоТронуто(вход, выход)}`
+        : `${с.chars}: ${[...выход].length}`;
+    }
+
+    function поставитьРежим(новый) {
+      режим = новый;
+      for (const к of $('мм-режим').querySelectorAll('[data-р]')) {
+        const он = к.dataset.р === новый;
+        к.classList.toggle('мм-выбран', он);
+        к.setAttribute('aria-checked', он ? 'true' : 'false');
+      }
+      // Галочка про не-ASCII имеет смысл только при кодировании.
+      $('мм-гнездо-неascii').hidden = новый !== 'enc';
+      пересчитать();
+    }
+
+    for (const к of $('мм-режим').querySelectorAll('[data-р]')) {
+      к.addEventListener('click', () => поставитьРежим(к.dataset.р));
+    }
+    $('мм-ввод').addEventListener('input', пересчитать);
+    $('мм-неascii').addEventListener('change', пересчитать);
+
+    $('мм-очистить').addEventListener('click', () => {
+      $('мм-ввод').value = '';
+      пересчитать();
+      $('мм-ввод').focus();
+    });
+
+    // Обмен: результат становится исходником, а режим меняется на обратный. Так проверяют,
+    // что закодированное раскодируется обратно в то же самое.
+    $('мм-обмен').addEventListener('click', () => {
+      const было = $('мм-вывод').value;
+      if (!было) return;
+      $('мм-ввод').value = было;
+      поставитьРежим(режим === 'enc' ? 'dec' : 'enc');
+    });
+
+    $('мм-копировать').addEventListener('click', async () => {
+      const к = $('мм-копировать');
+      if (!$('мм-вывод').value) return;
+      try { await navigator.clipboard.writeText($('мм-вывод').value); } catch (е) { return; }
+      к.classList.add('готово');
+      к.setAttribute('aria-label', с.copied);
+      clearTimeout(к._т);
+      к._т = setTimeout(() => {
+        к.classList.remove('готово');
+        к.setAttribute('aria-label', с.copy);
+      }, 1500);
+    });
+
+    поставитьРежим('enc');
+
+    window.__ммСостояние = () => ({
+      режим,
+      ввод: $('мм-ввод').value,
+      вывод: $('мм-вывод').value,
+      счётВвода: $('мм-счёт-ввода').textContent,
+      счётВывода: $('мм-счёт-вывода').textContent,
+      неASCII: $('мм-неascii').checked,
+      // Свойство .hidden врёт: display в стилях сильнее. Спрашиваем у браузера, что он рисует.
+      галкаВидна: getComputedStyle($('мм-гнездо-неascii')).display !== 'none',
+      копироватьЖива: !$('мм-копировать').disabled,
+    });
+    window.__ммВвод = (текст, новыйРежим, неascii) => {
+      if (новыйРежим) поставитьРежим(новыйРежим);
+      if (неascii !== undefined) $('мм-неascii').checked = !!неascii;
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call($('мм-ввод'), текст);
+      пересчитать();
+      return window.__ммСостояние();
+    };
+  })();
+</script>
