@@ -134,16 +134,19 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="цс-поле" id="цс-поле-ввода">
         <textarea class="цс-ввод" id="цс-ввод" spellcheck="false" autocapitalize="off"
           autocorrect="off" placeholder={с.placeCsv}>{ПРИМЕР}</textarea>
+        <div class="цс-подвал"><span class="цс-счёт" id="цс-счёт-ввода"></span></div>
       </div>
-      <div class="цс-счёт" id="цс-счёт-ввода"></div>
     </div>
     <div class="цс-окно">
       <span class="цс-имя" id="цс-имя-вывода">{с.outJson}</span>
       <div class="цс-поле цс-вывод">
         <textarea class="цс-ввод" id="цс-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
-        <!-- Кнопки встроены в само окно вывода, полосой у нижнего края: так видно, из
-             какого из двух окон берётся текст. -->
+        <!-- Одна полоса у нижнего края окна: слева счёт (строки, колонки, размер),
+             справа кнопки. Раньше счёт был отдельной строкой ПОД окном, и получалось два
+             ряда там, где хватает одного. -->
         <div class="цс-подвал">
+          <span class="цс-счёт" id="цс-счёт-вывода"></span>
+          <span class="цс-знаки">
           <button type="button" class="цс-копи" id="цс-копировать" aria-label={с.copy} title={с.copy}>
             <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
               <rect x="9" y="9" width="11" height="12" rx="2"></rect>
@@ -159,9 +162,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
               <path d="M10 11v6M14 11v6"></path>
             </svg>
           </button>
+          </span>
         </div>
       </div>
-      <div class="цс-счёт" id="цс-счёт-вывода"></div>
     </div>
   </div>
 

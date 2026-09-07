@@ -88,11 +88,14 @@
 /* ---- Полоса кнопок у нижнего края окна вывода ------------------------------------------------
    Кнопки встроены в само поле: окон два, и без этого было бы неясно, из какого берётся текст. */
 
+/* Слева счёт (строки, колонки, размер), справа кнопки -- один ряд вместо двух.
+   Высота постоянная: счёт появляется не сразу, и без запаса полоса дёргалась бы. */
 .цс-подвал {
-  display: flex; justify-content: flex-end; gap: 6px;
-  padding: 7px 8px; border-top: 1px solid rgba(255,255,255,.08);
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: 6px 8px 6px 14px; border-top: 1px solid rgba(255,255,255,.08);
   border-radius: 0 0 9px 9px;
 }
+.цс-знаки { display: inline-flex; gap: 6px; flex: none; margin-left: auto }
 .цс-копи, .цс-корзина {
   display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
   width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
@@ -157,8 +160,10 @@
 .цс-имя { padding: 0 4px 6px; font: 400 11.5px var(--цифры); color: var(--accent) }
 
 /* Счётчики под своим окном. Место занято всегда: они появляются по мере ввода. */
-.цс-счёт { min-height: 26px; padding: 7px 4px 0; font: 400 12px var(--цифры);
+/* Счёт живёт теперь ВНУТРИ полосы, а не отдельной строкой под окном: своих отступов у него
+   больше нет, их держит полоса. */
+.цс-счёт { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры);
   color: var(--accent); font-variant-numeric: tabular-nums;
-  display: flex; flex-wrap: wrap; gap: 3px 14px }
+  display: flex; flex-wrap: wrap; align-items: center; gap: 3px 14px }
 .цс-счёт b { color: #fff; font-weight: 500 }
 .цс-счёт .беда { color: var(--беда) }
