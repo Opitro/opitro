@@ -94,6 +94,36 @@
 
 /* ---- Кнопки -------------------------------------------------------------------------------- */
 
+/* ---- Полоса кнопок у нижнего края окна вывода ------------------------------------------------
+   Кнопки встроены в само поле: окон два, и без этого неясно, из какого берётся текст. */
+
+.дж-подвал {
+  display: flex; justify-content: flex-end; align-items: center; gap: 6px; min-height: 48px;
+  padding: 6px 8px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 9px 9px;
+}
+.дж-копи, .дж-корзина {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.дж-копи:hover, .дж-корзина:hover { border-color: #fff; background: #1c1f26 }
+.дж-копи svg, .дж-корзина svg {
+  width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
+}
+.дж-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.дж-копи.готово { border-color: var(--accent); color: var(--accent) }
+.дж-копи.готово .лист { display: none }
+.дж-копи.готово .галка { display: block }
+.дж-копи:focus-visible, .дж-корзина:focus-visible {
+  outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* Нижние углы поля вывода теперь держит полоса кнопок. */
+.дж-вывод .дж-ввод { border-radius: 9px 9px 0 0 }
+
 .дж-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
 .дж-кнопка {
   flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
@@ -106,13 +136,6 @@
   transition: background .15s, color .15s;
 }
 .дж-обводка:hover { background: #fff; color: #000 }
-.дж-простая {
-  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
-  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
-}
-.дж-простая:hover { border-color: #fff; background: #23272f }
-.дж-кнопка.вправо, .дж-простая.вправо { margin-left: auto }
 
 .дж-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
@@ -133,6 +156,6 @@
 @media (max-width: 560px) {
   .дж-ввод { min-height: 170px }
   .дж-знак { margin-left: 0 }
-  .дж-кнопка, .дж-обводка, .дж-простая { flex: 1 1 auto }
-  .дж-кнопка.вправо, .дж-простая.вправо { margin-left: 0 }
+  /* Кнопки НЕ растягиваем: раньше тут стояло flex: 1 1 auto, и «Форматировать» со
+     «Сжать» разъезжались во всю ширину экрана. Ширина у них теперь по своему тексту. */
 }

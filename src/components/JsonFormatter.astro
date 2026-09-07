@@ -116,6 +116,25 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
     <div class="дж-поле дж-вывод">
       <textarea class="дж-ввод" id="дж-вывод" placeholder={с.result} readonly spellcheck="false"></textarea>
+      <!-- Копирование и очистка встроены в само окно вывода: окон два, и без этого было бы
+           неясно, из какого берётся текст. -->
+      <div class="дж-подвал">
+        <button type="button" class="дж-копи" id="дж-копировать" aria-label={с.copy} title={с.copy}>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+        <button type="button" class="дж-корзина" id="дж-очистить" aria-label={с.clear} title={с.clear}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16"></path>
+            <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+            <path d="M10 11v6M14 11v6"></path>
+          </svg>
+        </button>
+      </div>
     </div>
   </div>
 
@@ -125,8 +144,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="дж-ряд">
     <button type="button" class="дж-кнопка" id="дж-красиво">{с.pretty}</button>
     <button type="button" class="дж-обводка" id="дж-сжать">{с.minify}</button>
-    <button type="button" class="дж-простая" id="дж-очистить">{с.clear}</button>
-    <button type="button" class="дж-кнопка вправо" id="дж-копировать">{с.copy}</button>
   </div>
 
   <div class="дж-заметки">
@@ -259,9 +276,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     пересчитать();
