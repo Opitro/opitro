@@ -35,6 +35,7 @@ const I = {
   cipher: '<path d="M20 12a8 8 0 1 1-2.4-5.7"/><path d="M20 3.5V7h-3.5"/><path d="M9.5 15l2.5-6.5 2.5 6.5M10.4 13h3.2"/>',
   clock: '<circle cx="12" cy="12" r="8.5"/><path d="M12 7.5V12l3 2"/>',
   // Угловые скобки со щитом: экранирование разметки.
+  'патч': '<path d="M4 5h7v14H4z" opacity=".5"/><path d="M13 5h7v14h-7z" opacity=".5"/><path d="M5.5 12h4"/><path d="M14.5 12h4M16.5 10v4"/>',
   'разряды': '<path d="M4 6h3v12H4z" opacity=".55"/><path d="M10.5 6h3v12h-3z"/><path d="M17 6h3v12h-3z" opacity=".55"/><path d="M5.5 6v12M18.5 6v12"/>',
   'амперсанд': '<path d="M9 8.5L4.5 12 9 15.5"/><path d="M15 8.5L19.5 12 15 15.5"/><path d="M12 3.5l4 1.6v4.2c0 2.7-1.6 5.2-4 6.2-2.4-1-4-3.5-4-6.2V5.1z" opacity=".5"/>',
   // Звено цепи, разложенное на части.
@@ -144,6 +145,7 @@ const RULES = [
   [/^url-parser$/, 'разбор-ссылки'],
   [/^html-entities$/, 'амперсанд'],
   [/^number-base-converter$/, 'разряды'],
+  [/^code-diff$/, 'патч'],
   [/^barcode$/, 'полосы'],
   // Точное совпадение и первым: ниже есть общее правило со словом «converter», и оно
   // забрало бы эту страницу себе -- вместе с соседней «text-case-converter».
@@ -227,7 +229,7 @@ const ЦВЕТА = {
   vibro: '#fb923c', camera: '#f87171', battery: '#4ade9e', bluetooth: '#3b82f6', codec: '#a78bfa',
   code: '#fbbf24', link: '#22d3ee', cipher: '#e879f9',
   clock: '#facc15', filler: '#94a3b8', flip: '#38bdf8', broom: '#fb7185',
-  'сжатие': '#7dd3fc', 'сервер': '#f0abfc', 'отпечаток': '#fbbf24', 'пропуск': '#a78bfa', 'разбор-ссылки': '#5eead4', 'амперсанд': '#fda4af', 'разряды': '#93c5fd',
+  'сжатие': '#7dd3fc', 'сервер': '#f0abfc', 'отпечаток': '#fbbf24', 'пропуск': '#a78bfa', 'разбор-ссылки': '#5eead4', 'амперсанд': '#fda4af', 'разряды': '#93c5fd', 'патч': '#c4b5fd',
   diff: '#a78bfa', bars: '#34d399', comma: '#fb923c', digits: '#60a5fa', calendar: '#f0abfc', cases: '#818cf8', ordinal: '#2dd4bf', phone: '#4ade9e', escape: '#c084fc', camel: '#f59e0b', listgen: '#38bdf8', squash: '#84cc16', говор: '#fb7185', фигурные: '#e879f9', схема: '#22d3ee', таблица: '#f59e0b', бочка: '#a78bfa', кубики: '#34d399', файлкод: '#fbbf24', кьюар: '#60a5fa', прицел: '#2dd4bf', полосы: '#f0abfc',
 };
 

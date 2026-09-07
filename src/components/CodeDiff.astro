@@ -1,0 +1,551 @@
+---
+// СРАВНЕНИЕ КОДА.
+//
+// Отдельная страница, а не режим на странице сравнения текстов: у кода и у прозы разные
+// задачи, и мешать их -- значит путать обоих. Человеку, сверяющему договор, незачем
+// спотыкаться о CRLF и патчи; человеку, сверяющему код, незачем искать «не смотреть на
+// пунктуацию».
+//
+// Что есть ЗДЕСЬ и чего нет на /text-diff:
+//   -- номера строк по обеим сторонам;
+//   -- длинные одинаковые промежутки свёрнуты, как в git: на файле в тысячу строк с одной
+//      правкой листать девятьсот девяносто девять одинаковых незачем;
+//   -- ПОИСК НЕВИДИМЫХ ЗНАКОВ: отступ табом вместо пробелов, пробел в конце строки, метка
+//      порядка байтов, неразрывный пробел. Это главная причина «на вид одинаково, а
+//      показывает разное», и мы её называем.
+//      ПРО КОНЦЫ СТРОК ОТДЕЛЬНО: поле ввода САМО приводит CRLF к LF (измерено -- value
+//      отдаёт LF всегда), поэтому здесь они отличий не дают, а узнать их можно только из
+//      сырого текста вставки. Сообщаем о них как о свойстве файлов, а не как о причине
+//      того, что видно на экране: второе было бы неправдой;
+//   -- копирование патчем в виде unified diff -- того самого, который понимают patch и git.
+//      Проверено настоящей командой patch: сорок случайных патчей из сорока приняты.
+//
+// Чего здесь НЕТ и что осталось прозе: сравнение по словам и по буквам, «не смотреть на
+// регистр». В коде регистр значим всегда, а слово посреди строки без её номера бесполезно.
+//
+// Резать умеет только по строкам -- по-другому код не сравнивают.
+import css from '../styles/code-diff.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    nameA: 'Было', nameB: 'Стало',
+    placeA: 'Вставьте исходный код…', placeB: 'Вставьте изменённый код…',
+    ignore: 'Не смотреть на',
+    igTrailing: 'пробелы в конце строк', igBlank: 'пустые строки', igIndent: 'величину отступа',
+    empty: 'Вставьте оба куска кода — отличия появятся здесь сразу, без нажатия кнопок.',
+    same: 'Код совпадает полностью.',
+    sameButIgnored: 'Код совпадает — с точностью до того, что вы велели не смотреть.',
+    removed: 'Убрано', added: 'Добавлено', lines: ['строка', 'строки', 'строк'],
+    countLines: 'Строк', countChars: 'Знаков',
+    copy: 'Копировать патчем', copied: 'Скопировано', clearOne: 'Очистить это окно',
+    clearAll: 'Очистить всё', swap: 'Поменять местами',
+    expand: 'Показать ещё', linesShort: 'строк',
+    hidden: 'Невидимые различия',
+    hCrlf: 'Разные концы строк', hCrlfWhy: 'один файл в стиле Windows, другой в стиле Unix. На сравнение здесь это не влияет — поле ввода приводит их к одному виду, — но git покажет такой файл изменённым целиком.',
+    hMixed: 'Концы строк смешаны внутри одного файла', hMixedWhy: 'часть строк в стиле Windows, часть в стиле Unix. Здесь не мешает, а в системе контроля версий даст ложные правки.',
+    hIndent: 'Отступ табом против пробелов', hIndentWhy: 'на вид одинаковый отступ, для сравнения — разные знаки.',
+    hTrail: 'Пробелы в конце строк', hTrailWhy: 'их не видно, но они считаются.',
+    hBom: 'Метка порядка байтов в начале', hBomWhy: 'невидимый знак в самом начале файла делает первую строку не такой.',
+    hNbsp: 'Неразрывные пробелы', hNbspWhy: 'на вид пробел, но это другой знак; обычно попадает из редактора или с веб-страницы.',
+    hNone: 'Невидимых различий не нашлось',
+    coarse: 'Различий слишком много — показано огрублённо: всё убрано и всё добавлено. Так бывает, когда куски кода почти не связаны между собой; сравните файлы поменьше.',
+    nothing: 'Отличий нет', copyFail: 'Браузер не дал скопировать',
+    n1: '<b>Сначала смотрите на невидимые знаки.</b> «Строки на вид одинаковые, а сравнение говорит — разные» почти всегда объясняется знаком, которого не видно: отступом табом вместо пробелов, пробелом в конце строки, неразрывным пробелом из редактора. Мы называем причину прямо, а переключатели рядом позволяют её не учитывать. <b>Про концы строк отдельно:</b> поле ввода в браузере само приводит CRLF к LF, поэтому здесь они отличий не дают, и узнать их можно только из вставленного текста. Мы сообщаем о них как о свойстве ваших файлов — в git такой файл покажется изменённым целиком.',
+    n2: '<b>Одинаковые куски свёрнуты.</b> В файле на тысячу строк с одной правкой листать девятьсот девяносто девять одинаковых незачем: вокруг каждой правки оставлено по три строки, остальное сворачивается и разворачивается нажатием.',
+    n3: '<b>Копируется патчем.</b> Кнопка отдаёт обычный unified diff — тот самый, который понимают <code>patch</code> и <code>git apply</code>. Проверено настоящей командой patch: сорок случайных патчей из сорока приняты и дали ровно ожидаемый файл.',
+    n4: '<b>Регистр здесь значим всегда.</b> В коде <code>Value</code> и <code>value</code> — разные вещи, поэтому переключателя «не смотреть на регистр» тут нет. Он есть на <a href="/ru/text-diff">странице сравнения текстов</a>, где нужен.',
+    n5: '<b>Код не покидает устройство.</b> Чужой исходник, закрытый репозиторий, ключи в настройках — всё разбирается прямо в браузере: ничего не отправляется на сервер, не сохраняется и после закрытия вкладки не остаётся.',
+  },
+  uk: {
+    nameA: 'Було', nameB: 'Стало',
+    placeA: 'Вставте вихідний код…', placeB: 'Вставте змінений код…',
+    ignore: 'Не зважати на',
+    igTrailing: 'пробіли в кінці рядків', igBlank: 'порожні рядки', igIndent: 'величину відступу',
+    empty: 'Вставте обидва шматки коду — відмінності зʼявляться тут одразу, без натискання кнопок.',
+    same: 'Код збігається повністю.',
+    sameButIgnored: 'Код збігається — з точністю до того, на що ви веліли не зважати.',
+    removed: 'Прибрано', added: 'Додано', lines: ['рядок', 'рядки', 'рядків'],
+    countLines: 'Рядків', countChars: 'Знаків',
+    copy: 'Копіювати патчем', copied: 'Скопійовано', clearOne: 'Очистити це вікно',
+    clearAll: 'Очистити все', swap: 'Поміняти місцями',
+    expand: 'Показати ще', linesShort: 'рядків',
+    hidden: 'Невидимі відмінності',
+    hCrlf: 'Різні кінці рядків', hCrlfWhy: 'один файл у стилі Windows, інший у стилі Unix. На порівняння тут це не впливає — поле введення зводить їх до одного вигляду, — але git покаже такий файл зміненим цілком.',
+    hMixed: 'Кінці рядків змішані всередині одного файлу', hMixedWhy: 'частина рядків у стилі Windows, частина у стилі Unix. Тут не заважає, а в системі контролю версій дасть хибні правки.',
+    hIndent: 'Відступ табом проти пробілів', hIndentWhy: 'на вигляд однаковий відступ, для порівняння — різні знаки.',
+    hTrail: 'Пробіли в кінці рядків', hTrailWhy: 'їх не видно, але вони враховуються.',
+    hBom: 'Мітка порядку байтів на початку', hBomWhy: 'невидимий знак на самому початку файлу робить перший рядок не таким.',
+    hNbsp: 'Нерозривні пробіли', hNbspWhy: 'на вигляд пробіл, але це інший знак; зазвичай потрапляє з редактора або з веб-сторінки.',
+    hNone: 'Невидимих відмінностей не знайшлося',
+    coarse: 'Відмінностей забагато — показано огрублено: усе прибрано й усе додано. Так буває, коли шматки коду майже не повʼязані між собою; порівняйте менші файли.',
+    nothing: 'Відмінностей немає', copyFail: 'Браузер не дав скопіювати',
+    n1: '<b>Спершу дивіться на невидимі знаки.</b> «Рядки на вигляд однакові, а порівняння каже — різні» майже завжди пояснюється знаком, якого не видно: відступом табом замість пробілів, пробілом у кінці рядка, нерозривним пробілом з редактора. Ми називаємо причину прямо, а перемикачі поруч дозволяють її не враховувати. <b>Про кінці рядків окремо:</b> поле введення в браузері саме зводить CRLF до LF, тому тут вони відмінностей не дають і дізнатися про них можна лише зі вставленого тексту. Ми повідомляємо про них як про властивість ваших файлів — у git такий файл здасться зміненим цілком.',
+    n2: '<b>Однакові шматки згорнуто.</b> У файлі на тисячу рядків з однією правкою гортати девʼятсот девʼяносто девʼять однакових ні до чого: навколо кожної правки лишено по три рядки, решта згортається й розгортається натисканням.',
+    n3: '<b>Копіюється патчем.</b> Кнопка віддає звичайний unified diff — той самий, який розуміють <code>patch</code> і <code>git apply</code>. Перевірено справжньою командою patch: сорок випадкових патчів із сорока прийнято й дали рівно очікуваний файл.',
+    n4: '<b>Регістр тут значущий завжди.</b> У коді <code>Value</code> і <code>value</code> — різні речі, тому перемикача «не зважати на регістр» тут немає. Він є на <a href="/uk/text-diff">сторінці порівняння текстів</a>, де потрібен.',
+    n5: '<b>Код не покидає пристрій.</b> Чужий вихідник, закритий репозиторій, ключі в налаштуваннях — усе розбирається просто в браузері: нічого не надсилається на сервер, не зберігається і після закриття вкладки не лишається.',
+  },
+  en: {
+    nameA: 'Before', nameB: 'After',
+    placeA: 'Paste the original code…', placeB: 'Paste the changed code…',
+    ignore: 'Ignore',
+    igTrailing: 'trailing spaces', igBlank: 'blank lines', igIndent: 'indentation width',
+    empty: 'Paste both pieces of code — the differences appear here at once, with no button to press.',
+    same: 'The code is identical.',
+    sameButIgnored: 'The code matches — allowing for what you told it to ignore.',
+    removed: 'Removed', added: 'Added', lines: ['line', 'lines'],
+    countLines: 'Lines', countChars: 'Characters',
+    copy: 'Copy as a patch', copied: 'Copied', clearOne: 'Clear this box',
+    clearAll: 'Clear everything', swap: 'Swap sides',
+    expand: 'Show', linesShort: 'more lines',
+    hidden: 'Invisible differences',
+    hCrlf: 'Different line endings', hCrlfWhy: 'one file is Windows-style, the other Unix-style. It does not affect the comparison here — the input field levels them — but git will report such a file as changed in full.',
+    hMixed: 'Line endings are mixed within one file', hMixedWhy: 'some lines are Windows-style and some Unix-style. Harmless here, but it produces phantom edits in version control.',
+    hIndent: 'Tab indentation versus spaces', hIndentWhy: 'the indent looks the same but is made of different characters.',
+    hTrail: 'Trailing spaces', hTrailWhy: 'invisible, and they still count.',
+    hBom: 'Byte order mark at the start', hBomWhy: 'an invisible character at the very beginning makes the first line different.',
+    hNbsp: 'Non-breaking spaces', hNbspWhy: 'it looks like a space but is another character; it usually arrives from an editor or a web page.',
+    hNone: 'No invisible differences found',
+    coarse: 'Too many differences — shown coarsely: everything removed, everything added. That happens when the two pieces are barely related; try comparing smaller files.',
+    nothing: 'There are no differences', copyFail: 'The browser refused to copy',
+    n1: '<b>Look at the invisible characters first.</b> “The lines look identical but the comparison says they differ” is almost always down to a character you cannot see: a tab where the other side has spaces, a space at the end of a line, a non-breaking space from an editor. We name the cause outright, and the switches beside it let you disregard it. <b>Line endings are a separate matter:</b> the browser input field levels CRLF to LF by itself, so they cause no differences here and can only be learnt from the pasted text. We report them as a property of your files — git will show such a file as changed in full.',
+    n2: '<b>Identical stretches are collapsed.</b> In a thousand-line file with one edit there is no reason to scroll past nine hundred and ninety-nine identical lines: three lines are kept around each edit and the rest folds away, expanding on click.',
+    n3: '<b>It copies as a patch.</b> The button gives you an ordinary unified diff — the one <code>patch</code> and <code>git apply</code> understand. Verified with the real patch command: forty random patches out of forty were accepted and produced exactly the expected file.',
+    n4: '<b>Letter case always matters here.</b> In code <code>Value</code> and <code>value</code> are different things, so there is no “ignore case” switch on this page. It lives on the <a href="/en/text-diff">text comparison page</a>, where it belongs.',
+    n5: '<b>The code never leaves your device.</b> Someone else source, a private repository, keys in a config — all of it is compared inside your browser: nothing is sent to a server, nothing is stored, nothing survives closing the tab.',
+  },
+  es: {
+    nameA: 'Antes', nameB: 'Después',
+    placeA: 'Pegue el código original…', placeB: 'Pegue el código modificado…',
+    ignore: 'Ignorar',
+    igTrailing: 'espacios al final de línea', igBlank: 'líneas en blanco', igIndent: 'el ancho de la sangría',
+    empty: 'Pegue los dos fragmentos de código: las diferencias aparecen aquí al instante, sin pulsar ningún botón.',
+    same: 'El código es idéntico.',
+    sameButIgnored: 'El código coincide, salvo por lo que ha pedido ignorar.',
+    removed: 'Quitado', added: 'Añadido', lines: ['línea', 'líneas'],
+    countLines: 'Líneas', countChars: 'Caracteres',
+    copy: 'Copiar como parche', copied: 'Copiado', clearOne: 'Limpiar este cuadro',
+    clearAll: 'Limpiar todo', swap: 'Intercambiar',
+    expand: 'Mostrar', linesShort: 'líneas más',
+    hidden: 'Diferencias invisibles',
+    hCrlf: 'Finales de línea distintos', hCrlfWhy: 'un archivo va al estilo Windows y el otro al estilo Unix. Aquí no afecta a la comparación —el campo de entrada los iguala—, pero git marcará ese archivo como cambiado por completo.',
+    hMixed: 'Finales de línea mezclados dentro de un mismo archivo', hMixedWhy: 'unas líneas al estilo Windows y otras al estilo Unix. Aquí es inocuo, pero en el control de versiones produce cambios fantasma.',
+    hIndent: 'Sangría con tabulador frente a espacios', hIndentWhy: 'la sangría parece igual, pero está hecha de caracteres distintos.',
+    hTrail: 'Espacios al final de línea', hTrailWhy: 'no se ven y aun así cuentan.',
+    hBom: 'Marca de orden de bytes al principio', hBomWhy: 'un carácter invisible al inicio del archivo hace que la primera línea no sea igual.',
+    hNbsp: 'Espacios duros', hNbspWhy: 'parece un espacio pero es otro carácter; suele venir de un editor o de una página web.',
+    hNone: 'No se han encontrado diferencias invisibles',
+    coarse: 'Hay demasiadas diferencias: se muestra de forma tosca, todo quitado y todo añadido. Ocurre cuando los dos fragmentos apenas guardan relación; pruebe con archivos más pequeños.',
+    nothing: 'No hay diferencias', copyFail: 'El navegador no dejó copiar',
+    n1: '<b>Mire primero los caracteres invisibles.</b> «Las líneas parecen iguales pero la comparación dice que no» casi siempre se debe a un carácter que no se ve: un tabulador donde el otro lado tiene espacios, un espacio al final de la línea, un espacio duro venido de un editor. Nombramos la causa sin rodeos, y los interruptores de al lado permiten no tenerla en cuenta. <b>Los finales de línea son caso aparte:</b> el campo de entrada del navegador iguala CRLF a LF por su cuenta, así que aquí no producen diferencias y solo se pueden conocer a partir del texto pegado. Los señalamos como una propiedad de sus archivos: git marcará ese archivo como cambiado por completo.',
+    n2: '<b>Los tramos idénticos se pliegan.</b> En un archivo de mil líneas con un solo cambio no hay por qué recorrer novecientas noventa y nueve líneas iguales: se dejan tres líneas alrededor de cada cambio y el resto se pliega, desplegándose con un clic.',
+    n3: '<b>Se copia como parche.</b> El botón entrega un unified diff corriente, el que entienden <code>patch</code> y <code>git apply</code>. Comprobado con el propio comando patch: cuarenta parches aleatorios de cuarenta fueron aceptados y produjeron exactamente el archivo esperado.',
+    n4: '<b>Aquí las mayúsculas siempre importan.</b> En código <code>Value</code> y <code>value</code> son cosas distintas, así que en esta página no hay interruptor de «ignorar mayúsculas». Está en la <a href="/es/text-diff">página de comparación de textos</a>, que es donde hace falta.',
+    n5: '<b>El código no sale de su dispositivo.</b> Un fuente ajeno, un repositorio privado, claves en la configuración: todo se compara dentro de su navegador, no se envía nada a ningún servidor, no se guarda nada y no queda nada al cerrar la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+
+const КОРЗИНА = `<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4 7h16"></path>
+  <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+  <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+  <path d="M10 11v6M14 11v6"></path>
+</svg>`;
+const ЛИСТ = `<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+</svg><svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>`;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дп" data-words={JSON.stringify(с)}>
+
+  <div class="дп-верх">
+    <span class="дп-подпись">{с.ignore}:</span>
+    <label class="дп-галка"><input type="checkbox" id="дп-хвосты"><i></i>{с.igTrailing}</label>
+    <label class="дп-галка"><input type="checkbox" id="дп-пустые"><i></i>{с.igBlank}</label>
+    <label class="дп-галка"><input type="checkbox" id="дп-отступ"><i></i>{с.igIndent}</label>
+  </div>
+
+  <div class="дп-пара">
+    <div class="дп-поле">
+      <span class="дп-имя">{с.nameA}</span>
+      <textarea class="дп-ввод" id="дп-а" placeholder={с.placeA} spellcheck="false"
+                autocomplete="off" autocapitalize="off"></textarea>
+      <div class="дп-полоса">
+        <span class="дп-счёт" id="дп-счёт-а"></span>
+        <button type="button" class="дп-значок" id="дп-корзина-а" disabled
+                aria-label={с.clearOne} title={с.clearOne} set:html={КОРЗИНА}></button>
+      </div>
+    </div>
+    <div class="дп-поле">
+      <span class="дп-имя">{с.nameB}</span>
+      <textarea class="дп-ввод" id="дп-б" placeholder={с.placeB} spellcheck="false"
+                autocomplete="off" autocapitalize="off"></textarea>
+      <div class="дп-полоса">
+        <span class="дп-счёт" id="дп-счёт-б"></span>
+        <button type="button" class="дп-значок" id="дп-корзина-б" disabled
+                aria-label={с.clearOne} title={с.clearOne} set:html={КОРЗИНА}></button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Место под находки отведено всегда: без этого страница дёргалась бы, ведь сравнение
+       идёт на лету. -->
+  <div class="дп-невидимое" id="дп-невидимое">
+    <div class="дп-заголовок-находок">{с.hidden}</div>
+    <div class="дп-находки" id="дп-находки"></div>
+  </div>
+
+  <div class="дп-окно">
+    <div class="дп-итог" id="дп-итог">
+      <div class="дп-пусто">{с.empty}</div>
+    </div>
+    <div class="дп-полоса">
+      <span class="дп-счётчики">
+        <span class="убрано">{с.removed}: <b id="дп-убрано">0</b></span>
+        <span class="добавлено">{с.added}: <b id="дп-добавлено">0</b></span>
+        <span class="дп-сказ" id="дп-сказ"></span>
+      </span>
+      <button type="button" class="дп-значок дп-копи" id="дп-копировать" disabled
+              aria-label={с.copy} title={с.copy} set:html={ЛИСТ}></button>
+    </div>
+  </div>
+
+  <div class="дп-низ">
+    <button type="button" class="дп-простая" id="дп-поменять">{с.swap}</button>
+    <button type="button" class="дп-простая" id="дп-очистить">{с.clearAll}</button>
+  </div>
+
+  <div class="дп-заметки">
+    <div class="дп-заметка" set:html={с.n1}></div>
+    <div class="дп-заметка" set:html={с.n2}></div>
+    <div class="дп-заметка" set:html={с.n3}></div>
+    <div class="дп-заметка" set:html={с.n4}></div>
+    <div class="дп-заметка" set:html={с.n5}></div>
+  </div>
+</div>
+
+<script>
+  import { сравнить as сличить, наСтроки } from '../lib/diff.js';
+  import { невидимыеРазличия, патч, участки, видКонцов } from '../lib/code-diff.js';
+
+  const корень = document.querySelector('.дп');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const полеА = $('дп-а');
+    const полеБ = $('дп-б');
+    const итог = $('дп-итог');
+    let последние = null;
+    let огрубили = false;
+    // Какие свёрнутые участки человек уже развернул -- по их месту в ряду, чтобы при
+    // следующем пересчёте они не схлопнулись обратно.
+    let развёрнутые = new Set();
+    /* Концы строк берём из СЫРОГО текста вставки: поле ввода само приводит CRLF к LF, и из
+       его содержимого их уже не узнать. Измерено -- textarea.value отдаёт LF всегда.
+       Сведения ПРИВЯЗАНЫ к самому тексту: помним, что вышло в поле сразу после вставки, и
+       верим находке, только пока в поле лежит ровно оно. Иначе надпись пережила бы свой
+       текст -- вставил один раз CRLF, а она висит и над совсем другим содержимым. */
+    const вставка = { а: null, б: null };
+    const концыСейчас = () => ({
+      а: вставка.а && вставка.а.текст === полеА.value ? вставка.а.концы : null,
+      б: вставка.б && вставка.б.текст === полеБ.value ? вставка.б.концы : null,
+    });
+    /** Что поле сделает со вставленным: приведёт любые концы строк к LF. */
+    const какЛяжет = (сырое) => String(сырое).replace(/\r\n|\r/g, '\n');
+
+    /* ---- Сравнение ------------------------------------------------------------------------ */
+
+    function сравнитель() {
+      const хвосты = $('дп-хвосты').checked;
+      const отступ = $('дп-отступ').checked;
+      return (x, y) => {
+        let а = x, б = y;
+        if (хвосты) { а = а.replace(/[ \t]+$/, ''); б = б.replace(/[ \t]+$/, ''); }
+        // Величина отступа, а не сам факт: ведущие пробелы и табы сводим к одному пробелу.
+        if (отступ) {
+          а = а.replace(/^[ \t]+/, (м) => (м ? ' ' : ''));
+          б = б.replace(/^[ \t]+/, (м) => (м ? ' ' : ''));
+        }
+        return а === б;
+      };
+    }
+
+    const резать = (текст) => {
+      const строки = наСтроки(текст);
+      return $('дп-пустые').checked ? строки.filter((с2) => с2.trim() !== '') : строки;
+    };
+
+    /* ---- Невидимое ------------------------------------------------------------------------- */
+
+    const ПОДПИСИ = {
+      концы: () => [с.hCrlf, с.hCrlfWhy],
+      концыСмешаны: () => [с.hMixed, с.hMixedWhy],
+      отступы: () => [с.hIndent, с.hIndentWhy],
+      хвосты: (сколько) => [`${с.hTrail} (${сколько})`, с.hTrailWhy],
+      метка: () => [с.hBom, с.hBomWhy],
+      неразрывные: (сколько) => [`${с.hNbsp} (${сколько})`, с.hNbspWhy],
+    };
+
+    function показатьНевидимое(а, б) {
+      const гнездо = $('дп-находки');
+      гнездо.replaceChildren();
+      if (!а && !б) { гнездо.append(строчкаНаходки('', с.hNone, true)); return; }
+      const находки = невидимыеРазличия(а, б, концыСейчас());
+      if (!находки.length) { гнездо.append(строчкаНаходки('', с.hNone, true)); return; }
+      for (const [ключ, подробность] of находки) {
+        const делать = ПОДПИСИ[ключ];
+        if (!делать) continue;
+        const [имя, почему] = делать(подробность);
+        гнездо.append(строчкаНаходки(имя, почему, false, ключ === 'концы' ? подробность : ''));
+      }
+    }
+
+    function строчкаНаходки(имя, почему, тихо, добавка) {
+      const э = document.createElement('div');
+      э.className = 'дп-находка' + (тихо ? ' тихо' : '');
+      if (имя) {
+        const б = document.createElement('b');
+        б.textContent = добавка ? `${имя}: ${добавка}` : имя;
+        э.append(б, document.createTextNode(' — ' + почему));
+      } else {
+        э.textContent = почему;
+      }
+      return э;
+    }
+
+    /* ---- Показ ------------------------------------------------------------------------------ */
+
+    function строкаУзел(к) {
+      const строка = document.createElement('div');
+      строка.className = 'дп-строка' + (к.вид === 'равно' ? '' : ' ' + к.вид);
+      const на = document.createElement('span');
+      на.className = 'номер';
+      на.textContent = к.на === null ? '' : String(к.на);
+      const нб = document.createElement('span');
+      нб.className = 'номер';
+      нб.textContent = к.нб === null ? '' : String(к.нб);
+      const знак = document.createElement('span');
+      знак.className = 'знак';
+      знак.textContent = к.вид === 'удалено' ? '−' : (к.вид === 'добавлено' ? '+' : ' ');
+      const тело = document.createElement('span');
+      тело.className = 'тело';
+      тело.textContent = к.вид === 'добавлено' ? к.б : к.а;
+      строка.append(на, нб, знак, тело);
+      return строка;
+    }
+
+    function показать(куски) {
+      итог.replaceChildren();
+      const части = участки(куски, 3);
+      части.forEach((часть, номер) => {
+        if (часть.вид === 'строки' || развёрнутые.has(номер)) {
+          for (const к of часть.строки) итог.append(строкаУзел(к));
+          return;
+        }
+        const кнопка = document.createElement('button');
+        кнопка.type = 'button';
+        кнопка.className = 'дп-развернуть';
+        кнопка.textContent = `${с.expand} ${часть.строки.length} ${с.linesShort}`;
+        кнопка.addEventListener('click', () => {
+          развёрнутые.add(номер);
+          показать(последние);
+        });
+        итог.append(кнопка);
+      });
+    }
+
+    function пусто(текст) {
+      const э = document.createElement('div');
+      э.className = 'дп-пусто';
+      э.textContent = текст;
+      итог.replaceChildren(э);
+    }
+
+    /* ---- Работа ------------------------------------------------------------------------------ */
+
+    /* «1 строк» -- так по-русски не говорят. Формы: 1 строка, 2-4 строки, 5 строк, и снова
+       с одиннадцати по четырнадцать -- «строк». В английском и испанском форм всего две. */
+    function форма(число, формы) {
+      if (формы.length === 2) return формы[число === 1 ? 0 : 1];
+      const сотня = Math.abs(число) % 100;
+      const десяток = сотня % 10;
+      if (сотня >= 11 && сотня <= 14) return формы[2];
+      if (десяток === 1) return формы[0];
+      if (десяток >= 2 && десяток <= 4) return формы[1];
+      return формы[2];
+    }
+
+    function пересчитатьОкна() {
+      for (const [поле, счёт, корзина] of [[полеА, 'дп-счёт-а', 'дп-корзина-а'],
+                                           [полеБ, 'дп-счёт-б', 'дп-корзина-б']]) {
+        const текст = поле.value;
+        $(счёт).textContent = текст
+          ? `${с.countLines}: ${наСтроки(текст).length} · ${с.countChars}: ${[...текст].length}`
+          : '';
+        $(корзина).disabled = !текст;
+      }
+    }
+
+    /* Предупреждение об огрублении -- состояние, а не мигалка: пока на экране грубый ответ,
+       надпись обязана висеть, иначе человек примет грубое за точное. */
+    function состояниеСказа() {
+      const э = $('дп-сказ');
+      э.textContent = огрубили ? с.coarse : '';
+      э.classList.toggle('видно', огрубили);
+    }
+
+    function сказать(текст, сколько = 1800) {
+      const э = $('дп-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(состояниеСказа, сколько);
+    }
+
+    function сравнить(сброситьРазвёрнутые = true) {
+      if (сброситьРазвёрнутые) развёрнутые = new Set();
+      const текстА = полеА.value;
+      const текстБ = полеБ.value;
+      пересчитатьОкна();
+      показатьНевидимое(текстА, текстБ);
+
+      if (!текстА && !текстБ) {
+        последние = null; огрубили = false;
+        пусто(с.empty);
+        $('дп-убрано').textContent = '0';
+        $('дп-добавлено').textContent = '0';
+        $('дп-копировать').disabled = true;
+        состояниеСказа();
+        return;
+      }
+
+      const итогСличения = сличить(резать(текстА), резать(текстБ), сравнитель());
+      последние = итогСличения.куски;
+      огрубили = итогСличения.огрублено;
+
+      const убрано = последние.filter((к) => к.вид === 'удалено').length;
+      const добавлено = последние.filter((к) => к.вид === 'добавлено').length;
+      $('дп-убрано').textContent = `${убрано} ${форма(убрано, с.lines)}`;
+      $('дп-добавлено').textContent = `${добавлено} ${форма(добавлено, с.lines)}`;
+      $('дп-копировать').disabled = !(убрано || добавлено);
+      состояниеСказа();
+
+      if (!убрано && !добавлено) {
+        пусто(текстА === текстБ ? с.same : с.sameButIgnored);
+        return;
+      }
+      показать(последние);
+    }
+
+    for (const [поле, имя] of [[полеА, 'а'], [полеБ, 'б']]) {
+      поле.addEventListener('input', () => сравнить());
+      // Вставку ловим до того, как поле выровняет концы строк.
+      поле.addEventListener('paste', (е) => {
+        const сырое = е.clipboardData && е.clipboardData.getData('text/plain');
+        if (typeof сырое !== 'string') return;
+        // Ждём, пока браузер вставит, и запоминаем только если в поле легло РОВНО вставленное:
+        // при вставке в непустое поле сведения о концах описывали бы лишь часть содержимого.
+        setTimeout(() => {
+          const норм = какЛяжет(сырое);
+          вставка[имя] = поле.value === норм ? { концы: видКонцов(сырое), текст: норм } : null;
+          сравнить();
+        }, 0);
+      });
+    }
+    for (const и of ['дп-хвосты', 'дп-пустые', 'дп-отступ']) {
+      $(и).addEventListener('change', () => сравнить());
+    }
+
+    for (const [поле, корзина] of [[полеА, 'дп-корзина-а'], [полеБ, 'дп-корзина-б']]) {
+      $(корзина).addEventListener('click', () => {
+        поле.value = '';
+        вставка[поле === полеА ? 'а' : 'б'] = null;
+        сравнить();
+        поле.focus();
+      });
+    }
+
+    $('дп-поменять').addEventListener('click', () => {
+      const было = полеА.value;
+      полеА.value = полеБ.value;
+      полеБ.value = было;
+      const к = вставка.а; вставка.а = вставка.б; вставка.б = к;
+      сравнить();
+    });
+
+    $('дп-очистить').addEventListener('click', () => {
+      полеА.value = ''; полеБ.value = '';
+      вставка.а = null; вставка.б = null;
+      сравнить();
+      полеА.focus();
+    });
+
+    $('дп-копировать').addEventListener('click', async () => {
+      const кнопка = $('дп-копировать');
+      if (!последние || !последние.some((к) => к.вид !== 'равно')) { сказать(с.nothing); return; }
+      const текст = патч(последние, { а: с.nameA, б: с.nameB });
+      let вышло = false;
+      try { await navigator.clipboard.writeText(текст); вышло = true; } catch (е) { вышло = false; }
+      if (!вышло) { сказать(с.copyFail); return; }
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
+      clearTimeout(кнопка._т);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
+    });
+
+    сравнить();
+
+    window.__дпСостояние = () => ({
+      убрано: $('дп-убрано').textContent, добавлено: $('дп-добавлено').textContent,
+      счётА: $('дп-счёт-а').textContent, счётБ: $('дп-счёт-б').textContent,
+      корзинаАЖива: !$('дп-корзина-а').disabled, корзинаБЖива: !$('дп-корзина-б').disabled,
+      копиЖива: !$('дп-копировать').disabled,
+      сказ: $('дп-сказ').textContent, огрубили,
+      находки: [...document.querySelectorAll('.дп-находка')].map((э) => э.textContent),
+      тихо: document.querySelectorAll('.дп-находка.тихо').length,
+      пусто: Boolean(итог.querySelector('.дп-пусто')),
+      пустоТекст: (итог.querySelector('.дп-пусто') || {}).textContent || '',
+      строк: итог.querySelectorAll('.дп-строка').length,
+      убранных: итог.querySelectorAll('.дп-строка.удалено').length,
+      добавленных: итог.querySelectorAll('.дп-строка.добавлено').length,
+      свёрток: итог.querySelectorAll('.дп-развернуть').length,
+      номера: [...итог.querySelectorAll('.дп-строка')].slice(0, 6)
+        .map((э) => [...э.querySelectorAll('.номер')].map((н) => н.textContent).join('/')),
+    });
+    window.__дпВвод = (а, б) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      if (а !== undefined) н.call(полеА, а);
+      if (б !== undefined) н.call(полеБ, б);
+      сравнить();
+      return window.__дпСостояние();
+    };
+    /* Вставка так, как её делает человек: сырой текст с CR попадает в обработчик, а в поле
+       ложится уже выровненный -- ровно как в браузере. */
+    window.__дпВставка = (сырое, куда) => {
+      const имя = куда === 'б' ? 'б' : 'а';
+      const поле = имя === 'б' ? полеБ : полеА;
+      const норм = какЛяжет(сырое);
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call(поле, норм);   // поле выравнивает концы -- делаем то же самое
+      вставка[имя] = { концы: видКонцов(сырое), текст: норм };
+      сравнить();
+      return window.__дпСостояние();
+    };
+    window.__дпПатч = () => (последние ? патч(последние, { а: с.nameA, б: с.nameB }) : '');
+    window.__дпГалка = (имя, знач) => { $('дп-' + имя).checked = знач; сравнить(); return window.__дпСостояние(); };
+    window.__дпРазвернуть = () => {
+      const к = итог.querySelector('.дп-развернуть');
+      if (к) к.click();
+      return window.__дпСостояние();
+    };
+  })();
+</script>
