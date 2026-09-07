@@ -1,0 +1,298 @@
+---
+// РАЗБОР ССЫЛКИ.
+//
+// Разбирает сам браузер -- класс URL, тот же, которым он ходит по ссылкам. Наша работа --
+// показать то, о чём обычные парсеры молчат; всё это проверено против python3 urllib.parse
+// и отдельными разборами:
+//   -- повторяющиеся параметры (?a=1&a=2) не теряются: обычный get вернул бы только первое;
+//   -- рядом с записью в процентах стоит читаемая, НО знаки строения (%2F в пути, %26 в
+//      запросе) не раскодируются: «/a%2Fb/c» -- это два отрезка, а не три;
+//   -- имя на кириллице показано и в punycode (так уйдёт на сервер), и как набирали;
+//   -- логин с паролем в ссылке названы прямо: они утекают в закладки и журналы;
+//   -- плюс в запросе -- пробел, а в пути -- плюс.
+//
+// ОТСТУПЛЕНИЯ ПО ВИДУ: фон страницы не задаю, приглушённо-серых подписей нет; корзина в
+// полосе под полем, а не поверх текста.
+import css from '../styles/url-parser.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    place: 'Вставьте ссылку…', label: 'Ссылка', clear: 'Очистить',
+    copy: 'Копировать', copied: 'Скопировано',
+    parts: 'Части ссылки', params: 'Параметры запроса',
+    noParams: 'Параметров в ссылке нет', empty: 'Вставьте ссылку — она разберётся сама',
+    e_bad: 'Это не похоже на ссылку',
+    asSent: 'как уйдёт на сервер', asTyped: 'как набирали',
+    repeat: 'повтор',
+    z_scheme: 'Схема не была указана — мы дописали https:// сами, чтобы разобрать.',
+    z_login: 'В ссылке есть логин и пароль. Они утекают в закладки, в историю браузера и в журналы серверов по дороге — такие ссылки нельзя пересылать и сохранять.',
+    z_repeats: 'Есть повторяющиеся имена параметров. Показаны все значения: обычный разбор вернул бы только первое, и остальные пропали бы молча.',
+    z_hash: 'Всё после решётки на сервер не уходит — якорь остаётся в браузере. В журналах сервера его не будет.',
+    z_puny: 'Имя на кириллице браузер перевёл в punycode. Именно эта запись уйдёт на сервер и попадёт в его журналы.',
+    z_plus: 'В запросе есть плюс. В запросе плюс означает пробел, а в пути — просто плюс: одна закорючка, два разных смысла.',
+    z_slash: 'В пути есть %2F — это закодированная косая ВНУТРИ отрезка, а не разделитель. Раскодировать её нельзя: строение пути изменилось бы.',
+    n1: '<b>Повторяющиеся параметры не теряются.</b> В <code>?a=1&amp;a=2</code> обычный разбор вернёт только «1», и второе значение пропадёт молча. Здесь показаны все — на этом ломаются разборы ссылок из рекламных систем, где повторы обычное дело.',
+    n2: '<b>Плюс в запросе — это пробел, а в пути — плюс.</b> Одна и та же закорючка значит разное по разные стороны знака вопроса. Ходовая причина «параметр приходит не тот, что отправляли».',
+    n3: '<b>%2F в пути — не разделитель.</b> Это закодированная косая внутри отрезка: <code>/a%2Fb/c</code> — два отрезка, а не три. Мы её нарочно не раскодируем: показать «/a/b/c» значило бы соврать про строение ссылки.',
+    n4: '<b>Имя на кириллице уходит в punycode.</b> «пример.рф» превращается в «xn--e1afmkfd.xn--p1ai», и в журналах сервера будет второе. Показываем обе записи, чтобы одно узнавалось в другом.',
+    n5: '<b>Про токены в ссылках — честно.</b> Эта страница не делает сетевых запросов, и это видно во вкладке «Сеть» браузера. Но главное не в нас: ссылка с токеном опасна сама по себе — она целиком попадает в журналы серверов, в историю браузера и в заголовок Referer при переходе дальше. Токен в адресе — плохое место для токена.',
+    n6: 'Ничего никуда не отправляется. Ссылки, адреса ваших серверов и всё, что внутри параметров, остаётся в памяти вкладки.',
+  },
+  uk: {
+    place: 'Вставте посилання…', label: 'Посилання', clear: 'Очистити',
+    copy: 'Копіювати', copied: 'Скопійовано',
+    parts: 'Частини посилання', params: 'Параметри запиту',
+    noParams: 'Параметрів у посиланні немає', empty: 'Вставте посилання — воно розбереться саме',
+    e_bad: 'Це не схоже на посилання',
+    asSent: 'як піде на сервер', asTyped: 'як набирали',
+    repeat: 'повтор',
+    z_scheme: 'Схему не було вказано — ми дописали https:// самі, щоб розібрати.',
+    z_login: 'У посиланні є логін і пароль. Вони витікають у закладки, в історію браузера та в журнали серверів дорогою — такі посилання не можна пересилати й зберігати.',
+    z_repeats: 'Є повторювані імена параметрів. Показано всі значення: звичайний розбір повернув би лише перше, а решта зникла б мовчки.',
+    z_hash: 'Усе після решітки на сервер не йде — якір лишається в браузері. У журналах сервера його не буде.',
+    z_puny: 'Імʼя на кирилиці браузер переклав у punycode. Саме цей запис піде на сервер і потрапить до його журналів.',
+    z_plus: 'У запиті є плюс. У запиті плюс означає пробіл, а у шляху — просто плюс: одна закарлючка, два різні змісти.',
+    z_slash: 'У шляху є %2F — це закодована коса риска ВСЕРЕДИНІ відрізка, а не роздільник. Розкодувати її не можна: будова шляху змінилася б.',
+    n1: '<b>Повторювані параметри не губляться.</b> У <code>?a=1&amp;a=2</code> звичайний розбір поверне лише «1», і друге значення зникне мовчки. Тут показано всі — на цьому ламаються розбори посилань із рекламних систем, де повтори звична річ.',
+    n2: '<b>Плюс у запиті — це пробіл, а у шляху — плюс.</b> Та сама закарлючка означає різне по різні боки знака питання. Ходова причина «параметр приходить не той, що відправляли».',
+    n3: '<b>%2F у шляху — не роздільник.</b> Це закодована коса риска всередині відрізка: <code>/a%2Fb/c</code> — два відрізки, а не три. Ми її навмисно не розкодовуємо: показати «/a/b/c» означало б збрехати про будову посилання.',
+    n4: '<b>Імʼя на кирилиці йде в punycode.</b> «приклад.укр» перетворюється на запис із xn--, і в журналах сервера буде саме вона. Показуємо обидва записи, щоб одне впізнавалося в іншому.',
+    n5: '<b>Про токени в посиланнях — чесно.</b> Ця сторінка не робить мережевих запитів, і це видно у вкладці «Мережа» браузера. Але головне не в нас: посилання з токеном небезпечне саме по собі — воно цілком потрапляє в журнали серверів, в історію браузера та в заголовок Referer при переході далі. Токен в адресі — погане місце для токена.',
+    n6: 'Нічого нікуди не надсилається. Посилання, адреси ваших серверів і все, що всередині параметрів, лишається в памʼяті вкладки.',
+  },
+  en: {
+    place: 'Paste a link…', label: 'Link', clear: 'Clear',
+    copy: 'Copy', copied: 'Copied',
+    parts: 'Parts of the URL', params: 'Query parameters',
+    noParams: 'The link has no query parameters', empty: 'Paste a link — it parses itself',
+    e_bad: 'That does not look like a link',
+    asSent: 'as sent to the server', asTyped: 'as typed',
+    repeat: 'repeated',
+    z_scheme: 'No scheme was given — we added https:// ourselves in order to parse it.',
+    z_login: 'The link carries a username and password. They leak into bookmarks, into browser history and into server logs along the way — such a link must not be forwarded or saved.',
+    z_repeats: 'Some parameter names repeat. All values are shown: ordinary parsing would return only the first and lose the rest silently.',
+    z_hash: 'Everything after the hash never reaches the server — the fragment stays in the browser and will not appear in server logs.',
+    z_puny: 'The browser converted the non-Latin host name into punycode. That is the form that goes to the server and lands in its logs.',
+    z_plus: 'There is a plus sign in the query. In a query a plus means a space; in the path it means a plus. One character, two meanings.',
+    z_slash: 'The path contains %2F — an encoded slash INSIDE a segment, not a separator. It must not be decoded: doing so would change the structure of the path.',
+    n1: '<b>Repeated parameters are not lost.</b> In <code>?a=1&amp;a=2</code> ordinary parsing returns only “1”, and the second value disappears silently. Here every value is shown — this is what breaks the parsing of links from advertising systems, where repeats are routine.',
+    n2: '<b>A plus in the query is a space; in the path it is a plus.</b> The same character means different things on either side of the question mark. A common cause of “the parameter arrives different from what was sent”.',
+    n3: '<b>%2F in a path is not a separator.</b> It is an encoded slash inside a segment: <code>/a%2Fb/c</code> is two segments, not three. We deliberately leave it encoded: showing “/a/b/c” would misrepresent the structure of the link.',
+    n4: '<b>A non-Latin host name travels as punycode.</b> “пример.рф” becomes “xn--e1afmkfd.xn--p1ai”, and the server logs will show the latter. We display both so that one can be recognised in the other.',
+    n5: '<b>An honest word about tokens in links.</b> This page makes no network requests, and you can see that in the browser\'s Network tab. But the main point is not about us: a link carrying a token is dangerous in itself — it lands whole in server logs, in browser history and in the Referer header when you follow a link onward. A URL is a poor place for a token.',
+    n6: 'Nothing is sent anywhere. Your links, your server addresses and everything inside the parameters stay in the tab\'s memory.',
+  },
+  es: {
+    place: 'Pegue un enlace…', label: 'Enlace', clear: 'Limpiar',
+    copy: 'Copiar', copied: 'Copiado',
+    parts: 'Partes de la URL', params: 'Parámetros de consulta',
+    noParams: 'El enlace no tiene parámetros', empty: 'Pegue un enlace: se analiza solo',
+    e_bad: 'Esto no parece un enlace',
+    asSent: 'tal como va al servidor', asTyped: 'tal como se escribió',
+    repeat: 'repetido',
+    z_scheme: 'No se indicó el esquema: hemos añadido https:// nosotros para poder analizarlo.',
+    z_login: 'El enlace lleva usuario y contraseña. Se filtran a los marcadores, al historial del navegador y a los registros de los servidores por el camino: un enlace así no debe reenviarse ni guardarse.',
+    z_repeats: 'Hay nombres de parámetro repetidos. Se muestran todos los valores: un análisis corriente devolvería solo el primero y perdería el resto en silencio.',
+    z_hash: 'Todo lo que sigue a la almohadilla no llega al servidor: el fragmento se queda en el navegador y no aparecerá en los registros.',
+    z_puny: 'El navegador convirtió el nombre no latino a punycode. Esa es la forma que va al servidor y queda en sus registros.',
+    z_plus: 'Hay un signo más en la consulta. En la consulta el más significa espacio; en la ruta significa más. Un mismo carácter, dos sentidos.',
+    z_slash: 'La ruta contiene %2F: una barra codificada DENTRO de un segmento, no un separador. No debe descodificarse: cambiaría la estructura de la ruta.',
+    n1: '<b>Los parámetros repetidos no se pierden.</b> En <code>?a=1&amp;a=2</code> un análisis corriente devuelve solo «1» y el segundo valor desaparece en silencio. Aquí se muestran todos: es lo que rompe el análisis de enlaces de sistemas publicitarios, donde los repetidos son lo habitual.',
+    n2: '<b>Un más en la consulta es un espacio; en la ruta es un más.</b> El mismo carácter significa cosas distintas a cada lado del signo de interrogación. Causa frecuente de «el parámetro llega distinto de como se envió».',
+    n3: '<b>%2F en una ruta no es un separador.</b> Es una barra codificada dentro de un segmento: <code>/a%2Fb/c</code> son dos segmentos, no tres. La dejamos codificada a propósito: mostrar «/a/b/c» falsearía la estructura del enlace.',
+    n4: '<b>Un nombre no latino viaja como punycode.</b> «пример.рф» se convierte en «xn--e1afmkfd.xn--p1ai», y en los registros del servidor aparecerá lo segundo. Mostramos ambas formas para que una se reconozca en la otra.',
+    n5: '<b>Una palabra honesta sobre los tokens en los enlaces.</b> Esta página no hace peticiones de red, y puede verlo en la pestaña «Red» del navegador. Pero lo esencial no está en nosotros: un enlace con un token es peligroso de por sí; entra entero en los registros de los servidores, en el historial del navegador y en la cabecera Referer al seguir otro enlace. Una URL es mal sitio para un token.',
+    n6: 'No se envía nada a ninguna parte. Sus enlaces, las direcciones de sus servidores y todo lo que hay en los parámetros se quedan en la memoria de la pestaña.',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<div class="ур" data-words={JSON.stringify(с)}>
+
+  <div class="ур-поле">
+    <textarea class="ур-ввод" id="ур-ввод" spellcheck="false" autocapitalize="off"
+              autocorrect="off" placeholder={с.place} aria-label={с.label}></textarea>
+    <div class="ур-подвал">
+      <span class="ур-состояние" id="ур-состояние">{с.empty}</span>
+      <button type="button" class="ур-корзина" id="ур-очистить" aria-label={с.clear} title={с.clear}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M4 7h16"></path>
+          <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+          <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+          <path d="M10 11v6M14 11v6"></path>
+        </svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="ур-заметки-разбора" id="ур-заметки-разбора"></div>
+
+  <div class="ур-имя-раздела">{с.parts}</div>
+  <div class="ур-таблица" id="ур-части"></div>
+
+  <div class="ур-имя-раздела">{с.params}</div>
+  <div class="ур-таблица" id="ур-параметры"></div>
+
+  <div class="ур-заметки">
+    <div class="ур-заметка" set:html={с.n1}></div>
+    <div class="ур-заметка" set:html={с.n2}></div>
+    <div class="ур-заметка" set:html={с.n3}></div>
+    <div class="ур-заметка" set:html={с.n4}></div>
+    <div class="ур-заметка" set:html={с.n5}></div>
+    <div class="ур-заметка">{с.n6}</div>
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { разобрать } from '../lib/url-parse.js';
+
+  const корень = document.querySelector('.ур');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+
+    const ЗАМЕТКИ = {
+      ДОПИСАЛИ_СХЕМУ: 'z_scheme', ЛОГИН_В_ССЫЛКЕ: 'z_login', ЕСТЬ_ПОВТОРЫ: 'z_repeats',
+      ЯКОРЬ_НЕ_УХОДИТ: 'z_hash', PUNYCODE: 'z_puny', ПЛЮС_ЭТО_ПРОБЕЛ: 'z_plus',
+      КОСАЯ_В_ОТРЕЗКЕ: 'z_slash',
+    };
+    const узел = (тег, класс, текст) => {
+      const у = document.createElement(тег);
+      if (класс) у.className = класс;
+      if (текст !== undefined) у.textContent = текст;
+      return у;
+    };
+
+    function значок(значение) {
+      const к = узел('button', 'ур-копи');
+      к.type = 'button';
+      к.setAttribute('aria-label', с.copy);
+      к.title = с.copy;
+      к.innerHTML = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
+        + '<rect x="9" y="9" width="11" height="12" rx="2"></rect>'
+        + '<path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path></svg>'
+        + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true">'
+        + '<path d="M4 12.5l5.5 5.5L20 7"></path></svg>';
+      к.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(значение); } catch (е) { return; }
+        к.classList.add('готово');
+        к.setAttribute('aria-label', с.copied);
+        clearTimeout(к._т);
+        к._т = setTimeout(() => {
+          к.classList.remove('готово');
+          к.setAttribute('aria-label', с.copy);
+        }, 1500);
+      });
+      return к;
+    }
+
+    function пусто() {
+      $('ур-части').replaceChildren();
+      $('ур-параметры').replaceChildren(узел('div', 'ур-нет', с.noParams));
+      $('ур-заметки-разбора').replaceChildren();
+    }
+
+    function пересчитать() {
+      const строка = $('ур-ввод').value;
+      if (!строка.trim()) {
+        $('ур-состояние').textContent = с.empty;
+        $('ур-состояние').className = 'ур-состояние';
+        пусто();
+        return;
+      }
+      const р = разобрать(строка);
+      if (!р.годен) {
+        $('ур-состояние').textContent = с.e_bad;
+        $('ур-состояние').className = 'ур-состояние беда';
+        пусто();
+        return;
+      }
+
+      $('ур-состояние').textContent = р.адрес.origin === 'null' ? р.адрес.protocol : р.адрес.origin;
+      $('ур-состояние').className = 'ур-состояние добро';
+
+      // Заметки о разборе -- ровно те, что относятся к этой ссылке.
+      const место = $('ур-заметки-разбора');
+      место.replaceChildren();
+      for (const код of р.заметки) {
+        const ключ = ЗАМЕТКИ[код];
+        if (ключ && с[ключ]) место.appendChild(узел('div', 'ур-весть', с[ключ]));
+      }
+
+      // Части.
+      const части = $('ур-части');
+      части.replaceChildren();
+      for (const [имя, , значение, читаемое] of р.части) {
+        const ряд = узел('div', 'ур-ряд');
+        ряд.append(узел('span', 'ур-имя', имя));
+        const справа = узел('span', 'ур-значение');
+        справа.append(узел('span', 'ур-главное', значение || '—'));
+        if (читаемое) {
+          const второе = узел('span', 'ур-второе');
+          второе.append(узел('span', 'ур-ярлык', с.asTyped + ':'), узел('span', '', читаемое));
+          справа.appendChild(второе);
+        }
+        ряд.append(справа, значок(значение));
+        части.appendChild(ряд);
+      }
+
+      // Параметры.
+      const пар = $('ур-параметры');
+      пар.replaceChildren();
+      if (!р.параметры.length) {
+        пар.appendChild(узел('div', 'ур-нет', с.noParams));
+      } else {
+        for (const п of р.параметры) {
+          const ряд = узел('div', 'ур-ряд');
+          const имя = узел('span', 'ур-имя');
+          имя.append(узел('span', '', п.имя));
+          if (п.повтор) имя.appendChild(узел('span', 'ур-повтор', с.repeat));
+          const справа = узел('span', 'ур-значение');
+          справа.append(узел('span', 'ур-главное', п.значение === '' ? '—' : п.значение));
+          ряд.append(имя, справа, значок(п.значение));
+          пар.appendChild(ряд);
+        }
+      }
+    }
+
+    $('ур-ввод').addEventListener('input', пересчитать);
+    $('ур-очистить').addEventListener('click', () => {
+      $('ур-ввод').value = '';
+      пересчитать();
+      $('ур-ввод').focus();
+    });
+
+    пересчитать();
+
+    window.__урСостояние = () => ({
+      ввод: $('ур-ввод').value,
+      состояние: $('ур-состояние').textContent,
+      видСостояния: $('ур-состояние').className,
+      части: [...$('ур-части').children].map((р) => [
+        р.querySelector('.ур-имя').textContent,
+        р.querySelector('.ур-главное').textContent,
+        (р.querySelector('.ур-второе') || {}).textContent || '',
+      ]),
+      параметры: [...$('ур-параметры').querySelectorAll('.ур-ряд')].map((р) => [
+        // Первый span -- само имя; второй, если есть, это пометка «повтор».
+        р.querySelector('.ур-имя span').textContent,
+        р.querySelector('.ур-главное').textContent,
+        !!р.querySelector('.ур-повтор'),
+      ]),
+      вестей: $('ур-заметки-разбора').children.length,
+      вести: [...$('ур-заметки-разбора').children].map((у) => у.textContent),
+      значков: корень.querySelectorAll('.ур-копи').length,
+    });
+    window.__урВвод = (текст) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      н.call($('ур-ввод'), текст);
+      пересчитать();
+      return window.__урСостояние();
+    };
+  })();
+</script>

@@ -1,0 +1,124 @@
+/* СТИЛИ СТРАНИЦЫ «РАЗБОР ССЫЛКИ».
+ *
+ * Файл принадлежит одной странице и подключается только ею.
+ *
+ * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); левый столбец не
+ * приглушённо-серый (#71717A), а цветом накладки -- полупрозрачных букв на сайте нет.
+ * Корзина стоит в полосе под полем, а не поверх текста.
+ */
+
+.ур {
+  --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  --цифры: ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  --линия: rgba(255,255,255,.16);
+  --беда: #ff9aa8;
+  font-family: var(--цифры);
+}
+
+/* ---- Поле ввода ------------------------------------------------------------------------- */
+
+.ур-поле { display: flex; flex-direction: column; border: 1px solid var(--линия);
+  border-radius: 12px; background: #09090b; transition: border-color .15s }
+.ур-поле:focus-within { border-color: #fff }
+.ур-ввод {
+  width: 100%; min-height: 96px; resize: vertical; display: block;
+  padding: 14px 16px; border: 0; background: transparent; color: #fff;
+  font: 400 14px/1.6 var(--цифры); border-radius: 11px 11px 0 0;
+  white-space: pre-wrap; overflow-wrap: anywhere;
+}
+.ур-ввод:focus { outline: none }
+.ур-ввод::placeholder { color: #8b93a0 }
+
+/* Слева состояние, справа корзина. Высота постоянная: подпись меняется на каждом знаке. */
+.ур-подвал {
+  display: flex; align-items: center; gap: 10px; min-height: 48px;
+  padding: 6px 8px 6px 16px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 11px 11px;
+}
+.ур-состояние { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: #fff;
+  overflow-wrap: anywhere }
+.ур-состояние.добро { color: var(--accent) }
+.ур-состояние.беда { color: var(--беда) }
+
+.ур-корзина {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.ур-корзина:hover { border-color: #fff; background: #1c1f26 }
+.ур-корзина svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.ур-корзина:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+/* ---- Вести о разборе ---------------------------------------------------------------------- */
+
+.ур-заметки-разбора { display: flex; flex-direction: column; gap: 6px; margin-top: 10px }
+.ур-весть { padding: 10px 13px; border-radius: 9px; border: 1px solid rgba(255,255,255,.14);
+  background: #14161b; color: #fff; font: 400 12.5px/1.5 var(--ui) }
+
+/* ---- Таблицы ------------------------------------------------------------------------------ */
+
+.ур-имя-раздела { margin: 18px 0 10px; font: 600 12px var(--цифры); letter-spacing: .08em;
+  text-transform: uppercase; color: var(--accent) }
+
+.ур-таблица { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  overflow: hidden }
+.ур-ряд {
+  display: flex; align-items: flex-start; gap: 12px;
+  padding: 10px 10px 10px 16px; border-bottom: 1px solid rgba(255,255,255,.08);
+}
+.ур-ряд:last-child { border-bottom: 0 }
+.ур-имя { flex: none; min-width: 96px; display: flex; flex-wrap: wrap; align-items: center;
+  gap: 6px; padding-top: 7px;
+  font: 400 11.5px var(--цифры); letter-spacing: .04em; color: var(--accent);
+  overflow-wrap: anywhere }
+.ур-повтор { font-size: 10.5px; letter-spacing: .06em; text-transform: uppercase;
+  color: #fbbf24; border: 1px solid rgba(251,191,36,.5); border-radius: 4px; padding: 0 5px }
+
+.ур-значение { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 3px;
+  padding-top: 5px }
+/* Само значение -- главное в строке: белое, плотное, переносится по знакам. */
+.ур-главное { font: 400 13px/1.5 var(--цифры); color: #fff; overflow-wrap: anywhere;
+  user-select: text }
+/* Вторая запись -- та же строка без процентов. Мельче, но НЕ полупрозрачная. */
+.ур-второе { display: flex; flex-wrap: wrap; gap: 6px; font: 400 12px/1.45 var(--цифры);
+  color: #fff; overflow-wrap: anywhere }
+.ур-ярлык { color: var(--accent); flex: none }
+
+.ур-нет { padding: 14px 16px; font: 400 13px var(--ui); color: #fff }
+
+.ур-копи {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.ур-копи:hover { border-color: #fff; background: #1c1f26 }
+.ур-копи svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.ур-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.ур-копи.готово { border-color: var(--accent); color: var(--accent) }
+.ур-копи.готово .лист { display: none }
+.ур-копи.готово .галка { display: block }
+.ур-копи:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+
+.ур-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
+/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+.ур-заметка { position: relative; padding-left: 18px;
+  font: 400 13px/1.55 var(--ui); color: #fff }
+.ур-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
+  color: rgba(255,255,255,.4) }
+.ур-заметка b { color: #fff; font-weight: 600 }
+.ур-заметка code { font: 400 12.5px var(--цифры); color: #fff;
+  background: rgba(255,255,255,.07); border-radius: 4px; padding: 1px 5px }
+
+@media (max-width: 560px) {
+  .ур-ввод { font-size: 13px }
+  /* Подпись уходит над значением: 96 пикселей слева на узком экране съедали бы половину. */
+  .ур-ряд { flex-wrap: wrap; gap: 4px 10px; padding: 10px 8px 10px 12px }
+  .ур-имя { flex: 1 0 100%; min-width: 0; padding-top: 0 }
+  .ур-значение { padding-top: 0 }
+  .ур-главное { font-size: 12.5px }
+}
