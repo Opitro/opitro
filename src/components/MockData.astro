@@ -134,9 +134,11 @@ const НАЧАЛЬНАЯ = [
 
   <div class="мк-заголовок">{с.schema}</div>
   <div class="мк-схема" id="мк-схема"></div>
-  <button type="button" class="мк-добавить" id="мк-добавить" style="margin-top:8px">+ {с.add}</button>
 
-  <div class="мк-ряд" style="margin-top:14px">
+  <!-- Обе кнопки в одном ряду: «добавить поле» слева, у самого списка полей, пуск -- у
+       правого края. Порознь они стояли одна под другой, и справа зияла пустота. -->
+  <div class="мк-ряд" style="margin-top:12px">
+    <button type="button" class="мк-добавить" id="мк-добавить">+ {с.add}</button>
     <button type="button" class="мк-кнопка" id="мк-сделать">{с.make}</button>
   </div>
 

@@ -106,9 +106,12 @@
 
 /* ---- Кнопки -------------------------------------------------------------------------------- */
 
-.мк-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
+.мк-ряд { display: flex; flex-wrap: wrap; align-items: center; gap: 8px; margin: 2px 0 10px }
+/* Высота 38 -- вровень с «добавить поле», чтобы обе кнопки в ряду читались как пара.
+   margin-left: auto прижимает пуск к правому краю ряда. */
 .мк-кнопка {
-  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
+  flex: 0 0 auto; margin-left: auto; height: 38px; padding: 0 18px; border-radius: 6px;
+  cursor: pointer;
   font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
 }
 .мк-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
@@ -158,8 +161,10 @@
 .мк-убрать:hover { border-color: var(--беда); color: var(--беда) }
 .мк-убрать[disabled] { color: #52525b; border-color: #2a2f38; cursor: default }
 .мк-убрать[disabled]:hover { border-color: #2a2f38; color: #52525b }
+/* Стоит слева, у самого списка полей, к которому и относится. */
 .мк-добавить {
-  align-self: flex-start; height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
+  flex: 0 0 auto; height: 38px; padding: 0 16px; border-radius: 6px;
+  cursor: pointer;
   font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
   border: 1px dashed #3f4652; transition: border-color .15s, background .15s;
 }
