@@ -3,10 +3,10 @@ toolSlug: text-diff
 locale: en
 category: text
 tool: text-diff
-title: Text Diff Tool Online — Compare Two Texts and Find Differences
-h1: Compare Two Texts
-navName: Compare texts
-description: "Free online text comparison. Finds changed, removed and added lines or words and shows them in two columns or one flow. Your texts never leave the browser."
+title: "Diff Checker Online — Compare Two Text Files & Find Code Differences"
+h1: "Online Diff Checker & Text Compare"
+navName: "Diff Checker"
+description: "Professional online tool to compare two text documents or code snippets. Instantly find and highlight differences line by line, character by character, processed locally in your browser."
 faq:
   - question: How does comparing two texts work?
     answer: "The tool looks for the shortest chain of edits that turns the first text into the second: what was removed, what was added, what stayed. The method is called the Myers algorithm and runs in time proportional to the number of edits rather than the length of the texts. That is why two nearly identical documents compare instantly even when they run to thousands of lines."
@@ -30,10 +30,11 @@ related:
 
 Paste both texts — the differences appear at once, with nothing to press.
 
-## Two ways to compare
+## Three ways to compare
 
 - **By lines** — for code, lists and configuration: you see which line was replaced whole
 - **By words** — for articles and contracts: you see the single edit inside a paragraph
+- **By characters** — for a typo, an ending or one different digit: you see what changed inside the word
 
 ## Two ways to show it
 

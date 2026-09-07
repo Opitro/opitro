@@ -22,7 +22,12 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    mode: 'Сравнивать', byLines: 'По строкам', byWords: 'По словам',
+    mode: 'Сравнивать', byLines: 'По строкам', byWords: 'По словам', byChars: 'По буквам',
+    chars: ['знак', 'знака', 'знаков'],
+    countLines: 'Строк', countChars: 'Знаков',
+    copy: 'Копировать', copied: 'Скопировано', clearOne: 'Очистить это окно',
+    coarse: 'Различий слишком много — показано огрублённо: всё убрано и всё добавлено. Так бывает, когда тексты почти не связаны между собой; сравните куски поменьше.',
+    n6: '<b>По буквам — для мелкой правки внутри слова.</b> Опечатка, окончание, другая цифра в номере: по словам видно только «слово заменено», а по буквам — что именно в нём поменялось. На длинных текстах этот способ показывает слишком мелкую крошку, поэтому он третий, а не первый.',
     view: 'Показывать', two: 'Двумя колонками', one: 'Одним потоком',
     ignoreCase: 'Не смотреть на регистр', ignoreSpaces: 'Не смотреть на лишние пробелы',
     nameA: 'Было', nameB: 'Стало',
@@ -42,7 +47,12 @@ const СЛОВА = {
     n5: '<b>Тексты не покидают устройство.</b> Договор, переписка или чужой исходный код разбираются прямо в браузере: ничего не отправляется на сервер, не сохраняется и после закрытия вкладки не остаётся.',
   },
   uk: {
-    mode: 'Порівнювати', byLines: 'За рядками', byWords: 'За словами',
+    mode: 'Порівнювати', byLines: 'За рядками', byWords: 'За словами', byChars: 'За літерами',
+    chars: ['літера', 'літери', 'літер'],
+    countLines: 'Рядків', countChars: 'Знаків',
+    copy: 'Копіювати', copied: 'Скопійовано', clearOne: 'Очистити це вікно',
+    coarse: 'Відмінностей забагато — показано огрублено: усе прибрано й усе додано. Так буває, коли тексти майже не повʼязані між собою; порівняйте менші шматки.',
+    n6: '<b>За літерами — для дрібної правки всередині слова.</b> Одрук, закінчення, інша цифра в номері: за словами видно лише «слово замінено», а за літерами — що саме в ньому змінилося. На довгих текстах цей спосіб показує надто дрібну крихту, тому він третій, а не перший.',
     view: 'Показувати', two: 'Двома колонками', one: 'Одним потоком',
     ignoreCase: 'Не зважати на регістр', ignoreSpaces: 'Не зважати на зайві пробіли',
     nameA: 'Було', nameB: 'Стало',
@@ -62,7 +72,12 @@ const СЛОВА = {
     n5: '<b>Тексти не покидають пристрій.</b> Договір, листування чи чужий код розбираються просто в браузері: нічого не надсилається на сервер, не зберігається і після закриття вкладки не лишається.',
   },
   en: {
-    mode: 'Compare', byLines: 'By lines', byWords: 'By words',
+    mode: 'Compare', byLines: 'By lines', byWords: 'By words', byChars: 'By characters',
+    chars: ['character', 'characters'],
+    countLines: 'Lines', countChars: 'Characters',
+    copy: 'Copy', copied: 'Copied', clearOne: 'Clear this box',
+    coarse: 'Too many differences — shown coarsely: everything removed, everything added. That happens when the two texts are barely related; try comparing smaller pieces.',
+    n6: '<b>By characters is for a small edit inside a word.</b> A typo, an ending, one different digit in a number: by words you only see “this word was replaced”, by characters you see what changed inside it. Over long texts this view breaks everything into crumbs, which is why it comes third rather than first.',
     view: 'Show', two: 'Two columns', one: 'One flow',
     ignoreCase: 'Ignore letter case', ignoreSpaces: 'Ignore extra spaces',
     nameA: 'Before', nameB: 'After',
@@ -82,7 +97,12 @@ const СЛОВА = {
     n5: '<b>The texts never leave your device.</b> A contract, a private exchange or someone else source code is compared inside your browser: nothing is sent to a server, nothing is stored, and nothing survives closing the tab.',
   },
   es: {
-    mode: 'Comparar', byLines: 'Por líneas', byWords: 'Por palabras',
+    mode: 'Comparar', byLines: 'Por líneas', byWords: 'Por palabras', byChars: 'Por letras',
+    chars: ['carácter', 'caracteres'],
+    countLines: 'Líneas', countChars: 'Caracteres',
+    copy: 'Copiar', copied: 'Copiado', clearOne: 'Limpiar este cuadro',
+    coarse: 'Hay demasiadas diferencias: se muestra de forma tosca, todo quitado y todo añadido. Ocurre cuando los dos textos apenas guardan relación; pruebe con fragmentos más pequeños.',
+    n6: '<b>Por letras sirve para un cambio pequeño dentro de una palabra.</b> Una errata, una terminación, un dígito distinto en un número: por palabras solo se ve «esta palabra se sustituyó», por letras se ve qué cambió dentro. En textos largos esta vista lo desmenuza todo, por eso va la tercera y no la primera.',
     view: 'Mostrar', two: 'En dos columnas', one: 'En un solo flujo',
     ignoreCase: 'Ignorar mayúsculas y minúsculas', ignoreSpaces: 'Ignorar espacios de más',
     nameA: 'Antes', nameB: 'Después',
@@ -103,6 +123,17 @@ const СЛОВА = {
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
+
+const КОРЗИНА = `<svg viewBox="0 0 24 24" aria-hidden="true">
+  <path d="M4 7h16"></path>
+  <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+  <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+  <path d="M10 11v6M14 11v6"></path>
+</svg>`;
+const ЛИСТ = `<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+  <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+  <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+</svg><svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>`;
 ---
 
 <style is:inline set:html={css}></style>
@@ -113,6 +144,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="дф-кнопки" role="group">
       <button type="button" class="дф-выбор выбран" id="дф-строки">{с.byLines}</button>
       <button type="button" class="дф-выбор" id="дф-слова">{с.byWords}</button>
+      <button type="button" class="дф-выбор" id="дф-буквы">{с.byChars}</button>
     </div>
     <span class="дф-подпись">{с.view}:</span>
     <div class="дф-кнопки" role="group">
@@ -130,26 +162,40 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="дф-поле">
       <span class="дф-имя">{с.nameA}</span>
       <textarea class="дф-ввод" id="дф-а" placeholder={с.placeA} spellcheck="false"></textarea>
+      <div class="дф-полоса">
+        <span class="дф-счёт" id="дф-счёт-а"></span>
+        <button type="button" class="дф-значок" id="дф-корзина-а" disabled
+                aria-label={с.clearOne} title={с.clearOne} set:html={КОРЗИНА}></button>
+      </div>
     </div>
     <div class="дф-поле">
       <span class="дф-имя">{с.nameB}</span>
       <textarea class="дф-ввод" id="дф-б" placeholder={с.placeB} spellcheck="false"></textarea>
+      <div class="дф-полоса">
+        <span class="дф-счёт" id="дф-счёт-б"></span>
+        <button type="button" class="дф-значок" id="дф-корзина-б" disabled
+                aria-label={с.clearOne} title={с.clearOne} set:html={КОРЗИНА}></button>
+      </div>
     </div>
   </div>
 
-  <div class="дф-счётчики">
-    <span class="убрано">{с.removed}: <b id="дф-убрано">0</b></span>
-    <span class="добавлено">{с.added}: <b id="дф-добавлено">0</b></span>
-    <span>{с.match}: <b id="дф-совпадение">—</b></span>
-    <span class="дф-сказ" id="дф-сказ"></span>
-  </div>
-
-  <div class="дф-итог" id="дф-итог">
-    <div class="дф-пусто">{с.empty}</div>
+  <div class="дф-окно">
+    <div class="дф-итог" id="дф-итог">
+      <div class="дф-пусто">{с.empty}</div>
+    </div>
+    <div class="дф-полоса">
+      <span class="дф-счётчики">
+        <span class="убрано">{с.removed}: <b id="дф-убрано">0</b></span>
+        <span class="добавлено">{с.added}: <b id="дф-добавлено">0</b></span>
+        <span>{с.match}: <b id="дф-совпадение">—</b></span>
+        <span class="дф-сказ" id="дф-сказ"></span>
+      </span>
+      <button type="button" class="дф-значок дф-копи" id="дф-копировать" disabled
+              aria-label={с.copy} title={с.copy} set:html={ЛИСТ}></button>
+    </div>
   </div>
 
   <div class="дф-низ">
-    <button type="button" class="дф-кнопка" id="дф-копировать">{с.copyBig}</button>
     <button type="button" class="дф-простая" id="дф-поменять">{с.swap}</button>
     <button type="button" class="дф-простая" id="дф-очистить">{с.clearAll}</button>
   </div>
@@ -159,6 +205,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <div class="дф-заметка" set:html={с.n2}></div>
     <div class="дф-заметка" set:html={с.n3}></div>
     <div class="дф-заметка" set:html={с.n4}></div>
+    <div class="дф-заметка" set:html={с.n6}></div>
     <div class="дф-заметка" set:html={с.n5}></div>
   </div>
 </div>
@@ -171,7 +218,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const полеА = $('дф-а');
     const полеБ = $('дф-б');
     const итог = $('дф-итог');
-    let поСтрокам = true;
+    let режим = 'строки';   // 'строки' | 'слова' | 'буквы'
+    const поСтрокам = () => режим === 'строки';
 
     // «1 строк» -- так по-русски не говорят. Формы: 1 строка, 2-4 строки, 5 строк, и снова
     // с одиннадцати по четырнадцать -- «строк». В английском и испанском форм всего две.
@@ -191,6 +239,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // Ищет кратчайшую цепочку правок за время, пропорциональное их числу. Общее начало и
     // общий хвост отрезаются заранее: в живом сравнении они занимают почти весь текст.
     function различия(а, б, равны) {
+      огрубили = false;
       let голова = 0;
       while (голова < а.length && голова < б.length && равны(а[голова], б[голова])) голова++;
       let хвост = 0;
@@ -207,19 +256,29 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       return куски;
     }
 
+    // Потолок числа правок. Способ Майерса хранит след на каждом шаге, и без потолка два
+    // непохожих текста съедают память вкладки: замерено на живой странице -- 10 000 различий
+    // это 3 ГБ и две секунды. Дальше этого числа минимальная цепочка правок всё равно
+    // бесполезна человеку: там уже не «правки», а другой текст. Отдаём грубый, но ЧЕСТНЫЙ
+    // ответ -- всё убрано, всё добавлено -- и говорим об этом вслух.
+    const ПОТОЛОК_ПРАВОК = 4000;
+    let огрубили = false;
+
     function ядро(а, б, равны) {
       const N = а.length, M = б.length;
       if (N === 0 && M === 0) return [];
       if (N === 0) return б.map((з) => ({ вид: 'добавлено', б: з }));
       if (M === 0) return а.map((з) => ({ вид: 'удалено', а: з }));
 
-      const предел = N + M;
+      const предел = Math.min(N + M, ПОТОЛОК_ПРАВОК);
       const смещение = предел;
       const v = new Int32Array(2 * предел + 1);
       const следы = [];
 
       for (let d = 0; d <= предел; d++) {
-        следы.push(v.slice());
+        // Храним только тот кусок следа, который на этом шаге вообще мог измениться:
+        // k не выходит за [-d, d]. Полная копия была бы в (N+M)/d раз длиннее.
+        следы.push(v.slice(смещение - d, смещение + d + 1));
         for (let k = -d; k <= d; k += 2) {
           let x;
           if (k === -d || (k !== d && v[k - 1 + смещение] < v[k + 1 + смещение])) {
@@ -230,22 +289,26 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           let y = x - k;
           while (x < N && y < M && равны(а[x], б[y])) { x++; y++; }
           v[k + смещение] = x;
-          if (x >= N && y >= M) return назад(следы, а, б, d, смещение);
+          if (x >= N && y >= M) return назад(следы, а, б, d);
         }
       }
-      return [];
+
+      огрубили = true;
+      return [...а.map((з) => ({ вид: 'удалено', а: з })),
+              ...б.map((з) => ({ вид: 'добавлено', б: з }))];
     }
 
     // Идём от конца к началу по сохранённым следам и восстанавливаем, каким шагом пришли.
-    function назад(следы, а, б, d, смещение) {
+    // След шага хранится куском [-шаг, шаг], поэтому смещение внутри него равно самому шагу.
+    function назад(следы, а, б, d) {
       const куски = [];
       let x = а.length, y = б.length;
       for (let шаг = d; шаг > 0; шаг--) {
         const v = следы[шаг];
         const k = x - y;
-        const прежнийK = (k === -шаг || (k !== шаг && v[k - 1 + смещение] < v[k + 1 + смещение]))
+        const прежнийK = (k === -шаг || (k !== шаг && v[k - 1 + шаг] < v[k + 1 + шаг]))
           ? k + 1 : k - 1;
-        const прежнийX = v[прежнийK + смещение];
+        const прежнийX = v[прежнийK + шаг];
         const прежнийY = прежнийX - прежнийK;
         while (x > прежнийX && y > прежнийY) {
           x--; y--; куски.push({ вид: 'равно', а: а[x], б: б[y] });
@@ -263,6 +326,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // потеряются переносы строк и текст слипнется в одну простыню.
     const наСлова = (текст) => текст.split(/(\s+)/).filter((к) => к !== '');
     const наСтроки = (текст) => текст.split(/\r\n|\r|\n/);
+    // По знакам, а не по кодовым единицам: иначе смайлик развалится на две половинки пары.
+    const наБуквы = (текст) => [...текст];
+    const РЕЗКА = { строки: наСтроки, слова: наСлова, буквы: наБуквы };
 
     function сравнитель() {
       const регистр = $('дф-регистр').checked;
@@ -316,7 +382,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         левая.className = 'дф-колонка';
         правая.className = 'дф-колонка';
 
-        if (поСтрокам) {
+        if (поСтрокам()) {
           // Строки идут парами: где правки нет -- одинаковые, где есть -- напротив пустая.
           for (const к of куски) {
             if (к.вид === 'равно') {
@@ -349,8 +415,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
       // Один поток: убранное идёт сразу перед добавленным, как в истории правок.
       const поток = document.createElement('div');
-      поток.className = поСтрокам ? '' : 'дф-поток';
-      if (поСтрокам) {
+      поток.className = поСтрокам() ? '' : 'дф-поток';
+      if (поСтрокам()) {
         поток.style.padding = '6px 0';
         for (const к of куски) {
           поток.append(строкаУзел(к.вид, к.вид === 'добавлено' ? к.б : к.а));
@@ -376,9 +442,22 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     let последние = null;
 
+    /** Строк и знаков в каждом окне. Место под счёт отведено сразу -- макет не дёргается. */
+    function пересчитатьОкна() {
+      for (const [поле, счёт, корзина] of [[полеА, 'дф-счёт-а', 'дф-корзина-а'],
+                                           [полеБ, 'дф-счёт-б', 'дф-корзина-б']]) {
+        const текст = поле.value;
+        $(счёт).textContent = текст
+          ? `${с.countLines}: ${наСтроки(текст).length} · ${с.countChars}: ${[...текст].length}`
+          : '';
+        $(корзина).disabled = !текст;
+      }
+    }
+
     function сравнить() {
       const текстА = полеА.value;
       const текстБ = полеБ.value;
+      пересчитатьОкна();
 
       if (!текстА && !текстБ) {
         последние = null;
@@ -386,24 +465,32 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         $('дф-убрано').textContent = '0';
         $('дф-добавлено').textContent = '0';
         $('дф-совпадение').textContent = '—';
+        $('дф-копировать').disabled = true;
+        состояниеСказа();
         return;
       }
 
-      const разрезать = поСтрокам ? наСтроки : наСлова;
+      const разрезать = РЕЗКА[режим];
       const куски = различия(разрезать(текстА), разрезать(текстБ), сравнитель());
       последние = куски;
 
       // Пробелы между словами в счёт правок не идут: человек считает слова, а не отступы.
-      const значимый = (к) => поСтрокам || /\S/.test(к.вид === 'добавлено' ? к.б : к.а);
+      const значимый = (к) => поСтрокам() || /\S/.test(к.вид === 'добавлено' ? к.б : к.а);
       const убрано = куски.filter((к) => к.вид === 'удалено' && значимый(к)).length;
       const добавлено = куски.filter((к) => к.вид === 'добавлено' && значимый(к)).length;
       const равно = куски.filter((к) => к.вид === 'равно' && значимый(к)).length;
       const всего = убрано + добавлено + равно;
 
-      const формы = поСтрокам ? с.lines : с.words;
+      const формы = режим === 'строки' ? с.lines : (режим === 'слова' ? с.words : с.chars);
       $('дф-убрано').textContent = `${убрано} ${форма(убрано, формы)}`;
       $('дф-добавлено').textContent = `${добавлено} ${форма(добавлено, формы)}`;
       $('дф-совпадение').textContent = всего ? `${Math.round((равно / всего) * 100)}%` : '—';
+
+      $('дф-копировать').disabled = !(убрано || добавлено);
+
+      // Говорим об огрублении, а не выдаём грубое за точное. Надпись держится, пока держится
+      // грубый ответ.
+      состояниеСказа();
 
       if (!убрано && !добавлено) {
         const точно = текстА === текстБ;
@@ -413,10 +500,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       показать(куски);
     }
 
-    function поставитьРежим(строки) {
-      поСтрокам = строки;
-      $('дф-строки').classList.toggle('выбран', строки);
-      $('дф-слова').classList.toggle('выбран', !строки);
+    function поставитьРежим(новый) {
+      режим = новый;
+      $('дф-строки').classList.toggle('выбран', новый === 'строки');
+      $('дф-слова').classList.toggle('выбран', новый === 'слова');
+      $('дф-буквы').classList.toggle('выбран', новый === 'буквы');
       сравнить();
     }
     function поставитьВид(две) {
@@ -426,20 +514,35 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       сравнить();
     }
 
-    function сказать(текст) {
+    /* Предупреждение об огрублении -- НЕ всплывающая подсказка, а состояние: пока на экране
+       грубый ответ, надпись обязана висеть. Иначе через несколько секунд человек смотрит на
+       грубый разбор и считает его точным. Мигают тут только мимолётные сообщения -- про
+       неудавшееся копирование, -- и после них надпись возвращается к состоянию. */
+    function состояниеСказа() {
+      const э = $('дф-сказ');
+      э.textContent = огрубили ? с.coarse : '';
+      э.classList.toggle('видно', огрубили);
+    }
+
+    function сказать(текст, сколько = 1800) {
       const э = $('дф-сказ');
       э.textContent = текст;
       э.classList.add('видно');
       clearTimeout(э._т);
-      э._т = setTimeout(() => э.classList.remove('видно'), 1800);
+      э._т = setTimeout(состояниеСказа, сколько);
     }
 
     for (const поле of [полеА, полеБ]) поле.addEventListener('input', сравнить);
     for (const и of ['дф-регистр', 'дф-пробелы']) $(и).addEventListener('change', сравнить);
-    $('дф-строки').addEventListener('click', () => поставитьРежим(true));
-    $('дф-слова').addEventListener('click', () => поставитьРежим(false));
+    $('дф-строки').addEventListener('click', () => поставитьРежим('строки'));
+    $('дф-слова').addEventListener('click', () => поставитьРежим('слова'));
+    $('дф-буквы').addEventListener('click', () => поставитьРежим('буквы'));
     $('дф-две').addEventListener('click', () => поставитьВид(true));
     $('дф-одна').addEventListener('click', () => поставитьВид(false));
+
+    for (const [поле, корзина] of [[полеА, 'дф-корзина-а'], [полеБ, 'дф-корзина-б']]) {
+      $(корзина).addEventListener('click', () => { поле.value = ''; сравнить(); поле.focus(); });
+    }
 
     $('дф-поменять').addEventListener('click', () => {
       const было = полеА.value;
@@ -459,7 +562,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const кнопка = $('дф-копировать');
       if (!последние || !последние.some((к) => к.вид !== 'равно')) { сказать(с.nothing); return; }
       // Копируем в привычном виде истории правок: минус и плюс в начале строки.
-      const текст = поСтрокам
+      const текст = поСтрокам()
         ? последние.map((к) => (к.вид === 'удалено' ? '- ' + к.а
             : к.вид === 'добавлено' ? '+ ' + к.б : '  ' + к.а)).join('\n')
         : последние.map((к) => (к.вид === 'удалено' ? `[-${к.а}]`
@@ -468,15 +571,23 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       try { await navigator.clipboard.writeText(текст); вышло = true; }
       catch (ошибка) { вышло = false; }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     сравнить();
 
     window.__дфСостояние = () => ({
-      поСтрокам, двеКолонки,
+      режим, поСтрокам: поСтрокам(), двеКолонки, огрубили,
+      счётА: $('дф-счёт-а').textContent, счётБ: $('дф-счёт-б').textContent,
+      корзинаАЖива: !$('дф-корзина-а').disabled, корзинаБЖива: !$('дф-корзина-б').disabled,
+      копиЖива: !$('дф-копировать').disabled,
+      сказ: $('дф-сказ').textContent,
       убрано: $('дф-убрано').textContent, добавлено: $('дф-добавлено').textContent,
       совпадение: $('дф-совпадение').textContent,
       пусто: Boolean(итог.querySelector('.дф-пусто')),
@@ -486,5 +597,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       добавленных: итог.querySelectorAll('.дф-строка.добавлено, .дф-добавлено').length,
     });
     window.__дфРазличия = (а, б) => различия(а, б, (x, y) => x === y);
+    window.__дфВвод = (а, б, новый) => {
+      const н = Object.getOwnPropertyDescriptor(HTMLTextAreaElement.prototype, 'value').set;
+      if (а !== undefined) н.call(полеА, а);
+      if (б !== undefined) н.call(полеБ, б);
+      if (новый) поставитьРежим(новый); else сравнить();
+      return window.__дфСостояние();
+    };
   })();
 </script>

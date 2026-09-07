@@ -6,6 +6,10 @@
  * поля светлее фона, кнопки подняты и с белыми буквами, выбранное помечено только зелёной
  * обводкой, в строке отчёта подпись зелёная, значение белое.
  *
+ * ЗНАЧКИ КОПИРОВАНИЯ И КОРЗИНЫ стоят в полосе ВНУТРИ окна, снизу: так видно, из какого
+ * окна копируется и какое очищается, и надпись не нужна. Поверх текста их не кладём -- они
+ * накрывали бы последние набранные строки.
+ *
  * ЦВЕТА ОТЛИЧИЙ. Подсветка идёт ФОНОМ, а буквы остаются белыми: цветные буквы на тёмном
  * читаются хуже, а на длинном тексте утомляют. Совпавшие строки не приглушаем до серости --
  * они чуть тише белого, но остаются читаемыми: человек часто читает не правки, а текст
@@ -62,28 +66,58 @@
 .дф-ввод {
   display: block; width: 100%; min-height: 170px; resize: vertical;
   padding: 8px 14px 12px; border: 0; background: transparent; color: #fff;
-  font: 400 13.5px/1.65 var(--цифры); border-radius: 0 0 10px 10px; overflow-wrap: anywhere;
+  font: 400 13.5px/1.65 var(--цифры); overflow-wrap: anywhere;
 }
 .дф-ввод:focus { outline: none }
 .дф-ввод::placeholder { color: #7d848f }
 
 .дф-счётчики {
-  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
-  padding: 9px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  display: flex; flex-wrap: wrap; gap: 2px 16px; align-items: center;
+  flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
 .дф-счётчики b { color: #fff; font-weight: 500 }
 .дф-счётчики .убрано b { color: var(--убрано-знак) }
 .дф-счётчики .добавлено b { color: var(--добавлено-знак) }
-.дф-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
-.дф-сказ.видно { opacity: 1 }
+/* Сообщение не приглушаем: полупрозрачных надписей на сайте нет. Прячем его размером,
+   а не прозрачностью, чтобы место под него всё равно было отведено. */
+.дф-сказ { flex: 1 1 100%; color: var(--accent); font-size: 0; line-height: 0;
+  transition: font-size .15s, line-height .15s }
+.дф-сказ.видно { font-size: 12px; line-height: 1.45 }
+
+/* Полоса под текстом: слева счёт, справа значки. Высота постоянна -- счёт появляется
+   на первом же знаке, и макет от этого не дёргается. */
+.дф-полоса {
+  display: flex; align-items: center; gap: 8px; min-height: 46px;
+  padding: 6px 8px 6px 14px; border-top: 1px solid rgba(255,255,255,.08);
+}
+.дф-счёт { flex: 1 1 auto; min-width: 0; font: 400 12px var(--цифры); color: var(--accent);
+  font-variant-numeric: tabular-nums }
+
+.дф-значок {
+  display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.дф-значок:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.дф-значок svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.дф-значок[disabled] { cursor: not-allowed; color: #6b7280; background: #14161b;
+  border-color: #2c313a }
+.дф-значок:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.дф-копи .галка { display: none }
+.дф-копи.готово { border-color: var(--accent); color: var(--accent) }
+.дф-копи.готово .лист { display: none }
+.дф-копи.готово .галка { display: block }
 
 /* ---- Окно с отличиями ---------------------------------------------------------------------- */
 
 /* Место под окно держится постоянным с самого начала: без этого страница дёргалась бы на
    каждой букве, ведь сравнение идёт на лету. */
-.дф-итог { min-height: 190px; border: 1px solid var(--линия); border-radius: 10px;
-  background: #0b0c0f; overflow: auto; max-height: 620px }
+.дф-окно { border: 1px solid var(--линия); border-radius: 10px; background: #0b0c0f }
+.дф-итог { min-height: 190px; overflow: auto; max-height: 620px; border-radius: 9px 9px 0 0 }
 .дф-пусто { display: flex; align-items: center; justify-content: center; min-height: 188px;
   padding: 0 20px; text-align: center; font: 400 13px/1.6 var(--ui); color: #fff }
 
@@ -117,11 +151,6 @@
   padding: 1px 2px }
 
 .дф-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px }
-.дф-кнопка {
-  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
-  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
-}
-.дф-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
 .дф-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
   font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -146,6 +175,7 @@
 }
 @media (max-width: 560px) {
   .дф-ввод { min-height: 140px }
-  .дф-кнопки { width: 100% }
-  .дф-выбор { flex: 1 1 0; padding: 0 8px }
+  .дф-кнопки { width: 100%; flex-wrap: wrap }
+  .дф-выбор { flex: 1 1 auto; padding: 0 10px }
+  .дф-счёт { font-size: 11.5px }
 }

@@ -3,10 +3,10 @@ toolSlug: text-diff
 locale: es
 category: text
 tool: text-diff
-title: Comparar dos textos online — buscar diferencias y cambios (diff)
-h1: Comparación de dos textos
-navName: Comparar textos
-description: "Comparación gratuita de dos textos online. Encuentra líneas o palabras modificadas, eliminadas y añadidas, en dos columnas o en un solo flujo. Los textos no salen del navegador."
+title: "Comparar dos textos online — Diff Checker: encontrar diferencias de código"
+h1: "Diff Checker — comparación de textos online"
+navName: "Diff Checker"
+description: "Herramienta profesional para comparar dos textos o fragmentos de código online. Encuentra diferencias línea por línea, palabra por palabra y letra por letra de forma 100% local."
 faq:
   - question: ¿Cómo funciona la comparación de dos textos?
     answer: "La herramienta busca la cadena de cambios más corta que convierte el primer texto en el segundo: qué se quitó, qué se añadió y qué se mantuvo. El método se llama algoritmo de Myers y trabaja en un tiempo proporcional al número de cambios, no a la longitud de los textos. Por eso dos documentos casi idénticos se comparan al instante aunque tengan miles de líneas."
@@ -30,10 +30,11 @@ related:
 
 Pega los dos textos: las diferencias aparecen al instante, sin pulsar nada.
 
-## Dos formas de comparar
+## Tres formas de comparar
 
 - **Por líneas** — para código, listas y configuración: se ve qué línea se sustituyó entera
 - **Por palabras** — para artículos y contratos: se ve el cambio concreto dentro de un párrafo
+- **Por letras** — para una errata, una terminación o un dígito distinto: se ve qué cambió dentro de la palabra
 
 ## Dos formas de mostrarlo
 
