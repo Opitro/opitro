@@ -138,14 +138,34 @@ const НАЧАЛЬНАЯ = [
 
   <div class="мк-ряд" style="margin-top:14px">
     <button type="button" class="мк-кнопка" id="мк-сделать">{с.make}</button>
-    <button type="button" class="мк-простая" id="мк-сброс">{с.reset}</button>
-    <button type="button" class="мк-кнопка вправо" id="мк-копировать">{с.copy}</button>
   </div>
 
   <div class="мк-поле мк-вывод" style="margin-top:4px">
     <textarea class="мк-ввод" id="мк-вывод" readonly spellcheck="false" placeholder={с.result}></textarea>
+    <!-- Полоса у нижнего края окна: слева отчёт (записей, полей, размер), справа кнопки.
+         Раньше отчёт висел строкой ПОД окном, а кнопки стояли рядом с пуском -- три места
+         вместо одного. -->
+    <div class="мк-подвал">
+      <span class="мк-отчёт" id="мк-отчёт"><span class="мк-сказ" id="мк-сказ"></span></span>
+      <span class="мк-знаки">
+        <button type="button" class="мк-копи" id="мк-копировать" aria-label={с.copy} title={с.copy}>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+        <button type="button" class="мк-корзина" id="мк-сброс" aria-label={с.reset} title={с.reset}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M4 7h16"></path>
+            <path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"></path>
+            <path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"></path>
+            <path d="M10 11v6M14 11v6"></path>
+          </svg>
+        </button>
+      </span>
+    </div>
   </div>
-  <div class="мк-отчёт" id="мк-отчёт"><span class="мк-сказ" id="мк-сказ"></span></div>
 
   <div class="мк-заметки">
     <div class="мк-заметка" set:html={с.n1}></div>
@@ -306,9 +326,14 @@ const НАЧАЛЬНАЯ = [
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) return;
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     поставитьСхему(НАЧАЛЬНАЯ);
