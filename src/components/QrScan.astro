@@ -210,15 +210,27 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       </label>
     </div>
 
-    <div class="ск2-итог" id="ск2-итог">
-      <span class="ск2-ждём" id="ск2-ждём">{с.waiting}</span>
+    <!-- Кнопки стоят В ОКНЕ РЕЗУЛЬТАТА. Раньше они висели рядом под всей парой, то есть
+         под окном камеры, а копировали при этом из соседнего окна -- глаз шёл не туда.
+         Рамку держит обёртка: сам ск2-итог полностью перерисовывается при каждом
+         распознавании, и всё, что положить внутрь него, было бы стёрто. -->
+    <div class="ск2-окно">
+      <div class="ск2-итог" id="ск2-итог">
+        <span class="ск2-ждём" id="ск2-ждём">{с.waiting}</span>
+      </div>
+      <div class="ск2-подвал">
+        <a class="ск2-обводка" id="ск2-перейти" target="_blank" rel="noopener noreferrer nofollow"
+           style="display:none">{с.open}</a>
+        <button type="button" class="ск2-копи" id="ск2-копировать" aria-label={с.copy}
+                title={с.copy} disabled>
+          <svg class="лист" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="9" y="9" width="11" height="12" rx="2"></rect>
+            <path d="M5 15H4a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1h10a1 1 0 0 1 1 1v1"></path>
+          </svg>
+          <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M4 12.5l5.5 5.5L20 7"></path></svg>
+        </button>
+      </div>
     </div>
-  </div>
-
-  <div class="ск2-ряд" id="ск2-ряд">
-    <button type="button" class="ск2-кнопка" id="ск2-копировать" disabled>{с.copy}</button>
-    <a class="ск2-обводка" id="ск2-перейти" target="_blank" rel="noopener noreferrer nofollow"
-       style="display:none;line-height:44px;text-decoration:none">{с.open}</a>
   </div>
 
   <div class="ск2-заметки">
@@ -312,7 +324,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         }
         if (л.переходить) {
           переход.href = л.адрес;
-          переход.style.display = 'inline-block';
+          переход.style.display = 'inline-flex';
         } else {
           итог.appendChild(узел('div', 'ск2-ждём', с.noOpen));
         }
@@ -555,9 +567,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (!найдено) return;
       try { await navigator.clipboard.writeText(найдено); }
       catch (е) { return; }
-      кнопка.textContent = с.copied;
+      // Лист сменяется галочкой -- то же, что раньше говорила надпись «Скопировано».
+      кнопка.classList.add('готово');
+      кнопка.setAttribute('aria-label', с.copied);
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => {
+        кнопка.classList.remove('готово');
+        кнопка.setAttribute('aria-label', с.copy);
+      }, 1500);
     });
 
     window.addEventListener('pagehide', выключить);

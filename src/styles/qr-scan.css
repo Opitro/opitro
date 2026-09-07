@@ -40,7 +40,6 @@
 .ск2-список:hover { border-color: #fff }
 .ск2-список:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 
-
 /* ---- Поля --------------------------------------------------------------------------------- */
 
 .ск2-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
@@ -73,23 +72,12 @@
 .ск2-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .ск2-сказ.видно { opacity: 1 }
 
-
 /* ---- Кнопки -------------------------------------------------------------------------------- */
 
 /* Кнопка «Копировать» стоит на месте ВСЕГДА и просто неактивна, пока копировать нечего.
    Прятать её нельзя: появляясь, она сдвигала бы заметки под инструментом. Неактивный вид --
    приглушённые буквы и рамка: это тот единственный случай, когда приглушение уместно, потому
    что оно и означает «пока не работает». */
-.ск2-кнопка[disabled] {
-  cursor: not-allowed; color: #8b93a0; background: #14161b; border-color: #2c313a;
-}
-.ск2-кнопка[disabled]:hover { background: #14161b; border-color: #2c313a }
-.ск2-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
-.ск2-кнопка {
-  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
-  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
-}
-.ск2-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
 .ск2-обводка {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
   font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
@@ -98,13 +86,6 @@
 .ск2-обводка:hover { background: #fff; color: #000 }
 a.ск2-обводка { display: inline-flex; align-items: center; align-self: flex-start;
   text-decoration: none }
-.ск2-простая {
-  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
-  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
-}
-.ск2-простая:hover { border-color: #fff; background: #23272f }
-.ск2-кнопка.вправо, .ск2-простая.вправо { margin-left: auto }
 
 .ск2-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
@@ -121,7 +102,6 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
   .ск2-ввод { min-height: 170px }
   .ск2-знак { margin-left: 0 }
   /* Кнопки НЕ растягиваем во всю ширину: кнопка должна выглядеть кнопкой, а не полосой. */
-  .ск2-кнопка.вправо, .ск2-простая.вправо { margin-left: 0 }
 }
 
 /* ---- Своё для этой страницы --------------------------------------------------------------- */
@@ -195,7 +175,6 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
   transform: scale(0); transition: transform .12s ease }
 .ск2-галка input:checked + i { border-color: var(--accent) }
 .ск2-галка input:checked + i::after { transform: scale(1) }
-
 
 @media (min-width: 900px) {
   .ск2-пара { grid-template-columns: minmax(0, 1fr) 340px }
@@ -279,8 +258,39 @@ a.ск2-обводка { display: inline-flex; align-items: center; align-self: 
 
 /* ---- Найденное ------------------------------------------------------------------------------ */
 
-.ск2-итог { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
-  padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 10px }
+/* Рамку окна держит обёртка, а не сам ск2-итог: его содержимое перерисовывается целиком
+   при каждом распознавании, и полоса кнопок внутри него была бы стёрта. */
+.ск2-окно { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
+  display: flex; flex-direction: column }
+.ск2-итог { flex: 1 1 auto; padding: 16px; min-height: 200px;
+  display: flex; flex-direction: column; gap: 10px }
+
+/* Полоса у нижнего края окна результата: переход к ссылке и копирование. */
+.ск2-подвал {
+  display: flex; align-items: center; justify-content: flex-end; gap: 8px; min-height: 48px;
+  padding: 6px 8px; border-top: 1px solid rgba(255,255,255,.08);
+  border-radius: 0 0 11px 11px;
+}
+.ск2-копи {
+  display: inline-flex; align-items: center; justify-content: center; flex: 0 0 auto;
+  width: 34px; height: 34px; border-radius: 6px; cursor: pointer; padding: 0;
+  color: #fff; background: transparent; border: 1px solid #3f4652;
+  transition: background .15s, border-color .15s, color .15s;
+}
+.ск2-копи:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.ск2-копи svg { width: 17px; height: 17px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.ск2-копи .галка { display: none }
+/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+.ск2-копи.готово { border-color: var(--accent); color: var(--accent) }
+.ск2-копи.готово .лист { display: none }
+.ск2-копи.готово .галка { display: block }
+.ск2-копи[disabled] { cursor: not-allowed; color: #6b7280; background: #14161b;
+  border-color: #2c313a }
+.ск2-копи:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+/* Переход к ссылке остаётся с подписью: значок «наружу» тут читался бы двусмысленно. */
+.ск2-подвал .ск2-обводка { height: 34px; padding: 0 14px; font-size: 12.5px;
+  align-self: center; line-height: normal; text-decoration: none }
 .ск2-вид { font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent) }
 .ск2-значение { font: 400 14px/1.55 var(--цифры); color: #fff; overflow-wrap: anywhere;
