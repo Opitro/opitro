@@ -218,6 +218,21 @@ const парные = ['length', 'volume', 'weight', 'temperature'].includes(entr
 const pairsLabel = translate(entry.data.locale, парные ? 'pairsLabel' : 'toolsInCategoryLabel');
 // Полки заданы только у больших рубрик; у маленьких список остаётся обычной сеткой.
 const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale);
+
+/* РАЗМЕТКА ДАННЫХ ДЛЯ ВОПРОСОВ. На страницах инструментов она есть, а у рубрик её не было:
+   вопросы показывались человеку, но поисковик их не видел и в выдаче не показывал. Касается
+   рубрик «длина», «объём» и «вес» -- там по два вопроса. Строим тем же способом, что и на
+   странице инструмента, чтобы разметка на сайте была одна. */
+const безСсылок = (с) => String(с).replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
+  '@context': 'https://schema.org',
+  '@type': 'FAQPage',
+  mainEntity: entry.data.faq.map((item) => ({
+    '@type': 'Question',
+    name: item.question,
+    acceptedAnswer: { '@type': 'Answer', text: безСсылок(item.answer) },
+  })),
+} : null;
 ---
 
 <Layout
@@ -294,7 +309,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   {/* Текст рубрики стоит ПОД плитками, а не над ними. Человек пришёл выбрать инструмент, и
       встречать его тремя абзацами -- значит заставлять пролистывать. Сверху осталась одна
       строка под заголовком, остальное читают те, кому оно нужно. */}
-  <section class="seo">
+  <section class="seo v2">
     <Content />
     {entry.data.faq && entry.data.faq.length > 0 && (
       <>
@@ -309,6 +324,8 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
     )}
   </section>
 </Layout>
+
+{вопросыJsonLd && <script type="application/ld+json" set:html={JSON.stringify(вопросыJsonLd)} />}
 
 <style>
   .main{text-align:center}
@@ -328,10 +345,10 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
      Складываем один обычный отступ вместо трёх. */
   .all-tools{margin-top:26px}
 
-  /* ТЕКСТ РУБРИКИ -- обычная читаемая колонка. Во всю ширину 1360 строка выходила знаков на
-     двести: глаз не находит начало следующей. Держим около семидесяти -- столько читается
-     без усилия. Колонка по центру, сами строки прижаты влево, как в любой книге. */
-  section.seo{max-width:70ch;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
+  /* ТЕКСТ РУБРИКИ идёт по краю плиток: та же ширина и то же поле, что у сетки. Иначе текст
+     стоит узкой колонкой посередине, плитки во всю ширину, края не совпадают -- и страница
+     выглядит собранной из двух разных. */
+  section.seo{max-width:1360px;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
   section.seo :global(p){font-size:14px;line-height:1.75;margin-bottom:16px}
   /* Черта отделяет текст от плиток: без неё он читался как продолжение списка. */
   section.seo::before{content:"";display:block;height:1px;margin-bottom:30px;

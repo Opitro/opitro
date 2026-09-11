@@ -685,16 +685,7 @@ const wideLayout = kind === 'media';
      подряд -- стену, которую никто не читает. Перелинковка от этого не страдает: страница
      по-прежнему ведёт в свою категорию через хлебные крошки и в шесть смежных инструментов
      плитками, а полный перечень живёт на странице категории, как и положено. */}
-  {false && related.length > 0 && (
-    <section class="all-tools">
-      <h2 class="all-tools-title">{relatedLabel}</h2>
-      <div class="all-tools-grid">
-        {related.map((r) => (
-          <ToolCard данные={r.data} />
-        ))}
-      </div>
-    </section>
-  )}
+
 </Layout>
 
 <script type="application/ld+json" set:html={JSON.stringify(faqJsonLd)} />
