@@ -5,7 +5,7 @@ category: audio
 tool: compress
 title: Comprimir audio online gratis — reducir el tamaño del archivo
 h1: Comprimir un archivo de audio
-navName: Comprimir
+navName: "Comprimir audio"
 summary: "Archivo más ligero sin pérdida audible"
 description: Reduce el peso de un archivo de audio — elige el bitrate y verás el tamaño resultante al momento. Con ajustes listos para correo, mensajería y Discord. Gratis, sin registro, no se sube nada.
 faq:

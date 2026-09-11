@@ -5,7 +5,7 @@ category: text
 tool: transliteration
 title: "Online Transliteration Tool — Cyrillic to Latin Converter"
 h1: Text Transliteration
-navName: Transliteration
+navName: "Transliteration"
 summary: "Щука → shchuka, for URLs and documents"
 description: "Online transliteration tool. Instantly convert Cyrillic text to the Latin alphabet and back using ICAO passport rules, ISO 9, or a URL-friendly slug format."
 faq:

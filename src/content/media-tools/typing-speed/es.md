@@ -5,7 +5,7 @@ category: device-tests
 tool: typing-speed
 title: Test de velocidad de escritura online — cuántas palabras por minuto escribes
 h1: Velocidad de escritura
-navName: Velocidad de escritura
+navName: "Test de velocidad de escritura"
 summary: "Caracteres por minuto y cuántos fallos"
 description: "Descubre cuántas palabras por minuto escribes: velocidad, precisión y número de errores. Sin registro, en el navegador."
 faq:

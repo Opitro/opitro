@@ -5,7 +5,7 @@ category: text
 tool: remove-empty-lines
 title: Remove Empty Lines Online — Delete Blank Lines From Text Free
 h1: Remove Empty Lines
-navName: Remove empty lines
+navName: "Empty Line Remover"
 summary: "Squeeze out the gaps between lines"
 description: "Free online tool to remove blank lines from text or a list. Lines made of spaces count as blank too, and there is a mode that collapses runs to one. No sign-up, everything runs in your browser."
 faq:

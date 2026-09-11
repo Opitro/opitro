@@ -5,7 +5,7 @@ category: audio
 tool: speech-to-text
 title: Speech to Text Online — Dictate Text with Your Voice, Free
 h1: Speech to Text
-navName: Speech to Text
+navName: "Speech to Text"
 summary: "Speak and the text appears as you go"
 description: Say it and get finished text, with full stops, commas and capitals already in place — no need to say "comma" out loud. Everything runs in your browser; your voice never leaves your device. Free, no sign-up.
 faq:

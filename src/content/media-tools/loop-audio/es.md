@@ -5,7 +5,7 @@ category: audio
 tool: loop
 title: Poner un audio en bucle online gratis — repetir un tema varias veces
 h1: Poner audio en bucle
-navName: Bucle
+navName: "Repetir en bucle"
 summary: "Repetir un fragmento las veces que haga falta"
 description: Repite una grabación de 2 a 50 veces en un solo archivo — la duración final se ve al elegir, y las uniones se suavizan para que no haya chasquido. Gratis, sin registro, no se sube nada.
 faq:

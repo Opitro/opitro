@@ -5,7 +5,7 @@ category: text
 tool: reading-time
 title: Reading Time Calculator Online — Check Reading and Speaking Speed
 h1: Text Reading Time
-navName: Reading time
+navName: "Reading Time Calculator"
 summary: "How many minutes it takes to read"
 description: "Free online reading time calculator. Find out how many minutes an article, talk or script will take — separately for silent reading and for speaking aloud."
 faq:

@@ -5,7 +5,7 @@ category: audio
 tool: detect-key
 title: Averiguar la tonalidad de una canción online gratis
 h1: Averiguar la tonalidad de una canción
-navName: Tonalidad
+navName: "Detectar la tonalidad"
 summary: "En qué tonalidad está la canción"
 description: Averigua en qué tonalidad está un tema — la tónica y si es mayor o menor. Funciona en tu navegador y no se sube nada. Gratis, sin registro.
 faq:

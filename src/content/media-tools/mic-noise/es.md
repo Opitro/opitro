@@ -5,7 +5,7 @@ category: device-tests
 tool: mic-noise
 title: Prueba de ruido del micrófono — cómo de silenciosa es tu sala
 h1: Ruido del micrófono
-navName: Ruido del micrófono
+navName: "Test de ruido del micrófono"
 summary: "Cuánto ruido lleva su grabación"
 description: Mide el ruido de fondo en diez segundos y descubre si tu sala está lo bastante silenciosa para grabar. Funciona en el navegador, el audio se queda contigo.
 faq:

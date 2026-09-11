@@ -5,7 +5,7 @@ category: audio
 tool: chiptune
 title: Efecto chiptune de 8 bits online gratis — sonido de consola antigua
 h1: Efecto de 8 bits y chiptune
-navName: 8 bits
+navName: "Efecto de 8 bits"
 summary: "El sonido de una consola de los ochenta"
 description: Convierte una grabación en el sonido de una consola antigua — tres estilos listos, del NES más áspero al lo-fi suave. Escúchalo en la propia página. Gratis, sin registro, no se sube nada.
 faq:

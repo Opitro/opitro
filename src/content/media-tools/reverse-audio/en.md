@@ -5,7 +5,7 @@ category: audio
 tool: reverse
 title: Reverse Audio Online, Free — Play a Track Backwards
 h1: Reverse Audio
-navName: Reverse
+navName: "Reverse Audio"
 summary: "Play it backwards"
 description: Flip a recording so it plays from end to start — hear the result right on the page and download it. Free, no sign-up, nothing gets uploaded.
 faq:

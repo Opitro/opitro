@@ -5,7 +5,7 @@ category: audio
 tool: split-vocal
 title: Separar la voz de la música online — dividir una canción en dos pistas
 h1: Separar la voz de la música
-navName: Separar la voz
+navName: "Separar voz y música"
 summary: "Voz y música en dos archivos separados"
 description: "Divide una canción en voz y música en una sola pasada: las dos pistas quedan juntas, escucha y descarga la que necesites. Calcula tu navegador y el archivo no sale de él."
 faq:

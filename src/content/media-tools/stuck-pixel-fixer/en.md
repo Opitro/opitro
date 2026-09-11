@@ -5,7 +5,7 @@ category: device-tests
 tool: stuck-pixel-fixer
 title: Stuck pixel fixer online — repair a screen in your browser
 h1: Stuck pixel fixer
-navName: Stuck pixels
+navName: "Stuck Pixel Fixer"
 summary: "Fast colour flashing wakes a stuck dot"
 description: "Fast colour flashing on the exact spot of your screen can unstick a pixel on a monitor, phone or TV. It does not always work, but it is free and takes 10 minutes."
 faq:

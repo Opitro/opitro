@@ -5,7 +5,7 @@ category: audio
 tool: visualizer
 title: Visualizador de audio online gratis — vídeo a partir de música
 h1: Visualizador de audio
-navName: Visualizador
+navName: "Visualizador de audio"
 summary: "Onda y espectro: ver cómo suena"
 description: Convierte un tema en un vídeo con una onda en movimiento, un espectro o barras de frecuencia — para YouTube, un clip o una historia. Diez estilos, vista previa en segundos y tamaño hasta 1080p. Gratis, sin registro, no se sube nada.
 faq:

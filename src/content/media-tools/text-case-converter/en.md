@@ -5,7 +5,7 @@ category: text
 tool: text-case-converter
 title: "Change Text Case Online — Uppercase, Lowercase, Title Case"
 h1: Change Text Case
-navName: Text case
+navName: "Text Case Converter"
 summary: "UPPER, lower, Sentence case"
 description: "Online case converter tool. Instantly convert your text to uppercase (ALL CAPS), lowercase, title case, sentence case or inverse case, right in your browser."
 faq:

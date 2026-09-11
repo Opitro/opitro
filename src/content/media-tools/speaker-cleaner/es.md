@@ -5,7 +5,7 @@ category: device-tests
 tool: speaker-cleaner
 title: Limpiar el altavoz de agua y polvo online — expulsar con sonido
 h1: Limpieza del altavoz de agua y polvo
-navName: Limpiar altavoz
+navName: "Limpiador de altavoz"
 summary: "Un tono grave expulsa el agua del altavoz"
 description: "El sonido elimina el agua del altavoz del móvil y sacude la suciedad de la rejilla, en un iPhone, un Samsung, un Xiaomi o unos auriculares. Sin instalar nada."
 faq:

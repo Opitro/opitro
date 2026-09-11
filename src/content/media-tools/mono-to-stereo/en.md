@@ -5,7 +5,7 @@ category: audio
 tool: mono-to-stereo
 title: Mono to Stereo Online, Free — Make a Two-Channel File
 h1: Mono to Stereo
-navName: Mono to stereo
+navName: "Mono to Stereo"
 summary: "One channel spread across two"
 description: Turn a single-channel recording into a two-channel one — duplicate it across both sides, or send it entirely to the left or the right. Free, no sign-up, nothing gets uploaded.
 faq:

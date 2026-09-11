@@ -5,7 +5,7 @@ category: device-tests
 tool: mobile-typing-test
 title: Mobile typing test — check your phone typing speed in 30 seconds
 h1: Test your mobile typing speed
-navName: Typing on a phone
+navName: "Mobile Typing Speed Test"
 summary: "Your typing speed with thumbs"
 description: "Find out how many words per minute you type on a phone. A half-minute test: large text, an honest count with accuracy, no extra buttons and no sign-up."
 faq:

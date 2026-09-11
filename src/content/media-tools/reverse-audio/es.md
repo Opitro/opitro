@@ -5,7 +5,7 @@ category: audio
 tool: reverse
 title: Invertir un audio online gratis — reproducir un tema al revés
 h1: Invertir audio
-navName: Invertir
+navName: "Invertir audio"
 summary: "Reproducirlo al revés"
 description: Dale la vuelta a una grabación para que suene del final al principio — escucha el resultado en la propia página y descárgalo. Gratis, sin registro, no se sube nada.
 faq:

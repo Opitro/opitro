@@ -5,7 +5,7 @@ category: audio
 tool: mix
 title: Superponer audios online — mezclar dos audios gratis
 h1: Superponer audios online
-navName: Superponer audios
+navName: "Superponer dos pistas"
 summary: "Dos pistas en una, con control de volumen"
 description: Superpón un audio sobre otro directamente en el navegador — cada pista tiene su propio volumen. Escucha el resultado antes de descargar. Gratis, sin registro, los archivos no se suben a ningún sitio.
 faq:

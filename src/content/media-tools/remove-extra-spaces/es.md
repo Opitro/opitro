@@ -5,7 +5,7 @@ category: text
 tool: remove-extra-spaces
 title: "Eliminar espacios en blanco online — quitar dobles espacios"
 h1: Eliminar espacios sobrantes en el texto
-navName: Espacios sobrantes
+navName: "Eliminar espacios de más"
 summary: "Fuera espacios dobles y sangrías sueltas"
 description: "Herramienta para limpiar espacios en blanco innecesarios. Elimina dobles espacios, líneas vacías repetidas y sangrías al principio o al final de cada línea al instante."
 faq:

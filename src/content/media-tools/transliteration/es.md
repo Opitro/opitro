@@ -5,7 +5,7 @@ category: text
 tool: transliteration
 title: "Transliteración online — convertir cirílico a latino y viceversa"
 h1: Transliteración de texto
-navName: Transliteración
+navName: "Transliteración de texto"
 summary: "Щука → shchuka, para URLs y documentos"
 description: "Herramienta de transliteración online. Convierte texto cirílico al alfabeto latino y al revés según las reglas ICAO de pasaporte, ISO 9 o para direcciones web."
 faq:

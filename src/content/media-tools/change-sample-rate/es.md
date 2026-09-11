@@ -5,7 +5,7 @@ category: audio
 tool: sample-rate
 title: Cambiar la frecuencia de muestreo de un audio online gratis
 h1: Cambiar la frecuencia de muestreo
-navName: Frecuencia de muestreo
+navName: "Frecuencia de muestreo"
 summary: "44,1 kHz, 48 kHz y otras, sin perder calidad"
 description: Pasa un archivo de audio a otra frecuencia de muestreo, de 8.000 a 96.000 Hz. La frecuencia actual del archivo se ve al lado y el resultado se puede escuchar antes de descargar. Gratis, sin registro, no se sube nada.
 faq:

@@ -5,7 +5,7 @@ category: text
 tool: remove-empty-lines
 title: Eliminar líneas vacías online — quitar líneas en blanco de un texto gratis
 h1: Eliminar líneas vacías
-navName: Eliminar líneas vacías
+navName: "Eliminar líneas vacías"
 summary: "Eliminar los huecos entre líneas"
 description: "Herramienta gratuita para quitar las líneas en blanco de un texto o una lista. Las líneas hechas de espacios también cuentan como vacías y hay un modo que las reduce a una. Sin registro, todo en tu navegador."
 faq:

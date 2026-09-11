@@ -5,7 +5,7 @@ category: device-tests
 tool: stuck-pixel-fixer
 title: Reparar píxeles atascados online — arreglar la pantalla
 h1: Reparar píxeles atascados
-navName: Píxeles atascados
+navName: "Reparar píxeles atascados"
 summary: "El parpadeo rápido despierta el píxel atascado"
 description: "El parpadeo rápido de colores sobre el punto exacto puede desatascar un píxel en el monitor, el móvil o la tele. No siempre funciona, pero es gratis y dura 10 minutos."
 faq:

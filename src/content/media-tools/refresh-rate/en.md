@@ -5,7 +5,7 @@ category: device-tests
 tool: refresh-rate
 title: Screen refresh rate test — check your monitor Hz online
 h1: Screen refresh rate
-navName: Refresh rate
+navName: "Refresh Rate Test"
 summary: "How many frames per second the screen shows"
 description: "Find your screen’s real refresh rate — 60, 120, 144 or 240 Hz — and the frames per second your browser draws. Measured from real frames, nothing to install."
 faq:

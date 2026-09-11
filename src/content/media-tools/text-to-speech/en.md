@@ -5,7 +5,7 @@ category: text
 tool: text-to-speech
 title: Text to Speech Online — Free TTS Voice Generator
 h1: Text to Speech Converter
-navName: Text to speech
+navName: "Text to Speech"
 summary: "Read the text aloud and save the recording"
 description: "Turn text into speech right in your browser: your own device voices, adjustable speed and pitch, download as MP3 or WAV. Free, no sign-up, and the text never leaves your device."
 faq:

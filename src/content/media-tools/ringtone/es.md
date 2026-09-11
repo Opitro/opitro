@@ -5,7 +5,7 @@ category: audio
 tool: ringtone
 title: Crear un tono de llamada para iPhone y Android online gratis
 h1: Crear un tono de llamada
-navName: Tonos de llamada
+navName: "Crear un tono de llamada"
 summary: "Cortar un trozo y hacerlo tono de llamada"
 description: Haz un tono a partir de una canción o de un vídeo para iPhone, Android, Telegram, WhatsApp, una alarma o una notificación — elige un tramo y descarga el archivo. Gratis, sin registro y sin generar nada — es tu propia pista, no una melodía inventada por una IA, y no se sube a ningún sitio.
 faq:

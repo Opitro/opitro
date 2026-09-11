@@ -5,7 +5,7 @@ category: device-tests
 tool: tone-generator
 title: Online tone generator — pure sound frequency generator (Hz)
 h1: Tone and frequency generator
-navName: Tone generator
+navName: "Tone Generator"
 summary: "A clean tone at any frequency and shape"
 description: "A pure tone from 20 to 20,000 Hz: sine, square, sawtooth and triangle, exact frequency entry, one-hertz steps, volume and channel choice. Nothing to install."
 faq:

@@ -5,7 +5,7 @@ category: audio
 tool: mono-to-stereo
 title: Mono a estéreo online gratis — crear un archivo de dos canales
 h1: Mono a estéreo
-navName: Mono a estéreo
+navName: "Mono a estéreo"
 summary: "Un canal repartido en dos"
 description: Convierte una grabación de un canal en una de dos — duplícala en ambos lados o mándala entera al izquierdo o al derecho. Gratis, sin registro, no se sube nada.
 faq:

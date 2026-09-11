@@ -5,7 +5,7 @@ category: audio
 tool: compress
 title: Compress Audio Online, Free — Make the File Smaller
 h1: Compress Audio File
-navName: Compress
+navName: "Compress Audio"
 summary: "A lighter file with no audible loss"
 description: Shrink an audio file — pick a bitrate and see the resulting size straight away. Ready-made settings for email, messengers and Discord. Free, no sign-up, nothing gets uploaded.
 faq:

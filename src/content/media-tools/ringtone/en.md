@@ -5,6 +5,7 @@ category: audio
 tool: ringtone
 title: Make a Ringtone for iPhone, Android Online, Free | Opitro
 h1: Make a Ringtone
+navName: "Make a Ringtone"
 summary: "Cut a piece and make it a ringtone"
 description: Make a ringtone from a song or from a video for iPhone, Android, Telegram, WhatsApp, an alarm, or a notification sound — pick a section and download the file. Free, no sign-up, no generation — it's your own track, not an AI-composed tune, and nothing gets uploaded.
 faq:

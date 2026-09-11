@@ -5,7 +5,7 @@ category: audio
 tool: pink-noise
 title: Ruido rosa — escuchar online o descargar gratis
 h1: Ruido rosa
-navName: Ruido rosa
+navName: "Ruido rosa"
 summary: "Ruido parejo: para dormir y ajustar altavoces"
 description: Generador de ruido rosa para dormir y descansar, más suave que el blanco y parecido a la lluvia. Escúchalo online sin anuncios o descarga un MP3. Con temporizador. Gratis, sin registro.
 faq:

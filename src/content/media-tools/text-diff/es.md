@@ -5,7 +5,7 @@ category: text
 tool: text-diff
 title: "Comparar dos textos online — encontrar diferencias por palabra y por letra"
 h1: "Comparación de dos textos online"
-navName: "Comparar textos"
+navName: "Comparación de textos"
 summary: "Dos textos comparados: líneas, palabras, letras"
 description: "Compara dos textos online: diferencias por línea, por palabra y por letra, en dos columnas o en un solo flujo. Para contratos, artículos y correspondencia. Los textos no salen del navegador."
 faq:

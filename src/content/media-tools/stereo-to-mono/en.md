@@ -5,7 +5,7 @@ category: audio
 tool: stereo-to-mono
 title: Stereo to Mono Online, Free — Fold Two Channels Into One
 h1: Stereo to Mono
-navName: Stereo to mono
+navName: "Stereo to Mono"
 summary: "Two channels folded into one"
 description: Fold a stereo recording down to a single channel — mix both, or keep only the left or only the right. Hear the result before downloading. Free, no sign-up, nothing gets uploaded.
 faq:

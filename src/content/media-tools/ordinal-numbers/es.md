@@ -5,7 +5,7 @@ category: text
 tool: ordinal-numbers
 title: Números ordinales a letras online — convertir cifras a orden textual
 h1: Números ordinales en letras
-navName: Números ordinales
+navName: "Números ordinales"
 summary: "5 → quinto, en palabras"
 description: "Conversor gratuito de números ordinales. Da la forma en letras y la abreviatura correcta (1.º, 25.ª), con género y número, hasta el 9999."
 faq:

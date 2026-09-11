@@ -5,7 +5,7 @@ category: audio
 tool: trim
 title: Trim Audio Online, Free — Cut Out Any Part of a Track
 h1: Trim Audio
-navName: Trim
+navName: "Trim Audio"
 summary: "Cut the excess off both ends"
 description: Cut the part you want out of a song or recording — drag the edges of the selection on the waveform, hear the result, download it. Or do the opposite and remove a section from the middle. Free, no sign-up, nothing gets uploaded.
 faq:

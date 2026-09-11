@@ -5,7 +5,7 @@ category: device-tests
 tool: typing-speed
 title: Typing speed test online — how many words per minute do you type
 h1: Typing speed
-navName: Typing speed
+navName: "Typing Speed Test"
 summary: "Characters per minute and how many slips"
 description: "Find out how many words per minute you type: speed, accuracy and the number of mistakes. No sign-up, right in your browser."
 faq:

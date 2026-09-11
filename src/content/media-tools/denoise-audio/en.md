@@ -5,7 +5,7 @@ category: audio
 tool: denoise
 title: Remove Background Noise from Audio Online, Free — Hiss and Hum
 h1: Noise Reduction
-navName: Noise reduction
+navName: "Noise Reduction"
 summary: "Remove the background: hum, hiss, air-con"
 description: Take steady background noise out of a recording — hiss, fan hum, mic static. Three strengths, and you can compare against the original by ear straight away. Free, no sign-up, nothing gets uploaded.
 faq:

@@ -5,7 +5,7 @@ category: device-tests
 tool: monitor-color-test
 title: Test de color del monitor online — comprobar la pantalla
 h1: Test de color del monitor
-navName: Color del monitor
+navName: "Test de color del monitor"
 summary: "Degradados suaves y colores fieles"
 description: "Siete cartas: escala de grises, detalle en sombras y luces, degradados sin bandas, colores puros y sRGB frente a display-p3. Sin instalar nada."
 faq:

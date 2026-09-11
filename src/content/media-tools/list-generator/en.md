@@ -5,7 +5,7 @@ category: text
 tool: list-generator
 title: Online List Generator — Number and Letter Sequence Builder
 h1: List Generator
-navName: List generator
+navName: "List Generator"
 summary: "Numbers, bullets, your own separator"
 description: "Free online list generator. Number ranges with any step, letter sequences in four alphabets, prefix, suffix and numbering — including for a list of your own."
 faq:

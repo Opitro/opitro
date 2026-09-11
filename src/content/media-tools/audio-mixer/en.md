@@ -5,7 +5,7 @@ category: audio
 tool: mix
 title: Overlay Audio Online — Mix Two Audio Files Free
 h1: Overlay Audio Online
-navName: Overlay Audio
+navName: "Mix Two Tracks"
 summary: "Two tracks into one, with level control"
 description: Overlay one audio file on another right in your browser — every track has its own level. Hear the result before downloading. Free, no sign-up, nothing gets uploaded.
 faq:

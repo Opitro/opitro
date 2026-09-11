@@ -5,7 +5,7 @@ category: device-tests
 tool: screen-burn-in-test
 title: Screen burn-in test — check an OLED for image retention
 h1: Screen burn-in test
-navName: Screen burn-in
+navName: "Screen Burn-in Test"
 summary: "Has anything burned into the panel"
 description: "Flat grey and colour fills reveal burn-in and image retention on OLED, AMOLED and TV screens. Handy for checking a second-hand phone before you buy it."
 faq:

@@ -5,7 +5,7 @@ category: device-tests
 tool: ultrasound-generator
 title: Ultrasound online — high frequency generator 8–22 kHz
 h1: High frequency generator
-navName: Ultrasound
+navName: "Ultrasound Generator"
 summary: "Above 15 kHz — not everyone hears it"
 description: "Pure high-frequency tones from 8 to 22 kHz: the 17.4 kHz mosquito tone, a dog whistle, tweeter testing and finding your own hearing limit. Nothing to install."
 faq:

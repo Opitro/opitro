@@ -5,7 +5,7 @@ category: audio
 tool: remove-silence
 title: Quitar el silencio de un audio online gratis — cortar las pausas
 h1: Quitar el silencio
-navName: Quitar silencio
+navName: "Quitar silencios"
 summary: "Cortar las pausas y dejar el habla"
 description: Corta automáticamente las pausas y los huecos de una grabación, y mira exactamente cuánto ha salido. La sensibilidad es ajustable. Gratis, sin registro, no se sube nada.
 faq:

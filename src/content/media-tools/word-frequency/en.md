@@ -5,7 +5,7 @@ category: text
 tool: word-frequency
 title: Word Frequency Counter Online — Keyword Density Analyzer
 h1: Word Frequency Counter
-navName: Word frequency
+navName: "Word Frequency Counter"
 summary: "Which words come up most often"
 description: "Free online word frequency counter. Builds a frequency list, measures keyword density and repetition, and filters out function words. Your text never leaves the browser."
 faq:

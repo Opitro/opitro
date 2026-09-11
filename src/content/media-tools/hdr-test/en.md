@@ -5,7 +5,7 @@ category: device-tests
 tool: hdr-test
 title: HDR test online — is HDR supported and switched on
 h1: HDR support test
-navName: HDR support
+navName: "HDR Support Test"
 summary: "Does your screen do high dynamic range"
 description: "Find out whether HDR is working on your screen right now and which HDR video formats your browser can decode: HDR10, HLG, AV1, Dolby Vision. Nothing to install."
 faq:

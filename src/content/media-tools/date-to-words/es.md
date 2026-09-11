@@ -5,7 +5,7 @@ category: text
 tool: date-to-words
 title: Fechas a letras online — convertir fechas de calendario a texto
 h1: Fechas a letras
-navName: Fechas a letras
+navName: "Fecha en letras"
 summary: "12/05/2026 → doce de mayo, en palabras"
 description: "Conversor gratuito de fechas a letras. Convierte cualquier fecha en texto formal para contratos y documentos. La fecha no sale de tu navegador."
 faq:

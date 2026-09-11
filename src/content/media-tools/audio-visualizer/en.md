@@ -5,7 +5,7 @@ category: audio
 tool: visualizer
 title: Audio Visualizer Online, Free — Turn Music Into Video
 h1: Audio Visualizer
-navName: Visualizer
+navName: "Audio Visualiser"
 summary: "Waveform and spectrum — see the sound"
 description: Turn a track into a video with a moving waveform, spectrum, or frequency bars — for YouTube, a clip, or stories. Ten visualization styles, a few-second preview, up to 1080p. Free, no sign-up, nothing uploaded.
 faq:

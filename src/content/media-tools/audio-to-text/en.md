@@ -5,7 +5,7 @@ category: audio
 tool: audio-to-text
 title: Audio to Text Online — Transcribe and Make Subtitles, Free
 h1: Audio to Text
-navName: Audio to Text
+navName: "Audio to Text"
 summary: "A recorded talk or lecture → text"
 description: Upload a recording or a video and get the text plus ready-made subtitles. Lectures, interviews, podcasts, YouTube clips. Everything runs in your browser; the file never leaves your device. Free, no sign-up.
 faq:

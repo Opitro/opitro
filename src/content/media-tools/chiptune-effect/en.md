@@ -5,7 +5,7 @@ category: audio
 tool: chiptune
 title: 8-Bit Chiptune Effect Online, Free — Old Console Sound
 h1: 8-Bit and Chiptune Effect
-navName: 8-bit
+navName: "8-bit Effect"
 summary: "The sound of an eighties console"
 description: Turn a recording into the sound of an old games console — three ready-made styles from crunchy NES to gentle lo-fi. Hear it right on the page. Free, no sign-up, nothing gets uploaded.
 faq:

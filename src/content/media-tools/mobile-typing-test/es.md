@@ -5,7 +5,7 @@ category: device-tests
 tool: mobile-typing-test
 title: Test de escritura en el móvil — comprueba tu velocidad en 30 segundos
 h1: Pon a prueba tu velocidad de escritura en el móvil
-navName: Escribir en el móvil
+navName: "Velocidad de escritura en móvil"
 summary: "Su velocidad escribiendo con los pulgares"
 description: "Descubre cuántas palabras por minuto escribes en el móvil. Un test de medio minuto: texto grande, recuento honesto con precisión, sin botones de más ni registro."
 faq:

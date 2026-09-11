@@ -5,7 +5,7 @@ category: audio
 tool: audio-to-midi
 title: Audio a MIDI online — saca las notas de una grabación, gratis
 h1: Audio a MIDI
-navName: Audio a MIDI
+navName: "Audio a MIDI"
 summary: "Lo tarareado o tocado, convertido en notas"
 description: Sube una grabación y saca las notas — MIDI, partitura para MuseScore o una tabla. Piano roll, acordes, tempo y tonalidad. Todo se calcula en tu navegador y el archivo no sale de tu dispositivo. Gratis, sin registro.
 faq:

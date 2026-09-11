@@ -5,7 +5,7 @@ category: text
 tool: punctuation-remover
 title: Eliminar signos de puntuación online — quitar la puntuación de un texto
 h1: Eliminar signos de puntuación
-navName: Quitar puntuación
+navName: "Eliminar signos de puntuación"
 summary: "Quitar puntos, comas, guiones y paréntesis"
 description: "Herramienta gratuita para eliminar signos de puntuación online. Quita puntos, comas, guiones, comillas de cualquier tipo y símbolos sin pegar las palabras ni tocar los espacios."
 faq:

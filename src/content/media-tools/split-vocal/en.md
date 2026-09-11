@@ -5,7 +5,7 @@ category: audio
 tool: split-vocal
 title: Separate vocals from music online — split a song into two tracks
 h1: Separate vocals from music
-navName: Separate vocals
+navName: "Separate Voice and Music"
 summary: "Voice and music as two separate files"
 description: "Split a song into voice and music in one pass: both tracks land side by side, listen and download the one you need. Your browser does the work, the file never leaves it."
 faq:

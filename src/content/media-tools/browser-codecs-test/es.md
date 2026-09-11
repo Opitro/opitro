@@ -5,7 +5,7 @@ category: device-tests
 tool: browser-codecs-test
 title: "Prueba de códecs del navegador online — soporte de vídeo y audio"
 h1: Soporte de códecs en el navegador
-navName: Códecs del navegador
+navName: "Test de códecs del navegador"
 summary: "Qué vídeo y audio soporta su navegador"
 description: "Comprueba qué códecs de audio y vídeo admite tu navegador. Test instantáneo de AV1, HEVC (H.265), AVC (H.264), VP9, FLAC y Opus, sin descargar nada."
 faq:

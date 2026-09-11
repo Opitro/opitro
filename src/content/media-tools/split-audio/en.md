@@ -5,7 +5,7 @@ category: audio
 tool: split-audio
 title: Split Audio into Parts Online — Cut a File Free
 h1: Split Audio into Parts
-navName: Split
+navName: "Split Audio"
 summary: "Cut into parts by time or by silence"
 description: Cut a long recording into several files — into equal parts or by the length you want each to be. All parts come back in one archive. Free, no sign-up, nothing gets uploaded.
 faq:

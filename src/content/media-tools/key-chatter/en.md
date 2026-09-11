@@ -5,7 +5,7 @@ category: device-tests
 tool: key-chatter
 title: Key types twice — keyboard chatter test online
 h1: A key that types twice
-navName: Key chatter
+navName: "Key Chatter Test"
 summary: "Catches a key that fires twice"
 description: "One press, two letters? The page catches repeated key events and shows how many milliseconds apart they arrived."
 faq:

@@ -5,7 +5,7 @@ category: text
 tool: rot13
 title: Cifrado ROT13 online — cifrar y descifrar texto (César)
 h1: Cifrado ROT13
-navName: Cifrado ROT13
+navName: "Cifrado ROT13"
 summary: "Desplazamiento de 13 letras, ida y vuelta"
 description: "Herramienta gratuita de ROT13 online. Cifra un texto o lee una cadena ROT13 con el desplazamiento clásico de 13 letras del cifrado César, con soporte opcional de cirílico."
 faq:

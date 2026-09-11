@@ -5,7 +5,7 @@ category: device-tests
 tool: phone-sensors-test
 title: "Prueba de sensores de móvil online — test de giroscopio y acelerómetro"
 h1: Test de sensores de smartphone
-navName: Test de sensores
+navName: "Test de sensores del móvil"
 summary: "Inclinación, giro, pasos y luz"
 description: "Herramienta para probar los sensores del móvil. Prueba el acelerómetro, el giroscopio, el sensor de luz ambiental y la brújula en tiempo real desde el navegador."
 faq:

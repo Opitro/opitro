@@ -5,7 +5,7 @@ category: audio
 tool: white-noise
 title: White Noise Generator — Listen Online or Download
 h1: White Noise
-navName: White noise
+navName: "White Noise"
 summary: "Even hiss — to mask other sounds"
 description: White noise generator for sleep and focus. Listen online for as long as you like or download an MP3. Sleep timer included. Free, no sign-up.
 faq:

@@ -5,7 +5,7 @@ category: audio
 tool: white-noise
 title: Ruido blanco — escuchar online o descargar gratis
 h1: Ruido blanco
-navName: Ruido blanco
+navName: "Ruido blanco"
 summary: "Siseo parejo: para tapar otros sonidos"
 description: Generador de ruido blanco para dormir y concentrarte. Escúchalo online sin anuncios o descarga un MP3. Con temporizador. Gratis, sin registro.
 faq:

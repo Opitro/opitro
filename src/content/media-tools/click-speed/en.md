@@ -5,7 +5,7 @@ category: device-tests
 tool: click-speed
 title: Click speed test — how many clicks per second can you do
 h1: Click speed
-navName: Click speed
+navName: "Click Speed Test"
 summary: "How many clicks per second you manage"
 description: "Find out how many clicks per second you can manage. Pick a stretch from one second to a minute, with an honest count of presses. Free, no sign-up."
 faq:

@@ -5,7 +5,7 @@ category: audio
 tool: equalizer
 title: Ecualizador de audio online gratis — cambia cómo suena una canción
 h1: Ecualizador de audio
-navName: Ecualizador
+navName: "Ecualizador"
 summary: "Graves, medios y agudos, banda a banda"
 description: Un ecualizador gráfico de 10 bandas en el navegador — añade graves, quita el retumbe, saca la voz o dale brillo. Se oye el cambio mientras mueves el control. Gratis, sin registro, el archivo no se sube a ningún sitio.
 faq:

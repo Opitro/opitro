@@ -5,7 +5,7 @@ category: audio
 tool: vocal-remover
 title: Remove vocals from a song online — free karaoke backing track
 h1: Remove the vocals from a song
-navName: Remove vocals
+navName: "Vocal Remover"
 summary: "Backing track: drop the voice, keep the music"
 description: "Turn any song into a backing track: three methods, from instant to neural. A karaoke minus for singing, rehearsing and performing. Your browser does the work, the file never leaves it."
 faq:

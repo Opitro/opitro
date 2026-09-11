@@ -5,7 +5,7 @@ category: audio
 tool: detect-key
 title: Find the Key of a Song Online, Free
 h1: Find the Key of a Song
-navName: Key finder
+navName: "Detect the Key"
 summary: "What key the song is in"
 description: Work out what key a track is in — the tonic and whether it's major or minor. Runs in your browser, nothing is uploaded. Free, no sign-up.
 faq:

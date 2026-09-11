@@ -5,7 +5,7 @@ category: text
 tool: reading-time
 title: Tiempo de lectura de un texto online — calculadora de velocidad de lectura
 h1: Tiempo de lectura de un texto
-navName: Tiempo de lectura
+navName: "Calculadora de tiempo de lectura"
 summary: "Cuántos minutos lleva leerlo"
 description: "Calculadora gratuita del tiempo de lectura. Descubre cuántos minutos lleva un artículo, una charla o un guion, por separado en silencio y en voz alta."
 faq:

@@ -5,7 +5,7 @@ category: device-tests
 tool: hdr-test
 title: Test HDR online — si la pantalla lo admite y está activado
 h1: Test de compatibilidad HDR
-navName: Compatibilidad HDR
+navName: "Test de compatibilidad HDR"
 summary: "¿Su pantalla admite alto rango dinámico?"
 description: "Descubre si el HDR funciona ahora mismo en tu pantalla y qué formatos de vídeo HDR admite tu navegador: HDR10, HLG, AV1, Dolby Vision. Sin instalar nada."
 faq:

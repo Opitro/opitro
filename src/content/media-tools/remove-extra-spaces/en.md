@@ -5,7 +5,7 @@ category: text
 tool: remove-extra-spaces
 title: "Remove Extra Spaces Online — Clean Whitespace and Tabs"
 h1: Remove Extra Spaces
-navName: Extra spaces
+navName: "Extra Space Remover"
 summary: "Double spaces and stray indents gone"
 description: "Online whitespace remover. Instantly remove double or multiple spaces, eliminate consecutive blank lines, and trim leading or trailing spaces in your text."
 faq:

@@ -5,7 +5,7 @@ category: device-tests
 tool: tone-generator
 title: Generador de tonos online — generador de frecuencias (Hz)
 h1: Generador de tonos y frecuencias
-navName: Generador de tonos
+navName: "Generador de tonos"
 summary: "Un tono puro de cualquier frecuencia y forma"
 description: "Un tono puro de 20 a 20 000 Hz: seno, cuadrada, sierra y triangular, entrada exacta de la frecuencia, paso de un hercio, volumen y elección de canal. Sin instalar nada."
 faq:

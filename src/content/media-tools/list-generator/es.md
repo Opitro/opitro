@@ -5,7 +5,7 @@ category: text
 tool: list-generator
 title: Generador de listas online — secuencias numéricas y alfabéticas
 h1: Generador de listas
-navName: Generador de listas
+navName: "Generador de listas"
 summary: "Números, viñetas, su propio separador"
 description: "Generador gratuito de listas. Series numéricas con cualquier paso, secuencias de letras en cuatro alfabetos, prefijo, sufijo y numeración, también para tu propia lista."
 faq:

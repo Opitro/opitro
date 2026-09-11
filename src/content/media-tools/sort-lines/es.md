@@ -5,7 +5,7 @@ category: text
 tool: sort-lines
 title: "Ordenar líneas online — ordenar listas alfabéticamente"
 h1: Ordenar líneas de texto
-navName: Ordenar líneas
+navName: "Ordenar líneas"
 summary: "Por orden alfabético, por longitud o al azar"
 description: "Herramienta para ordenar líneas de texto online. Ordena listas alfabéticamente (A-Z, Z-A), por longitud de línea, de forma aleatoria o por valores numéricos."
 faq:

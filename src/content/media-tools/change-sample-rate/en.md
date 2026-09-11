@@ -5,7 +5,7 @@ category: audio
 tool: sample-rate
 title: Change Audio Sample Rate Online, Free
 h1: Change Audio Sample Rate
-navName: Sample Rate
+navName: "Change Sample Rate"
 summary: "44.1 kHz, 48 kHz and others, cleanly"
 description: Convert an audio file to a different sample rate — 8,000 to 96,000 Hz. The file's current rate is shown alongside, and you can listen to the result before downloading. Free, no sign-up, nothing uploaded.
 faq:

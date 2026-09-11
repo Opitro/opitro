@@ -5,7 +5,7 @@ category: text
 tool: remove-diacritics
 title: "Remove Diacritics Online — Strip Accents and Tildes from Text"
 h1: Remove Diacritics
-navName: Remove diacritics
+navName: "Diacritic Remover"
 summary: "café → cafe, ñ → n, for URLs and logins"
 description: "Online tool to strip diacritics and accents from text. Convert accented characters (á, é, ñ, ü) to standard Latin letters instantly in your browser."
 faq:

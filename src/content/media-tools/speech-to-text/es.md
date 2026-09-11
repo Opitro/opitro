@@ -5,7 +5,7 @@ category: audio
 tool: speech-to-text
 title: Voz a texto online — dictar texto con la voz, gratis
 h1: Voz a texto
-navName: Voz a texto
+navName: "Voz a texto"
 summary: "Hable y el texto va apareciendo"
 description: Habla y obtén el texto ya terminado, con puntos, comas y mayúsculas puestos — sin decir «coma» en voz alta. Todo se calcula en tu navegador y tu voz no sale de tu dispositivo. Gratis, sin registro.
 faq:

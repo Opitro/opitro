@@ -5,7 +5,7 @@ category: audio
 tool: add-silence
 title: Add Silence to Audio Online — a Pause at the Start or End
 h1: Add Silence
-navName: Add silence
+navName: "Add Silence"
 summary: "Insert a pause at the start, end or middle"
 description: Add a pause to the start or the end of a recording, up to a minute on each side. The resulting length shows as you set it. Free, no sign-up, nothing gets uploaded.
 faq:

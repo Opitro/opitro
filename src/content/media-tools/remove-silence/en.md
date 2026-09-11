@@ -5,7 +5,7 @@ category: audio
 tool: remove-silence
 title: Remove Silence from Audio Online, Free — Cut the Pauses
 h1: Remove Silence
-navName: Remove silence
+navName: "Remove Silence"
 summary: "Cut the pauses, keep the speech"
 description: Automatically cut the pauses and dead air out of a recording — and see exactly how much came out. Sensitivity is adjustable. Free, no sign-up, nothing gets uploaded.
 faq:

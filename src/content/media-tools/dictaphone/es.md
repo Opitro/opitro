@@ -5,7 +5,7 @@ category: audio
 tool: dictaphone
 title: Grabadora de voz online — graba desde tu micrófono, gratis
 h1: Grabadora de voz online
-navName: Grabadora
+navName: "Grabadora de voz"
 summary: "Grabar, recortar y descargar"
 description: Graba tu voz en el navegador, pausa y sigue, recorta los extremos y guárdala como MP3 o WAV. Nada que instalar, y la grabación se queda en tu dispositivo. Gratis, sin registro.
 faq:

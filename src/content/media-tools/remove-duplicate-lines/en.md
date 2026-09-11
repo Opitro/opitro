@@ -5,7 +5,7 @@ category: text
 tool: remove-duplicate-lines
 title: "Remove Duplicate Lines Online — Clean Lists and Delete Repeats"
 h1: Remove Duplicate Lines
-navName: Duplicate lines
+navName: "Duplicate Line Remover"
 summary: "Keep every line only once"
 description: "Online tool to remove duplicate lines of text. Instantly clean lists, exports and text files by deleting repeated entries and keeping unique values only."
 faq:

@@ -5,7 +5,7 @@ category: audio
 tool: denoise
 title: Quitar el ruido de fondo de un audio online gratis — siseo y zumbido
 h1: Reducción de ruido
-navName: Reducción de ruido
+navName: "Reducción de ruido"
 summary: "Quitar el fondo: zumbido, siseo, aire acondicionado"
 description: Quita el ruido de fondo constante de una grabación — siseo, zumbido de ventilador, estática de micrófono. Tres intensidades, y puedes compararlo con el original de oído al momento. Gratis, sin registro, no se sube nada.
 faq:

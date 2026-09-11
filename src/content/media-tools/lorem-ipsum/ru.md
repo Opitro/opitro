@@ -5,7 +5,7 @@ category: text
 tool: lorem-ipsum
 title: Генератор Lorem Ipsum онлайн — создать текст-рыбу для вёрстки
 h1: Генератор Lorem Ipsum
-navName: Lorem Ipsum
+navName: "Генератор Lorem Ipsum"
 summary: "Рыба для макета: абзацы, слова, списки"
 description: "Онлайн-генератор текста-рыбы Lorem Ipsum. Создавайте абзацы, предложения или слова для макета и вёрстки — с классическим зачином и живым ритмом фраз."
 faq:
