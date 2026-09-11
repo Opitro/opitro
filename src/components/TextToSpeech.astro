@@ -36,6 +36,9 @@ const СЛОВА = {
     failMem: 'Этой модели не хватило памяти — так бывает на телефонах с тяжёлыми моделями. Возьмите Piper: он самый лёгкий и запускается везде.',
     failNet: 'Модель не докачалась — оборвалась связь. Нажмите пуск ещё раз, загрузка продолжится с того же места.',
     failOld: 'Браузер не понимает эту модель. Помогает обновление браузера; Piper работает и в старых.',
+    limPiper: 'работает везде, в том числе на телефоне',
+    limKokoro: 'на телефоне может не хватить памяти',
+    limSupertonic: 'для компьютера; на телефоне обычно не запустится',
     place: 'Вставьте или напишите текст для озвучки…',
     chars: 'Знаков', parts: 'Кусков', of: 'из',
     play: 'Воспроизвести', pause: 'Пауза', resume: 'Продолжить', stop: 'Стоп',
@@ -79,6 +82,9 @@ const СЛОВА = {
     failMem: 'Цій моделі забракло памʼяті — так буває на телефонах із важкими моделями. Візьміть Piper: він найлегший і запускається всюди.',
     failNet: 'Модель не докачалася — обірвався звʼязок. Натисніть пуск іще раз, завантаження продовжиться з того самого місця.',
     failOld: 'Браузер не розуміє цю модель. Допомагає оновлення браузера; Piper працює і в старих.',
+    limPiper: 'працює всюди, зокрема на телефоні',
+    limKokoro: 'на телефоні може забракнути памʼяті',
+    limSupertonic: 'для компʼютера; на телефоні зазвичай не запуститься',
     place: 'Вставте або напишіть текст для озвучення…',
     chars: 'Знаків', parts: 'Шматків', of: 'з',
     play: 'Відтворити', pause: 'Пауза', resume: 'Продовжити', stop: 'Стоп',
@@ -122,6 +128,9 @@ const СЛОВА = {
     failMem: 'This model ran out of memory — that happens on phones with the heavier models. Take Piper: it is the lightest and starts everywhere.',
     failNet: 'The model did not finish downloading — the connection dropped. Press play again and it will carry on from the same place.',
     failOld: 'This browser does not understand this model. Updating the browser helps; Piper works in older ones too.',
+    limPiper: 'works everywhere, phones included',
+    limKokoro: 'a phone may run out of memory',
+    limSupertonic: 'for a computer; usually will not start on a phone',
     place: 'Paste or type the text you want spoken…',
     chars: 'Characters', parts: 'Chunks', of: 'of',
     play: 'Play', pause: 'Pause', resume: 'Resume', stop: 'Stop',
@@ -165,6 +174,9 @@ const СЛОВА = {
     failMem: 'A este modelo le ha faltado memoria: ocurre en los teléfonos con los modelos pesados. Coja Piper: es el más ligero y arranca en todas partes.',
     failNet: 'El modelo no ha terminado de descargarse: se ha cortado la conexión. Pulse reproducir otra vez y continuará desde el mismo punto.',
     failOld: 'Este navegador no entiende este modelo. Actualizarlo ayuda; Piper también funciona en los antiguos.',
+    limPiper: 'funciona en todas partes, también en el teléfono',
+    limKokoro: 'a un teléfono puede faltarle memoria',
+    limSupertonic: 'para ordenador; en el teléfono normalmente no arranca',
     place: 'Pega o escribe el texto que quieres escuchar…',
     chars: 'Caracteres', parts: 'Trozos', of: 'de',
     play: 'Reproducir', pause: 'Pausa', resume: 'Continuar', stop: 'Parar',
@@ -223,6 +235,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
           <b class="рч-м-имя">{м.имя}</b>
           <span class="рч-м-вес">{м.весМин ? `${м.весМин}–${м.вес}` : м.вес} МБ</span>
           <span class="рч-м-что">{м.ключ === 'piper' ? с.mPiper : м.ключ === 'kokoro' ? с.mKokoro : с.mSupertonic}</span>
+          <span class="рч-м-где">{м.ключ === 'piper' ? с.limPiper : м.ключ === 'kokoro' ? с.limKokoro : с.limSupertonic}</span>
         </button>
       ))}
       <button type="button" class="рч-дв" id="рч-дв-устройство" hidden>{с.engDev}</button>
@@ -292,6 +305,11 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
 <script>
   import { encodeWAV, encodeMP3, downloadBlob, peakOf } from '../lib/web-audio-engine.js';
   import { ГОЛОСА } from '../lib/piper-voices.js';
+  import { этоПК } from '../lib/pc-only.js';
+
+  // Считаем ЗДЕСЬ, а не в потоке: этоТелефон() смотрит matchMedia, screen и maxTouchPoints,
+  // а в потоке их нет вовсе -- проверка там ответила бы «компьютер» даже на iPhone.
+  const ЭТО_ПК = этоПК();
 
   const корень = document.querySelector('.рч');
   if (корень) (() => {
@@ -433,7 +451,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       поднятьРаботника();
       return new Promise((готово, беда) => {
         ждущие.push({ готово, беда });
-        работник.postMessage(весть);
+        работник.postMessage({ ...весть, пк: ЭТО_ПК });
       });
     }
 
