@@ -258,21 +258,6 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
 
   {(units || temperatureUnits) && <AdSlot />}
 
-  <section class="seo">
-    <Content />
-    {entry.data.faq && entry.data.faq.length > 0 && (
-      <>
-        <h2>{faqLabel}</h2>
-        {entry.data.faq.map((item) => (
-          <div style="margin-bottom:18px">
-            <h3>{item.question}</h3>
-            <p>{item.answer}</p>
-          </div>
-        ))}
-      </>
-    )}
-  </section>
-
   {/* Список инструментов рубрики. У большой рубрики он разложен по полкам: сорок два
       одинаковых прямоугольника подряд человек не читает, а семь коротких полок -- читает.
       У значка своя работа: он обозначает РОД дела (резать, переводить, слушать), поэтому
@@ -305,6 +290,24 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
       </div>
     )}
   </section>
+
+  {/* Текст рубрики стоит ПОД плитками, а не над ними. Человек пришёл выбрать инструмент, и
+      встречать его тремя абзацами -- значит заставлять пролистывать. Сверху осталась одна
+      строка под заголовком, остальное читают те, кому оно нужно. */}
+  <section class="seo">
+    <Content />
+    {entry.data.faq && entry.data.faq.length > 0 && (
+      <>
+        <h2>{faqLabel}</h2>
+        {entry.data.faq.map((item) => (
+          <div class="seo-вопрос">
+            <h3>{item.question}</h3>
+            <p>{item.answer}</p>
+          </div>
+        ))}
+      </>
+    )}
+  </section>
 </Layout>
 
 <style>
@@ -313,26 +316,31 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
      у текста. Пустота осталась от места под рекламу, которого здесь нет. Сжато до одного
      обычного отступа. */
   .main{padding-bottom:10px;max-width:1360px}
-  /* Заголовок и подзаголовок стоят над широким текстом, поэтому и колонка у них широкая.
-     Но сама строка подзаголовка держится в разумной длине: середина строки, набранная во всю
-     ширину экрана, читается хуже -- глаз теряет начало следующей. */
-  .main h1,.main .subtitle{max-width:900px;margin-left:auto;margin-right:auto}
-  /* Текст по ширине плиток: раньше он стоял узкой колонкой в 616 пикселей посередине, а плитки
-     шли во всю ширину -- края не совпадали, и страница выглядела собранной из двух разных. */
-  section.seo{max-width:1360px;width:100%;padding:0 2rem;margin-top:14px}
-  /* ПЕРВАЯ СТРОКА ТЕКСТА РУБРИКИ -- это подпись под заголовком, а не начало статьи.
-     Она стояла прижатой влево в широкой колонке текста, под центрованным заголовком, и
-     выглядела съехавшей. Ставим по центру, держим в разумной длине и слегка подсвечиваем
-     своим цветом -- ровно настолько, чтобы отделить её от остального текста.
-     :global нужен потому, что абзац приходит из разметки статьи, а не из этого файла:
-     без него правило до него не достанет. */
-  section.seo :global(> p:first-of-type){
-    text-align:center;max-width:70ch;margin:0 auto 26px;font-size:15px;line-height:1.65;
-    color:var(--text);text-shadow:0 0 26px color-mix(in srgb,var(--accent) 45%,transparent)}
-  @media(max-width:760px){section.seo :global(> p:first-of-type){font-size:14px;margin-bottom:20px}}
-  /* Тот же перелом, что у сетки плиток (760), и то же поле -- иначе на телефоне текст стоял
-     на 32 пикселях, а плитки на 16, и края расходились. */
-  @media(max-width:760px){section.seo{padding:0 1rem}}
+  /* ОДНА СТРОКА ПОД ЗАГОЛОВКОМ -- и всё. Раньше сверху стояли три текста подряд, и у каждого
+     был свой вид: 13 пикселей серым по центру в колонке 900, потом 15 белым по центру в 70
+     знаков да ещё со свечением, потом 13 серым влево во всю ширину 1360. Три размера, три
+     ширины, три выравнивания -- страница выглядела собранной из кусков. */
+  .main h1{max-width:900px;margin-left:auto;margin-right:auto}
+  .main .subtitle{max-width:66ch;margin:0 auto 22px;font-size:15px;line-height:1.6;
+    color:var(--text)}
+  /* Между строкой под заголовком и плитками набегало 90 пикселей: 30 снизу у строки, 10
+     у .main и 50 сверху у списка. Пустота осталась от места под рекламу, которого здесь нет.
+     Складываем один обычный отступ вместо трёх. */
+  .all-tools{margin-top:26px}
+
+  /* ТЕКСТ РУБРИКИ -- обычная читаемая колонка. Во всю ширину 1360 строка выходила знаков на
+     двести: глаз не находит начало следующей. Держим около семидесяти -- столько читается
+     без усилия. Колонка по центру, сами строки прижаты влево, как в любой книге. */
+  section.seo{max-width:70ch;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
+  section.seo :global(p){font-size:14px;line-height:1.75;margin-bottom:16px}
+  /* Черта отделяет текст от плиток: без неё он читался как продолжение списка. */
+  section.seo::before{content:"";display:block;height:1px;margin-bottom:30px;
+    background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
+  .seo-вопрос{margin-bottom:18px}
+  @media(max-width:760px){
+    section.seo{padding:0 1rem;margin-top:34px}
+    .main .subtitle{font-size:14px;margin-bottom:24px}
+  }
   /* Ряд переходов по полкам: на большой рубрике он избавляет от прокрутки вслепую. */
   .shelf-jump{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:0 0 22px}
   /* У каждой полки свой цвет: заголовок, точка перед ним, кнопка перехода и значки внутри.
