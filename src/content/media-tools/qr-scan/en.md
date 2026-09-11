@@ -5,7 +5,7 @@ category: dev
 tool: qr-scan
 title: QR Code Scanner Online — Read a QR Code by Camera or Image
 h1: QR Code Scanner
-navName: QR scanner
+navName: "QR Code Scanner"
 summary: "Read a QR with the camera or an image"
 description: "Read a QR code with your camera, from a picture or a screenshot. We show the full address and warn about deceptive links. Nothing opens by itself. All in your browser."
 faq:

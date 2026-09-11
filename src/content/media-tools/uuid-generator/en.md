@@ -5,7 +5,7 @@ category: dev
 tool: uuid-generator
 title: UUID / GUID Generator Online — Bulk UUIDv4 Random ID Builder
 h1: UUID & GUID Generator
-navName: UUID generator
+navName: "UUID Generator"
 summary: "UUID v4 and v7, a thousand at once"
 description: "Professional online tool to generate UUIDs and GUIDs. Instantly build single or bulk cryptographically secure random UUIDv4 identifiers locally in your browser."
 faq:

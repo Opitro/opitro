@@ -5,7 +5,7 @@ category: dev
 tool: minify-js
 title: Minificador JS online — Comprimir código JavaScript y optimizar scripts
 h1: Minificador de código JavaScript (JS)
-navName: Minificador JS
+navName: "Minificador JS"
 summary: "Encoger el script y acortar los nombres"
 description: "Herramienta profesional para minificar y comprimir código JavaScript online. Elimina espacios en blanco, comentarios y reduce variables de forma 100% local."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: uuid-generator
 title: Генератор UUID / GUID онлайн — Створити випадковий UUIDv4 безкоштовно
 h1: Генератор UUID та GUID
-navName: Генератор UUID
+navName: "Генератор UUID"
 summary: "UUID v4 і v7, хоч тисячу разом"
 description: "Професійний онлайн-інструмент для генерації UUID та GUID. Швидко створюйте пакети унікальних ідентифікаторів стандарту UUIDv4 локально в браузері."
 faq:

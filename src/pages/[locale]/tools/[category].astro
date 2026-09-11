@@ -352,16 +352,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
     background:linear-gradient(90deg,color-mix(in srgb,var(--shelf,var(--accent)) 38%,transparent),rgba(255,255,255,.06))}
   .shelf-name b{color:rgba(214,219,230,.5);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
 
-  /* ПЛАШКА ПОД ЗНАЧКОМ. Раньше значки были одного зелёного цвета и без подложки: тридцать
-     пять разных проверок читались как один сплошной список. Теперь у каждого инструмента
-     своя плашка, а её цвет взят от того, что нарисовано на значке (см. colorFor). Цвет
-     задаётся переменной --цвет прямо в разметке, поэтому одного правила хватает на все
-     плитки сразу. */
-  /* Сейчас плашки НЕТ: цветной только сам значок. Владелец смотрит оба вида и выбирает.
-     Обёртка оставлена намеренно -- она держит цвет и место, поэтому вернуть плашку можно
-     тремя строками, не трогая разметку. */
-  .tc-плашка{flex:none;display:inline-flex;align-items:center;justify-content:center;
-    width:22px;height:22px}
-  .tc-плашка .tc-ico{color:var(--цвет);width:19px;height:19px}
+  /* Плашка и цвет значка переехали в ToolCard.astro -- туда, где лежит сама разметка.
+     Здесь эти правила не работали бы: в Astro <style> привязан к элементам своего файла. */
   .all-tools-grid .tool-card{padding:12px 13px;gap:10px}
 </style>

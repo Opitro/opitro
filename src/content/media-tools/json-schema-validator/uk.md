@@ -5,7 +5,7 @@ category: dev
 tool: json-schema-validator
 title: Валідатор JSON Schema онлайн — перевірити JSON за схемою
 h1: Валідація JSON за JSON Schema
-navName: Валідатор JSON Schema
+navName: "Валідатор JSON Schema"
 summary: "Перевірити JSON за заданою схемою"
 description: "Перевірка JSON за схемою онлайн: типи, обов’язкові поля, межі та формати. Усі невідповідності одразу, зі шляхом до поля. Draft-07, 2019-09 і 2020-12. Безкоштовно, все у браузері."
 faq:

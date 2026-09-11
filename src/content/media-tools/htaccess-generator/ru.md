@@ -5,7 +5,7 @@ category: dev
 tool: htaccess-generator
 title: Генератор .htaccess онлайн — Создать файл конфигурации Apache
 h1: Генератор файлов .htaccess
-navName: Генератор .htaccess
+navName: "Генератор .htaccess"
 summary: "Переадресации, HTTPS, www — готовый файл"
 description: "Профессиональный онлайн-генератор файлов .htaccess для серверов Apache. Быстро настраивайте 301 редиректы, склейку WWW, защиту от хотлинка и кэширование локально в браузере."
 faq:

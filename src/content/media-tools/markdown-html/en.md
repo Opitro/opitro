@@ -5,7 +5,7 @@ category: dev
 tool: markdown-html
 title: Markdown to HTML Converter Online — Bulk HTML to MD Transformer
 h1: Markdown ↔ HTML Converter
-navName: Markdown ↔ HTML
+navName: "Markdown and HTML Converter"
 summary: "Headings, lists and links, converted both ways"
 description: "Professional online tool to convert Markdown to HTML and vice versa. Instantly transform GitHub documentation, README files, and clean HTML tags locally."
 faq:

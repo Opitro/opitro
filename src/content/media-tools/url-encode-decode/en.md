@@ -5,7 +5,7 @@ category: dev
 tool: url-encode-decode
 title: URL Encoder Online — Encode and Decode Percent-Encoding
 h1: URL Encode & Decode
-navName: URL encoding
+navName: "URL Encoder"
 summary: "Address ↔ %D0%BF, nothing broken"
 description: "Free online tool for URL percent-encoding. Convert spaces, non-Latin letters and special characters into percent codes, or unfold a cryptic link back into readable text."
 faq:

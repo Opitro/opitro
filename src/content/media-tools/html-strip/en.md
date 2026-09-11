@@ -5,7 +5,7 @@ category: dev
 tool: html-strip
 title: HTML Strip Tags Online — Clean HTML Code from Text
 h1: HTML Strip Tags
-navName: HTML strip tags
+navName: "HTML Tag Remover"
 summary: "Strip the tags, keep the text"
 description: "Free online HTML stripper. Removes tags, attributes, styles and scripts, decodes entities, and keeps paragraphs apart instead of running words together."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: sql-formatter
 title: Formateador SQL online — embellecer y organizar código SQL
 h1: Formateador SQL
-navName: Formateador SQL
+navName: "Formateador SQL"
 summary: "Repartir la consulta en líneas y sangrías"
 description: "Formatea SQL online: sangrías, saltos de línea, mayúsculas de palabras clave, doce dialectos. Comprimir a una línea no rompe cadenas, comentarios ni indicaciones al optimizador."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: qr-scan
 title: Escáner de código QR online — leer un QR con la cámara o una imagen
 h1: Escáner de códigos QR
-navName: Escáner QR
+navName: "Escáner de códigos QR"
 summary: "Leer un QR con la cámara o una imagen"
 description: "Lee un código QR con la cámara, desde una imagen o una captura. Mostramos la dirección completa y avisamos de enlaces engañosos. Nada se abre solo. Todo en tu navegador."
 faq:

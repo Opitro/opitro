@@ -5,7 +5,7 @@ category: dev
 tool: url-parser
 title: Parser de URL online — Dividir enlaces en parámetros query
 h1: Parser de URL
-navName: Parser de URL
+navName: "Analizador de URL"
 summary: "Separar la dirección en partes y parámetros"
 description: "Analizador de URL online. Descompone enlaces, parámetros query, host y rutas al instante de forma 100% local."
 faq:

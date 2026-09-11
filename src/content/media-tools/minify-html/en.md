@@ -5,7 +5,7 @@ category: dev
 tool: minify-html
 title: HTML Minifier Online — Compress HTML Code
 h1: HTML Code Minifier
-navName: HTML Minifier
+navName: "HTML Minifier"
 summary: "Shrink the markup without breaking it"
 description: "Professional online tool to minify and compress HTML source code. Instantly remove white spaces, line breaks, and comments locally in your browser to boost page speed."
 faq:

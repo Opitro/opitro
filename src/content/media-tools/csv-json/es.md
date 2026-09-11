@@ -5,7 +5,7 @@ category: dev
 tool: csv-json
 title: Conversor de CSV a JSON online — transformar tablas en arrays JSON
 h1: Conversor de formatos CSV y JSON
-navName: CSV y JSON
+navName: "Conversor CSV y JSON"
 summary: "CSV ↔ JSON, con el separador que quiera"
 description: "Convierte CSV a JSON y al revés online. Las referencias con ceros y los identificadores largos no se estropean, una coma dentro de un campo no rompe la tabla. Gratis y en tu navegador."
 faq:

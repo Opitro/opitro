@@ -5,7 +5,7 @@ category: dev
 tool: favicon-generator
 title: Генератор favicon онлайн — Сделать фавиконку из картинки (ico, png)
 h1: Генератор favicon из изображения
-navName: Генератор favicon
+navName: "Генератор favicon"
 summary: "Картинка → значок сайта всех размеров"
 description: "Профессиональный онлайн-инструмент для создания favicon. Быстро конвертируйте изображения PNG, JPG или SVG в формат ICO и готовые пакеты иконок для сайта локально в браузере."
 faq:

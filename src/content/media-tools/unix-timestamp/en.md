@@ -5,7 +5,7 @@ category: dev
 tool: unix-timestamp
 title: Unix Timestamp Converter Online — Epoch Time to Readable Date & Vice Versa
 h1: Unix Timestamp Converter
-navName: Unix Timestamp
+navName: "Unix Timestamp Converter"
 summary: "Timestamp ↔ date, in any time zone"
 description: "Professional online Epoch time converter. Instantly transform Unix timestamps (seconds/milliseconds) into human-readable date-time strings locally in your browser."
 faq:

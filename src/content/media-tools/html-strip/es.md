@@ -5,7 +5,7 @@ category: dev
 tool: html-strip
 title: Eliminar etiquetas HTML online — limpiar el código de un texto
 h1: Eliminar etiquetas HTML
-navName: Eliminar HTML
+navName: "Eliminar etiquetas HTML"
 summary: "Quitar las etiquetas, dejar el texto"
 description: "Herramienta gratuita para limpiar HTML online. Quita etiquetas, atributos, estilos y scripts, convierte las entidades y no pega las palabras entre párrafos."
 faq:

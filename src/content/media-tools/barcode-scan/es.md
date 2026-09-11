@@ -5,7 +5,7 @@ category: dev
 tool: barcode-scan
 title: Escáner de código de barras online — leer EAN-13 y UPC con la cámara
 h1: Escáner de códigos de barras
-navName: Escáner de barras
+navName: "Escáner de códigos de barras"
 summary: "Leer EAN o Code-128 con la cámara"
 description: "Lea un código de barras con la cámara o desde una imagen: EAN-13, EAN-8, UPC, Code 128, Code 39, ITF. Comprobamos el dígito de control y mostramos el país donde se emitió el número. Todo en el navegador, sin subir nada."
 faq:

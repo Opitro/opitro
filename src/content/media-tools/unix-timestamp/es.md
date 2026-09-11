@@ -5,7 +5,7 @@ category: dev
 tool: unix-timestamp
 title: Conversor de Unix Timestamp online — Convertir tiempo Epoch a fecha y hora
 h1: Conversor de Unix Timestamp
-navName: Unix Timestamp
+navName: "Conversor de marcas Unix"
 summary: "Marca ↔ fecha, en cualquier zona horaria"
 description: "Herramienta profesional para la conversión de Unix Time (Epoch) online. Transforma segundos y milisegundos en fechas legibles de forma 100% local e instantánea."
 faq:

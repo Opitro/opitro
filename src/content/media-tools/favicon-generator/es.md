@@ -5,7 +5,7 @@ category: dev
 tool: favicon-generator
 title: Generador de favicon online — Convertir imagen a ICO y PNG para web
 h1: Generador de favicon desde imagen
-navName: Generador de favicon
+navName: "Generador de favicon"
 summary: "Una imagen → iconos de todos los tamaños"
 description: "Herramienta profesional para crear favicons online. Convierte imágenes PNG, JPG o SVG en formatos ICO y paquetes completos de iconos web de forma local e instantánea."
 faq:

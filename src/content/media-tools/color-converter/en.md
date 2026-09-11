@@ -5,7 +5,7 @@ category: dev
 tool: color-converter
 title: Color Converter HEX ↔ RGB ↔ HSL Online — Web CSS Color Code Tool
 h1: HEX, RGB & HSL Color Converter
-navName: Color converter
+navName: "Colour Converter"
 summary: "HEX ↔ RGB ↔ HSL, both ways"
 description: "Professional online tool to convert colors between HEX, RGB, RGBA, HSL, and HSLA formats. Instantly generate web-ready CSS color codes locally in your browser."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: case-converter
 title: Переклад CamelCase у snake_case онлайн — конвертер стилів коду
 h1: Конвертер стилів CamelCase та snake_case
-navName: CamelCase і snake_case
+navName: "Конвертер camelCase і snake_case"
 summary: "camelCase, snake_case, kebab-case"
 description: "Онлайн-переклад імен між camelCase, PascalCase, snake_case, kebab-case і UPPER_CASE. Списком, із правильним розбором абревіатур і збереженням підкреслень по краях."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: json-formatter
 title: Formateador JSON online — validador y formato de código JSON
 h1: Formateador y validador JSON
-navName: Formateador JSON
+navName: "Formateador JSON"
 summary: "Indentar y encontrar dónde se rompe"
 description: "Formatea y valida JSON online: posición exacta del error, compresión a una línea, sangría de 2 o 4 espacios. Los números largos nunca se estropean. Gratis y todo en tu navegador."
 faq:

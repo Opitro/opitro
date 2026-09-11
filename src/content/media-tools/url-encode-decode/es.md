@@ -5,7 +5,7 @@ category: dev
 tool: url-encode-decode
 title: Codificar URL online — codificador y decodificador de enlaces
 h1: Codificación y decodificación URL
-navName: Codificación URL
+navName: "Codificador de URL"
 summary: "Dirección ↔ %D0%BF, sin romper nada"
 description: "Herramienta gratuita para codificar y decodificar URL online. Convierte espacios, acentos y caracteres especiales a percent-encoding, o despliega un enlace cifrado en texto legible."
 faq:

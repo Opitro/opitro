@@ -5,7 +5,7 @@ category: dev
 tool: hash-generator
 title: Online Hash Generator — Create MD5, SHA-256, SHA-1 Cryptographic Hashes
 h1: Cryptographic Hash Generator (MD5, SHA-256)
-navName: Hash Generator
+navName: "Hash Generator"
 summary: "MD5, SHA-1, SHA-256 and SHA-512"
 description: "Professional online tool to generate cryptographic hashes from text strings. Support for MD5, SHA-1, SHA-256, and SHA-512 outputs processed locally in your browser."
 faq:

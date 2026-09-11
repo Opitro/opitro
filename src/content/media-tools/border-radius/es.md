@@ -5,7 +5,7 @@ category: dev
 tool: border-radius
 title: Generador de border-radius CSS online — Vista previa de esquinas redondeadas
 h1: Generador de border-radius CSS
-navName: Border radius
+navName: "Generador de esquinas redondeadas"
 summary: "Ajuste las esquinas y llévese el CSS"
 description: "Herramienta profesional para configurar border-radius online. Diseña esquinas redondeadas simples y elípticas complejas con generación de código CSS instantánea."
 faq:

@@ -5,7 +5,7 @@ category: dev
 tool: mock-data
 title: Mock Data Generator Online — Build Fake JSON, CSV and SQL Datasets
 h1: Mock Data Generator
-navName: Mock data
+navName: "Mock Data Generator"
 summary: "Names, emails, addresses for testing"
 description: "Generate mock data online: names, emails, phones, dates and UUIDs in four languages. Output as JSON, CSV or SQL INSERT. Emails only at example.com. Everything runs in your browser."
 faq:

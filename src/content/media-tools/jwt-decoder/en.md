@@ -5,7 +5,7 @@ category: dev
 tool: jwt-decoder
 title: JWT Decoder Online — Verify Signature & Debug JSON Web Tokens
 h1: JWT Decoder & Signature Verifier
-navName: JWT Decoder
+navName: "JWT Decoder"
 summary: "Read a token and verify the signature"
 description: "Professional online tool to decode and verify JSON Web Tokens. Instantly parse JWT Header, Payload, and validate cryptographic signatures locally in your browser."
 faq:
