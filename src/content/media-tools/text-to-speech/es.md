@@ -9,8 +9,10 @@ navName: "Texto a voz"
 summary: "Leer el texto en voz alta y descargarlo"
 description: "Convierte texto en voz dentro de tu navegador: tres modelos a elegir, descarga en MP3 o WAV. Tu texto no va a ninguna parte: el cálculo ocurre en tu propio dispositivo."
 faq:
+  - question: "¿Es gratis? ¿Hace falta registrarse?"
+    answer: "Es gratis, funciona online y no hace falta registrarse: ni cuenta, ni pago, ni límite en el número de archivos. Sencillamente no hay nada que cobrar: la voz se calcula dentro de su navegador, en su dispositivo, sin servidores de pago detrás. El único límite son 5000 caracteres por vez, y es técnico: así se ve avanzar el trabajo en lugar de esperar a ciegas."
   - question: ¿Qué modelo conviene elegir?
-    answer: "Fíjese en la tarea, no en el peso: no van juntos. Piper pesa 20–60 megabytes y conoce los cuatro idiomas del sitio; elíjalo si los datos le cuestan o el dispositivo es flojo. Kokoro pesa 93 megabytes y da la voz más viva, pero solo habla inglés. Supertonic pesa 380 megabytes y aun así calcula el doble de rápido que Piper; además es el único que lee cifras, fechas y abreviaturas sin preparación previa. El peso está escrito en el propio botón: son sus datos, y conviene saberlo antes de pulsar, no después."
+    answer: "Fíjese en la tarea, no en el peso: no van juntos. Piper pesa 60–109 megabytes por voz (lo más habitual, 60–73) y conoce los cuatro idiomas del sitio; elíjalo si los datos le cuestan o el dispositivo es flojo. Kokoro pesa 93 megabytes y da la voz más viva, pero solo habla inglés. Supertonic pesa 380 megabytes y aun así calcula el doble de rápido que Piper; además es el único que lee cifras, fechas y abreviaturas sin preparación previa. El peso está escrito en la propia lista: son sus datos, y conviene saberlo antes de pulsar, no después."
   - question: ¿De verdad el modelo más pesado va más lento?
     answer: "No, y es lo más inesperado de la elección. Lo medimos: con la misma frase Supertonic (380 MB) tarda 2,6 segundos y Kokoro (93 MB) tarda 6,5. El peso solo indica cuánto se descarga una vez; la velocidad depende de cómo está construido el modelo, no de su tamaño. Elegir por el peso es, por tanto, una buena manera de quedarse con el más lento."
   - question: ¿Adónde va mi texto?
@@ -22,24 +24,14 @@ faq:
   - question: ¿Por qué el texto largo se lee por trozos?
     answer: "Porque el modelo calcula el texto entero, y en un artículo largo eso serían decenas de segundos sin ninguna señal de vida. Cortamos al final de las frases —nunca en mitad de una palabra, o la unión daría un chasquido y una sílaba partida—, calculamos los trozos por turno y los pegamos en un solo archivo. Usted oye el principio mientras se calcula el resto."
   - question: ¿Cuánto pesa un modelo y hay que descargarlo cada vez?
-    answer: "Una sola vez. Piper son 20–60 megabytes por voz, Kokoro 93 y Supertonic 380. Lo descargado se queda en el almacenamiento del navegador, así que la próxima vez la lectura empieza de inmediato. Si ya no necesita un modelo, puede quitarlo del dispositivo con el botón que hay junto a la lista de voces."
+    answer: "Una sola vez, aunque cada modelo lo hace a su manera. Piper guarda un archivo por voz: 60–109 megabytes, lo habitual 60–73, así que cambiar de voz supone otra descarga. Kokoro (93 megabytes) y Supertonic (380) tienen un único archivo para todas sus voces: se descarga una vez y luego puede cambiar de voz cuantas veces quiera sin coste. Lo descargado se queda en el almacenamiento del navegador, así que la próxima vez la lectura empieza de inmediato."
 related:
   - speech-to-text
   - audio-to-text
   - reading-time
 ---
 
-Pegue el texto, elija un modelo y pulse «Reproducir». Todo se calcula en su propio dispositivo.
-
-## Tres modelos, y el peso no dice nada de la velocidad
-
-**Piper — 20–60 MB.** El más ligero y el único que conoce los cuatro idiomas del sitio. Elíjalo si los datos le cuestan o el dispositivo es flojo.
-
-**Kokoro — 93 MB.** La voz más viva de las tres, pero solo en inglés. En su repositorio hay voces españolas, pero la biblioteca con la que funciona en el navegador no las conoce; lo comprobamos.
-
-**Supertonic — 380 MB.** El más pesado y a la vez el más rápido: 2,6 segundos frente a los 6,5 de Kokoro con la misma frase. Conoce 31 idiomas y lee cifras, fechas y abreviaturas sin preparación.
-
-El peso está escrito en el botón. Son sus datos, y conviene saberlo antes de pulsar.
+Pegue el texto, elija modelo y voz y pulse «Generar». Online, gratis y sin registro: todo se calcula en su propio dispositivo.
 
 ## Su texto se queda con usted
 

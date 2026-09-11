@@ -29,20 +29,21 @@ const СЛОВА = {
   ru: {
     clear: 'Очистить',
     vFemale: 'Женский', vMale: 'Мужской',
-    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Лёгкая. Все четыре языка сайта.', mKokoro: 'Живой голос, только английский.', mSupertonic: 'Быстрее всех, читает цифры и даты.', mNote: 'Вес и скорость не связаны: самая тяжёлая считает вдвое быстрее лёгкой.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
+    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Работает на всех устройствах.', mKokoro: 'Только английский. На телефоне может не хватить памяти.', mSupertonic: 'Читает цифры и даты. Для телефона тяжёлая.', mNote: 'Вес и скорость не связаны: самая тяжёлая считает вдвое быстрее лёгкой.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     model: 'Модель',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
-    engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первом пуске', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
+    engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первой генерации', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
     failMem: 'Этой модели не хватило памяти — так бывает на телефонах с тяжёлыми моделями. Возьмите Piper: он самый лёгкий и запускается везде.',
-    failNet: 'Модель не докачалась — оборвалась связь. Нажмите пуск ещё раз, загрузка продолжится с того же места.',
+    failNet: 'Модель не докачалась — оборвалась связь. Нажмите «Сгенерировать» ещё раз, загрузка продолжится с того же места.',
     failOld: 'Браузер не понимает эту модель. Помогает обновление браузера; Piper работает и в старых.',
     limPiper: 'работает везде, в том числе на телефоне',
     limKokoro: 'на телефоне может не хватить памяти',
     limSupertonic: 'для компьютера; на телефоне обычно не запустится',
     place: 'Вставьте или напишите текст для озвучки…',
     chars: 'Знаков', parts: 'Кусков', of: 'из',
-    play: 'Воспроизвести', pause: 'Пауза', resume: 'Продолжить', stop: 'Стоп',
+    play: 'Воспроизвести', pause: 'Пауза', resume: 'Продолжить', stop: 'Стоп', seek: 'Перемотка', license: 'Лицензия',
+    gen: 'Сгенерировать', working: 'Генерируем', forAll: 'на все голоса', remove: 'Убрать трек', trackEmpty: 'Готовые дорожки появятся здесь',
     download: 'Скачать', idle: 'Здесь будет видно, какой кусок читается сейчас',
     noVoices: 'Голоса не найдены', loadingVoices: 'Ищем голоса устройства…',
     empty: 'Сначала вставьте текст', tooLong: 'Слишком длинный текст',
@@ -66,8 +67,14 @@ const СЛОВА = {
     noCaptureSafari: 'Safari не отдаёт странице звук вкладки, поэтому файл здесь не собрать. <b>Слушать можно полностью.</b> Для скачивания откройте эту страницу в Chrome или Edge.',
     noCaptureAndroid: 'Браузеры на Android не отдают странице звук вкладки, поэтому файл на телефоне не собрать. <b>Слушать можно полностью.</b> Для скачивания откройте страницу в Chrome или Edge на компьютере.',
     busy: 'Дождитесь конца записи',
-    n1: '<b>Три модели на выбор, и вес с ними не связан со скоростью.</b> Самая тяжёлая, Supertonic на 380 МБ, считает вдвое быстрее самой лёгкой. Piper берите, если интернет дорогой: 20–60 МБ и все четыре языка. Kokoro — если нужен живой английский. Supertonic — если в тексте цифры, даты и сокращения: он читает их без подготовки.',
-    n2: '<b>Модель скачивается один раз.</b> Дальше она лежит на вашем устройстве, и следующая озвучка начинается сразу — даже без интернета. Вес каждой написан прямо на кнопке: это ваш трафик, и знать его надо заранее, а не после.',
+    refTitle: 'Три модели на выбор', perVoice: 'за голос', srcHint: 'страница модели',
+    rPiper: 'Четыре языка сайта: русский, украинский, английский и испанский. Каждый голос скачивается отдельно.',
+    rKokoro: 'Только английский, 28 голосов — зато звук самый живой из трёх. Один файл на все голоса.',
+    rSupertonic: '31 язык, включая русский и украинский. Читает цифры, даты и сокращения без подготовки. Один файл на все голоса.',
+    sPiper: 'быстрая', sKokoro: 'медленнее всех', sSupertonic: 'самая быстрая',
+    n0: '<b>Озвучка текста онлайн — бесплатно и без регистрации.</b> Ни счёта, ни оплаты, ни ограничения по числу файлов: речь считается прямо у вас в браузере, и брать за это деньги нам не с чего.',
+    n1: '<b>Три модели на выбор, и вес с ними не связан со скоростью.</b> Самая тяжёлая, Supertonic на 380 МБ, считает вдвое быстрее самой лёгкой. <b>Piper</b> — 60–109 МБ за голос (чаще 60–73), все четыре языка сайта, лицензия MIT: берите, если интернет дорогой. <b>Kokoro-82M</b> — 93 МБ, только английский, Apache 2.0: берите, если нужен живой английский голос. <b>Supertonic 3</b> — 380 МБ, 31 язык, OpenRAIL-M: берите, если в тексте цифры, даты и сокращения, он читает их без подготовки.',
+    n2: '<b>Модель скачивается один раз.</b> Дальше она лежит на вашем устройстве, и следующая озвучка начинается сразу — даже без интернета. У Piper свой файл на каждый голос: смените голос — скачается новый. У Kokoro и Supertonic один файл на все их голоса, переключаться между ними ничего не стоит.',
     n3: '<b>Текст не уходит никуда.</b> Он считается прямо у вас в браузере: отправлять его некуда, расчёт идёт здесь. Мы ничего не храним и не ведём никаких записей.',
     n4: '<b>Длинный текст читается по кускам.</b> Мы режем его по концам предложений, никогда посреди слова: на стыке был бы щелчок и оборванный слог. Куски считаются по очереди и склеиваются в один файл.',
     n5: '<b>Файл получается на любом устройстве.</b> Звук рождается здесь, а не подслушивается у системы, поэтому скачивание работает и на iPhone, и без единого разрешения.',
@@ -76,20 +83,21 @@ const СЛОВА = {
   uk: {
     clear: 'Очистити',
     vFemale: 'Жіночий', vMale: 'Чоловічий',
-    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Легка. Усі чотири мови сайту.', mKokoro: 'Живий голос, тільки англійська.', mSupertonic: 'Найшвидша, читає цифри й дати.', mNote: 'Вага і швидкість не повʼязані: найважча рахує вдвічі швидше за легку.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
+    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Працює на всіх пристроях.', mKokoro: 'Тільки англійська. На телефоні може забракнути памʼяті.', mSupertonic: 'Читає цифри й дати. Для телефона важка.', mNote: 'Вага і швидкість не повʼязані: найважча рахує вдвічі швидше за легку.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     model: 'Модель',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
-    engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першому пуску', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
+    engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першій генерації', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
     failMem: 'Цій моделі забракло памʼяті — так буває на телефонах із важкими моделями. Візьміть Piper: він найлегший і запускається всюди.',
-    failNet: 'Модель не докачалася — обірвався звʼязок. Натисніть пуск іще раз, завантаження продовжиться з того самого місця.',
+    failNet: 'Модель не докачалася — обірвався звʼязок. Натисніть «Згенерувати» ще раз, завантаження продовжиться з того самого місця.',
     failOld: 'Браузер не розуміє цю модель. Допомагає оновлення браузера; Piper працює і в старих.',
     limPiper: 'працює всюди, зокрема на телефоні',
     limKokoro: 'на телефоні може забракнути памʼяті',
     limSupertonic: 'для компʼютера; на телефоні зазвичай не запуститься',
     place: 'Вставте або напишіть текст для озвучення…',
     chars: 'Знаків', parts: 'Шматків', of: 'з',
-    play: 'Відтворити', pause: 'Пауза', resume: 'Продовжити', stop: 'Стоп',
+    play: 'Відтворити', pause: 'Пауза', resume: 'Продовжити', stop: 'Стоп', seek: 'Перемотування', license: 'Ліцензія',
+    gen: 'Згенерувати', working: 'Генеруємо', forAll: 'на всі голоси', remove: 'Прибрати доріжку', trackEmpty: 'Готові доріжки з’являться тут',
     download: 'Завантажити', idle: 'Тут буде видно, який шматок читається зараз',
     noVoices: 'Голосів не знайдено', loadingVoices: 'Шукаємо голоси пристрою…',
     empty: 'Спершу вставте текст', tooLong: 'Занадто довгий текст',
@@ -113,8 +121,14 @@ const СЛОВА = {
     noCaptureSafari: 'Safari не віддає сторінці звук вкладки, тому файл тут не зібрати. <b>Слухати можна повністю.</b> Для завантаження відкрийте цю сторінку в Chrome або Edge.',
     noCaptureAndroid: 'Браузери на Android не віддають сторінці звук вкладки, тому файл на телефоні не зібрати. <b>Слухати можна повністю.</b> Для завантаження відкрийте сторінку в Chrome або Edge на комп’ютері.',
     busy: 'Дочекайтеся кінця запису',
-    n1: '<b>Три моделі на вибір, і вага з ними не повʼязана зі швидкістю.</b> Найважча, Supertonic на 380 МБ, рахує вдвічі швидше за найлегшу. Piper беріть, якщо інтернет дорогий: 20–60 МБ і всі чотири мови. Kokoro — якщо потрібна жива англійська. Supertonic — якщо в тексті цифри, дати й скорочення: він читає їх без підготовки.',
-    n2: '<b>Модель завантажується один раз.</b> Далі вона лежить на вашому пристрої, і наступна озвучка починається одразу — навіть без інтернету. Вагу кожної написано просто на кнопці: це ваш трафік, і знати його треба заздалегідь.',
+    refTitle: 'Три моделі на вибір', perVoice: 'за голос', srcHint: 'сторінка моделі',
+    rPiper: 'Чотири мови сайту: українська, російська, англійська та іспанська. Кожен голос завантажується окремо.',
+    rKokoro: 'Тільки англійська, 28 голосів — зате звук найживіший із трьох. Один файл на всі голоси.',
+    rSupertonic: '31 мова, зокрема українська й російська. Читає цифри, дати й скорочення без підготовки. Один файл на всі голоси.',
+    sPiper: 'швидка', sKokoro: 'найповільніша', sSupertonic: 'найшвидша',
+    n0: '<b>Озвучення тексту онлайн — безкоштовно й без реєстрації.</b> Ні рахунку, ні оплати, ні обмеження на кількість файлів: мовлення рахується просто у вас у браузері, і брати за це гроші нам нема за що.',
+    n1: '<b>Три моделі на вибір, і вага з ними не повʼязана зі швидкістю.</b> Найважча, Supertonic на 380 МБ, рахує вдвічі швидше за найлегшу. <b>Piper</b> — 60–109 МБ за голос (найчастіше 60–73), усі чотири мови сайту, ліцензія MIT: беріть, якщо інтернет дорогий. <b>Kokoro-82M</b> — 93 МБ, тільки англійська, Apache 2.0: беріть, якщо потрібен живий англійський голос. <b>Supertonic 3</b> — 380 МБ, 31 мова, OpenRAIL-M: беріть, якщо в тексті цифри, дати й скорочення, він читає їх без підготовки.',
+    n2: '<b>Модель завантажується один раз.</b> Далі вона лежить на вашому пристрої, і наступна озвучка починається одразу — навіть без інтернету. У Piper свій файл на кожен голос: зміните голос — завантажиться новий. У Kokoro і Supertonic один файл на всі їхні голоси, перемикатися між ними нічого не коштує.',
     n3: '<b>Текст не йде нікуди.</b> Він рахується просто у вас у браузері: надсилати його нікуди, розрахунок іде тут. Ми нічого не зберігаємо й не ведемо жодних записів.',
     n4: '<b>Довгий текст читається шматками.</b> Ми ріжемо його по кінцях речень, ніколи посеред слова: на стику було б клацання й обірваний склад. Шматки рахуються по черзі й склеюються в один файл.',
     n5: '<b>Файл виходить на будь-якому пристрої.</b> Звук народжується тут, а не підслуховується в системи, тому завантаження працює і на iPhone, і без жодного дозволу.',
@@ -123,20 +137,21 @@ const СЛОВА = {
   en: {
     clear: 'Clear',
     vFemale: 'Female', vMale: 'Male',
-    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Light. All four site languages.', mKokoro: 'Lively voice, English only.', mSupertonic: 'Fastest of the three, reads numbers and dates.', mNote: 'Weight and speed are unrelated: the heaviest one computes twice as fast as the lightest.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
+    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Works on any device.', mKokoro: 'English only. A phone may run out of memory.', mSupertonic: 'Reads numbers and dates. Heavy for a phone.', mNote: 'Weight and speed are unrelated: the heaviest one computes twice as fast as the lightest.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     model: 'Model',
     local: 'device', mb: 'MB', network: 'network',
-    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first play', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
+    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first generation', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
     failMem: 'This model ran out of memory — that happens on phones with the heavier models. Take Piper: it is the lightest and starts everywhere.',
-    failNet: 'The model did not finish downloading — the connection dropped. Press play again and it will carry on from the same place.',
+    failNet: 'The model did not finish downloading — the connection dropped. Press Generate again and it will carry on from the same place.',
     failOld: 'This browser does not understand this model. Updating the browser helps; Piper works in older ones too.',
     limPiper: 'works everywhere, phones included',
     limKokoro: 'a phone may run out of memory',
     limSupertonic: 'for a computer; usually will not start on a phone',
     place: 'Paste or type the text you want spoken…',
     chars: 'Characters', parts: 'Chunks', of: 'of',
-    play: 'Play', pause: 'Pause', resume: 'Resume', stop: 'Stop',
+    play: 'Play', pause: 'Pause', resume: 'Resume', stop: 'Stop', seek: 'Seek', license: 'Licence',
+    gen: 'Generate', working: 'Generating', forAll: 'for all voices', remove: 'Remove this track', trackEmpty: 'Finished tracks will appear here',
     download: 'Download', idle: 'The chunk being read will show up here',
     noVoices: 'No voices found', loadingVoices: 'Looking for your device voices…',
     empty: 'Paste some text first', tooLong: 'The text is too long',
@@ -160,8 +175,14 @@ const СЛОВА = {
     noCaptureSafari: 'Safari does not hand tab audio to a page, so a file cannot be built here. <b>Listening works in full.</b> To download, open this page in Chrome or Edge.',
     noCaptureAndroid: 'Android browsers do not hand tab audio to a page, so a file cannot be built on a phone. <b>Listening works in full.</b> To download, open this page in Chrome or Edge on a computer.',
     busy: 'Wait for the recording to finish',
-    n1: '<b>Three models to choose from, and weight has nothing to do with speed.</b> The heaviest one, Supertonic at 380 MB, computes twice as fast as the lightest. Take Piper if data costs you: 20–60 MB and all four languages. Kokoro for a lively English voice. Supertonic if your text has numbers, dates and abbreviations — it reads them with no preparation.',
-    n2: '<b>A model downloads once.</b> After that it sits on your device and the next reading starts immediately — even with no internet. The weight of each is written on its button: that is your data allowance, and you should know it beforehand, not after.',
+    refTitle: 'Three models to choose from', perVoice: 'per voice', srcHint: 'model page',
+    rPiper: 'All four site languages: English, Spanish, Russian and Ukrainian. Each voice downloads separately.',
+    rKokoro: 'English only, 28 voices — but the liveliest sound of the three. One file for all voices.',
+    rSupertonic: '31 languages, Russian and Ukrainian included. Reads numbers, dates and abbreviations with no preparation. One file for all voices.',
+    sPiper: 'fast', sKokoro: 'slowest', sSupertonic: 'fastest',
+    n0: '<b>Text to speech online — free and with no sign-up.</b> No account, no payment, no cap on the number of files: the speech is computed right in your browser, so there is nothing for us to charge for.',
+    n1: '<b>Three models to choose from, and weight has nothing to do with speed.</b> The heaviest one, Supertonic at 380 MB, computes twice as fast as the lightest. <b>Piper</b> — 60–109 MB per voice (usually 60–73), all four site languages, MIT licence: take it if data costs you. <b>Kokoro-82M</b> — 93 MB, English only, Apache 2.0: take it for a lively English voice. <b>Supertonic 3</b> — 380 MB, 31 languages, OpenRAIL-M: take it if your text has numbers, dates and abbreviations — it reads them with no preparation.',
+    n2: '<b>A model downloads once.</b> After that it sits on your device and the next reading starts immediately — even with no internet. Piper keeps a separate file per voice: change the voice and a new one downloads. Kokoro and Supertonic have one file for all their voices, so switching between them costs nothing.',
     n3: '<b>Your text goes nowhere.</b> It is processed right inside your browser — there is nowhere to send it, the computing happens here. We store nothing and keep no logs.',
     n4: '<b>Long text is read in pieces.</b> We cut at the ends of sentences, never in the middle of a word: a join there would give a click and a chopped syllable. The pieces are computed in turn and glued into one file.',
     n5: '<b>You get a file on any device.</b> The sound is born here rather than eavesdropped from the system, so downloading works on an iPhone too, without a single permission.',
@@ -170,20 +191,21 @@ const СЛОВА = {
   es: {
     clear: 'Limpiar',
     vFemale: 'Femenina', vMale: 'Masculina',
-    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Ligero. Los cuatro idiomas del sitio.', mKokoro: 'Voz viva, solo inglés.', mSupertonic: 'El más rápido, lee cifras y fechas.', mNote: 'Peso y velocidad no van juntos: el más pesado calcula el doble de rápido que el ligero.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
+    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Funciona en cualquier dispositivo.', mKokoro: 'Solo inglés. A un teléfono puede faltarle memoria.', mSupertonic: 'Lee cifras y fechas. Pesado para el teléfono.', mNote: 'Peso y velocidad no van juntos: el más pesado calcula el doble de rápido que el ligero.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     model: 'Modelo',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
-    engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga al primer uso', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
+    engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga en la primera generación', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
     failMem: 'A este modelo le ha faltado memoria: ocurre en los teléfonos con los modelos pesados. Coja Piper: es el más ligero y arranca en todas partes.',
-    failNet: 'El modelo no ha terminado de descargarse: se ha cortado la conexión. Pulse reproducir otra vez y continuará desde el mismo punto.',
+    failNet: 'El modelo no ha terminado de descargarse: se ha cortado la conexión. Pulse «Generar» otra vez y continuará desde el mismo punto.',
     failOld: 'Este navegador no entiende este modelo. Actualizarlo ayuda; Piper también funciona en los antiguos.',
     limPiper: 'funciona en todas partes, también en el teléfono',
     limKokoro: 'a un teléfono puede faltarle memoria',
     limSupertonic: 'para ordenador; en el teléfono normalmente no arranca',
     place: 'Pega o escribe el texto que quieres escuchar…',
     chars: 'Caracteres', parts: 'Trozos', of: 'de',
-    play: 'Reproducir', pause: 'Pausa', resume: 'Continuar', stop: 'Parar',
+    play: 'Reproducir', pause: 'Pausa', resume: 'Continuar', stop: 'Parar', seek: 'Avanzar', license: 'Licencia',
+    gen: 'Generar', working: 'Generando', forAll: 'para todas las voces', remove: 'Quitar la pista', trackEmpty: 'Las pistas terminadas aparecerán aquí',
     download: 'Descargar', idle: 'Aquí se verá qué trozo se está leyendo',
     noVoices: 'No se han encontrado voces', loadingVoices: 'Buscando las voces del dispositivo…',
     empty: 'Pega primero un texto', tooLong: 'El texto es demasiado largo',
@@ -207,8 +229,14 @@ const СЛОВА = {
     noCaptureSafari: 'Safari no entrega a la página el audio de la pestaña, así que aquí no se puede montar el archivo. <b>Escuchar funciona por completo.</b> Para descargar, abre esta página en Chrome o Edge.',
     noCaptureAndroid: 'Los navegadores de Android no entregan a la página el audio de la pestaña, así que en el móvil no se puede montar el archivo. <b>Escuchar funciona por completo.</b> Para descargar, abre la página en Chrome o Edge en un ordenador.',
     busy: 'Espera a que acabe la grabación',
-    n1: '<b>Tres modelos a elegir, y el peso no tiene que ver con la velocidad.</b> El más pesado, Supertonic con 380 MB, calcula el doble de rápido que el más ligero. Elija Piper si los datos le cuestan: 20–60 MB y los cuatro idiomas. Kokoro para una voz inglesa viva. Supertonic si su texto lleva cifras, fechas y abreviaturas: las lee sin preparación.',
-    n2: '<b>El modelo se descarga una vez.</b> Después se queda en su dispositivo y la siguiente lectura empieza al instante, incluso sin internet. El peso de cada uno está escrito en su botón: son sus datos, y conviene saberlo antes, no después.',
+    refTitle: 'Tres modelos a elegir', perVoice: 'por voz', srcHint: 'página del modelo',
+    rPiper: 'Los cuatro idiomas del sitio: español, inglés, ruso y ucraniano. Cada voz se descarga por separado.',
+    rKokoro: 'Solo inglés, 28 voces, pero con el sonido más vivo de los tres. Un archivo para todas las voces.',
+    rSupertonic: '31 idiomas, español incluido. Lee cifras, fechas y abreviaturas sin preparación. Un archivo para todas las voces.',
+    sPiper: 'rápido', sKokoro: 'el más lento', sSupertonic: 'el más rápido',
+    n0: '<b>Texto a voz online: gratis y sin registro.</b> Sin cuenta, sin pago y sin límite de archivos: la voz se calcula dentro de su navegador, así que no hay nada que cobrar.',
+    n1: '<b>Tres modelos a elegir, y el peso no tiene que ver con la velocidad.</b> El más pesado, Supertonic con 380 MB, calcula el doble de rápido que el más ligero. <b>Piper</b>: 60–109 MB por voz (lo habitual, 60–73), los cuatro idiomas del sitio, licencia MIT, si los datos le cuestan. <b>Kokoro-82M</b>: 93 MB, solo inglés, Apache 2.0, para una voz inglesa viva. <b>Supertonic 3</b>: 380 MB, 31 idiomas, OpenRAIL-M, si su texto lleva cifras, fechas y abreviaturas — las lee sin preparación.',
+    n2: '<b>El modelo se descarga una vez.</b> Después se queda en su dispositivo y la siguiente lectura empieza al instante, incluso sin internet. Piper guarda un archivo por voz: si cambia de voz, se descarga otra. Kokoro y Supertonic tienen un solo archivo para todas sus voces, así que cambiar entre ellas no cuesta nada.',
     n3: '<b>Su texto no va a ninguna parte.</b> Se procesa dentro de su navegador: no hay adónde enviarlo, el cálculo ocurre aquí. No guardamos nada ni llevamos registros.',
     n4: '<b>El texto largo se lee por trozos.</b> Cortamos al final de las frases, nunca en mitad de una palabra: en la unión habría un chasquido y una sílaba partida. Los trozos se calculan por turno y se pegan en un solo archivo.',
     n5: '<b>Obtiene un archivo en cualquier dispositivo.</b> El sonido nace aquí, no se capta del sistema, así que la descarga funciona también en un iPhone y sin ningún permiso.',
@@ -222,49 +250,60 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 const ЗН_ИГРАТЬ = '<svg class="зн-играть" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>'
   + '<svg class="зн-пауза" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5v13M15 5.5v13"/></svg>';
 const ЗН_СТОП = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>';
-const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/>'
-  + '<path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
-  + '<path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"/>'
-  + '<path d="M10 11v6M14 11v6"/></svg>';
+// В СТРОКЕ СПИСКА -- только имя и вес. Описание с ограничением стоит ПОД списком: в закрытом
+// списке длинная фраза не помещается ни на одном телефоне, обрезка у нового вида списков
+// (appearance: base-select) не срабатывает, и имя модели уезжало под стрелку. Под списком
+// строка переносится и читается целиком.
+// Под списком -- ТОЛЬКО ФАКТ: где эта модель работает и что умеет. Оценок «лёгкая» и
+// «тяжёлая» здесь нет нарочно (владелец 11.09.2026): вес написан в строке списка, и что
+// считать лёгким, человек решает сам -- у кого-то безлимит, у кого-то мобильный интернет.
+const ПРО_МОДЕЛЬ = { piper: с.mPiper, kokoro: с.mKokoro, supertonic: с.mSupertonic };
+
+// Адреса лицензий -- НАСТОЯЩИЕ, все шесть проверены запросом 11.09.2026 (код 200).
+// Название лицензии без ссылки -- это просто слово: проверить его человек не может.
+const ЛИЦЕНЗИИ = {
+  'MIT': 'https://opensource.org/license/mit',
+  'Apache 2.0': 'https://www.apache.org/licenses/LICENSE-2.0',
+  'OpenRAIL-M': 'https://www.licenses.ai/ai-pubs-open-railm-vz1',
+};
+const ПРО_СПРАВКУ = { piper: с.rPiper, kokoro: с.rKokoro, supertonic: с.rSupertonic };
+const СКОРОСТЬ_МОДЕЛИ = { piper: с.sPiper, kokoro: с.sKokoro, supertonic: с.sSupertonic };
+
+const ЗН_КРЕСТ ='<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+const ЗН_ВНИЗ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/>'
+  + '<path d="M7.5 10.5L12 15l4.5-4.5"/><path d="M5 19h14"/></svg>';
 ---
 
 <style is:inline set:html={css}></style>
 
-<div class="рч" data-words={JSON.stringify(с)} data-locale={locale} data-limit={ПРЕДЕЛ}>
-  <div class="рч-пульт">
-    <span class="рч-модели" id="рч-модели">
-      <span class="рч-подпись">{с.model}:</span>
+<div class="рч" data-words={JSON.stringify(с)} data-locale={locale} data-limit={ПРЕДЕЛ} data-models={JSON.stringify(ПРО_МОДЕЛЬ)}>
+  <!-- Два выбора в одну строку, надпись НАД полем: подпись сбоку съедала ширину списка,
+       и длинное имя голоса в него не помещалось. На узком экране полосы встают друг под друга. -->
+  <div class="рч-верх">
+    <label class="рч-стойка">
+      <span class="рч-шапка">{с.model}</span>
+      <span class="рч-гнездо">
       <select class="рч-список" id="рч-модель">
         {МОДЕЛИ.map((м) => (
           <option value={м.ключ} selected={м.ключ === 'piper'}>
-            {м.имя} · {м.весМин ? `${м.весМин}–${м.вес}` : м.вес} МБ · {м.ключ === 'piper' ? с.mPiper : м.ключ === 'kokoro' ? с.mKokoro : с.mSupertonic}
+            {м.имя} · {м.весМин ? `${м.весМин}–${м.вес}` : м.вес} МБ
           </option>
         ))}
       </select>
-      <button type="button" class="рч-дв" id="рч-дв-устройство" hidden>{с.engDev}</button>
-      <button type="button" class="рч-дв" id="рч-дв-свой" hidden>{с.engOwn}</button>
-    </span>
-    <span class="рч-м-где" id="рч-м-где">{с.limPiper}</span>
-    <span class="рч-м-подпись">{с.mNote}</span>
-    <span class="рч-голос-гнездо">
-      <span class="рч-подпись">{с.voice}:</span>
+      <span class="рч-стрелка" aria-hidden="true"></span>
+      </span>
+      <span class="рч-под" id="рч-м-где">{ПРО_МОДЕЛЬ.piper}</span>
+    </label>
+    <label class="рч-стойка">
+      <span class="рч-шапка">{с.voice}</span>
+      <span class="рч-гнездо">
       <select class="рч-список" id="рч-голос" disabled>
         <option>{с.loadingVoices}</option>
       </select>
-    </span>
-    <span class="рч-ручки">
-      <span class="рч-ручка">
-        <span class="рч-подпись">{с.rate}:</span>
-        <input type="range" class="рч-ползунок" id="рч-скорость" min="0.5" max="2" step="0.05" value="1" />
-        <span class="рч-значение" id="рч-скорость-знач">1.00x</span>
+      <span class="рч-стрелка" aria-hidden="true"></span>
       </span>
-      <span class="рч-ручка" id="рч-ручка-тон" hidden>
-        <span class="рч-подпись">{с.pitch}:</span>
-        <input type="range" class="рч-ползунок" id="рч-тон" min="0" max="2" step="0.05" value="1" />
-        <span class="рч-значение" id="рч-тон-знач">1.00</span>
-      </span>
-      <span class="рч-голос-весть" id="рч-голос-весть"></span>
-    </span>
+      <span class="рч-под" id="рч-голос-весть"></span>
+    </label>
   </div>
 
   <div class="рч-поле">
@@ -279,25 +318,50 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
 
   <div class="рч-читается" id="рч-читается">{с.idle}</div>
 
-  <div class="рч-низ">
-    <button type="button" class="рч-знк рч-пуск" id="рч-играть"
-            aria-label={с.play} title={с.play} set:html={ЗН_ИГРАТЬ}></button>
-    <button type="button" class="рч-знк" id="рч-стоп" disabled
-            aria-label={с.stop} title={с.stop} set:html={ЗН_СТОП}></button>
-    <button type="button" class="рч-знк" id="рч-чисто"
-            aria-label={с.clear} title={с.clear} set:html={ЗН_ЧИСТО}></button>
-    <span class="рч-формат">
-      <button type="button" class="рч-фмт выбран" id="рч-mp3" data-ф="mp3">MP3</button>
-      <button type="button" class="рч-фмт" id="рч-wav" data-ф="wav">WAV</button>
-      <button type="button" class="рч-скачать" id="рч-скачать">{с.download}</button>
+  <!-- Скорость стоит вплотную к пуску нарочно: её меняют и жмут «Сгенерировать» ещё раз,
+       чтобы сравнить на слух. Держать её наверху значило бы гонять человека через всю страницу. -->
+  <div class="рч-пуск-ряд">
+    <span class="рч-ручка">
+      <span class="рч-подпись">{с.rate}</span>
+      <input type="range" class="рч-ползунок" id="рч-скорость" min="0.5" max="2" step="0.05" value="1" />
+      <span class="рч-значение" id="рч-скорость-знач">1.00×</span>
     </span>
+    <button type="button" class="рч-сгенерировать" id="рч-генерировать">{с.gen}</button>
   </div>
 
-  <div class="рч-полоса" id="рч-полоса"><i id="рч-полоса-и"></i></div>
+  <!-- Новая дорожка встаёт СВЕРХУ: только что сделанное -- главное, за ним не надо листать. -->
+  <div class="рч-треки" id="рч-треки"></div>
   <div class="рч-ответ" id="рч-ответ"></div>
 
+  <!-- СПРАВКА О МОДЕЛЯХ. Раньше это был один абзац в общем списке заметок, и выбирать по нему
+       было нельзя: три модели слипались в сплошной текст. Теперь три карточки -- имя, вес,
+       что умеет, скорость и лицензия ссылкой, которую можно открыть и прочитать. -->
+  <div class="рч-справка">
+    <h2 class="рч-спр-шапка">{с.refTitle}</h2>
+    <p class="рч-спр-лид">{с.mNote}</p>
+    <div class="рч-спр-ряд">
+      {МОДЕЛИ.map((м) => (
+        <div class="рч-спр-карта">
+          <div class="рч-спр-верх">
+            <a class="рч-спр-имя" href={`https://huggingface.co/${м.хранилище}`}
+               target="_blank" rel="noopener nofollow" title={с.srcHint}>{м.имя}</a>
+            <span class="рч-спр-вес">
+              {м.весМин ? `${м.весМин}–${м.вес}` : м.вес} {с.mb}{м.ключ === 'piper' ? ` ${с.perVoice}` : ''}
+            </span>
+          </div>
+          <p class="рч-спр-что">{ПРО_СПРАВКУ[м.ключ]}</p>
+          <div class="рч-спр-низ">
+            <span class="рч-спр-скорость">{СКОРОСТЬ_МОДЕЛИ[м.ключ]}</span>
+            <a class="рч-спр-лиц" href={ЛИЦЕНЗИИ[м.лицензия]}
+               target="_blank" rel="noopener nofollow">{с.license}: {м.лицензия}</a>
+          </div>
+        </div>
+      ))}
+    </div>
+  </div>
+
   <div class="рч-заметки">
-    <div class="рч-заметка" set:html={с.n1}></div>
+    <div class="рч-заметка" set:html={с.n0}></div>
     <div class="рч-заметка" set:html={с.n2}></div>
     <div class="рч-заметка" set:html={с.n3}></div>
     <div class="рч-заметка" set:html={с.n4}></div>
@@ -306,12 +370,40 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
   </div>
 </div>
 
+<!-- Образец готовой дорожки. Дорожек бывает несколько -- по одной на каждое нажатие
+     «Сгенерировать», -- поэтому разметка лежит здесь, а не повторяется в теле страницы. -->
+<template id="рч-образец">
+  <div class="рч-трек">
+    <div class="рч-трек-ряд">
+      <button type="button" class="рч-знк рч-пуск" data-роль="играть" aria-label={с.play} title={с.play} set:html={ЗН_ИГРАТЬ}></button>
+      <button type="button" class="рч-знк" data-роль="стоп" aria-label={с.stop} title={с.stop} set:html={ЗН_СТОП}></button>
+      <div class="рч-бег">
+        <div class="рч-полоса" role="slider" tabindex="0" aria-label={с.seek}
+             aria-valuemin="0" aria-valuemax="0" aria-valuenow="0" aria-valuetext="0:00">
+          <i></i>
+          <span class="рч-черта"></span>
+          <span class="рч-точка"></span>
+        </div>
+        <span class="рч-часы"><b>0:00</b> / <span>0:00</span></span>
+      </div>
+      <button type="button" class="рч-знк рч-убрать" data-роль="убрать" aria-label={с.remove} title={с.remove} set:html={ЗН_КРЕСТ}></button>
+    </div>
+    <div class="рч-трек-низ">
+      <span class="рч-трек-что"></span>
+      <span class="рч-трек-файлы">
+        <button type="button" class="рч-скачать" data-роль="mp3" title={с.download}><span set:html={ЗН_ВНИЗ}></span>MP3</button>
+        <button type="button" class="рч-скачать" data-роль="wav" title={с.download}><span set:html={ЗН_ВНИЗ}></span>WAV</button>
+      </span>
+    </div>
+  </div>
+</template>
+
 <script>
-  import { encodeWAV, encodeMP3, downloadBlob, peakOf } from '../lib/web-audio-engine.js';
+  import { encodeMP3, downloadBlob } from '../lib/web-audio-engine.js';
   import { ГОЛОСА } from '../lib/piper-voices.js';
   import { этоПК } from '../lib/pc-only.js';
 
-  // Считаем ЗДЕСЬ, а не в потоке: этоТелефон() смотрит matchMedia, screen и maxTouchPoints,
+  // Считаем ЗДЕСЬ, а не в потоке: этоПК() смотрит matchMedia, screen и maxTouchPoints,
   // а в потоке их нет вовсе -- проверка там ответила бы «компьютер» даже на iPhone.
   const ЭТО_ПК = этоПК();
 
@@ -320,34 +412,22 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
     const с = JSON.parse(корень.dataset.words || '{}');
     const язык = корень.dataset.locale || 'ru';
     const ПРЕДЕЛ = Number(корень.dataset.limit) || 5000;
+    const ПРО_МОДЕЛЬ = JSON.parse(корень.dataset.models || '{}');
     const $ = (и) => document.getElementById(и);
 
     const ввод = $('рч-ввод');
     const списокГолосов = $('рч-голос');
-    const кнИграть = $('рч-играть');
-    const кнСтоп = $('рч-стоп');
-    const кнСкачать = $('рч-скачать');
+    const кнГенерировать = $('рч-генерировать');
     const строкаЧитается = $('рч-читается');
     const окноОтвета = $('рч-ответ');
-    const полоса = $('рч-полоса');
-    const полосаИ = $('рч-полоса-и');
+    const гнездоТреков = $('рч-треки');
+    const образец = $('рч-образец');
 
-    const синтез = window.speechSynthesis;
-    let голоса = [];
-    // Двигатель: «устройство» -- голоса системы, «свой» -- Piper прямо в браузере.
-    // Встроенный голос -- первым и по умолчанию: только он даёт файл на любом устройстве.
-    // Голоса устройства -- второй кнопкой, для прослушивания.
     let двигатель = 'piper';
     let работник = null;
     let скачанные = [];
-    // ВСЕ языки, а не только язык страницы: озвучивать приходится и чужой текст -- испанскую
-    // фразу в русской статье, немецкую цитату в английской. Язык страницы идёт первым, потому
-    // что нужен чаще всего. Название языка берётся на нём же самом («Deutsch», «Українська»):
-    // так человек находит своё на любой языковой версии и переводить ничего не надо.
-    // Голоса КАЖДОЙ модели в её собственном виде. Раньше список заполнялся голосами Piper
-    // независимо от выбора: нажав Kokoro, человек получил бы чужой номер голоса и чужой язык.
-    // Записи приведены к одному виду {к, г, я, яз, мб, имя}, чтобы остальная страница
-    // не разбиралась, чьи это голоса.
+    // Голоса КАЖДОЙ модели в её собственном виде. Записи приведены к одному виду
+    // {к, г, я, яз, м, мб, имя}, чтобы остальная страница не разбиралась, чьи это голоса.
     const ГОЛОСА_KOKORO = [
       ['af_heart','Heart'],['af_bella','Bella'],['af_nicole','Nicole'],['af_sarah','Sarah'],
       ['af_sky','Sky'],['af_alloy','Alloy'],['af_aoede','Aoede'],['af_jessica','Jessica'],
@@ -363,9 +443,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
 
     // У Supertonic голоса безымянные: пять женских и пять мужских. Язык он берёт из ТЕКСТА,
     // а не из голоса, поэтому у записи стоит язык страницы -- его и шлём в поток.
-    // Имена вместо F1 и M3. У самой модели голоса безымянные, и «M3» человеку ничего не
-    // говорит: он не выберет, а ткнёт наугад. Имена подобраны короткие, из разных языков --
-    // страница на четырёх, и голос не должен выглядеть чужим ни на одной.
+    // Имена вместо F1 и M3: «M3» человеку ничего не говорит, он ткнёт наугад.
     const ГОЛОСА_SUPERTONIC = [
       ['F1', 'Alma'], ['F2', 'Nora'], ['F3', 'Vera'], ['F4', 'Lina'], ['F5', 'Rita'],
       ['M1', 'Adam'], ['M2', 'Leon'], ['M3', 'Marc'], ['M4', 'Timo'], ['M5', 'Nils'],
@@ -379,45 +457,19 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       const свой = (г) => (г.я === язык ? 0 : 1);
       return свой(а) - свой(б) || а.яз.localeCompare(б.яз) || а.мб - б.мб || а.имя.localeCompare(б.имя);
     });
-    let плеер = null;          // обычный <audio> для встроенного голоса
-    let плеерРазбужен = false;
-    // Полсотни миллисекунд тишины: нужны только чтобы разбудить проигрыватель в жесте.
-    const ТИШИНА = 'data:audio/wav;base64,UklGRjIAAABXQVZFZm10IBAAAAABAAEAgD4AAAB9AAACABAAZGF0YQ4AAAAAAAAAAAAAAAAAAAAAAA==';
-    let готовыйЗвук = null;    // {ключ, blob} -- чтобы не считать одно и то же дважды
+
+    let готовыйЗвук = null;    // {ключ, blob} -- одно и то же дважды не считаем
     let ждущие = [];
-    let формат = 'mp3';
-    let очередь = [];
-    let ноль = 0;              // с какого куска читаем -- нужно при смене скорости на ходу
-    let текущее = null;
-    let состояние = 'стоп';    // стоп | читает | пауза | пишет
-    let отменено = false;
-    let приЗавершении = null;  // ждёт конца чтения, когда идёт запись
+    let состояние = 'стоп';    // стоп | считает | играет | пауза
 
-    // ---- Среда -------------------------------------------------------------------------------
-    // От неё зависит и подсказка в окне выбора, и сам факт наличия записи.
-    const среда = (() => {
-      const ua = navigator.userAgent || '';
-      const iOS = /iPad|iPhone|iPod/.test(ua) ||
-        (navigator.platform === 'MacIntel' && (navigator.maxTouchPoints || 0) > 1);
-      const android = /Android/i.test(ua);
-      const safari = /Safari/.test(ua) && !/Chrome|Chromium|CriOS|Edg|OPR|FxiOS/.test(ua);
-      const windows = /Windows/i.test(ua);
-      const умеет = !!(navigator.mediaDevices && navigator.mediaDevices.getDisplayMedia) &&
-        typeof window.MediaRecorder === 'function' && !iOS && !android && !safari;
-      return { iOS, android, safari, windows, умеет };
-    })();
-
-    // ---- Встроенный голос: связь с работником --------------------------------------------------------
+    // ---- Встроенный голос: связь с работником --------------------------------------------------
     // Синтез идёт в стороне от страницы: на своём потоке длинный текст заморозил бы её на
     // десятки секунд, и Chrome предложил бы её закрыть.
-
-    // Поток на каждую модель: договор у них один, а состояние своё. Переключился туда и
-    // обратно -- модель не качается заново, поток жив.
+    //
     // АДРЕС ПОТОКА ЗАПИСАН БУКВАЛЬНО, И ЭТО ОБЯЗАТЕЛЬНО. Сборщик находит файлы потоков,
     // только читая new URL('...', import.meta.url) как есть. Стоило собрать адрес из
     // переменной -- и он просто не положил файлы в сборку: страница просила их по адресу,
-    // которого нет, поток не поднимался, и модель «не загружалась». Снаружи это выглядело
-    // как «ничего не происходит», а в сборке не было ни одного файла потока.
+    // которого нет, поток не поднимался, и модель «не загружалась».
     const ПОТОКИ = {
       piper: () => new Worker(new URL('../lib/tts-piper-worker.js', import.meta.url), { type: 'module' }),
       kokoro: () => new Worker(new URL('../lib/tts-kokoro-worker.js', import.meta.url), { type: 'module' }),
@@ -459,20 +511,35 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       });
     }
 
+    // Ход работы -- ТОНКОЙ ЛИНИЕЙ по нижнему краю строки, а не закраской всего прямоугольника:
+    // закрашенный прямоугольник читается как выделение, а не как ход. Проценты пишем словами
+    // в самой строке -- по линии на глаз их не сосчитать.
     function показатьРаботу(текст, доля) {
       строкаЧитается.classList.add('идёт');
       строкаЧитается.textContent = текст;
-      полоса.classList.add('идёт');
-      полосаИ.style.width = `${Math.max(2, Math.round(доля))}%`;
+      строкаЧитается.style.setProperty('--ход', `${Math.max(1, Math.round(доля))}%`);
+    }
+    function убратьРаботу(текст) {
+      строкаЧитается.classList.remove('идёт');
+      строкаЧитается.textContent = текст || с.idle;
+      строкаЧитается.style.setProperty('--ход', '0%');
     }
 
-    // Строка под списком: сколько весит голос и лежит ли он уже на устройстве.
+    // Строка под списком голосов: сколько весит голос и лежит ли он уже на устройстве.
     function показатьПроГолос() {
       const э = $('рч-голос-весть');
       const г = выбранныйГолос();
       if (!г) { э.textContent = ''; return; }
-      const есть = скачанные.includes(г.к);
-      э.textContent = `${с.size}: ${г.мб} ${с.mb} — ${есть ? с.ready : с.notReady}`;
+      // У Piper СВОЙ ФАЙЛ НА КАЖДЫЙ ГОЛОС -- сменил голос, качается заново. У Kokoro и
+      // Supertonic файл один на все их голоса, и переключение не стоит ничего.
+      // Раньше готовность искалась по ключу голоса всегда, а эти двое отвечают ключом
+      // модели: строка твердила «загрузится при первом пуске» даже когда модель уже лежала
+      // на устройстве. Человек по ней считал, что ему снова качать 380 мегабайт.
+      const общий = двигатель !== 'piper';
+      const есть = скачанные.includes(общий ? двигатель : г.к);
+      э.textContent = общий
+        ? `${с.model}: ${есть ? с.mReady : с.notReady}`
+        : `${с.size}: ${г.мб} ${с.mb} — ${есть ? с.ready : с.notReady}`;
       э.classList.toggle('готов', есть);
     }
 
@@ -505,67 +572,18 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
     }
 
     // ---- Голоса ------------------------------------------------------------------------------
-    // getVoices() при первом вызове почти всегда пуст: список приходит позже событием.
-    // Поэтому спрашиваем и по событию, и несколько раз по таймеру -- на части браузеров
-    // событие не приходит вовсе.
-
-    // Пометка «устройства / сетевой» -- не украшение: сетевой голос играет внутри вкладки и
-    // потому записывается, а голос системы часто идёт мимо неё. При неудачной записи мы
-    // ссылаемся ровно на эту пометку.
-    function подписьГолоса(г) {
-      return `${г.name} (${г.lang}) — ${г.localService ? с.local : с.network}`;
-    }
-
-    function собратьГолоса() {
-      const список = синтез ? синтез.getVoices() : [];
-      if (!список.length) return false;
-      // Порядок: сначала язык страницы, а внутри него -- СЕТЕВЫЕ ГОЛОСА ВПЕРЁД.
-      // Сетевые (в Chrome это голоса Google) звучат заметно лучше системных и по-русски читают
-      // без акцента. Раньше «Google русский» терялся среди двух сотен строк, и человек его
-      // просто не находил. Они же надёжнее других записываются в файл: играют внутри вкладки.
-      const свой = (г) => ((г.lang || '').toLowerCase().startsWith(язык) ? 0 : 1);
-      const сетевой = (г) => (г.localService ? 1 : 0);
-      голоса = список.slice().sort((а, б) => свой(а) - свой(б) || сетевой(а) - сетевой(б));
-      const было = списокГолосов.value;
-      const куски = голоса.map((г, и) => {
-        const о = document.createElement('option');
-        о.value = String(и);
-        о.textContent = подписьГолоса(г);
-        return о;
-      });
-      // Список приходит с задержкой. Если человек к этому времени смотрит встроенные голоса,
-      // трогать поле нельзя: иначе в нём оказывается «Милена (ru-RU)», а считает совсем другой
-      // голос -- номер-то берётся из другого списка.
-      видКнопок(); return true;   // системных голосов нет -- собирать нечего
-      списокГолосов.replaceChildren(...куски);
-      списокГолосов.disabled = false;
-      if (было && голоса[Number(было)]) списокГолосов.value = было;
-      // Голоса приходят позже отрисовки, и вид кнопок надо пересчитать ЗДЕСЬ. Без этого
-      // «Воспроизвести» остаётся заблокированной навсегда: при первом расчёте голосов ещё нет.
-      видКнопок();
-      return true;
-    }
-
-    function ждатьГолоса() {
-      if (собратьГолоса()) return;
-      let попыток = 0;
-      const часы = setInterval(() => {
-        if (собратьГолоса() || ++попыток > 20) {
-          clearInterval(часы);
-          if (!голоса.length) списокГолосов.replaceChildren(new Option(с.noVoices, ''));
-        }
-      }, 250);
-      if (синтез) синтез.addEventListener('voiceschanged', () => { собратьГолоса(); });
-    }
-
-    // У встроенного голоса подпись говорит и о местности, и о качестве, и о весе: человек выбирает
-    // не только звучание, но и сколько ему качать.
+    // У встроенного голоса подпись говорит и о местности, и о весе: человек выбирает не только
+    // звучание, но и сколько ему качать.
     function заполнитьСвои() {
       const было = списокГолосов.value;
       списокГолосов.replaceChildren(...своиГолоса.map((г, и) => {
         const о = document.createElement('option');
         о.value = String(и);
-        о.textContent = `${г.яз} · ${г.имя} (${г.м}) — ${г.мб} ${с.mb}`;
+        // Вес пишем ТОЛЬКО у Piper: там каждый голос -- отдельный файл, и это честное число.
+        // У Kokoro и Supertonic файл один на все голоса, и «380 МБ» у каждого читалось бы
+        // как «за каждый». Их вес стоит в строке модели, где ему и место.
+        const свой = двигатель === 'piper' ? ` — ${г.мб} ${с.mb}` : '';
+        о.textContent = `${г.имя}${г.яз ? ` · ${г.яз}` : ''}${г.м ? ` (${г.м})` : ''}${свой}`;
         return о;
       }));
       списокГолосов.disabled = !своиГолоса.length;
@@ -574,14 +592,11 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       показатьПроГолос();
     }
 
-    const выбранныйГолос = () => (true
-      ? своиГолоса[Number(списокГолосов.value)] || null
-      : голоса[Number(списокГолосов.value)] || null);
+    const выбранныйГолос = () => своиГолоса[Number(списокГолосов.value)] || null;
 
     // ---- Резка текста ------------------------------------------------------------------------
-    // Chrome обрывает речь примерно на пятнадцатой секунде. Кусок считаем не в знаках вообще,
-    // а в знаках ПРИ ЭТОЙ СКОРОСТИ: на скорости 0.5 те же 150 знаков звучат вдвое дольше.
-
+    // Кусок считаем не в знаках вообще, а в знаках ПРИ ЭТОЙ СКОРОСТИ: на скорости 0.5 те же
+    // 150 знаков звучат вдвое дольше.
     function накуски(текст, скорость) {
       const длина = Math.max(60, Math.round(150 * Math.min(1, скорость)));
       const слова = (текст.replace(/\r/g, '').match(/\S+\s*/g)) || [];
@@ -600,85 +615,322 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       return куски.map((к) => к.trim()).filter(Boolean);
     }
 
-    // ---- Чтение ------------------------------------------------------------------------------
-
     const скорость = () => Number($('рч-скорость').value);
-    const тон = () => Number($('рч-тон').value);
 
-    function показатьКусок(и) {
-      if (и < 0 || !очередь[и]) {
-        строкаЧитается.textContent = с.idle;
-        строкаЧитается.classList.remove('идёт');
-        return;
-      }
-      строкаЧитается.classList.add('идёт');
-      строкаЧитается.textContent = `${с.reading} ${и + 1}/${очередь.length}: ${очередь[и]}`;
-      полосаИ.style.width = `${Math.round(((и + 1) / очередь.length) * 100)}%`;
+    // ---- Один проигрыватель на все дорожки -----------------------------------------------------
+    // Обычный <audio>, а не звуковой движок: движок после долгого сна телефона умирает молча,
+    // и лечит это только обновление страницы. Проигрыватель это переживает и играет потоком,
+    // не разжимая файл целиком в память.
+    //
+    // Проигрыватель ОДИН на все дорожки: два звука разом -- это каша, а не сравнение.
+    // Нажали пуск на другой дорожке -- прежняя встаёт там, где стояла, и ждёт.
+    let плеер = null;
+    let активный = null;       // дорожка, которая сейчас заряжена в проигрыватель
+    const треки = [];          // новые -- в начале
+    const поУзлу = new Map();
+    const ПРЕДЕЛ_ТРЕКОВ = 8;
+
+    const мм = (сек) => {
+      const ц = Math.max(0, Math.floor(Number(сек) || 0));
+      return `${Math.floor(ц / 60)}:${String(ц % 60).padStart(2, '0')}`;
+    };
+
+    function завестиПлеер() {
+      if (плеер) return плеер;
+      плеер = new Audio();
+      плеер.preload = 'auto';
+      плеер.addEventListener('play', () => { состояние = 'играет'; видКнопок(); пуститьКадры(); });
+      плеер.addEventListener('pause', () => {
+        if (состояние === 'играет') состояние = 'пауза';
+        видКнопок(); рисовать();
+      });
+      плеер.addEventListener('ended', () => {
+        // Конец дорожки: бегунок возвращается в начало, как на всех плеерах сайта.
+        // Обнулить надо и сам проигрыватель: показываем мы ЕГО положение, а он после конца
+        // стоит на последней секунде -- бегунок так и замирал бы у правого края.
+        if (активный) активный.позиция = 0;
+        try { плеер.currentTime = 0; } catch (ош) {}
+        состояние = 'стоп';
+        остановитьКадры();
+        видКнопок(); рисовать();
+      });
+      return плеер;
     }
 
-    // Ширина кнопки пуска. Надпись на ней меняется («Воспроизвести» -- «Пауза» --
-    // «Продолжить»), и без запаса кнопка на каждом нажатии прыгает, а с ней и весь ряд.
-    // Меряем ВСЕ три надписи и держим место под самую длинную. Пересчитываем после загрузки
-    // шрифта и при смене размера окна: до готовности шрифта ширина получается чужая.
-    // Подпорка ширины удалена: она держала место под слово «Воспроизвести», чтобы кнопка
-    // не прыгала при смене надписи. Надписи больше нет -- есть значок постоянного размера,
-    // и подпорка только растягивала кнопку шире соседних.
+    // ---- Бегунок со временем -------------------------------------------------------------------
+    // Ведём КАДРАМИ (requestAnimationFrame), а не событием timeupdate: оно приходит четыре
+    // раза в секунду, и бегунок от него дёргается.
+    // Черта следует за курсором, время этой точки показывают часы справа.
+    // Нажали по полосе: играло -- играет дальше с нового места, стояло -- остаётся стоять.
+    let кадр = 0;
+    let тянут = null;          // дорожка, полосу которой тащат
+    let игралДоТяги = false;
 
+    const позиция = (т) => (активный === т && плеер ? (плеер.currentTime || 0) : т.позиция);
+
+    function рисовать(т) {
+      for (const д of (т ? [т] : треки)) {
+        const длина = д.длина || 0;
+        const поз = Math.min(позиция(д), длина || 0);
+        const доля = длина ? поз / длина : 0;
+        д.заливка.style.width = `${(доля * 100).toFixed(2)}%`;
+        д.точка.style.left = `${(доля * 100).toFixed(2)}%`;
+        if (!д.узел.classList.contains('наведено')) д.времяЭ.textContent = мм(поз);
+        д.длинаЭ.textContent = мм(длина);
+        д.полоса.setAttribute('aria-valuemax', String(Math.round(длина)));
+        д.полоса.setAttribute('aria-valuenow', String(Math.round(поз)));
+        д.полоса.setAttribute('aria-valuetext', `${мм(поз)} / ${мм(длина)}`);
+      }
+    }
+
+    function вестиКадры() {
+      кадр = requestAnimationFrame(вестиКадры);
+      рисовать(активный || undefined);
+      if (!плеер || (плеер.paused && !тянут)) остановитьКадры();
+    }
+    function пуститьКадры() { if (!кадр) кадр = requestAnimationFrame(вестиКадры); }
+    function остановитьКадры() { if (кадр) cancelAnimationFrame(кадр); кадр = 0; }
+
+    // Долю считаем от самой полосы, а не от страницы: полоса тянется по ширине окна.
+    function доляСобытия(т, е) {
+      const р = т.полоса.getBoundingClientRect();
+      return р.width ? Math.max(0, Math.min(1, (е.clientX - р.left) / р.width)) : 0;
+    }
+
+    function перемотать(т, доля) {
+      const длина = т.длина || 0;
+      if (!длина) return;
+      const д = Math.max(0, Math.min(1, доля || 0));
+      // Ровно в конец не ставим: браузер тут же шлёт ended, и дорожка «заканчивалась» бы сама
+      // собой, стоило дотянуть бегунок до правого края.
+      т.позиция = Math.min(д * длина, Math.max(0, длина - 0.05));
+      if (активный === т && плеер) плеер.currentTime = т.позиция;
+      рисовать(т);
+    }
+
+    // Ведение перемотки слушает ОКНО, а не сама полоса, и «захвата указателя» здесь нет.
+    // Причина найдена опытом: при захвате отпускание изредка не доходило до полосы -- тяга
+    // не завершалась, звук оставался на паузе, а следующее нажатие вело себя наоборот.
+    // Окно получает отпускание всегда, где бы палец ни оторвался, и это заодно даёт
+    // перетаскивание за пределами полосы -- так работают все ползунки.
+    window.addEventListener('pointermove', (е) => {
+      if (тянут) перемотать(тянут, доляСобытия(тянут, е));
+    });
+    const завершитьТягу = () => {
+      const т = тянут;
+      if (!т) return;
+      тянут = null;
+      // Играло до перемотки -- играет дальше с нового места; стояло -- остаётся стоять.
+      if (игралДоТяги) включить(т, true);
+      else рисовать(т);
+    };
+    window.addEventListener('pointerup', завершитьТягу);
+    window.addEventListener('pointercancel', завершитьТягу);
+
+    // ---- Готовая дорожка -------------------------------------------------------------------------
+
+    // Длительность берём из заголовка WAV, а не из проигрывателя: так время видно сразу,
+    // не дожидаясь, пока человек нажмёт пуск.
+    async function длинаWAV(blob) {
+      try {
+        const в = new DataView(await blob.slice(0, 44).arrayBuffer());
+        const каналов = в.getUint16(22, true) || 1;
+        const частота = в.getUint32(24, true) || 22050;
+        const бит = в.getUint16(34, true) || 16;
+        const байтНаОтсчёт = каналов * (бит / 8);
+        return байтНаОтсчёт ? (blob.size - 44) / (частота * байтНаОтсчёт) : 0;
+      } catch (ош) { return 0; }
+    }
+
+    // Зарядить дорожку в проигрыватель. Свежую заряжаем СРАЗУ, как только она появилась, --
+    // тогда нажатие «играть» звучит мгновенно, без ожидания загрузки файла. Раньше файл
+    // начинал грузиться только по нажатию, и первый пуск изредка запаздывал на пару секунд:
+    // человек жмёт, а тишина.
+    function зарядить(т) {
+      завестиПлеер();
+      if (активный === т) return;
+      if (активный) {
+        активный.позиция = плеер.currentTime || 0;
+        активный.узел.classList.remove('звучит');
+      }
+      плеер.pause();
+      активный = т;
+      т.узел.classList.add('звучит');
+      плеер.src = т.url;
+      плеер.load();
+    }
+
+    function включить(т, играть) {
+      const сменили = активный !== т;
+      зарядить(т);
+      if (!играть) return;
+      const пуск = () => {
+        if (т.позиция > 0.05 && Math.abs((плеер.currentTime || 0) - т.позиция) > 0.1) {
+          try { плеер.currentTime = т.позиция; } catch (ош) {}
+        }
+        const п = плеер.play();
+        if (п && п.catch) п.catch(() => {});
+      };
+      // Ждать первых данных надо ТОЛЬКО когда подменили файл: просить играть сразу после
+      // подмены нельзя, браузер отменяет запрос («play() interrupted by a new load request»).
+      // Во всех остальных случаях играем немедленно. Раньше здесь стояла проверка готовности,
+      // и она подводила после перемотки: во время поиска места браузер на миг сбрасывает
+      // готовность, код уходил ждать запасной таймер -- и звук возвращался почти через
+      // секунду. Со стороны это выглядело как «нажал, а оно молчит».
+      if (!сменили || плеер.readyState >= 2) { пуск(); return; }
+      let было = false;
+      const разок = () => { if (было) return; было = true; пуск(); };
+      плеер.addEventListener('loadeddata', разок, { once: true });
+      setTimeout(разок, 400);
+    }
+
+    function остановить(т) {
+      if (активный !== т) { т.позиция = 0; рисовать(т); видКнопок(); return; }
+      плеер.pause();
+      т.позиция = 0;
+      try { плеер.currentTime = 0; } catch (ош) {}
+      состояние = 'стоп';
+      остановитьКадры();
+      рисовать(т);
+      видКнопок();
+    }
+
+    function убрать(т) {
+      if (активный === т) {
+        плеер.pause();
+        плеер.removeAttribute('src');
+        плеер.load();
+        активный = null;
+        состояние = 'стоп';
+        остановитьКадры();
+      }
+      URL.revokeObjectURL(т.url);
+      поУзлу.delete(т.узел);
+      т.узел.remove();
+      const и = треки.indexOf(т);
+      if (и >= 0) треки.splice(и, 1);
+      видКнопок();
+    }
+
+    async function скачать(т, формат) {
+      try {
+        let файл = т.blob;
+        if (формат === 'mp3') {
+          // Считаем на ЧАСТОТЕ САМОГО ЗВУКА (у Piper это 22050). Обычный AudioContext
+          // работает на 48000 и молча пересчитывает вверх -- файл выходил вдвое тяжелее,
+          // а лучше от этого не звучал.
+          const байты = await т.blob.arrayBuffer();
+          const частота = new DataView(байты).getUint32(24, true) || 22050;
+          const ак = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: частота });
+          const буфер = await ак.decodeAudioData(байты);
+          файл = await encodeMP3(буфер, 128);
+          await ак.close();
+        }
+        downloadBlob(файл, `${т.имя}.${формат}`);
+        сказать(с.done);
+      } catch (ошибка) {
+        весть(`${с.piperFail}. ${String((ошибка && ошибка.message) || ошибка)}`, true);
+      }
+    }
+
+    async function добавитьТрек(blob, подпись, имя) {
+      const узел = образец.content.firstElementChild.cloneNode(true);
+      const т = {
+        узел, blob, имя,
+        url: URL.createObjectURL(blob),
+        длина: await длинаWAV(blob),
+        позиция: 0,
+        полоса: узел.querySelector('.рч-полоса'),
+        заливка: узел.querySelector('.рч-полоса i'),
+        точка: узел.querySelector('.рч-точка'),
+        черта: узел.querySelector('.рч-черта'),
+        времяЭ: узел.querySelector('.рч-часы b'),
+        длинаЭ: узел.querySelector('.рч-часы span'),
+        кнИграть: узел.querySelector('[data-роль="играть"]'),
+      };
+      узел.querySelector('.рч-трек-что').textContent = подпись;
+
+      узел.addEventListener('click', (е) => {
+        const кн = е.target.closest('[data-роль]');
+        if (!кн) return;
+        const роль = кн.dataset.роль;
+        if (роль === 'играть') {
+          if (активный === т && состояние === 'играет') { плеер.pause(); return; }
+          включить(т, true);
+        } else if (роль === 'стоп') остановить(т);
+        else if (роль === 'убрать') убрать(т);
+        else if (роль === 'mp3' || роль === 'wav') скачать(т, роль);
+      });
+
+      т.полоса.addEventListener('pointerdown', (е) => {
+        if (!т.длина) return;
+        е.preventDefault();
+        тянут = т;
+        игралДоТяги = активный === т && плеер && !плеер.paused;
+        // Пока тащат, звук молчит: иначе он рвётся обрывками на каждом движении пальца.
+        if (игралДоТяги) плеер.pause();
+        перемотать(т, доляСобытия(т, е));
+      });
+      // Ведение и отпускание слушает ОКНО (см. ниже) -- палец и мышь уходят с полосы.
+      т.полоса.addEventListener('pointermove', (е) => {
+        if (тянут || !т.длина) return;
+        const доля = доляСобытия(т, е);
+        т.черта.style.left = `${(доля * 100).toFixed(2)}%`;
+        узел.classList.add('наведено');
+        т.времяЭ.textContent = мм(доля * т.длина);
+      });
+      т.полоса.addEventListener('pointerleave', () => {
+        if (!узел.classList.contains('наведено')) return;
+        узел.classList.remove('наведено');
+        рисовать(т);
+      });
+      // С клавиатуры: стрелки по пять секунд, Home и End -- к краям.
+      т.полоса.addEventListener('keydown', (е) => {
+        if (!т.длина) return;
+        const шаг = е.key === 'ArrowLeft' ? -5 : е.key === 'ArrowRight' ? 5 : 0;
+        if (шаг) перемотать(т, (позиция(т) + шаг) / т.длина);
+        else if (е.key === 'Home') перемотать(т, 0);
+        else if (е.key === 'End') перемотать(т, 1);
+        else return;
+        е.preventDefault();
+      });
+
+      поУзлу.set(узел, т);
+      треки.unshift(т);
+      гнездоТреков.prepend(узел);
+      // Больше восьми дорожек в памяти держать незачем: каждая -- целый файл звука.
+      while (треки.length > ПРЕДЕЛ_ТРЕКОВ) убрать(треки[треки.length - 1]);
+      рисовать(т);
+      if (!активный) зарядить(т);
+      видКнопок();
+      return т;
+    }
+
+    // ---- Вид кнопок ----------------------------------------------------------------------------
 
     function видКнопок() {
-      const пишем = состояние === 'пишет';
-      // Треугольник или две палочки -- вид кнопки, а не её надпись. Подпись для чтецов
-      // экрана меняем тем же движением, иначе незрячий слышит «воспроизвести» на паузе.
-      const идёт = состояние === 'читает';
-      кнИграть.classList.toggle('играет', идёт);
-      кнИграть.setAttribute('aria-label', идёт ? с.pause : (состояние === 'пауза' ? с.resume : с.play));
-      кнИграть.title = кнИграть.getAttribute('aria-label');
-      // Кнопку не глушим из-за пустого списка голосов: на части систем (и на Android
-      // особенно) getVoices() возвращает пустоту, а speak() говорит голосом по умолчанию.
-      кнИграть.disabled = пишем;
-      кнСтоп.disabled = состояние === 'стоп';
-      кнСкачать.disabled = пишем;
-      списокГолосов.disabled = пишем || !своиГолоса.length;
-      // Не hidden: исчезающая полоса подпрыгивала бы макетом на каждом пуске чтения.
-      полоса.classList.toggle('идёт', состояние !== 'стоп');
+      const считает = состояние === 'считает';
+      кнГенерировать.disabled = считает;
+      кнГенерировать.classList.toggle('считает', считает);
+      списокГолосов.disabled = считает || !своиГолоса.length;
+      $('рч-модель').disabled = считает;
+      for (const т of треки) {
+        // Треугольник или две палочки -- вид кнопки, а не её надпись. Подпись для чтецов
+        // экрана меняем тем же движением, иначе незрячий слышит «воспроизвести» на паузе.
+        const идёт = активный === т && состояние === 'играет';
+        т.кнИграть.classList.toggle('играет', идёт);
+        т.кнИграть.setAttribute('aria-label', идёт ? с.pause : с.play);
+        т.кнИграть.title = т.кнИграть.getAttribute('aria-label');
+      }
     }
 
-    function произнести(и) {
-      if (отменено) return;
-      if (и >= очередь.length) { закончили(); return; }
-      ноль = и;
-      показатьКусок(и);
-      const у = new SpeechSynthesisUtterance(очередь[и]);
-      const г = выбранныйГолос();
-      if (г) { у.voice = г; у.lang = г.lang; }
-      у.rate = скорость();
-      у.pitch = тон();
-      у.volume = 1;
-      у.onend = () => { if (!отменено) произнести(и + 1); };
-      у.onerror = (е) => {
-        // «interrupted» и «canceled» -- наш же cancel(), это не беда.
-        if (отменено || е.error === 'interrupted' || е.error === 'canceled') return;
-        сказать(String(е.error || 'error'));
-        закончили();
-      };
-      текущее = у;
-      синтез.speak(у);
-    }
-
-    function закончили() {
-      состояние = 'стоп';
-      текущее = null;
-      показатьКусок(-1);
-      полосаИ.style.width = '0%';
-      видКнопок();
-      if (приЗавершении) { const ф = приЗавершении; приЗавершении = null; ф(); }
-    }
+    // ---- Синтез --------------------------------------------------------------------------------
 
     // Один и тот же текст тем же голосом не пересчитываем: синтез не мгновенный, а человек
-    // жмёт «Воспроизвести» по нескольку раз подряд.
+    // жмёт «Сгенерировать» по нескольку раз подряд.
     function ключЗвука() {
       const г = выбранныйГолос();
-      return [ввод.value.trim(), г && г.к, г && г.г, скорость()].join('|');
+      return [ввод.value.trim(), двигатель, г && г.к, г && г.г, скорость()].join('|');
     }
 
     async function свойЗвук() {
@@ -697,117 +949,51 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       return blob;
     }
 
-    // Заводим проигрыватель, пока жест ещё «горячий». Дальше можно ждать сколько угодно:
-    // разбуженному элементу браузер уже не откажет.
-    function разбудитьПлеер() {
-      if (!плеер) {
-        плеер = new Audio();
-        плеер.addEventListener('ended', () => { if (плеерРазбужен && плеер.dataset.свой === '1') закончили(); });
-      }
-      if (плеерРазбужен) return;
-      плеер.dataset.свой = '0';
-      плеер.src = ТИШИНА;
-      const п = плеер.play();
-      if (п && п.catch) п.catch(() => {});
-      плеерРазбужен = true;
-    }
-
-    async function своёЧтение() {
-      if (!ввод.value.trim()) { сказать(с.empty); return; }
-      состояние = 'читает';
+    async function сгенерировать() {
+      const текст = ввод.value.trim();
+      if (!текст) { сказать(с.empty); ввод.focus(); return; }
+      if (состояние === 'считает') return;
+      убратьВесть();
+      состояние = 'считает';
       видКнопок();
+      кнГенерировать.textContent = `${с.working}…`;
       try {
         const blob = await свойЗвук();
-        if (состояние !== 'читает') return;   // успели нажать «Стоп»
-        разбудитьПлеер();
-        if (плеер.src.startsWith('blob:')) URL.revokeObjectURL(плеер.src);
-        плеер.dataset.свой = '1';
-        плеер.src = URL.createObjectURL(blob);
-        строкаЧитается.classList.add('идёт');
-        строкаЧитается.textContent = `${с.reading}: ${ввод.value.trim().slice(0, 120)}`;
-        полосаИ.style.width = '100%';
-        await плеер.play();
+        const г = выбранныйГолос();
+        const имя = (текст.slice(0, 32).replace(/[^\p{L}\p{N}]+/gu, '-')
+          .replace(/^-|-$/g, '') || 'speech');
+        // Подпись говорит, чем эта дорожка отличается от соседней: голос и скорость.
+        // Без неё две дорожки подряд неразличимы, а человек их и делает ради сравнения.
+        const подпись = [г && г.имя, `${скорость().toFixed(2)}×`, текст.slice(0, 60)]
+          .filter(Boolean).join(' · ');
+        состояние = 'стоп';
+        await добавитьТрек(blob, подпись, имя);
+        убратьРаботу(с.idle);
       } catch (ошибка) {
-        весть(`${с.piperFail}. ${почемуНеВышло(ошибка) || String(ошибка.message || ошибка)}`, true);
-        закончили();
+        состояние = 'стоп';
+        весть(`${с.piperFail}. ${почемуНеВышло(ошибка) || String((ошибка && ошибка.message) || ошибка)}`, true);
+        убратьРаботу(с.idle);
       }
-    }
-
-    function начать(сНуля) {
-      const текст = ввод.value.trim();
-      if (!текст) { сказать(с.empty); return false; }
-      отменено = true;
-      синтез.cancel();
-      отменено = false;
-      очередь = накуски(текст, скорость());
-      $('рч-кусков').textContent = String(очередь.length);
-      if (!очередь.length) { сказать(с.empty); return false; }
-      состояние = состояние === 'пишет' ? 'пишет' : 'читает';
+      кнГенерировать.textContent = с.gen;
       видКнопок();
-      // Chrome глотает speak(), вызванный сразу после cancel(): даём ему кадр на уборку.
-      setTimeout(() => произнести(сНуля ? 0 : ноль), 60);
-      return true;
     }
 
-    function остановить() {
-      if (плеер) { плеер.pause(); плеер.currentTime = 0; }
-      отменено = true;
-      if (синтез) синтез.cancel();
-      ноль = 0;
-      закончили();
-      // Флаг снимаем следующим кадром, иначе onerror от cancel() успеет пройти как беда.
-      setTimeout(() => { отменено = false; }, 50);
-    }
+    кнГенерировать.addEventListener('click', сгенерировать);
 
-    // ---- Кнопки ------------------------------------------------------------------------------
-
-    кнИграть.addEventListener('click', () => {
-      убратьВесть();
-      {
-        if (состояние === 'читает' && плеер && !плеер.paused) {
-          плеер.pause(); состояние = 'пауза'; видКнопок(); return;
-        }
-        if (состояние === 'пауза' && плеер) {
-          плеер.play(); состояние = 'читает'; видКнопок(); return;
-        }
-        разбудитьПлеер();   // строго внутри жеста, до любого ожидания
-        своёЧтение();
-        return;
-      }
-      if (состояние === 'читает') {
-        синтез.pause();
-        состояние = 'пауза';
-        видКнопок();
-        return;
-      }
-      if (состояние === 'пауза') {
-        синтез.resume();
-        состояние = 'читает';
-        видКнопок();
-        return;
-      }
-      начать(true);
-    });
-
-    кнСтоп.addEventListener('click', () => { убратьВесть(); остановить(); });
+    // ---- Настройки -----------------------------------------------------------------------------
 
     function переключить(на) {
       if (двигатель === на) return;
-      остановить();
       двигатель = на;
       готовыйЗвук = null;
       скачанные = [];
       const списокМоделей = $('рч-модель');
       if (списокМоделей) списокМоделей.value = на;
-      // Ограничение живёт под списком: в <option> второй строки не бывает, а знать,
-      // поедет ли модель на телефоне, надо ДО нажатия.
+      // Описание и ограничение живут ПОД списком: в строке закрытого списка длинная фраза
+      // не помещается ни на одном телефоне, а знать, поедет ли модель на телефоне,
+      // надо ДО нажатия.
       const где = $('рч-м-где');
-      if (где) где.textContent = на === 'piper' ? с.limPiper
-        : на === 'kokoro' ? с.limKokoro : с.limSupertonic;
-      // Тона нет ни у одной из трёх моделей -- ручку не показываем, а не делаем вид,
-      // что она работает.
-      $('рч-ручка-тон').hidden = true;
-      кнСкачать.classList.remove('служебная');
+      if (где) где.textContent = ПРО_МОДЕЛЬ[на] || '';
       списокГолосов.value = '';
       поднятьРаботника();
       своиГолоса = голосаМодели(на).slice().sort((а, б) => {
@@ -821,42 +1007,26 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       показатьПроГолос();
     }
     $('рч-модель').addEventListener('change', (е) => переключить(е.target.value));
-    // Смена голоса или скорости на ходу должна ПЕРЕЗАПУСТИТЬ чтение тем, что выбрали.
-    // Раньше здесь только чистился кеш: старый голос продолжал читать, а нажатие
-    // «Воспроизвести» ставило его на паузу вместо переключения.
-    function перезапустить() {
-      готовыйЗвук = null;
-      if (состояние !== 'читает' && состояние !== 'пауза') return;
-      остановить(); своёЧтение();
-    }
 
+    // Готовые дорожки при смене настроек НЕ трогаем: они для того и сделаны, чтобы сравнить
+    // прежний голос с новым. Сбрасывается только кеш, чтобы следующий пуск считал заново.
     списокГолосов.addEventListener('change', () => {
       готовыйЗвук = null;
       показатьПроГолос();
-      перезапустить();
     });
 
-    for (const кн of корень.querySelectorAll('.рч-фмт')) {
-      кн.addEventListener('click', () => {
-        формат = кн.dataset.ф;
-        for (const д of корень.querySelectorAll('.рч-фмт')) д.classList.toggle('выбран', д === кн);
-      });
-    }
-
-    // Скорость и тон применяются сразу: на ходу перезапускаем с текущего куска, иначе человек
-    // двигает ползунок и не слышит разницы до конца абзаца.
-    for (const [ид, знач, вид] of [['рч-скорость', 'рч-скорость-знач', (з) => `${з.toFixed(2)}x`],
-                                   ['рч-тон', 'рч-тон-знач', (з) => з.toFixed(2)]]) {
-      const п = $(ид);
+    {
+      const п = $('рч-скорость');
       const покрасить = () => {
         const доля = ((Number(п.value) - Number(п.min)) / (Number(п.max) - Number(п.min))) * 100;
         п.style.setProperty('--доля', `${доля}%`);
-        $(знач).textContent = вид(Number(п.value));
+        $('рч-скорость-знач').textContent = `${Number(п.value).toFixed(2)}×`;
       };
       п.addEventListener('input', покрасить);
-      // Через общий перезапуск: у встроенного голоса своё чтение, и начать() -- которое зовёт
-      // синтезатор системы -- запускало бы голос устройства поверх.
-      п.addEventListener('change', перезапустить);
+      п.addEventListener('change', () => {
+        готовыйЗвук = null;
+        $('рч-кусков').textContent = String(накуски(ввод.value.trim(), скорость()).length);
+      });
       покрасить();
     }
 
@@ -867,216 +1037,56 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       $('рч-кусков').textContent = String(накуски(ввод.value.trim(), скорость()).length);
     });
 
-    // ---- Запись в файл -----------------------------------------------------------------------
-
-    function подсказкаЗахвата() {
-      const а = среда.windows ? с.askWinA : с.askTabA;
-      const б = среда.windows ? с.askWinB : с.askTabB;
-      весть(`<b>${с.askTitle}</b><ol><li>${а}</li><li>${б}</li></ol><p style="margin:8px 0 0">${с.askTail}</p>`);
-    }
-
-    function почемуНельзя() {
-      if (среда.iOS) return с.noCaptureIOS;
-      if (среда.android) return с.noCaptureAndroid;
-      if (среда.safari) return с.noCaptureSafari;
-      return с.noCaptureSafari;
-    }
-
-    // Тишину по краям срезаем: между разрешением и первым словом всегда есть паузa, и без
-    // обрезки файл начинается с секунды пустоты.
-    function обрезать(буфер, ак) {
-      const порог = Math.max(0.004, peakOf(буфер) * 0.02);
-      const данные = буфер.getChannelData(0);
-      let начало = 0;
-      let конец = буфер.length - 1;
-      while (начало < конец && Math.abs(данные[начало]) < порог) начало++;
-      while (конец > начало && Math.abs(данные[конец]) < порог) конец--;
-      const запас = Math.round(буфер.sampleRate * 0.08);
-      начало = Math.max(0, начало - запас);
-      конец = Math.min(буфер.length - 1, конец + запас);
-      const длина = Math.max(1, конец - начало + 1);
-      // Речь -- моно: два одинаковых канала удваивают вес файла ни за чем.
-      const готовый = ак.createBuffer(1, длина, буфер.sampleRate);
-      const цель = готовый.getChannelData(0);
-      const каналов = буфер.numberOfChannels;
-      for (let и = 0; и < длина; и++) {
-        let сумма = 0;
-        for (let к = 0; к < каналов; к++) сумма += буфер.getChannelData(к)[начало + и];
-        цель[и] = сумма / каналов;
-      }
-      return готовый;
-    }
-
-    // Встроенным голосом файл собирается сразу: отсчёты рождаются здесь, разрешения не нужны,
-    // диалога нет, и на iPhone это тоже работает.
-    async function своёСкачивание() {
-      состояние = 'пишет';
-      видКнопок();
-      try {
-        const blob = await свойЗвук();
-        показатьРаботу(с.encoding, 100);
-        let файл;
-        if (формат === 'wav') {
-          // Из синтезатора уже выходит готовый WAV с верным заголовком. Пересобирать его
-          // незачем: любой пересчёт здесь -- только потеря времени и качества.
-          файл = blob;
-        } else {
-          // Считаем на ЧАСТОТЕ САМОГО ЗВУКА (у Piper это 22050). Обычный AudioContext
-          // работает на 48000 и молча пересчитывает вверх -- файл выходил вдвое тяжелее,
-          // а лучше от этого не звучал.
-          const байты = await blob.arrayBuffer();
-          const частота = new DataView(байты).getUint32(24, true) || 22050;
-          const ак = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: частота });
-          const буфер = await ак.decodeAudioData(байты);
-          файл = await encodeMP3(буфер, 128);
-          await ак.close();
-        }
-        const имя = (ввод.value.trim().slice(0, 32).replace(/[^\p{L}\p{N}]+/gu, '-')
-          .replace(/^-|-$/g, '') || 'speech');
-        downloadBlob(файл, `${имя}.${формат}`);
-        сказать(с.done);
-      } catch (ошибка) {
-        весть(`${с.piperFail}. ${почемуНеВышло(ошибка) || String(ошибка.message || ошибка)}`, true);
-      }
-      состояние = 'стоп';
-      видКнопок();
-      показатьКусок(-1);
-    }
-
-    async function записать() {
-      const текст = ввод.value.trim();
-      if (!текст) { сказать(с.empty); return; }
-      if (состояние === 'пишет') { сказать(с.busy); return; }
-      // Системных голосов больше нет: файл всегда собирает модель, и запись экрана не нужна.
-      await своёСкачивание();
-      return;
-
-      if (!среда.умеет) {
-        весть(`<b>${с.noCapture}.</b> ${почемуНельзя()}`, true);
-        return;
-      }
-
-      подсказкаЗахвата();
-      let поток = null;
-      try {
-        // Видео нам не нужно, но Chrome без него не отдаёт окно выбора вовсе.
-        поток = await navigator.mediaDevices.getDisplayMedia({
-          video: true,
-          audio: { echoCancellation: false, noiseSuppression: false, autoGainControl: false },
-        });
-      } catch (ошибка) {
-        весть(с.denied, true);
-        return;
-      }
-
-      const звуковые = поток.getAudioTracks();
-      if (!звуковые.length) {
-        поток.getTracks().forEach((д) => д.stop());
-        весть(с.noTrack, true);
-        return;
-      }
-      // Картинку сразу гасим: писать её незачем, а горящий значок «идёт съёмка экрана»
-      // пугает человека сильнее, чем нужно.
-      поток.getVideoTracks().forEach((д) => д.stop());
-
-      const тихийПоток = new MediaStream(звуковые);
-      let писатель;
-      try {
-        писатель = new MediaRecorder(тихийПоток);
-      } catch (ошибка) {
-        поток.getTracks().forEach((д) => д.stop());
-        весть(с.noTrack, true);
-        return;
-      }
-
-      const куски = [];
-      писатель.ondataavailable = (е) => { if (е.data && е.data.size) куски.push(е.data); };
-      const записано = new Promise((готово) => { писатель.onstop = готово; });
-
-      убратьВесть();
-      состояние = 'пишет';
-      видКнопок();
-      сказать(с.recording);
-      писатель.start();
-
-      // Ждём, пока очередь дочитает до конца, и только тогда останавливаем запись.
-      await new Promise((дочитал) => {
-        приЗавершении = дочитал;
-        if (!начать(true)) { приЗавершении = null; дочитал(); }
-      });
-      // Хвост: последний звук ещё доигрывает в момент onend.
-      await new Promise((р) => setTimeout(р, 450));
-      if (писатель.state !== 'inactive') писатель.stop();
-      await записано;
-      звуковые.forEach((д) => д.stop());
-
-      состояние = 'стоп';
-      видКнопок();
-      сказать(с.encoding);
-
-      const кусок = new Blob(куски, { type: писатель.mimeType || 'audio/webm' });
-      const ак = new (window.AudioContext || window.webkitAudioContext)();
-      let буфер = null;
-      try {
-        буфер = await ак.decodeAudioData(await кусок.arrayBuffer());
-      } catch (ошибка) {
-        буфер = null;
-      }
-
-      // ГЛАВНАЯ ПРОВЕРКА. Тихий файл пользователю не отдаём ни при каких условиях.
-      if (!буфер || буфер.length < 1000 || peakOf(буфер) < 0.01) {
-        await ак.close();
-        весть(`<b>${с.silentTitle}.</b> ${с.silentWhy}<ul><li>${с.silentA}</li><li>${с.silentB}</li><li>${с.silentC}</li></ul>`, true);
-        return;
-      }
-
-      const готовый = обрезать(буфер, ак);
-      const файл = формат === 'wav' ? encodeWAV(готовый) : await encodeMP3(готовый, 128);
-      await ак.close();
-      const имя = (ввод.value.trim().slice(0, 32).replace(/[^\p{L}\p{N}]+/gu, '-').replace(/^-|-$/g, '') || 'speech');
-      downloadBlob(файл, `${имя}.${формат}`);
-      сказать(с.done);
-    }
-
-    кнСкачать.addEventListener('click', () => { убратьВесть(); записать(); });
-    if (!среда.умеет) кнСкачать.classList.add('служебная');
-
     // ---- Запуск ------------------------------------------------------------------------------
 
-    // Голоса устройства ищем сразу, хотя показываем позже: список приходит с задержкой, и
-    // ко второй кнопке он должен быть уже готов.
-    if (синтез) ждатьГолоса();
     заполнитьСвои();
     видКнопок();
-    // Работника поднимаем не сразу: на странице, куда пришли просто послушать, лишние
+    // Работника поднимаем не сразу: на странице, куда пришли просто почитать, лишние
     // триста килобайт ни к чему. Заводим в простое, чтобы к первому нажатию он был готов
     // и уже знал, какие голоса лежат на устройстве.
     if (typeof requestIdleCallback === 'function') requestIdleCallback(() => поднятьРаботника(), { timeout: 4000 });
     else setTimeout(() => поднятьРаботника(), 1500);
-    // Речь переживает переход по страницам сайта: без этого голос продолжает читать вслух
-    // на следующей странице, и остановить его нечем.
-    window.addEventListener('pagehide', () => { try { синтез.cancel(); } catch (е) {} });
+    // Уходя со страницы, отпускаем и звук, и память под дорожками.
+    window.addEventListener('pagehide', () => {
+      try { if (плеер) плеер.pause(); } catch (е) {}
+      for (const т of треки.slice()) { try { URL.revokeObjectURL(т.url); } catch (е) {} }
+    });
 
     window.__рчСостояние = () => ({
-      голосов: голоса.length,
       знаков: $('рч-знаков').textContent,
       кусков: $('рч-кусков').textContent,
       состояние,
-      формат,
       скорость: $('рч-скорость-знач').textContent,
-      тон: $('рч-тон-знач').textContent,
-      играть: кнИграть.textContent,
-      стопДоступен: !кнСтоп.disabled,
-      захват: среда.умеет,
       двигатель,
       своихГолосов: своиГолоса.length,
       скачано: скачанные.length,
       весть: $('рч-голос-весть').textContent,
-      тонВиден: !$('рч-ручка-тон').hidden,
       ответ: окноОтвета.textContent.trim(),
       читается: строкаЧитается.textContent,
+      треков: треки.length,
+      идётЗвук: !!(плеер && !плеер.paused),
+      дорожки: треки.map((т) => ({
+        что: т.узел.querySelector('.рч-трек-что').textContent,
+        время: т.времяЭ.textContent,
+        длина: т.длинаЭ.textContent,
+        всего: Number((т.длина || 0).toFixed(2)),
+        поз: Number(позиция(т).toFixed(2)),
+        бегунок: т.заливка.style.width,
+        активная: активный === т,
+      })),
     });
     window.__рчКуски = (текст, скор) => накуски(текст, скор);
+    // Проверять перемотку надо ДЕЙСТВИЕМ: нажатие по полосе на долю её ширины.
+    window.__рчПеремотка = (номер, доля) => {
+      const т = треки[номер];
+      const р = т.полоса.getBoundingClientRect();
+      const х = р.left + р.width * доля;
+      for (const вид of ['pointerdown', 'pointermove', 'pointerup']) {
+        т.полоса.dispatchEvent(new PointerEvent(вид, { clientX: х, clientY: р.top + р.height / 2,
+          bubbles: true, pointerId: 1 }));
+      }
+      return window.__рчСостояние();
+    };
     // Проба связки целиком: выбрать модель, вписать текст, получить звук. Возвращает размер
     // и ПИК -- по пику видно, звук это или тишина, а тишину глазами не отличить.
     window.__рчПроба = async (модель, текст) => {

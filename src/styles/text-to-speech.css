@@ -2,15 +2,17 @@
  *
  * Файл принадлежит одной странице и подключается только ею.
  *
+ * УСТРОЙСТВО СТРАНИЦЫ (утверждено владельцем 11.09.2026), сверху вниз:
+ *   1. два выбора в одну строку -- модель и голос, надпись НАД полем, под полем подпись
+ *      с весом и ограничением;
+ *   2. поле текста, под ним счётчики и строка «что считается сейчас»;
+ *   3. скорость и одна кнопка «Сгенерировать» по центру -- больше никаких кнопок;
+ *   4. готовые дорожки, НОВАЯ СВЕРХУ: человек меняет скорость, жмёт ещё раз и сравнивает.
+ *
  * Вид -- тот же, что у остальных текстовых инструментов, решения уже утверждены владельцем:
  *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
  *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
- *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
- *   -- в строке отчёта подпись зелёная, значение белое.
- *
- * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: у кнопки «Стоп» просили серые буквы (#71717A). Пока кнопка живая,
- * буквы белые -- приглушённый текст на рабочей кнопке владелец уже забраковал на Base64.
- * Серой она становится, только когда действительно не нажимается.
+ *   -- выбранное помечается ТОЛЬКО обводкой, без заливки.
  */
 
 .рч {
@@ -20,84 +22,50 @@
   font-family: var(--цифры);
 }
 
-/* ---- Переключатель двигателей ---------------------------------------------------------------
-   Два разных источника голоса: система устройства и свой синтезатор в браузере. Выбранный
-   помечен только обводкой -- заливку владелец забраковал ещё на Base64. */
+/* ---- ВЕРХ: модель и голос -------------------------------------------------------------------
+   Надпись стоит НАД списком, а не сбоку: сбоку она съедала ширину, и длинное имя голоса
+   в список не помещалось. Две стойки делят строку пополам, на узком экране встают одна
+   под другую. */
 
-/* Переключатель стоит В ОДНОМ РЯДУ со списком голосов: список всё равно не занимал
-   строку целиком, и отдельная полоса под две кнопки была пустой тратой высоты. */
-.рч-двигатели { display: flex; flex-wrap: wrap; gap: 6px; flex: 0 0 auto }
-.рч-дв {
-  height: 38px; padding: 0 16px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
-  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
-}
-.рч-дв:hover { border-color: #fff; background: #23272f }
-.рч-дв.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
-.рч-дв.выбран:hover { border-color: var(--accent); color: var(--accent) }
+.рч-верх { display: flex; flex-wrap: wrap; gap: 12px 16px }
+/* Две стойки делят строку пополам и на телефоне тоже: выбор модели и голоса -- одно решение,
+   и разносить его на два экрана незачем. Потому и стрелка непрозрачная, и имя голоса стоит
+   в строке ПЕРВЫМ словом: в узкой колонке видно ровно начало. */
+.рч-стойка { flex: 1 1 0; min-width: 0; display: flex; flex-direction: column; gap: 6px }
+.рч-шапка { font: 500 12px var(--цифры); color: var(--accent) }
+/* Подпись под списком: чем эта модель хороша, где поедет, сколько весит голос и лежит ли он
+   уже на устройстве. Место под ДВЕ строки занято всегда: у разных моделей описание разной
+   длины, и переключение модели не должно двигать поле текста под ним. */
+.рч-под { min-height: 34px; font: 400 12px/1.4 var(--ui); color: #8fa0bd }
+.рч-под.готов { color: var(--accent) }
 
-/* Вес голоса и то, лежит ли он уже на устройстве. Стоит в одной строке с ползунками и
-   прижат к правому краю: своей строки эта надпись не заслуживает, а слева от неё всё равно
-   пусто. Высота строки держится ползунком, поэтому появление и пропажа надписи (её нет у
-   голосов устройства) макет не двигают. */
-.рч-голос-весть { margin-left: auto; text-align: right; padding-left: 12px;
-  font: 400 12px var(--цифры); color: #7d848f; font-variant-numeric: tabular-nums }
-.рч-голос-весть.готов { color: var(--accent) }
-
-/* ---- Пульт настроек ------------------------------------------------------------------------ */
-
-.рч-пульт { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center;
-  margin-bottom: 12px }
-.рч-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
-
-.рч-голос-гнездо { display: flex; align-items: center; gap: 9px; flex: 1 1 300px; min-width: 0 }
-/* Ползунки уходят на свою строку целиком: рядом с длинным именем голоса им не хватало места,
-   и они сжимались до нечитаемой ниточки. */
-.рч-ручки { display: flex; flex-wrap: wrap; gap: 12px 20px; align-items: center; flex: 1 1 100% }
+.рч-гнездо { position: relative; display: block }
 .рч-список {
-  flex: 1 1 auto; min-width: 0; height: 38px; padding: 0 34px 0 12px; border-radius: 6px;
+  width: 100%; height: 40px; padding: 0 36px 0 12px; border-radius: 6px;
   cursor: pointer; font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
   border: 1px solid #3f4652; appearance: none; text-overflow: ellipsis;
-  background-image: linear-gradient(45deg, transparent 50%, #fff 50%),
-                    linear-gradient(135deg, #fff 50%, transparent 50%);
-  background-position: calc(100% - 18px) 17px, calc(100% - 13px) 17px;
-  background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
+/* Стрелка -- НЕПРОЗРАЧНАЯ накладка поверх списка, а не картинка в фоне. Причина простая:
+   длинное имя в закрытом списке обрезать нечем (у appearance: base-select не работает ни
+   text-overflow, ни ::selectedcontent -- проверено снимком), и текст доезжал прямо до края,
+   налезая на стрелку. Накладка того же цвета срезает его чисто, с мягким переходом. */
+.рч-стрелка {
+  position: absolute; right: 1px; top: 1px; bottom: 1px; width: 34px; border-radius: 0 5px 5px 0;
+  pointer-events: none; display: flex; align-items: center; justify-content: center;
+  background: linear-gradient(to right, rgba(28,31,38,0) 0, #1c1f26 14px, #1c1f26 100%);
+}
+.рч-стрелка::after { content: ""; width: 6px; height: 6px; margin-top: -3px;
+  border-right: 1.6px solid #fff; border-bottom: 1.6px solid #fff; transform: rotate(45deg) }
 .рч-список:hover { border-color: #fff }
 /* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
    и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
 .рч-список:focus { border-color: #fff; outline: none }
 .рч-список[disabled] { color: #71717a; cursor: default; border-color: #2a2f38 }
 
-/* Ползунок. Дорожка тонкая, бегунок -- белый квадрат, как просил владелец. Закраска слева
-   от бегунка своя: без неё в Chrome вся дорожка одного цвета и не видно, где ты стоишь. */
-.рч-ручка { display: flex; align-items: center; gap: 9px; flex: 0 1 240px; min-width: 180px }
-/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этой
-   строки спрятанная ручка остаётся на виду. Проверка на свойство .hidden такую беду не ловит,
-   она проходит -- поймал только снимок экрана. */
-.рч-ручка[hidden] { display: none }
-.рч-ползунок {
-  flex: 1 1 auto; min-width: 0; height: 18px; appearance: none; background: transparent;
-  cursor: pointer;
-}
-.рч-ползунок::-webkit-slider-runnable-track { height: 2px; border-radius: 2px;
-  background: linear-gradient(to right, var(--accent) var(--доля, 50%), #3f4652 var(--доля, 50%)) }
-.рч-ползунок::-moz-range-track { height: 2px; border-radius: 2px; background: #3f4652 }
-.рч-ползунок::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--accent) }
-.рч-ползунок::-webkit-slider-thumb { appearance: none; width: 8px; height: 8px; margin-top: -3px;
-  background: #fff; border: 0; border-radius: 0 }
-.рч-ползунок::-moz-range-thumb { width: 8px; height: 8px; background: #fff; border: 0;
-  border-radius: 0 }
-.рч-ползунок:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px }
-/* Место под значение держится постоянным: «1.0x» и «0.55x» разной ширины, и без этого
-   ползунок дёргался бы при каждом движении. */
-.рч-значение { flex: none; width: 46px; text-align: right; font: 500 12.5px var(--цифры);
-  color: #fff; font-variant-numeric: tabular-nums }
-
 /* ---- Поле ---------------------------------------------------------------------------------- */
 
-.рч-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
-  transition: border-color .15s ease }
+.рч-поле { margin-top: 14px; background: #16181d; border: 1px solid var(--линия);
+  border-radius: 10px; transition: border-color .15s ease }
 .рч-поле:focus-within { border-color: #fff }
 .рч-ввод {
   display: block; width: 100%; min-height: 170px; resize: vertical;
@@ -118,67 +86,156 @@
   text-align: right }
 .рч-сказ.видно { opacity: 1 }
 
-/* ---- Строка «сейчас читается» ---------------------------------------------------------------
-   Место под неё занято с самого начала и высота постоянная: строка появляется в середине
-   работы, и без запаса страница подпрыгивала бы прямо во время чтения. */
+/* ---- Строка «что считается сейчас» -----------------------------------------------------------
+   Место под неё занято с самого начала и высота постоянная: строка оживает в середине работы,
+   и без запаса страница подпрыгивала бы прямо во время счёта.
+   Ход загрузки показан ЗАЛИВКОЙ САМОЙ СТРОКИ. Отдельная полоса хода была бы третьим
+   одинаковым прямоугольником подряд и просила бы ещё места. */
 .рч-читается {
-  min-height: 42px; display: flex; align-items: center; padding: 8px 12px; margin-bottom: 10px;
+  position: relative;
+  min-height: 42px; display: flex; align-items: center; padding: 8px 12px;
   border: 1px solid var(--линия); border-radius: 8px; background: #0b0c0f;
-  font: 400 13px/1.4 var(--ui); color: #7d848f;
-  overflow: hidden;
+  font: 400 13px/1.4 var(--ui); color: #7d848f; overflow: hidden;
 }
 .рч-читается.идёт { color: #fff; border-color: rgba(255,255,255,.28) }
+/* Ход работы -- тонкая линия по НИЖНЕМУ КРАЮ строки. Закраска всего прямоугольника читалась
+   как выделение, а не как ход; линия у края -- привычный знак загрузки и ничего не заслоняет.
+   Проценты при этом написаны словами в самой строке. */
+.рч-читается::after {
+  content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
+  background: var(--accent); transition: width .2s linear;
+}
+.рч-читается.идёт::after { width: var(--ход, 0%) }
 .рч-читается b { color: #fff; font-weight: 600 }
 
-/* ---- Кнопки -------------------------------------------------------------------------------- */
-
-.рч-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px; align-items: center }
-.рч-кнопка {
-  flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
-  font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
-  display: inline-flex; align-items: center; gap: 8px;
+/* ---- Скорость и пуск -------------------------------------------------------------------------
+   Скорость стоит вплотную к кнопке нарочно: её меняют и жмут «Сгенерировать» ещё раз, чтобы
+   сравнить на слух. Кнопка НЕ растягивается на телефоне -- растянутая во всю ширину читается
+   как полоса, а не как главное действие страницы. */
+.рч-пуск-ряд { display: flex; flex-direction: column; align-items: center; gap: 12px;
+  margin-top: 16px }
+.рч-ручка { display: flex; align-items: center; gap: 10px; width: min(340px, 100%) }
+.рч-подпись { font: 400 12px var(--цифры); color: var(--accent); flex: none }
+.рч-ползунок {
+  flex: 1 1 auto; min-width: 0; height: 18px; appearance: none; background: transparent;
+  cursor: pointer;
 }
-.рч-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
-.рч-кнопка[disabled] { background: #1c1f26; border-color: #2a2f38; color: #71717a; cursor: default }
-.рч-простая {
-  flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
-  border: 1px solid #3f4652; transition: border-color .15s, background .15s;
-  display: inline-flex; align-items: center; gap: 8px;
-}
-.рч-простая:hover { border-color: #fff; background: #23272f }
-.рч-простая[disabled] { color: #71717a; border-color: #2a2f38; cursor: default; background: #16181d }
-.рч-простая[disabled]:hover { border-color: #2a2f38; background: #16181d }
+/* Дорожка тонкая, бегунок -- белый квадрат. Закраска слева от бегунка своя: без неё
+   в Chrome вся дорожка одного цвета и не видно, где ты стоишь. */
+.рч-ползунок::-webkit-slider-runnable-track { height: 2px; border-radius: 2px;
+  background: linear-gradient(to right, var(--accent) var(--доля, 50%), #3f4652 var(--доля, 50%)) }
+.рч-ползунок::-moz-range-track { height: 2px; border-radius: 2px; background: #3f4652 }
+.рч-ползунок::-moz-range-progress { height: 2px; border-radius: 2px; background: var(--accent) }
+.рч-ползунок::-webkit-slider-thumb { appearance: none; width: 8px; height: 8px; margin-top: -3px;
+  background: #fff; border: 0; border-radius: 0 }
+.рч-ползунок::-moz-range-thumb { width: 8px; height: 8px; background: #fff; border: 0;
+  border-radius: 0 }
+.рч-ползунок:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px }
+/* Место под значение постоянное: «1.00×» и «0.55×» разной ширины, и без этого
+   ползунок дёргался бы при каждом движении. */
+.рч-значение { flex: none; width: 50px; text-align: right; font: 500 12.5px var(--цифры);
+  color: #fff; font-variant-numeric: tabular-nums }
 
-/* Скачивание -- чёрная кнопка в белой обводке, при наведении заливается белым. */
+.рч-сгенерировать {
+  height: 48px; padding: 0 34px; border-radius: 8px; cursor: pointer;
+  font: 700 14px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+  transition: background .15s, color .15s, border-color .15s;
+}
+.рч-сгенерировать:hover:not([disabled]) { background: #e9ecef; border-color: #e9ecef }
+.рч-сгенерировать:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px }
+/* Пока считает -- кнопка не гаснет в прозрачность (выключенная читается как сломанная),
+   а меняет вид на служебный и говорит, что делает. */
+.рч-сгенерировать[disabled] { cursor: default; background: #16181d; color: #fff;
+  border-color: var(--accent) }
+
+/* ---- ГОТОВЫЕ ДОРОЖКИ -------------------------------------------------------------------------
+   Их бывает несколько: человек меняет скорость или голос и генерирует ещё раз, чтобы
+   сравнить. НОВАЯ ВСТАЁТ СВЕРХУ -- только что сделанное важнее, за ним не надо листать.
+   Проигрыватель один на всех: два звука разом -- это каша, а не сравнение. */
+.рч-треки { display: flex; flex-direction: column; gap: 10px; margin-top: 18px }
+.рч-треки:empty { display: none }
+.рч-трек { display: flex; flex-direction: column; gap: 8px; padding: 10px 12px;
+  border: 1px solid var(--линия); border-radius: 10px; background: #16181d }
+/* Та, что заряжена в проигрыватель, помечена обводкой -- без заливки, как всё на сайте. */
+.рч-трек.звучит { border-color: rgba(255,255,255,.36) }
+.рч-трек-ряд { display: flex; align-items: center; gap: 8px }
+.рч-трек-низ { display: flex; align-items: center; gap: 10px }
+.рч-трек-что { flex: 1 1 auto; min-width: 0; overflow: hidden; text-overflow: ellipsis;
+  white-space: nowrap; font: 400 12px/1.4 var(--ui); color: #b9c0cc }
+.рч-трек-файлы { flex: none; display: inline-flex; gap: 6px }
+
+/* ---- Кнопки значками -------------------------------------------------------------------------
+   «Воспроизвести» и «Стоп» на четырёх языках -- четыре разные длины, и ряд от этого
+   разъезжается. Треугольник и квадрат понятны без перевода и всегда одного размера. */
+.рч-знк {
+  width: 40px; height: 40px; flex: none; display: inline-flex;
+  align-items: center; justify-content: center; padding: 0; cursor: pointer;
+  border-radius: 8px; background: transparent; border: 1px solid #3f4652; color: #fff;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.рч-знк:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.рч-знк[disabled] { cursor: not-allowed; color: #6b7280; border-color: #2c313a }
+.рч-знк:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.рч-знк svg { width: 19px; height: 19px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+/* Треугольник пуска залит: контурный треугольник читается как «вперёд», а не «играть». */
+.рч-знк .зн-играть { fill: currentColor; stroke: none }
+/* Зелёным горит ТОЛЬКО та кнопка, которая сейчас звучит. Подсвечивать все подряд значило бы
+   метить зелёным всё подряд: по цвету должно быть видно, какая дорожка играет. */
+.рч-пуск.играет { border-color: var(--accent); color: var(--accent) }
+.рч-пуск.играет:hover:not([disabled]) { border-color: var(--accent); background: transparent }
+/* Играет -- показываем паузу, стоит -- треугольник. Одна кнопка, два вида. */
+.рч-знк .зн-пауза { display: none }
+.рч-пуск.играет .зн-играть { display: none }
+.рч-пуск.играет .зн-пауза { display: block }
+/* Крестик убирает дорожку. Стоит у правого края, подальше от пуска: нажать его по ошибке
+   значит потерять сделанное. */
+.рч-убрать { margin-left: auto }
+
+/* Скачивание -- две кнопки, по одной на формат: одно нажатие даёт файл, и не надо гадать,
+   что сейчас выбрано в переключателе. */
 .рч-скачать {
-  flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
-  font: 700 13px var(--цифры); color: #fff; background: #0b0c0f; border: 1px solid #fff;
-  display: inline-flex; align-items: center; gap: 8px; transition: background .15s, color .15s;
+  height: 34px; padding: 0 12px; border-radius: 6px; cursor: pointer;
+  font: 500 12px var(--цифры); color: #fff; background: transparent; border: 1px solid #3f4652;
+  display: inline-flex; align-items: center; gap: 6px;
+  transition: border-color .15s, background .15s;
 }
-.рч-скачать:hover { background: #fff; color: #000 }
-/* Служебный вид: на iPhone и в Safari записи нет. Кнопка не пропадает и не блокируется --
-   по ней объясняют, почему так, иначе это выглядит как поломка. */
-.рч-скачать.служебная { border-color: #3f4652; color: #a1a1aa }
-.рч-скачать.служебная:hover { background: #16181d; color: #fff; border-color: #fff }
-.рч-скачать[disabled] { border-color: #2a2f38; color: #71717a; cursor: default; background: #16181d }
-.рч-скачать[disabled]:hover { background: #16181d; color: #71717a }
+.рч-скачать:hover { border-color: #fff; background: #1c1f26 }
+.рч-скачать svg { width: 15px; height: 15px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.рч-скачать span { display: inline-flex }
 
-.рч-формат { display: inline-flex; gap: 6px; margin-left: auto }
-.рч-фмт {
-  height: 44px; padding: 0 14px; border-radius: 6px; cursor: pointer;
-  font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
-  border: 1px solid #3f4652; transition: border-color .15s, color .15s, background .15s;
-}
-.рч-фмт:hover { border-color: #fff; background: #23272f }
-.рч-фмт.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
-.рч-фмт.выбран:hover { border-color: var(--accent); color: var(--accent) }
+/* ---- БЕГУНОК СО ВРЕМЕНЕМ ---------------------------------------------------------------------
+   Ведётся кадрами; черта следует за курсором, а время этой точки показывают часы справа --
+   так же, как на волнах остальных звуковых страниц сайта. */
+.рч-бег { display: flex; align-items: center; gap: 12px; flex: 1 1 auto; min-width: 0 }
+.рч-полоса { position: relative; flex: 1 1 auto; min-width: 0; height: 22px; display: flex;
+  align-items: center; touch-action: none; cursor: pointer }
+/* Дорожка нарисована фоном полосы: сама полоса высокая нарочно -- в две точки пальцем
+   не попасть, нужна площадка для нажатия. */
+.рч-полоса::before { content: ""; position: absolute; left: 0; right: 0; height: 3px;
+  border-radius: 2px; background: #23272f }
+.рч-полоса i { position: relative; display: block; height: 3px; width: 0; border-radius: 2px;
+  background: var(--accent) }
+/* Бегунок -- белый квадрат, тот же, что на ползунке скорости. */
+.рч-точка { position: absolute; left: 0; top: 50%; width: 9px; height: 9px;
+  margin: -4.5px 0 0 -4.5px; background: #fff }
+.рч-черта { position: absolute; top: 3px; bottom: 3px; width: 1px; background: #fff;
+  display: none; pointer-events: none }
+.рч-трек.наведено .рч-черта { display: block }
+.рч-полоса:focus-visible { outline: 2px solid var(--accent); outline-offset: 4px;
+  border-radius: 3px }
+/* Место под часы постоянное: «0:04 / 0:12» и «1:04 / 10:12» разной ширины, и без запаса
+   полоса дёргалась бы на каждой секунде. */
+.рч-часы { flex: none; min-width: 92px; text-align: right; font: 500 12.5px var(--цифры);
+  color: #7d848f; font-variant-numeric: tabular-nums }
+.рч-часы b { color: #fff; font-weight: 500 }
+.рч-трек.наведено .рч-часы b { color: var(--accent) }
 
 /* ---- Окно ответа ----------------------------------------------------------------------------
-   Сюда попадают и подсказка перед записью, и разбор неудачи. Место держится пустым, чтобы
-   появление сообщения не сдвигало заметки под ним. */
-.рч-ответ { min-height: 0; margin-top: 10px; border-radius: 10px; overflow: hidden;
-  transition: none }
+   Сюда попадает разбор неудачи. Место держится пустым, чтобы появление сообщения
+   не сдвигало заметки под ним. */
+.рч-ответ { min-height: 0; margin-top: 12px; border-radius: 10px; overflow: hidden }
 .рч-ответ:empty { display: none }
 .рч-весть { padding: 12px 14px; border: 1px solid var(--линия); border-radius: 10px;
   background: #16181d; font: 400 13px/1.6 var(--ui); color: #fff }
@@ -187,15 +244,37 @@
 .рч-весть ol, .рч-весть ul { margin: 7px 0 0; padding-left: 20px }
 .рч-весть li { margin: 3px 0 }
 
-/* Полоса хода. Место под неё занято ВСЕГДА, видимость меняется прозрачностью: если прятать
-   её через hidden, страница подпрыгивает на 12 пикселей при каждом пуске чтения. */
-.рч-полоса { height: 2px; margin-top: 10px; background: #23272f; border-radius: 2px;
-  overflow: hidden; opacity: 0; transition: opacity .15s }
-.рч-полоса.идёт { opacity: 1 }
-.рч-полоса i { display: block; height: 100%; width: 0; background: var(--accent);
-  transition: width .2s linear }
+/* ---- СПРАВКА О МОДЕЛЯХ -----------------------------------------------------------------------
+   Три карточки вместо абзаца. Абзацем три модели слипались в сплошной текст, и выбрать по нему
+   было нельзя: глазу не за что зацепиться. В карточке всё, что нужно для решения, --
+   имя, вес, что умеет, скорость и лицензия, которую можно открыть и прочитать. */
+.рч-справка { margin-top: 26px }
+.рч-спр-шапка { margin: 0 0 4px; font: 600 15px var(--цифры); color: #fff }
+.рч-спр-лид { margin: 0 0 12px; font: 400 12.5px/1.5 var(--ui); color: #b9c0cc }
+.рч-спр-ряд { display: flex; flex-wrap: wrap; gap: 10px }
+.рч-спр-карта {
+  flex: 1 1 240px; min-width: 0; display: flex; flex-direction: column; gap: 7px;
+  padding: 12px 14px; border: 1px solid var(--линия); border-radius: 10px; background: #16181d;
+  transition: border-color .15s;
+}
+.рч-спр-карта:hover { border-color: rgba(255,255,255,.3) }
+.рч-спр-верх { display: flex; align-items: baseline; gap: 8px; flex-wrap: wrap }
+/* Имя модели -- главное слово карточки и ссылка на её страницу: человек вправе проверить,
+   что мы не выдумали ни вес, ни лицензию. */
+.рч-спр-имя { font: 700 15px var(--цифры); color: var(--accent); text-decoration: none;
+  border-bottom: 1px solid transparent }
+.рч-спр-имя:hover { border-bottom-color: var(--accent) }
+.рч-спр-вес { margin-left: auto; font: 500 12px var(--цифры); color: #fff;
+  font-variant-numeric: tabular-nums; white-space: nowrap }
+.рч-спр-что { margin: 0; font: 400 12.5px/1.5 var(--ui); color: #b9c0cc; flex: 1 1 auto }
+.рч-спр-низ { display: flex; align-items: center; gap: 10px; padding-top: 7px;
+  border-top: 1px solid rgba(255,255,255,.08) }
+.рч-спр-скорость { font: 400 12px var(--ui); color: #8fa0bd }
+.рч-спр-лиц { margin-left: auto; font: 400 12px var(--ui); color: #fff; text-decoration: none;
+  border-bottom: 1px dotted rgba(255,255,255,.45); white-space: nowrap }
+.рч-спр-лиц:hover { border-bottom-color: #fff; border-bottom-style: solid }
 
-.рч-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
+.рч-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
 /* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
    каждому выделенному слову. */
 .рч-заметка { position: relative; padding-left: 18px;
@@ -209,6 +288,14 @@
 @supports (appearance: base-select) {
   .рч .рч-список { appearance: base-select; display: flex; align-items: center;
     white-space: nowrap; overflow: hidden }
+  /* Длинное имя обрезаем ТОЧКАМИ. Без этой строки на телефоне текст доезжал до самого края
+     и уходил под стрелку: у base-select обрезка живёт в ::selectedcontent, а не в самом
+     списке, и text-overflow на нём не срабатывает. */
+  /* min-width: 0 -- не украшение, а сама починка: содержимое лежит внутри флекса, а флекс
+     по умолчанию не даёт своим детям сжиматься ниже их содержимого. Без этой строки
+     text-overflow не срабатывал вовсе и имя модели уезжало под стрелку. */
+  .рч .рч-список::selectedcontent { display: block; flex: 1 1 auto; min-width: 0;
+    overflow: hidden; text-overflow: ellipsis; white-space: nowrap }
   .рч .рч-список::picker(select) { appearance: base-select; border: 1px solid var(--линия);
     border-radius: 10px; background: #16181d; box-shadow: 0 14px 40px rgba(0,0,0,.55);
     padding: 6px; margin-top: 6px; position-try-fallbacks: none; max-height: 60vh }
@@ -222,75 +309,16 @@
   .рч .рч-список option::checkmark { display: none }
 }
 
-@media (max-width: 720px) {
-  /* На узком экране вправо жать некуда -- надпись уходит на свою строку, как было. */
-  .рч-голос-весть { margin-left: 0; padding-left: 0; flex: 1 1 100%; text-align: left;
-    min-height: 18px }
-  .рч-двигатели { flex: 1 1 100% }
-  .рч-дв { flex: 1 1 0 }
-  .рч-голос-гнездо { flex: 1 1 100% }
-  .рч-ручка { flex: 1 1 100% }
-  .рч-формат { margin-left: 0 }
-}
 @media (max-width: 560px) {
+  /* На узкой колонке самая длинная подпись (у Kokoro) занимает три строки вместо двух.
+     Место резервируем под три: иначе выбор модели дёргает поле ввода под пальцем. Замерено:
+     34 px против 50 на ширине 390. */
+  .рч-под { min-height: 51px }
   .рч-ввод { min-height: 140px }
-  .рч-кнопка, .рч-простая, .рч-скачать { flex: 1 1 auto; justify-content: center }
+  /* Бегунок уходит на свою строку: рядом с тремя кнопками ему остаётся ниточка в палец
+     шириной, и попасть в неё нельзя. */
+  .рч-трек-ряд { flex-wrap: wrap }
+  .рч-бег { order: 3; flex: 1 1 100% }
+  .рч-трек-низ { flex-wrap: wrap }
+  .рч-трек-что { flex: 1 1 100% }
 }
-
-/* ---- ВЫБОР МОДЕЛИ ------------------------------------------------------------------------
-   Три кнопки вместо прежних двух переключателей движка. На каждой то, что человеку нужно
-   для решения: настоящее имя, настоящий вес и одна строка о том, чем эта модель хороша.
-   Вес показан не для красоты -- это его трафик, и он вправе знать заранее. */
-.рч-модели { display: flex; flex-wrap: wrap; gap: 8px; width: 100% }
-.рч-модель {
-  flex: 1 1 210px; min-width: 0; display: grid; gap: 2px;
-  padding: 10px 13px; border-radius: 10px; cursor: pointer; text-align: left;
-  background: #1c1f26; border: 1px solid #3f4652; color: #fff;
-  transition: border-color .15s, background .15s;
-}
-.рч-модель:hover { border-color: #fff }
-/* Выбранное -- обводкой, без заливки: залитая кнопка читалась бы как нажатая навсегда. */
-.рч-модель.выбран { border-color: var(--accent); background: transparent }
-.рч-модель.выбран .рч-м-имя { color: var(--accent) }
-.рч-модель:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.рч-м-имя { font: 600 13.5px var(--цифры, ui-monospace, monospace); color: #fff }
-/* Вес -- сплошным цветом, не полупрозрачностью: приглушённых надписей на сайте нет. */
-.рч-м-вес { font: 400 12px var(--цифры, ui-monospace, monospace); color: var(--accent);
-  font-variant-numeric: tabular-nums }
-.рч-м-что { font: 400 12px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #b9c0cc }
-/* Где эта модель поедет. Стоит на самой кнопке, а не в сноске: вес человек видит до
-   нажатия, и про телефон он должен узнать там же, а не после отказа. */
-.рч-м-где { display: block; width: 100%; margin-top: 3px;
-  font: 400 12px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #8fa0bd }
-.рч-м-подпись { display: block; width: 100%; margin: 2px 0 4px;
-  font: 400 12px/1.45 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  color: #b9c0cc }
-@media (max-width: 560px) {
-  .рч-модель { flex: 1 1 100%; padding: 9px 12px }
-}
-
-/* ---- КНОПКИ ЗНАЧКАМИ -----------------------------------------------------------------------
-   «Воспроизвести» и «Стоп» на четырёх языках -- четыре разные длины, и ряд от этого
-   разъезжается. Треугольник и квадрат понятны без перевода и всегда одного размера. */
-.рч-знк {
-  width: 44px; height: 44px; flex: none; display: inline-flex;
-  align-items: center; justify-content: center; padding: 0; cursor: pointer;
-  border-radius: 8px; background: transparent; border: 1px solid #3f4652; color: #fff;
-  transition: border-color .15s, background .15s, color .15s;
-}
-.рч-знк:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
-.рч-знк[disabled] { cursor: not-allowed; color: #6b7280; border-color: #2c313a }
-.рч-знк:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-.рч-знк svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor;
-  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
-/* Треугольник пуска залит: контурный треугольник читается как «вперёд», а не «играть». */
-.рч-знк .зн-играть { fill: currentColor; stroke: none }
-/* Пуск -- единственная зелёная: это главное действие страницы. */
-.рч-пуск { border-color: var(--accent); color: var(--accent) }
-.рч-пуск:hover:not([disabled]) { border-color: var(--accent); background: transparent }
-/* Играет -- показываем паузу, стоит -- треугольник. Одна кнопка, два вида. */
-.рч-знк .зн-пауза { display: none }
-.рч-пуск.играет .зн-играть { display: none }
-.рч-пуск.играет .зн-пауза { display: block }

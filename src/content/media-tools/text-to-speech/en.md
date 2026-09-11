@@ -9,8 +9,10 @@ navName: "Text to Speech"
 summary: "Read the text aloud and save the recording"
 description: "Turn text into speech right in your browser: three models to choose from, download as MP3 or WAV. Your text goes nowhere — the computing happens on your own device."
 faq:
+  - question: Is it free, and do I need to sign up?
+    answer: "It is free, it runs online and there is no sign-up: no account, no payment, no cap on the number of files. There is simply nothing for us to charge for — the speech is computed inside your own browser, on your own device, with no paid servers behind it. The only limit is 5000 characters at a time, and that one is technical: it keeps the work visible instead of leaving you waiting."
   - question: Which model should I pick?
-    answer: "Look at the job, not the weight — the two are unrelated. Piper is 20–60 megabytes and knows all four site languages: take it if data costs you or the device is weak. Kokoro is 93 megabytes and gives the liveliest voice, but speaks English only. Supertonic is 380 megabytes and still computes twice as fast as Piper; it is also the only one that reads numbers, dates and abbreviations with no preparation. The weight is printed on the button — that is your data allowance, and you should know it before you press, not after."
+    answer: "Look at the job, not the weight — the two are unrelated. Piper is 60–109 megabytes per voice (most often 60–73) and knows all four site languages: take it if data costs you or the device is weak. Kokoro is 93 megabytes and gives the liveliest voice, but speaks English only. Supertonic is 380 megabytes and still computes twice as fast as Piper; it is also the only one that reads numbers, dates and abbreviations with no preparation. The size is written right in the list — that is your data allowance, and you should know it before you press, not after."
   - question: Is the heavier model really slower?
     answer: "No, and that is the most surprising part of the choice. We measured it: on the same phrase Supertonic (380 MB) takes 2.6 seconds while Kokoro (93 MB) takes 6.5. Weight only tells you how much downloads once; speed depends on how the model is built, not on its size. Choosing by weight is therefore a good way to end up with the slowest option."
   - question: Where does my text go?
@@ -22,24 +24,14 @@ faq:
   - question: Why is long text read in pieces?
     answer: "Because a model computes the whole text at once, and on a long article that would be tens of seconds with no sign of life. We cut at the ends of sentences — never in the middle of a word, or the join would give a click and a chopped syllable — compute the pieces in turn and glue them into one file. You hear the beginning while the rest is still being computed."
   - question: How big is a model and does it download every time?
-    answer: "Once. Piper is 20–60 megabytes per voice, Kokoro 93, Supertonic 380. What you download stays in the browser's storage, so next time the reading starts straight away. If you no longer need a model, you can remove it from the device with the button beside the voice list."
+    answer: "Once — but the three do it differently. Piper keeps a separate file per voice: 60–109 megabytes, most often 60–73, so changing the voice means a new download. Kokoro (93 megabytes) and Supertonic (380) have a single file covering all of their voices — download it once and switch voices as often as you like for free. What you download stays in the browser's storage, so next time the reading starts straight away."
 related:
   - speech-to-text
   - audio-to-text
   - reading-time
 ---
 
-Paste your text, pick a model and press Play. Everything is computed on your own device.
-
-## Three models, and weight says nothing about speed
-
-**Piper — 20–60 MB.** The lightest, and the only one that knows all four site languages. Take it if data costs you or the device is weak.
-
-**Kokoro — 93 MB.** The liveliest voice of the three, but English only. Spanish voices do exist in its repository, yet the library it runs through in the browser does not know them — we checked.
-
-**Supertonic — 380 MB.** The heaviest and, at the same time, the fastest: 2.6 seconds against Kokoro's 6.5 on the same phrase. It knows 31 languages and reads numbers, dates and abbreviations without any preparation.
-
-The weight is printed on the button. That is your data allowance, and you should know it before pressing.
+Paste your text, pick a model and a voice, then press Generate. Online, free and with no sign-up: everything is computed on your own device.
 
 ## Your text stays with you
 
