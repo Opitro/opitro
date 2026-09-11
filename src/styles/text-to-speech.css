@@ -75,38 +75,35 @@
 .рч-ввод:focus { outline: none }
 .рч-ввод::placeholder { color: #7d848f }
 
+/* Три доли в ряду: счётчики слева, ХОД РАБОТЫ ПО ЦЕНТРУ, сообщения справа. Сетка, а не флекс:
+   у сетки середина стоит посередине строки, а не там, куда её вытолкнули соседи. */
 .рч-счётчики {
-  display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
-  padding: 9px 4px; font: 400 12px var(--цифры); color: var(--accent);
+  display: grid; grid-template-columns: 1fr auto 1fr; gap: 4px 12px; align-items: center;
+  min-height: 34px; padding: 9px 4px; font: 400 12px var(--цифры); color: var(--accent);
   font-variant-numeric: tabular-nums;
 }
+.рч-счёт { display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center }
 .рч-счётчики b { color: #fff; font-weight: 500 }
 .рч-счётчики .перебор b { color: #ff9aa8 }
-.рч-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s;
-  text-align: right }
+.рч-сказ { justify-self: end; text-align: right; color: var(--accent); opacity: 0;
+  transition: opacity .2s }
 .рч-сказ.видно { opacity: 1 }
 
-/* ---- Строка «что считается сейчас» -----------------------------------------------------------
-   Место под неё занято с самого начала и высота постоянная: строка оживает в середине работы,
-   и без запаса страница подпрыгивала бы прямо во время счёта.
-   Ход загрузки показан ЗАЛИВКОЙ САМОЙ СТРОКИ. Отдельная полоса хода была бы третьим
-   одинаковым прямоугольником подряд и просила бы ещё места. */
-.рч-читается {
-  position: relative;
-  min-height: 42px; display: flex; align-items: center; padding: 8px 12px;
-  border: 1px solid var(--линия); border-radius: 8px; background: #0b0c0f;
-  font: 400 13px/1.4 var(--ui); color: #7d848f; overflow: hidden;
+/* Ход работы. Виден только во время работы, место под него держится сеткой -- строка
+   не прыгает. Кружок КРУТИТСЯ всё время: процент на счёте речи взять неоткуда, и без
+   движения замершее число читается как «зависло». */
+.рч-ход { justify-self: center; display: inline-flex; align-items: center; gap: 8px;
+  color: #fff; white-space: nowrap; visibility: hidden }
+.рч-ход.идёт { visibility: visible }
+.рч-круг {
+  width: 13px; height: 13px; flex: none; border-radius: 50%;
+  border: 2px solid rgba(255,255,255,.22); border-top-color: var(--accent);
+  animation: рч-верть .8s linear infinite;
 }
-.рч-читается.идёт { color: #fff; border-color: rgba(255,255,255,.28) }
-/* Ход работы -- тонкая линия по НИЖНЕМУ КРАЮ строки. Закраска всего прямоугольника читалась
-   как выделение, а не как ход; линия у края -- привычный знак загрузки и ничего не заслоняет.
-   Проценты при этом написаны словами в самой строке. */
-.рч-читается::after {
-  content: ""; position: absolute; left: 0; bottom: 0; height: 2px; width: 0;
-  background: var(--accent); transition: width .2s linear;
-}
-.рч-читается.идёт::after { width: var(--ход, 0%) }
-.рч-читается b { color: #fff; font-weight: 600 }
+@keyframes рч-верть { to { transform: rotate(360deg) } }
+/* Кому мельтешение мешает -- крутим медленно, но не останавливаем: остановленный кружок
+   означал бы ровно то, от чего мы уходим. */
+@media (prefers-reduced-motion: reduce) { .рч-круг { animation-duration: 2.4s } }
 
 /* ---- Скорость и пуск -------------------------------------------------------------------------
    Скорость стоит вплотную к кнопке нарочно: её меняют и жмут «Сгенерировать» ещё раз, чтобы
@@ -314,6 +311,10 @@
      Место резервируем под три: иначе выбор модели дёргает поле ввода под пальцем. Замерено:
      34 px против 50 на ширине 390. */
   .рч-под { min-height: 51px }
+  /* Три доли в одну строку на телефоне не влезают: счётчики слева, ход и сообщения -- ниже. */
+  .рч-счётчики { grid-template-columns: 1fr; justify-items: center; gap: 6px }
+  .рч-счёт { justify-content: center }
+  .рч-сказ { justify-self: center; text-align: center }
   .рч-ввод { min-height: 140px }
   /* Бегунок уходит на свою строку: рядом с тремя кнопками ему остаётся ниточка в палец
      шириной, и попасть в неё нельзя. */
