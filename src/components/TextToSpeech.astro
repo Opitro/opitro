@@ -33,6 +33,9 @@ const СЛОВА = {
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
     engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первом пуске', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
+    failMem: 'Этой модели не хватило памяти — так бывает на телефонах с тяжёлыми моделями. Возьмите Piper: он самый лёгкий и запускается везде.',
+    failNet: 'Модель не докачалась — оборвалась связь. Нажмите пуск ещё раз, загрузка продолжится с того же места.',
+    failOld: 'Браузер не понимает эту модель. Помогает обновление браузера; Piper работает и в старых.',
     place: 'Вставьте или напишите текст для озвучки…',
     chars: 'Знаков', parts: 'Кусков', of: 'из',
     play: 'Воспроизвести', pause: 'Пауза', resume: 'Продолжить', stop: 'Стоп',
@@ -73,6 +76,9 @@ const СЛОВА = {
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
     engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першому пуску', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
+    failMem: 'Цій моделі забракло памʼяті — так буває на телефонах із важкими моделями. Візьміть Piper: він найлегший і запускається всюди.',
+    failNet: 'Модель не докачалася — обірвався звʼязок. Натисніть пуск іще раз, завантаження продовжиться з того самого місця.',
+    failOld: 'Браузер не розуміє цю модель. Допомагає оновлення браузера; Piper працює і в старих.',
     place: 'Вставте або напишіть текст для озвучення…',
     chars: 'Знаків', parts: 'Шматків', of: 'з',
     play: 'Відтворити', pause: 'Пауза', resume: 'Продовжити', stop: 'Стоп',
@@ -113,6 +119,9 @@ const СЛОВА = {
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     local: 'device', mb: 'MB', network: 'network',
     engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first play', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
+    failMem: 'This model ran out of memory — that happens on phones with the heavier models. Take Piper: it is the lightest and starts everywhere.',
+    failNet: 'The model did not finish downloading — the connection dropped. Press play again and it will carry on from the same place.',
+    failOld: 'This browser does not understand this model. Updating the browser helps; Piper works in older ones too.',
     place: 'Paste or type the text you want spoken…',
     chars: 'Characters', parts: 'Chunks', of: 'of',
     play: 'Play', pause: 'Pause', resume: 'Resume', stop: 'Stop',
@@ -153,6 +162,9 @@ const СЛОВА = {
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
     engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga al primer uso', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
+    failMem: 'A este modelo le ha faltado memoria: ocurre en los teléfonos con los modelos pesados. Coja Piper: es el más ligero y arranca en todas partes.',
+    failNet: 'El modelo no ha terminado de descargarse: se ha cortado la conexión. Pulse reproducir otra vez y continuará desde el mismo punto.',
+    failOld: 'Este navegador no entiende este modelo. Actualizarlo ayuda; Piper también funciona en los antiguos.',
     place: 'Pega o escribe el texto que quieres escuchar…',
     chars: 'Caracteres', parts: 'Trozos', of: 'de',
     play: 'Reproducir', pause: 'Pausa', resume: 'Continuar', stop: 'Parar',
@@ -458,6 +470,18 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
     }
     function убратьВесть() { окноОтвета.innerHTML = ''; }
 
+    // Отказ модели приходит строкой от WebAssembly и на человеческий язык не похож:
+    // «Aborted(OOM)», «memory access out of bounds», «Failed to fetch». Чаще всего это
+    // телефон, которому не хватило памяти на тяжёлую модель. Молчать об этом нельзя --
+    // человек решит, что сломан весь сайт, вместо того чтобы взять модель полегче.
+    function почемуНеВышло(ошибка) {
+      const т = String((ошибка && ошибка.message) || ошибка || '').toLowerCase();
+      if (/memory|allocat|aborted|out of bounds|array buffer|buffer size/.test(т)) return с.failMem;
+      if (/fetch|network|err_|load failed|failed to load|connection/.test(т)) return с.failNet;
+      if (/webassembly|sharedarraybuffer|unsupported|not supported|is not a function/.test(т)) return с.failOld;
+      return '';
+    }
+
     // ---- Голоса ------------------------------------------------------------------------------
     // getVoices() при первом вызове почти всегда пуст: список приходит позже событием.
     // Поэтому спрашиваем и по событию, и несколько раз по таймеру -- на части браузеров
@@ -682,7 +706,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
         полосаИ.style.width = '100%';
         await плеер.play();
       } catch (ошибка) {
-        весть(`${с.piperFail}: ${String(ошибка.message || ошибка)}`, true);
+        весть(`${с.piperFail}. ${почемуНеВышло(ошибка) || String(ошибка.message || ошибка)}`, true);
         закончили();
       }
     }
@@ -890,7 +914,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
         downloadBlob(файл, `${имя}.${формат}`);
         сказать(с.done);
       } catch (ошибка) {
-        весть(`${с.piperFail}: ${String(ошибка.message || ошибка)}`, true);
+        весть(`${с.piperFail}. ${почемуНеВышло(ошибка) || String(ошибка.message || ошибка)}`, true);
       }
       состояние = 'стоп';
       видКнопок();
