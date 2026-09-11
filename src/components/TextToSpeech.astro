@@ -27,6 +27,7 @@ const ПРЕДЕЛ = 5000;
 
 const СЛОВА = {
   ru: {
+    vFemale: 'Женский', vMale: 'Мужской',
     modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Лёгкая. Все четыре языка сайта.', mKokoro: 'Живой голос, только английский.', mSupertonic: 'Быстрее всех, читает цифры и даты.', mNote: 'Вес и скорость не связаны: самая тяжёлая считает вдвое быстрее лёгкой.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
@@ -65,6 +66,7 @@ const СЛОВА = {
     n6: 'Предел длины — 5000 знаков за раз. Больше — разбейте на части: так вы увидите ход работы, а не будете гадать, считает ли ещё.',
   },
   uk: {
+    vFemale: 'Жіночий', vMale: 'Чоловічий',
     modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Легка. Усі чотири мови сайту.', mKokoro: 'Живий голос, тільки англійська.', mSupertonic: 'Найшвидша, читає цифри й дати.', mNote: 'Вага і швидкість не повʼязані: найважча рахує вдвічі швидше за легку.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
@@ -103,6 +105,7 @@ const СЛОВА = {
     n6: 'Межа довжини — 5000 знаків за раз. Більше — розбийте на частини: так ви побачите хід роботи, а не гадатимете, чи рахує ще.',
   },
   en: {
+    vFemale: 'Female', vMale: 'Male',
     modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Light. All four site languages.', mKokoro: 'Lively voice, English only.', mSupertonic: 'Fastest of the three, reads numbers and dates.', mNote: 'Weight and speed are unrelated: the heaviest one computes twice as fast as the lightest.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     local: 'device', mb: 'MB', network: 'network',
@@ -141,6 +144,7 @@ const СЛОВА = {
     n6: 'The length limit is 5000 characters at a time. For more, split it up: that way you see the work progressing instead of guessing whether it is still going.',
   },
   es: {
+    vFemale: 'Femenina', vMale: 'Masculina',
     modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Ligero. Los cuatro idiomas del sitio.', mKokoro: 'Voz viva, solo inglés.', mSupertonic: 'El más rápido, lee cifras y fechas.', mNote: 'Peso y velocidad no van juntos: el más pesado calcula el doble de rápido que el ligero.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
@@ -288,6 +292,32 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // фразу в русской статье, немецкую цитату в английской. Язык страницы идёт первым, потому
     // что нужен чаще всего. Название языка берётся на нём же самом («Deutsch», «Українська»):
     // так человек находит своё на любой языковой версии и переводить ничего не надо.
+    // Голоса КАЖДОЙ модели в её собственном виде. Раньше список заполнялся голосами Piper
+    // независимо от выбора: нажав Kokoro, человек получил бы чужой номер голоса и чужой язык.
+    // Записи приведены к одному виду {к, г, я, яз, мб, имя}, чтобы остальная страница
+    // не разбиралась, чьи это голоса.
+    const ГОЛОСА_KOKORO = [
+      ['af_heart','Heart'],['af_bella','Bella'],['af_nicole','Nicole'],['af_sarah','Sarah'],
+      ['af_sky','Sky'],['af_alloy','Alloy'],['af_aoede','Aoede'],['af_jessica','Jessica'],
+      ['af_kore','Kore'],['af_nova','Nova'],['af_river','River'],
+      ['am_adam','Adam'],['am_echo','Echo'],['am_eric','Eric'],['am_fenrir','Fenrir'],
+      ['am_liam','Liam'],['am_michael','Michael'],['am_onyx','Onyx'],['am_puck','Puck'],
+      ['am_santa','Santa'],
+      ['bf_emma','Emma'],['bf_isabella','Isabella'],['bf_alice','Alice'],['bf_lily','Lily'],
+      ['bm_george','George'],['bm_lewis','Lewis'],['bm_daniel','Daniel'],['bm_fable','Fable'],
+    ].map(([к, имя]) => ({
+      к, г: 0, я: 'en', яз: 'English', м: к[0] === 'b' ? 'GB' : 'US', мб: 93, имя,
+    }));
+
+    // У Supertonic голоса безымянные: пять женских и пять мужских. Язык он берёт из ТЕКСТА,
+    // а не из голоса, поэтому у записи стоит язык страницы -- его и шлём в поток.
+    const ГОЛОСА_SUPERTONIC = ['F1','F2','F3','F4','F5','M1','M2','M3','M4','M5']
+      .map((к) => ({ к, г: 0, я: язык, яз: '', м: '', мб: 380,
+        имя: (к[0] === 'F' ? с.vFemale : с.vMale) + ' ' + к.slice(1) }));
+
+    const голосаМодели = (м) => (м === 'kokoro' ? ГОЛОСА_KOKORO
+      : м === 'supertonic' ? ГОЛОСА_SUPERTONIC : ГОЛОСА);
+
     let своиГолоса = ГОЛОСА.slice().sort((а, б) => {
       const свой = (г) => (г.я === язык ? 0 : 1);
       return свой(а) - свой(б) || а.яз.localeCompare(б.яз) || а.мб - б.мб || а.имя.localeCompare(б.имя);
@@ -595,6 +625,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (!г) throw new Error(с.noVoices);
       const ответ = await спросить({
         тип: 'синтез', текст: ввод.value.trim(), голос: г.к, номер: г.г, скорость: скорость(),
+        // Supertonic определяет произношение по языку, а не по голосу: без этого русский
+        // текст читался бы английскими правилами. Piper и Kokoro поле просто не смотрят.
+        язык: г.я || язык,
       });
       const blob = new Blob([ответ.байты], { type: 'audio/wav' });
       готовыйЗвук = { ключ, blob };
@@ -711,6 +744,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       кнСкачать.classList.remove('служебная');
       списокГолосов.value = '';
       поднятьРаботника();
+      своиГолоса = голосаМодели(на).slice().sort((а, б) => {
+        const свой = (г) => (г.я === язык ? 0 : 1);
+        return свой(а) - свой(б) || (а.яз || '').localeCompare(б.яз || '')
+          || а.мб - б.мб || а.имя.localeCompare(б.имя);
+      });
       заполнитьСвои();
       убратьВесть();
       работник.postMessage({ тип: 'что-скачано' });
@@ -979,5 +1017,24 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       читается: строкаЧитается.textContent,
     });
     window.__рчКуски = (текст, скор) => накуски(текст, скор);
+    // Проба связки целиком: выбрать модель, вписать текст, получить звук. Возвращает размер
+    // и ПИК -- по пику видно, звук это или тишина, а тишину глазами не отличить.
+    window.__рчПроба = async (модель, текст) => {
+      переключить(модель);
+      ввод.value = текст;
+      ввод.dispatchEvent(new Event('input', { bubbles: true }));
+      const blob = await свойЗвук();
+      const буфер = await blob.arrayBuffer();
+      const в = new DataView(буфер);
+      let пик = 0;
+      for (let и = 44; и + 1 < буфер.byteLength; и += 2) {
+        const з = Math.abs(в.getInt16(и, true)) / 32768;
+        if (з > пик) пик = з;
+      }
+      const г = выбранныйГолос();
+      return { модель: двигатель, голос: г && г.к, язык: г && г.я,
+               кб: Math.round(буфер.byteLength / 1024), пик: Number(пик.toFixed(3)),
+               голосов: своиГолоса.length };
+    };
   })();
 </script>
