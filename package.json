@@ -13,7 +13,8 @@
     "check:tools": "node scripts/check-tools.mjs",
     "check:letters": "node scripts/check-letters.mjs",
     "check:htaccess": "node scripts/check-htaccess.mjs",
-    "check:cards": "node scripts/check-cards.mjs"
+    "check:cards": "node scripts/check-cards.mjs",
+    "check:tts": "node scripts/check-tts.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
