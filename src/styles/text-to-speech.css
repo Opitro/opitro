@@ -261,7 +261,7 @@
   color: #b9c0cc }
 /* Где эта модель поедет. Стоит на самой кнопке, а не в сноске: вес человек видит до
    нажатия, и про телефон он должен узнать там же, а не после отказа. */
-.рч-м-где { margin-top: 3px;
+.рч-м-где { display: block; width: 100%; margin-top: 3px;
   font: 400 12px/1.35 -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   color: #8fa0bd }
 .рч-м-подпись { display: block; width: 100%; margin: 2px 0 4px;

@@ -31,6 +31,7 @@ const СЛОВА = {
     vFemale: 'Женский', vMale: 'Мужской',
     modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Лёгкая. Все четыре языка сайта.', mKokoro: 'Живой голос, только английский.', mSupertonic: 'Быстрее всех, читает цифры и даты.', mNote: 'Вес и скорость не связаны: самая тяжёлая считает вдвое быстрее лёгкой.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
+    model: 'Модель',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
     engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первом пуске', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
     failMem: 'Этой модели не хватило памяти — так бывает на телефонах с тяжёлыми моделями. Возьмите Piper: он самый лёгкий и запускается везде.',
@@ -77,6 +78,7 @@ const СЛОВА = {
     vFemale: 'Жіночий', vMale: 'Чоловічий',
     modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Легка. Усі чотири мови сайту.', mKokoro: 'Живий голос, тільки англійська.', mSupertonic: 'Найшвидша, читає цифри й дати.', mNote: 'Вага і швидкість не повʼязані: найважча рахує вдвічі швидше за легку.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
+    model: 'Модель',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
     engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першому пуску', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
     failMem: 'Цій моделі забракло памʼяті — так буває на телефонах із важкими моделями. Візьміть Piper: він найлегший і запускається всюди.',
@@ -123,6 +125,7 @@ const СЛОВА = {
     vFemale: 'Female', vMale: 'Male',
     modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Light. All four site languages.', mKokoro: 'Lively voice, English only.', mSupertonic: 'Fastest of the three, reads numbers and dates.', mNote: 'Weight and speed are unrelated: the heaviest one computes twice as fast as the lightest.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
+    model: 'Model',
     local: 'device', mb: 'MB', network: 'network',
     engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first play', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
     failMem: 'This model ran out of memory — that happens on phones with the heavier models. Take Piper: it is the lightest and starts everywhere.',
@@ -169,6 +172,7 @@ const СЛОВА = {
     vFemale: 'Femenina', vMale: 'Masculina',
     modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Ligero. Los cuatro idiomas del sitio.', mKokoro: 'Voz viva, solo inglés.', mSupertonic: 'El más rápido, lee cifras y fechas.', mNote: 'Peso y velocidad no van juntos: el más pesado calcula el doble de rápido que el ligero.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
+    model: 'Modelo',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
     engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga al primer uso', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
     failMem: 'A este modelo le ha faltado memoria: ocurre en los teléfonos con los modelos pesados. Coja Piper: es el más ligero y arranca en todas partes.',
@@ -229,18 +233,18 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
 <div class="рч" data-words={JSON.stringify(с)} data-locale={locale} data-limit={ПРЕДЕЛ}>
   <div class="рч-пульт">
     <span class="рч-модели" id="рч-модели">
-      {МОДЕЛИ.map((м) => (
-        <button type="button" class:list={['рч-модель', м.ключ === 'piper' && 'выбран']}
-                id={`рч-м-${м.ключ}`} data-модель={м.ключ}>
-          <b class="рч-м-имя">{м.имя}</b>
-          <span class="рч-м-вес">{м.весМин ? `${м.весМин}–${м.вес}` : м.вес} МБ</span>
-          <span class="рч-м-что">{м.ключ === 'piper' ? с.mPiper : м.ключ === 'kokoro' ? с.mKokoro : с.mSupertonic}</span>
-          <span class="рч-м-где">{м.ключ === 'piper' ? с.limPiper : м.ключ === 'kokoro' ? с.limKokoro : с.limSupertonic}</span>
-        </button>
-      ))}
+      <span class="рч-подпись">{с.model}:</span>
+      <select class="рч-список" id="рч-модель">
+        {МОДЕЛИ.map((м) => (
+          <option value={м.ключ} selected={м.ключ === 'piper'}>
+            {м.имя} · {м.весМин ? `${м.весМин}–${м.вес}` : м.вес} МБ · {м.ключ === 'piper' ? с.mPiper : м.ключ === 'kokoro' ? с.mKokoro : с.mSupertonic}
+          </option>
+        ))}
+      </select>
       <button type="button" class="рч-дв" id="рч-дв-устройство" hidden>{с.engDev}</button>
       <button type="button" class="рч-дв" id="рч-дв-свой" hidden>{с.engOwn}</button>
     </span>
+    <span class="рч-м-где" id="рч-м-где">{с.limPiper}</span>
     <span class="рч-м-подпись">{с.mNote}</span>
     <span class="рч-голос-гнездо">
       <span class="рч-подпись">{с.voice}:</span>
@@ -793,10 +797,13 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       двигатель = на;
       готовыйЗвук = null;
       скачанные = [];
-      for (const к of Object.keys(ПОТОКИ)) {
-        const кн = $('рч-м-' + к);
-        if (кн) кн.classList.toggle('выбран', к === на);
-      }
+      const списокМоделей = $('рч-модель');
+      if (списокМоделей) списокМоделей.value = на;
+      // Ограничение живёт под списком: в <option> второй строки не бывает, а знать,
+      // поедет ли модель на телефоне, надо ДО нажатия.
+      const где = $('рч-м-где');
+      if (где) где.textContent = на === 'piper' ? с.limPiper
+        : на === 'kokoro' ? с.limKokoro : с.limSupertonic;
       // Тона нет ни у одной из трёх моделей -- ручку не показываем, а не делаем вид,
       // что она работает.
       $('рч-ручка-тон').hidden = true;
@@ -813,10 +820,7 @@ const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4
       работник.postMessage({ тип: 'что-скачано' });
       показатьПроГолос();
     }
-    for (const к of Object.keys(ПОТОКИ)) {
-      const кн = $('рч-м-' + к);
-      if (кн) кн.addEventListener('click', () => переключить(к));
-    }
+    $('рч-модель').addEventListener('change', (е) => переключить(е.target.value));
     // Смена голоса или скорости на ходу должна ПЕРЕЗАПУСТИТЬ чтение тем, что выбрали.
     // Раньше здесь только чистился кеш: старый голос продолжал читать, а нажатие
     // «Воспроизвести» ставило его на паузу вместо переключения.
