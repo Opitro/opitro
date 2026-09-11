@@ -265,3 +265,27 @@
 @media (max-width: 560px) {
   .рч-модель { flex: 1 1 100%; padding: 9px 12px }
 }
+
+/* ---- КНОПКИ ЗНАЧКАМИ -----------------------------------------------------------------------
+   «Воспроизвести» и «Стоп» на четырёх языках -- четыре разные длины, и ряд от этого
+   разъезжается. Треугольник и квадрат понятны без перевода и всегда одного размера. */
+.рч-знк {
+  width: 44px; height: 44px; flex: none; display: inline-flex;
+  align-items: center; justify-content: center; padding: 0; cursor: pointer;
+  border-radius: 8px; background: transparent; border: 1px solid #3f4652; color: #fff;
+  transition: border-color .15s, background .15s, color .15s;
+}
+.рч-знк:hover:not([disabled]) { border-color: #fff; background: #1c1f26 }
+.рч-знк[disabled] { cursor: not-allowed; color: #6b7280; border-color: #2c313a }
+.рч-знк:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.рч-знк svg { width: 20px; height: 20px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+/* Треугольник пуска залит: контурный треугольник читается как «вперёд», а не «играть». */
+.рч-знк .зн-играть { fill: currentColor; stroke: none }
+/* Пуск -- единственная зелёная: это главное действие страницы. */
+.рч-пуск { border-color: var(--accent); color: var(--accent) }
+.рч-пуск:hover:not([disabled]) { border-color: var(--accent); background: transparent }
+/* Играет -- показываем паузу, стоит -- треугольник. Одна кнопка, два вида. */
+.рч-знк .зн-пауза { display: none }
+.рч-пуск.играет .зн-играть { display: none }
+.рч-пуск.играет .зн-пауза { display: block }

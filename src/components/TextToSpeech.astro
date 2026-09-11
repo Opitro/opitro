@@ -27,6 +27,7 @@ const ПРЕДЕЛ = 5000;
 
 const СЛОВА = {
   ru: {
+    clear: 'Очистить',
     vFemale: 'Женский', vMale: 'Мужской',
     modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Лёгкая. Все четыре языка сайта.', mKokoro: 'Живой голос, только английский.', mSupertonic: 'Быстрее всех, читает цифры и даты.', mNote: 'Вес и скорость не связаны: самая тяжёлая считает вдвое быстрее лёгкой.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
@@ -66,6 +67,7 @@ const СЛОВА = {
     n6: 'Предел длины — 5000 знаков за раз. Больше — разбейте на части: так вы увидите ход работы, а не будете гадать, считает ли ещё.',
   },
   uk: {
+    clear: 'Очистити',
     vFemale: 'Жіночий', vMale: 'Чоловічий',
     modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Легка. Усі чотири мови сайту.', mKokoro: 'Живий голос, тільки англійська.', mSupertonic: 'Найшвидша, читає цифри й дати.', mNote: 'Вага і швидкість не повʼязані: найважча рахує вдвічі швидше за легку.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
@@ -105,6 +107,7 @@ const СЛОВА = {
     n6: 'Межа довжини — 5000 знаків за раз. Більше — розбийте на частини: так ви побачите хід роботи, а не гадатимете, чи рахує ще.',
   },
   en: {
+    clear: 'Clear',
     vFemale: 'Female', vMale: 'Male',
     modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Light. All four site languages.', mKokoro: 'Lively voice, English only.', mSupertonic: 'Fastest of the three, reads numbers and dates.', mNote: 'Weight and speed are unrelated: the heaviest one computes twice as fast as the lightest.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
@@ -144,6 +147,7 @@ const СЛОВА = {
     n6: 'The length limit is 5000 characters at a time. For more, split it up: that way you see the work progressing instead of guessing whether it is still going.',
   },
   es: {
+    clear: 'Limpiar',
     vFemale: 'Femenina', vMale: 'Masculina',
     modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Ligero. Los cuatro idiomas del sitio.', mKokoro: 'Voz viva, solo inglés.', mSupertonic: 'El más rápido, lee cifras y fechas.', mNote: 'Peso y velocidad no van juntos: el más pesado calcula el doble de rápido que el ligero.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
@@ -184,6 +188,16 @@ const СЛОВА = {
   },
 };
 const с = СЛОВА[locale] || СЛОВА.ru;
+
+// Значки вместо надписей: «Воспроизвести» и «Стоп» в четырёх языках -- четыре разные длины,
+// и ряд кнопок от этого разъезжается. Треугольник и квадрат понятны без перевода.
+const ЗН_ИГРАТЬ = '<svg class="зн-играть" viewBox="0 0 24 24" aria-hidden="true"><path d="M8 5.5v13l11-6.5z"/></svg>'
+  + '<svg class="зн-пауза" viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5.5v13M15 5.5v13"/></svg>';
+const ЗН_СТОП = '<svg viewBox="0 0 24 24" aria-hidden="true"><rect x="6.5" y="6.5" width="11" height="11" rx="1.5"/></svg>';
+const ЗН_ЧИСТО = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 7h16"/>'
+  + '<path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/>'
+  + '<path d="M6.5 7l.9 12.6a1.5 1.5 0 0 0 1.5 1.4h6.2a1.5 1.5 0 0 0 1.5-1.4L17.5 7"/>'
+  + '<path d="M10 11v6M14 11v6"/></svg>';
 ---
 
 <style is:inline set:html={css}></style>
@@ -237,8 +251,12 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="рч-читается" id="рч-читается">{с.idle}</div>
 
   <div class="рч-низ">
-    <button type="button" class="рч-кнопка" id="рч-играть">{с.play}</button>
-    <button type="button" class="рч-простая" id="рч-стоп" disabled>{с.stop}</button>
+    <button type="button" class="рч-знк рч-пуск" id="рч-играть"
+            aria-label={с.play} title={с.play} set:html={ЗН_ИГРАТЬ}></button>
+    <button type="button" class="рч-знк" id="рч-стоп" disabled
+            aria-label={с.stop} title={с.stop} set:html={ЗН_СТОП}></button>
+    <button type="button" class="рч-знк" id="рч-чисто"
+            aria-label={с.clear} title={с.clear} set:html={ЗН_ЧИСТО}></button>
     <span class="рч-формат">
       <button type="button" class="рч-фмт выбран" id="рч-mp3" data-ф="mp3">MP3</button>
       <button type="button" class="рч-фмт" id="рч-wav" data-ф="wav">WAV</button>
@@ -311,9 +329,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     // У Supertonic голоса безымянные: пять женских и пять мужских. Язык он берёт из ТЕКСТА,
     // а не из голоса, поэтому у записи стоит язык страницы -- его и шлём в поток.
-    const ГОЛОСА_SUPERTONIC = ['F1','F2','F3','F4','F5','M1','M2','M3','M4','M5']
-      .map((к) => ({ к, г: 0, я: язык, яз: '', м: '', мб: 380,
-        имя: (к[0] === 'F' ? с.vFemale : с.vMale) + ' ' + к.slice(1) }));
+    // Имена вместо F1 и M3. У самой модели голоса безымянные, и «M3» человеку ничего не
+    // говорит: он не выберет, а ткнёт наугад. Имена подобраны короткие, из разных языков --
+    // страница на четырёх, и голос не должен выглядеть чужим ни на одной.
+    const ГОЛОСА_SUPERTONIC = [
+      ['F1', 'Alma'], ['F2', 'Nora'], ['F3', 'Vera'], ['F4', 'Lina'], ['F5', 'Rita'],
+      ['M1', 'Adam'], ['M2', 'Leon'], ['M3', 'Marc'], ['M4', 'Timo'], ['M5', 'Nils'],
+    ].map(([к, имя]) => ({ к, г: 0, я: язык, яз: '', м: '', мб: 380,
+      имя: `${имя} · ${к[0] === 'F' ? с.vFemale : с.vMale}` }));
 
     const голосаМодели = (м) => (м === 'kokoro' ? ГОЛОСА_KOKORO
       : м === 'supertonic' ? ГОЛОСА_SUPERTONIC : ГОЛОСА);
@@ -551,28 +574,19 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // «Продолжить»), и без запаса кнопка на каждом нажатии прыгает, а с ней и весь ряд.
     // Меряем ВСЕ три надписи и держим место под самую длинную. Пересчитываем после загрузки
     // шрифта и при смене размера окна: до готовности шрифта ширина получается чужая.
-    function держатьШиринуПуска() {
-      const вид = getComputedStyle(кнИграть);
-      const проба = document.createElement("span");
-      проба.style.cssText = "position:absolute;visibility:hidden;white-space:nowrap;left:-9999px";
-      проба.style.font = вид.font;
-      проба.style.letterSpacing = вид.letterSpacing;
-      корень.appendChild(проба);
-      let макс = 0;
-      for (const надпись of [с.play, с.pause, с.resume]) {
-        проба.textContent = надпись;
-        макс = Math.max(макс, проба.getBoundingClientRect().width);
-      }
-      проба.remove();
-      const бока = parseFloat(вид.paddingLeft) + parseFloat(вид.paddingRight)
-        + parseFloat(вид.borderLeftWidth) + parseFloat(вид.borderRightWidth);
-      кнИграть.style.minWidth = Math.ceil(макс + бока) + "px";
-    }
+    // Подпорка ширины удалена: она держала место под слово «Воспроизвести», чтобы кнопка
+    // не прыгала при смене надписи. Надписи больше нет -- есть значок постоянного размера,
+    // и подпорка только растягивала кнопку шире соседних.
+
 
     function видКнопок() {
       const пишем = состояние === 'пишет';
-      кнИграть.textContent = состояние === 'читает' ? с.pause
-        : (состояние === 'пауза' ? с.resume : с.play);
+      // Треугольник или две палочки -- вид кнопки, а не её надпись. Подпись для чтецов
+      // экрана меняем тем же движением, иначе незрячий слышит «воспроизвести» на паузе.
+      const идёт = состояние === 'читает';
+      кнИграть.classList.toggle('играет', идёт);
+      кнИграть.setAttribute('aria-label', идёт ? с.pause : (состояние === 'пауза' ? с.resume : с.play));
+      кнИграть.title = кнИграть.getAttribute('aria-label');
       // Кнопку не глушим из-за пустого списка голосов: на части систем (и на Android
       // особенно) getVoices() возвращает пустоту, а speak() говорит голосом по умолчанию.
       кнИграть.disabled = пишем;
@@ -988,9 +1002,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     if (синтез) ждатьГолоса();
     заполнитьСвои();
     видКнопок();
-    держатьШиринуПуска();
-    if (document.fonts && document.fonts.ready) document.fonts.ready.then(держатьШиринуПуска);
-    window.addEventListener("resize", держатьШиринуПуска);
     // Работника поднимаем не сразу: на странице, куда пришли просто послушать, лишние
     // триста килобайт ни к чему. Заводим в простое, чтобы к первому нажатию он был готов
     // и уже знал, какие голоса лежат на устройстве.
