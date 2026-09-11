@@ -1,8 +1,22 @@
-// ИЗМЕНЕНО ПРИ ЗАИМСТВОВАНИИ: было `import * as ort from 'onnxruntime-web'`. Голое имя
-// модуля браузер сам не разрешит -- ему нужен адрес. Версия 1.22.0 взята не наугад: на ней
-// Supertonic работает на живом стороннем сайте, то есть сочетание проверено не только нами.
-import * as ort from 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.all.min.mjs';
-ort.env.wasm.wasmPaths = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+// ИЗМЕНЕНО ПРИ ЗАИМСТВОВАНИИ. Было `import * as ort from 'onnxruntime-web'` -- голое имя
+// модуля браузер не разрешит. Но и просто подставить адрес CDN нельзя, и это стоило нам
+// живой поломки: сборщик собирает поток обычной обёрткой, а не модулем, и СТАТИЧЕСКИЙ импорт
+// со стороннего адреса в ней не сохраняется -- он молча пропадает. В собранном файле не
+// оставалось ни одного import, движка не было, модель «не загружалась».
+// Поэтому подключаем на ходу: динамический import переживает любую упаковку. Так же устроен
+// поток Kokoro, который по этой причине и работал.
+// Версия 1.22.0 взята не наугад: на ней Supertonic работает на живом стороннем сайте.
+const АДРЕС_ORT = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/ort.all.min.mjs';
+const АДРЕС_WASM = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.22.0/dist/';
+let ort = null;
+
+/** Подключить движок. Зовётся до первого обращения к моделям. */
+export async function подключитьДвижок() {
+  if (ort) return ort;
+  ort = await import(/* @vite-ignore */ АДРЕС_ORT);
+  ort.env.wasm.wasmPaths = АДРЕС_WASM;
+  return ort;
+}
 
 // Available languages for multilingual TTS
 export const AVAILABLE_LANGS = ['en', 'ko', 'ja', 'ar', 'bg', 'cs', 'da', 'de', 'el', 'es', 'et', 'fi', 'fr', 'hi', 'hr', 'hu', 'id', 'it', 'lt', 'lv', 'nl', 'pl', 'pt', 'ro', 'ru', 'sk', 'sl', 'sv', 'tr', 'uk', 'vi', 'na'];
@@ -433,6 +447,7 @@ export async function loadTextProcessor(onnxDir) {
  * Load ONNX model
  */
 export async function loadOnnx(onnxPath, options) {
+    await подключитьДвижок();
     const session = await ort.InferenceSession.create(onnxPath, options);
     return session;
 }
