@@ -3,52 +3,58 @@ toolSlug: text-to-speech
 locale: es
 category: text
 tool: text-to-speech
-title: Convertir texto a voz online — sintetizador de voz y descargar MP3
-h1: Convertir texto a voz
+title: Texto a voz online — leer texto en voz alta y descargar MP3
+h1: Conversión de texto a voz
 navName: "Texto a voz"
 summary: "Leer el texto en voz alta y descargarlo"
-description: "Convierte texto en voz directamente en el navegador: las voces de tu dispositivo, velocidad y tono ajustables, descarga en MP3 o WAV. Gratis, sin registro y el texto no sale de tu equipo."
+description: "Convierte texto en voz dentro de tu navegador: tres modelos a elegir, descarga en MP3 o WAV. Tu texto no va a ninguna parte: el cálculo ocurre en tu propio dispositivo."
 faq:
-  - question: ¿Cómo descargo la voz en MP3?
-    answer: "Lo más fácil es cambiar a la voz integrada: se calcula en tu navegador, el archivo se monta al instante y no pide ningún permiso. La voz se descarga una sola vez (el peso aparece junto a cada una). Con las voces del dispositivo es más complicado: pulsa Descargar y el navegador pedirá permiso para grabar el sonido; no es un capricho nuestro. Una página no tiene forma de llevar la salida del sintetizador directamente a un archivo: esa función no existe en ningún navegador. La única vía honesta es grabar el sonido de la ventana, y ese permiso lo pide el propio navegador. En el selector elige esta pestaña (o toda la pantalla) y marca sin falta «Compartir también el audio»."
-  - question: ¿Se puede descargar la voz en un iPhone?
-    answer: "Sí, con la voz integrada. Se calcula dentro del navegador, así que no hace falta ningún permiso de grabación y el archivo se guarda igual que en un ordenador. Las voces de Siri, en cambio, no se pueden guardar en un archivo: Safari no entrega el audio de la pestaña a la página, y es una limitación del sistema idéntica para todas las webs."
-  - question: ¿De qué depende la calidad de la voz?
-    answer: "Las voces salen de tu dispositivo, no de nuestro servidor. En iPhone y Mac son las de Siri, en Windows las de Microsoft, y Chrome añade encima las voces de red de Google. Por eso la lista cambia de una persona a otra y el mismo texto suena distinto en cada equipo. Las más naturales suelen ser las marcadas como «de red», y además son las que se graban a archivo con más fiabilidad."
-  - question: ¿Hay límite de longitud?
-    answer: "5000 caracteres por vez. No es cuenta nuestra sino comportamiento de los sistemas: cuanto más largo el texto, más probable es que el sintetizador interrumpa la lectura a mitad por motivos propios. Un artículo largo se locuta mejor por partes."
+  - question: ¿Qué modelo conviene elegir?
+    answer: "Fíjese en la tarea, no en el peso: no van juntos. Piper pesa 20–60 megabytes y conoce los cuatro idiomas del sitio; elíjalo si los datos le cuestan o el dispositivo es flojo. Kokoro pesa 93 megabytes y da la voz más viva, pero solo habla inglés. Supertonic pesa 380 megabytes y aun así calcula el doble de rápido que Piper; además es el único que lee cifras, fechas y abreviaturas sin preparación previa. El peso está escrito en el propio botón: son sus datos, y conviene saberlo antes de pulsar, no después."
+  - question: ¿De verdad el modelo más pesado va más lento?
+    answer: "No, y es lo más inesperado de la elección. Lo medimos: con la misma frase Supertonic (380 MB) tarda 2,6 segundos y Kokoro (93 MB) tarda 6,5. El peso solo indica cuánto se descarga una vez; la velocidad depende de cómo está construido el modelo, no de su tamaño. Elegir por el peso es, por tanto, una buena manera de quedarse con el más lento."
+  - question: ¿Adónde va mi texto?
+    answer: "A ninguna parte. Se procesa dentro de su navegador: sencillamente no hay adónde enviarlo, todo el cálculo ocurre en su dispositivo. No guardamos nada ni llevamos registros. Lo único que llega por la red es el propio modelo, una vez: después se queda con usted y la siguiente lectura empieza al instante, incluso sin internet."
+  - question: ¿Se puede descargar el audio en un iPhone?
+    answer: "Sí, y sin ningún permiso. Antes, para obtener un archivo había que pedir permiso para grabar el sonido de la ventana, porque las voces venían del sistema y ningún navegador las entrega a una página como archivo. Ahora el sonido nace en la propia página, así que ya es un archivo. Funciona igual en iPhone, en Android y en un ordenador."
+  - question: ¿Hay más idiomas además del inglés?
+    answer: "Sí, en dos de los tres modelos. Piper conoce español, inglés, ruso y ucraniano, con varias voces en cada uno. Supertonic conoce 31 idiomas. Kokoro, en cambio y pese a lo que suele leerse, solo habla inglés: en su repositorio sí hay voces españolas y francesas, pero la biblioteca con la que funciona en el navegador no las conoce; lo comprobamos."
   - question: ¿Por qué el texto largo se lee por trozos?
-    answer: "Chrome corta la voz alrededor de los quince segundos, una rareza suya de siempre. Por eso partimos el texto por finales de frase de antemano y leemos los trozos seguidos, sin huecos. La longitud del trozo se calcula a partir de la velocidad elegida."
-  - question: ¿Se envía el texto a alguna parte?
-    answer: "No. La voz la sintetiza tu propio sistema operativo; la página solo le pasa las letras. No guardamos nada ni llevamos registros. La grabación que se hace al descargar también se queda en la memoria de la pestaña y desaparece con ella."
-  - question: ¿Y si el archivo descargado sale mudo?
-    answer: "No vas a recibir un archivo así. Tras grabar, la página mide el volumen, y si es silencio la descarga no ocurre: en su lugar aparece una explicación de qué cambiar. Suele bastar con elegir una voz marcada como «de red», o repetir la grabación eligiendo toda la pantalla junto con el audio del sistema."
+    answer: "Porque el modelo calcula el texto entero, y en un artículo largo eso serían decenas de segundos sin ninguna señal de vida. Cortamos al final de las frases —nunca en mitad de una palabra, o la unión daría un chasquido y una sílaba partida—, calculamos los trozos por turno y los pegamos en un solo archivo. Usted oye el principio mientras se calcula el resto."
+  - question: ¿Cuánto pesa un modelo y hay que descargarlo cada vez?
+    answer: "Una sola vez. Piper son 20–60 megabytes por voz, Kokoro 93 y Supertonic 380. Lo descargado se queda en el almacenamiento del navegador, así que la próxima vez la lectura empieza de inmediato. Si ya no necesita un modelo, puede quitarlo del dispositivo con el botón que hay junto a la lista de voces."
 related:
   - speech-to-text
   - audio-to-text
   - reading-time
 ---
 
-Pega el texto, elige una voz y pulsa Reproducir. Todo se calcula en tu propio dispositivo.
+Pegue el texto, elija un modelo y pulse «Reproducir». Todo se calcula en su propio dispositivo.
 
-## Las voces son las tuyas
+## Tres modelos, y el peso no dice nada de la velocidad
 
-La lista sale de tu sistema: Siri en iPhone y Mac, Microsoft en Windows y, en Chrome, además las voces de red de Google. No hay que instalar nada ni pagar nada: esas voces ya están en el equipo.
+**Piper — 20–60 MB.** El más ligero y el único que conoce los cuatro idiomas del sitio. Elíjalo si los datos le cuestan o el dispositivo es flojo.
 
-## La velocidad y el tono cambian sobre la marcha
+**Kokoro — 93 MB.** La voz más viva de las tres, pero solo en inglés. En su repositorio hay voces españolas, pero la biblioteca con la que funciona en el navegador no las conoce; lo comprobamos.
 
-Mueve un control mientras lee y la voz se reinicia desde la frase actual con el nuevo ajuste. No hay que esperar al final del párrafo para notar la diferencia.
+**Supertonic — 380 MB.** El más pesado y a la vez el más rápido: 2,6 segundos frente a los 6,5 de Kokoro con la misma frase. Conoce 31 idiomas y lee cifras, fechas y abreviaturas sin preparación.
 
-## Sobre la descarga, con franqueza
+El peso está escrito en el botón. Son sus datos, y conviene saberlo antes de pulsar.
 
-Ningún navegador deja que una página lleve la salida del sintetizador directamente a un archivo: esa capacidad no existe. Por eso Descargar pide permiso para grabar el sonido de la ventana. A cambio el archivo es real, y uno vacío no se entrega nunca: el volumen se comprueba antes de descargar.
+## Su texto se queda con usted
 
-## Dos voces a elegir
+El cálculo ocurre en su navegador. No hay adónde enviar el texto: el modelo ya está descargado y trabaja aquí. No guardamos nada ni llevamos registros.
 
-**La voz integrada** va primero y está activada de entrada. Se calcula en tu navegador: se descarga una vez (el peso aparece en cada una) y a partir de ahí el archivo se monta al instante, sin ningún permiso, también en un iPhone.
+Lo único que llega por la red es el propio modelo, una vez. Después se queda en el dispositivo y la siguiente lectura empieza al instante, incluso sin internet.
 
-**Las voces del dispositivo** son el segundo botón. Sirven solo para escuchar: leer un artículo en voz alta, comprobar una pronunciación, oír un libro. El navegador no deja que una página las guarde en un archivo, así que ahí el botón de descarga aparece atenuado.
+## Obtiene un archivo en cualquier dispositivo
 
-## Voces en 50 idiomas
+Antes, descargar exigía permiso para grabar el sonido de la ventana: las voces venían del sistema y ningún navegador las entrega a una página como archivo. Ahora el sonido nace aquí mismo, así que ya es un archivo. En un iPhone funciona igual que en un ordenador.
 
-Cualquier versión de idioma de esta página ofrece todas las voces, no solo las suyas: una frase en alemán dentro de un artículo en español, o una cita en inglés, se pueden locutar aquí mismo. Tu idioma va primero en la lista.
+## El texto largo se lee por trozos
+
+Cortamos al final de las frases, nunca en mitad de una palabra: en la unión habría un chasquido y una sílaba partida. Los trozos se calculan por turno y se pegan en un solo archivo; usted oye el principio mientras se calcula el resto.
+
+## Cómo se ha comprobado
+
+Cada número de esta página se midió en un navegador real, no se copió de una descripción. Los pesos de los modelos se contrastan con los archivos reales en cada compilación: si mañana sustituyen alguno, nos enteramos antes que usted. Por el camino resultó que tres cifras de reseñas muy repetidas eran falsas, y por eso medimos nosotros.

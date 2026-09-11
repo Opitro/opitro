@@ -3,52 +3,58 @@ toolSlug: text-to-speech
 locale: en
 category: text
 tool: text-to-speech
-title: Text to Speech Online — Free TTS Voice Generator
-h1: Text to Speech Converter
+title: Text to Speech Online — Read Text Aloud and Download MP3
+h1: Text to Speech
 navName: "Text to Speech"
 summary: "Read the text aloud and save the recording"
-description: "Turn text into speech right in your browser: your own device voices, adjustable speed and pitch, download as MP3 or WAV. Free, no sign-up, and the text never leaves your device."
+description: "Turn text into speech right in your browser: three models to choose from, download as MP3 or WAV. Your text goes nowhere — the computing happens on your own device."
 faq:
-  - question: How do I download the speech as MP3?
-    answer: "The easy way is to switch to the built-in voice: it is computed right in your browser, the file is built instantly and no permission is asked at all. The voice itself downloads once (the size is shown beside each one). Device voices are harder: press Download and the browser will ask permission to record sound — that is not a whim of ours. A page has no way to take the synthesiser output straight into a file: no such API exists in any browser. The one honest route is to record the sound of the window, and permission for that is asked by the browser itself. In the picker choose this tab (or the entire screen) and be sure to tick “Also share audio”. The text is then read out loud, the recording runs, and at the end you get a real file."
-  - question: Can I download the speech on an iPhone?
-    answer: "Yes — with the built-in voice. It is computed inside the browser, so no recording permission is needed at all and the file saves just as it does on a computer. Siri voices, on the other hand, cannot be saved to a file: Safari does not hand tab audio to a page, and that is a system limitation identical for every site. Listening with Siri voices works in full."
-  - question: What does the voice quality depend on?
-    answer: "The voices come from your device, not from our server. On iPhone and Mac they are the Siri voices, on Windows the Microsoft ones, and Chrome adds Google network voices on top. That is why the list differs from person to person and the same text sounds different on different machines. The most natural ones are usually those marked “network” in the list — and they are also the ones that record to a file most reliably."
-  - question: Is there a length limit?
-    answer: "5000 characters at a time. That is not our arithmetic but the behaviour of the systems: the longer the text, the likelier the synthesiser aborts halfway through for reasons of its own. A long article is better voiced in parts, and the resulting files are easier to handle that way too."
-  - question: Why is long text read in chunks?
-    answer: "Chrome cuts speech off at around fifteen seconds — a long-standing quirk. So we split the text at sentence ends in advance and read the pieces back to back with no gaps. Chunk length is derived from the chosen speed: the slower the speech, the shorter the chunk, because otherwise it would not finish in time."
-  - question: Is the text sent anywhere?
-    answer: "No. The speech is synthesised by your own operating system; the page only passes it the letters. We store nothing and keep no logs. The recording made during download also stays in the memory of the tab and disappears with it."
-  - question: What if the downloaded file turns out silent?
-    answer: "You will not get such a file. After recording, the page measures the loudness, and if it is silence the download does not happen — instead you get an explanation of what to change. Usually it helps to pick a voice marked “network”, or to record again choosing the entire screen together with system audio."
+  - question: Which model should I pick?
+    answer: "Look at the job, not the weight — the two are unrelated. Piper is 20–60 megabytes and knows all four site languages: take it if data costs you or the device is weak. Kokoro is 93 megabytes and gives the liveliest voice, but speaks English only. Supertonic is 380 megabytes and still computes twice as fast as Piper; it is also the only one that reads numbers, dates and abbreviations with no preparation. The weight is printed on the button — that is your data allowance, and you should know it before you press, not after."
+  - question: Is the heavier model really slower?
+    answer: "No, and that is the most surprising part of the choice. We measured it: on the same phrase Supertonic (380 MB) takes 2.6 seconds while Kokoro (93 MB) takes 6.5. Weight only tells you how much downloads once; speed depends on how the model is built, not on its size. Choosing by weight is therefore a good way to end up with the slowest option."
+  - question: Where does my text go?
+    answer: "Nowhere. It is processed right inside your browser — there is simply nowhere to send it, all the computing happens on your device. We store nothing and keep no logs. The only thing that arrives over the network is the model itself, once: it then stays with you, and the next reading starts immediately, even with no internet."
+  - question: Can I download the audio on an iPhone?
+    answer: "Yes, and without a single permission. It used to be that getting a file meant asking permission to record the window's sound — because the voices came from the system, and a browser will not hand those to a page as a file. Now the sound is born on the page itself, so it already is a file. It works the same on an iPhone, on Android and on a computer."
+  - question: Does it support languages other than English?
+    answer: "Yes, in two models out of three. Piper knows English, Spanish, Russian and Ukrainian, with several voices each. Supertonic knows 31 languages. Kokoro, contrary to what is widely written, speaks English only: Spanish and French voices do sit in its repository, but the library it runs through in the browser does not know them — we checked."
+  - question: Why is long text read in pieces?
+    answer: "Because a model computes the whole text at once, and on a long article that would be tens of seconds with no sign of life. We cut at the ends of sentences — never in the middle of a word, or the join would give a click and a chopped syllable — compute the pieces in turn and glue them into one file. You hear the beginning while the rest is still being computed."
+  - question: How big is a model and does it download every time?
+    answer: "Once. Piper is 20–60 megabytes per voice, Kokoro 93, Supertonic 380. What you download stays in the browser's storage, so next time the reading starts straight away. If you no longer need a model, you can remove it from the device with the button beside the voice list."
 related:
   - speech-to-text
   - audio-to-text
   - reading-time
 ---
 
-Paste the text, pick a voice and press Play. Everything runs on your own device.
+Paste your text, pick a model and press Play. Everything is computed on your own device.
 
-## The voices are your own
+## Three models, and weight says nothing about speed
 
-The list comes from your system: Siri on iPhone and Mac, Microsoft on Windows, plus Google network voices in Chrome. Nothing to install and nothing to pay for — those voices are already on the device.
+**Piper — 20–60 MB.** The lightest, and the only one that knows all four site languages. Take it if data costs you or the device is weak.
 
-## Speed and pitch change as it reads
+**Kokoro — 93 MB.** The liveliest voice of the three, but English only. Spanish voices do exist in its repository, yet the library it runs through in the browser does not know them — we checked.
 
-Move a slider while it is reading and the speech restarts from the current sentence with the new setting. No waiting until the end of the paragraph to hear the difference.
+**Supertonic — 380 MB.** The heaviest and, at the same time, the fastest: 2.6 seconds against Kokoro's 6.5 on the same phrase. It knows 31 languages and reads numbers, dates and abbreviations without any preparation.
 
-## About downloading, honestly
+The weight is printed on the button. That is your data allowance, and you should know it before pressing.
 
-No browser lets a page take the synthesiser output straight into a file — the capability does not exist. So Download asks your permission to record the sound of the window; without it there is no file. In exchange the file is a real one, and an empty one is never handed over: the loudness is checked before the download happens.
+## Your text stays with you
 
-## Two voices to choose from
+The computing happens in your browser. There is nowhere to send the text — the model is already downloaded and works here. We store nothing and keep no logs.
 
-**The built-in voice** comes first and is on by default. It is computed right in your browser: it downloads once (the size is shown for each), and after that the file is built instantly, with no permission at all — including on an iPhone.
+The only thing that comes over the network is the model itself, once. After that it sits on the device and the next reading starts immediately, even offline.
 
-**Device voices** are the second button. They are for listening only: read an article aloud, check a pronunciation, listen to a book. A browser will not let a page save them to a file, so the download button is dimmed there.
+## You get a file on any device
 
-## Voices in 50 languages
+Downloading used to require permission to record the window's sound: the voices came from the system, and no browser hands those to a page as a file. Now the sound is born right here — which means it already is a file. On an iPhone it works exactly as on a computer.
 
-Every language version of this page offers all the voices, not just its own: a Spanish phrase inside an English article, or a German quote inside a Spanish one, can be voiced right here. Your own language comes first in the list.
+## Long text is read in pieces
+
+We cut at the ends of sentences, never in the middle of a word: a join there would give a click and a chopped syllable. The pieces are computed in turn and glued into one file — you hear the beginning while the rest is still being worked out.
+
+## How this was checked
+
+Every number here was measured in a live browser rather than taken from a description. Model weights are verified against the actual files on every build: if one of them is swapped tomorrow, we find out before you do. Along the way three figures from widely circulated write-ups turned out to be wrong — which is precisely why we measure.
