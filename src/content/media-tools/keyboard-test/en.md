@@ -6,6 +6,7 @@ tool: keyboard-test
 title: Keyboard test online — check every key for free
 h1: Keyboard test
 navName: Keyboard test
+summary: "Which keys respond and which do not"
 description: "Press a key and it fills in on the diagram. You can see which one stays silent, which one sticks, and the key code for games. Right in your browser."
 faq:
   - question: How do I tell which key is dead?

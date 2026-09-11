@@ -6,6 +6,7 @@ tool: mic-test
 title: Microphone Test Online — Check If Your Mic Is Working
 h1: Microphone test
 navName: Microphone test
+summary: "Whether you are heard, and how loudly"
 description: Check your microphone in half a minute — a live waveform shows whether it hears you. Record five seconds and listen back. No install, the recording stays with you.
 faq:
   - question: The microphone hears nothing — what should I check?

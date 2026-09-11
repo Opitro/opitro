@@ -6,6 +6,7 @@ tool: audio-delay-test
 title: Prueba de latencia de audio online — retraso Bluetooth (ms)
 h1: Test de retraso del sonido
 navName: Retraso del sonido
+summary: "Cuánto se retrasa el sonido respecto a la imagen"
 description: "Mide el retraso del sonido en milisegundos: un destello en el radar y un clic, y un control los junta. Para auriculares Bluetooth, cascos, altavoces y televisores."
 faq:
   - question: ¿Cómo funciona?

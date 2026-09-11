@@ -6,6 +6,7 @@ tool: number-to-words
 title: Number to Words Online — Convert Digits to Written Text
 h1: Number to Words
 navName: Number to words
+summary: "1024 → one thousand and twenty-four"
 description: "Free online number-to-words converter and back. Dollars, euros, roubles and hryvnias with correct forms, gender of numerals, cents as digits. Amounts stay in your browser."
 faq:
   - question: Why are amounts written out in words on documents?

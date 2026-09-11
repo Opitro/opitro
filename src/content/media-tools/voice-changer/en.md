@@ -6,6 +6,7 @@ tool: voice
 title: "Voice Changer Online Free — 15 Effects, Record From Your Mic"
 h1: Voice changer online
 navName: Voice changer
+summary: "Robot, echo, telephone and other effects"
 description: "Record your voice right here or upload a file, then tap an effect — robot, monster, alien, echo, hall, reverse and more. You hear it instantly, download in one click. Free, nothing leaves your device."
 faq:
   - question: Can it turn a male voice into a female one?

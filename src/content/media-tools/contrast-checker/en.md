@@ -6,6 +6,7 @@ tool: contrast-checker
 title: Color Contrast Checker Online — WCAG Accessibility Validator
 h1: Color Contrast Checker (WCAG)
 navName: Contrast checker
+summary: "Does the contrast pass WCAG"
 description: "Professional online tool to check color contrast ratios between text and background. Instantly validate accessibility standards for WCAG AA and AAA layouts."
 faq:
   - question: What is a contrast ratio and how is it calculated?

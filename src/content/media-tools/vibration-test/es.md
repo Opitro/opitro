@@ -6,6 +6,7 @@ tool: vibration-test
 title: "Prueba de vibración de móvil online — test del motor de vibración"
 h1: Prueba de vibración del teléfono
 navName: Test de vibración
+summary: "Si el motor responde y con qué fuerza"
 description: "Herramienta para diagnosticar el motor de vibración del móvil. Comprueba si la vibración funciona, prueba distintos patrones hápticos y marca tu propio ritmo desde el navegador."
 faq:
   - question: ¿Por qué en el iPhone no vibra nada?

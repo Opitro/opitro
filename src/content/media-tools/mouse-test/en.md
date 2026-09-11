@@ -6,6 +6,7 @@ tool: mouse-test
 title: Mouse test online — check the buttons, wheel and double click
 h1: Mouse test
 navName: Mouse test
+summary: "Buttons, wheel, double click"
 description: "Check the mouse buttons, the wheel and the double click. The page catches the unintended double click — the classic failure of a worn button."
 faq:
   - question: My mouse double-clicks on its own — what is that?

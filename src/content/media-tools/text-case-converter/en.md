@@ -6,6 +6,7 @@ tool: text-case-converter
 title: "Change Text Case Online — Uppercase, Lowercase, Title Case"
 h1: Change Text Case
 navName: Text case
+summary: "UPPER, lower, Sentence case"
 description: "Online case converter tool. Instantly convert your text to uppercase (ALL CAPS), lowercase, title case, sentence case or inverse case, right in your browser."
 faq:
   - question: How do I undo all caps if the whole text is uppercase?

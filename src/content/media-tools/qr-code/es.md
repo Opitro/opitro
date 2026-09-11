@@ -6,6 +6,7 @@ tool: qr-code
 title: Generador de códigos QR online — crear código QR gratis (PNG y SVG)
 h1: Generador de códigos QR
 navName: Código QR
+summary: "Enlace, Wi-Fi, tarjeta → PNG y SVG"
 description: "Crea un código QR para un enlace, texto, red Wi-Fi o tarjeta de contacto. Descarga en PNG y SVG, cuatro niveles de corrección. Los acentos se codifican bien. Gratis y en tu navegador."
 faq:
   - question: ¿En qué se diferencia descargar en PNG o en SVG?

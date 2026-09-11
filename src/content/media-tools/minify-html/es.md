@@ -6,6 +6,7 @@ tool: minify-html
 title: Minificador HTML online — Comprimir código HTML
 h1: Minificador de código HTML
 navName: Minificador HTML
+summary: "Encoger el marcado sin romper la página"
 description: "Herramienta profesional para minificar y comprimir código HTML online. Elimina espacios en blanco, saltos de línea y comentarios de forma 100% local para optimizar tu web."
 faq:
   - question: ¿Por qué no basta con quitar todos los saltos de línea?

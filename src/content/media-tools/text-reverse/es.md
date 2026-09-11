@@ -6,6 +6,7 @@ tool: text-reverse
 title: Invertir texto online — voltear texto al revés y dar la vuelta a palabras
 h1: Invertir texto
 navName: Invertir texto
+summary: "Invertir letras, palabras u orden de líneas"
 description: "Herramienta gratuita para invertir texto online. Voltea una cadena letra a letra, cambia el orden de las palabras o invierte el orden de las líneas sin romper los emojis."
 faq:
   - question: ¿En qué se diferencian los tres modos?

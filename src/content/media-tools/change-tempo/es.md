@@ -6,6 +6,7 @@ tool: tempo
 title: Cambiar el tempo de un tema online — ajustar los BPM gratis
 h1: Cambiar el tempo (BPM)
 navName: Tempo
+summary: "Más rápido o lento, el tono no cambia"
 description: Ajusta un tema al tempo que necesites sin cambiar su tonalidad. Los BPM actuales se detectan solos, y también puedes escribirlos a mano. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Cuánto acierta la detección de tempo?

@@ -6,6 +6,7 @@ tool: character-counter
 title: Character and word counter — count characters in a text online
 h1: Count the characters and words in a text
 navName: Characters and words
+summary: "Characters, words, paragraphs, counted live"
 description: "Paste your text and see the characters with and without spaces, plus words, punctuation marks and your most repeated words. Free, no sign-up."
 faq:
   - question: How do I count the characters in a text?

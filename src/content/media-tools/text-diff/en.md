@@ -6,6 +6,7 @@ tool: text-diff
 title: "Compare Two Texts Online — Find Differences by Word and by Character"
 h1: "Compare Two Texts Online"
 navName: "Compare texts"
+summary: "Two texts compared: lines, words, characters"
 description: "Compare two texts online: differences by line, by word and by character, in two columns or one flow. For contracts, articles and correspondence. Your texts never leave the browser."
 faq:
   - question: How does comparing two texts work?

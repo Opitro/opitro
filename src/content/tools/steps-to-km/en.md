@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: km
 title: Steps to Km Converter — Free, No Sign-Up Required
 h1: Steps to Kilometers
+summary: "10,000 steps come to about 7.6 km"
 description: Find out how many kilometers you walked based on your step count. Uses an average step length of 76 cm, the same default most fitness trackers use. Free, no sign-up.
 faq:
   - question: How many steps are in a kilometer?

@@ -6,6 +6,7 @@ tool: unix-timestamp
 title: Unix Timestamp конвертер онлайн — Переклад Epoch часу в дату і назад
 h1: Unix Timestamp конвертер
 navName: Unix Timestamp
+summary: "Мітка ↔ дата, у будь-якому часовому поясі"
 description: "Професійний онлайн-інструмент для конвертації Unix Time (Epoch). Швидко переводьте секунди та мілісекунди в зрозумілу дату та час локально в браузері."
 faq:
   - question: Що таке Unix Timestamp і з якого моменту ведеться відлік?

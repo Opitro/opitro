@@ -6,6 +6,7 @@ tool: code-diff
 title: "Diff Checker Online — Compare Two Code Files and Find Differences"
 h1: "Online Code Diff Checker"
 navName: "Code Diff Checker"
+summary: "Two files compared: line numbers, patch"
 description: "Compare two pieces of code online: line numbers, collapsed identical stretches, copy as a unified-diff patch. Names the invisible causes — CRLF, tabs, trailing spaces. The code never leaves your browser."
 faq:
   - question: Why does the code look identical while the comparison reports differences?

@@ -6,6 +6,7 @@ tool: number-declension
 title: Números cardinales y ordinales en letras online — formas correctas
 h1: Formas y variantes de números
 navName: Formas de números
+summary: "5 mesas, 21 mesas: la forma correcta"
 description: "Herramienta gratuita para las formas escritas de un número: cardinal, ordinal y femenino. Los ordinales grandes, que nadie recuerda, salen escritos correctamente."
 faq:
   - question: ¿Por qué hay varias formas escritas del mismo número?

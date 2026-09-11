@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: taza
 title: Conversor de ml a tazas online, gratis, sin registro
 h1: Mililitros a Tazas
+summary: "237 ml = 1 taza de EE. UU."
 description: Convierte mililitros a tazas online, gratis y sin registro. Un conversor de volumen preciso para recetas en inglés.
 faq:
   - question: ¿Cuántas tazas son 500 ml?

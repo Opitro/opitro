@@ -1,0 +1,36 @@
+---
+// КАРТОЧКА ИНСТРУМЕНТА -- одна на весь сайт.
+//
+// Раньше её разметка была скопирована в трёх местах: дважды на странице рубрики (в полках и
+// в общей сетке) и внизу страницы инструмента, в плитках «попробуйте ещё». Любая правка вида
+// требовала найти все три, а при 500 инструментах и десятке языков именно такое расходится
+// первым. Теперь место одно.
+//
+// ПОДПИСЬ собирается в lib/tool-summary.js: у обычных инструментов она написана в шапке
+// страницы, у конвертеров величин -- складывается из множителя («1 км = 0,621 мили»).
+// Здесь мы её только показываем.
+import { iconFor, colorFor } from '../lib/tool-icons.js';
+import { подпись } from '../lib/tool-summary.js';
+
+export interface Props {
+  /** data записи коллекции tools или mediaTools */
+  данные: any;
+  /** Показывать ли подпись. В узких местах (боковые плитки) бывает не нужна. */
+  сПодписью?: boolean;
+}
+
+const { данные, сПодписью = true } = Astro.props;
+const имя = данные.navName || данные.h1;
+const строка = сПодписью ? подпись(данные) : '';
+---
+
+<a class="tool-card" href={`/${данные.locale}/${данные.toolSlug}`}>
+  <span class="tc-плашка" style={`--цвет: ${colorFor(данные.toolSlug, данные.category)}`}>
+    <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8"
+         stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(данные.toolSlug, данные.category)} />
+  </span>
+  <span class="tc-текст">
+    <span class="tc-name">{имя}</span>
+    {строка && <span class="tc-подпись">{строка}</span>}
+  </span>
+</a>

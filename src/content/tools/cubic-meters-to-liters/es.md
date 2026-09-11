@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: L
 title: Calculadora de metros cúbicos a litros online, gratis, sin registro
 h1: Metros Cúbicos a Litros
+summary: "1 m³ = 1000 litros, exacto"
 description: Metros cúbicos a litros — un calculadora de volumen online precisa, gratis y sin registro. Introduce m³ y obtén el resultado en litros al instante.
 faq:
   - question: ¿Un metro cúbico cuántos litros son?

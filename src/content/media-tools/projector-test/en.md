@@ -6,6 +6,7 @@ tool: projector-test
 title: Projector test online — focus grid, geometry and keystone
 h1: Projector setup and test
 navName: Projector test
+summary: "Focus, geometry, colour and brightness"
 description: "Nine charts for setting up a projector: a focus grid with corner targets, a frame for keystone, convergence, brightness uniformity and finding dust inside the optics."
 faq:
   - question: Which chart should I start with?

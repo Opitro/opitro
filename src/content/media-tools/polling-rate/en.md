@@ -6,6 +6,7 @@ tool: polling-rate
 title: Mouse polling rate test — check your Hz online
 h1: Mouse polling rate test
 navName: Polling rate
+summary: "How often the mouse reports per second"
 description: "Find your real polling rate — 125, 500, 1000 Hz or higher — and the latency in milliseconds. The numbers move live, with a steadiness chart beside them. Free."
 faq:
   - question: What is a mouse polling rate?

@@ -6,6 +6,7 @@ tool: brown-noise
 title: Ruido marrón — escuchar online o descargar gratis
 h1: Ruido marrón
 navName: Ruido marrón
+summary: "Ruido grave y sordo: para dormir y concentrarse"
 description: Generador de ruido marrón para dormir y concentrarte, el más profundo de los tres. Escúchalo online sin anuncios o descarga un MP3. Con temporizador. Gratis, sin registro.
 faq:
   - question: ¿Qué es el ruido marrón?

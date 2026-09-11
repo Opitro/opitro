@@ -6,6 +6,7 @@ tool: remove-diacritics
 title: "Eliminar diacríticos online — quitar acentos y tildes del texto"
 h1: Eliminar signos diacríticos
 navName: Quitar acentos
+summary: "café → cafe, ñ → n, para URLs y usuarios"
 description: "Herramienta para quitar acentos, tildes y diacríticos online. Convierte caracteres especiales (á, é, í, ó, ú, ü, ñ) en letras latinas estándar al instante."
 faq:
   - question: ¿Para qué quitar los signos diacríticos?

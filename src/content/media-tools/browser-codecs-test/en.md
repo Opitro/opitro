@@ -6,6 +6,7 @@ tool: browser-codecs-test
 title: "Browser Codecs Test Online — Check Video and Audio Support"
 h1: Browser Codecs Support
 navName: Browser codecs
+summary: "Which video and audio your browser can play"
 description: "Check which audio and video codecs your browser supports. Instant compatibility test for AV1, HEVC (H.265), AVC (H.264), VP9, FLAC and Opus, with no downloads."
 faq:
   - question: What does the “maybe” answer mean?

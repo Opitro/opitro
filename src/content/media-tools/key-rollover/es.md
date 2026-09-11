@@ -6,6 +6,7 @@ tool: key-rollover
 title: Cuántas teclas a la vez — test de rollover y antighosting del teclado
 h1: Cuántas teclas a la vez
 navName: Teclas a la vez
+summary: "Cuántas teclas registra a la vez"
 description: "Mantén varias teclas a la vez y mira cuántas llegan al ordenador. Prueba de rollover y antighosting, importante para los juegos."
 faq:
   - question: ¿Cuántas teclas deberían registrarse a la vez?

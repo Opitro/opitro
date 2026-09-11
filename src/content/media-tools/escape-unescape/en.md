@@ -6,6 +6,7 @@ tool: escape-unescape
 title: Escape and Unescape Online — HTML, JavaScript and CSS String Escaper
 h1: String Escape and Unescape
 navName: Escape and unescape
+summary: "Quotes and slashes for a string in code"
 description: "Free online escaper and unescaper for HTML, JavaScript and CSS. Unescaping runs in a single pass and never corrupts strings that contain backslashes."
 faq:
   - question: What is escaping and why is it needed?

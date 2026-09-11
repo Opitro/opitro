@@ -6,6 +6,7 @@ tool: hearing-test
 title: Test de audición online por frecuencias — prueba tu oído
 h1: Test de audición por frecuencias
 navName: Test de audición
+summary: "Hasta qué frecuencia sigue oyendo"
 description: "Descubre tu límite superior de audición: el tono sube de 8 a 20 kHz y pulsas cuando deja de oírse. Además, frecuencias sueltas para el oído izquierdo y el derecho."
 faq:
   - question: ¿Qué frecuencias oye una persona?

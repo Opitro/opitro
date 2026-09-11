@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: kg
 title: Lbs to Kg Converter — Free, No Sign-Up Required
 h1: Pounds to Kilograms
+summary: "1 lb = 0.454 kg, 150 lb = 68 kg"
 description: Convert pounds to kilograms online, free and with no sign-up. An accurate weight converter — enter a number of pounds and get the result in kilograms.
 faq:
   - question: How many kilograms are in a pound?

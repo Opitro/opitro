@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: cm
 title: Calculadora de pulgadas a cm — gratis, sin registro
 h1: Pulgadas a Centímetros
+summary: "1 pulgada = 2,54 cm; 12 = 30,48 cm"
 description: Convierte pulgadas a centímetros online, gratis y sin registro. Calculadora precisa para tallas de ropa, calzado, diagonales de pantalla y otras medidas.
 faq:
   - question: ¿Cuántos centímetros hay en una pulgada?

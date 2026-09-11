@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: mi
 title: Calculadora de km a millas — gratis, sin registro
 h1: Kilómetros a Millas
+summary: "1 km = 0,621 millas; 5 km = 3,11"
 description: Convierte kilómetros a millas online, gratis y sin registro. Calculadora de distancia precisa — introduce un número y obtén el resultado exacto en millas.
 faq:
   - question: ¿Cuántas millas hay en un kilómetro?

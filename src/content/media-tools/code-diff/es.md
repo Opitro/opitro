@@ -6,6 +6,7 @@ tool: code-diff
 title: "Comparar código online — Diff Checker: encontrar diferencias entre dos archivos"
 h1: "Diff Checker — comparación de código online"
 navName: "Comparar código"
+summary: "Dos archivos comparados: líneas y parche"
 description: "Compara dos fragmentos de código online: números de línea, tramos idénticos plegados, copia como parche. Señala las causas invisibles: CRLF, tabuladores, espacios al final. El código no sale del navegador."
 faq:
   - question: ¿Por qué el código parece idéntico y la comparación marca diferencias?

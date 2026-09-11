@@ -6,6 +6,7 @@ tool: speed
 title: Change Audio Speed Online, Free — Speed Up or Slow Down
 h1: Change Playback Speed
 navName: Speed
+summary: "Faster or slower without chipmunk voice"
 description: Speed a recording up or slow it down between 0.25x and 4x while keeping the pitch, so voices don't turn squeaky or booming. Handy for getting through a lecture faster or slowing music down to work it out. Free, no sign-up, nothing uploaded.
 faq:
   - question: Will voices go squeaky when I speed things up?

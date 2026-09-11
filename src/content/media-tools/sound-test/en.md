@@ -6,6 +6,7 @@ tool: sound-test
 title: Sound Test — Check Left and Right Speakers Online
 h1: Sound test
 navName: Sound test
+summary: "Left, right, and both together"
 description: Test your speakers and headphones in half a minute — a short signal plays in the left channel, the right channel, or both. Online, free, no sign-up.
 faq:
   - question: How do I test headphones for left and right channels?

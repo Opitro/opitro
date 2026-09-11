@@ -6,6 +6,7 @@ tool: color-converter
 title: Conversor de colores HEX ↔ RGB ↔ HSL online — Códigos de color CSS
 h1: Conversor de colores HEX, RGB y HSL
 navName: Conversor de colores
+summary: "HEX ↔ RGB ↔ HSL, en ambos sentidos"
 description: "Herramienta profesional para convertir colores entre formatos HEX, RGB, RGBA, HSL y HSLA online. Calcula códigos de color para desarrollo web y CSS de forma 100% local."
 faq:
   - question: ¿Qué diferencia hay entre los espacios de color RGB, HEX y HSL?

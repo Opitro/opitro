@@ -6,6 +6,7 @@ tool: punctuation-remover
 title: Remove Punctuation Online — Strip Punctuation Marks from Text
 h1: Remove Punctuation
 navName: Remove punctuation
+summary: "Strip full stops, commas, dashes, brackets"
 description: "Free online punctuation remover. Strips full stops, commas, dashes, quotes of every kind and symbols without running words together or touching your spacing."
 faq:
   - question: Why remove punctuation from text?

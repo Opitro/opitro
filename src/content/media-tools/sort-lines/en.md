@@ -6,6 +6,7 @@ tool: sort-lines
 title: "Line Sorter Online — Sort Lists Alphabetically (A-Z)"
 h1: Line Sorter
 navName: Line sorter
+summary: "Alphabetically, by length, or shuffled"
 description: "Online tool to sort lines of text. Instantly sort lists alphabetically (A-Z, Z-A), by line length, shuffle randomly, or sort by numeric values in your browser."
 faq:
   - question: Why do accented letters land in the right place instead of at the end?

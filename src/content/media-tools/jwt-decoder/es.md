@@ -6,6 +6,7 @@ tool: jwt-decoder
 title: Decodificador JWT online — Verificar firma y parsear JSON Web Token
 h1: Decodificador y validador JWT
 navName: Decodificador JWT
+summary: "Leer un token y verificar la firma"
 description: "Herramienta profesional para decodificar, depurar y verificar la firma de tokens JWT online. Analiza el Header y Payload de forma 100% local en tu navegador."
 faq:
   - question: ¿Es seguro introducir la clave secreta en el sitio de otro?

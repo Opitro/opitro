@@ -6,6 +6,7 @@ tool: rot13
 title: ROT13 Cipher Online — Encode and Decode Text Strings
 h1: ROT13 Cipher
 navName: ROT13 cipher
+summary: "Shift by 13 letters, both ways"
 description: "Free online ROT13 tool. Encode text or read a ready ROT13 string with the classic 13-letter Caesar shift, with optional Cyrillic support — no registration."
 faq:
   - question: What is the ROT13 cipher and how does it work?

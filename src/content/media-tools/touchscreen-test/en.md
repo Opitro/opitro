@@ -6,6 +6,7 @@ tool: touchscreen-test
 title: "Touchscreen Test Online — Find Dead Zones and Ghost Touches"
 h1: Touchscreen Test
 navName: Touchscreen test
+summary: "Draw with a finger to find blind spots"
 description: "Test the touchscreen of a phone, tablet or laptop in the browser: dead zones, broken lines and ghost touches. Free, no sign-up and no app to install."
 faq:
   - question: How do I know the screen has a dead zone?

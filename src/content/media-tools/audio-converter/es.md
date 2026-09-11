@@ -6,6 +6,7 @@ tool: convert
 title: Conversor de audio online gratis — MP3, WAV, M4A, OGG, FLAC, Opus
 h1: Conversor de audio online
 navName: Conversor de audio
+summary: "MP3, WAV, OGG, M4A: en cualquier sentido"
 description: Convierte audio entre MP3, M4A, WAV, OGG, FLAC, Opus, WMA y AIFF en el propio navegador, eligiendo frecuencia de muestreo y canales. Gratis, sin registro, los archivos no salen de tu dispositivo.
 faq:
   - question: ¿A qué formatos puedo convertir?

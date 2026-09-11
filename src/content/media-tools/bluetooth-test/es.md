@@ -6,6 +6,7 @@ tool: bluetooth-test
 title: "Prueba de Bluetooth online — test del adaptador y de dispositivos"
 h1: Prueba de Bluetooth
 navName: Prueba de Bluetooth
+summary: "¿Ve el navegador sus dispositivos?"
 description: "Diagnóstico de Bluetooth online. Comprueba si tu PC o móvil tiene adaptador disponible y prueba a conectar con un dispositivo inalámbrico desde el navegador."
 faq:
   - question: ¿Por qué la página no muestra los dispositivos que hay alrededor?

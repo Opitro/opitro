@@ -6,6 +6,7 @@ tool: add-silence
 title: Añadir silencio a un audio online — una pausa al principio o al final
 h1: Añadir silencio
 navName: Añadir silencio
+summary: "Insertar una pausa al principio, al final o en medio"
 description: Añade una pausa al principio o al final de una grabación, hasta un minuto por cada lado. La duración final se ve al momento. Gratis, sin registro, el archivo no se sube a ningún sitio.
 faq:
   - question: ¿Para qué añadir silencio?

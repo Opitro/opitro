@@ -6,6 +6,7 @@ tool: tempo
 title: Change a Track's Tempo Online — Match BPM Free
 h1: Change the Tempo (BPM)
 navName: Tempo
+summary: "Faster or slower, pitch stays put"
 description: Match a track to the tempo you need without changing its key. The current BPM is detected automatically, and you can type it in by hand. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: How accurate is the tempo detection?

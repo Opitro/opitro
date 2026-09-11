@@ -6,6 +6,7 @@ tool: base64-encode-decode
 title: Base64 online — codificador y decodificador de texto (encode / decode)
 h1: Codificación y decodificación Base64
 navName: Base64
+summary: "Texto ↔ Base64, sin romper los acentos"
 description: "Herramienta gratuita para codificar y decodificar Base64 online. Convierte texto plano a Base64 o despliega una cadena ya hecha, con acentos y eñes correctos y forma segura para enlaces."
 faq:
   - question: ¿Qué es la codificación Base64 y para qué sirve?

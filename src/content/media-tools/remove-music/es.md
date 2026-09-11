@@ -6,6 +6,7 @@ tool: remove-music
 title: Quitar la música de una canción online — sacar la acapela gratis
 h1: Quitar la música de una canción
 navName: Quitar la música
+summary: "Dejar la voz y quitar el acompañamiento"
 description: "Quédate solo con la voz: una acapela para un remix, un sample o estudiar la interpretación. Tres métodos, del instantáneo a la red neuronal. Calcula tu navegador y el archivo no sale de él."
 faq:
   - question: ¿La acapela saldrá realmente limpia?

@@ -6,6 +6,7 @@ tool: phone-formatter
 title: Formatear números de teléfono online — estandarizar listas a E.164
 h1: Formatear números de teléfono
 navName: Formato de teléfonos
+summary: "Unificar el formato de una lista de números"
 description: "Herramienta gratuita para estandarizar listas de teléfonos. Formato internacional E.164, solo cifras o forma legible. Los prefijos interurbanos se tratan bien."
 faq:
   - question: ¿Qué es el formato internacional E.164?

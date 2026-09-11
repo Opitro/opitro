@@ -6,6 +6,7 @@ tool: remove-duplicate-lines
 title: "Eliminar líneas duplicadas online — quitar repetidos de una lista"
 h1: Eliminar líneas repetidas
 navName: Líneas repetidas
+summary: "Dejar cada línea una sola vez"
 description: "Herramienta para eliminar líneas duplicadas online. Limpia listas, exportaciones y textos de elementos repetidos conservando solo los valores únicos."
 faq:
   - question: ¿Por qué no se eliminan líneas que parecen idénticas?

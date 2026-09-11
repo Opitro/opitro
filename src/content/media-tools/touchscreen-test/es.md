@@ -6,6 +6,7 @@ tool: touchscreen-test
 title: "Test de pantalla táctil online — zonas muertas y toques fantasma"
 h1: Test de pantalla táctil
 navName: Test táctil
+summary: "Dibuje con el dedo y verá los puntos ciegos"
 description: "Comprueba la pantalla táctil del móvil, la tableta o el portátil: zonas muertas, cortes en la línea y toques fantasma. Gratis, sin registro y sin instalar aplicaciones."
 faq:
   - question: ¿Cómo sé si la pantalla tiene una zona muerta?

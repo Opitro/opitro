@@ -6,6 +6,7 @@ tool: base64-file
 title: Base64 File Encoder Online — Convert Images and Fonts to Data URL
 h1: Base64 File Encoder
 navName: Base64 from file
+summary: "File → a Base64 string or a data URL"
 description: "Encode files to Base64 and Data URL online: images, fonts, documents. We show the size growth and warn when inlining is not worth it. The file never leaves your browser."
 faq:
   - question: What is encoding a file to Base64 and what is it for?

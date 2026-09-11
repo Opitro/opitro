@@ -6,6 +6,7 @@ tool: ordinal-numbers
 title: Ordinal Numbers Converter Online — Digits to Written Ordinals
 h1: Ordinal Numbers Converter
 navName: Ordinal numbers
+summary: "5 → fifth, in words"
 description: "Free online ordinal converter. Turns any number into its written ordinal and its short form — 1st, 2nd, 3rd, 25th — with the irregular endings handled correctly."
 faq:
   - question: What is the difference between cardinal and ordinal numbers?

@@ -6,6 +6,7 @@ tool: stylus-test
 title: "Stylus Test Online — Check Apple Pencil & Drawing Tablet Pen"
 h1: "Stylus Test — Pressure and Tilt"
 navName: Stylus test
+summary: "Pressure, tilt and accuracy of the pen"
 description: "Free online drawing test for digital pens. Measure stylus pressure sensitivity, tilt support, line smoothness and pointer precision instantly in your browser."
 faq:
   - question: How do I check a stylus’s pressure sensitivity?

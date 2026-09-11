@@ -6,6 +6,7 @@ tool: escape-unescape
 title: Escape y unescape online — escapar caracteres especiales HTML, JS, CSS
 h1: Escapar caracteres especiales
 navName: Escapar caracteres
+summary: "Comillas y barras para una cadena de código"
 description: "Herramienta gratuita para escapar y desescapar caracteres especiales en HTML, JavaScript y CSS. El desescapado va en una sola pasada y no estropea las barras."
 faq:
   - question: ¿Qué es escapar y para qué sirve?

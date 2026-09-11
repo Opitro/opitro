@@ -6,6 +6,7 @@ tool: audiobook-check
 title: Comprobar un audiolibro online — volumen, picos y ruido de fondo
 h1: Comprobación de audiolibro
 navName: Comprobar audiolibro
+summary: "Volumen parejo, pausas y chasquidos"
 description: Comprueba una grabación frente a lo que piden las plataformas de audiolibros — volumen medio, nivel de pico y ruido de fondo. Tres números y un veredicto claro. Gratis, sin registro.
 faq:
   - question: ¿Qué requisitos se comprueban?

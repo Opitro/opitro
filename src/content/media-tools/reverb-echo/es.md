@@ -6,6 +6,7 @@ tool: reverb-echo
 title: Eco y reverberación online gratis — dar espacio a un audio
 h1: Eco y reverberación
 navName: Eco y reverb
+summary: "Una sala, un auditorio o un eco marcado"
 description: Añade eco o el sonido de una sala a una grabación — cuatro estilos listos, desde un golpe corto hasta una gran sala. Escúchalo en la propia página. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Cuál es la diferencia entre eco y reverberación?

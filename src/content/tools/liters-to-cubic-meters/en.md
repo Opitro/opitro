@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: m³
 title: Liters to Cubic Meters Converter — Free, No Sign-Up Required
 h1: Liters to Cubic Meters
+summary: "1000 litres = 1 m³, exactly"
 description: Convert liters to cubic meters online, free and with no sign-up. An accurate volume converter — enter liters and get the result in m³.
 faq:
   - question: How many cubic meters are in a liter?

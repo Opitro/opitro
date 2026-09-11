@@ -6,6 +6,7 @@ tool: html-entities
 title: HTML Entities Encoder & Decoder Online — Convert Special Characters to Web Code
 h1: HTML Entity Encoder / Decoder
 navName: HTML Entity Encoder
+summary: "Special characters ↔ entities, escaped once"
 description: "Professional online tool to escape or unescape special characters into secure HTML entities. Instantly convert HTML tags, quotes, and ampersands locally in your browser."
 faq:
   - question: Why turn special characters into entities?

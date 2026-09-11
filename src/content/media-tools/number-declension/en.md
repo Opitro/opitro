@@ -6,6 +6,7 @@ tool: number-declension
 title: Number Forms Calculator Online — Cardinal, Ordinal and Cheque Formats
 h1: Number Forms and Formats
 navName: Number forms
+summary: "5 tables, 21 tables — the right form"
 description: "Free online tool for the written forms of a number: cardinal, ordinal and the formal wording used on cheques. Numbers never leave your browser."
 faq:
   - question: Why are there different written forms for the same number?

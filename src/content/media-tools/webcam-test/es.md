@@ -6,6 +6,7 @@ tool: webcam-test
 title: "Prueba de cámara online — test de webcam en PC, portátil o móvil"
 h1: Prueba de cámara
 navName: Prueba de cámara
+summary: "Imagen, resolución y elección de cámara"
 description: "Herramienta para probar tu cámara web online. Mide los fotogramas reales, la resolución y la relación de aspecto, y evalúa la calidad de imagen desde tu navegador."
 faq:
   - question: El navegador dice que la cámara está ocupada. ¿Qué hago?

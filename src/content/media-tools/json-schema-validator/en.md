@@ -6,6 +6,7 @@ tool: json-schema-validator
 title: JSON Schema Validator Online — Validate JSON Against a Schema
 h1: JSON Schema Validator
 navName: JSON Schema validator
+summary: "Check JSON against a schema"
 description: "Validate JSON against a schema online: types, required fields, limits and formats. Every mismatch at once, with the path to the field. Draft-07, 2019-09 and 2020-12. Free, all in your browser."
 faq:
   - question: What is JSON Schema and why validate against it?

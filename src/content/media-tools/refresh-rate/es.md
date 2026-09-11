@@ -6,6 +6,7 @@ tool: refresh-rate
 title: Test de frecuencia de actualización — comprueba los Hz del monitor
 h1: Frecuencia de actualización de pantalla
 navName: Frecuencia de pantalla
+summary: "Cuántos fotogramas por segundo da la pantalla"
 description: "Descubre la frecuencia real de tu pantalla —60, 120, 144 o 240 Hz— y los fotogramas por segundo del navegador. Medido con fotogramas reales, sin instalar nada."
 faq:
   - question: ¿Cómo averigua la página la frecuencia?

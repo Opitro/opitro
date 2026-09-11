@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: kg
 title: Conversor de libras a kg online, gratis, sin registro
 h1: Libras a Kilogramos
+summary: "1 lb = 0,454 kg; 150 lb = 68 kg"
 description: Convierte libras a kilogramos online, gratis y sin registro. Un conversor de peso preciso — introduce un número de libras y obtén el resultado en kilogramos.
 faq:
   - question: ¿Cuántos kilogramos hay en una libra?

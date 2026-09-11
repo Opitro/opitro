@@ -6,6 +6,7 @@ tool: merge
 title: Merge Audio Files Online — Combine Several Tracks Into One
 h1: Merge Audio Files Online
 navName: Merge
+summary: "Several files joined end to end"
 description: Join several audio files into one — reorder them with arrows, play any of them before merging, and the seams are smoothed so there's no click. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: How do I change the order of the files?

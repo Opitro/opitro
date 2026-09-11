@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: km
 title: Calculadora de millas a km — gratis, sin registro
 h1: Millas a Kilómetros
+summary: "1 milla = 1,609 km; el maratón, 42,2 km"
 description: Convierte millas a kilómetros online, gratis y sin registro. Calculadora de distancia precisa — introduce un número de millas y obtén el resultado en kilómetros.
 faq:
   - question: ¿Cuántos kilómetros hay en una milla?

@@ -12,6 +12,7 @@ engineParams:
   toUnitShort: °F
 title: Conversor de Celsius a Fahrenheit online, gratis, sin registro
 h1: Celsius a Fahrenheit
+summary: "0 °C = 32 °F, 100 °C = 212 °F"
 description: Convierte Celsius a Fahrenheit online, gratis y sin registro. Un conversor de temperatura preciso — introduce un número y obtén el resultado en Fahrenheit.
 faq:
   - question: ¿Cuál es la fórmula de Celsius a Fahrenheit?

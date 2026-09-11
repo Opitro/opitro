@@ -6,6 +6,7 @@ tool: projector-test
 title: Test de proyector online — enfoque, geometría y trapecio
 h1: Ajuste y prueba del proyector
 navName: Test de proyector
+summary: "Enfoque, geometría, color y brillo"
 description: "Nueve cartas para ajustar el proyector: rejilla de enfoque con dianas en las esquinas, marco para el trapecio, convergencia, uniformidad de brillo y polvo en la óptica."
 faq:
   - question: ¿Por qué carta conviene empezar?

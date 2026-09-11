@@ -6,6 +6,7 @@ tool: monitor-color-test
 title: Monitor colour test online — check colour accuracy and greyscale
 h1: Monitor colour test
 navName: Monitor colours
+summary: "Smooth gradients and honest colours"
 description: "Seven charts: greyscale, shadow and highlight detail, gradients without banding, pure colours and sRGB against display-p3. Nothing to install."
 faq:
   - question: What exactly do these charts check?

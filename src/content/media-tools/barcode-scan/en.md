@@ -6,6 +6,7 @@ tool: barcode-scan
 title: Barcode Scanner Online — Read EAN-13 and UPC from Camera or Photo
 h1: Barcode scanner
 navName: Barcode scanner
+summary: "Read EAN or Code-128 with the camera"
 description: "Read a barcode with your camera or from a picture: EAN-13, EAN-8, UPC, Code 128, Code 39, ITF. We verify the check digit and show the country where the number was issued. All in the browser, nothing uploaded."
 faq:
   - question: How do I read a barcode that is in a photo or a screenshot?

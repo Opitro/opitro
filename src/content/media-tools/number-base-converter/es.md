@@ -6,6 +6,7 @@ tool: number-base-converter
 title: Conversor de sistemas de numeración online — Convertir Binario, Decimal, HEX
 h1: Conversor de sistemas de numeración
 navName: Sistemas de numeración
+summary: "Base 2, 8, 10, 16, todas a la vez"
 description: "Herramienta profesional para convertir números entre diferentes bases: binario, octal, decimal y hexadecimal. Realiza conversiones matemáticas de forma instantánea y 100% local."
 faq:
   - question: ¿Cómo funciona realmente la conversión entre binario y hexadecimal?

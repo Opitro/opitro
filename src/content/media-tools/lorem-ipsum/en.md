@@ -6,6 +6,7 @@ tool: lorem-ipsum
 title: Lorem Ipsum Generator Online — Dummy Text for Layouts
 h1: Lorem Ipsum Generator
 navName: Lorem Ipsum
+summary: "Filler for a layout: paragraphs, words, lists"
 description: "Free online Lorem Ipsum generator. Create placeholder paragraphs, sentences or words for your layout, with the classic opening and naturally varied sentence lengths."
 faq:
   - question: What is Lorem Ipsum and where does it come from?

@@ -6,6 +6,7 @@ tool: minify-css
 title: Minificador CSS online — Comprimir código CSS y optimizar estilos
 h1: Minificador de código CSS
 navName: Minificador CSS
+summary: "Encoger el CSS: espacios, ceros, colores"
 description: "Herramienta profesional para minificar y comprimir código CSS online. Elimina espacios en blanco, comentarios y optimiza tus hojas de estilo de forma 100% local."
 faq:
   - question: ¿Por qué no se pueden quitar todos los espacios sin más?

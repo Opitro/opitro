@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: ml
 title: Fl Oz to Ml Converter — Free, No Sign-Up Required
 h1: Fluid Ounces to Milliliters
+summary: "1 fluid ounce = 29.57 ml"
 description: Convert fluid ounces to milliliters online, free and with no sign-up. An accurate volume converter for drinks and cosmetics.
 faq:
   - question: How many milliliters are in a fluid ounce?

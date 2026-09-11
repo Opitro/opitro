@@ -6,6 +6,7 @@ tool: vocal-range
 title: Find Your Vocal Range Online, Free — Lowest to Highest Note
 h1: Find Your Vocal Range
 navName: Vocal range
+summary: "From which note to which you sing"
 description: Record or upload some singing and find your range — lowest note to highest, in notes and octaves. Free, no sign-up, the recording never leaves your device.
 faq:
   - question: How should I sing for an accurate reading?

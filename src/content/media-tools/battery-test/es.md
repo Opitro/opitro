@@ -6,6 +6,7 @@ tool: battery-test
 title: "Prueba de batería online — carga, consumo y estado del acumulador"
 h1: Prueba de batería
 navName: Prueba de batería
+summary: "Carga, alimentación y salud de la batería"
 description: "Diagnóstico de la batería online. Comprueba el nivel de carga y el estado de alimentación, y mide la velocidad de descarga bajo carga desde tu navegador."
 faq:
   - question: ¿Se puede saber el desgaste de la batería desde el navegador?

@@ -6,6 +6,7 @@ tool: trim
 title: Recortar audio online gratis — quedarte con el trozo que quieras
 h1: Recortar audio
 navName: Recortar
+summary: "Eliminar lo sobrante por ambos extremos"
 description: Corta la parte que necesitas de una canción o una grabación — arrastra los bordes de la selección sobre la onda, escucha el resultado y descárgalo. O al revés, quita un trozo del medio. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Cómo elijo el fragmento?

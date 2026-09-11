@@ -6,6 +6,7 @@ tool: subwoofer-test
 title: Subwoofer test online — bass and low frequency checker
 h1: Subwoofer and bass test
 navName: Subwoofer test
+summary: "Tones from 20 Hz — heard and felt"
 description: "A sweep from 120 down to 20 Hz and back, single notes and a slider in one-hertz steps. Hear how low your speaker really goes and what rattles in the room."
 faq:
   - question: How do I find how low my subwoofer goes?

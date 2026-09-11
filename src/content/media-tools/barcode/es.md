@@ -6,6 +6,7 @@ tool: barcode
 title: Generador de códigos de barras online — crear EAN-13 y Code 128 gratis
 h1: Generador de códigos de barras
 navName: Código de barras
+summary: "EAN-13, Code-128 → PNG y SVG"
 description: "Crea un código de barras EAN-13, EAN-8, UPC, Code 128, Code 39 o ITF-14. Calculamos el dígito de control y te lo decimos. Descarga en PNG y SVG. Gratis y en tu navegador."
 faq:
   - question: ¿PNG o SVG?

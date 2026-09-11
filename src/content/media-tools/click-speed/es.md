@@ -6,6 +6,7 @@ tool: click-speed
 title: Test de velocidad de clic — cuántos clics por segundo haces
 h1: Velocidad de clic
 navName: Velocidad de clic
+summary: "Cuántos clics por segundo consigue"
 description: "Descubre cuántos clics por segundo eres capaz de hacer. Tramo a elegir de un segundo a un minuto y un recuento honesto de pulsaciones. Gratis y sin registro."
 faq:
   - question: ¿Cuántos clics por segundo son normales?

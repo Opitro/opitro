@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: ml
 title: Cups to Ml Converter — Free, No Sign-Up Required
 h1: Cups to Milliliters
+summary: "1 US cup = 237 ml"
 description: Convert cups to milliliters online, free and with no sign-up. An accurate volume converter — enter a number of cups and get the result in ml.
 faq:
   - question: How many milliliters are in a cup?

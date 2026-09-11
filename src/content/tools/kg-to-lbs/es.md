@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: lb
 title: Conversor de kg a libras online, gratis, sin registro
 h1: Kilogramos a Libras
+summary: "1 kg = 2,205 lb; 70 kg = 154 lb"
 description: Convierte kilogramos a libras online, gratis y sin registro. Un conversor de peso preciso — introduce un número y obtén el resultado en libras.
 faq:
   - question: ¿Cuántas libras hay en un kilogramo?

@@ -6,6 +6,7 @@ tool: audiobook-check
 title: Audiobook Audio Check Online — Loudness, Peak, Noise Floor
 h1: Audiobook Check
 navName: Audiobook check
+summary: "Even loudness, pauses and clicks"
 description: Check a recording against what audiobook platforms require — average loudness, peak level and noise floor. Three numbers and a plain verdict. Free, no sign-up.
 faq:
   - question: Which requirements are checked?

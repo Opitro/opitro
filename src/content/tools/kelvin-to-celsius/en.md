@@ -12,6 +12,7 @@ engineParams:
   toUnitShort: °C
 title: Kelvin to Celsius Converter — Free, No Sign-Up Required
 h1: Kelvin to Celsius
+summary: "273.15 K = 0 °C, same step size"
 description: Convert Kelvin to Celsius online, free and with no sign-up. An accurate converter for physics, chemistry, and homework problems.
 faq:
   - question: What's the formula for Kelvin to Celsius?

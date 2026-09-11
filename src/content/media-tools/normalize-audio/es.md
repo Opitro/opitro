@@ -6,6 +6,7 @@ tool: normalize
 title: Normalizar audio online gratis — subir una grabación floja
 h1: Normalizar el audio
 navName: Normalizar
+summary: "Llevar el volumen a un nivel común"
 description: Lleva una grabación floja al volumen máximo sin distorsión — la herramienta busca el momento más alto y sube todo el archivo hasta ahí. Nada que configurar. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Qué hace exactamente normalizar?

@@ -6,6 +6,7 @@ tool: vocal-remover
 title: Quitar la voz de una canción online — pista de karaoke gratis
 h1: Quitar la voz de una canción
 navName: Quitar la voz
+summary: "Pista instrumental: quitar la voz, dejar la música"
 description: "Convierte cualquier canción en una base: tres métodos, del instantáneo a la red neuronal. Una base para karaoke, ensayo y actuación. Calcula tu navegador y el archivo no sale de él."
 faq:
   - question: ¿Sirve esta base para karaoke?

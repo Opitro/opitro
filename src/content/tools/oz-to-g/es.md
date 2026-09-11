@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: g
 title: Conversor de onzas a gramos online, gratis, sin registro
 h1: Onzas a Gramos
+summary: "1 onza = 28,35 g"
 description: Convierte onzas a gramos online, gratis y sin registro. Un conversor de peso preciso — introduce un número de onzas y obtén el resultado en gramos.
 faq:
   - question: ¿Cuántos gramos hay en una onza?

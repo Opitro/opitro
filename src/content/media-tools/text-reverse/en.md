@@ -6,6 +6,7 @@ tool: text-reverse
 title: Text Reverser Online — Flip Text Backwards and Reverse Words
 h1: Text Reverser
 navName: Text reverser
+summary: "Reverse the letters, words or line order"
 description: "Free online text reverser. Flip a string letter by letter, swap the order of words, or reverse the order of lines — without breaking emoji or composed letters."
 faq:
   - question: How do the three modes differ?

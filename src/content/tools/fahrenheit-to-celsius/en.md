@@ -12,6 +12,7 @@ engineParams:
   toUnitShort: °C
 title: Fahrenheit to Celsius Converter — Free, No Sign-Up Required
 h1: Fahrenheit to Celsius
+summary: "32 °F = 0 °C, 212 °F = 100 °C"
 description: Convert Fahrenheit to Celsius online, free and with no sign-up. An accurate temperature converter — enter a number and get the result in Celsius.
 faq:
   - question: What's the formula for Fahrenheit to Celsius?

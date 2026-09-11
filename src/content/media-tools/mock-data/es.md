@@ -6,6 +6,7 @@ tool: mock-data
 title: Generador de datos de prueba online — crear datos falsos (JSON, CSV, SQL)
 h1: Generador de datos de prueba
 navName: Datos de prueba
+summary: "Nombres, correos y direcciones de prueba"
 description: "Genera datos de prueba online: nombres, correos, teléfonos, fechas y UUID en cuatro idiomas. Salida en JSON, CSV o SQL INSERT. Correos solo en example.com. Todo en tu navegador."
 faq:
   - question: ¿Qué son los datos de prueba y para qué sirven?

@@ -6,6 +6,7 @@ tool: volume
 title: Subir el volumen de un audio online gratis
 h1: Cambiar el volumen de un audio
 navName: Volumen
+summary: "Más alto o más bajo, sin saturar"
 description: Sube o baja una grabación del 10% al 300%, con el nivel también en decibelios. Un solo control, y se oye mientras lo mueves. Gratis, sin registro, el archivo no se sube a ningún sitio.
 faq:
   - question: ¿Cuánto se puede subir?

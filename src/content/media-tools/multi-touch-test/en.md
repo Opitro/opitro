@@ -6,6 +6,7 @@ tool: multi-touch-test
 title: "Multi-Touch Test Online — How Many Fingers Your Screen Holds"
 h1: Multi-Touch Test
 navName: Multi-touch test
+summary: "How many fingers the screen sees at once"
 description: "Test multi-touch on a phone, tablet or touch laptop: how many touches the screen holds at once and whether it drops any. Free and with no sign-up."
 faq:
   - question: How many touches should a screen hold?

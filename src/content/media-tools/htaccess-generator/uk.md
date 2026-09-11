@@ -6,6 +6,7 @@ tool: htaccess-generator
 title: Генератор .htaccess онлайн — Створити файл конфігурації Apache
 h1: Генератор файлів .htaccess
 navName: Генератор .htaccess
+summary: "Переадресації, HTTPS, www — готовий файл"
 description: "Професійний онлайн-генератор файлів .htaccess для серверів Apache. Швидко налаштовуйте 301 редиректи, склейку WWW, захист від хотлінків та кешування локально в браузері."
 faq:
   - question: Що таке .htaccess і в яку теку його класти?

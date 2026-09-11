@@ -6,6 +6,7 @@ tool: sound-test
 title: Test de sonido — probar altavoz izquierdo y derecho en línea
 h1: Test de sonido
 navName: Test de sonido
+summary: "Izquierdo, derecho y ambos juntos"
 description: "Comprueba altavoces y auriculares en medio minuto: una señal corta suena en el canal izquierdo, en el derecho o en ambos. En línea, gratis, sin registro."
 faq:
   - question: ¿Cómo compruebo los canales izquierdo y derecho de los auriculares?

@@ -6,6 +6,7 @@ tool: htaccess-generator
 title: Generador de .htaccess online — Crear archivo de configuración Apache
 h1: Generador de archivos .htaccess
 navName: Generador .htaccess
+summary: "Redirecciones, HTTPS, www: archivo listo"
 description: "Herramienta profesional para generar archivos .htaccess para servidores Apache online. Configura redirecciones 301, forzado de HTTPS, compresión y caché al instante de forma local."
 faq:
   - question: ¿Qué es .htaccess y en qué carpeta va?

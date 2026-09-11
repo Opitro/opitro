@@ -6,6 +6,7 @@ tool: key-chatter
 title: Una tecla escribe dos veces — test de rebote del teclado online
 h1: Una tecla que escribe dos veces
 navName: Rebote de teclas
+summary: "Detecta la tecla que se dispara dos veces"
 description: "¿Pulsas una vez y salen dos letras? La página caza las repeticiones de la tecla y muestra cuántos milisegundos las separan."
 faq:
   - question: ¿Qué es el rebote de una tecla?

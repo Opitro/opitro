@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: ml
 title: Conversor de onzas líquidas a ml online, gratis, sin registro
 h1: Onzas Líquidas a Mililitros
+summary: "1 onza líquida = 29,57 ml"
 description: Convierte onzas líquidas a mililitros online, gratis y sin registro. Un conversor de volumen preciso para bebidas y cosmética.
 faq:
   - question: ¿Cuántos mililitros hay en una onza líquida?

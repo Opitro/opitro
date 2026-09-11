@@ -6,6 +6,7 @@ tool: audio-to-text
 title: Audio a texto online — transcripción y subtítulos gratis
 h1: Audio a texto
 navName: Audio a texto
+summary: "Una charla o clase grabada → texto"
 description: Sube una grabación o un vídeo y obtén el texto y subtítulos listos. Clases, entrevistas, pódcast, vídeos de YouTube. Todo se calcula en tu navegador y el archivo no sale de tu dispositivo. Gratis, sin registro.
 faq:
   - question: ¿Cómo funciona?

@@ -6,6 +6,7 @@ tool: pitch
 title: Transpose a Song Online, Free — Change Key by Semitones
 h1: Change the Key of a Song
 navName: Pitch
+summary: "Up or down in semitones, tempo untouched"
 description: Move music up or down by semitones without changing its speed or length. Handy for fitting a backing track to your own voice or transposing a recording for an instrument. Free, no sign-up, nothing uploaded.
 faq:
   - question: What's a semitone, roughly?

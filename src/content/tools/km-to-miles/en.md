@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: mi
 title: Km to Miles Converter — Free, No Sign-Up Required
 h1: Kilometers to Miles
+summary: "1 km = 0.621 miles, 5 km = 3.11 miles"
 description: Convert kilometers to miles online, free and with no sign-up. An accurate distance converter — enter a number and get the exact result in miles.
 faq:
   - question: How many miles are in a kilometer?

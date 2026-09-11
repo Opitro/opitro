@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: gal
 title: Conversor de litros a galones online, gratis, sin registro
 h1: Litros a Galones
+summary: "1 galón de EE. UU. = 3,785 l"
 description: Convierte litros a galones online, gratis y sin registro. Un conversor de volumen preciso — introduce litros y obtén el resultado en galones estadounidenses.
 faq:
   - question: ¿Cuántos galones hay en un litro?

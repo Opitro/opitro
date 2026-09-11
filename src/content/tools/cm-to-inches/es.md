@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: in
 title: Calculadora de cm a pulgadas — gratis, sin registro
 h1: Centímetros a Pulgadas
+summary: "1 pulgada = 2,54 cm; 10 cm = 3,94 in"
 description: Convierte centímetros a pulgadas online, gratis y sin registro. Calculadora precisa para diagonales de pantalla, estatura, talla de zapato y otras medidas.
 faq:
   - question: ¿Cuántas pulgadas hay en un centímetro?

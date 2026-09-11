@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: kg
 title: Stone to Kg Converter — Free, No Sign-Up Required
 h1: Stone to Kilograms
+summary: "1 stone = 6.35 kg, 11 stone = 70 kg"
 description: Convert stone to kilograms online, free and with no sign-up. An accurate body-weight converter — enter stone, get the result in kilograms.
 faq:
   - question: How many kilograms are in a stone?

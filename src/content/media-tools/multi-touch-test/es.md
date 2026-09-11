@@ -6,6 +6,7 @@ tool: multi-touch-test
 title: "Test multitáctil online — cuántos dedos aguanta tu pantalla"
 h1: Test multitáctil
 navName: Test multitáctil
+summary: "Cuántos dedos ve la pantalla a la vez"
 description: "Comprueba el multitáctil del móvil, la tableta o el portátil táctil: cuántos toques aguanta la pantalla a la vez y si pierde alguno. Gratis y sin registro."
 faq:
   - question: ¿Cuántos toques debería aguantar una pantalla?

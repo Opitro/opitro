@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: km
 title: Calculadora de pasos a km — gratis, sin registro
 h1: Pasos a Kilómetros
+summary: "10 000 pasos son unos 7,6 km"
 description: Descubre cuántos kilómetros caminaste según tu número de pasos. Usa una zancada media de 76 cm, la misma que usan por defecto la mayoría de pulseras de actividad.
 faq:
   - question: ¿Cuántos pasos hay en un kilómetro?

@@ -6,6 +6,7 @@ tool: box-shadow
 title: Generador de box-shadow CSS online — Crear sombras de sombreado web
 h1: Generador de sombras box-shadow CSS
 navName: Generador de sombras
+summary: "Mueva la sombra y llévese el CSS"
 description: "Herramienta profesional para crear sombras box-shadow online. Ajusta el desplazamiento, desenfoque, propagación y color para obtener códigos CSS listos para producción."
 faq:
   - question: ¿De qué se encargan el desenfoque y la propagación?

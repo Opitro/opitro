@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: gal
 title: Liters to Gallons Converter — Free, No Sign-Up Required
 h1: Liters to Gallons
+summary: "1 US gallon = 3.785 litres"
 description: Convert liters to gallons online, free and with no sign-up. An accurate volume converter — enter liters and get the result in US gallons.
 faq:
   - question: How many gallons are in a liter?

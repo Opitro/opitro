@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: cm
 title: Inches to Cm Converter — Free, No Sign-Up Required
 h1: Inches to Centimeters
+summary: "1 inch = 2.54 cm, 12 inches = 30.48 cm"
 description: Convert inches to centimeters online, free and with no sign-up. An accurate converter for clothing sizes, shoe sizes, screen diagonals, and other measurements.
 faq:
   - question: How many centimeters are in an inch?

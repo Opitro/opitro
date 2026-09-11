@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: steps
 title: Km to Steps Converter — Free, No Sign-Up Required
 h1: Kilometers to Steps
+summary: "1 km is about 1300 steps"
 description: Estimate how many steps it takes to cover a given distance in kilometers. Based on an average stride length of 76 cm. Free, no sign-up.
 faq:
   - question: How many steps is 5 km?

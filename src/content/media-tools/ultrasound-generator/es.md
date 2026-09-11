@@ -6,6 +6,7 @@ tool: ultrasound-generator
 title: Ultrasonido online — generador de frecuencias altas 8–22 kHz
 h1: Generador de frecuencias altas
 navName: Ultrasonido
+summary: "Por encima de 15 kHz: no todos lo oyen"
 description: "Tonos agudos puros de 8 a 22 kHz: el tono mosquito de 17,4 kHz, silbato para perros, prueba de tweeters y tu propio límite auditivo. Sin instalar nada."
 faq:
   - question: ¿Esto es ultrasonido de verdad?

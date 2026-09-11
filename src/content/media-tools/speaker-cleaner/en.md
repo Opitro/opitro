@@ -6,6 +6,7 @@ tool: speaker-cleaner
 title: Speaker cleaner online — eject water and dust with sound
 h1: Speaker cleaner for water and dust
 navName: Speaker cleaner
+summary: "A low tone pushes water out of the speaker"
 description: "Sound removes water from a phone speaker and shakes dust out of the grille — on an iPhone, a Samsung, a Xiaomi or earbuds. Low pulses and a sweep near ultrasound."
 faq:
   - question: How does sound push water out?

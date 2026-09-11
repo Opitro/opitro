@@ -6,6 +6,7 @@ tool: date-to-words
 title: Date to Words Online — Convert Calendar Dates to Written Text
 h1: Date to Words
 navName: Date to words
+summary: "12/05/2026 → the twelfth of May, in words"
 description: "Free online date-to-words converter. Turns a calendar date into formal written text for contracts and legal documents. The date never leaves your browser."
 faq:
   - question: Why are dates written out in words on contracts?

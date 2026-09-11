@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: ft
 title: Meters to Feet Converter — Free, No Sign-Up Required
 h1: Meters to Feet
+summary: "1 m = 3.28 feet, 10 m = 32.8 feet"
 description: Convert meters to feet online, free and with no sign-up. An accurate height and length converter — enter a value in meters and get the result in feet.
 faq:
   - question: How many feet are in a meter?

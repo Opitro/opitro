@@ -6,6 +6,7 @@ tool: equalizer
 title: Audio Equalizer Online, Free — Change How a Song Sounds
 h1: Audio Equalizer
 navName: Equalizer
+summary: "Bass, mids, treble — band by band"
 description: A real 10-band graphic equalizer right in your browser — add bass, cut boominess, bring a voice forward, or brighten a dull track. Change how a song sounds by ear — you hear every slider move as you make it. Free, no sign-up, nothing uploaded.
 faq:
   - question: Why ten bands specifically?

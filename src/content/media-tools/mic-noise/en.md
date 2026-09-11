@@ -6,6 +6,7 @@ tool: mic-noise
 title: Microphone Noise Test — How Quiet Is Your Room
 h1: Microphone noise
 navName: Microphone noise
+summary: "How much noise your recording carries"
 description: Measure background noise in ten seconds and find out whether your room is quiet enough to record in. Runs in the browser, audio stays with you.
 faq:
   - question: Why no decibels like a sound level meter?

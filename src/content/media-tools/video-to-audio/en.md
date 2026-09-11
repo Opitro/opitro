@@ -6,6 +6,7 @@ tool: video-to-audio
 title: Extract Audio from Video Online, Free — MP4, MOV, WebM, MKV
 h1: Extract Audio from Video
 navName: Audio from video
+summary: "Pull the audio track out of a video"
 description: Pull the audio track out of a video and save it as MP3, M4A or WAV — with a chance to hear it on the page before you save. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: Which video formats work?

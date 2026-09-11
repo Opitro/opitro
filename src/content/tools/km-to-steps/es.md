@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: pasos
 title: Calculadora de km a pasos — gratis, sin registro
 h1: Kilómetros a Pasos
+summary: "1 km son unos 1300 pasos"
 description: Calcula cuántos pasos hacen falta para recorrer una distancia dada en kilómetros. Basado en una zancada media de 76 cm.
 faq:
   - question: ¿Cuántos pasos son 5 km?

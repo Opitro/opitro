@@ -6,6 +6,7 @@ tool: subwoofer-test
 title: Prueba de subwoofer online — test de graves y frecuencias bajas
 h1: Prueba de subwoofer y graves
 navName: Prueba de subwoofer
+summary: "Tonos desde 20 Hz: se oyen y se sienten"
 description: "Un barrido de 120 a 20 Hz y de vuelta, notas sueltas y un control con paso de un hercio. Oirás hasta dónde llega tu altavoz y qué vibra en la habitación."
 faq:
   - question: ¿Cómo sé hasta qué frecuencia llega mi subwoofer?

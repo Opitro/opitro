@@ -6,6 +6,7 @@ tool: pitch
 title: Cambiar el tono de una canción online gratis
 h1: Cambiar el tono de una canción
 navName: Tono
+summary: "Subir o bajar semitonos sin tocar el tempo"
 description: Sube o baja el tono de una música en semitonos sin tocar la velocidad ni la duración. Va bien para ajustar una pista de acompañamiento a tu voz o transponerla a un instrumento. Gratis, sin registro, el archivo no se sube a ningún sitio.
 faq:
   - question: ¿Qué es un semitono, dicho fácil?

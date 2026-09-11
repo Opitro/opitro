@@ -6,6 +6,7 @@ tool: character-counter
 title: Contador de caracteres y palabras en un texto — contar online
 h1: Contar caracteres y palabras en un texto
 navName: Caracteres y palabras
+summary: "Caracteres, palabras y párrafos al instante"
 description: "Pega el texto y verás los caracteres con y sin espacios, más palabras, signos de puntuación y tus palabras más repetidas. Gratis y sin registro."
 faq:
   - question: ¿Cómo cuento los caracteres de un texto?

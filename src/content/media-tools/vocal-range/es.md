@@ -6,6 +6,7 @@ tool: vocal-range
 title: Averigua tu registro vocal online gratis — de la nota más grave a la más aguda
 h1: Averigua tu registro vocal
 navName: Registro vocal
+summary: "De qué nota a qué nota canta"
 description: Graba o sube algo cantado y averigua tu registro — de la nota más grave a la más aguda, en notas y octavas. Gratis, sin registro, la grabación no sale de tu dispositivo.
 faq:
   - question: ¿Cómo debo cantar para que salga preciso?

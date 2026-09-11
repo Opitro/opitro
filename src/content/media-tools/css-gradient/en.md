@@ -6,6 +6,7 @@ tool: css-gradient
 title: CSS Gradient Generator Online — Build Linear & Radial CSS Color Gradients
 h1: CSS Gradient Generator
 navName: Gradient generator
+summary: "Build the gradient, take the CSS"
 description: "Professional online tool to generate custom CSS gradients. Instantly create linear or radial backgrounds, adjust color stops, and copy production-ready CSS code snippets."
 faq:
   - question: What is the difference between a linear and a radial gradient?

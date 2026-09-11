@@ -6,6 +6,7 @@ tool: volume
 title: Increase Audio Volume Online, Free — Make Audio Louder
 h1: Change Audio Volume
 navName: Volume
+summary: "Louder or quieter, without clipping"
 description: Make a recording louder or quieter — 10% to 300%, with the level shown in decibels. One slider, and you hear the change as you drag. Free, no sign-up, nothing uploaded.
 faq:
   - question: How much louder can it go?

@@ -6,6 +6,7 @@ tool: battery-test
 title: "Battery Test Online — Check Charge, Drain and Battery Health"
 h1: Battery Test
 navName: Battery test
+summary: "Charge, power source and battery health"
 description: "Battery diagnostics online. Check the charge level and power status, and measure the discharge rate under a controlled load, right in your browser."
 faq:
   - question: Can battery wear be measured through a browser?

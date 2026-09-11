@@ -6,6 +6,7 @@ tool: text-to-speech
 title: Convertir texto a voz online — sintetizador de voz y descargar MP3
 h1: Convertir texto a voz
 navName: Texto a voz
+summary: "Leer el texto en voz alta y descargarlo"
 description: "Convierte texto en voz directamente en el navegador: las voces de tu dispositivo, velocidad y tono ajustables, descarga en MP3 o WAV. Gratis, sin registro y el texto no sale de tu equipo."
 faq:
   - question: ¿Cómo descargo la voz en MP3?

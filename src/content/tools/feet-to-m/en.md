@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: m
 title: Feet to Meters Converter — Free, No Sign-Up Required
 h1: Feet to Meters
+summary: "1 foot = 0.3048 m, 6 feet = 1.83 m"
 description: Convert feet to meters online, free and with no sign-up. An accurate height and length converter — enter a value in feet and get the result in meters.
 faq:
   - question: How many meters are in a foot?

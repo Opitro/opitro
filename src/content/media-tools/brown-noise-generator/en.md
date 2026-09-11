@@ -6,6 +6,7 @@ tool: brown-noise
 title: Brown Noise Generator — Listen Online or Download
 h1: Brown Noise
 navName: Brown noise
+summary: "Deep low noise — for sleep and focus"
 description: Brown noise generator for sleep and focus — the deepest of the three. Listen online or download an MP3. Sleep timer included. Free, no sign-up.
 faq:
   - question: What is brown noise?

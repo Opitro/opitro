@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: g
 title: Ounces to Grams Converter — Free, No Sign-Up Required
 h1: Ounces to Grams
+summary: "1 ounce = 28.35 g"
 description: Convert ounces to grams online, free and with no sign-up. An accurate weight converter — enter a number of ounces and get the result in grams.
 faq:
   - question: How many grams are in an ounce?

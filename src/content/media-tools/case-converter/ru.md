@@ -6,6 +6,7 @@ tool: case-converter
 title: Перевод CamelCase в snake_case онлайн — конвертер стилей кода
 h1: Конвертер стилей CamelCase и snake_case
 navName: CamelCase и snake_case
+summary: "camelCase, snake_case, kebab-case"
 description: "Онлайн-перевод имён между camelCase, PascalCase, snake_case, kebab-case и UPPER_CASE. Списком, с верным разбором аббревиатур и сохранением подчёркиваний по краям."
 faq:
   - question: Чем отличаются camelCase и snake_case?

@@ -6,6 +6,7 @@ tool: htaccess-generator
 title: .htaccess Generator Online — Apache Configuration & Rewrite Rules Builder
 h1: .htaccess Generator
 navName: .htaccess Generator
+summary: "Redirects, HTTPS, www — a ready file"
 description: "Professional online tool to generate .htaccess files for Apache servers. Instantly build 301 redirects, WWW/HTTPS routing rules, security headers, and caching directives locally."
 faq:
   - question: What is .htaccess and which folder does it go in?

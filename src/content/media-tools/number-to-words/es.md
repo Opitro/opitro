@@ -6,6 +6,7 @@ tool: number-to-words
 title: Números a letras online — convertir cifras en palabras y viceversa
 h1: Números a letras
 navName: Números a letras
+summary: "1024 → mil veinticuatro"
 description: "Conversor gratuito de números a letras y al revés. Euros, dólares, rublos y grivnas con las formas correctas, género del numeral y céntimos en cifras. Nada sale del navegador."
 faq:
   - question: ¿Por qué se escriben las cantidades en letras en los documentos?

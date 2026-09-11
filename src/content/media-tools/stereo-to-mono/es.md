@@ -6,6 +6,7 @@ tool: stereo-to-mono
 title: Estéreo a mono online gratis — juntar dos canales en uno
 h1: Estéreo a mono
 navName: Estéreo a mono
+summary: "Dos canales combinados en uno"
 description: Reduce una grabación estéreo a un solo canal — mezcla los dos, o quédate solo con el izquierdo o solo con el derecho. Escucha el resultado antes de descargar. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿En qué se diferencian los tres modos?

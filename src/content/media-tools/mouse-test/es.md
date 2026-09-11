@@ -6,6 +6,7 @@ tool: mouse-test
 title: Test de ratón online — comprobar botones, rueda y doble clic
 h1: Test de ratón
 navName: Test de ratón
+summary: "Botones, rueda y doble clic"
 description: "Comprueba los botones del ratón, la rueda y el doble clic. La página detecta el doble clic involuntario, la avería clásica de un botón gastado."
 faq:
   - question: El ratón hace doble clic solo, ¿qué es eso?

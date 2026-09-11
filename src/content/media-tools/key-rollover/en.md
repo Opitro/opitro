@@ -6,6 +6,7 @@ tool: key-rollover
 title: How many keys at once — keyboard rollover and anti-ghosting test
 h1: How many keys at once
 navName: Keys at once
+summary: "How many keys register at the same time"
 description: "Hold several keys at once and see how many of them reach the computer. A rollover and anti-ghosting check that matters for games."
 faq:
   - question: How many keys should register at once?

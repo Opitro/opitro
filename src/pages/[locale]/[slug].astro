@@ -94,6 +94,7 @@ import HashGen from '../../components/HashGen.astro';
 import JwtDecoder from '../../components/JwtDecoder.astro';
 import HtmlEntities from '../../components/HtmlEntities.astro';
 import NumberBase from '../../components/NumberBase.astro';
+import ToolCard from '../../components/ToolCard.astro';
 import CodeDiff from '../../components/CodeDiff.astro';
 import UrlParser from '../../components/UrlParser.astro';
 import Htaccess from '../../components/Htaccess.astro';
@@ -689,9 +690,7 @@ const wideLayout = kind === 'media';
       <h2 class="all-tools-title">{relatedLabel}</h2>
       <div class="all-tools-grid">
         {related.map((r) => (
-          <a class="tool-card" href={`/${r.data.locale}/${r.data.toolSlug}`}>
-            <span class="tc-name">{r.data.h1}</span>
-          </a>
+          <ToolCard данные={r.data} />
         ))}
       </div>
     </section>

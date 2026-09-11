@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: lb
 title: Kg to Lbs Converter — Free, No Sign-Up Required
 h1: Kilograms to Pounds
+summary: "1 kg = 2.205 lb, 70 kg = 154 lb"
 description: Convert kilograms to pounds online, free and with no sign-up. An accurate weight converter — enter a number and get the result in pounds.
 faq:
   - question: How many pounds are in a kilogram?

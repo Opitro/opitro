@@ -6,6 +6,7 @@ tool: video-to-audio
 title: Extraer el audio de un vídeo online gratis — MP4, MOV, WebM, MKV
 h1: Extraer el audio de un vídeo
 navName: Audio de un vídeo
+summary: "Extraer la pista de audio de un vídeo"
 description: Saca la pista de audio de un vídeo y guárdala como MP3, M4A o WAV, con la posibilidad de escucharla en la página antes de guardar. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Qué formatos de vídeo valen?

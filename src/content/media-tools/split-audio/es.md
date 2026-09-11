@@ -6,6 +6,7 @@ tool: split-audio
 title: Dividir un audio en partes online — cortar un archivo gratis
 h1: Dividir un audio en partes
 navName: Dividir
+summary: "Cortar en partes por tiempo o por silencio"
 description: Corta una grabación larga en varios archivos — en partes iguales o por la duración que quieras para cada una. Todas las partes vuelven en un solo archivo comprimido. Gratis, sin registro, no se sube nada.
 faq:
   - question: ¿Qué modo de división uso?

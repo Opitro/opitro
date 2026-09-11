@@ -6,6 +6,7 @@ tool: css-gradient
 title: Generador de degradados CSS online — Crear linear y radial gradient para web
 h1: Generador de degradados CSS
 navName: Generador de degradados
+summary: "Componga el degradado y llévese el CSS"
 description: "Herramienta profesional para crear degradados CSS online. Ajusta puntos de color, ángulos de inclinación y opacidad para obtener códigos CSS limpios y listos para producción."
 faq:
   - question: ¿En qué se diferencian el degradado lineal y el radial?

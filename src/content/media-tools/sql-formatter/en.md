@@ -6,6 +6,7 @@ tool: sql-formatter
 title: SQL Formatter Online — Free SQL Code Prettifier and Beautifier
 h1: SQL Formatter
 navName: SQL formatter
+summary: "Lay a query out over lines and indents"
 description: "Format SQL online: indentation, line breaks, keyword case, twelve dialects. Minifying to one line never breaks strings, comments or optimiser hints. Free, all in your browser."
 faq:
   - question: Why format SQL queries?

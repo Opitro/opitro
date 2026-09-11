@@ -6,6 +6,7 @@ tool: hearing-test
 title: Online hearing test by frequency — check your hearing range
 h1: Hearing test by frequency
 navName: Hearing test
+summary: "Up to which frequency you still hear"
 description: "Find your upper hearing limit: the tone climbs from 8 to 20 kHz and you press when it disappears. Plus single frequencies for the left and right ear."
 faq:
   - question: What frequencies can a person hear?

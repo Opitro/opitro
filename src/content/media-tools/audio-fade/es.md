@@ -6,6 +6,7 @@ tool: fade
 title: Fundido de entrada y salida de audio online gratis
 h1: Fundido de entrada y salida
 navName: Fundido de entrada y salida
+summary: "Entrada suave y desvanecido al final"
 description: Haz que un tema aparezca suavemente al principio y se apague poco a poco al final, en lugar de cortarse de golpe. Mueves el control y oyes el resultado al momento, con las zonas de transición marcadas sobre la onda. Gratis, sin registro, el archivo no se sube a ningún sitio.
 faq:
   - question: ¿Cuánto suele durar un buen fundido?

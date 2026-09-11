@@ -6,6 +6,7 @@ tool: screen-burn-in-test
 title: Test de quemado de pantalla OLED — retención de imagen
 h1: Test de quemado de pantalla
 navName: Quemado de pantalla
+summary: "¿Se ha quedado algo marcado en el panel?"
 description: "Los rellenos planos de gris y color revelan el quemado y la retención de imagen en OLED, AMOLED y televisores. Útil para revisar un móvil de segunda mano."
 faq:
   - question: ¿En qué se diferencian el quemado y la retención de imagen?

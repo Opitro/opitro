@@ -6,6 +6,7 @@ tool: webcam-test
 title: "Webcam Test Online — Check Camera on Laptop, PC or Phone"
 h1: Webcam Test
 navName: Webcam test
+summary: "Picture, resolution and camera choice"
 description: "Diagnostics tool to test your webcam online. Measure real frame rate, resolution and aspect ratio, and preview camera picture quality instantly in your browser."
 faq:
   - question: The browser says the camera is busy. What can I do?

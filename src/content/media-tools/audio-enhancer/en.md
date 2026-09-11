@@ -6,6 +6,7 @@ tool: enhance
 title: Improve Audio Quality Online, Free — Denoise and Normalize Together
 h1: Improve Sound Quality Online
 navName: Improve Sound
+summary: "Clearer sound: noise, boom and dead spots"
 description: Improve your audio quality in seconds, right in your browser — remove noise, boost volume, make voices clearer. Ready-made scenarios for voice, podcast, music, phone calls, or old recordings, plus a before/after comparison. Free, no sign-up, nothing uploaded to a server.
 faq:
   - question: How is this different from using denoise and normalize separately?

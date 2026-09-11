@@ -6,6 +6,7 @@ tool: remove-music
 title: Remove music from a song online — extract the acapella free
 h1: Remove the music from a song
 navName: Remove music
+summary: "Keep the voice, drop the backing"
 description: "Keep the vocal only: an acapella for a remix, a sample or studying a part. Three methods, from instant to neural. Your browser does the work, the file never leaves it."
 faq:
   - question: Will the acapella be truly clean?

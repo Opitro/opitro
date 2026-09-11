@@ -4,6 +4,7 @@ import Layout from '../../../layouts/Layout.astro';
 import UniversalConverter from '../../../components/UniversalConverter.astro';
 import TemperatureUniversalConverter from '../../../components/TemperatureUniversalConverter.astro';
 import AdSlot from '../../../components/AdSlot.astro';
+import ToolCard from '../../../components/ToolCard.astro';
 import { t as translate } from '../../../lib/ui-strings.js';
 import { поПолкам } from '../../../lib/tool-groups.js';
 import { iconFor, colorFor } from '../../../lib/tool-icons.js';
@@ -290,12 +291,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
             <h3 class="shelf-name" id={`p-${п.ключ}`} style={`--shelf: ${п.цвет}`}>{п.имя}<b>{п.инструменты.length}</b></h3>
             <div class="all-tools-grid" style={`--shelf: ${п.цвет}`}>
               {п.инструменты.map((t) => (
-                <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-                  <span class="tc-плашка" style={`--цвет: ${colorFor(t.data.toolSlug, t.data.category)}`}>
-                    <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
-                  </span>
-                  <span class="tc-name">{t.data.navName || t.data.h1}</span>
-                </a>
+                <ToolCard данные={t.data} />
               ))}
             </div>
           </>
@@ -304,12 +300,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
     ) : (
       <div class="all-tools-grid">
         {tools.map((t) => (
-          <a class="tool-card" href={`/${t.data.locale}/${t.data.toolSlug}`}>
-            <span class="tc-плашка" style={`--цвет: ${colorFor(t.data.toolSlug, t.data.category)}`}>
-              <svg class="tc-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={iconFor(t.data.toolSlug, t.data.category)} />
-            </span>
-            <span class="tc-name">{t.data.navName || t.data.h1}</span>
-          </a>
+          <ToolCard данные={t.data} />
         ))}
       </div>
     )}

@@ -6,6 +6,7 @@ tool: dead-pixel-test
 title: Dead pixel test online — check a monitor, laptop or phone screen
 h1: Dead pixel test
 navName: Dead pixels
+summary: "Flood the screen with colour to find dead dots"
 description: "Nine solid colours edge to edge — dead and stuck pixels show up on them. Works for a monitor, laptop, phone or TV."
 faq:
   - question: What is the difference between a dead pixel and a stuck one?

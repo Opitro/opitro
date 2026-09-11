@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: m
 title: Calculadora de pies a metros — gratis, sin registro
 h1: Pies a Metros
+summary: "1 pie = 0,3048 m; 6 pies = 1,83 m"
 description: Convierte pies a metros online, gratis y sin registro. Calculadora de altura y longitud precisa — introduce un valor en pies y obtén el resultado en metros.
 faq:
   - question: ¿Cuántos metros hay en un pie?

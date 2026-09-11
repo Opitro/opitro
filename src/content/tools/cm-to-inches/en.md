@@ -12,6 +12,7 @@ engineParams:
 title: Cm to Inches Converter — Free, No Sign-Up Required
 description: Convert centimeters to inches online, free and with no sign-up. An accurate converter for screen diagonals, height, shoe size, and other measurements.
 h1: Centimeters to Inches
+summary: "1 inch = 2.54 cm, 10 cm = 3.94 in"
 faq:
   - question: How many inches are in a centimeter?
     answer: One centimeter equals 0.393701 inches. For example, 30 cm is roughly 11.81 inches.

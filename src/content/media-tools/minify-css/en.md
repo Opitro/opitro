@@ -6,6 +6,7 @@ tool: minify-css
 title: CSS Minifier Online — Compress CSS Code & Optimize Stylesheets
 h1: CSS Code Minifier
 navName: CSS Minifier
+summary: "Shrink CSS: spaces, zeros, colours"
 description: "Professional online tool to minify and compress CSS code. Instantly remove white spaces, comments, and optimize your stylesheets locally in your browser."
 faq:
   - question: Why can't you just strip all the whitespace?

@@ -6,6 +6,7 @@ tool: dead-pixel-test
 title: Test de píxeles muertos online — comprobar la pantalla del monitor o el móvil
 h1: Píxeles muertos
 navName: Píxeles muertos
+summary: "Llenar la pantalla de color y buscar puntos muertos"
 description: "Nueve colores sólidos a pantalla completa: sobre ellos se ven los píxeles muertos y atascados. Vale para monitor, portátil, móvil y televisor."
 faq:
   - question: ¿En qué se diferencia un píxel muerto de uno atascado?

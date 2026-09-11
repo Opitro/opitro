@@ -6,6 +6,7 @@ tool: box-shadow
 title: CSS Box Shadow Generator Online — Build Realistic UI Drop Shadows
 h1: CSS Box Shadow Generator
 navName: Shadow generator
+summary: "Drag the shadow, take the CSS"
 description: "Professional online tool to generate custom CSS box-shadows. Adjust horizontal/vertical offsets, blur, spread, and opacity to copy production-ready CSS snippets."
 faq:
   - question: What do blur and spread actually do?

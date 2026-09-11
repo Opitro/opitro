@@ -6,6 +6,7 @@ tool: stylus-test
 title: "Prueba de lápiz óptico online — test de Apple Pencil y stylus"
 h1: "Test de stylus — presión e inclinación"
 navName: Test de stylus
+summary: "Presión, inclinación y precisión del lápiz"
 description: "Prueba gráfica gratuita para lápices ópticos. Evalúa la sensibilidad a la presión, los ángulos de inclinación y la precisión del trazo de tu Apple Pencil o stylus online."
 faq:
   - question: ¿Cómo compruebo la sensibilidad a la presión?

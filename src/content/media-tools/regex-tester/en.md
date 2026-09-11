@@ -6,6 +6,7 @@ tool: regex-tester
 title: RegEx Tester Online — JavaScript Regular Expression Debugger
 h1: RegEx Tester & Debugger
 navName: RegEx tester
+summary: "Try a pattern against your own text"
 description: "Professional online tool to test and debug regular expressions. Instantly validate your RegEx syntax, match test strings, and capture groups locally in your browser."
 faq:
   - question: What are regular expressions and where are they used?

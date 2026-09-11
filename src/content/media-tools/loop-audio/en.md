@@ -6,6 +6,7 @@ tool: loop
 title: Loop Audio Online, Free — Repeat a Track Several Times
 h1: Loop Audio
 navName: Loop
+summary: "Repeat a piece as many times as needed"
 description: Repeat a recording 2 to 50 times in one file — the resulting length is shown as you choose, and the seams are smoothed so there's no click. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: Can you hear the join between repeats?

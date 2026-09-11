@@ -6,6 +6,7 @@ tool: phone-formatter
 title: Phone Number Formatter Online — Bulk E.164 Standardisation
 h1: Phone Number Formatter
 navName: Phone formatter
+summary: "Bring a list of numbers to one format"
 description: "Free online bulk phone formatter. Convert a list to international E.164, digits only, or a readable national form. Trunk prefixes are handled correctly."
 faq:
   - question: What is the E.164 international format?

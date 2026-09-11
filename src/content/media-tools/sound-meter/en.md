@@ -6,6 +6,7 @@ tool: sound-meter
 title: Sound Level Meter Online — Measure Noise in Decibels
 h1: Sound meter
 navName: Sound meter
+summary: "How many decibels around you right now"
 description: "Shows how loud it is around you: a big number in decibels plus a plain-language comparison. Runs in the browser through your microphone, nothing to install."
 faq:
   - question: How accurate are these decibels?

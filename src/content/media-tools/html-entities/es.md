@@ -6,6 +6,7 @@ tool: html-entities
 title: Codificador de entidades HTML online — Convertir caracteres especiales a HTML entities
 h1: Codificador y decodificador de entidades HTML
 navName: Codificador de entidades HTML
+summary: "Caracteres especiales ↔ entidades, sin doble escape"
 description: "Herramienta profesional para codificar y decodificar caracteres especiales en entidades HTML de forma segura. Convierte símbolos web al instante y 100% local."
 faq:
   - question: ¿Para qué convertir caracteres especiales en entidades?

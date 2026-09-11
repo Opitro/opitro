@@ -6,6 +6,7 @@ tool: bluetooth-test
 title: "Bluetooth Test Online — Check the Adapter and Devices"
 h1: Bluetooth Test
 navName: Bluetooth test
+summary: "Does the browser see your devices"
 description: "Bluetooth diagnostics online. Check whether your computer or phone has a working adapter and try connecting to a wireless device straight from the browser."
 faq:
   - question: Why does the page not list the devices around me?

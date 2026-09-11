@@ -6,6 +6,7 @@ tool: number-base-converter
 title: Number Base Converter Online — Convert Binary, Octal, Decimal, Hex
 h1: Number Base Converter
 navName: Number Base Converter
+summary: "Base 2, 8, 10, 16 — all at once"
 description: "Professional online tool to convert numbers between different numeral systems: Binary, Octal, Decimal, and Hexadecimal. Instant mathematical conversions processed locally in your browser."
 faq:
   - question: How does conversion between binary and hexadecimal actually work?

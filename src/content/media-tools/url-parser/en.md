@@ -6,6 +6,7 @@ tool: url-parser
 title: URL Parser Online — Split URL into Query Parameters
 h1: URL Parser
 navName: URL Parser
+summary: "Split an address into parts and params"
 description: "Online URL parser. Instantly split links into query parameters, host, path, and protocol layouts locally in your browser."
 faq:
   - question: What parts does a web address consist of?

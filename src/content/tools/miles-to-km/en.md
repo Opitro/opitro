@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: km
 title: Miles to Km Converter — Free, No Sign-Up Required
 h1: Miles to Kilometers
+summary: "1 mile = 1.609 km, a marathon is 42.2 km"
 description: Convert miles to kilometers online, free and with no sign-up. An accurate distance converter — enter a number of miles and get the result in kilometers.
 faq:
   - question: How many kilometers are in a mile?

@@ -6,6 +6,7 @@ tool: color-palette
 title: Color Palette Generator Online — Build Harmonious CSS Color Schemes
 h1: Color Palette Generator
 navName: Palette generator
+summary: "A palette built from one colour"
 description: "Professional online tool to generate cohesive color palettes. Create monochromatic, analog, and complementary web color schemes with instant CSS/JSON export layout."
 faq:
   - question: How do colour-harmony rules help when designing an interface?

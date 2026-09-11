@@ -6,6 +6,7 @@ tool: text-case-converter
 title: "Cambiar mayúsculas y minúsculas online — convertidor de texto"
 h1: Cambiar registro de texto
 navName: Mayúsculas y minúsculas
+summary: "MAYÚSCULAS, minúsculas, Tipo oración"
 description: "Herramienta para cambiar entre mayúsculas y minúsculas online. Convierte texto a mayúsculas, minúsculas, tipo título o invierte el tipo de letra al instante."
 faq:
   - question: ¿Cómo quito las mayúsculas si todo el texto está en bloque?

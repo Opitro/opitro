@@ -6,6 +6,7 @@ tool: contrast-checker
 title: Verificador de contraste de color online — Validador WCAG AA y AAA
 h1: Verificador de contraste de color (WCAG)
 navName: Verificador de contraste
+summary: "¿El contraste cumple las WCAG?"
 description: "Herramienta profesional para verificar el contraste entre el texto y el fondo online. Comprueba la accesibilidad web según las pautas WCAG de forma 100% local."
 faq:
   - question: ¿Qué es la relación de contraste y cómo se calcula?

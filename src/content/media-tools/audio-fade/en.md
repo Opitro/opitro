@@ -6,6 +6,7 @@ tool: fade
 title: Audio Fade In and Fade Out Online, Free
 h1: Audio Fade In and Fade Out
 navName: Fade In / Fade Out
+summary: "A smooth start and a fade at the end"
 description: Make a track ease in at the start and fade away at the end instead of cutting off abruptly. Move a slider and you hear it immediately, with both fade regions highlighted right on the waveform. Free, no sign-up, nothing uploaded.
 faq:
   - question: What's a typical fade length?

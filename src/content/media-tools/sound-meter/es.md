@@ -6,6 +6,7 @@ tool: sound-meter
 title: Sonómetro en línea — mide el ruido en decibelios
 h1: Sonómetro
 navName: Sonómetro
+summary: "Cuántos decibelios hay a su alrededor"
 description: "Muestra cómo de alto suena a tu alrededor: una cifra grande en decibelios y una comparación en lenguaje claro. Funciona en el navegador con tu micrófono, sin instalar nada."
 faq:
   - question: ¿Cómo de exactos son estos decibelios?

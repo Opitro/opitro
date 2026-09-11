@@ -6,6 +6,7 @@ tool: border-radius
 title: CSS Border Radius Generator Online — Interactive Corner Preview Tool
 h1: CSS Border Radius Generator
 navName: Border radius
+summary: "Drag the corners, take the CSS"
 description: "Professional online tool to visualize and generate CSS border-radius properties. Create simple corners or complex elliptical organic shapes with instant CSS export layout."
 faq:
   - question: What does the slash in border-radius mean?

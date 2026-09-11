@@ -6,6 +6,7 @@ tool: markdown-html
 title: Conversor de Markdown a HTML online — Traducir HTML a Markdown
 h1: Conversor de formatos Markdown y HTML
 navName: Markdown ↔ HTML
+summary: "Títulos, listas y enlaces, en ambos sentidos"
 description: "Herramienta profesional para convertir Markdown a HTML y viceversa online. Transforma documentación de GitHub en código HTML limpio de forma 100% local."
 faq:
   - question: ¿En qué se diferencia Markdown de HTML?

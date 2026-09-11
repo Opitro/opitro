@@ -6,6 +6,7 @@ tool: base64-encode-decode
 title: Base64 Online — Encode and Decode Text Strings
 h1: Base64 Encode & Decode
 navName: Base64
+summary: "Text ↔ Base64, any alphabet survives"
 description: "Free online tool for Base64 encoding and decoding. Convert plain text to Base64 or unfold a ready string back into readable text, with full Unicode support and a URL-safe form."
 faq:
   - question: What is Base64 encoding and what is it for?

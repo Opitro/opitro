@@ -6,6 +6,7 @@ tool: regex-tester
 title: Probador de RegEx online — Probador y depurador de expresiones regulares
 h1: Probador de expresiones regulares (RegEx)
 navName: Probador de RegEx
+summary: "Probar la expresión con su propio texto"
 description: "Herramienta profesional para probar y depurar expresiones regulares online. Valida tu sintaxis RegEx, encuentra coincidencias de texto y resalta grupos al instante de forma local."
 faq:
   - question: ¿Qué son las expresiones regulares y para qué sirven?

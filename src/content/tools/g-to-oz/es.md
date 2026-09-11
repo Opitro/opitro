@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: oz
 title: Conversor de gramos a onzas online, gratis, sin registro
 h1: Gramos a Onzas
+summary: "100 g = 3,53 onzas"
 description: Convierte gramos a onzas online, gratis y sin registro. Un conversor de peso preciso para cocina y más.
 faq:
   - question: ¿Cuántas onzas hay en 100 gramos?

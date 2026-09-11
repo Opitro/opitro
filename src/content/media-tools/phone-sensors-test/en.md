@@ -6,6 +6,7 @@ tool: phone-sensors-test
 title: "Phone Sensors Test Online — Check Gyroscope & Accelerometer"
 h1: Smartphone Sensors Tester
 navName: Sensors test
+summary: "Tilt, rotation, steps and light level"
 description: "Online tool to test mobile web sensors. Check smartphone accelerometer, gyroscope, ambient light sensor and magnetometer (compass) telemetry in real time."
 faq:
   - question: Why do I have to press an access button first?

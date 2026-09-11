@@ -6,6 +6,7 @@ tool: remove-extra-spaces
 title: "Remove Extra Spaces Online — Clean Whitespace and Tabs"
 h1: Remove Extra Spaces
 navName: Extra spaces
+summary: "Double spaces and stray indents gone"
 description: "Online whitespace remover. Instantly remove double or multiple spaces, eliminate consecutive blank lines, and trim leading or trailing spaces in your text."
 faq:
   - question: Where do double spaces in a text come from?

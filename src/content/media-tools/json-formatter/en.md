@@ -6,6 +6,7 @@ tool: json-formatter
 title: JSON Formatter Online — Free JSON Validator and Prettifier
 h1: JSON Formatter & Validator
 navName: JSON formatter
+summary: "Indent it and find the broken spot"
 description: "Format and validate JSON online: exact error position, minify to one line, 2 or 4 space indent. Long numbers are never corrupted. Free, and everything runs in your browser."
 faq:
   - question: What is JSON and why format it?

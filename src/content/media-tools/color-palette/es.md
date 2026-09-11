@@ -6,6 +6,7 @@ tool: color-palette
 title: Generador de paletas de colores online — Crear esquemas de color formales
 h1: Generador de paletas de colores
 navName: Generador de paletas
+summary: "Una paleta a partir de un color"
 description: "Herramienta profesional para generar paletas y esquemas de colores online. Crea combinaciones armónicas (monocromáticas, triadas, complementarias) para diseño web y CSS de forma local."
 faq:
   - question: ¿Cómo ayudan las reglas de armonía cromática al diseñar una interfaz?

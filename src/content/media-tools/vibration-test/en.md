@@ -6,6 +6,7 @@ tool: vibration-test
 title: "Phone Vibration Test Online — Check the Vibration Motor"
 h1: Phone Vibration Test
 navName: Vibration test
+summary: "Does the motor respond, and how hard"
 description: "Diagnostics tool for a smartphone vibration motor. Check whether vibration works, try different haptic patterns and tap in your own rhythm, right in the browser."
 faq:
   - question: Why does nothing vibrate on my iPhone?

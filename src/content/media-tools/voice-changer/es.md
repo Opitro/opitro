@@ -6,6 +6,7 @@ tool: voice
 title: "Cambiar la voz en línea gratis — 15 efectos y grabación con micrófono"
 h1: Cambiar la voz en línea
 navName: Cambiar la voz
+summary: "Robot, eco, teléfono y otros efectos"
 description: "Graba tu voz aquí mismo o sube un archivo y pulsa un efecto: robot, monstruo, alien, eco, sala, reverso y más. Se oye al instante y se descarga en un clic. Gratis, nada sale de tu dispositivo."
 faq:
   - question: ¿Puede convertir una voz masculina en femenina?

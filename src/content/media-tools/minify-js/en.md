@@ -6,6 +6,7 @@ tool: minify-js
 title: JS Minifier Online — Compress JavaScript Code & Obfuscate Scripts
 h1: JavaScript Code Minifier
 navName: JS Minifier
+summary: "Shrink the script, shorten the names"
 description: "Professional online tool to minify and compress JavaScript (JS) code. Instantly remove white spaces, comments, and shorten variable names locally in your browser."
 faq:
   - question: What is the difference between plain minification and shortening names?

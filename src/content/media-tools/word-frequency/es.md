@@ -6,6 +6,7 @@ tool: word-frequency
 title: Frecuencia de palabras online — analizador de densidad de palabras clave
 h1: Frecuencia de palabras en un texto
 navName: Frecuencia de palabras
+summary: "Qué palabras aparecen más veces"
 description: "Analizador gratuito de frecuencia de palabras. Crea una lista de frecuencias, mide la densidad de palabras clave y descarta las palabras vacías. El texto no sale del navegador."
 faq:
   - question: ¿Qué es la densidad de palabras clave y para qué mirarla?

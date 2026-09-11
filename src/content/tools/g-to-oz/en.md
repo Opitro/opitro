@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: oz
 title: Grams to Ounces Converter — Free, No Sign-Up Required
 h1: Grams to Ounces
+summary: "100 g = 3.53 ounces"
 description: Convert grams to ounces online, free and with no sign-up. An accurate weight converter for cooking and beyond.
 faq:
   - question: How many ounces are in 100 grams?

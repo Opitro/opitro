@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: pies
 title: Calculadora de metros a pies — gratis, sin registro
 h1: Metros a Pies
+summary: "1 m = 3,28 pies; 10 m = 32,8 pies"
 description: Convierte metros a pies online, gratis y sin registro. Calculadora de altura y longitud precisa — introduce un valor en metros y obtén el resultado en pies.
 faq:
   - question: ¿Cuántos pies hay en un metro?

@@ -6,6 +6,7 @@ tool: qr-code
 title: QR Code Generator Online — Create Free QR Codes (PNG and SVG)
 h1: QR Code Generator
 navName: QR code
+summary: "Link, Wi-Fi, contact card → PNG and SVG"
 description: "Create a QR code for a link, text, Wi-Fi network or vCard. Download as PNG or SVG, four error-correction levels. Non-Latin text encoded correctly. Free, all in your browser."
 faq:
   - question: How does downloading a PNG differ from an SVG?

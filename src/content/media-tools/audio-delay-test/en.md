@@ -6,6 +6,7 @@ tool: audio-delay-test
 title: Audio latency test online — check Bluetooth audio delay (ms)
 h1: Audio delay test
 navName: Audio delay
+summary: "How far the sound lags behind the picture"
 description: "Measure audio delay in milliseconds: a flash on the radar and a click, and a slider brings them together. For Bluetooth headphones, headsets, speakers and TVs."
 faq:
   - question: How does it work?

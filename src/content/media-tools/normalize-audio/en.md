@@ -6,6 +6,7 @@ tool: normalize
 title: Normalize Audio Online, Free — Bring a Quiet Recording Up
 h1: Normalize Audio
 navName: Normalize
+summary: "Bring the level up to a common target"
 description: Bring a quiet recording up to full loudness without distortion — the tool finds the loudest moment and lifts the whole file to match. Nothing to configure. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: What does normalizing actually do?

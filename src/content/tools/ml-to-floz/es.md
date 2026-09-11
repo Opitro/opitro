@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: fl oz
 title: Conversor de ml a onzas líquidas online, gratis, sin registro
 h1: Mililitros a Onzas Líquidas
+summary: "100 ml = 3,38 onzas líquidas"
 description: Convierte mililitros a onzas líquidas online, gratis y sin registro. Un conversor de volumen preciso — introduce ml y obtén el resultado en onzas.
 faq:
   - question: ¿Cuántas onzas son 500 ml?

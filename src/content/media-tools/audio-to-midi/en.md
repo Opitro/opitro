@@ -6,6 +6,7 @@ tool: audio-to-midi
 title: Audio to MIDI Online — Convert a Recording to Notes, Free
 h1: Audio to MIDI
 navName: Audio to MIDI
+summary: "Something hummed or played → notes"
 description: Upload a recording and get the notes out of it — MIDI, sheet music for MuseScore, or a plain table. Piano roll, chords, tempo and key. Everything runs in your browser; the file never leaves your device. Free, no sign-up.
 faq:
   - question: How does this actually work?

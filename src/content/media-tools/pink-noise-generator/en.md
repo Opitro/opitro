@@ -6,6 +6,7 @@ tool: pink-noise
 title: Pink Noise Generator — Listen Online or Download
 h1: Pink Noise
 navName: Pink noise
+summary: "Even noise — for sleep and speaker tuning"
 description: Pink noise generator for sleep and rest — softer than white, like steady rain. Listen online or download an MP3. Sleep timer included. Free, no sign-up.
 faq:
   - question: How is pink noise different from white?

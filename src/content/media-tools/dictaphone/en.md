@@ -6,6 +6,7 @@ tool: dictaphone
 title: Online Voice Recorder — Record from Your Mic, Free
 h1: Online Voice Recorder
 navName: Voice recorder
+summary: "Record, trim and download"
 description: Record your voice in the browser, pause and carry on, trim the ends and save as MP3 or WAV. Nothing to install, and the recording stays on your device. Free, no sign-up.
 faq:
   - question: Does the recording get sent anywhere?

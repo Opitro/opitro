@@ -6,6 +6,7 @@ tool: dynamic-compressor
 title: Even Out Audio Levels Online — Free Audio Compressor
 h1: Even Out the Levels
 navName: Compressor
+summary: "Quiet parts up, loud parts down"
 description: Bring the quiet parts up towards the loud ones so nobody has to ride the volume knob. Four modes for voice, podcast and music. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: How is this different from normalizing?

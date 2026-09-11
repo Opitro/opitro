@@ -11,6 +11,7 @@ engineParams:
   toUnitShort: cup
 title: Ml to Cups Converter — Free, No Sign-Up Required
 h1: Milliliters to Cups
+summary: "237 ml = 1 US cup"
 description: Convert milliliters to cups online, free and with no sign-up. An accurate volume converter for US recipes.
 faq:
   - question: How many cups is 500 ml?

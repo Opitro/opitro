@@ -6,6 +6,7 @@ tool: reverb-echo
 title: Echo and Reverb Online, Free — Add Space to Audio
 h1: Echo and Reverb
 navName: Echo and reverb
+summary: "A room, a hall, or a clear echo"
 description: Add echo or the sound of a room to a recording — four ready-made styles from a short slap to a large hall. Hear it right on the page. Free, no sign-up, nothing gets uploaded.
 faq:
   - question: What's the difference between echo and reverb?

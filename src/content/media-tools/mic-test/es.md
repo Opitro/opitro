@@ -6,6 +6,7 @@ tool: mic-test
 title: Prueba de micrófono en línea — comprueba si te oye
 h1: Prueba de micrófono
 navName: Prueba de micrófono
+summary: "Si se le oye y con qué volumen"
 description: "Comprueba tu micrófono en medio minuto: la onda en vivo muestra si te oye. Graba cinco segundos y escúchate. Sin instalar nada, la grabación se queda contigo."
 faq:
   - question: El micrófono no oye nada, ¿qué reviso?
