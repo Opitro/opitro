@@ -70,7 +70,7 @@
   border-radius: 10px; transition: border-color .15s ease }
 .рч-поле:focus-within { border-color: #fff }
 .рч-ввод {
-  display: block; width: 100%; min-height: 170px; resize: vertical;
+  display: block; width: 100%; min-height: 210px; resize: vertical;
   padding: 15px 16px 12px; border: 0; background: transparent; color: #fff;
   font: 400 14px/1.7 var(--цифры); border-radius: 10px; overflow-wrap: anywhere;
 }
@@ -344,7 +344,9 @@
      настоящей середины. */
   .рч-ход { position: absolute; left: 50%; transform: translateX(-50%); gap: 6px }
   .рч-круг { width: 12px; height: 12px }
-  .рч-ввод { min-height: 140px }
+  /* На телефоне поле было заметно ниже: три строки текста -- и уже прокрутка внутри поля.
+     Поднято до ста восьмидесяти: это примерно семь строк при шестнадцати пикселях. */
+  .рч-ввод { min-height: 180px }
   /* Бегунок уходит на свою строку: рядом с тремя кнопками ему остаётся ниточка в палец
      шириной, и попасть в неё нельзя. */
   .рч-трек-ряд { flex-wrap: wrap }
