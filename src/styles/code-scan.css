@@ -122,17 +122,32 @@
 .кс-затвор:hover i { background: #e9ecef }
 .кс-затвор[hidden] { display: none }
 
-/* Луч: идёт сверху вниз, пока разбирается снимок; за ним светящийся шлейф. */
-.кс-луч { position: absolute; left: 0; right: 0; height: 96px; pointer-events: none; opacity: 0;
-  background: linear-gradient(to bottom, rgba(80,255,170,0) 0%, rgba(80,255,170,.16) 62%,
-    rgba(80,255,170,.85) 96%, rgba(255,255,255,.95) 100%);
-  box-shadow: 0 2px 14px rgba(80,255,170,.55) }
-.кс-окно.ищет .кс-луч { animation: кс-бег 1.5s cubic-bezier(.5,0,.5,1) infinite }
+/* «Снять ещё»: обычная надпись на тёмной подложке, а не вторая круглая кнопка -- две
+   круглые рядом читались бы как два затвора. */
+.кс-переснять {
+  height: 38px; padding: 0 18px; border-radius: 19px; cursor: pointer;
+  font: 400 13.5px var(--мон); color: #fff;
+  background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.5);
+  transition: background .15s, border-color .15s;
+}
+.кс-переснять:hover { background: rgba(0,0,0,.85); border-color: #fff }
+.кс-переснять[hidden] { display: none }
+
+/* ЛУЧ. Тонкая неоновая линия без подложки и без шлейфа -- владелец забраковал градиентную
+   заливку: «просто как неоновая, медленно». Идёт сверху вниз и возвращается: два прохода
+   выглядят работой, один -- случайной вспышкой. Свечение даёт тень, а не фон, поэтому кадр
+   под линией виден целиком. */
+.кс-луч { position: absolute; left: 0; right: 0; top: 0; height: 2px; pointer-events: none;
+  opacity: 0; background: #4ade9e;
+  box-shadow: 0 0 10px 2px rgba(74,222,158,.85), 0 0 26px 6px rgba(74,222,158,.35) }
+.кс-окно.ищет .кс-луч { animation: кс-бег 2.4s cubic-bezier(.45,0,.55,1) infinite }
 @keyframes кс-бег {
-  0%   { top: -96px; opacity: 0 }
-  12%  { opacity: 1 }
-  88%  { opacity: 1 }
-  100% { top: 100%; opacity: 0 }
+  0%   { top: 0; opacity: 0 }
+  8%   { opacity: 1 }
+  46%  { top: calc(100% - 2px); opacity: 1 }
+  54%  { top: calc(100% - 2px); opacity: 1 }
+  92%  { top: 0; opacity: 1 }
+  100% { top: 0; opacity: 0 }
 }
 /* Пока идёт разбор, прицел гаснет: он подсказка для наводки, а наводить уже нечего. */
 .кс-окно.ищет .кс-прицел { opacity: .25 }
