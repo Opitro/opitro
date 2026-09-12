@@ -3,11 +3,11 @@ toolSlug: text-to-speech
 locale: en
 category: text
 tool: text-to-speech
-title: Text to Speech Online — Read Text Aloud and Download MP3
+title: Text to Speech Online Free — No Sign-Up, Download MP3
 h1: Text to Speech
 navName: "Text to Speech"
 summary: "Read the text aloud and save the recording"
-description: "Turn text into speech right in your browser: three models to choose from, download as MP3 or WAV. Your text goes nowhere — the computing happens on your own device."
+description: "Turn text into speech right in your browser — free and with no sign-up: three models to choose from, voices for 50 languages, download as MP3 or WAV."
 faq:
   - question: Is it free, and do I need an account?
     answer: "Free and with no sign-up. No account, no payment, no cap on how many files you make. One run takes up to 5000 characters — split longer texts into parts."

@@ -3,11 +3,11 @@ toolSlug: text-to-speech
 locale: es
 category: text
 tool: text-to-speech
-title: Texto a voz online — leer texto en voz alta y descargar MP3
+title: Texto a voz online gratis — sin registro, descargar MP3
 h1: Conversión de texto a voz
 navName: "Texto a voz"
 summary: "Leer el texto en voz alta y descargarlo"
-description: "Convierte texto en voz dentro de tu navegador: tres modelos a elegir, descarga en MP3 o WAV. Tu texto no va a ninguna parte: el cálculo ocurre en tu propio dispositivo."
+description: "Convertimos texto en voz dentro del navegador — gratis y sin registro: tres modelos a elegir, voces para 50 idiomas, descarga en MP3 o WAV."
 faq:
   - question: "¿Es gratis? ¿Hace falta registrarse?"
     answer: "Gratis y sin registro. Ni cuenta, ni pago, ni límite en el número de audios. Cada generación admite 5000 caracteres; si el texto es más largo, divídalo en partes."
