@@ -72,7 +72,7 @@ const СЛОВА = {
     rKokoro: 'Только английский, 28 голосов — зато звук самый живой из трёх. Один файл на все голоса.',
     rSupertonic: '31 язык в одном файле. Читает цифры, даты и сокращения без подготовки. Один файл на все голоса.',
     sPiper: 'быстрая', sKokoro: 'медленнее всех', sSupertonic: 'самая быстрая',
-    n0: '<b>Озвучка текста онлайн — бесплатно и без регистрации.</b> Ни счёта, ни оплаты, ни ограничения по числу файлов: речь считается прямо у вас в браузере, и брать за это деньги нам не с чего.',
+    n0: '<b>Озвучка текста онлайн — бесплатно и без регистрации.</b> Ограничений на число генераций нет.',
     n2: '<b>Модель скачивается один раз.</b> Дальше она лежит на вашем устройстве, и следующая озвучка начинается сразу — даже без интернета. У Piper свой файл на каждый голос: смените голос — скачается новый. У Kokoro и Supertonic один файл на все их голоса, переключаться между ними ничего не стоит.',
     n3: '<b>Текст не уходит никуда.</b> Он считается прямо у вас в браузере: отправлять его некуда, расчёт идёт здесь. Мы ничего не храним и не ведём никаких записей.',
     n4: '<b>Длинный текст читается по кускам.</b> Мы режем его по концам предложений, никогда посреди слова: на стыке был бы щелчок и оборванный слог. Куски считаются по очереди и склеиваются в один файл.',
@@ -125,7 +125,7 @@ const СЛОВА = {
     rKokoro: 'Тільки англійська, 28 голосів — зате звук найживіший із трьох. Один файл на всі голоси.',
     rSupertonic: '31 мова в одному файлі. Читає цифри, дати й скорочення без підготовки. Один файл на всі голоси.',
     sPiper: 'швидка', sKokoro: 'найповільніша', sSupertonic: 'найшвидша',
-    n0: '<b>Озвучення тексту онлайн — безкоштовно й без реєстрації.</b> Ні рахунку, ні оплати, ні обмеження на кількість файлів: мовлення рахується просто у вас у браузері, і брати за це гроші нам нема за що.',
+    n0: '<b>Озвучення тексту онлайн — безкоштовно й без реєстрації.</b> Обмежень на кількість генерацій немає.',
     n2: '<b>Модель завантажується один раз.</b> Далі вона лежить на вашому пристрої, і наступна озвучка починається одразу — навіть без інтернету. У Piper свій файл на кожен голос: зміните голос — завантажиться новий. У Kokoro і Supertonic один файл на всі їхні голоси, перемикатися між ними нічого не коштує.',
     n3: '<b>Текст не йде нікуди.</b> Він рахується просто у вас у браузері: надсилати його нікуди, розрахунок іде тут. Ми нічого не зберігаємо й не ведемо жодних записів.',
     n4: '<b>Довгий текст читається шматками.</b> Ми ріжемо його по кінцях речень, ніколи посеред слова: на стику було б клацання й обірваний склад. Шматки рахуються по черзі й склеюються в один файл.',
@@ -178,7 +178,7 @@ const СЛОВА = {
     rKokoro: 'English only, 28 voices — but the liveliest sound of the three. One file for all voices.',
     rSupertonic: '31 languages in one file. Reads numbers, dates and abbreviations with no preparation. One file for all voices.',
     sPiper: 'fast', sKokoro: 'slowest', sSupertonic: 'fastest',
-    n0: '<b>Text to speech online — free and with no sign-up.</b> No account, no payment, no cap on the number of files: the speech is computed right in your browser, so there is nothing for us to charge for.',
+    n0: '<b>Text to speech online — free and with no sign-up.</b> There is no limit on the number of generations.',
     n2: '<b>A model downloads once.</b> After that it sits on your device and the next reading starts immediately — even with no internet. Piper keeps a separate file per voice: change the voice and a new one downloads. Kokoro and Supertonic have one file for all their voices, so switching between them costs nothing.',
     n3: '<b>Your text goes nowhere.</b> It is processed right inside your browser — there is nowhere to send it, the computing happens here. We store nothing and keep no logs.',
     n4: '<b>Long text is read in pieces.</b> We cut at the ends of sentences, never in the middle of a word: a join there would give a click and a chopped syllable. The pieces are computed in turn and glued into one file.',
@@ -231,7 +231,7 @@ const СЛОВА = {
     rKokoro: 'Solo inglés, 28 voces, pero con el sonido más vivo de los tres. Un archivo para todas las voces.',
     rSupertonic: '31 idiomas en un solo archivo. Lee cifras, fechas y abreviaturas sin preparación. Un archivo para todas las voces.',
     sPiper: 'rápido', sKokoro: 'el más lento', sSupertonic: 'el más rápido',
-    n0: '<b>Texto a voz online: gratis y sin registro.</b> Sin cuenta, sin pago y sin límite de archivos: la voz se calcula dentro de su navegador, así que no hay nada que cobrar.',
+    n0: '<b>Texto a voz online: gratis y sin registro.</b> No hay límite en el número de generaciones.',
     n2: '<b>El modelo se descarga una vez.</b> Después se queda en su dispositivo y la siguiente lectura empieza al instante, incluso sin internet. Piper guarda un archivo por voz: si cambia de voz, se descarga otra. Kokoro y Supertonic tienen un solo archivo para todas sus voces, así que cambiar entre ellas no cuesta nada.',
     n3: '<b>Su texto no va a ninguna parte.</b> Se procesa dentro de su navegador: no hay adónde enviarlo, el cálculo ocurre aquí. No guardamos nada ni llevamos registros.',
     n4: '<b>El texto largo se lee por trozos.</b> Cortamos al final de las frases, nunca en mitad de una palabra: en la unión habría un chasquido y una sílaba partida. Los trozos se calculan por turno y se pegan en un solo archivo.',
@@ -552,7 +552,10 @@ const ЗН_ВНИЗ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 
     // Piper: 11 секунд на тысячу знаков измерено на этой машине; телефон медленнее, поэтому
     // берём с запасом. Ошибиться лучше в сторону «дольше»: тогда полоса добегает раньше срока,
     // а не упирается в 97 и стоит.
-    const ОЖИДАНИЕ_ПО_УМОЛЧАНИЮ = { piper: 15, kokoro: 190, supertonic: 60 };
+    // Замерено: Supertonic на 980 знаках считал дольше минуты. Ошибаться надо в сторону
+    // «дольше»: полоса, добежавшая раньше времени, оставляет ощущение «справилось быстрее,
+    // чем обещали», а упёршаяся в потолок -- ощущение зависшего экрана.
+    const ОЖИДАНИЕ_ПО_УМОЛЧАНИЮ = { piper: 15, kokoro: 190, supertonic: 95 };
     const КЛЮЧ_ОПЫТА = 'opitro:озвучка:скорость';
 
     function опыт() {
@@ -578,8 +581,13 @@ const ЗН_ВНИЗ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 
       const старт = performance.now();
       const шаг = () => {
         const прошло = (performance.now() - старт) / 1000;
-        // Выше 97 не поднимаемся: досчитать до ста имеет право только готовый файл.
-        показатьРаботу(с.synth, Math.min(97, (прошло / всего) * 100), true, 0, true);
+        // Кривая с ЗАМЕДЛЕНИЕМ, а не ровный ход. Ровный упирался в потолок и замирал: у
+        // владельца на Supertonic число простояло на 97 полтора десятка секунд, и это снова
+        // выглядело зависанием. Здесь шаг к концу становится всё мельче, но никогда не
+        // обращается в ноль -- число ползёт, пока идёт счёт, и до ста не доходит никогда:
+        // сотню ставит только готовый файл.
+        const доля = 100 * (1 - Math.exp(-прошло / (всего * 0.6)));
+        показатьРаботу(с.synth, Math.min(99, доля), true, 0, true);
       };
       шаг();
       часыОжидания = setInterval(шаг, 300);
