@@ -29,6 +29,8 @@ const ОБЩЕЕ = {
     start: 'Включить', upload: 'или загрузить файл', result: 'Результат',
     askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него сканировать нечем.',
     clear: 'Убрать', shot: 'Снять код', retry: 'Снять ещё',
+    notOurs: 'На снимке {а}, а не {б}.', openOther: 'Открыть сканер {а}',
+    kinds: { qr: 'QR-код', bar: 'штрихкод', datamatrix: 'Data Matrix', pdf417: 'PDF417', aztec: 'Aztec' },
     liveHint: 'Наведите код в рамку и нажмите кнопку снимка', looking: 'Ищу код…',
     notShot: 'На этом снимке кода не видно. Наведите ближе и ровнее и снимите ещё раз.',
     slowCam: 'У этого браузера нет своего распознавателя таких кодов — читаем запаской, поэтому медленнее. Если с камеры не выходит, снимите код и загрузите файл.',
@@ -46,6 +48,8 @@ const ОБЩЕЕ = {
     start: 'Увімкнути', upload: 'або завантажити файл', result: 'Результат',
     askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього сканувати нічим.',
     clear: 'Прибрати', shot: 'Зняти код', retry: 'Зняти ще',
+    notOurs: 'На знімку {а}, а не {б}.', openOther: 'Відкрити сканер {а}',
+    kinds: { qr: 'QR-код', bar: 'штрихкод', datamatrix: 'Data Matrix', pdf417: 'PDF417', aztec: 'Aztec' },
     liveHint: 'Наведіть код у рамку й натисніть кнопку знімка', looking: 'Шукаю код…',
     notShot: 'На цьому знімку коду не видно. Наведіть ближче й рівніше та зніміть ще раз.',
     slowCam: 'У цього браузера немає власного розпізнавача таких кодів — читаємо запаскою, тому повільніше. Якщо з камери не виходить, зніміть код і завантажте файл.',
@@ -63,6 +67,8 @@ const ОБЩЕЕ = {
     start: 'Turn on', upload: 'or upload a file', result: 'Result',
     askCam: 'Please allow camera access in the browser — without it there is nothing to scan with.',
     clear: 'Clear', shot: 'Capture', retry: 'Capture again',
+    notOurs: 'This shot has {а} on it, not {б}.', openOther: 'Open the {а} scanner',
+    kinds: { qr: 'a QR code', bar: 'a barcode', datamatrix: 'Data Matrix', pdf417: 'PDF417', aztec: 'Aztec' },
     liveHint: 'Line the code up inside the frame and press the shutter', looking: 'Looking for a code…',
     notShot: 'No code is visible in this shot. Get closer and straighter and capture again.',
     slowCam: 'This browser has no built-in reader for codes of this kind — we fall back to our own, so it is slower. If the camera will not catch it, photograph the code and upload the file.',
@@ -80,6 +86,8 @@ const ОБЩЕЕ = {
     start: 'Encender', upload: 'o subir un archivo', result: 'Resultado',
     askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay con qué escanear.',
     clear: 'Quitar', shot: 'Capturar', retry: 'Capturar otra vez',
+    notOurs: 'En la imagen hay {а}, no {б}.', openOther: 'Abrir el escáner de {а}',
+    kinds: { qr: 'un código QR', bar: 'un código de barras', datamatrix: 'Data Matrix', pdf417: 'PDF417', aztec: 'Aztec' },
     liveHint: 'Encuadre el código y pulse el disparador', looking: 'Buscando el código…',
     notShot: 'No se ve ningún código en esta captura. Acérquese, enderece y capture otra vez.',
     slowCam: 'Este navegador no tiene lector propio para estos códigos: usamos el nuestro de reserva, por eso va más lento. Si la cámara no lo coge, fotografíe el código y suba el archivo.',
@@ -230,7 +238,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
 <script>
   import { прочитатьКадр, прочитатьСнимок, умеетВид } from '../lib/code-read.js';
   import { разобратьGS1 } from '../lib/gs1.js';
-  import { пикнуть } from '../lib/beep.js';
+  import { пикнуть, подготовитьЗвук, состояниеЗвука } from '../lib/beep.js';
 
   const корень = document.querySelector('.кс');
   if (корень) (() => {
@@ -366,13 +374,75 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       место.insertAdjacentHTML('beforeend', ' ' + ссылка);
     }
 
+    /**
+     * Кадр из камеры -- РОВНО ТО, ЧТО ВИДНО В ОКНЕ, а не весь кадр камеры.
+     *
+     * Владелец: «я снимаю на весь выделенный экран, а снимок показывает всё фото целиком».
+     * Так и было: живую картинку окно показывает обрезанной по себе (object-fit: cover), а
+     * снимок брался полным кадром камеры -- шире и с полями. Человек наводил по одному, а
+     * получал другое, и разбор шёл по тому, чего он не видел.
+     *
+     * Поэтому вырезаем из кадра ту самую часть, что попала в окно: считаем её по соотношению
+     * сторон окна и кадра -- точно так же, как это делает браузер при cover.
+     */
+
+    // ЕСЛИ КОД НЕ НАШ -- СКАЗАТЬ, КАКОЙ ЭТО, И КУДА ИДТИ.
+    // Владелец: «я фоткаю штрихкод, а он не сообщает мне, что это не тот код». Так и было:
+    // мы искали ровно свой вид и молчали «кода не видно», хотя код на снимке есть. Человек
+    // при этом уверен, что снимает правильно, и винит страницу. Теперь после промаха смотрим
+    // кадр ещё раз, уже на ВСЕ виды, и если что-то нашлось -- называем вид и даём ссылку на
+    // нужный сканер.
+    const СТРАНИЦЫ = { qr: 'qr-scan', bar: 'barcode-scan', datamatrix: 'datamatrix-scan',
+      pdf417: 'pdf417-scan', aztec: 'aztec-scan' };
+
+    function видПоФормату(формат) {
+      const ф = String(формат || '').toLowerCase();
+      if (ф === 'qr_code') return 'qr';
+      if (ф === 'data_matrix') return 'datamatrix';
+      if (ф === 'pdf417' || ф === 'pdf_417') return 'pdf417';
+      if (ф === 'aztec') return 'aztec';
+      return 'bar';
+    }
+
+    /** Показать «это другой код» со ссылкой. Возвращает true, если чужой код нашёлся. */
+    async function чужойКод(картинка, точки) {
+      let найдено = null;
+      try {
+        найдено = точки
+          ? await прочитатьКадр({ источник: картинка, точки, нужно: 'оба', снимок: true })
+          : await прочитатьСнимок({ картинка, нужно: 'оба' });
+      } catch (е) { найдено = null; }
+      if (!найдено || !найдено.текст) return false;
+      const чужой = видПоФормату(найдено.формат);
+      if (чужой === вид) return false;               // тот же вид -- значит просто не дочитали
+      const имяЧужого = с.kinds[чужой] || чужой;
+      const имяНашего = с.kinds[вид] || вид;
+      const адрес = `/${язык}/${СТРАНИЦЫ[чужой]}`;
+      беда(с.notOurs.replace('{а}', имяЧужого).replace('{б}', имяНашего)
+        + ` <a class="кс-ссылка" href="${адрес}">`
+        + с.openOther.replace('{а}', имяЧужого) + '</a>');
+      return true;
+    }
+
     function кадрВКартинку() {
+      const кВ = видео.videoWidth, кВыс = видео.videoHeight;
+      const р = окно.getBoundingClientRect();
+      const к_окна = р.width / р.height;
+      const к_кадра = кВ / кВыс;
+      let ш = кВ, в = кВыс, сдвигХ = 0, сдвигY = 0;
+      if (к_кадра > к_окна) {           // кадр шире окна -- режем по бокам
+        ш = Math.round(кВыс * к_окна);
+        сдвигХ = Math.round((кВ - ш) / 2);
+      } else {                           // кадр выше окна -- режем сверху и снизу
+        в = Math.round(кВ / к_окна);
+        сдвигY = Math.round((кВыс - в) / 2);
+      }
       const х = document.createElement('canvas');
-      х.width = видео.videoWidth;
-      х.height = видео.videoHeight;
+      х.width = ш;
+      х.height = в;
       const к = х.getContext('2d', { willReadFrequently: true });
-      к.drawImage(видео, 0, 0);
-      return { холст: х, точки: к.getImageData(0, 0, х.width, х.height) };
+      к.drawImage(видео, сдвигХ, сдвигY, ш, в, 0, 0, ш, в);
+      return { холст: х, точки: к.getImageData(0, 0, ш, в) };
     }
 
     // ---- Камера ------------------------------------------------------------------------------
@@ -445,6 +515,10 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       // одно поведение.
       if (снимок.src && снимок.src.startsWith('blob:')) URL.revokeObjectURL(снимок.src);
       снимок.src = холст.toDataURL('image/jpeg', 0.92);
+      // Кадр уже обрезан по окну, поэтому показываем его во всю площадь -- ровно так же, как
+      // он выглядел живым. Загруженный файл, наоборот, вписывается целиком: его мы не
+      // наводили и обрезать не вправе.
+      снимок.classList.add('снят');
       снимок.hidden = false;
       видео.hidden = true;
       // Камеру гасим сразу: кадр уже снят, держать её включённой незачем -- и лампочка
@@ -452,6 +526,9 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
 
+      // Секунда до луча: человек должен успеть увидеть, ЧТО он снял, прежде чем по кадру
+      // побежит линия. Без паузы кадр и луч появляются одновременно, и кадр не читается.
+      await new Promise((г) => setTimeout(г, 1000));
       окно.classList.add('ищет');
       const разбор = (async () => {
         try {
@@ -471,9 +548,14 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       }
       // Не нашлось -- говорим об этом и предлагаем переснять. Камеру сами не возвращаем:
       // кадр остаётся на виду, и человеку видно, ЧТО именно не прочиталось.
-      намёк.hidden = false;
-      намёк.textContent = с.notShot;
+      намёк.hidden = true;
       переснять.hidden = false;
+      // Сначала выясняем, не чужой ли это код: «снимите ровнее» человеку бесполезно, если
+      // он снял правильно, просто не тот вид.
+      if (!(await чужойКод(холст, точки))) {
+        намёк.hidden = false;
+        намёк.textContent = с.notShot;
+      }
     }
 
     function выключить() {
@@ -511,9 +593,11 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     }
 
     // Нажатие по окну, когда камера работает, её выключает: отдельной кнопки для этого нет.
-    $('кс-пуск').addEventListener('click', (е) => { е.stopPropagation(); включить(); });
+    // Звук заводим ИМЕННО В ЖЕСТЕ: контекст, созданный позже, остаётся спящим и играет
+    // молча -- отчего сигнала и не было слышно.
+    $('кс-пуск').addEventListener('click', (е) => { е.stopPropagation(); подготовитьЗвук(); включить(); });
     крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
-    затвор.addEventListener('click', (е) => { е.stopPropagation(); снятьКадр(); });
+    затвор.addEventListener('click', (е) => { е.stopPropagation(); подготовитьЗвук(); снятьКадр(); });
     переснять.addEventListener('click', (е) => {
       е.stopPropagation();
       ответ.innerHTML = '';
@@ -523,7 +607,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     window.addEventListener('pagehide', выключить);
 
     // ---- Снимок ------------------------------------------------------------------------------
-    $('кс-загрузить').addEventListener('click', (е) => { е.stopPropagation(); поле.click(); });
+    $('кс-загрузить').addEventListener('click', (е) => { е.stopPropagation(); подготовитьЗвук(); поле.click(); });
     поле.addEventListener('change', () => { if (поле.files && поле.files[0]) взятьФайл(поле.files[0]); });
     окно.addEventListener('dragover', (е) => е.preventDefault());
     окно.addEventListener('drop', (е) => {
@@ -545,17 +629,18 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       const адрес = URL.createObjectURL(файл);
       снимок.onload = async () => {
         // Луч идёт и по загруженному снимку: то же движение, что при съёмке камерой.
+        // Секунда до него -- чтобы человек успел увидеть саму картинку.
+        await new Promise((г) => setTimeout(г, 1000));
         окно.classList.add('ищет');
-        // Даём кадру отрисоваться, иначе луч мелькнёт уже после ответа.
-        await new Promise((г) => setTimeout(г, 260));
         let найдено = null;
         try { найдено = await прочитатьСнимок({ картинка: снимок, нужно: вид }); } catch (е) {}
         окно.classList.remove('ищет');
         убратьХод(!!(найдено && найдено.текст));
         if (найдено && найдено.текст) показать(найдено.текст);
-        else беда(с.notFound);
+        else if (!(await чужойКод(снимок))) беда(с.notFound);
       };
       снимок.onerror = () => { окно.classList.remove('ищет'); убратьХод(false); беда(с.notFound); };
+      снимок.classList.remove('снят');
       снимок.src = адрес;
       снимок.hidden = false;
       центр.hidden = true;
@@ -572,6 +657,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       камераИдёт: !!поток,
       затворВиден: !затвор.hidden,
       переснятьВиден: !переснять.hidden,
+      звук: состояниеЗвука(),
       ответ: ответ.textContent.trim().slice(0, 200),
       беда: бедаЭ.textContent.trim().slice(0, 120),
       естьТекст: !!document.getElementById('кс-текст'),
