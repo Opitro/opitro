@@ -53,24 +53,25 @@
 .кс-окно video[hidden], .кс-окно img[hidden] { display: none }
 
 /* Точка нажатия: значок с надписью и ссылка под ним. Всё по центру, в столбик. */
-.кс-центр { position: relative; display: flex; flex-direction: column; align-items: center;
-  gap: 8px; text-align: center; padding: 0 16px }
-/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этой
-   строки спрятанная надпись остаётся на виду и просвечивает сквозь снимок. Ловушка повторная,
-   уже ловила меня на озвучке -- и поймала здесь снова. */
+/* ДВА ВЫБОРА В ЦЕНТРЕ ОКНА: камера и файл. Равные плитки, значок и подпись под ним --
+   по виду сразу ясно, что это две кнопки, а не надпись со ссылкой под ней. Прежде
+   «Включить» и «или загрузить файл» стояли вплотную и читались как одна надпись. */
+.кс-центр { position: relative; display: flex; align-items: stretch; justify-content: center;
+  gap: 14px; padding: 0 16px }
+/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]. */
 .кс-центр[hidden] { display: none }
-/* ЗНАЧОК КРУПНЫЙ, А ПОДПИСИ ЧЁТКИЕ. Первый вид владелец забраковал: значок был размером с
-   букву, а серая ссылка на двенадцати пикселях едва читалась. Значок теперь сорок пикселей и
-   стоит НАД надписью -- в столбик, как единая точка нажатия; подписи подняты в кегле и в
-   яркости. Приглушённых надписей на сайте нет: мелкое делаем тонким, а не бледным. */
-.кс-пуск {
+.кс-выбор {
+  width: 118px; padding: 16px 10px 14px; cursor: pointer; border-radius: 8px;
   display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
-  padding: 0; cursor: pointer; background: none; border: 0; color: #fff;
-  font: 400 17px var(--мон);
+  background: rgba(255,255,255,.04); border: 1px solid #3a3a42; color: #fff;
+  font: 400 13px var(--мон);
+  transition: border-color .15s, background .15s, transform .12s;
 }
-.кс-пуск:hover { text-decoration: underline }
-.кс-пуск svg { width: 40px; height: 40px; display: block; fill: none; stroke: currentColor;
+.кс-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
+.кс-выбор:focus-visible { outline: 2px solid #4ade9e; outline-offset: 2px }
+.кс-выбор svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
+
 .кс-ссылка {
   background: none; border: 0; padding: 0; cursor: pointer;
   font: 400 13.5px var(--мон); color: #d4d4d8; text-decoration: underline;
