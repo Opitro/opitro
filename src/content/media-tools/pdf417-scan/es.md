@@ -11,6 +11,8 @@ description: "Lea códigos PDF417 con la cámara o desde una imagen, gratis y si
 faq:
   - question: "¿Dónde aparecen los códigos PDF417?"
     answer: "Es una banda ancha de barras pequeñas apiladas en varias filas. Va en permisos de conducir, tarjetas de embarque, pases, tarjetas de seguro y algunos documentos de identidad: donde hay que meter todo un formulario y no un solo número."
+  - question: "¿Cómo es un código PDF417?"
+    answer: "Es una banda ancha de barras cortas apiladas en varias filas, como un montón de códigos de barras. Se imprime en tarjetas de embarque, permisos de conducir y albaranes: guarda una línea entera de datos, no un solo número. ![Ejemplo de código PDF417: una banda ancha de filas de barras con la dirección opitro.com](/i/pdf417-code-example.png =315x68) En este ejemplo está escrita la dirección opitro.com: apunte la cámara a la imagen y la página lo leerá."
   - question: "¿Qué hay escrito dentro?"
     answer: "Texto, a veces largo: un permiso lleva campos definidos por el país; una tarjeta de embarque, el vuelo, el asiento y la clase. Mostramos el contenido tal cual y no adivinamos nada."
   - question: "¿Es seguro escanear un documento?"

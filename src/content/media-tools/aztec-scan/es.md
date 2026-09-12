@@ -11,6 +11,8 @@ description: "Lea códigos Aztec con la cámara o desde una imagen, gratis y sin
 faq:
   - question: "¿Dónde aparecen los códigos Aztec?"
     answer: "En billetes: ferroviarios europeos, de avión y abonos electrónicos. Se reconoce fácil: es un cuadrado con una diana en el centro, sin los grandes cuadrados de las esquinas que tiene un QR."
+  - question: "¿Cómo es un código Aztec?"
+    answer: "Es un cuadrado con una diana bien visible en el centro: así se reconoce. El código QR lleva sus cuadrados de referencia en las esquinas; el Aztec tiene uno en el medio y no necesita marco alrededor. ![Ejemplo de código Aztec: un cuadrado con una diana en el centro y la dirección opitro.com](/i/aztec-code-example.png =156x156) En este ejemplo está escrita la dirección opitro.com: apunte la cámara a la imagen y la página lo leerá."
   - question: "¿En qué se diferencia de un código QR?"
     answer: "En el dibujo y en el origen. El QR tiene tres cuadrados grandes en las esquinas; el Aztec, anillos de diana en el centro, y no necesita margen vacío alrededor, así que ocupa menos sitio en un billete."
   - question: "¿Qué hay escrito en el billete?"

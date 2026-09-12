@@ -11,6 +11,8 @@ description: "Read Aztec codes with the camera or from a picture — free and wi
 faq:
   - question: "Where do Aztec codes appear?"
     answer: "On tickets: European rail, airline, and electronic travel passes. It is easy to recognise — a square with a bullseye in the middle and none of the big corner squares a QR code has."
+  - question: "What does an Aztec code look like?"
+    answer: "It is a square with a clear bullseye right in the middle — that is how you recognise it. A QR code has its finder squares in the corners; Aztec has one in the centre and needs no quiet frame around it. ![Example of an Aztec code: a square with a bullseye in the centre holding the address opitro.com](/i/aztec-code-example.png =156x156) This example holds the address opitro.com — point the camera at the picture and the page will read it."
   - question: "How is Aztec different from a QR code?"
     answer: "In the pattern and the origin. QR has three big squares in the corners; Aztec has bullseye rings in the centre and needs no empty margin around it, so it takes less room on a ticket. The contents of both are simply text."
   - question: "What is written on a ticket?"

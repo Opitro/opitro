@@ -151,11 +151,30 @@ const relatedLabel = translate(entry.data.locale, 'relatedLabel');
 // the link syntax into a real anchor -- the escaping is what makes set:html safe below.
 const escapeHtml = (s) =>
   String(s).replace(/&/g, '&amp;').replace(/</g, '&lt;').replace(/>/g, '&gt;').replace(/"/g, '&quot;');
+// Картинка в ответе пишется как ![подпись](/i/файл.png =ШИРИНАxВЫСОТА) -- размер обязателен,
+// и это не придирка: без него место под картинку не занято заранее, и страница дёргается,
+// когда та загрузится. Ширину и высоту берём ДЛЯ ПОКАЗА (файлы вдвое крупнее, чтобы на
+// хороших экранах оставаться резкими) -- их печатает scripts/make-code-images.mjs.
+// Разбираем ДО ссылок: у картинки та же запись, только с восклицательным знаком впереди.
+const РИСУНОК = /!\[([^\]]*)\]\(([^)\s]+) =(\d+)x(\d+)\)/g;
 const answerHtml = (s) =>
-  escapeHtml(s).replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => `<a href="${href}">${label}</a>`);
+  escapeHtml(s)
+    .replace(РИСУНОК, (_, подпись, адрес, ш, в) =>
+      // Внутри ответа живёт <p>, поэтому блоками стоят строчные элементы: <figure> здесь
+      // порвал бы абзац, и браузер разложил бы разметку по-своему.
+      // Подписи под картинкой нет нарочно: она повторяла бы фразу, которая идёт следом.
+      // Описание живёт в alt -- его читает поиск по картинкам и человек с озвучкой экрана.
+      `<span class="faq-shot"><img src="${адрес}" alt="${подпись}" width="${ш}" height="${в}"`
+      + ` loading="lazy" decoding="async"></span>`)
+    .replace(/\[([^\]]+)\]\(([^)\s]+)\)/g, (_, label, href) => `<a href="${href}">${label}</a>`);
 // Google gets the prose without the link syntax -- the markup would otherwise show up in the
-// rich result as literal brackets.
-const answerText = (s) => String(s).replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
+// rich result as literal brackets. Подпись картинки в ответ для поиска не идёт: она уже
+// сказана в alt, а в тексте ответа выглядела бы обрывком фразы.
+const answerText = (s) => String(s)
+  .replace(РИСУНОК, '')
+  .replace(/\[([^\]]+)\]\([^)]+\)/g, '$1')
+  .replace(/\s{2,}/g, ' ')
+  .trim();
 
 const faqJsonLd = {
   '@context': 'https://schema.org',

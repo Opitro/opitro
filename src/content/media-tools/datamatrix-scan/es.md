@@ -11,6 +11,8 @@ description: "Lea códigos Data Matrix con la cámara del móvil o desde una ima
 faq:
   - question: "¿Por qué necesita el sitio acceso a la cámara o a los archivos?"
     answer: "El acceso a la cámara sirve para leer el código en tiempo real. La subida de archivos permite reconocer un Data Matrix desde una foto o una captura guardada en su propio dispositivo. Ninguna de las dos se envía a ninguna parte."
+  - question: "¿Cómo es un código Data Matrix?"
+    answer: "Es un cuadrado de celdas negras pequeñas, normalmente del tamaño de una uña: dos lados con líneas continuas y los otros dos punteados. A diferencia del código QR, no tiene cuadrados grandes en las esquinas. ![Ejemplo de código Data Matrix: un cuadrado de celdas negras con la dirección opitro.com](/i/data-matrix-code-example.png =168x168) En este ejemplo está escrita la dirección opitro.com: apunte la cámara a la imagen y la página lo leerá."
   - question: "¿Es seguro escanear códigos de trazabilidad con esta interfaz?"
     answer: "Sí. La lectura, la decodificación y la salida ocurren localmente en su dispositivo: esta página no tiene servidor propio, así que no hay adónde subir la imagen. A la base abierta solo va el número de artículo, y solo si usted pulsa el botón: el número de serie, la fecha y el lote se quedan con usted."
   - question: "¿Dónde aparecen los códigos Data Matrix?"

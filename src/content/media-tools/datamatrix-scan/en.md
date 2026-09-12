@@ -11,6 +11,8 @@ description: "Free online Data Matrix barcode scanner. Instant browser-based 2D 
 faq:
   - question: "Why does the site need access to the camera or to files?"
     answer: "Camera access is needed to read the code in real time. File upload lets you recognise a Data Matrix from a photo or a screenshot stored on your own device. Neither is sent anywhere."
+  - question: "What does a Data Matrix code look like?"
+    answer: "It is a square of small black cells, usually the size of a fingernail: solid lines along two sides, a dotted edge along the other two. Unlike a QR code, it has no large squares in the corners. ![Example of a Data Matrix code: a square of black cells holding the address opitro.com](/i/data-matrix-code-example.png =168x168) This example holds the address opitro.com — point the camera at the picture and the page will read it."
   - question: "Is it safe to scan product traceability codes through this interface?"
     answer: "Yes. Reading, decoding and displaying happen locally on your device — this page has no backend of its own, so there is nowhere to upload the picture to. Only the item number goes to the open database, and only if you press the button yourself: the serial number, date and batch stay with you."
   - question: "Where do Data Matrix codes appear?"

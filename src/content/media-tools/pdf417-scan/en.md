@@ -11,6 +11,8 @@ description: "Read PDF417 codes with the camera or from a picture — free and w
 faq:
   - question: "Where do PDF417 codes appear?"
     answer: "It is a wide band of small bars stacked in several rows. It goes on driving licences, boarding passes, access cards, insurance cards and some ID documents — wherever a whole form has to fit into a code rather than a single number."
+  - question: "What does a PDF417 code look like?"
+    answer: "It is a wide band of short bars stacked in several rows — like a pile of barcodes. You find it on boarding passes, driving licences and shipping papers: it holds a whole line of details rather than a single number. ![Example of a PDF417 code: a wide band of stacked bar rows holding the address opitro.com](/i/pdf417-code-example.png =315x68) This example holds the address opitro.com — point the camera at the picture and the page will read it."
   - question: "What is written inside?"
     answer: "Text, sometimes long: a licence holds a set of fields defined by the country, a boarding pass holds the flight, seat and class. We show the contents as they are and guess nothing — the layout differs by country and by airline."
   - question: "Is it safe to scan a document?"
