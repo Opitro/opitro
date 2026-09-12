@@ -95,6 +95,8 @@
 .рч-ход { justify-self: center; display: inline-flex; align-items: center; gap: 8px;
   color: #fff; white-space: nowrap; visibility: hidden }
 .рч-ход.идёт { visibility: visible }
+/* Число -- зелёным: белым оно сливалось с подписью, а смотрят именно на него. */
+.рч-ход b { color: var(--accent); font-weight: 600; font-variant-numeric: tabular-nums }
 .рч-круг {
   width: 13px; height: 13px; flex: none; border-radius: 50%;
   border: 2px solid rgba(255,255,255,.22); border-top-color: var(--accent);
@@ -320,6 +322,4 @@
      шириной, и попасть в неё нельзя. */
   .рч-трек-ряд { flex-wrap: wrap }
   .рч-бег { order: 3; flex: 1 1 100% }
-  .рч-трек-низ { flex-wrap: wrap }
-  .рч-трек-что { flex: 1 1 100% }
 }
