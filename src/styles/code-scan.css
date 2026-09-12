@@ -107,6 +107,42 @@
 .кс-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
+/* ЗАТВОР И ЛУЧ -- ТАК ЖЕ, КАК НА СКАНЕРЕ ШТРИХКОДОВ. Владелец: «навёл камеру, сфоткал,
+   пошла сканирующая лазерная стрелочка -- результат». Порядок именно такой и на соседней
+   странице; своя выдумка (непрерывный поиск без затвора) была бы третьим поведением на
+   четырёх сканерах одного сайта. Разметка своя, а вид и повадки взяты оттуда.  */
+.кс-затвор-ряд { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 2;
+  display: flex; justify-content: center }
+.кс-затвор {
+  width: 58px; height: 58px; border-radius: 50%; cursor: pointer; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  background: rgba(0,0,0,.35); border: 2px solid rgba(255,255,255,.9);
+}
+.кс-затвор i { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: block }
+.кс-затвор:hover i { background: #e9ecef }
+.кс-затвор[hidden] { display: none }
+
+/* Луч: идёт сверху вниз, пока разбирается снимок; за ним светящийся шлейф. */
+.кс-луч { position: absolute; left: 0; right: 0; height: 96px; pointer-events: none; opacity: 0;
+  background: linear-gradient(to bottom, rgba(80,255,170,0) 0%, rgba(80,255,170,.16) 62%,
+    rgba(80,255,170,.85) 96%, rgba(255,255,255,.95) 100%);
+  box-shadow: 0 2px 14px rgba(80,255,170,.55) }
+.кс-окно.ищет .кс-луч { animation: кс-бег 1.5s cubic-bezier(.5,0,.5,1) infinite }
+@keyframes кс-бег {
+  0%   { top: -96px; opacity: 0 }
+  12%  { opacity: 1 }
+  88%  { opacity: 1 }
+  100% { top: 100%; opacity: 0 }
+}
+/* Пока идёт разбор, прицел гаснет: он подсказка для наводки, а наводить уже нечего. */
+.кс-окно.ищет .кс-прицел { opacity: .25 }
+
+/* Подсказка поверх кадра: что делать дальше. Прижата к верху, чтобы не спорить с затвором. */
+.кс-намёк { position: absolute; left: 0; right: 0; top: 10px; z-index: 2; text-align: center;
+  font: 400 13px var(--мон); color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.9);
+  padding: 0 44px }
+.кс-намёк[hidden] { display: none }
+
 /* Тонкая линия хода по нижнему краю окна: пока поднимается камера или разбирается снимок.
    Один пиксель и чистый белый -- больше ничего не нужно, чтобы показать, что работа идёт. */
 .кс-ход { position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: #fff;

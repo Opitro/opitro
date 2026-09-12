@@ -28,7 +28,9 @@ const ОБЩЕЕ = {
   ru: {
     start: 'Включить', upload: 'или загрузить файл', result: 'Результат',
     askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него сканировать нечем.',
-    clear: 'Убрать',
+    clear: 'Убрать', shot: 'Снять код', retry: 'Снять ещё',
+    liveHint: 'Наведите код в рамку и нажмите кнопку снимка', looking: 'Ищу код…',
+    notShot: 'На этом снимке кода не видно. Наведите ближе и ровнее и снимите ещё раз.',
     slowCam: 'У этого браузера нет своего распознавателя таких кодов — читаем запаской, поэтому медленнее. Если с камеры не выходит, снимите код и загрузите файл.',
     base: 'Посмотреть в открытой базе', baseWait: 'Смотрю…', product: 'Товар',
     baseNone: 'В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.',
@@ -43,7 +45,9 @@ const ОБЩЕЕ = {
   uk: {
     start: 'Увімкнути', upload: 'або завантажити файл', result: 'Результат',
     askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього сканувати нічим.',
-    clear: 'Прибрати',
+    clear: 'Прибрати', shot: 'Зняти код', retry: 'Зняти ще',
+    liveHint: 'Наведіть код у рамку й натисніть кнопку знімка', looking: 'Шукаю код…',
+    notShot: 'На цьому знімку коду не видно. Наведіть ближче й рівніше та зніміть ще раз.',
     slowCam: 'У цього браузера немає власного розпізнавача таких кодів — читаємо запаскою, тому повільніше. Якщо з камери не виходить, зніміть код і завантажте файл.',
     base: 'Подивитися у відкритій базі', baseWait: 'Дивлюся…', product: 'Товар',
     baseNone: 'У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.',
@@ -58,7 +62,9 @@ const ОБЩЕЕ = {
   en: {
     start: 'Turn on', upload: 'or upload a file', result: 'Result',
     askCam: 'Please allow camera access in the browser — without it there is nothing to scan with.',
-    clear: 'Clear',
+    clear: 'Clear', shot: 'Capture', retry: 'Capture again',
+    liveHint: 'Line the code up inside the frame and press the shutter', looking: 'Looking for a code…',
+    notShot: 'No code is visible in this shot. Get closer and straighter and capture again.',
     slowCam: 'This browser has no built-in reader for codes of this kind — we fall back to our own, so it is slower. If the camera will not catch it, photograph the code and upload the file.',
     base: 'Look it up in the open database', baseWait: 'Looking…', product: 'Product',
     baseNone: 'This product is not in the open database. People fill it in themselves, and it is mostly food.',
@@ -73,7 +79,9 @@ const ОБЩЕЕ = {
   es: {
     start: 'Encender', upload: 'o subir un archivo', result: 'Resultado',
     askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay con qué escanear.',
-    clear: 'Quitar',
+    clear: 'Quitar', shot: 'Capturar', retry: 'Capturar otra vez',
+    liveHint: 'Encuadre el código y pulse el disparador', looking: 'Buscando el código…',
+    notShot: 'No se ve ningún código en esta captura. Acérquese, enderece y capture otra vez.',
     slowCam: 'Este navegador no tiene lector propio para estos códigos: usamos el nuestro de reserva, por eso va más lento. Si la cámara no lo coge, fotografíe el código y suba el archivo.',
     base: 'Ver en la base abierta', baseWait: 'Consultando…', product: 'Producto',
     baseNone: 'Este producto no está en la base abierta. La rellenan las personas y contiene sobre todo alimentos.',
@@ -198,6 +206,10 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
             title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
     </button>
+    <span class="кс-намёк" id="кс-намёк" hidden></span>
+    <span class="кс-луч" id="кс-луч"></span>
+    <span class="кс-затвор-ряд"><button type="button" class="кс-затвор" id="кс-затвор" hidden
+            title={с.shot} aria-label={с.shot}><i></i></button></span>
     <span class="кс-ход" id="кс-ход"></span>
   </div>
   <input type="file" class="кс-файл" id="кс-файл" accept="image/*" />
@@ -230,12 +242,13 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     const ход = $('кс-ход');
     const прицел = $('кс-прицел');
     const крест = $('кс-крест');
+    const затвор = $('кс-затвор');
+    const намёк = $('кс-намёк');
     const поле = $('кс-файл');
     const ответ = $('кс-ответ');
     const бедаЭ = $('кс-беда');
 
     let поток = null;
-    let ищем = false;
     let родной = true;        // умеет ли сам браузер читать этот вид кодов
     let часы = 0;
 
@@ -392,16 +405,44 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       крест.hidden = false;
       await видео.play().catch(() => {});
       убратьХод(true);
-      ищем = true;
-      искать();
+      // САМИ НЕ ИЩЕМ. Порядок тот же, что на сканере штрихкодов: навёл, нажал затвор, пошёл
+      // луч, получил ответ. Непрерывный поиск без затвора был моей выдумкой и давал третье
+      // поведение на четырёх сканерах одного сайта.
+      затвор.hidden = false;
+      намёк.hidden = false;
+      намёк.textContent = с.liveHint;
+    }
+
+    /** Снять кадр и разобрать его: под лучом, как на соседней странице. */
+    async function снятьКадр() {
+      if (!поток || !видео.videoWidth) return;
+      затвор.hidden = true;
+      намёк.textContent = с.looking;
+      окно.classList.add('ищет');
+      const { холст, точки } = кадрВКартинку();
+      let найдено = null;
+      try {
+        // Снимок разрешает тяжёлую запаску и повороты -- один кадр это выдержит.
+        найдено = await прочитатьКадр({ источник: холст, точки, нужно: вид, снимок: true });
+      } catch (е) {}
+      окно.classList.remove('ищет');
+      if (найдено && найдено.текст) {
+        показать(найдено.текст);
+        выключить();
+        return;
+      }
+      намёк.textContent = с.notShot;
+      затвор.hidden = false;
     }
 
     function выключить() {
-      ищем = false;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
       видео.hidden = true;
       прицел.hidden = true;
+      затвор.hidden = true;
+      намёк.hidden = true;
+      окно.classList.remove('ищет');
       // Точку нажатия возвращаем только если в окне ничего не осталось: поверх снимка она
       // просвечивала бы и мешала смотреть на то, что прочитано.
       центр.hidden = !снимок.hidden;
@@ -410,7 +451,6 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
 
     /** Убрать всё: камеру погасить, снимок и ответ убрать, окно вернуть в исходное. */
     function очистить() {
-      ищем = false;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
       видео.hidden = true;
@@ -418,6 +458,9 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       снимок.removeAttribute('src');
       снимок.hidden = true;
       прицел.hidden = true;
+      затвор.hidden = true;
+      намёк.hidden = true;
+      окно.classList.remove('ищет');
       крест.hidden = true;
       центр.hidden = false;
       ответ.innerHTML = '';
@@ -425,35 +468,10 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       поле.value = '';
     }
 
-    async function искать() {
-      if (!ищем || !поток) return;
-      if (видео.videoWidth) {
-        const { холст, точки } = кадрВКартинку();
-        let найдено = null;
-        try {
-          // Без своего распознавателя разрешаем запаску (снимок: true) -- иначе читать нечем.
-          найдено = await прочитатьКадр({ источник: холст, точки, нужно: вид, снимок: !родной });
-        } catch (е) {}
-        if (найдено && найдено.текст) {
-          показать(найдено.текст);
-          выключить();          // прочитали -- камеру гасим: своё дело она сделала
-          return;
-        }
-      }
-      // Запаска тяжелее втрое, поэтому на ней смотрим кадры реже: иначе телефон греется,
-      // а кадры всё равно не успевают разобраться.
-      setTimeout(искать, родной ? 250 : 800);
-    }
-
     // Нажатие по окну, когда камера работает, её выключает: отдельной кнопки для этого нет.
-    окно.addEventListener('click', (е) => {
-      if (!поток) return;
-      if (е.target.closest('.кс-копи')) return;
-      выключить();
-    });
-    окно.title = '';
     $('кс-пуск').addEventListener('click', (е) => { е.stopPropagation(); включить(); });
     крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
+    затвор.addEventListener('click', (е) => { е.stopPropagation(); снятьКадр(); });
     window.addEventListener('pagehide', выключить);
 
     // ---- Снимок ------------------------------------------------------------------------------
@@ -494,7 +512,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     window.__ксСостояние = () => ({
       вид,
       камераИдёт: !!поток,
-      ищем,
+      затворВиден: !затвор.hidden,
       ответ: ответ.textContent.trim().slice(0, 200),
       беда: бедаЭ.textContent.trim().slice(0, 120),
       естьТекст: !!document.getElementById('кс-текст'),
