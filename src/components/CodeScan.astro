@@ -29,6 +29,7 @@ const ОБЩЕЕ = {
     start: 'Включить', upload: 'или загрузить файл', result: 'Результат',
     askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него сканировать нечем.',
     clear: 'Убрать',
+    slowCam: 'У этого браузера нет своего распознавателя таких кодов — читаем запаской, поэтому медленнее. Если с камеры не выходит, снимите код и загрузите файл.',
     base: 'Посмотреть в открытой базе', baseWait: 'Смотрю…', product: 'Товар',
     baseNone: 'В открытой базе этого товара нет. Её собирают люди, и в ней в основном еда.',
     baseFail: 'Не получилось спросить базу — похоже, нет связи. Попробуйте ещё раз.',
@@ -43,6 +44,7 @@ const ОБЩЕЕ = {
     start: 'Увімкнути', upload: 'або завантажити файл', result: 'Результат',
     askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього сканувати нічим.',
     clear: 'Прибрати',
+    slowCam: 'У цього браузера немає власного розпізнавача таких кодів — читаємо запаскою, тому повільніше. Якщо з камери не виходить, зніміть код і завантажте файл.',
     base: 'Подивитися у відкритій базі', baseWait: 'Дивлюся…', product: 'Товар',
     baseNone: 'У відкритій базі цього товару немає. Її збирають люди, і в ній переважно їжа.',
     baseFail: 'Не вдалося запитати базу — схоже, немає звʼязку. Спробуйте ще раз.',
@@ -57,6 +59,7 @@ const ОБЩЕЕ = {
     start: 'Turn on', upload: 'or upload a file', result: 'Result',
     askCam: 'Please allow camera access in the browser — without it there is nothing to scan with.',
     clear: 'Clear',
+    slowCam: 'This browser has no built-in reader for codes of this kind — we fall back to our own, so it is slower. If the camera will not catch it, photograph the code and upload the file.',
     base: 'Look it up in the open database', baseWait: 'Looking…', product: 'Product',
     baseNone: 'This product is not in the open database. People fill it in themselves, and it is mostly food.',
     baseFail: 'Could not reach the database — looks like there is no connection. Try again.',
@@ -71,6 +74,7 @@ const ОБЩЕЕ = {
     start: 'Encender', upload: 'o subir un archivo', result: 'Resultado',
     askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay con qué escanear.',
     clear: 'Quitar',
+    slowCam: 'Este navegador no tiene lector propio para estos códigos: usamos el nuestro de reserva, por eso va más lento. Si la cámara no lo coge, fotografíe el código y suba el archivo.',
     base: 'Ver en la base abierta', baseWait: 'Consultando…', product: 'Producto',
     baseNone: 'Este producto no está en la base abierta. La rellenan las personas y contiene sobre todo alimentos.',
     baseFail: 'No se pudo consultar la base: parece que no hay conexión. Inténtelo de nuevo.',
@@ -232,6 +236,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
 
     let поток = null;
     let ищем = false;
+    let родной = true;        // умеет ли сам браузер читать этот вид кодов
     let часы = 0;
 
     const ЗН_КОПИ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
@@ -354,7 +359,12 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     // виды кодов распознаватель ищет дольше, чем QR.
     async function включить() {
       беда('');
-      if (!(await умеетВид(вид))) { беда(с.noSupport); return; }
+      // КАМЕРУ ВКЛЮЧАЕМ ВСЕГДА. Раньше здесь стоял отказ: нет своего распознавателя у браузера
+      // (Safari, Firefox) -- и кнопка просто ничего не делала, только писала серую строку под
+      // окном. Владелец так и сказал: «с телефона камера не включается». Теперь читаем
+      // запаской: она тяжелее и медленнее, но работает везде, а отказ не работает нигде.
+      родной = await умеетВид(вид);
+      if (!родной) беда(с.slowCam);
       пуститьХод();
       // ПОДСКАЗКА О РАЗРЕШЕНИИ. Браузер показывает свой запрос вверху окна, и человек, впервые
       // попавший на страницу, часто его не замечает: он смотрит в центр, на окно сканера.
@@ -420,14 +430,19 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       if (видео.videoWidth) {
         const { холст, точки } = кадрВКартинку();
         let найдено = null;
-        try { найдено = await прочитатьКадр({ источник: холст, точки, нужно: вид }); } catch (е) {}
+        try {
+          // Без своего распознавателя разрешаем запаску (снимок: true) -- иначе читать нечем.
+          найдено = await прочитатьКадр({ источник: холст, точки, нужно: вид, снимок: !родной });
+        } catch (е) {}
         if (найдено && найдено.текст) {
           показать(найдено.текст);
           выключить();          // прочитали -- камеру гасим: своё дело она сделала
           return;
         }
       }
-      setTimeout(искать, 250);
+      // Запаска тяжелее втрое, поэтому на ней смотрим кадры реже: иначе телефон греется,
+      // а кадры всё равно не успевают разобраться.
+      setTimeout(искать, родной ? 250 : 800);
     }
 
     // Нажатие по окну, когда камера работает, её выключает: отдельной кнопки для этого нет.
@@ -474,7 +489,7 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     }
 
     // Умеет ли браузер читать этот вид -- говорим СРАЗУ, до разрешения на камеру.
-    умеетВид(вид).then((умеет) => { if (!умеет) беда(с.noSupport); });
+    умеетВид(вид).then((умеет) => { родной = умеет; if (!умеет) беда(с.slowCam); });
 
     window.__ксСостояние = () => ({
       вид,

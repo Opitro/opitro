@@ -10,7 +10,9 @@
 
 .кс {
   --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
-  --серый: #71717a;
+  /* Светлее, чем в первом наборе (#71717a): на чёрном фоне тот читался приглушённым, а
+     приглушённых надписей на сайте нет -- мелкое делаем тонким, а не бледным. */
+  --серый: #b4b4bb;
   --контур: #222;
   font-family: var(--мон);
 }
@@ -35,6 +37,12 @@
    страница его испортила, и непонятно, что именно она прочитала. */
 .кс-окно video { object-fit: cover }
 .кс-окно img { object-fit: contain; background: #000 }
+/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ. Правило display выше сильнее, чем display:none из таблицы
+   браузера для [hidden]: без этой строки пустая картинка с чёрной подложкой лежала ПОВЕРХ
+   камеры, и человек видел тёмный экран вместо кадра. Поток при этом шёл -- 1920x1080,
+   готовность 4, -- то есть по состоянию всё было исправно, а глазами работа не видна.
+   Ловушка та же, что я уже закрыл для надписи в центре, и наступил на неё снова. */
+.кс-окно video[hidden], .кс-окно img[hidden] { display: none }
 
 /* Точка нажатия: значок с надписью и ссылка под ним. Всё по центру, в столбик. */
 .кс-центр { position: relative; display: flex; flex-direction: column; align-items: center;
@@ -85,12 +93,16 @@
    в правом верхнем углу, подальше от точки нажатия в центре: нажать его по ошибке вместо
    пуска нельзя. */
 .кс-крест {
-  position: absolute; top: 6px; right: 6px; z-index: 2;
+  position: absolute; top: 8px; right: 8px; z-index: 2;
   width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
-  padding: 0; cursor: pointer; border: 0; border-radius: 3px;
-  background: rgba(0,0,0,.55); color: #a1a1aa; transition: color .15s, background .15s;
+  padding: 0; cursor: pointer; border-radius: 4px;
+  /* Обводка обязательна: на светлом кадре серый крестик без неё сливается с картинкой,
+     а на тёмном его вообще не видно. */
+  border: 1px solid rgba(255,255,255,.45);
+  background: rgba(0,0,0,.55); color: #e4e4e7;
+  transition: color .15s, background .15s, border-color .15s;
 }
-.кс-крест:hover { color: #fff; background: rgba(0,0,0,.8) }
+.кс-крест:hover { color: #fff; background: rgba(0,0,0,.85); border-color: #fff }
 .кс-крест[hidden] { display: none }
 .кс-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
@@ -106,7 +118,7 @@
 .кс-ответ { margin-top: 18px; border-top: 1px solid #18181b; border-bottom: 1px solid #18181b }
 .кс-ответ:empty { display: none }
 .кс-строка { display: flex; align-items: flex-start; gap: 14px; padding: 12px 2px }
-.кс-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: #a1a1aa;
+.кс-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: #b4b4bb;
   padding-top: 1px }
 .кс-знач { flex: 1 1 auto; min-width: 0; font: 400 13px/1.5 var(--мон); color: #fff;
   overflow-wrap: anywhere; white-space: pre-wrap }
@@ -123,7 +135,7 @@
 
 /* Беда и оговорки: тем же серым, без рамок и восклицаний. Красная плашка в начале страницы
    читается как «инструмент сломан» ещё до того, как человек прочитает текст. */
-.кс-беда { margin-top: 12px; font: 400 12.5px/1.6 var(--мон); color: var(--серый) }
+.кс-беда { margin-top: 12px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
 .кс-беда b { color: #fff; font-weight: 400 }
 
 .кс-файл { display: none }
@@ -131,7 +143,7 @@
 /* Заметки под инструментом -- тем же строем, что и весь сайт, но без точек-буллетов:
    в ультра-минимализме они лишний шум. */
 .кс-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 10px }
-.кс-заметка { font: 400 12.5px/1.6 var(--мон); color: var(--серый) }
+.кс-заметка { font: 400 13px/1.65 var(--мон); color: #c9c9d1 }
 .кс-заметка b { color: #fff; font-weight: 400 }
 
 @media (max-width: 560px) {
