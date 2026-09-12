@@ -117,19 +117,19 @@ const ПО_ВИДАМ = {
   datamatrix: {
     ru: ['<b>Квадратик из точек.</b> Им метят лекарства и товары в «Честном знаке», мелкие детали и платы — там, где места мало, а записать надо много.',
          '<b>Внутри обычно не одно число, а поля.</b> Номер товара, партия, дата изготовления, срок годности, серийный номер. Мы разбираем их по полям прямо здесь.',
-         '<b>Названия товара в коде нет.</b> Его знает только платная база производителей, и притворяться, что мы туда сходили, не будем.',
+         '<b>Названия товара в коде нет.</b> Его знает только платная база производителей.',
          '<b>В сеть уходит только номер товара</b> — и только если вы нажали «Посмотреть в открытой базе». Ни снимок, ни серийный номер не отправляются никогда.'],
     uk: ['<b>Квадратик із точок.</b> Ним мітять ліки й товари, дрібні деталі та плати — там, де місця мало, а записати треба багато.',
          '<b>Усередині зазвичай не одне число, а поля.</b> Номер товару, партія, дата виготовлення, термін придатності, серійний номер. Ми розбираємо їх за полями просто тут.',
-         '<b>Назви товару в коді немає.</b> Її знає лише платна база виробників, і вдавати, що ми туди сходили, не будемо.',
+         '<b>Назви товару в коді немає.</b> Її знає лише платна база виробників.',
          '<b>У мережу йде лише номер товару</b> — і тільки якщо ви натиснули «Подивитися у відкритій базі». Ні знімок, ні серійний номер не надсилаються ніколи.'],
     en: ['<b>A square made of dots.</b> It marks medicines and goods, small parts and circuit boards — wherever there is little room and a lot to record.',
          '<b>Inside there is usually not one number but fields.</b> Item number, batch, production date, expiry date, serial number. We break them down right here.',
-         '<b>The product name is not in the code.</b> Only the manufacturers’ paid database knows it, and we will not pretend we went there.',
+         '<b>The product name is not in the code.</b> Only the manufacturers’ paid database knows it.',
          '<b>Only the item number ever leaves your device</b> — and only if you press “Look it up in the open database”. The picture and the serial number are never sent.'],
     es: ['<b>Un cuadrado hecho de puntos.</b> Marca medicamentos y productos, piezas pequeñas y placas: donde hay poco sitio y mucho que registrar.',
          '<b>Dentro no suele haber un número, sino campos.</b> Número de artículo, lote, fecha de fabricación, caducidad, número de serie. Los desglosamos aquí mismo.',
-         '<b>El nombre del producto no está en el código.</b> Solo lo conoce la base de datos de pago de los fabricantes, y no vamos a fingir que hemos entrado.',
+         '<b>El nombre del producto no está en el código.</b> Solo lo conoce la base de datos de pago de los fabricantes.',
          '<b>Solo el número de artículo sale de su dispositivo</b>, y solo si pulsa «Ver en la base abierta». Ni la imagen ni el número de serie se envían nunca.'],
   },
   pdf417: {
@@ -280,10 +280,15 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     let поток = null;
     let родной = true;        // умеет ли сам браузер читать этот вид кодов
     let часы = 0;
+    let часыКопии = 0;
 
-    const ЗН_КОПИ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+    // Два рисунка в одной кнопке: лист и галочка. Удачное нажатие меняет один на другой --
+    // так же, как в остальных инструментах сайта. Владелец: «нажал на скопировать и зелёная
+    // галочка подтверждения, как в других инструментах, и всё, не надо текста».
+    const ЗН_КОПИ = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
       + '<rect x="9" y="9" width="11" height="11" rx="2"/>'
-      + '<path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>';
+      + '<path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>'
+      + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
 
     function беда(текст) { бедаЭ.innerHTML = текст || ''; }
 
@@ -391,7 +396,19 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       const номер = (поля || []).find((п) => п.имя === 'gtin');
       if (номер) добавитьБазу(номер.значение);
       $('кс-копи').addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(текст); беда(с.copied); setTimeout(() => беда(''), 1600); } catch (е) {}
+        try {
+          await navigator.clipboard.writeText(текст);
+          // Лист сменяется зелёной галочкой. Ни слова текста: слово занимало бы место в
+          // строке и толкало вниз всё, что ниже, -- владелец этот сдвиг и заметил.
+          const кнопка = $('кс-копи');
+          кнопка.classList.add('готово');
+          кнопка.setAttribute('aria-label', с.copied);
+          clearTimeout(часыКопии);
+          часыКопии = setTimeout(() => {
+            кнопка.classList.remove('готово');
+            кнопка.setAttribute('aria-label', с.copy);
+          }, 1500);
+        } catch (е) { /* буфер закрыт -- знак нажатия останется без ответа, и это не поломка */ }
       });
       мигнуть();
       // Звук обязателен, а не украшение: со сканером человек смотрит НА КОРОБКУ, а не на
