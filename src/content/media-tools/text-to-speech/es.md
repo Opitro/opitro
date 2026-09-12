@@ -10,43 +10,37 @@ summary: "Leer el texto en voz alta y descargarlo"
 description: "Convierte texto en voz dentro de tu navegador: tres modelos a elegir, descarga en MP3 o WAV. Tu texto no va a ninguna parte: el cálculo ocurre en tu propio dispositivo."
 faq:
   - question: "¿Es gratis? ¿Hace falta registrarse?"
-    answer: "Es gratis, funciona online y no hace falta registrarse: ni cuenta, ni pago, ni límite en el número de archivos. Sencillamente no hay nada que cobrar: la voz se calcula dentro de su navegador, en su dispositivo, sin servidores de pago detrás. El único límite son 5000 caracteres por vez, y es técnico: así se ve avanzar el trabajo en lugar de esperar a ciegas."
-  - question: ¿Qué modelo conviene elegir?
-    answer: "Fíjese en la tarea, no en el peso: no van juntos. Piper pesa 60–109 megabytes por voz (lo más habitual, 60–73) y trae voces para 50 idiomas; elíjalo si los datos le cuestan o el dispositivo es flojo. Kokoro pesa 93 megabytes y da la voz más viva, pero solo habla inglés. Supertonic pesa 380 megabytes y cubre 31 idiomas con un solo modelo; además es el único que lee cifras, fechas y abreviaturas sin preparación previa. Eso sí, no calcula más rápido que Piper: es bastante más lento, así que para velocidad vaya a Piper. El peso está escrito en la propia lista: son sus datos, y conviene saberlo antes de pulsar, no después."
-  - question: ¿Qué modelo calcula más rápido?
-    answer: "Piper, con diferencia: unos 11 segundos por cada mil caracteres en nuestra medición, frente a unos 74 de Supertonic. Kokoro es el más lento de los tres: 6,5 segundos frente a 2,6 de Supertonic en la misma frase. El peso no tiene nada que ver: el modelo más pesado gana al intermedio, y el más ligero gana a los dos. Elegir por megabytes es elegir a ciegas."
-  - question: ¿Adónde va mi texto?
-    answer: "A ninguna parte. Se procesa dentro de su navegador: sencillamente no hay adónde enviarlo, todo el cálculo ocurre en su dispositivo. No guardamos nada ni llevamos registros. Lo único que llega por la red es el propio modelo, una vez: después se queda con usted y la siguiente lectura empieza al instante, incluso sin internet."
-  - question: ¿Se puede descargar el audio en un iPhone?
-    answer: "Sí, y sin ningún permiso. Antes, para obtener un archivo había que pedir permiso para grabar el sonido de la ventana, porque las voces venían del sistema y ningún navegador las entrega a una página como archivo. Ahora el sonido nace en la propia página, así que ya es un archivo. Funciona igual en iPhone, en Android y en un ordenador."
-  - question: ¿En qué idiomas sabe leer?
-    answer: "Mucho: en dos de los tres modelos. Piper tiene 373 voces repartidas en 50 idiomas, varias por idioma, y el idioma se elige en la propia lista de voces. Supertonic conoce 31 idiomas desde un único archivo. Kokoro, en cambio y pese a lo que suele leerse, solo habla inglés: en su repositorio sí hay voces españolas y francesas, pero la biblioteca con la que funciona en el navegador no las conoce; lo comprobamos."
-  - question: ¿Por qué el texto largo se lee por trozos?
-    answer: "Porque el modelo calcula el texto entero, y en un artículo largo eso serían decenas de segundos sin ninguna señal de vida. Cortamos al final de las frases —nunca en mitad de una palabra, o la unión daría un chasquido y una sílaba partida—, calculamos los trozos por turno y los pegamos en un solo archivo. Usted oye el principio mientras se calcula el resto."
-  - question: ¿Cuánto pesa un modelo y hay que descargarlo cada vez?
-    answer: "Una sola vez, aunque cada modelo lo hace a su manera. Piper guarda un archivo por voz: 60–109 megabytes, lo habitual 60–73, así que cambiar de voz supone otra descarga. Kokoro (93 megabytes) y Supertonic (380) tienen un único archivo para todas sus voces: se descarga una vez y luego puede cambiar de voz cuantas veces quiera sin coste. Lo descargado se queda en el almacenamiento del navegador, así que la próxima vez la lectura empieza de inmediato."
+    answer: "Gratis y sin registro. Ni cuenta, ni pago, ni límite en el número de audios. Cada generación admite 5000 caracteres; si el texto es más largo, divídalo en partes."
+  - question: "¿En qué idiomas puede leer?"
+    answer: "En cincuenta. Esos son los idiomas que cubren las voces de Piper: 373 en total, varias por idioma, y se eligen en la propia lista de voces. Supertonic cubre 31 idiomas con un solo modelo. Kokoro solo habla inglés: en su repositorio sí hay voces españolas y francesas, pero la biblioteca con la que funciona en el navegador no las conoce."
+  - question: "¿Qué modelo elijo?"
+    answer: "Piper si necesita su idioma y un resultado rápido: 60–109 MB por voz, el más rápido de los tres, funciona también en el móvil. Kokoro para una voz inglesa viva: 93 MB, 28 voces, sin otros idiomas. Supertonic si su texto lleva cifras, fechas y abreviaturas: las lee sin preparación y cubre 31 idiomas, pero pesa 380 MB y suele ser demasiado para un móvil."
+  - question: "¿Cuánto pesa el modelo y hay que descargarlo cada vez?"
+    answer: "Una sola vez; después se queda en el navegador. Piper guarda un archivo por voz, 60–109 MB, así que cambiar de voz supone otra descarga. Kokoro (93 MB) y Supertonic (380 MB) tienen un único archivo para todas sus voces: cambie cuantas veces quiera, no se descarga nada más."
+  - question: "¿Puedo descargar el audio en un iPhone?"
+    answer: "Sí, y sin ningún permiso. El sonido se calcula en la propia página, así que ya es un archivo: pulse MP3 o WAV debajo de la pista. En Android y en el ordenador funciona igual."
+  - question: "¿Adónde va mi texto?"
+    answer: "A ninguna parte. El cálculo ocurre en su navegador y no hay adónde enviarlo. No guardamos nada ni llevamos registros. De la red solo llega el propio modelo, y una sola vez."
+  - question: "¿Qué modelo calcula más rápido?"
+    answer: "Piper, con diferencia: unos 11 segundos por cada mil caracteres frente a unos 74 de Supertonic con el mismo texto. El peso no tiene nada que ver: el modelo más ligero resultó ser el más rápido."
+  - question: "¿Puedo usar el audio en un vídeo o en un anuncio?"
+    answer: "Sí. Piper tiene licencia MIT y Kokoro, Apache 2.0; ambas permiten el uso comercial. Supertonic usa OpenRAIL-M, que también lo permite pero prohíbe los usos dañinos, como hacer pasar una voz sintética por una persona real para engañar. Los enlaces a los textos de las licencias están en las propias tarjetas de los modelos."
 related:
   - speech-to-text
   - audio-to-text
   - reading-time
 ---
 
-Pegue el texto, elija modelo y voz y pulse «Generar». Online, gratis y sin registro: todo se calcula en su propio dispositivo.
+Pegue el texto, elija modelo y voz y pulse «Generar». Unos segundos después aparece una pista debajo del botón: se escucha y se descarga en MP3 o WAV.
 
 ## Su texto se queda con usted
 
-El cálculo ocurre en su navegador. No hay adónde enviar el texto: el modelo ya está descargado y trabaja aquí. No guardamos nada ni llevamos registros.
-
-Lo único que llega por la red es el propio modelo, una vez. Después se queda en el dispositivo y la siguiente lectura empieza al instante, incluso sin internet.
+El cálculo ocurre en su navegador. No guardamos nada ni llevamos registros. El modelo se carga en el navegador y todas las lecturas siguientes empiezan al instante, incluso sin internet.
 
 ## Obtiene un archivo en cualquier dispositivo
 
-Antes, descargar exigía permiso para grabar el sonido de la ventana: las voces venían del sistema y ningún navegador las entrega a una página como archivo. Ahora el sonido nace aquí mismo, así que ya es un archivo. En un iPhone funciona igual que en un ordenador.
+El sonido nace en la propia página, así que ya es un archivo: MP3 o WAV, sin permisos y sin instalar nada. En un iPhone funciona igual que en un ordenador.
 
-## El texto largo se lee por trozos
+## Voces e idiomas
 
-Cortamos al final de las frases, nunca en mitad de una palabra: en la unión habría un chasquido y una sílaba partida. Los trozos se calculan por turno y se pegan en un solo archivo; usted oye el principio mientras se calcula el resto.
-
-## Cómo se ha comprobado
-
-Cada número de esta página se midió en un navegador real, no se copió de una descripción. Los pesos de los modelos se contrastan con los archivos reales en cada compilación: si mañana sustituyen alguno, nos enteramos antes que usted. Por el camino resultó que tres cifras de reseñas muy repetidas eran falsas, y por eso medimos nosotros.
+La voz se elige en la lista que hay junto al modelo. Piper tiene 373 repartidas en 50 idiomas, Kokoro tiene 28 inglesas y Supertonic, 10, y cada una lee en 31 idiomas. Cambie la voz o la velocidad, pulse «Generar» otra vez y la pista nueva se coloca arriba mientras la anterior se queda debajo, lista para comparar de oído.
