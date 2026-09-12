@@ -1,7 +1,7 @@
 ---
 toolSlug: barcode-scan
 locale: ru
-category: dev
+category: scanners
 tool: barcode-scan
 title: Сканер штрихкода онлайн — считать EAN-13 и UPC камерой или по фото
 h1: Сканер штрихкодов

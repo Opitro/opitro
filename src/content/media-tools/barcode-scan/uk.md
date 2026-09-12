@@ -1,7 +1,7 @@
 ---
 toolSlug: barcode-scan
 locale: uk
-category: dev
+category: scanners
 tool: barcode-scan
 title: Сканер штрихкоду онлайн — зчитати EAN-13 і UPC камерою або з фото
 h1: Сканер штрихкодів

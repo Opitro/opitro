@@ -1,7 +1,7 @@
 ---
 toolSlug: qr-scan
 locale: es
-category: dev
+category: scanners
 tool: qr-scan
 title: Escáner de código QR online — leer un QR con la cámara o una imagen
 h1: Escáner de códigos QR

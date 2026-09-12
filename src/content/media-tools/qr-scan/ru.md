@@ -1,7 +1,7 @@
 ---
 toolSlug: qr-scan
 locale: ru
-category: dev
+category: scanners
 tool: qr-scan
 title: Сканер QR-кода онлайн — считать QR-код камерой или по фото
 h1: Сканер QR-кодов

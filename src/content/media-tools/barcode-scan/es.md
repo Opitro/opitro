@@ -1,7 +1,7 @@
 ---
 toolSlug: barcode-scan
 locale: es
-category: dev
+category: scanners
 tool: barcode-scan
 title: Escáner de código de barras online — leer EAN-13 y UPC con la cámara
 h1: Escáner de códigos de barras

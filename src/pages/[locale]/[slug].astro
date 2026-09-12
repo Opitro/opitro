@@ -81,6 +81,7 @@ import QrCode from '../../components/QrCode.astro';
 import QrScan from '../../components/QrScan.astro';
 import Barcode from '../../components/Barcode.astro';
 import BarcodeScan from '../../components/BarcodeScan.astro';
+import CodeScan from '../../components/CodeScan.astro';
 import FaviconGen from '../../components/FaviconGen.astro';
 import ColorConvert from '../../components/ColorConvert.astro';
 import PaletteGen from '../../components/PaletteGen.astro';
@@ -105,7 +106,7 @@ const РАЗДЕЛЕНИЕ = { 'split-vocal': 'split', 'vocal-remover': 'music',
 
 // Инструменты, уже переведённые на единый редактор. Пока один: расширяем по мере проверки,
 // каждый следующий -- только после того, как предыдущий проверен живьём.
-import { EDITOR_TOOLS } from '../../lib/audio-tools-config.js';
+import { EDITOR_TOOLS, AUDIO_TOOLS } from '../../lib/audio-tools-config.js';
 import AdSlot from '../../components/AdSlot.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 import { iconFor } from '../../lib/tool-icons.js';
@@ -551,6 +552,16 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'barcode-scan' && (
       <BarcodeScan locale={entry.data.locale} />
     )}
+    {/* Три сканера одного вида -- один компонент, вид приходит доводом. */}
+    {kind === 'media' && entry.data.tool === 'datamatrix-scan' && (
+      <CodeScan locale={entry.data.locale} вид="datamatrix" />
+    )}
+    {kind === 'media' && entry.data.tool === 'pdf417-scan' && (
+      <CodeScan locale={entry.data.locale} вид="pdf417" />
+    )}
+    {kind === 'media' && entry.data.tool === 'aztec-scan' && (
+      <CodeScan locale={entry.data.locale} вид="aztec" />
+    )}
     {kind === 'media' && entry.data.tool === 'favicon-generator' && (
       <FaviconGen locale={entry.data.locale} />
     )}
@@ -608,7 +619,11 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'code-diff' && (
       <CodeDiff locale={entry.data.locale} />
     )}
-    {kind === 'media' && !['audio-to-midi', 'audio-to-text', 'speech-to-text', 'keyboard-test', 'key-rollover', 'key-chatter', 'typing-speed', 'mobile-typing-test', 'character-counter', 'click-speed', 'polling-rate', 'refresh-rate', 'dead-pixel-test', 'stuck-pixel-fixer', 'screen-burn-in-test', 'monitor-color-test', 'hdr-test', 'projector-test', 'speaker-cleaner', 'subwoofer-test', 'tone-generator', 'hearing-test', 'audio-delay-test', 'ultrasound-generator', 'mouse-test', 'touchscreen-test', 'multi-touch-test', 'stylus-test', 'gamepad-test', 'phone-sensors-test', 'vibration-test', 'webcam-test', 'battery-test', 'bluetooth-test', 'browser-codecs-test', 'text-case-converter', 'remove-extra-spaces', 'sort-lines', 'remove-duplicate-lines', 'transliteration', 'remove-diacritics', 'base64-encode-decode', 'url-encode-decode', 'rot13', 'reading-time', 'lorem-ipsum', 'text-reverse', 'html-strip', 'text-diff', 'word-frequency', 'punctuation-remover', 'number-to-words', 'date-to-words', 'number-declension', 'ordinal-numbers', 'phone-formatter', 'escape-unescape', 'case-converter', 'list-generator', 'remove-empty-lines', 'text-to-speech', 'json-formatter', 'json-schema-validator', 'csv-json', 'sql-formatter', 'mock-data', 'base64-file', 'qr-code', 'qr-scan', 'barcode', 'barcode-scan', 'favicon-generator', 'color-converter', 'color-palette', 'contrast-checker', 'css-gradient', 'box-shadow', 'border-radius', 'markdown-html', 'regex-tester', 'uuid-generator', 'unix-timestamp', 'minify-html', 'minify-css', 'minify-js', 'htaccess-generator', 'hash-generator', 'jwt-decoder', 'url-parser', 'html-entities', 'number-base-converter', 'code-diff'].includes(entry.data.tool)
+    {/* ЗВУКОВОЙ ИНСТРУМЕНТ -- ТОЛЬКО ЕСЛИ ОН И ПРАВДА ЗВУКОВОЙ. Раньше здесь стоял длинный
+        список исключений, и каждый НОВЫЙ инструмент, забытый в нём, валил сборку: AudioTool
+        брал свои настройки по имени и падал на первом же поле. Проверяем наличие настроек --
+        тогда список исключений не нужен вовсе, а забыть его нельзя. */}
+    {kind === 'media' && AUDIO_TOOLS[entry.data.tool]
       && !РАЗДЕЛЕНИЕ[entry.data.tool] && !EDITOR_TOOLS.includes(entry.data.tool) && (
       <AudioTool tool={entry.data.tool} locale={entry.data.locale} labels={audioLabels} />
     )}

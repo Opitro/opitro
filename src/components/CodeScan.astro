@@ -1,0 +1,378 @@
+---
+// СКАНЕР КОДОВ ОДНОГО ВИДА: Data Matrix, PDF417, Aztec.
+//
+// Один компонент на три страницы, а не три копии. Разговор у страниц разный -- где такой код
+// встречается и что из него вынимать, -- но устройство одно: камера или готовый снимок, а
+// потом содержимое текстом. Три копии одного кода при пяти сотнях страниц разойдутся первыми.
+//
+// ЧИТАЕТ ВСТРОЕННЫЙ РАСПОЗНАВАТЕЛЬ БРАУЗЕРА (BarcodeDetector) -- ничего не скачивается.
+// Запасок для этих трёх видов у нас нет: jsQR знает только QR, а ZXing мы просим о полосках.
+// Значит там, где встроенного распознавателя нет (Safari, Firefox), страница обязана сказать
+// об этом ПРЯМО и сразу, а не после того, как человек дал разрешение на камеру и подождал.
+// Проверяем это до первого нажатия -- умеетВид() в code-read.js.
+//
+// Что показываем: содержимое кода как есть. Для Data Matrix дополнительно разбираем поля
+// GS1 (номер товара, партия, срок годности) -- тем же разборщиком, что и на штрихкодах.
+// Ничего не открываем и никуда не ходим: ни по ссылке из кода, ни за названием товара.
+import css from '../styles/code-scan.css?inline';
+
+export interface Props {
+  locale?: string;
+  /** Какой вид кодов читает эта страница: datamatrix | pdf417 | aztec */
+  вид: string;
+}
+
+const { locale = 'ru', вид } = Astro.props;
+
+const ОБЩЕЕ = {
+  ru: {
+    mode: 'Способ', camera: 'Камера', photo: 'Снимок',
+    start: 'Включить камеру', stop: 'Выключить камеру', shot: 'Снять код',
+    choose: 'Выбрать картинку', again: 'Другая картинка',
+    idle: 'Нажмите «Включить камеру» и наведите на код',
+    idlePhoto: 'Выберите снимок с кодом — или перетащите его сюда',
+    looking: 'Ищу код…', found: 'Что записано в коде', copy: 'Скопировать', copied: 'Скопировано',
+    fields: 'Разобрано по полям',
+    notFound: 'Кода на этом снимке не видно. Попробуйте снять ближе и ровнее, чтобы код занимал бóльшую часть кадра и не был смазан.',
+    noCam: 'Камера недоступна. Проверьте, что она не занята другой программой, и что вы открыли страницу по защищённому адресу.',
+    denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер, и отозвать его можно там же, в строке адреса.',
+    noSupport: 'Этот браузер не умеет читать такие коды. Умеют Chrome и Edge на компьютере и любой браузер на Android. На iPhone встроенный распознаватель знает только QR-коды — увы, это ограничение самого устройства, а не страницы.',
+  },
+  uk: {
+    mode: 'Спосіб', camera: 'Камера', photo: 'Знімок',
+    start: 'Увімкнути камеру', stop: 'Вимкнути камеру', shot: 'Зняти код',
+    choose: 'Вибрати картинку', again: 'Інша картинка',
+    idle: 'Натисніть «Увімкнути камеру» і наведіть на код',
+    idlePhoto: 'Виберіть знімок із кодом — або перетягніть його сюди',
+    looking: 'Шукаю код…', found: 'Що записано в коді', copy: 'Скопіювати', copied: 'Скопійовано',
+    fields: 'Розібрано за полями',
+    notFound: 'Коду на цьому знімку не видно. Спробуйте зняти ближче й рівніше, щоб код займав більшу частину кадру й не був змазаний.',
+    noCam: 'Камера недоступна. Перевірте, чи не зайнята вона іншою програмою і чи відкрито сторінку за захищеною адресою.',
+    denied: 'Доступ до камери не надано. Дозвіл питає сам браузер, і відкликати його можна там само, у рядку адреси.',
+    noSupport: 'Цей браузер не вміє читати такі коди. Уміють Chrome і Edge на компʼютері та будь-який браузер на Android. На iPhone вбудований розпізнавач знає лише QR-коди — це обмеження самого пристрою, а не сторінки.',
+  },
+  en: {
+    mode: 'How', camera: 'Camera', photo: 'Picture',
+    start: 'Turn on the camera', stop: 'Turn off the camera', shot: 'Capture the code',
+    choose: 'Choose a picture', again: 'Another picture',
+    idle: 'Press “Turn on the camera” and point it at the code',
+    idlePhoto: 'Choose a picture with the code — or drop it here',
+    looking: 'Looking for a code…', found: 'What the code says', copy: 'Copy', copied: 'Copied',
+    fields: 'Broken down by field',
+    notFound: 'No code is visible in this picture. Try again closer and straighter, so the code fills more of the frame and is not blurred.',
+    noCam: 'The camera is not available. Check that no other program is using it and that the page is open over a secure address.',
+    denied: 'Camera access was not granted. The browser itself asks for it, and you can take it back in the same place, next to the address.',
+    noSupport: 'This browser cannot read codes of this kind. Chrome and Edge on a computer can, and so can any browser on Android. On an iPhone the built-in reader only knows QR codes — that is a limit of the device, not of this page.',
+  },
+  es: {
+    mode: 'Cómo', camera: 'Cámara', photo: 'Imagen',
+    start: 'Encender la cámara', stop: 'Apagar la cámara', shot: 'Capturar el código',
+    choose: 'Elegir una imagen', again: 'Otra imagen',
+    idle: 'Pulse «Encender la cámara» y apunte al código',
+    idlePhoto: 'Elija una imagen con el código o suéltela aquí',
+    looking: 'Buscando el código…', found: 'Qué dice el código', copy: 'Copiar', copied: 'Copiado',
+    fields: 'Desglosado por campos',
+    notFound: 'No se ve ningún código en esta imagen. Pruebe más cerca y más recto, de modo que el código ocupe buena parte del encuadre y no salga movido.',
+    noCam: 'La cámara no está disponible. Compruebe que no la esté usando otro programa y que la página esté abierta con una dirección segura.',
+    denied: 'No se concedió el acceso a la cámara. El permiso lo pide el propio navegador y se revoca en el mismo sitio, junto a la dirección.',
+    noSupport: 'Este navegador no sabe leer códigos de este tipo. Sí lo hacen Chrome y Edge en el ordenador y cualquier navegador en Android. En un iPhone el lector integrado solo conoce los códigos QR: es un límite del dispositivo, no de esta página.',
+  },
+};
+
+// Свои слова у каждого вида: три заметки под инструментом о том, где такой код встречается
+// и чего от него ждать. Это единственное, чем страницы отличаются друг от друга.
+const ПО_ВИДАМ = {
+  datamatrix: {
+    ru: ['<b>Квадратик из точек.</b> Им метят лекарства и товары в «Честном знаке», мелкие детали и платы — там, где места мало, а записать надо много.',
+         '<b>Внутри обычно не одно число, а поля.</b> Номер товара, партия, дата изготовления, срок годности, серийный номер. Мы разбираем их по полям прямо здесь.',
+         '<b>Названия товара в коде нет.</b> Его знает только платная база производителей, и притворяться, что мы туда сходили, не будем.'],
+    uk: ['<b>Квадратик із точок.</b> Ним мітять ліки й товари, дрібні деталі та плати — там, де місця мало, а записати треба багато.',
+         '<b>Усередині зазвичай не одне число, а поля.</b> Номер товару, партія, дата виготовлення, термін придатності, серійний номер. Ми розбираємо їх за полями просто тут.',
+         '<b>Назви товару в коді немає.</b> Її знає лише платна база виробників, і вдавати, що ми туди сходили, не будемо.'],
+    en: ['<b>A square made of dots.</b> It marks medicines and goods, small parts and circuit boards — wherever there is little room and a lot to record.',
+         '<b>Inside there is usually not one number but fields.</b> Item number, batch, production date, expiry date, serial number. We break them down right here.',
+         '<b>The product name is not in the code.</b> Only the manufacturers’ paid database knows it, and we will not pretend we went there.'],
+    es: ['<b>Un cuadrado hecho de puntos.</b> Marca medicamentos y productos, piezas pequeñas y placas: donde hay poco sitio y mucho que registrar.',
+         '<b>Dentro no suele haber un número, sino campos.</b> Número de artículo, lote, fecha de fabricación, caducidad, número de serie. Los desglosamos aquí mismo.',
+         '<b>El nombre del producto no está en el código.</b> Solo lo conoce la base de datos de pago de los fabricantes, y no vamos a fingir que hemos entrado.'],
+  },
+  pdf417: {
+    ru: ['<b>Широкая полоса из мелких штрихов.</b> Такой код стоит на водительских правах, посадочных талонах, пропусках и некоторых удостоверениях.',
+         '<b>Внутри — текст, иногда длинный.</b> Мы показываем его как есть, ничего не додумывая: у каждой страны и каждой авиакомпании своя раскладка полей.',
+         '<b>Ничего не уходит наружу.</b> Документ разбирается на вашем устройстве — это тот случай, когда обещание про браузер важнее всего.'],
+    uk: ['<b>Широка смуга з дрібних штрихів.</b> Такий код стоїть на водійських правах, посадкових талонах, перепустках і деяких посвідченнях.',
+         '<b>Усередині — текст, іноді довгий.</b> Ми показуємо його як є, нічого не додумуючи: у кожної країни й авіакомпанії своя розкладка полів.',
+         '<b>Нічого не йде назовні.</b> Документ розбирається на вашому пристрої — це той випадок, коли обіцянка про браузер найважливіша.'],
+    en: ['<b>A wide band of small bars.</b> This code sits on driving licences, boarding passes, access cards and some ID documents.',
+         '<b>Inside there is text, sometimes long.</b> We show it as it is, without guessing: every country and every airline lays the fields out differently.',
+         '<b>Nothing leaves your device.</b> The document is decoded right here — this is the case where the promise about the browser matters most.'],
+    es: ['<b>Una banda ancha de barras pequeñas.</b> Este código está en los permisos de conducir, tarjetas de embarque, pases y algunos documentos de identidad.',
+         '<b>Dentro hay texto, a veces largo.</b> Lo mostramos tal cual, sin inventar: cada país y cada aerolínea ordena los campos a su manera.',
+         '<b>Nada sale de su dispositivo.</b> El documento se lee aquí mismo: este es el caso en que la promesa sobre el navegador importa más.'],
+  },
+  aztec: {
+    ru: ['<b>Квадрат с мишенью посередине.</b> По нему узнают билеты на поезд и самолёт в Европе, а также электронные проездные.',
+         '<b>Внутри — строка перевозчика.</b> Часто это набор служебных полей, а не человеческий текст; мы показываем его как есть, не переставляя знаки.',
+         '<b>Билет остаётся при вас.</b> Ни снимок, ни прочитанное никуда не отправляются — а на билете обычно стоит и ваша фамилия.'],
+    uk: ['<b>Квадрат із мішенню посередині.</b> За ним упізнають квитки на потяг і літак у Європі, а також електронні проїзні.',
+         '<b>Усередині — рядок перевізника.</b> Часто це набір службових полів, а не людський текст; ми показуємо його як є, нічого не переставляючи.',
+         '<b>Квиток лишається при вас.</b> Ні знімок, ні прочитане нікуди не надсилаються — а на квитку зазвичай стоїть і ваше прізвище.'],
+    en: ['<b>A square with a bullseye in the middle.</b> It identifies train and plane tickets in Europe, as well as electronic travel passes.',
+         '<b>Inside is the carrier’s own string.</b> Often a set of service fields rather than human text; we show it as it is, rearranging nothing.',
+         '<b>The ticket stays with you.</b> Neither the picture nor the result is sent anywhere — and a ticket usually carries your name too.'],
+    es: ['<b>Un cuadrado con una diana en el centro.</b> Identifica billetes de tren y de avión en Europa, y también abonos electrónicos.',
+         '<b>Dentro está la cadena del transportista.</b> A menudo son campos de servicio, no texto humano; lo mostramos tal cual, sin reordenar nada.',
+         '<b>El billete se queda con usted.</b> Ni la imagen ni el resultado se envían a ninguna parte, y un billete suele llevar también su nombre.'],
+  },
+};
+
+// Имена полей GS1 по-человечески. Ключи приходит из gs1.js (gtin, партия, годенДо...);
+// незнакомый ключ показываем как есть -- лучше непривычное слово, чем потерянное поле.
+const ПОЛЯ_GS1 = {
+  ru: { gtin: 'Номер товара', gtinВнутри: 'Номер товара внутри', sscc: 'Грузовое место',
+    артикул: 'Артикул', артикулПоставщика: 'Артикул поставщика', вариант: 'Вариант',
+    годенДо: 'Годен до', заказ: 'Заказ', изготовлено: 'Изготовлено', количество: 'Количество',
+    кудаGLN: 'Куда', лучшеДо: 'Лучше до', местоGLN: 'Место', оплатитьДо: 'Оплатить до',
+    партия: 'Партия', платёж: 'Платёж', продатьДо: 'Продать до', сайт: 'Ссылка',
+    серийный: 'Серийный номер', серийныйВнутри: 'Серийный номер внутри', упаковано: 'Упаковано',
+    мера: 'Мера', иное: 'Другое поле' },
+  uk: { gtin: 'Номер товару', gtinВнутри: 'Номер товару всередині', sscc: 'Вантажне місце',
+    артикул: 'Артикул', артикулПоставщика: 'Артикул постачальника', вариант: 'Варіант',
+    годенДо: 'Придатний до', заказ: 'Замовлення', изготовлено: 'Виготовлено', количество: 'Кількість',
+    кудаGLN: 'Куди', лучшеДо: 'Краще до', местоGLN: 'Місце', оплатитьДо: 'Сплатити до',
+    партия: 'Партія', платёж: 'Платіж', продатьДо: 'Продати до', сайт: 'Посилання',
+    серийный: 'Серійний номер', серийныйВнутри: 'Серійний номер усередині', упаковано: 'Запаковано',
+    мера: 'Міра', иное: 'Інше поле' },
+  en: { gtin: 'Item number', gtinВнутри: 'Inner item number', sscc: 'Logistic unit',
+    артикул: 'Part number', артикулПоставщика: 'Supplier part number', вариант: 'Variant',
+    годенДо: 'Use by', заказ: 'Order', изготовлено: 'Made on', количество: 'Quantity',
+    кудаGLN: 'Ship to', лучшеДо: 'Best before', местоGLN: 'Location', оплатитьДо: 'Due date',
+    партия: 'Batch', платёж: 'Payment', продатьДо: 'Sell by', сайт: 'Link',
+    серийный: 'Serial number', серийныйВнутри: 'Inner serial number', упаковано: 'Packed on',
+    мера: 'Measure', иное: 'Other field' },
+  es: { gtin: 'Número de artículo', gtinВнутри: 'Número interior', sscc: 'Unidad logística',
+    артикул: 'Referencia', артикулПоставщика: 'Referencia del proveedor', вариант: 'Variante',
+    годенДо: 'Consumir antes de', заказ: 'Pedido', изготовлено: 'Fabricado', количество: 'Cantidad',
+    кудаGLN: 'Destino', лучшеДо: 'Consumir preferentemente', местоGLN: 'Ubicación',
+    оплатитьДо: 'Pagar antes de', партия: 'Lote', платёж: 'Pago', продатьДо: 'Vender antes de',
+    сайт: 'Enlace', серийный: 'Número de serie', серийныйВнутри: 'Número de serie interior',
+    упаковано: 'Envasado', мера: 'Medida', иное: 'Otro campo' },
+};
+
+const с = ОБЩЕЕ[locale] || ОБЩЕЕ.ru;
+const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[locale]
+  || (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix).ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="кс" data-words={JSON.stringify(с)} data-fields={JSON.stringify(ПОЛЯ_GS1[locale] || ПОЛЯ_GS1.ru)} data-вид={вид} data-locale={locale}>
+  <div class="кс-режим" role="group">
+    <button type="button" class="кс-реж выбран" id="кс-реж-камера">{с.camera}</button>
+    <button type="button" class="кс-реж" id="кс-реж-файл">{с.photo}</button>
+  </div>
+
+  <div class="кс-окно" id="кс-окно">
+    <video id="кс-видео" playsinline muted hidden></video>
+    <img id="кс-снимок" alt="" hidden />
+    <span class="кс-пусто" id="кс-пусто">{с.idle}</span>
+    <span class="кс-прицел" id="кс-прицел" hidden></span>
+  </div>
+
+  <div class="кс-ряд">
+    <button type="button" class="кс-кнопка" id="кс-пуск">{с.start}</button>
+    <button type="button" class="кс-простая" id="кс-снять" hidden>{с.shot}</button>
+    <button type="button" class="кс-простая" id="кс-стоп" hidden>{с.stop}</button>
+    <button type="button" class="кс-кнопка" id="кс-выбрать" hidden>{с.choose}</button>
+    <span class="кс-сказ" id="кс-сказ"></span>
+  </div>
+  <input type="file" class="кс-файл" id="кс-файл" accept="image/*" />
+
+  <div class="кс-ответ" id="кс-ответ"></div>
+
+  <div class="кс-заметки">
+    {заметки.map((з) => <div class="кс-заметка" set:html={з}></div>)}
+  </div>
+</div>
+
+<script>
+  import { прочитатьСнимок, умеетВид } from '../lib/code-read.js';
+  import { разобратьGS1 } from '../lib/gs1.js';
+
+  const корень = document.querySelector('.кс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const вид = корень.dataset['вид'] || 'datamatrix';
+    const ИМЕНА = JSON.parse(корень.dataset.fields || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    const окно = $('кс-окно');
+    const видео = $('кс-видео');
+    const снимок = $('кс-снимок');
+    const пусто = $('кс-пусто');
+    const прицел = $('кс-прицел');
+    const кнПуск = $('кс-пуск');
+    const кнСнять = $('кс-снять');
+    const кнСтоп = $('кс-стоп');
+    const кнВыбрать = $('кс-выбрать');
+    const поле = $('кс-файл');
+    const ответ = $('кс-ответ');
+
+    let поток = null;
+    let режим = 'камера';
+
+    function сказать(текст) {
+      const э = $('кс-сказ');
+      э.textContent = текст;
+      э.classList.add('видно');
+      clearTimeout(э._т);
+      э._т = setTimeout(() => э.classList.remove('видно'), 2200);
+    }
+
+    function беда(текст) {
+      ответ.innerHTML = `<div class="кс-беда">${текст}</div>`;
+    }
+
+    // Содержимое кода -- всегда текстом и целиком. Ничего не открываем сами: код мог быть
+    // подменён, и решать, идти ли по нему, человеку, а не нам.
+    function показать(найдено) {
+      const поля = вид === 'datamatrix' ? разобратьGS1(найдено.текст) : null;
+      const строки = (поля && поля.length)
+        ? `<div class="кс-заголовок">${с.fields}</div><div class="кс-поля">`
+          + поля.map((п) => {
+            const имя = ИМЕНА[п.имя] || п.имя;
+            // Дату показываем словами на языке страницы: «30 сентября 2026» человеку
+            // говорит больше, чем «260930», и уж точно больше машинной записи со временем
+            // и часовым поясом. Так же она показана на странице штрихкодов.
+            const знач = (п.разбор && п.разбор.дата)
+              ? п.разбор.дата.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' })
+              : п.значение;
+            return `<div class="кс-поле"><span>${имя}</span><b>${знач}</b></div>`;
+          }).join('')
+          + '</div>'
+        : '';
+      ответ.innerHTML = `<div class="кс-заголовок">${с.found}</div>`
+        + `<div class="кс-текст" id="кс-текст"></div>${строки}`
+        + `<div class="кс-ряд"><button type="button" class="кс-простая" id="кс-копи">${с.copy}</button></div>`;
+      // Через textContent, а не в разметку: в коде может лежать что угодно, вплоть до
+      // куска чужой вёрстки, и вставлять его как разметку нельзя.
+      $('кс-текст').textContent = найдено.текст;
+      $('кс-копи').addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(найдено.текст); сказать(с.copied); } catch (е) {}
+      });
+    }
+
+    async function разобрать(картинка) {
+      ответ.innerHTML = '';
+      сказать(с.looking);
+      let найдено = null;
+      try { найдено = await прочитатьСнимок({ картинка, нужно: вид }); } catch (е) { найдено = null; }
+      if (найдено && найдено.текст) показать(найдено);
+      else беда(с.notFound);
+    }
+
+    // ---- Камера ------------------------------------------------------------------------------
+    // Снимаем по нажатию, а не перебором кадров: этих видов кодов встроенный распознаватель
+    // ищет дольше, чем QR, и на слабом телефоне поток кадров только греет его впустую.
+    async function включить() {
+      if (!(await умеетВид(вид))) { беда(с.noSupport); return; }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } }, audio: false,
+        });
+      } catch (е) {
+        беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
+        return;
+      }
+      видео.srcObject = поток;
+      видео.hidden = false;
+      снимок.hidden = true;
+      пусто.hidden = true;
+      прицел.hidden = false;
+      await видео.play().catch(() => {});
+      кнПуск.hidden = true;
+      кнСнять.hidden = false;
+      кнСтоп.hidden = false;
+    }
+
+    function выключить() {
+      if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
+      видео.srcObject = null;
+      видео.hidden = true;
+      прицел.hidden = true;
+      пусто.hidden = false;
+      кнПуск.hidden = false;
+      кнСнять.hidden = true;
+      кнСтоп.hidden = true;
+    }
+
+    async function снятьКадр() {
+      if (!видео.videoWidth) return;
+      const х = document.createElement('canvas');
+      х.width = видео.videoWidth;
+      х.height = видео.videoHeight;
+      х.getContext('2d').drawImage(видео, 0, 0);
+      await разобрать(х);
+    }
+
+    кнПуск.addEventListener('click', включить);
+    кнСтоп.addEventListener('click', выключить);
+    кнСнять.addEventListener('click', снятьКадр);
+    window.addEventListener('pagehide', выключить);
+
+    // ---- Снимок ------------------------------------------------------------------------------
+    function показатьСнимок(файл) {
+      const адрес = URL.createObjectURL(файл);
+      снимок.onload = async () => { URL.revokeObjectURL(адрес); await разобрать(снимок); };
+      снимок.src = адрес;
+      снимок.hidden = false;
+      пусто.hidden = true;
+      кнВыбрать.textContent = с.again;
+    }
+
+    кнВыбрать.addEventListener('click', () => поле.click());
+    поле.addEventListener('change', () => { if (поле.files && поле.files[0]) показатьСнимок(поле.files[0]); });
+    окно.addEventListener('dragover', (е) => е.preventDefault());
+    окно.addEventListener('drop', (е) => {
+      е.preventDefault();
+      const ф = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (ф && ф.type.startsWith('image/')) { режимНа('файл'); показатьСнимок(ф); }
+    });
+
+    // ---- Переключение способа ------------------------------------------------------------------
+    function режимНа(новый) {
+      режим = новый;
+      $('кс-реж-камера').classList.toggle('выбран', новый === 'камера');
+      $('кс-реж-файл').classList.toggle('выбран', новый === 'файл');
+      ответ.innerHTML = '';
+      if (новый === 'камера') {
+        снимок.hidden = true;
+        кнВыбрать.hidden = true;
+        кнПуск.hidden = false;
+        пусто.textContent = с.idle;
+        пусто.hidden = false;
+      } else {
+        выключить();
+        кнПуск.hidden = true;
+        кнВыбрать.hidden = false;
+        пусто.textContent = с.idlePhoto;
+        пусто.hidden = !!снимок.src;
+        снимок.hidden = !снимок.src;
+      }
+    }
+    $('кс-реж-камера').addEventListener('click', () => режимНа('камера'));
+    $('кс-реж-файл').addEventListener('click', () => режимНа('файл'));
+
+    // Умеет ли браузер читать этот вид -- говорим СРАЗУ, до разрешения на камеру.
+    умеетВид(вид).then((умеет) => { if (!умеет) беда(с.noSupport); });
+
+    window.__ксСостояние = () => ({
+      вид,
+      режим,
+      камераИдёт: !!поток,
+      ответ: ответ.textContent.trim().slice(0, 200),
+      естьТекст: !!document.getElementById('кс-текст'),
+    });
+  })();
+</script>

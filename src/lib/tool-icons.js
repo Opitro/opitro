@@ -136,6 +136,7 @@ const RULES = [
   [/^qr-code$/, 'кьюар'],
   [/^qr-scan$/, 'прицел'],
   [/^barcode-scan$/, 'прицел'],
+  [/^(datamatrix|pdf417|aztec)-scan$/, 'прицел'],
   [/^favicon-generator$/, 'кубики'],
   [/^color-converter$/, 'пипетка'],
   [/^color-palette$/, 'палитра'],

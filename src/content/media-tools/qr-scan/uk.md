@@ -1,7 +1,7 @@
 ---
 toolSlug: qr-scan
 locale: uk
-category: dev
+category: scanners
 tool: qr-scan
 title: Сканер QR-коду онлайн — зчитати QR-код камерою або по фото
 h1: Сканер QR-кодів
