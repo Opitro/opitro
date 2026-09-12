@@ -78,6 +78,11 @@
   text-underline-offset: 3px; transition: color .15s;
 }
 .кс-ссылка:hover { color: #fff }
+/* ССЫЛКА НА НУЖНЫЙ СКАНЕР -- ЗЕЛЁНАЯ (решение владельца). Она стоит в сообщении «на снимке
+   PDF417, а не Data Matrix», и это единственное место, где человеку надо уйти со страницы,
+   чтобы получить ответ. Зелёным она видна сразу, а не вычитывается из строки. */
+.кс-беда .кс-ссылка { color: var(--accent) }
+.кс-беда .кс-ссылка:hover { color: var(--accent2, #60efb8) }
 
 /* РАМКА ПРИЦЕЛА. Квадрат по центру кадра: человек видит, куда класть код, и не водит
    камерой вслепую. Только уголки, без сплошной рамки -- сплошная закрывает сам код.
@@ -181,21 +186,24 @@
    вид -- это лишнее учение. Прежние строки во всю ширину с серыми подписями убраны. */
 .кс-ответ { margin-top: 18px }
 .кс-ответ:empty { display: none }
-.кс-итог { border: 1px solid var(--контур); border-radius: 12px; background: #16181d;
-  padding: 16px; display: flex; flex-direction: column; gap: 10px }
+/* Мельче, чем на штрихкоде: там карточка стоит в узкой колонке рядом с камерой, а здесь она
+   во всю ширину страницы -- и те же кегли вырастали в полотно. Владелец: «вывод результата
+   просто огромный, уменьши». Строй и цвета остались те же. */
+.кс-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
+  padding: 12px 13px; display: flex; flex-direction: column; gap: 7px }
 .кс-шапка { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px }
 /* Вид кода -- зелёным и вразрядку: та же надпись, что «ШТРИХКОД» у соседнего сканера. */
-.кс-вид { font: 400 11px var(--мон); letter-spacing: .08em; text-transform: uppercase;
+.кс-вид { font: 400 10.5px var(--мон); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent) }
-/* Сами знаки -- главное на странице, ради них и пришли. Крупно и вразрядку, чтобы можно было
-   переписать с экрана не сбившись. */
-.кс-значение { font: 400 19px/1.4 var(--мон); letter-spacing: .06em; color: #fff;
+/* Сами знаки -- главное на странице, ради них и пришли. Заметно крупнее полей, чтобы их можно
+   было переписать с экрана не сбившись, но без плаката. */
+.кс-значение { font: 400 15px/1.45 var(--мон); letter-spacing: .04em; color: #fff;
   overflow-wrap: anywhere; white-space: pre-wrap; user-select: text;
   font-variant-numeric: tabular-nums }
 /* Поля кода -- парами: подпись зелёная, значение белое. Сетка, а не флекс: длинная подпись
    переносится внутри своей колонки и не растаскивает строку. */
-.кс-пары { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr);
-  gap: 5px 12px; margin: 0; font: 400 13px/1.5 var(--мон) }
+.кс-пары { display: grid; grid-template-columns: minmax(0, 160px) minmax(0, 1fr);
+  gap: 3px 12px; margin: 0; font: 400 12.5px/1.45 var(--мон) }
 /* У PDF417 и Aztec полей не бывает -- пустой список не должен оставлять отступ. */
 .кс-пары:empty { display: none }
 .кс-пары dt { color: var(--accent) }
@@ -224,7 +232,7 @@
 @media (max-width: 560px) {
   .кс-окно { height: 220px }
   /* На узком экране пара не влезает в две колонки: подпись над значением. */
-  .кс-пары { grid-template-columns: minmax(0, 1fr); gap: 2px }
-  .кс-пары dd { margin-bottom: 8px }
-  .кс-значение { font-size: 17px }
+  .кс-пары { grid-template-columns: minmax(0, 1fr); gap: 1px }
+  .кс-пары dd { margin-bottom: 6px }
+  .кс-значение { font-size: 14px }
 }
