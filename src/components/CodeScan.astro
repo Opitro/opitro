@@ -26,52 +26,40 @@ const { locale = 'ru', вид } = Astro.props;
 
 const ОБЩЕЕ = {
   ru: {
-    mode: 'Способ', camera: 'Камера', photo: 'Снимок',
-    start: 'Включить камеру', stop: 'Выключить камеру', shot: 'Снять код',
-    choose: 'Выбрать картинку', again: 'Другая картинка',
-    idle: 'Нажмите «Включить камеру» и наведите на код',
-    idlePhoto: 'Выберите снимок с кодом — или перетащите его сюда',
-    looking: 'Ищу код…', found: 'Что записано в коде', copy: 'Скопировать', copied: 'Скопировано',
-    fields: 'Разобрано по полям',
+    start: 'Включить', upload: 'или загрузить файл', result: 'Результат',
+    askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него сканировать нечем.',
+    clear: 'Убрать',
+    copy: 'Скопировать', copied: 'Скопировано', off: 'Выключить камеру',
     notFound: 'Кода на этом снимке не видно. Попробуйте снять ближе и ровнее, чтобы код занимал бóльшую часть кадра и не был смазан.',
     noCam: 'Камера недоступна. Проверьте, что она не занята другой программой, и что вы открыли страницу по защищённому адресу.',
     denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер, и отозвать его можно там же, в строке адреса.',
     noSupport: 'Этот браузер не умеет читать такие коды. Умеют Chrome и Edge на компьютере и любой браузер на Android. На iPhone встроенный распознаватель знает только QR-коды — увы, это ограничение самого устройства, а не страницы.',
   },
   uk: {
-    mode: 'Спосіб', camera: 'Камера', photo: 'Знімок',
-    start: 'Увімкнути камеру', stop: 'Вимкнути камеру', shot: 'Зняти код',
-    choose: 'Вибрати картинку', again: 'Інша картинка',
-    idle: 'Натисніть «Увімкнути камеру» і наведіть на код',
-    idlePhoto: 'Виберіть знімок із кодом — або перетягніть його сюди',
-    looking: 'Шукаю код…', found: 'Що записано в коді', copy: 'Скопіювати', copied: 'Скопійовано',
-    fields: 'Розібрано за полями',
+    start: 'Увімкнути', upload: 'або завантажити файл', result: 'Результат',
+    askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього сканувати нічим.',
+    clear: 'Прибрати',
+    copy: 'Скопіювати', copied: 'Скопійовано', off: 'Вимкнути камеру',
     notFound: 'Коду на цьому знімку не видно. Спробуйте зняти ближче й рівніше, щоб код займав більшу частину кадру й не був змазаний.',
     noCam: 'Камера недоступна. Перевірте, чи не зайнята вона іншою програмою і чи відкрито сторінку за захищеною адресою.',
     denied: 'Доступ до камери не надано. Дозвіл питає сам браузер, і відкликати його можна там само, у рядку адреси.',
     noSupport: 'Цей браузер не вміє читати такі коди. Уміють Chrome і Edge на компʼютері та будь-який браузер на Android. На iPhone вбудований розпізнавач знає лише QR-коди — це обмеження самого пристрою, а не сторінки.',
   },
   en: {
-    mode: 'How', camera: 'Camera', photo: 'Picture',
-    start: 'Turn on the camera', stop: 'Turn off the camera', shot: 'Capture the code',
-    choose: 'Choose a picture', again: 'Another picture',
-    idle: 'Press “Turn on the camera” and point it at the code',
-    idlePhoto: 'Choose a picture with the code — or drop it here',
-    looking: 'Looking for a code…', found: 'What the code says', copy: 'Copy', copied: 'Copied',
-    fields: 'Broken down by field',
+    start: 'Turn on', upload: 'or upload a file', result: 'Result',
+    askCam: 'Please allow camera access in the browser — without it there is nothing to scan with.',
+    clear: 'Clear',
+    copy: 'Copy', copied: 'Copied', off: 'Turn off the camera',
     notFound: 'No code is visible in this picture. Try again closer and straighter, so the code fills more of the frame and is not blurred.',
     noCam: 'The camera is not available. Check that no other program is using it and that the page is open over a secure address.',
     denied: 'Camera access was not granted. The browser itself asks for it, and you can take it back in the same place, next to the address.',
     noSupport: 'This browser cannot read codes of this kind. Chrome and Edge on a computer can, and so can any browser on Android. On an iPhone the built-in reader only knows QR codes — that is a limit of the device, not of this page.',
   },
   es: {
-    mode: 'Cómo', camera: 'Cámara', photo: 'Imagen',
-    start: 'Encender la cámara', stop: 'Apagar la cámara', shot: 'Capturar el código',
-    choose: 'Elegir una imagen', again: 'Otra imagen',
-    idle: 'Pulse «Encender la cámara» y apunte al código',
-    idlePhoto: 'Elija una imagen con el código o suéltela aquí',
-    looking: 'Buscando el código…', found: 'Qué dice el código', copy: 'Copiar', copied: 'Copiado',
-    fields: 'Desglosado por campos',
+    start: 'Encender', upload: 'o subir un archivo', result: 'Resultado',
+    askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay con qué escanear.',
+    clear: 'Quitar',
+    copy: 'Copiar', copied: 'Copiado', off: 'Apagar la cámara',
     notFound: 'No se ve ningún código en esta imagen. Pruebe más cerca y más recto, de modo que el código ocupe buena parte del encuadre y no salga movido.',
     noCam: 'La cámara no está disponible. Compruebe que no la esté usando otro programa y que la página esté abierta con una dirección segura.',
     denied: 'No se concedió el acceso a la cámara. El permiso lo pide el propio navegador y se revoca en el mismo sitio, junto a la dirección.',
@@ -167,28 +155,31 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
 <style is:inline set:html={css}></style>
 
 <div class="кс" data-words={JSON.stringify(с)} data-fields={JSON.stringify(ПОЛЯ_GS1[locale] || ПОЛЯ_GS1.ru)} data-вид={вид} data-locale={locale}>
-  <div class="кс-режим" role="group">
-    <button type="button" class="кс-реж выбран" id="кс-реж-камера">{с.camera}</button>
-    <button type="button" class="кс-реж" id="кс-реж-файл">{с.photo}</button>
-  </div>
-
+  <!-- ОДНО ОКНО И ОДНА ТОЧКА НАЖАТИЯ. Нажали значок -- поднялась камера и заняла всё окно;
+       нажали ссылку под ним -- открылся выбор файла. Ряда кнопок нет нигде: включение и
+       выключение -- это одно состояние. -->
   <div class="кс-окно" id="кс-окно">
     <video id="кс-видео" playsinline muted hidden></video>
     <img id="кс-снимок" alt="" hidden />
-    <span class="кс-пусто" id="кс-пусто">{с.idle}</span>
+    <span class="кс-центр" id="кс-центр">
+      <button type="button" class="кс-пуск" id="кс-пуск">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1-1.6A1 1 0 0 1 9.6 4h4.8a1 1 0 0 1 .9.4l1 1.6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+        {с.start}
+      </button>
+      <button type="button" class="кс-ссылка" id="кс-загрузить">{с.upload}</button>
+    </span>
+    <!-- Рамка прицела: показывает, куда класть код. Видна только при работающей камере. -->
     <span class="кс-прицел" id="кс-прицел" hidden></span>
-  </div>
-
-  <div class="кс-ряд">
-    <button type="button" class="кс-кнопка" id="кс-пуск">{с.start}</button>
-    <button type="button" class="кс-простая" id="кс-снять" hidden>{с.shot}</button>
-    <button type="button" class="кс-простая" id="кс-стоп" hidden>{с.stop}</button>
-    <button type="button" class="кс-кнопка" id="кс-выбрать" hidden>{с.choose}</button>
-    <span class="кс-сказ" id="кс-сказ"></span>
+    <button type="button" class="кс-крест" id="кс-крест" hidden
+            title={с.clear} aria-label={с.clear}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+    </button>
+    <span class="кс-ход" id="кс-ход"></span>
   </div>
   <input type="file" class="кс-файл" id="кс-файл" accept="image/*" />
 
   <div class="кс-ответ" id="кс-ответ"></div>
+  <div class="кс-беда" id="кс-беда"></div>
 
   <div class="кс-заметки">
     {заметки.map((з) => <div class="кс-заметка" set:html={з}></div>)}
@@ -196,183 +187,232 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
 </div>
 
 <script>
-  import { прочитатьСнимок, умеетВид } from '../lib/code-read.js';
+  import { прочитатьКадр, прочитатьСнимок, умеетВид } from '../lib/code-read.js';
   import { разобратьGS1 } from '../lib/gs1.js';
+  import { пикнуть } from '../lib/beep.js';
 
   const корень = document.querySelector('.кс');
   if (корень) (() => {
     const с = JSON.parse(корень.dataset.words || '{}');
-    const вид = корень.dataset['вид'] || 'datamatrix';
     const ИМЕНА = JSON.parse(корень.dataset.fields || '{}');
+    const вид = корень.dataset['вид'] || 'datamatrix';
     const язык = корень.dataset.locale || 'ru';
     const $ = (и) => document.getElementById(и);
 
     const окно = $('кс-окно');
     const видео = $('кс-видео');
     const снимок = $('кс-снимок');
-    const пусто = $('кс-пусто');
+    const центр = $('кс-центр');
+    const ход = $('кс-ход');
     const прицел = $('кс-прицел');
-    const кнПуск = $('кс-пуск');
-    const кнСнять = $('кс-снять');
-    const кнСтоп = $('кс-стоп');
-    const кнВыбрать = $('кс-выбрать');
+    const крест = $('кс-крест');
     const поле = $('кс-файл');
     const ответ = $('кс-ответ');
+    const бедаЭ = $('кс-беда');
 
     let поток = null;
-    let режим = 'камера';
+    let ищем = false;
+    let часы = 0;
 
-    function сказать(текст) {
-      const э = $('кс-сказ');
-      э.textContent = текст;
-      э.classList.add('видно');
-      clearTimeout(э._т);
-      э._т = setTimeout(() => э.classList.remove('видно'), 2200);
+    const ЗН_КОПИ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<rect x="9" y="9" width="11" height="11" rx="2"/>'
+      + '<path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>';
+
+    function беда(текст) { бедаЭ.innerHTML = текст || ''; }
+
+    // Линия хода: пока поднимается камера или разбирается снимок. Доля выдуманная -- честного
+    // числа тут нет вовсе, зато видно, что работа идёт и страница не повисла.
+    function пуститьХод() {
+      ход.classList.add('идёт');
+      let доля = 4;
+      clearInterval(часы);
+      часы = setInterval(() => {
+        доля = Math.min(92, доля + (92 - доля) * 0.18);
+        ход.style.width = `${доля}%`;
+      }, 120);
+    }
+    function убратьХод(успех) {
+      clearInterval(часы);
+      ход.style.width = успех ? '100%' : '0%';
+      setTimeout(() => { ход.classList.remove('идёт'); ход.style.width = '0%'; }, 260);
     }
 
-    function беда(текст) {
-      ответ.innerHTML = `<div class="кс-беда">${текст}</div>`;
+    function мигнуть() {
+      окно.classList.add('прочитано');
+      setTimeout(() => окно.classList.remove('прочитано'), 900);
     }
 
-    // Содержимое кода -- всегда текстом и целиком. Ничего не открываем сами: код мог быть
-    // подменён, и решать, идти ли по нему, человеку, а не нам.
-    function показать(найдено) {
-      const поля = вид === 'datamatrix' ? разобратьGS1(найдено.текст) : null;
-      const строки = (поля && поля.length)
-        ? `<div class="кс-заголовок">${с.fields}</div><div class="кс-поля">`
-          + поля.map((п) => {
-            const имя = ИМЕНА[п.имя] || п.имя;
-            // Дату показываем словами на языке страницы: «30 сентября 2026» человеку
-            // говорит больше, чем «260930», и уж точно больше машинной записи со временем
-            // и часовым поясом. Так же она показана на странице штрихкодов.
-            const знач = (п.разбор && п.разбор.дата)
-              ? п.разбор.дата.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' })
-              : п.значение;
-            return `<div class="кс-поле"><span>${имя}</span><b>${знач}</b></div>`;
-          }).join('')
-          + '</div>'
-        : '';
-      ответ.innerHTML = `<div class="кс-заголовок">${с.found}</div>`
-        + `<div class="кс-текст" id="кс-текст"></div>${строки}`
-        + `<div class="кс-ряд"><button type="button" class="кс-простая" id="кс-копи">${с.copy}</button></div>`;
-      // Через textContent, а не в разметку: в коде может лежать что угодно, вплоть до
-      // куска чужой вёрстки, и вставлять его как разметку нельзя.
-      $('кс-текст').textContent = найдено.текст;
+    // Ответ -- одна строка: подпись, прочитанное, знак копирования. У Data Matrix под ней
+    // такими же строками идут поля GS1, если код записан по их правилам.
+    function показать(текст) {
+      const поля = вид === 'datamatrix' ? разобратьGS1(текст) : [];
+      const строки = (поля || []).map((п) => {
+        const имя = ИМЕНА[п.имя] || п.имя;
+        const знач = (п.разбор && п.разбор.дата)
+          ? п.разбор.дата.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' })
+          : п.значение;
+        return `<div class="кс-строка"><span class="кс-имя">${имя}</span><span class="кс-знач">${знач}</span></div>`;
+      }).join('');
+      ответ.innerHTML = `<div class="кс-строка"><span class="кс-имя">${с.result}</span>`
+        + `<span class="кс-знач" id="кс-текст"></span>`
+        + `<button type="button" class="кс-копи" id="кс-копи" title="${с.copy}" aria-label="${с.copy}">${ЗН_КОПИ}</button></div>`
+        + строки;
+      // Через textContent: в коде может лежать что угодно, вплоть до куска чужой вёрстки.
+      $('кс-текст').textContent = текст;
       $('кс-копи').addEventListener('click', async () => {
-        try { await navigator.clipboard.writeText(найдено.текст); сказать(с.copied); } catch (е) {}
+        try { await navigator.clipboard.writeText(текст); беда(с.copied); setTimeout(() => беда(''), 1600); } catch (е) {}
       });
+      мигнуть();
+      // Звук обязателен, а не украшение: со сканером человек смотрит НА КОРОБКУ, а не на
+      // экран, и понять, что код прочитан, ему больше нечем.
+      пикнуть();
     }
 
-    async function разобрать(картинка) {
-      ответ.innerHTML = '';
-      сказать(с.looking);
-      let найдено = null;
-      try { найдено = await прочитатьСнимок({ картинка, нужно: вид }); } catch (е) { найдено = null; }
-      if (найдено && найдено.текст) показать(найдено);
-      else беда(с.notFound);
+    function кадрВКартинку() {
+      const х = document.createElement('canvas');
+      х.width = видео.videoWidth;
+      х.height = видео.videoHeight;
+      const к = х.getContext('2d', { willReadFrequently: true });
+      к.drawImage(видео, 0, 0);
+      return { холст: х, точки: к.getImageData(0, 0, х.width, х.height) };
     }
 
     // ---- Камера ------------------------------------------------------------------------------
-    // Снимаем по нажатию, а не перебором кадров: этих видов кодов встроенный распознаватель
-    // ищет дольше, чем QR, и на слабом телефоне поток кадров только греет его впустую.
+    // Ищем код прямо в потоке, четыре раза в секунду: чаще -- только греет телефон, а эти
+    // виды кодов распознаватель ищет дольше, чем QR.
     async function включить() {
+      беда('');
       if (!(await умеетВид(вид))) { беда(с.noSupport); return; }
+      пуститьХод();
+      // ПОДСКАЗКА О РАЗРЕШЕНИИ. Браузер показывает свой запрос вверху окна, и человек, впервые
+      // попавший на страницу, часто его не замечает: он смотрит в центр, на окно сканера.
+      // Пишем прямо под окном, чего от него ждут -- и только если разрешение ещё не дано.
+      let спрашивали = false;
+      try {
+        const с2 = navigator.permissions && await navigator.permissions.query({ name: 'camera' });
+        if (!с2 || с2.state !== 'granted') { беда(с.askCam); спрашивали = true; }
+      } catch (е) { беда(с.askCam); спрашивали = true; }
       try {
         поток = await navigator.mediaDevices.getUserMedia({
           video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } }, audio: false,
         });
       } catch (е) {
+        убратьХод(false);
         беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
         return;
       }
+      if (спрашивали) беда('');
       видео.srcObject = поток;
       видео.hidden = false;
       снимок.hidden = true;
-      пусто.hidden = true;
+      центр.hidden = true;
       прицел.hidden = false;
+      крест.hidden = false;
       await видео.play().catch(() => {});
-      кнПуск.hidden = true;
-      кнСнять.hidden = false;
-      кнСтоп.hidden = false;
+      убратьХод(true);
+      ищем = true;
+      искать();
     }
 
     function выключить() {
+      ищем = false;
       if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
       видео.srcObject = null;
       видео.hidden = true;
       прицел.hidden = true;
-      пусто.hidden = false;
-      кнПуск.hidden = false;
-      кнСнять.hidden = true;
-      кнСтоп.hidden = true;
+      // Точку нажатия возвращаем только если в окне ничего не осталось: поверх снимка она
+      // просвечивала бы и мешала смотреть на то, что прочитано.
+      центр.hidden = !снимок.hidden;
+      крест.hidden = снимок.hidden;
     }
 
-    async function снятьКадр() {
-      if (!видео.videoWidth) return;
-      const х = document.createElement('canvas');
-      х.width = видео.videoWidth;
-      х.height = видео.videoHeight;
-      х.getContext('2d').drawImage(видео, 0, 0);
-      await разобрать(х);
+    /** Убрать всё: камеру погасить, снимок и ответ убрать, окно вернуть в исходное. */
+    function очистить() {
+      ищем = false;
+      if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
+      видео.srcObject = null;
+      видео.hidden = true;
+      if (снимок.src && снимок.src.startsWith('blob:')) URL.revokeObjectURL(снимок.src);
+      снимок.removeAttribute('src');
+      снимок.hidden = true;
+      прицел.hidden = true;
+      крест.hidden = true;
+      центр.hidden = false;
+      ответ.innerHTML = '';
+      беда('');
+      поле.value = '';
     }
 
-    кнПуск.addEventListener('click', включить);
-    кнСтоп.addEventListener('click', выключить);
-    кнСнять.addEventListener('click', снятьКадр);
+    async function искать() {
+      if (!ищем || !поток) return;
+      if (видео.videoWidth) {
+        const { холст, точки } = кадрВКартинку();
+        let найдено = null;
+        try { найдено = await прочитатьКадр({ источник: холст, точки, нужно: вид }); } catch (е) {}
+        if (найдено && найдено.текст) {
+          показать(найдено.текст);
+          выключить();          // прочитали -- камеру гасим: своё дело она сделала
+          return;
+        }
+      }
+      setTimeout(искать, 250);
+    }
+
+    // Нажатие по окну, когда камера работает, её выключает: отдельной кнопки для этого нет.
+    окно.addEventListener('click', (е) => {
+      if (!поток) return;
+      if (е.target.closest('.кс-копи')) return;
+      выключить();
+    });
+    окно.title = '';
+    $('кс-пуск').addEventListener('click', (е) => { е.stopPropagation(); включить(); });
+    крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
     window.addEventListener('pagehide', выключить);
 
     // ---- Снимок ------------------------------------------------------------------------------
-    function показатьСнимок(файл) {
-      const адрес = URL.createObjectURL(файл);
-      снимок.onload = async () => { URL.revokeObjectURL(адрес); await разобрать(снимок); };
-      снимок.src = адрес;
-      снимок.hidden = false;
-      пусто.hidden = true;
-      кнВыбрать.textContent = с.again;
-    }
-
-    кнВыбрать.addEventListener('click', () => поле.click());
-    поле.addEventListener('change', () => { if (поле.files && поле.files[0]) показатьСнимок(поле.files[0]); });
+    $('кс-загрузить').addEventListener('click', (е) => { е.stopPropagation(); поле.click(); });
+    поле.addEventListener('change', () => { if (поле.files && поле.files[0]) взятьФайл(поле.files[0]); });
     окно.addEventListener('dragover', (е) => е.preventDefault());
     окно.addEventListener('drop', (е) => {
       е.preventDefault();
       const ф = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
-      if (ф && ф.type.startsWith('image/')) { режимНа('файл'); показатьСнимок(ф); }
+      if (ф && ф.type.startsWith('image/')) взятьФайл(ф);
     });
 
-    // ---- Переключение способа ------------------------------------------------------------------
-    function режимНа(новый) {
-      режим = новый;
-      $('кс-реж-камера').classList.toggle('выбран', новый === 'камера');
-      $('кс-реж-файл').classList.toggle('выбран', новый === 'файл');
+    function взятьФайл(файл) {
+      выключить();
+      беда('');
       ответ.innerHTML = '';
-      if (новый === 'камера') {
-        снимок.hidden = true;
-        кнВыбрать.hidden = true;
-        кнПуск.hidden = false;
-        пусто.textContent = с.idle;
-        пусто.hidden = false;
-      } else {
-        выключить();
-        кнПуск.hidden = true;
-        кнВыбрать.hidden = false;
-        пусто.textContent = с.idlePhoto;
-        пусто.hidden = !!снимок.src;
-        снимок.hidden = !снимок.src;
-      }
+      пуститьХод();
+      const адрес = URL.createObjectURL(файл);
+      снимок.onload = async () => {
+        URL.revokeObjectURL(адрес);
+        let найдено = null;
+        try { найдено = await прочитатьСнимок({ картинка: снимок, нужно: вид }); } catch (е) {}
+        убратьХод(!!(найдено && найдено.текст));
+        if (найдено && найдено.текст) показать(найдено.текст);
+        else беда(с.notFound);
+      };
+      снимок.onerror = () => { убратьХод(false); беда(с.notFound); };
+      снимок.src = адрес;
+      снимок.hidden = false;
+      центр.hidden = true;
+      прицел.hidden = true;
+      крест.hidden = false;
     }
-    $('кс-реж-камера').addEventListener('click', () => режимНа('камера'));
-    $('кс-реж-файл').addEventListener('click', () => режимНа('файл'));
 
     // Умеет ли браузер читать этот вид -- говорим СРАЗУ, до разрешения на камеру.
     умеетВид(вид).then((умеет) => { if (!умеет) беда(с.noSupport); });
 
     window.__ксСостояние = () => ({
       вид,
-      режим,
       камераИдёт: !!поток,
+      ищем,
       ответ: ответ.textContent.trim().slice(0, 200),
+      беда: бедаЭ.textContent.trim().slice(0, 120),
       естьТекст: !!document.getElementById('кс-текст'),
+      центрВиден: !центр.hidden,
+      крестВиден: !крест.hidden,
     });
   })();
 </script>

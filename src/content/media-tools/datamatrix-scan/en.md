@@ -3,12 +3,16 @@ toolSlug: datamatrix-scan
 locale: en
 category: scanners
 tool: datamatrix-scan
-title: "Data Matrix Scanner Online Free — read the code by camera or photo"
+title: "Data Matrix Scanner Online — Read 2D Matrix Codes"
 h1: "Data Matrix Scanner"
 navName: "Data Matrix Scanner"
 summary: "Read a Data Matrix code with the camera"
-description: "Read Data Matrix codes with your phone camera or from a picture — free and with no sign-up. GS1 fields are broken down: item number, batch, production and expiry dates. The picture stays with you."
+description: "Free online Data Matrix barcode scanner. Instant browser-based 2D code recognition via webcam or image upload. 100% client-side privacy."
 faq:
+  - question: "Why does the site need access to the camera or to files?"
+    answer: "Camera access is needed to read the code in real time. File upload lets you recognise a Data Matrix from a photo or a screenshot stored on your own device. Neither is sent anywhere."
+  - question: "Is it safe to scan product traceability codes through this interface?"
+    answer: "Completely safe. The page works with no backend: reading, decoding and displaying all happen locally on your device, so there is simply nowhere for the data to be sent or intercepted."
   - question: "Where do Data Matrix codes appear?"
     answer: "It is a small square built from dots. It marks medicines, cigarettes, footwear and other traceable goods, as well as small parts, circuit boards and tools — wherever there is little room for a code and a lot to record."
   - question: "What is written inside such a code?"

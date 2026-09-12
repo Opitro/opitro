@@ -309,6 +309,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
 <script>
   import { прочитатьКадр, прочитатьСнимок, камераВидитПолоски } from '../lib/code-read.js';
+  // Сигнал об успехе лежит в общем месте: он одинаковый на всех сканерах сайта.
+  import { пикнуть } from '../lib/beep.js';
   import { разобратьШтрих, названиеСтраны } from '../lib/barcode-info.js';
   import { разобратьGS1 } from '../lib/gs1.js';
   import { разобратьСодержимое } from '../lib/qr-read.js';
@@ -347,22 +349,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     /** Короткий тихий сигнал: подсказка, а не сирена. */
-    function пикнуть() {
-      try {
-        const ак = new (window.AudioContext || window.webkitAudioContext)();
-        const ген = ак.createOscillator();
-        const гром = ак.createGain();
-        ген.type = 'sine';
-        ген.frequency.value = 1320;
-        гром.gain.setValueAtTime(0.0001, ак.currentTime);
-        гром.gain.exponentialRampToValueAtTime(0.08, ак.currentTime + 0.01);
-        гром.gain.exponentialRampToValueAtTime(0.0001, ак.currentTime + 0.12);
-        ген.connect(гром); гром.connect(ак.destination);
-        ген.start(); ген.stop(ак.currentTime + 0.13);
-        setTimeout(() => ак.close(), 400);
-      } catch (е) { /* звук -- приятная мелочь, без него всё работает */ }
-    }
-
     /** Человеческое имя формата: ean_13 и EAN_13 от разных движков -- одно и то же. */
     function имяФормата(ф) {
       const к = String(ф || '').toUpperCase().replace(/[^A-Z0-9]/g, '');
