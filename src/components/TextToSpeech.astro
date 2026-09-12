@@ -29,11 +29,11 @@ const СЛОВА = {
   ru: {
     clear: 'Очистить',
     vFemale: 'Женский', vMale: 'Мужской',
-    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Работает на всех устройствах.', mKokoro: 'Только английский. Телефону бывает тяжело.', mSupertonic: 'Для телефона тяжёлая.', mNote: 'Вес не говорит ни о скорости, ни о звучании: выбирайте по делу, а не по мегабайтам.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
+    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Работает и на телефоне.', mKokoro: 'Только английский.', mSupertonic: 'Для телефона тяжёлая.', mNote: 'Вес не говорит ни о скорости, ни о звучании: выбирайте по делу, а не по мегабайтам.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     model: 'Модель',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
-    engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'загрузится при первой генерации', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
+    engDev: 'Голоса устройства', engOwn: 'Встроенный голос', engHint: 'Встроенный голос считается прямо в браузере: файл скачивается сразу, без разрешений, и работает на iPhone. Голос загружается один раз.', devHint: 'Голосами устройства удобно <b>слушать</b>: озвучить статью, проверить произношение, послушать книгу. Чтобы получить файл, вернитесь на встроенный голос.', size: 'вес', ready: 'уже загружен', notReady: 'ещё не скачан', mNotReady: 'ещё не скачана', dling: 'Загружаем голос', synth: 'Считаем речь', noPitch: 'У встроенного голоса тона нет — только скорость', forget: 'Убрать голос с устройства', forgotten: 'Голос убран', piperFail: 'Не удалось собрать речь',
     failMem: 'Этой модели не хватило памяти — так бывает на телефонах с тяжёлыми моделями. Возьмите Piper: он самый лёгкий и запускается везде.',
     failNet: 'Модель не докачалась — оборвалась связь. Нажмите «Сгенерировать» ещё раз, загрузка продолжится с того же места.',
     failOld: 'Браузер не понимает эту модель. Помогает обновление браузера; Piper работает и в старых.',
@@ -69,7 +69,7 @@ const СЛОВА = {
     busy: 'Дождитесь конца записи',
     refTitle: 'Три модели на выбор', perVoice: 'за голос', srcHint: 'страница модели',
     rPiper: 'Голоса на 50 языков — 373 штуки, больше всех. Каждый голос скачивается отдельно.',
-    rKokoro: 'Только английский, 28 голосов. Один файл на все голоса.',
+    rKokoro: 'Только английский, 28 голосов. Телефону бывает тяжело. Один файл на все голоса.',
     rSupertonic: '31 язык одной моделью. Один файл на все голоса.',
     sPiper: 'считает быстрее всех', sKokoro: 'самый живой голос', sSupertonic: 'читает цифры и даты',
     n0: '<b>Озвучка текста онлайн — бесплатно и без регистрации.</b> Ограничений на число генераций нет.',
@@ -82,11 +82,11 @@ const СЛОВА = {
   uk: {
     clear: 'Очистити',
     vFemale: 'Жіночий', vMale: 'Чоловічий',
-    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Працює на всіх пристроях.', mKokoro: 'Тільки англійська. Телефону буває важко.', mSupertonic: 'Для телефона важка.', mNote: 'Вага не каже ні про швидкість, ні про звучання: обирайте за справою, а не за мегабайтами.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
+    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Працює і на телефоні.', mKokoro: 'Тільки англійська.', mSupertonic: 'Для телефона важка.', mNote: 'Вага не каже ні про швидкість, ні про звучання: обирайте за справою, а не за мегабайтами.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     model: 'Модель',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
-    engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'завантажиться при першій генерації', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
+    engDev: 'Голоси пристрою', engOwn: 'Вбудований голос', engHint: 'Вбудований голос рахується просто у браузері: файл завантажується одразу, без дозволів, і працює на iPhone. Голос завантажується один раз.', devHint: 'Голосами пристрою зручно <b>слухати</b>: озвучити статтю, перевірити вимову, послухати книжку. Щоб отримати файл, поверніться на вбудований голос.', size: 'вага', ready: 'уже завантажений', notReady: 'ще не завантажений', mNotReady: 'ще не завантажена', dling: 'Завантажуємо голос', synth: 'Рахуємо мовлення', noPitch: 'У вбудованого голосу тону немає — лише швидкість', forget: 'Прибрати голос із пристрою', forgotten: 'Голос прибрано', piperFail: 'Не вдалося зібрати мовлення',
     failMem: 'Цій моделі забракло памʼяті — так буває на телефонах із важкими моделями. Візьміть Piper: він найлегший і запускається всюди.',
     failNet: 'Модель не докачалася — обірвався звʼязок. Натисніть «Згенерувати» ще раз, завантаження продовжиться з того самого місця.',
     failOld: 'Браузер не розуміє цю модель. Допомагає оновлення браузера; Piper працює і в старих.',
@@ -122,7 +122,7 @@ const СЛОВА = {
     busy: 'Дочекайтеся кінця запису',
     refTitle: 'Три моделі на вибір', perVoice: 'за голос', srcHint: 'сторінка моделі',
     rPiper: 'Голоси на 50 мов — 373 штуки, найбільше з трьох. Кожен голос завантажується окремо.',
-    rKokoro: 'Тільки англійська, 28 голосів. Один файл на всі голоси.',
+    rKokoro: 'Тільки англійська, 28 голосів. Телефону буває важко. Один файл на всі голоси.',
     rSupertonic: '31 мова однією моделлю. Один файл на всі голоси.',
     sPiper: 'рахує найшвидше', sKokoro: 'найживіший голос', sSupertonic: 'читає цифри й дати',
     n0: '<b>Озвучення тексту онлайн — безкоштовно й без реєстрації.</b> Обмежень на кількість генерацій немає.',
@@ -135,11 +135,11 @@ const СЛОВА = {
   en: {
     clear: 'Clear',
     vFemale: 'Female', vMale: 'Male',
-    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Works on any device.', mKokoro: 'English only. Can be too heavy for a phone.', mSupertonic: 'Too heavy for a phone.', mNote: 'Size tells you nothing about speed or about how it sounds: pick by the job, not by megabytes.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
+    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Works on phones too.', mKokoro: 'English only.', mSupertonic: 'Too heavy for a phone.', mNote: 'Size tells you nothing about speed or about how it sounds: pick by the job, not by megabytes.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     model: 'Model',
     local: 'device', mb: 'MB', network: 'network',
-    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'downloads on first generation', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
+    engDev: 'Device voices', engOwn: 'Built-in voice', engHint: 'The built-in voice is computed right in your browser: the file downloads at once, with no permission, and it works on an iPhone. The voice itself is downloaded once.', devHint: 'Device voices are good for <b>listening</b>: read an article aloud, check a pronunciation, listen to a book. For a file, switch back to the built-in voice.', size: 'size', ready: 'already downloaded', notReady: 'not downloaded yet', mNotReady: 'not downloaded yet', dling: 'Downloading the voice', synth: 'Synthesising', noPitch: 'The built-in voice has no pitch control — speed only', forget: 'Remove this voice from the device', forgotten: 'Voice removed', piperFail: 'Could not build the speech',
     failMem: 'This model ran out of memory — that happens on phones with the heavier models. Take Piper: it is the lightest and starts everywhere.',
     failNet: 'The model did not finish downloading — the connection dropped. Press Generate again and it will carry on from the same place.',
     failOld: 'This browser does not understand this model. Updating the browser helps; Piper works in older ones too.',
@@ -175,7 +175,7 @@ const СЛОВА = {
     busy: 'Wait for the recording to finish',
     refTitle: 'Three models to choose from', perVoice: 'per voice', srcHint: 'model page',
     rPiper: 'Voices for 50 languages — 373 of them, more than either other model. Each voice downloads separately.',
-    rKokoro: 'English only, 28 voices. One file for all voices.',
+    rKokoro: 'English only, 28 voices. Can be too heavy for a phone. One file for all voices.',
     rSupertonic: '31 languages from a single model. One file for all voices.',
     sPiper: 'computes fastest', sKokoro: 'the liveliest voice', sSupertonic: 'reads numbers and dates',
     n0: '<b>Text to speech online — free and with no sign-up.</b> There is no limit on the number of generations.',
@@ -188,11 +188,11 @@ const СЛОВА = {
   es: {
     clear: 'Limpiar',
     vFemale: 'Femenina', vMale: 'Masculina',
-    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Funciona en cualquier dispositivo.', mKokoro: 'Solo inglés. Puede ser pesado para el teléfono.', mSupertonic: 'Pesado para el teléfono.', mNote: 'El peso no dice nada de la velocidad ni de cómo suena: elija por la tarea, no por los megabytes.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
+    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Funciona en el móvil.', mKokoro: 'Solo inglés.', mSupertonic: 'Pesado para el móvil.', mNote: 'El peso no dice nada de la velocidad ni de cómo suena: elija por la tarea, no por los megabytes.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     model: 'Modelo',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
-    engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'se descarga en la primera generación', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
+    engDev: 'Voces del dispositivo', engOwn: 'Voz integrada', engHint: 'La voz integrada se calcula en tu navegador: el archivo se descarga al momento, sin permisos, y funciona en un iPhone. La voz se descarga una sola vez.', devHint: 'Las voces del dispositivo van bien para <b>escuchar</b>: leer un artículo, comprobar una pronunciación, oír un libro. Para conseguir el archivo, vuelve a la voz integrada.', size: 'peso', ready: 'ya descargada', notReady: 'aún sin descargar', mNotReady: 'aún sin descargar', dling: 'Descargando la voz', synth: 'Sintetizando', noPitch: 'La voz integrada no tiene control de tono, solo velocidad', forget: 'Quitar esta voz del dispositivo', forgotten: 'Voz quitada', piperFail: 'No se ha podido generar la voz',
     failMem: 'A este modelo le ha faltado memoria: ocurre en los teléfonos con los modelos pesados. Coja Piper: es el más ligero y arranca en todas partes.',
     failNet: 'El modelo no ha terminado de descargarse: se ha cortado la conexión. Pulse «Generar» otra vez y continuará desde el mismo punto.',
     failOld: 'Este navegador no entiende este modelo. Actualizarlo ayuda; Piper también funciona en los antiguos.',
@@ -228,7 +228,7 @@ const СЛОВА = {
     busy: 'Espera a que acabe la grabación',
     refTitle: 'Tres modelos a elegir', perVoice: 'por voz', srcHint: 'página del modelo',
     rPiper: 'Voces para 50 idiomas: 373 en total, más que los otros dos. Cada voz se descarga por separado.',
-    rKokoro: 'Solo inglés, 28 voces. Un archivo para todas las voces.',
+    rKokoro: 'Solo inglés, 28 voces. Puede ser pesado para el móvil. Un archivo para todas las voces.',
     rSupertonic: '31 idiomas con un solo modelo. Un archivo para todas las voces.',
     sPiper: 'el que más rápido calcula', sKokoro: 'la voz más viva', sSupertonic: 'lee cifras y fechas',
     n0: '<b>Texto a voz online: gratis y sin registro.</b> No hay límite en el número de generaciones.',
@@ -614,9 +614,12 @@ const ЗН_ВНИЗ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 
       // на устройстве. Человек по ней считал, что ему снова качать 380 мегабайт.
       const общий = двигатель !== 'piper';
       const есть = скачанные.includes(общий ? двигатель : г.к);
+      // Коротко: вес и одно слово о том, лежит ли файл на устройстве. Длинная фраза здесь
+      // занимала две строки на любом телефоне и держала высоту всего верхнего блока --
+      // поле ввода из-за неё отъезжало вниз на ровном месте.
       э.textContent = общий
-        ? `${с.model}: ${есть ? с.mReady : с.notReady}`
-        : `${с.size}: ${г.мб} ${с.mb} — ${есть ? с.ready : с.notReady}`;
+        ? `${с.model}: ${есть ? с.mReady : с.mNotReady}`
+        : `${г.мб} ${с.mb} · ${есть ? с.ready : с.notReady}`;
       э.classList.toggle('готов', есть);
     }
 
