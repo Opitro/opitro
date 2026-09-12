@@ -29,7 +29,7 @@ const СЛОВА = {
   ru: {
     clear: 'Очистить',
     vFemale: 'Женский', vMale: 'Мужской',
-    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Работает и на телефоне.', mKokoro: 'Только английский.', mSupertonic: 'Для телефона тяжёлая.', mNote: 'Вес не говорит ни о скорости, ни о звучании: выбирайте по делу, а не по мегабайтам.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
+    modelPick: 'Модель', mUse: 'использовать', mReady: 'уже на устройстве', mPiper: 'Работает и на телефоне.', mKokoro: 'Только английский.', mSupertonic: 'Для телефона тяжёлая.', mPrivacy: 'Текст не уходит никуда — считается у вас в браузере. Модель скачивается один раз и остаётся на устройстве.',
     voice: 'Голос', rate: 'Скорость', pitch: 'Тон',
     model: 'Модель',
     local: 'устройства', mb: 'МБ', network: 'сетевой',
@@ -78,7 +78,7 @@ const СЛОВА = {
   uk: {
     clear: 'Очистити',
     vFemale: 'Жіночий', vMale: 'Чоловічий',
-    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Працює і на телефоні.', mKokoro: 'Тільки англійська.', mSupertonic: 'Для телефона важка.', mNote: 'Вага не каже ні про швидкість, ні про звучання: обирайте за справою, а не за мегабайтами.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
+    modelPick: 'Модель', mUse: 'використати', mReady: 'вже на пристрої', mPiper: 'Працює і на телефоні.', mKokoro: 'Тільки англійська.', mSupertonic: 'Для телефона важка.', mPrivacy: 'Текст не йде нікуди — рахується у вас у браузері. Модель завантажується один раз і лишається на пристрої.',
     voice: 'Голос', rate: 'Швидкість', pitch: 'Тон',
     model: 'Модель',
     local: 'пристрою', mb: 'МБ', network: 'мережевий',
@@ -127,7 +127,7 @@ const СЛОВА = {
   en: {
     clear: 'Clear',
     vFemale: 'Female', vMale: 'Male',
-    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Works on phones too.', mKokoro: 'English only.', mSupertonic: 'Too heavy for a phone.', mNote: 'Size tells you nothing about speed or about how it sounds: pick by the job, not by megabytes.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
+    modelPick: 'Model', mUse: 'use', mReady: 'already on this device', mPiper: 'Works on phones too.', mKokoro: 'English only.', mSupertonic: 'Too heavy for a phone.', mPrivacy: 'Your text goes nowhere — it is processed in your browser. The model downloads once and stays on the device.',
     voice: 'Voice', rate: 'Speed', pitch: 'Pitch',
     model: 'Model',
     local: 'device', mb: 'MB', network: 'network',
@@ -176,7 +176,7 @@ const СЛОВА = {
   es: {
     clear: 'Limpiar',
     vFemale: 'Femenina', vMale: 'Masculina',
-    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Funciona en el móvil.', mKokoro: 'Solo inglés.', mSupertonic: 'Pesado para el móvil.', mNote: 'El peso no dice nada de la velocidad ni de cómo suena: elija por la tarea, no por los megabytes.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
+    modelPick: 'Modelo', mUse: 'usar', mReady: 'ya está en este dispositivo', mPiper: 'Funciona en el móvil.', mKokoro: 'Solo inglés.', mSupertonic: 'Pesado para el móvil.', mPrivacy: 'Su texto no va a ninguna parte: se procesa en su navegador. El modelo se descarga una vez y se queda en el dispositivo.',
     voice: 'Voz', rate: 'Velocidad', pitch: 'Tono',
     model: 'Modelo',
     local: 'del dispositivo', mb: 'MB', network: 'de red',
@@ -321,7 +321,6 @@ const ЗН_ВНИЗ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 
        что умеет, скорость и лицензия ссылкой, которую можно открыть и прочитать. -->
   <div class="рч-справка">
     <h2 class="рч-спр-шапка">{с.refTitle}</h2>
-    <p class="рч-спр-лид">{с.mNote}</p>
     <div class="рч-спр-ряд">
       {МОДЕЛИ.map((м) => (
         <div class="рч-спр-карта">
