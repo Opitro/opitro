@@ -43,17 +43,22 @@
    строки спрятанная надпись остаётся на виду и просвечивает сквозь снимок. Ловушка повторная,
    уже ловила меня на озвучке -- и поймала здесь снова. */
 .кс-центр[hidden] { display: none }
+/* ЗНАЧОК КРУПНЫЙ, А ПОДПИСИ ЧЁТКИЕ. Первый вид владелец забраковал: значок был размером с
+   букву, а серая ссылка на двенадцати пикселях едва читалась. Значок теперь сорок пикселей и
+   стоит НАД надписью -- в столбик, как единая точка нажатия; подписи подняты в кегле и в
+   яркости. Приглушённых надписей на сайте нет: мелкое делаем тонким, а не бледным. */
 .кс-пуск {
-  display: inline-flex; align-items: center; gap: 9px; padding: 0; cursor: pointer;
-  background: none; border: 0; color: #fff; font: 400 15px var(--мон);
+  display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
+  padding: 0; cursor: pointer; background: none; border: 0; color: #fff;
+  font: 400 17px var(--мон);
 }
 .кс-пуск:hover { text-decoration: underline }
-.кс-пуск svg { width: 18px; height: 18px; display: block; fill: none; stroke: currentColor;
-  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.кс-пуск svg { width: 40px; height: 40px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
 .кс-ссылка {
   background: none; border: 0; padding: 0; cursor: pointer;
-  font: 400 12px var(--мон); color: var(--серый); text-decoration: underline;
-  transition: color .15s;
+  font: 400 13.5px var(--мон); color: #d4d4d8; text-decoration: underline;
+  text-underline-offset: 3px; transition: color .15s;
 }
 .кс-ссылка:hover { color: #fff }
 
@@ -101,7 +106,7 @@
 .кс-ответ { margin-top: 18px; border-top: 1px solid #18181b; border-bottom: 1px solid #18181b }
 .кс-ответ:empty { display: none }
 .кс-строка { display: flex; align-items: flex-start; gap: 14px; padding: 12px 2px }
-.кс-имя { flex: none; min-width: 64px; font: 400 12px var(--мон); color: var(--серый);
+.кс-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: #a1a1aa;
   padding-top: 1px }
 .кс-знач { flex: 1 1 auto; min-width: 0; font: 400 13px/1.5 var(--мон); color: #fff;
   overflow-wrap: anywhere; white-space: pre-wrap }

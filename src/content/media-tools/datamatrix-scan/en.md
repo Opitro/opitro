@@ -12,7 +12,7 @@ faq:
   - question: "Why does the site need access to the camera or to files?"
     answer: "Camera access is needed to read the code in real time. File upload lets you recognise a Data Matrix from a photo or a screenshot stored on your own device. Neither is sent anywhere."
   - question: "Is it safe to scan product traceability codes through this interface?"
-    answer: "Completely safe. The page works with no backend: reading, decoding and displaying all happen locally on your device, so there is simply nowhere for the data to be sent or intercepted."
+    answer: "Yes. Reading, decoding and displaying happen locally on your device — this page has no backend of its own, so there is nowhere to upload the picture to. Only the item number goes to the open database, and only if you press the button yourself: the serial number, date and batch stay with you."
   - question: "Where do Data Matrix codes appear?"
     answer: "It is a small square built from dots. It marks medicines, cigarettes, footwear and other traceable goods, as well as small parts, circuit boards and tools — wherever there is little room for a code and a lot to record."
   - question: "What is written inside such a code?"
@@ -22,7 +22,7 @@ faq:
   - question: "Does it work on an iPhone?"
     answer: "Not with the live camera. The reader built into Safari only knows QR codes, and that is a limit of the device rather than of this page. A picture still works — photograph the code and choose the file with the page open in Chrome or Edge on a computer, or in any browser on Android."
   - question: "Where does the picture go?"
-    answer: "Nowhere. The camera opens inside the browser and the decoding happens on your own device. Neither the frame nor the result is stored or sent anywhere — there is simply nowhere to send them."
+    answer: "The picture goes nowhere, ever. The camera opens inside the browser, the decoding happens on your device, and neither the frame nor the serial number is stored or sent by us. Exactly one thing can leave, and only when you press for it — the item number, if you press “Look it up in the open database” to get the product name."
 related:
   - qr-scan
   - barcode-scan
