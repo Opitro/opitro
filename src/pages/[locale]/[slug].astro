@@ -278,11 +278,11 @@ const pick = [];
 const add = (x) => { if (x && !pick.some((p) => p.data.toolSlug === x.data.toolSlug)) pick.push(x); };
 for (const slug of mentioned) add(sameLocale.find((x) => x.data.toolSlug === slug));
 for (const x of sameLocale.filter((x) => x.data.category === entry.data.category)) add(x);
-const tiles = pick.slice(0, 6).map((x) => ({
-  href: `/${x.data.locale}/${x.data.toolSlug}`,
-  name: x.data.navName || x.data.h1,
-  icon: iconFor(x.data.toolSlug, x.data.category),
-}));
+// Плитки «попробуйте ещё» -- ТА ЖЕ карточка, что в рубриках (ToolCard), а не свой ряд ссылок.
+// Прежние были длинными кнопками во всю строку: значок у всех один зелёный, при наведении
+// ничего не происходит, нажимать не хочется. А это единственная дорога с одной страницы на
+// другую -- ей полагается выглядеть дорогой. На телефоне плитки встают в два столбца.
+const tiles = pick.slice(0, 6);
 const tryMoreLabel = translate(entry.data.locale, 'tryMoreLabel');
 
 // Утверждённая вёрстка текста (вариант Д). Ширину получают только медиастраницы: у калькулятора
@@ -647,16 +647,9 @@ const wideLayout = kind === 'media';
     {tiles.length > 0 && (
       <>
         <h2>{tryMoreLabel}</h2>
-        <ul class="chips">
-          {tiles.map((x) => (
-            <li>
-              <a href={x.href}>
-                <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" set:html={x.icon} />
-                <span>{x.name}</span>
-              </a>
-            </li>
-          ))}
-        </ul>
+        <div class="рядом-сетка">
+          {tiles.map((x) => <ToolCard данные={x.data} />)}
+        </div>
       </>
     )}
     <h2>{faqLabel}</h2>

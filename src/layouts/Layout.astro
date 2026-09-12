@@ -236,6 +236,21 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
      ВНИМАНИЕ: эти правила однажды были снесены заодно с отвергнутыми набросками оформления,
      и плитки уехали на боевой сайт без стилей -- гигантский значок вместо ряда плиток. Держать
      их отдельным блоком и проверять плитки глазами после любой уборки в этом файле. */
+  /* ПЛИТКИ «ПОПРОБУЙТЕ ЕЩЁ» внизу страницы инструмента. Две колонки на телефоне, дальше
+     по ширине окна. Раньше здесь были длинные кнопки во всю строку -- ряд одинаковых полос,
+     по которым не хочется нажимать. Сетка и правила те же, что у плиток рубрики: одна плитка
+     на весь сайт, и выглядит она везде одинаково.
+     max-width и column-span сбрасывают правила текстового блока, внутри которого она стоит. */
+  section.seo.v2 .рядом-сетка{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
+    gap:10px;margin:0 0 10px;padding:0;max-width:none;column-span:all}
+  @media(max-width:760px){section.seo.v2 .рядом-сетка{grid-template-columns:repeat(2,1fr);gap:8px}}
+  /* Плитка стоит внутри текстового блока, а там ссылки подчёркнуты и набраны кеглем статьи.
+     Для плитки это чужое: подчёркивание превращает её в строку текста, а крупные буквы
+     разносят названия на три строки, и ряд теряет ровный край. */
+  section.seo.v2 .рядом-сетка a{text-decoration:none}
+  section.seo.v2 .рядом-сетка .tc-name{font-size:14px;line-height:1.3;font-weight:600;
+    color:var(--text)}
+
   section.seo.v2 ul.chips{display:grid;grid-template-columns:repeat(auto-fill,minmax(240px,1fr));
     gap:10px;list-style:none;margin:0 0 8px;padding:0;max-width:none;column-span:all}
   section.seo.v2 ul.chips li{margin:0;padding:0}
@@ -281,7 +296,7 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   .tool-card{display:flex;align-items:center;gap:10px;padding:13px 14px;min-height:52px;background:var(--surface);border:1px solid var(--line);border-radius:13px;text-decoration:none;transition:transform .12s,border-color .2s,background .2s}
   .tool-card:hover{transform:translateY(-3px);border-color:var(--shelf,var(--accent));
     background:color-mix(in srgb,var(--shelf,var(--accent)) 6%,transparent)}
-  .tc-name{font-size:14px;font-weight:600;color:var(--text);text-align:left}
+  .tc-name{font-size:14px;font-weight:600;color:var(--text);text-align:left;line-height:1.3}
   /* Значок обозначает род дела, а не сам инструмент: их тринадцать на семьдесят восемь страниц,
      и оттого они узнаются -- увидев ножницы второй раз, человек уже знает, что это про резку. */
   .tc-ico{flex:none;width:19px;height:19px;color:var(--shelf,var(--accent))}

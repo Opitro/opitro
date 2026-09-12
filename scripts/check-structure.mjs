@@ -75,8 +75,15 @@ for (const file of pages) {
   const dup = ids.filter((x, i) => ids.indexOf(x) !== i);
   for (const d of new Set(dup)) add(url, 'разметка', `id встречается дважды: ${d}`);
 
+  // РАЗМЕТКУ СМОТРИМ БЕЗ ДАННЫХ. В data-атрибутах страниц лежат словари текстов, а в них
+  // попадаются написанные словами теги: «Тег <img>» на base64-file, пример со ссылкой в
+  // заметке code-diff. Для браузера это просто строки внутри кавычек, а для нашего поиска по
+  // выражению выглядели как настоящая картинка без alt и ссылка без href -- восемь ложных
+  // тревог из шестнадцати. Вырезаем data-атрибуты и смотрим на то, что и правда разметка.
+  const разметка = html.replace(/\sdata-[\w-]+="[^"]*"/g, '');
+
   // --- ссылки: пустые, без текста, ведущие в никуда
-  for (const m of html.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
+  for (const m of разметка.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
     const attrs = m[1];
     const inner = m[2].replace(/<[^>]+>/g, '').trim();
     const href = (attrs.match(/href="([^"]*)"/) || [])[1];
@@ -97,7 +104,7 @@ for (const file of pages) {
   }
 
   // --- изображения без описания
-  for (const m of html.matchAll(/<img\b([^>]*)>/g)) {
+  for (const m of разметка.matchAll(/<img\b([^>]*)>/g)) {
     if (!/alt="/.test(m[1])) add(url, 'доступность', 'картинка без alt');
   }
 }

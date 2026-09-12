@@ -288,7 +288,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <button type="button" class="скш-кнопка" id="скш-копировать" disabled>{с.copy}</button>
     <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
     <button type="button" class="скш-обводка" id="скш-база" style="display:none">{с.base}</button>
-    <a class="скш-обводка" id="скш-искать" style="display:none" target="_blank"
+    <!-- href запасной, как и у соседней страницы сканера: настоящий адрес поиска ставит JS
+         после того, как штрихкод прочитан. -->
+    <a class="скш-обводка" id="скш-искать" href={`/${locale}/barcode-scan`}
+       style="display:none" target="_blank"
        rel="noopener noreferrer nofollow">{с.search}</a>
   </div>
 

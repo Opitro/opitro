@@ -4,7 +4,13 @@
 // The point is that nobody has to paste 288 URLs into PageSpeed one at a time. Every page is
 // built from one of a handful of templates, so one page per template covers the site -- and this
 // runs them all in one pass, against the real browser rather than against a guess.
-const BASE = process.argv[2] || 'http://localhost:4321';
+// ПРОВЕРЯЕМ СОБРАННЫЙ САЙТ, А НЕ СЕРВЕР РАЗРАБОТКИ. На 4321 живёт dev-сервер Astro, и он
+// подмешивает в каждую страницу свою панель разработчика (/@id/astro/runtime/client/dev-toolbar).
+// У людей её нет вовсе, а проверка ругалась именно на неё -- двенадцать страниц из двенадцати
+// «с замечаниями» на ровном месте. Берём предпросмотр собранного сайта: это ровно то, что
+// получает человек. Адрес можно передать первым доводом, если нужен другой.
+const ПОРТ_САЙТА = 4392;
+const BASE = process.argv[2] || `http://localhost:${ПОРТ_САЙТА}`;
 const PAGES = process.argv.slice(3).length ? process.argv.slice(3) : [
   '/ru',                     // homepage
   '/ru/tools/audio',         // category
@@ -29,6 +35,23 @@ import path from 'node:path';
 const ПОРТ = 9351;
 const ПАПКА = path.join(os.tmpdir(), 'opitro-check-pages-prof');
 const сон = (ms) => new Promise((r) => setTimeout(r, ms));
+// Предпросмотр поднимаем сами и гасим за собой -- проверку нельзя запустить неправильно.
+let свойСервер = null;
+if (!process.argv[2]) {
+  const живой = async () => { try { await fetch(BASE + '/ru'); return true; } catch (е) { return false; } };
+  if (!(await живой())) {
+    свойСервер = spawn('npx', ['astro', 'preview', '--port', String(ПОРТ_САЙТА)],
+      { cwd: path.join(path.dirname(new URL(import.meta.url).pathname), '..'), stdio: 'ignore' });
+    let поднялся = false;
+    for (let i = 0; i < 60; i++) { await сон(500); if (await живой()) { поднялся = true; break; } }
+    if (!поднялся) {
+      console.error('Предпросмотр не поднялся. Собран ли сайт? npm run build');
+      try { свойСервер.kill(); } catch (е) {}
+      process.exit(2);
+    }
+  }
+}
+
 let своё = null;
 try {
   await fetch(`http://127.0.0.1:${ПОРТ}/json/version`);
@@ -42,7 +65,10 @@ try {
     try { await fetch(`http://127.0.0.1:${ПОРТ}/json/version`); break; } catch { await сон(400); }
   }
 }
-process.on('exit', () => { if (своё) { try { процессУбить(); } catch (e) {} } });
+process.on('exit', () => {
+  if (своё) { try { процессУбить(); } catch (e) {} }
+  if (свойСервер) { try { свойСервер.kill(); } catch (e) {} }
+});
 function процессУбить() { своё.kill('SIGTERM'); }
 
 const targets = await (await fetch(BASE.includes('localhost') ? 'http://127.0.0.1:9351/json/list' : 'http://127.0.0.1:9351/json/list')).json();

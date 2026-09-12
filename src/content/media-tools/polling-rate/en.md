@@ -58,4 +58,3 @@ The real events sit inside the batch. We unpack it and get what the mouse actual
 
 Move smoothly and without stopping: during pauses no events arrive and the average falls. A number below the advertised one does not always mean a fault — a USB hub, wireless power saving or a busy processor are the usual causes.
 
-Next door you can [check the buttons and wheel](/en/mouse-test) and [measure your click speed](/en/click-speed).

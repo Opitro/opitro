@@ -219,7 +219,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         <span class="ск2-ждём" id="ск2-ждём">{с.waiting}</span>
       </div>
       <div class="ск2-подвал">
-        <a class="ск2-обводка" id="ск2-перейти" target="_blank" rel="noopener noreferrer nofollow"
+        <!-- href тут запасной, свой же адрес: настоящий ставит JS, когда в коде окажется
+             ссылка. Без href браузер не считает это ссылкой -- ни клавиатурой не взять,
+             ни чтецу экрана не назвать. -->
+        <a class="ск2-обводка" id="ск2-перейти" href={`/${locale}/qr-scan`}
+           target="_blank" rel="noopener noreferrer nofollow"
            style="display:none">{с.open}</a>
         <button type="button" class="ск2-копи" id="ск2-копировать" aria-label={с.copy}
                 title={с.copy} disabled>

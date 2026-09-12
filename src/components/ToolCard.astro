@@ -41,7 +41,16 @@ const имя = данные.navName || данные.h1;
      (см. colorFor) и приходит переменной --цвет прямо из разметки, поэтому одного правила
      хватает на все плитки сразу.
      Правило нарочно сильнее общего .tc-ico в Layout: два имени класса против одного. */
+  /* ЗНАЧОК В ПОДЛОЖКЕ. Голая линия на пустом месте выглядит черновиком; квадрат со скруглением
+     и заливкой в тот же цвет, только сильно разбавленный, читается как знак, а не как остаток
+     разметки. Цвет один на плашку и на саму линию -- отсюда узнаваемость рода дела. */
   .tc-плашка { flex: none; display: inline-flex; align-items: center; justify-content: center;
-    width: 22px; height: 22px }
-  .tc-плашка .tc-ico { color: var(--цвет); width: 19px; height: 19px }
+    width: 34px; height: 34px; border-radius: 10px;
+    background: color-mix(in srgb, var(--цвет) 14%, transparent);
+    border: 1px solid color-mix(in srgb, var(--цвет) 22%, transparent);
+    transition: background .18s, border-color .18s }
+  .tc-плашка .tc-ico { color: var(--цвет); width: 18px; height: 18px }
+  /* При наведении подложка чуть ярче -- плитка отзывается вся целиком, а не одной рамкой. */
+  .tool-card:hover .tc-плашка { background: color-mix(in srgb, var(--цвет) 22%, transparent);
+    border-color: color-mix(in srgb, var(--цвет) 38%, transparent) }
 </style>

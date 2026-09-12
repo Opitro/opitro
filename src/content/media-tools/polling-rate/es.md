@@ -58,4 +58,3 @@ Los eventos reales están dentro del grupo. Nosotros lo desmontamos y obtenemos 
 
 Mueve el ratón con suavidad y sin parar: en las pausas no llegan eventos y la media cae. Un número por debajo del anunciado no siempre es una avería.
 
-Al lado puedes [comprobar los botones y la rueda](/es/mouse-test) y [medir tu velocidad de clic](/es/click-speed).
