@@ -109,7 +109,11 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   *{box-sizing:border-box;margin:0;padding:0}
   html{background:var(--bg);overflow-x:hidden;width:100%}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;width:100%}
-  nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
+  /* ТОЛЬКО ШАПКА, а не всякий <nav> на странице. Голый селектор nav цеплял и ряды переходов
+     внутри страниц: на рубрике «Работа с текстом» кнопки полок переносились на три строки,
+     а высота оставалась шапочной (56 px) -- и третья строка наезжала на заголовок первой
+     полки. Ловушка повторная: в Minify.astro из-за неё уже отказались от <nav>. */
+  .site-nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
   main{flex:1;display:flex;flex-direction:column}
   .logo{font-size:20px;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
   .logo img{border-radius:6px;display:block}
@@ -139,7 +143,7 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
   .breadcrumb{max-width:680px;margin:0 auto;padding:14px 2rem 0;text-align:center}
   .breadcrumb a{font-size:12px;color:var(--muted);text-decoration:none}
   .breadcrumb a:hover{color:var(--accent)}
-  @media(max-width:640px){nav{padding:0 1rem}.logo{font-size:18px}.breadcrumb{padding:12px 1rem 0}}
+  @media(max-width:640px){.site-nav{padding:0 1rem}.logo{font-size:18px}.breadcrumb{padding:12px 1rem 0}}
   .main{max-width:680px;margin:0 auto;width:100%;padding:2.5rem 2rem 3rem;overflow-x:hidden}
   h1{font-size:24px;font-weight:600;text-align:center;margin-bottom:8px;letter-spacing:-0.3px}
   .subtitle{font-size:13px;color:var(--muted);text-align:center;margin-bottom:28px}
@@ -336,7 +340,7 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
     });
   })();
 </script>
-<nav>
+<nav class="site-nav">
   <a class="logo" href={getRelativeLocaleUrl(locale, '')}>
     <img src="/favicon.svg" alt="" width="22" height="22">
     Opitro
