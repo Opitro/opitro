@@ -1,0 +1,122 @@
+/* СКАНЕР EXIF -- ТОТ ЖЕ СТРОЙ, ЧТО У СКАНЕРОВ КОДОВ.
+ *
+ * Человек ходит между сканерами рубрики, и второй вид ему пришлось бы учить заново. Поэтому
+ * здесь всё то же: чёрное поле приёма, моноширинный шрифт, ответ карточкой с зелёными
+ * подписями. Разница только в устройстве: камеры тут нет, читается готовый файл.
+ */
+
+.эк {
+  --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+  --серый: #b4b4bb;
+  --контур: #3a3a42;
+  font-family: var(--мон);
+}
+
+/* ---- Поле приёма ------------------------------------------------------------------------------
+   Высота постоянная: после выбора файла на её месте появляется сам снимок, и подпрыгивать
+   странице незачем. */
+.эк-поле {
+  position: relative; height: 200px; width: 100%; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: #09090b; border: 2px solid var(--контур); border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  transition: border-color .2s, background .2s;
+}
+.эк-поле.держат { border-color: #fff; background: #111114 }
+.эк-поле.прочитано { border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(74,222,158,.35), 0 0 28px rgba(74,222,158,.18) }
+
+.эк-поле img {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block;
+  object-fit: contain; background: #000;
+}
+/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]. */
+.эк-поле img[hidden] { display: none }
+
+/* Плитка выбора: одна, камеры здесь нет. Значок и подпись под ним -- как у сканеров кодов. */
+.эк-центр { position: relative; display: flex; flex-direction: column; align-items: center;
+  gap: 10px; padding: 0 16px; text-align: center }
+.эк-центр[hidden] { display: none }
+.эк-выбор {
+  width: 140px; padding: 16px 10px 14px; cursor: pointer; border-radius: 8px;
+  display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
+  font: 400 13px var(--мон);
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.эк-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
+.эк-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.эк-выбор svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
+.эк-подсказка { font: 400 12px var(--мон); color: var(--серый) }
+
+.эк-крест {
+  position: absolute; top: 8px; right: 8px; z-index: 2;
+  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; cursor: pointer; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.55); color: #e4e4e7;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.эк-крест:hover { color: #fff; background: rgba(0,0,0,.85); border-color: #fff }
+.эк-крест[hidden] { display: none }
+.эк-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round }
+
+.эк-файл { display: none }
+
+/* ---- Ответ ------------------------------------------------------------------------------------ */
+.эк-ответ { margin-top: 18px; display: flex; flex-direction: column; gap: 12px }
+.эк-ответ:empty { display: none }
+
+@keyframes эк-явился { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+.эк-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
+  padding: 12px 13px; display: flex; flex-direction: column; gap: 7px;
+  animation: эк-явился .28s cubic-bezier(.2,.7,.3,1) both }
+.эк-вид { font: 400 10.5px var(--мон); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent) }
+.эк-пары { display: grid; grid-template-columns: minmax(0, 180px) minmax(0, 1fr);
+  gap: 3px 12px; margin: 0; font: 400 12.5px/1.45 var(--мон) }
+.эк-пары dt { color: var(--accent) }
+.эк-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
+
+/* Карточка «ничего не записано» -- розовая, как «кода не видно» у сканеров. */
+.эк-мимо { border-color: rgba(255,154,168,.5); background: rgba(255,154,168,.07) }
+.эк-мимо .эк-вид { color: var(--беда, #ff9aa8) }
+.эк-пояснение { font: 400 12.5px/1.55 var(--мон); color: #fff }
+
+/* Место съёмки выделено: это самое ценное и самое личное, что бывает в снимке. */
+.эк-место { border-color: rgba(74,222,158,.4) }
+
+.эк-ссылка {
+  display: inline-flex; align-items: center; gap: 6px;
+  background: none; border: 0; padding: 0; cursor: pointer;
+  font: 400 12.5px var(--мон); color: var(--accent); text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.эк-ссылка:hover { color: var(--accent2, #60efb8) }
+
+/* Кнопка «показать всё»: остальные поля снимка, как они записаны. */
+.эк-ещё {
+  align-self: flex-start; padding: 8px 14px; cursor: pointer; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
+  font: 400 12.5px var(--мон); transition: color .15s, border-color .15s, background .15s;
+}
+.эк-ещё:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
+.эк-ещё[hidden] { display: none }
+
+.эк-беда { margin-top: 12px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
+.эк-беда:empty { display: none }
+
+.эк-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 10px }
+.эк-заметка { font: 400 13px/1.65 var(--мон); color: #c9c9d1 }
+.эк-заметка b { color: #fff; font-weight: 400 }
+
+@media (max-width: 560px) {
+  .эк-поле { height: 180px }
+  .эк-пары { grid-template-columns: minmax(0, 1fr); gap: 1px }
+  .эк-пары dd { margin-bottom: 6px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .эк-итог { animation: none }
+}

@@ -1,0 +1,502 @@
+---
+// ЧТО ФОТОАППАРАТ ЗАПИСАЛ ВНУТРЬ СНИМКА.
+//
+// Страница читает файл целиком на устройстве: разбор свой (src/lib/exif.js), ничего не
+// скачивается и никуда не отправляется. Для этого инструмента обещание про браузер весомее,
+// чем где-либо ещё: он показывает человеку координаты места, где тот стоял с телефоном в
+// руках, -- и отправлять такой файл куда-то было бы прямым предательством.
+//
+// Что показываем: снимок (размер, вес), камеру, съёмку, место. Ниже -- кнопка «показать все
+// поля»: там лежит то, что мы не назвали по-человечески, но что в файле есть. Скрывать это
+// нельзя -- человек пришёл смотреть, что внутри, а не читать нашу выборку.
+import css from '../styles/exif-view.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    pick: 'Выбрать снимок', hint: 'или перетащите файл сюда, или вставьте через Ctrl+V',
+    clear: 'Убрать',
+    shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
+    showAll: 'Показать все поля', hideAll: 'Скрыть остальные поля',
+    file: 'Файл', size: 'Размер', weight: 'Вес', kind: 'Формат',
+    make: 'Изготовитель', model: 'Модель', lens: 'Объектив', software: 'Программа',
+    author: 'Автор', rights: 'Права',
+    date: 'Дата съёмки', dateFile: 'Дата в файле', exposure: 'Выдержка', aperture: 'Диафрагма',
+    iso: 'Светочувствительность', focal: 'Фокусное расстояние', focal35: 'В пересчёте на 35 мм',
+    flash: 'Вспышка', flashOn: 'сработала', flashOff: 'не сработала',
+    orientation: 'Поворот', wb: 'Баланс белого', wbAuto: 'автоматический', wbManual: 'вручную',
+    coords: 'Координаты', altitude: 'Высота', direction: 'Куда смотрела камера',
+    map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
+    none: 'Полей нет',
+    noneWhy: 'В этом файле ничего не записано. Так бывает со снимками из соцсетей и мессенджеров — они стирают поля при загрузке, — со снимками экрана и с картинками, нарисованными на компьютере.',
+    heic: 'Это снимок HEIC',
+    heicWhy: 'Так iPhone сохраняет фотографии по умолчанию. Браузер не умеет разбирать такие файлы, и притворяться нам нечем. Переснимите в JPEG (Настройки → Камера → Форматы → «Наиболее совместимые») или отправьте снимок себе так, чтобы он перекодировался.',
+    alien: 'Это не картинка',
+    alienWhy: 'Мы читаем JPEG, PNG и WebP — в них поля и бывают. Выберите снимок.',
+    orient: { 1: 'как снято', 2: 'зеркально', 3: 'на 180°', 4: 'зеркально и на 180°',
+      5: 'зеркально и на 90° влево', 6: 'на 90° вправо', 7: 'зеркально и на 90° вправо',
+      8: 'на 90° влево' },
+    mm: 'мм', m: 'м', sec: 'с', deg: '°',
+  },
+  uk: {
+    pick: 'Вибрати знімок', hint: 'або перетягніть файл сюди, або вставте через Ctrl+V',
+    clear: 'Прибрати',
+    shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
+    showAll: 'Показати всі поля', hideAll: 'Сховати інші поля',
+    file: 'Файл', size: 'Розмір', weight: 'Вага', kind: 'Формат',
+    make: 'Виробник', model: 'Модель', lens: 'Обʼєктив', software: 'Програма',
+    author: 'Автор', rights: 'Права',
+    date: 'Дата зйомки', dateFile: 'Дата у файлі', exposure: 'Витримка', aperture: 'Діафрагма',
+    iso: 'Світлочутливість', focal: 'Фокусна відстань', focal35: 'У перерахунку на 35 мм',
+    flash: 'Спалах', flashOn: 'спрацював', flashOff: 'не спрацював',
+    orientation: 'Поворот', wb: 'Баланс білого', wbAuto: 'автоматичний', wbManual: 'вручну',
+    coords: 'Координати', altitude: 'Висота', direction: 'Куди дивилася камера',
+    map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
+    none: 'Полів немає',
+    noneWhy: 'У цьому файлі нічого не записано. Так буває зі знімками із соцмереж і месенджерів — вони стирають поля під час завантаження, — зі знімками екрана та з картинками, намальованими на компʼютері.',
+    heic: 'Це знімок HEIC',
+    heicWhy: 'Так iPhone зберігає фотографії за замовчуванням. Браузер не вміє розбирати такі файли, і вдавати нам нічим. Перезніміть у JPEG (Налаштування → Камера → Формати → «Найбільш сумісні») або надішліть знімок собі так, щоб він перекодувався.',
+    alien: 'Це не картинка',
+    alienWhy: 'Ми читаємо JPEG, PNG і WebP — у них поля й бувають. Виберіть знімок.',
+    orient: { 1: 'як знято', 2: 'дзеркально', 3: 'на 180°', 4: 'дзеркально і на 180°',
+      5: 'дзеркально і на 90° вліво', 6: 'на 90° вправо', 7: 'дзеркально і на 90° вправо',
+      8: 'на 90° вліво' },
+    mm: 'мм', m: 'м', sec: 'с', deg: '°',
+  },
+  en: {
+    pick: 'Choose a photo', hint: 'or drop a file here, or paste with Ctrl+V',
+    clear: 'Clear',
+    shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
+    showAll: 'Show every field', hideAll: 'Hide the other fields',
+    file: 'File', size: 'Size', weight: 'Weight', kind: 'Format',
+    make: 'Maker', model: 'Model', lens: 'Lens', software: 'Software',
+    author: 'Author', rights: 'Rights',
+    date: 'Date taken', dateFile: 'Date in the file', exposure: 'Shutter', aperture: 'Aperture',
+    iso: 'ISO', focal: 'Focal length', focal35: 'Equivalent at 35 mm',
+    flash: 'Flash', flashOn: 'fired', flashOff: 'did not fire',
+    orientation: 'Rotation', wb: 'White balance', wbAuto: 'automatic', wbManual: 'manual',
+    coords: 'Coordinates', altitude: 'Altitude', direction: 'Camera pointed',
+    map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
+    none: 'No fields',
+    noneWhy: 'Nothing is recorded in this file. That happens with pictures from social networks and messengers — they strip the fields on upload — and with screenshots and pictures drawn on a computer.',
+    heic: 'This is a HEIC photo',
+    heicWhy: 'That is how an iPhone saves photos by default. The browser cannot open such files, and we will not pretend otherwise. Take it again as JPEG (Settings → Camera → Formats → “Most Compatible”), or send it to yourself so that it gets converted.',
+    alien: 'This is not a picture',
+    alienWhy: 'We read JPEG, PNG and WebP — those are the ones that carry fields. Choose a photo.',
+    orient: { 1: 'as shot', 2: 'mirrored', 3: 'by 180°', 4: 'mirrored and by 180°',
+      5: 'mirrored and 90° left', 6: '90° right', 7: 'mirrored and 90° right', 8: '90° left' },
+    mm: 'mm', m: 'm', sec: 's', deg: '°',
+  },
+  es: {
+    pick: 'Elegir una foto', hint: 'o arrastre un archivo aquí, o péguelo con Ctrl+V',
+    clear: 'Quitar',
+    shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
+    showAll: 'Mostrar todos los campos', hideAll: 'Ocultar los demás campos',
+    file: 'Archivo', size: 'Tamaño', weight: 'Peso', kind: 'Formato',
+    make: 'Fabricante', model: 'Modelo', lens: 'Objetivo', software: 'Programa',
+    author: 'Autor', rights: 'Derechos',
+    date: 'Fecha de la toma', dateFile: 'Fecha en el archivo', exposure: 'Obturación',
+    aperture: 'Diafragma', iso: 'Sensibilidad', focal: 'Distancia focal',
+    focal35: 'Equivalente a 35 mm',
+    flash: 'Flash', flashOn: 'disparó', flashOff: 'no disparó',
+    orientation: 'Giro', wb: 'Balance de blancos', wbAuto: 'automático', wbManual: 'manual',
+    coords: 'Coordenadas', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
+    map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
+    none: 'No hay campos',
+    noneWhy: 'En este archivo no hay nada escrito. Pasa con las imágenes de redes sociales y mensajería —borran los campos al subirlas—, con las capturas de pantalla y con los dibujos hechos en el ordenador.',
+    heic: 'Es una foto HEIC',
+    heicWhy: 'Así guarda las fotos el iPhone por defecto. El navegador no sabe abrir esos archivos y no vamos a fingir lo contrario. Vuelva a tomarla en JPEG (Ajustes → Cámara → Formatos → «Más compatible») o envíesela a usted mismo para que se convierta.',
+    alien: 'Esto no es una imagen',
+    alienWhy: 'Leemos JPEG, PNG y WebP: son los que llevan campos. Elija una foto.',
+    orient: { 1: 'tal cual', 2: 'en espejo', 3: '180°', 4: 'en espejo y 180°',
+      5: 'en espejo y 90° a la izquierda', 6: '90° a la derecha',
+      7: 'en espejo y 90° a la derecha', 8: '90° a la izquierda' },
+    mm: 'mm', m: 'm', sec: 's', deg: '°',
+  },
+};
+
+const ЗАМЕТКИ = {
+  ru: ['<b>Файл никуда не уходит.</b> Он читается прямо в браузере, на вашем устройстве. Ни снимок, ни координаты мы не храним и не отправляем — и это тот случай, когда обещание важнее всего.',
+       '<b>Координаты в снимке — обычное дело.</b> Телефон записывает их молча, если вы разрешили ему доступ к месту. Отправляя такой снимок, вы отправляете и адрес: дом, школу, дачу.',
+       '<b>Полей может не быть вовсе.</b> Соцсети и мессенджеры стирают их при загрузке, а у снимков экрана их не было изначально. Пустой ответ здесь — это ответ, а не поломка.'],
+  uk: ['<b>Файл нікуди не йде.</b> Він читається просто у браузері, на вашому пристрої. Ні знімок, ні координати ми не зберігаємо й не надсилаємо — і це той випадок, коли обіцянка найважливіша.',
+       '<b>Координати у знімку — звичайна річ.</b> Телефон записує їх мовчки, якщо ви дозволили йому доступ до місця. Надсилаючи такий знімок, ви надсилаєте й адресу: дім, школу, дачу.',
+       '<b>Полів може не бути зовсім.</b> Соцмережі й месенджери стирають їх під час завантаження, а у знімків екрана їх не було від початку. Порожня відповідь тут — це відповідь, а не поломка.'],
+  en: ['<b>The file goes nowhere.</b> It is read right here in the browser, on your device. Neither the picture nor the coordinates are stored or sent — this is the case where the promise matters most.',
+       '<b>Coordinates inside a photo are ordinary.</b> A phone writes them silently once you let it use your location. Sending such a photo means sending the address too: home, school, the place you stay.',
+       '<b>There may be no fields at all.</b> Social networks and messengers strip them on upload, and screenshots never had any. An empty answer here is an answer, not a failure.'],
+  es: ['<b>El archivo no sale de aquí.</b> Se lee en el propio navegador, en su dispositivo. Ni la imagen ni las coordenadas se guardan ni se envían: este es el caso en que la promesa importa más.',
+       '<b>Las coordenadas dentro de una foto son lo normal.</b> El teléfono las escribe en silencio si le permitió usar la ubicación. Al enviar esa foto envía también la dirección: casa, colegio, el lugar donde se aloja.',
+       '<b>Puede que no haya ningún campo.</b> Las redes y la mensajería los borran al subir la imagen, y las capturas de pantalla nunca los tuvieron. Una respuesta vacía aquí es una respuesta, no una avería.'],
+};
+
+const с = СЛОВА[locale] || СЛОВА.ru;
+const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
+---
+
+<div class="эк" data-язык={locale} data-words={JSON.stringify(с)}>
+  <div class="эк-поле" id="эк-поле">
+    <img id="эк-снимок" hidden alt="" />
+    <span class="эк-центр" id="эк-центр">
+      <button type="button" class="эк-выбор" id="эк-выбрать" title={с.pick} aria-label={с.pick}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="8.5" cy="10" r="1.6"/>
+          <path d="M21 16l-5-5-5 5-2-2-5 5"/>
+        </svg>
+        <span>{с.pick}</span>
+      </button>
+      <span class="эк-подсказка">{с.hint}</span>
+    </span>
+    <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <input type="file" class="эк-файл" id="эк-файл" accept="image/*" />
+  </div>
+
+  <div class="эк-ответ" id="эк-ответ"></div>
+  <div class="эк-беда" id="эк-беда"></div>
+
+  <div class="эк-заметки">
+    {заметки.map((т) => <p class="эк-заметка" set:html={т} />)}
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { разобратьExif, координаты, выдержкой, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
+
+  (() => {
+    const корень = document.querySelector('.эк');
+    if (!корень) return;
+    const язык = корень.getAttribute('data-язык') || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    // Слова приходят в data-атрибуте корня -- тем же способом, что и на сканерах кодов:
+    // один приём на всю рубрику, и в разметку попадает только нужный язык.
+    const с = JSON.parse(корень.dataset.words || '{}');
+
+    const поле = $('эк-поле');
+    const снимок = $('эк-снимок');
+    const центр = $('эк-центр');
+    const крест = $('эк-крест');
+    const выбор = $('эк-файл');
+    const ответ = $('эк-ответ');
+    const бедаЭ = $('эк-беда');
+
+    let адресСнимка = null;        // держим, пока картинка на экране
+    let всеПоля = [];
+    let показыватьВсё = false;
+
+    function беда(текст) { бедаЭ.textContent = текст || ''; }
+
+    /** Карточка с парами «подпись — значение». Пустые пары не показываем вовсе. */
+    function карточка(заголовок, пары, добавка) {
+      const годные = пары.filter((п) => п && п[1] !== '' && п[1] !== null && п[1] !== undefined);
+      if (!годные.length && !добавка) return null;
+      const ящик = document.createElement('div');
+      ящик.className = 'эк-итог';
+      const шапка = document.createElement('div');
+      шапка.className = 'эк-вид';
+      шапка.textContent = заголовок;
+      ящик.appendChild(шапка);
+      if (годные.length) {
+        const dl = document.createElement('dl');
+        dl.className = 'эк-пары';
+        for (const [имя, знач] of годные) {
+          const dt = document.createElement('dt');
+          dt.textContent = имя;
+          const dd = document.createElement('dd');
+          dd.textContent = String(знач);
+          dl.append(dt, dd);
+        }
+        ящик.appendChild(dl);
+      }
+      if (добавка) ящик.appendChild(добавка);
+      return ящик;
+    }
+
+    function карточкаМимо(заголовок, текст) {
+      const ящик = document.createElement('div');
+      ящик.className = 'эк-итог эк-мимо';
+      const шапка = document.createElement('div');
+      шапка.className = 'эк-вид';
+      шапка.textContent = заголовок;
+      const пояс = document.createElement('div');
+      пояс.className = 'эк-пояснение';
+      пояс.textContent = текст;
+      ящик.append(шапка, пояс);
+      return ящик;
+    }
+
+    const число = (ч, знаков = 1) =>
+      typeof ч === 'number' && isFinite(ч) ? String(Math.round(ч * 10 ** знаков) / 10 ** знаков) : '';
+
+    /** Дата из снимка: «2026:09:12 14:35:20» -- на языке страницы и без двоеточий в дате. */
+    function датой(строка) {
+      if (typeof строка !== 'string') return '';
+      const м = строка.match(/^(\d{4}):(\d{2}):(\d{2})[ T](\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (!м) return строка;
+      const д = new Date(+м[1], +м[2] - 1, +м[3], +м[4], +м[5], +(м[6] || 0));
+      if (isNaN(д.getTime())) return строка;
+      return д.toLocaleString(язык, { year: 'numeric', month: 'long', day: 'numeric',
+        hour: '2-digit', minute: '2-digit' });
+    }
+
+    const вес = (байт) => байт < 1024 * 1024
+      ? (байт / 1024).toFixed(0) + ' КБ'
+      : (байт / 1024 / 1024).toFixed(1) + ' МБ';
+
+    /**
+     * Показать разобранное. Порядок карточек -- от общего к личному: сам снимок, камера,
+     * съёмка, место. Место последнее нарочно: на нём человек и останавливается.
+     */
+    function показать(разбор, файл, ширина, высота) {
+      ответ.innerHTML = '';
+      всеПоля = [];
+      показыватьВсё = false;
+
+      const карточки = [];
+      карточки.push(карточка(с.shot, [
+        [с.file, файл.name],
+        [с.size, ширина && высота ? `${ширина} × ${высота}` : ''],
+        [с.weight, вес(файл.size)],
+        [с.kind, (файл.type || '').replace('image/', '').toUpperCase()],
+      ]));
+
+      if (!разбор.есть) {
+        const почему = разбор.причина === 'heic' ? [с.heic, с.heicWhy]
+          : разбор.причина === 'чужой' ? [с.alien, с.alienWhy]
+          : [с.none, с.noneWhy];
+        карточки.push(карточкаМимо(почему[0], почему[1]));
+        for (const к of карточки) if (к) ответ.appendChild(к);
+        поле.classList.remove('прочитано');
+        return;
+      }
+
+      const о = разбор.основные, сн = разбор.снимка;
+      const взять = (карта, номер) => {
+        const з = карта.get(номер);
+        return з === undefined || з === '' ? '' : з;
+      };
+
+      карточки.push(карточка(с.camera, [
+        [с.make, взять(о, ПОЛЯ.make)],
+        [с.model, взять(о, ПОЛЯ.model)],
+        [с.lens, взять(сн, ПОЛЯ.lens)],
+        [с.software, взять(о, ПОЛЯ.software)],
+        [с.author, взять(о, ПОЛЯ.artist)],
+        [с.rights, взять(о, ПОЛЯ.copyright)],
+      ]));
+
+      const поворот = взять(о, ПОЛЯ.orientation);
+      const вспышка = сн.get(ПОЛЯ.flash);
+      const исо = взять(сн, ПОЛЯ.iso) || взять(сн, ПОЛЯ.isoNew);
+      const фокус = сн.get(ПОЛЯ.focal);
+      const ф35 = сн.get(ПОЛЯ.focal35);
+      const выд = сн.get(ПОЛЯ.exposure);
+      const диаф = сн.get(ПОЛЯ.fnumber);
+      карточки.push(карточка(с.taken, [
+        [с.date, датой(взять(сн, ПОЛЯ.original) || взять(сн, ПОЛЯ.digitized))],
+        [с.dateFile, датой(взять(о, ПОЛЯ.datetime))],
+        [с.exposure, выдержкой(выд) ? `${выдержкой(выд)} ${с.sec}` : ''],
+        [с.aperture, typeof диаф === 'number' && диаф > 0 ? `f/${число(диаф, 1)}` : ''],
+        [с.iso, Array.isArray(исо) ? исо[0] : исо],
+        [с.focal, typeof фокус === 'number' ? `${число(фокус)} ${с.mm}` : ''],
+        [с.focal35, typeof ф35 === 'number' ? `${число(ф35, 0)} ${с.mm}` : ''],
+        [с.flash, typeof вспышка === 'number' ? (вспышка & 1 ? с.flashOn : с.flashOff) : ''],
+        [с.orientation, с.orient[поворот] || ''],
+      ]));
+
+      // МЕСТО СЪЁМКИ. Карта открывается только по нажатию: молча уводить человека на чужой
+      // сайт с его координатами нельзя -- он за этим сюда и пришёл.
+      const к = координаты(разбор.gps);
+      if (к) {
+        const низ = document.createElement('div');
+        низ.style.display = 'flex';
+        низ.style.gap = '16px';
+        низ.style.flexWrap = 'wrap';
+        const карта = document.createElement('a');
+        карта.className = 'эк-ссылка';
+        карта.href = `https://www.openstreetmap.org/?mlat=${к.широта.toFixed(6)}`
+          + `&mlon=${к.долгота.toFixed(6)}#map=16/${к.широта.toFixed(6)}/${к.долгота.toFixed(6)}`;
+        карта.target = '_blank';
+        карта.rel = 'noopener nofollow';
+        карта.textContent = с.map;
+        const копи = document.createElement('button');
+        копи.type = 'button';
+        копи.className = 'эк-ссылка';
+        копи.textContent = с.copy;
+        копи.addEventListener('click', async () => {
+          try {
+            await navigator.clipboard.writeText(`${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`);
+            копи.textContent = с.copied;
+            setTimeout(() => { копи.textContent = с.copy; }, 1500);
+          } catch (е) { /* буфер закрыт -- молчим, ничего не сломалось */ }
+        });
+        низ.append(карта, копи);
+        const напр = разбор.gps.get(ПОЛЯ_GPS.imgDir);
+        const место = карточка(с.place, [
+          [с.coords, `${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`],
+          [с.altitude, к.высота !== null ? `${число(к.высота, 0)} ${с.m}` : ''],
+          [с.direction, typeof напр === 'number' ? `${число(напр, 0)}${с.deg}` : ''],
+        ], низ);
+        место.classList.add('эк-место');
+        карточки.push(место);
+      }
+
+      // Всё остальное, что нашлось в файле: по номерам, как записано. Пусть человек видит,
+      // что мы ничего не спрятали.
+      const названные = new Set(Object.values(ПОЛЯ));
+      for (const [карта, откуда] of [[о, '0'], [сн, 'Exif'], [разбор.gps, 'GPS']]) {
+        for (const [номер, знач] of карта) {
+          if (откуда !== 'GPS' && названные.has(номер)) continue;
+          if (знач === '' || знач === undefined || знач === null) continue;
+          const текст = Array.isArray(знач) ? знач.slice(0, 8).join(', ') : String(знач);
+          if (текст.length > 120) continue;               // двоичные хвосты не показываем
+          всеПоля.push([`${откуда} · 0x${номер.toString(16).padStart(4, '0')}`, текст]);
+        }
+      }
+
+      // Если все карточки, кроме первой, пустые и в запасе ничего нет -- в файле полей нет,
+      // и сказать об этом надо прямо. Молчание человек примет за поломку страницы.
+      if (карточки.filter(Boolean).length <= 1 && !всеПоля.length) {
+        карточки.push(карточкаМимо(с.none, с.noneWhy));
+      }
+      for (const карт of карточки) if (карт) ответ.appendChild(карт);
+
+      if (всеПоля.length) {
+        const кнопка = document.createElement('button');
+        кнопка.type = 'button';
+        кнопка.className = 'эк-ещё';
+        кнопка.textContent = с.showAll;
+        кнопка.addEventListener('click', () => {
+          показыватьВсё = !показыватьВсё;
+          кнопка.textContent = показыватьВсё ? с.hideAll : с.showAll;
+          const прежняя = document.getElementById('эк-все');
+          if (прежняя) прежняя.remove();
+          if (показыватьВсё) {
+            const ящик = карточка(с.more, всеПоля);
+            ящик.id = 'эк-все';
+            ответ.appendChild(ящик);
+          }
+        });
+        ответ.appendChild(кнопка);
+      }
+      поле.classList.add('прочитано');
+      setTimeout(() => поле.classList.remove('прочитано'), 900);
+    }
+
+    /** Открыть файл картинкой, которую можно рисовать. */
+    async function картинкаИзФайла(файл) {
+      if (window.createImageBitmap) {
+        try {
+          // from-image: снимок с телефона часто лежит боком, и поворот записан полем. Браузер
+          // умеет применить его сам -- покажем так, как человек снимал.
+          const б = await createImageBitmap(файл, { imageOrientation: 'from-image' });
+          return { к: б, отпустить: () => { try { б.close && б.close(); } catch (е) {} } };
+        } catch (е) { /* не осилил -- пробуем картинкой */ }
+      }
+      const адрес = URL.createObjectURL(файл);
+      try {
+        const и = await new Promise((готово, мимо) => {
+          const э = new Image();
+          э.onload = () => готово(э);
+          э.onerror = () => мимо(new Error('не картинка'));
+          э.src = адрес;
+        });
+        return { к: и, отпустить: () => URL.revokeObjectURL(адрес) };
+      } catch (е) { URL.revokeObjectURL(адрес); throw е; }
+    }
+
+    /**
+     * Показываем снимок СВОИМ холстом, а не живым адресом blob:. Тот же урок, что и на
+     * сканерах кодов: адрес blob: браузеры держат по-разному, и картинка пропадала с экрана,
+     * хотя разбор её читал.
+     */
+    async function нарисовать(файл) {
+      let взято = null;
+      try { взято = await картинкаИзФайла(файл); } catch (е) { return { ширина: 0, высота: 0 }; }
+      const { к, отпустить } = взято;
+      const ш = к.width || к.naturalWidth, в = к.height || к.naturalHeight;
+      const р = поле.getBoundingClientRect();
+      const плотность = Math.min(2, window.devicePixelRatio || 1);
+      const пш = Math.max(1, Math.round(р.width * плотность));
+      const пв = Math.max(1, Math.round(р.height * плотность));
+      const холст = document.createElement('canvas');
+      холст.width = пш; холст.height = пв;
+      const кон = холст.getContext('2d');
+      кон.fillStyle = '#000';
+      кон.fillRect(0, 0, пш, пв);
+      const доля = Math.min(пш / ш, пв / в);
+      const дш = Math.max(1, Math.round(ш * доля)), дв = Math.max(1, Math.round(в * доля));
+      кон.drawImage(к, Math.round((пш - дш) / 2), Math.round((пв - дв) / 2), дш, дв);
+      отпустить();
+      снимок.src = холст.toDataURL('image/jpeg', 0.9);
+      снимок.hidden = false;
+      центр.hidden = true;
+      крест.hidden = false;
+      return { ширина: ш, высота: в };
+    }
+
+    async function взятьФайл(файл) {
+      if (!файл) return;
+      беда('');
+      ответ.innerHTML = '';
+      const { ширина, высота } = await нарисовать(файл);
+      let разбор;
+      try {
+        разбор = разобратьExif(await файл.arrayBuffer());
+      } catch (е) {
+        разбор = { есть: false, причина: 'нет' };
+      }
+      показать(разбор, файл, ширина, высота);
+    }
+
+    function очистить() {
+      снимок.removeAttribute('src');
+      снимок.hidden = true;
+      центр.hidden = false;
+      крест.hidden = true;
+      ответ.innerHTML = '';
+      беда('');
+      выбор.value = '';
+      if (адресСнимка) { URL.revokeObjectURL(адресСнимка); адресСнимка = null; }
+    }
+
+    $('эк-выбрать').addEventListener('click', (е) => { е.stopPropagation(); выбор.click(); });
+    крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
+    выбор.addEventListener('change', () => { if (выбор.files && выбор.files[0]) взятьФайл(выбор.files[0]); });
+
+    поле.addEventListener('dragover', (е) => { е.preventDefault(); поле.classList.add('держат'); });
+    поле.addEventListener('dragleave', () => поле.classList.remove('держат'));
+    поле.addEventListener('drop', (е) => {
+      е.preventDefault();
+      поле.classList.remove('держат');
+      const ф = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (ф) взятьФайл(ф);
+    });
+    // Вставка из буфера: снимок экрана попадает сюда сразу, без сохранения в файл.
+    window.addEventListener('paste', (е) => {
+      const части = е.clipboardData && е.clipboardData.items;
+      if (!части) return;
+      for (const ч of части) {
+        if (ч.type && ч.type.startsWith('image/')) {
+          const ф = ч.getAsFile();
+          if (ф) { взятьФайл(ф); break; }
+        }
+      }
+    });
+
+    window.__экСостояние = () => ({
+      снимокВиден: !снимок.hidden,
+      карточек: ответ.querySelectorAll('.эк-итог').length,
+      мимо: !!ответ.querySelector('.эк-мимо'),
+      текст: ответ.textContent.replace(/\s+/g, ' ').trim().slice(0, 400),
+      всего: всеПоля.length,
+    });
+  })();
+</script>
