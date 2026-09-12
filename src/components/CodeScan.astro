@@ -26,7 +26,7 @@ const { locale = 'ru', вид } = Astro.props;
 
 const ОБЩЕЕ = {
   ru: {
-    start: 'Включить', upload: 'или загрузить файл', result: 'Результат',
+    start: 'Включить', upload: 'или загрузить файл',
     askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него сканировать нечем.',
     clear: 'Убрать', shot: 'Снять код', retry: 'Снять ещё',
     camera: 'Камера', file: 'Файл',
@@ -46,7 +46,7 @@ const ОБЩЕЕ = {
     noSupport: 'Этот браузер не умеет читать такие коды. Умеют Chrome и Edge на компьютере и любой браузер на Android. На iPhone встроенный распознаватель знает только QR-коды — увы, это ограничение самого устройства, а не страницы.',
   },
   uk: {
-    start: 'Увімкнути', upload: 'або завантажити файл', result: 'Результат',
+    start: 'Увімкнути', upload: 'або завантажити файл',
     askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього сканувати нічим.',
     clear: 'Прибрати', shot: 'Зняти код', retry: 'Зняти ще',
     camera: 'Камера', file: 'Файл',
@@ -66,7 +66,7 @@ const ОБЩЕЕ = {
     noSupport: 'Цей браузер не вміє читати такі коди. Уміють Chrome і Edge на компʼютері та будь-який браузер на Android. На iPhone вбудований розпізнавач знає лише QR-коди — це обмеження самого пристрою, а не сторінки.',
   },
   en: {
-    start: 'Turn on', upload: 'or upload a file', result: 'Result',
+    start: 'Turn on', upload: 'or upload a file',
     askCam: 'Please allow camera access in the browser — without it there is nothing to scan with.',
     clear: 'Clear', shot: 'Capture', retry: 'Capture again',
     camera: 'Camera', file: 'File',
@@ -86,7 +86,7 @@ const ОБЩЕЕ = {
     noSupport: 'This browser cannot read codes of this kind. Chrome and Edge on a computer can, and so can any browser on Android. On an iPhone the built-in reader only knows QR codes — that is a limit of the device, not of this page.',
   },
   es: {
-    start: 'Encender', upload: 'o subir un archivo', result: 'Resultado',
+    start: 'Encender', upload: 'o subir un archivo',
     askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay con qué escanear.',
     clear: 'Quitar', shot: 'Capturar', retry: 'Capturar otra vez',
     camera: 'Cámara', file: 'Archivo',
@@ -307,23 +307,39 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
       setTimeout(() => окно.classList.remove('прочитано'), 900);
     }
 
-    // Ответ -- одна строка: подпись, прочитанное, знак копирования. У Data Matrix под ней
-    // такими же строками идут поля GS1, если код записан по их правилам.
+    /**
+     * Найденное -- КАРТОЧКОЙ, ТОЧНО КАК У СКАНЕРА ШТРИХКОДОВ.
+     *
+     * Владелец: «результат нужно выводить так же как и в штрихкоде -- зелёные надписи и тд».
+     * Значит: сверху зелёная надпись о виде кода, под ней сами знаки крупно, ниже парами
+     * зелёная подпись и белое значение. Знак копирования -- в углу шапки: в ряд со значением
+     * он воевал бы с длинной записью, которая переносится на две строки.
+     *
+     * У Data Matrix под значением идут поля GS1, если код записан по их правилам. Код поля
+     * пишем в скобках, как на штрихкоде: «Годен до (17)» -- по нему человек находит поле в
+     * чужой документации и видит, что мы ничего не выдумали.
+     */
     function показать(текст) {
       const поля = вид === 'datamatrix' ? разобратьGS1(текст) : [];
-      const строки = (поля || []).map((п) => {
-        const имя = ИМЕНА[п.имя] || п.имя;
+      const имяВида = с.kinds[вид] || вид;
+      ответ.innerHTML = `<div class="кс-итог">`
+        + `<div class="кс-шапка"><span class="кс-вид">${имяВида}</span>`
+        + `<button type="button" class="кс-копи" id="кс-копи" title="${с.copy}" aria-label="${с.copy}">${ЗН_КОПИ}</button></div>`
+        + `<div class="кс-значение" id="кс-текст"></div>`
+        + `<dl class="кс-пары" id="кс-пары"></dl></div>`;
+      // Через textContent: в коде может лежать что угодно, вплоть до куска чужой вёрстки.
+      $('кс-текст').textContent = текст;
+      const пары = $('кс-пары');
+      for (const п of поля || []) {
         const знач = (п.разбор && п.разбор.дата)
           ? п.разбор.дата.toLocaleDateString(язык, { year: 'numeric', month: 'long', day: 'numeric' })
           : п.значение;
-        return `<div class="кс-строка"><span class="кс-имя">${имя}</span><span class="кс-знач">${знач}</span></div>`;
-      }).join('');
-      ответ.innerHTML = `<div class="кс-строка"><span class="кс-имя">${с.result}</span>`
-        + `<span class="кс-знач" id="кс-текст"></span>`
-        + `<button type="button" class="кс-копи" id="кс-копи" title="${с.copy}" aria-label="${с.copy}">${ЗН_КОПИ}</button></div>`
-        + строки;
-      // Через textContent: в коде может лежать что угодно, вплоть до куска чужой вёрстки.
-      $('кс-текст').textContent = текст;
+        const dt = document.createElement('dt');
+        dt.textContent = `${ИМЕНА[п.имя] || п.имя} (${п.код})`;
+        const dd = document.createElement('dd');
+        dd.textContent = знач;
+        пары.append(dt, dd);
+      }
       const номер = (поля || []).find((п) => п.имя === 'gtin');
       if (номер) добавитьБазу(номер.значение);
       $('кс-копи').addEventListener('click', async () => {
@@ -346,12 +362,13 @@ const заметки = (ПО_ВИДАМ[вид] || ПО_ВИДАМ.datamatrix)[l
     // в ней в основном еда, и о промахе мы говорим прямо, а не подставляем случайное название
     // из поиска. Названия товара в самом коде нет -- ни у кого.
     function добавитьБазу(номер) {
-      const ряд = document.createElement('div');
-      ряд.className = 'кс-строка';
-      ряд.innerHTML = `<span class="кс-имя">${с.product}</span>`
-        + `<span class="кс-знач" id="кс-база-место">`
-        + `<button type="button" class="кс-ссылка" id="кс-база">${с.base}</button></span>`;
-      ответ.appendChild(ряд);
+      const пары = $('кс-пары');
+      const dt = document.createElement('dt');
+      dt.textContent = с.product;
+      const dd = document.createElement('dd');
+      dd.id = 'кс-база-место';
+      dd.innerHTML = `<button type="button" class="кс-ссылка" id="кс-база">${с.base}</button>`;
+      пары.append(dt, dd);
       $('кс-база').addEventListener('click', () => спроситьБазу(номер));
     }
 

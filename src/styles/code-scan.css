@@ -173,25 +173,40 @@
   transition: width .25s linear; opacity: 0 }
 .кс-ход.идёт { opacity: 1 }
 
-/* ---- Строка ответа ----------------------------------------------------------------------------
-   Одна строка: слева подпись, справа прочитанное, в конце знак копирования. */
-.кс-ответ { margin-top: 18px; border-top: 1px solid #18181b; border-bottom: 1px solid #18181b }
+/* ---- Найденное --------------------------------------------------------------------------------
+   ВИД ВЗЯТ У СКАНЕРА ШТРИХКОДОВ, и это решение владельца: «результат нужно выводить так же
+   как и в штрихкоде -- зелёные надписи и тд». Там ответ -- карточка: зелёная надпись о виде
+   кода, под ней сами знаки крупно, ниже парами зелёная подпись и белое значение. Два сканера
+   одного сайта не должны показывать найденное по-разному: человек ходит между ними, и лишний
+   вид -- это лишнее учение. Прежние строки во всю ширину с серыми подписями убраны. */
+.кс-ответ { margin-top: 18px }
 .кс-ответ:empty { display: none }
-.кс-строка { display: flex; align-items: flex-start; gap: 14px; padding: 12px 2px }
-.кс-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: #b4b4bb;
-  padding-top: 1px }
-.кс-знач { flex: 1 1 auto; min-width: 0; font: 400 13px/1.5 var(--мон); color: #fff;
-  overflow-wrap: anywhere; white-space: pre-wrap }
+.кс-итог { border: 1px solid var(--контур); border-radius: 12px; background: #16181d;
+  padding: 16px; display: flex; flex-direction: column; gap: 10px }
+.кс-шапка { display: flex; align-items: flex-start; justify-content: space-between; gap: 12px }
+/* Вид кода -- зелёным и вразрядку: та же надпись, что «ШТРИХКОД» у соседнего сканера. */
+.кс-вид { font: 400 11px var(--мон); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent) }
+/* Сами знаки -- главное на странице, ради них и пришли. Крупно и вразрядку, чтобы можно было
+   переписать с экрана не сбившись. */
+.кс-значение { font: 400 19px/1.4 var(--мон); letter-spacing: .06em; color: #fff;
+  overflow-wrap: anywhere; white-space: pre-wrap; user-select: text;
+  font-variant-numeric: tabular-nums }
+/* Поля кода -- парами: подпись зелёная, значение белое. Сетка, а не флекс: длинная подпись
+   переносится внутри своей колонки и не растаскивает строку. */
+.кс-пары { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr);
+  gap: 5px 12px; margin: 0; font: 400 13px/1.5 var(--мон) }
+/* У PDF417 и Aztec полей не бывает -- пустой список не должен оставлять отступ. */
+.кс-пары:empty { display: none }
+.кс-пары dt { color: var(--accent) }
+.кс-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
 .кс-копи {
   flex: none; background: none; border: 0; padding: 2px; cursor: pointer; color: var(--серый);
   transition: color .15s;
 }
 .кс-копи:hover { color: #fff }
-.кс-копи svg { width: 15px; height: 15px; display: block; fill: none; stroke: currentColor;
+.кс-копи svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
-
-/* Поля GS1 -- те же строки, той же сеткой: подпись слева, значение справа. */
-.кс-строка + .кс-строка { border-top: 1px solid #18181b }
 
 /* Беда и оговорки: тем же серым, без рамок и восклицаний. Красная плашка в начале страницы
    читается как «инструмент сломан» ещё до того, как человек прочитает текст. */
@@ -208,5 +223,8 @@
 
 @media (max-width: 560px) {
   .кс-окно { height: 220px }
-  .кс-имя { min-width: 52px }
+  /* На узком экране пара не влезает в две колонки: подпись над значением. */
+  .кс-пары { grid-template-columns: minmax(0, 1fr); gap: 2px }
+  .кс-пары dd { margin-bottom: 8px }
+  .кс-значение { font-size: 17px }
 }
