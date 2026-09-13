@@ -39,6 +39,8 @@ const СЛОВА = {
     statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
     statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Скачать»',
     statusPicked: 'Уберём полей: {н}. Нажмите «Скачать»',
+    allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
+    groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
     dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Убрать всё', backAll: 'Вернуть всё',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
     outName: 'Имя файла', rename: 'Изменить имя', kept: 'осталось',
@@ -54,8 +56,8 @@ const СЛОВА = {
     fieldsKinds: { camera: 'камера и объектив', date: 'дата и время съёмки', place: 'координаты места', author: 'автор и права', settings: 'настройки съёмки', other: 'прочие служебные поля' },
     none: 'Полей нет',
     noneWhy: 'В этом файле ничего не записано. Так бывает со снимками из соцсетей и мессенджеров — они стирают поля при загрузке, — со снимками экрана и с картинками, нарисованными на компьютере.',
-    heic: 'Это снимок HEIC',
-    heicWhy: 'Так iPhone сохраняет фотографии по умолчанию. Браузер не умеет разбирать такие файлы. Переснимите в JPEG (Настройки → Камера → Форматы → «Наиболее совместимые») или отправьте снимок себе так, чтобы он перекодировался.',
+    heic: 'Этот HEIC прочитать не удалось',
+    heicWhy: 'Снимки HEIC мы читаем, но этот устроен необычно — описи внутри него мы не нашли. Если снимок важен, переснимите в JPEG: Настройки → Камера → Форматы → «Наиболее совместимые».',
     alien: 'Это не картинка',
     alienWhy: 'Мы читаем JPEG, PNG и WebP — в них поля и бывают. Выберите снимок.',
     orient: { 1: 'как снято', 2: 'зеркально', 3: 'на 180°', 4: 'зеркально и на 180°',
@@ -83,6 +85,8 @@ const СЛОВА = {
     statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
     statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Завантажити»',
     statusPicked: 'Приберемо полів: {н}. Натисніть «Завантажити»',
+    allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
+    groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
     dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Прибрати все', backAll: 'Повернути все',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
     outName: 'Імʼя файлу', rename: 'Змінити імʼя', kept: 'лишилося',
@@ -98,8 +102,8 @@ const СЛОВА = {
     fieldsKinds: { camera: 'камера й обʼєктив', date: 'дата й час зйомки', place: 'координати місця', author: 'автор і права', settings: 'налаштування зйомки', other: 'інші службові поля' },
     none: 'Полів немає',
     noneWhy: 'У цьому файлі нічого не записано. Так буває зі знімками із соцмереж і месенджерів — вони стирають поля під час завантаження, — зі знімками екрана та з картинками, намальованими на компʼютері.',
-    heic: 'Це знімок HEIC',
-    heicWhy: 'Так iPhone зберігає фотографії за замовчуванням. Браузер не вміє розбирати такі файли. Перезніміть у JPEG (Налаштування → Камера → Формати → «Найбільш сумісні») або надішліть знімок собі так, щоб він перекодувався.',
+    heic: 'Цей HEIC прочитати не вдалося',
+    heicWhy: 'Знімки HEIC ми читаємо, але цей влаштований незвично — описів усередині нього ми не знайшли. Якщо знімок важливий, перезніміть у JPEG: Налаштування → Камера → Формати → «Найбільш сумісні».',
     alien: 'Це не картинка',
     alienWhy: 'Ми читаємо JPEG, PNG і WebP — у них поля й бувають. Виберіть знімок.',
     orient: { 1: 'як знято', 2: 'дзеркально', 3: 'на 180°', 4: 'дзеркально і на 180°',
@@ -127,6 +131,8 @@ const СЛОВА = {
     statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
     statusReady: 'Fields found. Bin what you do not want and press Download',
     statusPicked: 'Will remove {н} field(s). Press Download',
+    allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
+    groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this field', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
     outName: 'File name', rename: 'Change the name', kept: 'kept',
@@ -142,8 +148,8 @@ const СЛОВА = {
     fieldsKinds: { camera: 'camera and lens', date: 'date and time', place: 'location coordinates', author: 'author and rights', settings: 'shooting settings', other: 'other service fields' },
     none: 'No fields',
     noneWhy: 'Nothing is recorded in this file. That happens with pictures from social networks and messengers — they strip the fields on upload — and with screenshots and pictures drawn on a computer.',
-    heic: 'This is a HEIC photo',
-    heicWhy: 'That is how an iPhone saves photos by default. The browser cannot open such files. Take it again as JPEG (Settings → Camera → Formats → “Most Compatible”), or send it to yourself so that it gets converted.',
+    heic: 'This HEIC could not be read',
+    heicWhy: 'We do read HEIC photos, but this one is put together unusually — we found no field tables inside it. If the photo matters, shoot it again as JPEG: Settings → Camera → Formats → “Most Compatible”.',
     alien: 'This is not a picture',
     alienWhy: 'We read JPEG, PNG and WebP — those are the ones that carry fields. Choose a photo.',
     orient: { 1: 'as shot', 2: 'mirrored', 3: 'by 180°', 4: 'mirrored and by 180°',
@@ -171,6 +177,8 @@ const СЛОВА = {
     statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
     statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse Descargar',
     statusPicked: 'Se quitarán {н} campo(s). Pulse Descargar',
+    allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
+    groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar este campo', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
     outName: 'Nombre del archivo', rename: 'Cambiar el nombre', kept: 'conservado',
@@ -186,8 +194,8 @@ const СЛОВА = {
     fieldsKinds: { camera: 'cámara y objetivo', date: 'fecha y hora', place: 'coordenadas del lugar', author: 'autor y derechos', settings: 'ajustes de disparo', other: 'otros campos de servicio' },
     none: 'No hay campos',
     noneWhy: 'En este archivo no hay nada escrito. Pasa con las imágenes de redes sociales y mensajería —borran los campos al subirlas—, con las capturas de pantalla y con los dibujos hechos en el ordenador.',
-    heic: 'Es una foto HEIC',
-    heicWhy: 'Así guarda las fotos el iPhone por defecto. El navegador no sabe abrir esos archivos. Vuelva a tomarla en JPEG (Ajustes → Cámara → Formatos → «Más compatible») o envíesela a usted mismo para que se convierta.',
+    heic: 'No se pudo leer este HEIC',
+    heicWhy: 'Sí leemos fotos HEIC, pero esta está montada de forma poco habitual: no hemos encontrado dentro las tablas de campos. Si la foto importa, vuelva a tomarla en JPEG: Ajustes → Cámara → Formatos → «Más compatible».',
     alien: 'Esto no es una imagen',
     alienWhy: 'Leemos JPEG, PNG y WebP: son los que llevan campos. Elija una foto.',
     orient: { 1: 'tal cual', 2: 'en espejo', 3: '180°', 4: 'en espejo y 180°',
@@ -262,6 +270,9 @@ const заметки = чистим
       </span>
       <span class="эк-подсказка" id="эк-подсказка">{с.hint}</span>
     </span>
+    {/* Счётчик прямо на снимке: сколько полей нашлось. Человек видит цифру раньше, чем
+        начнёт читать список, -- так у соседей, и это удобно. */}
+    <span class="эк-счёт" id="эк-счёт"></span>
     <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -311,7 +322,8 @@ const заметки = чистим
 <style is:inline set:html={css}></style>
 
 <script>
-  import { разобратьExif, координаты, выдержкой, убратьПоля, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
+  import { разобратьExif, координаты, выдержкой, убратьПоля, прочитатьВсё, этоHeic,
+    раскрытьHeic, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -337,6 +349,7 @@ const заметки = чистим
     // Режим уборки: страница не только показывает поля, но и отдаёт файл без них.
     const чистим = корень.dataset.режим === 'чистить';
     let последнийФайл = null;
+    let последнийБуфер = null;
 
     function беда(текст) { бедаЭ.textContent = текст || ''; }
 
@@ -537,6 +550,50 @@ const заметки = чистим
       кнопка.setAttribute('aria-label', убрано ? с.back : с.dropOne);
       ряд.querySelector('.эк-поле-знач').dataset.подпись = убрано ? с.willGo : '';
       обновитьКнопку();
+    }
+
+    /**
+     * ВСЁ, ЧТО ЕСТЬ В ФАЙЛЕ -- широким разборщиком. Он подгружается только сейчас, когда
+     * снимок уже выбран: пустая страница за это не платит.
+     *
+     * Читает он и то, чего наш разбор не знает: заметки производителя, XMP, цветовой профиль,
+     * содержимое HEIC. Убирать поля по одному из этого списка нельзя -- их собирает чужой
+     * код, а собираем файл мы; поэтому список показываем, а уборка идёт по нашим полям.
+     */
+    async function показатьВсеПоля(буфер) {
+      const счёт = document.getElementById('эк-счёт');
+      if (счёт) счёт.textContent = с.loadingAll;
+      let итог;
+      try { итог = await прочитатьВсё(буфер); } catch (е) { итог = { вышло: false, группы: [] }; }
+      if (!итог.вышло || !итог.всего) { if (счёт) счёт.textContent = ''; return; }
+      if (счёт) счёт.textContent = с.counted.replace('{н}', итог.всего);
+
+      const ящик = document.createElement('div');
+      ящик.className = 'эк-итог эк-всё-поля';
+      ящик.id = 'эк-все-поля';
+      const шапка = document.createElement('div');
+      шапка.className = 'эк-вид';
+      шапка.textContent = `${с.allFields} · ${итог.всего}`;
+      ящик.appendChild(шапка);
+      for (const группа of итог.группы) {
+        const под = document.createElement('div');
+        под.className = 'эк-подгруппа';
+        под.textContent = с.groups[группа.имя] || группа.имя;
+        ящик.appendChild(под);
+        const dl = document.createElement('dl');
+        dl.className = 'эк-пары';
+        for (const п of группа.поля) {
+          const dt = document.createElement('dt');
+          dt.textContent = п.имя;
+          const dd = document.createElement('dd');
+          dd.textContent = п.знач;
+          dl.append(dt, dd);
+        }
+        ящик.appendChild(dl);
+      }
+      const прежний = document.getElementById('эк-все-поля');
+      if (прежний) прежний.remove();
+      ответ.appendChild(ящик);
     }
 
     /** Кнопка говорит, сколько уберёт: нажимать вслепую человек не должен. */
@@ -818,7 +875,38 @@ const заметки = чистим
      * сканерах кодов: адрес blob: браузеры держат по-разному, и картинка пропадала с экрана,
      * хотя разбор её читал.
      */
-    async function нарисовать(файл) {
+    /**
+     * Нарисовать снимок в окне. HEIC браузер сам не показывает -- для него поднимаем
+     * раскрыватель (libheif в WebAssembly) и кладём точки на холст своими руками.
+     */
+    async function нарисовать(файл, буфер) {
+      if (буфер && этоHeic(буфер)) {
+        try {
+          const точки = await раскрытьHeic(буфер);
+          const р = поле.getBoundingClientRect();
+          const плотность = Math.min(2, window.devicePixelRatio || 1);
+          const пш = Math.max(1, Math.round(р.width * плотность));
+          const пв = Math.max(1, Math.round(р.height * плотность));
+          // Кадр кладём на свой холст, а потом вписываем в окно -- как и обычные снимки.
+          const свой = document.createElement('canvas');
+          свой.width = точки.width; свой.height = точки.height;
+          свой.getContext('2d').putImageData(точки, 0, 0);
+          const холст = document.createElement('canvas');
+          холст.width = пш; холст.height = пв;
+          const кон = холст.getContext('2d');
+          кон.fillStyle = '#000';
+          кон.fillRect(0, 0, пш, пв);
+          const доля = Math.min(пш / точки.width, пв / точки.height);
+          const дш = Math.max(1, Math.round(точки.width * доля));
+          const дв = Math.max(1, Math.round(точки.height * доля));
+          кон.drawImage(свой, Math.round((пш - дш) / 2), Math.round((пв - дв) / 2), дш, дв);
+          снимок.src = холст.toDataURL('image/jpeg', 0.9);
+          снимок.hidden = false;
+          центр.hidden = true;
+          крест.hidden = false;
+          return { ширина: точки.width, высота: точки.height };
+        } catch (е) { /* не раскрылось -- покажем пустое окно, поля всё равно прочитаем */ }
+      }
       let взято = null;
       try { взято = await картинкаИзФайла(файл); } catch (е) { return { ширина: 0, высота: 0 }; }
       const { к, отпустить } = взято;
@@ -849,14 +937,19 @@ const заметки = чистим
       ответ.innerHTML = '';
       последнийФайл = файл;
       if (чистим) { $('эк-уборка').hidden = true; сказать(с.statusRead); полоса(6); }
-      const { ширина, высота } = await нарисовать(файл);
+      const буфер = await файл.arrayBuffer();
+      последнийБуфер = буфер;
+      const { ширина, высота } = await нарисовать(файл, буфер);
       let разбор;
       try {
-        разбор = разобратьExif(await файл.arrayBuffer());
+        разбор = разобратьExif(буфер);
       } catch (е) {
         разбор = { есть: false, причина: 'нет' };
       }
       показать(разбор, файл, ширина, высота);
+      // ШИРОКИЙ РАЗБОР идёт следом и догружается только теперь: он показывает ВСЁ, что есть в
+      // файле, включая заметки производителя, XMP и цветовой профиль, и умеет HEIC.
+      показатьВсеПоля(буфер);
     }
 
     function очистить() {

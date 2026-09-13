@@ -240,3 +240,17 @@
 .эк-кар:hover { color: #fff; border-color: #fff }
 .эк-кар svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6;
   stroke-linecap: round; stroke-linejoin: round }
+
+/* Счётчик полей поверх снимка -- как у соседей: цифра видна раньше, чем прочитан список. */
+.эк-счёт {
+  position: absolute; left: 10px; top: 10px; z-index: 2; pointer-events: none;
+  font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
+  border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 5px 9px;
+}
+.эк-счёт:empty { display: none }
+
+/* Полный список полей: читается, но не редактируется -- собирает файл наш код, а этот
+   разбор шире нашего и приходит от чужой библиотеки. */
+.эк-всё-поля .эк-пары { grid-template-columns: minmax(0, 230px) minmax(0, 1fr) }
+.эк-подгруппа { margin-top: 8px; font: 400 11px var(--мон); letter-spacing: .06em;
+  text-transform: uppercase; color: var(--серый) }
