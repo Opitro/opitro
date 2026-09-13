@@ -32,7 +32,7 @@ const СЛОВА = {
     iso: 'Светочувствительность', focal: 'Фокусное расстояние', focal35: 'В пересчёте на 35 мм',
     flash: 'Вспышка', flashOn: 'сработала', flashOff: 'не сработала',
     orientation: 'Поворот', wb: 'Баланс белого', wbAuto: 'автоматический', wbManual: 'вручную',
-    coords: 'Координаты', country: 'Страна', altitude: 'Высота', direction: 'Куда смотрела камера',
+    coords: 'Координаты', country: 'Страна', city: 'Ближайший город', altitude: 'Высота', direction: 'Куда смотрела камера',
     map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
@@ -83,7 +83,7 @@ const СЛОВА = {
     iso: 'Світлочутливість', focal: 'Фокусна відстань', focal35: 'У перерахунку на 35 мм',
     flash: 'Спалах', flashOn: 'спрацював', flashOff: 'не спрацював',
     orientation: 'Поворот', wb: 'Баланс білого', wbAuto: 'автоматичний', wbManual: 'вручну',
-    coords: 'Координати', country: 'Країна', altitude: 'Висота', direction: 'Куди дивилася камера',
+    coords: 'Координати', country: 'Країна', city: 'Найближче місто', altitude: 'Висота', direction: 'Куди дивилася камера',
     map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
@@ -134,7 +134,7 @@ const СЛОВА = {
     iso: 'ISO', focal: 'Focal length', focal35: 'Equivalent at 35 mm',
     flash: 'Flash', flashOn: 'fired', flashOff: 'did not fire',
     orientation: 'Rotation', wb: 'White balance', wbAuto: 'automatic', wbManual: 'manual',
-    coords: 'Coordinates', country: 'Country', altitude: 'Altitude', direction: 'Camera pointed',
+    coords: 'Coordinates', country: 'Country', city: 'Nearest town', altitude: 'Altitude', direction: 'Camera pointed',
     map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
@@ -185,7 +185,7 @@ const СЛОВА = {
     focal35: 'Equivalente a 35 mm',
     flash: 'Flash', flashOn: 'disparó', flashOff: 'no disparó',
     orientation: 'Giro', wb: 'Balance de blancos', wbAuto: 'automático', wbManual: 'manual',
-    coords: 'Coordenadas', country: 'País', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
+    coords: 'Coordenadas', country: 'País', city: 'Ciudad más cercana', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
     map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
@@ -353,7 +353,7 @@ const заметки = чистим
 <script>
   import { разобратьExif, координаты, выдержкой, убратьПоля, прочитатьВсё, этоHeic,
     раскрытьHeic, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
-  import { странаПоКоординатам } from '../lib/place.js';
+  import { странаПоКоординатам, ближайшийГород } from '../lib/place.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -602,26 +602,37 @@ const заметки = чистим
      */
     async function назватьСтрану(к, карточкаМеста) {
       const строки = карточкаМеста.querySelectorAll('dd');
-      const строка = строки[1];
-      if (!строка) return;
-      const убрать = () => {
+      const убрать = (строка) => {
+        if (!строка) return;
         const подпись = строка.previousElementSibling;
         if (подпись) подпись.remove();
         строка.remove();
       };
+      // Город и страна считаются рядом, но независимо: если одного нет, второе остаётся.
+      try {
+        const город = await ближайшийГород(к.широта, к.долгота);
+        if (город && строки[1]) строки[1].textContent = `${город.имя}` + (город.вёрст > 3 ? ` · ${город.вёрст} км` : '');
+        else убрать(строки[1]);
+      } catch (е) { убрать(строки[1]); }
       try {
         const страна = await странаПоКоординатам(к.широта, к.долгота, язык);
-        if (страна && страна.имя) строка.textContent = страна.имя;
-        else убрать();
-      } catch (е) { убрать(); }
+        if (страна && страна.имя && строки[2]) строки[2].textContent = страна.имя;
+        else убрать(строки[2]);
+      } catch (е) { убрать(строки[2]); }
     }
 
     /** То же, но в списке уборки: страна дописывается прямо к координатам. */
     async function назватьСтрануВСтроке(к, узел) {
+      const хвост = [];
+      try {
+        const город = await ближайшийГород(к.широта, к.долгота);
+        if (город) хвост.push(город.имя);
+      } catch (е) { /* без города -- не беда */ }
       try {
         const страна = await странаПоКоординатам(к.широта, к.долгота, язык);
-        if (страна && страна.имя) узел.textContent = `${узел.textContent} · ${страна.имя}`;
+        if (страна && страна.имя) хвост.push(страна.имя);
       } catch (е) { /* не вышло -- останутся одни числа */ }
+      if (хвост.length) узел.textContent = `${узел.textContent} · ${хвост.join(', ')}`;
     }
 
     /** Вычеркнуть поле или вернуть его обратно. */
@@ -952,6 +963,7 @@ const заметки = чистим
         const напр = разбор.gps.get(ПОЛЯ_GPS.imgDir);
         const место = карточка(с.place, [
           [с.coords, `${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`],
+          [с.city, '…'],
           [с.country, '…'],
           [с.altitude, к.высота !== null ? `${число(к.высота, 0)} ${с.m}` : ''],
           [с.direction, typeof напр === 'number' ? `${число(напр, 0)}${с.deg}` : ''],
