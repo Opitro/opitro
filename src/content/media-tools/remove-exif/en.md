@@ -7,7 +7,7 @@ title: "Remove EXIF from photos online free — strip GPS and camera data"
 h1: "Remove EXIF data"
 navName: "Remove EXIF"
 summary: "Strip coordinates and camera data from a photo"
-description: "Strip the coordinates, date and camera data from a photo right in the browser, with no re-encoding and no loss of quality. Free, no sign-up, the file goes nowhere."
+description: "Remove metadata from a photo: coordinates, date and camera data — right in the browser, with no re-encoding and no loss of quality. Free, no sign-up, the file goes nowhere."
 faq:
   - question: "Does the photo lose quality when EXIF is removed?"
     answer: "No. The tool does not re-encode the picture or convert it to another format. It works on the file itself: it finds the service block where the fields are written, cuts out only that, and leaves the pixels untouched — byte for byte. The common advice “open it and save it again” cannot do that: every JPEG re-save eats quality."

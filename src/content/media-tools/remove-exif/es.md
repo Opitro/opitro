@@ -7,7 +7,7 @@ title: "Borrar EXIF de una foto online gratis — quitar GPS y datos de la cáma
 h1: "Borrar los datos EXIF"
 navName: "Borrar EXIF"
 summary: "Quitar de la foto las coordenadas y los datos de la cámara"
-description: "Quite de la foto las coordenadas, la fecha y los datos de la cámara en el propio navegador, sin recomprimir ni perder calidad. Gratis, sin registro, el archivo no sale de su dispositivo."
+description: "Borre los metadatos de una foto: coordenadas, fecha y datos de la cámara, en el propio navegador, sin recomprimir ni perder calidad. Gratis, sin registro, el archivo no sale de ahí."
 faq:
   - question: "¿Pierde calidad la foto al borrar el EXIF?"
     answer: "No. La herramienta no recomprime la imagen ni la convierte a otro formato. Trabaja sobre el archivo: localiza el bloque de servicio donde están escritos los campos, recorta solo eso y deja los píxeles intactos, byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacerlo: cada reguardado de JPEG se come calidad."
