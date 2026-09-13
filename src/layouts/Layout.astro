@@ -18,13 +18,16 @@ interface Props {
   path?: string;
   /** Category link shown above the page content, e.g. { label: "Длина", href: "/ru/tools/length" }. Omit on pages with no parent category (homepage, category pages themselves). */
   breadcrumb?: { label: string; href: string };
+  /** КОРОТКОЕ имя самой страницы для дорожки в поиске: «Сканер EXIF», а не длинный title.
+      Без него дорожка обрывается на рубрике, и Google показывает голый адрес. */
+  crumbName?: string;
   /** Показывать ли в подвале ссылку «Написать нам». Страницы инструментов её отключают: у них
       та же ссылка стоит плиткой в конце текста, и в подвале она оказывалась вторым таким же
       приглашением в паре сантиметров от первого. */
   footerContact?: boolean;
 }
 
-const { locale, title, description, translations = [], path = '', breadcrumb, footerContact = true } = Astro.props;
+const { locale, title, description, translations = [], path = '', breadcrumb, crumbName, footerContact = true } = Astro.props;
 
 const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español', uk: 'Українська' };
 const DEFAULT_LOCALE = 'en';
@@ -45,6 +48,44 @@ const navCategories = allCategories.filter((c) => c.data.locale === locale);
 // html_handling: "drop-trailing-slash", or canonical/hreflang disagree with what the server
 // actually serves, a bug caught live twice already before this URL-building was centralized).
 const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toString();
+
+// ДОРОЖКА ДЛЯ ПОИСКА (BreadcrumbList). Видимая строка «← Сканеры» была, а машинной разметки
+// не было вовсе -- и в выдаче под заголовком стоял голый адрес вместо пути «Opitro › Сканеры
+// › Сканер EXIF». Собираем её здесь, в одном месте: страница даёт рубрику и своё короткое
+// имя, остальное известно самому макету.
+const дорожка = [
+  { name: 'Opitro', item: new URL(getRelativeLocaleUrl(locale, ''), Astro.site).toString() },
+  ...(breadcrumb ? [{ name: breadcrumb.label, item: new URL(breadcrumb.href, Astro.site).toString() }] : []),
+  ...(crumbName ? [{ name: crumbName, item: canonicalUrl }] : []),
+];
+// САЙТ КАК СУЩНОСТЬ. Без этой разметки поиск знает только набор страниц: кто их издаёт, как
+// сайт называется и какой у него значок -- приходится угадывать. Ставим её один раз, на
+// главной каждого языка: на всех страницах подряд она была бы повтором без пользы.
+// Поиска по сайту в разметке НЕТ нарочно: он у нас работает прямо на главной, без отдельного
+// адреса с запросом, и объявить его значило бы дать поиску ссылку, которая никуда не ведёт.
+const главнаяЯзыка = path === '';
+const сайтJsonLd = главнаяЯзыка ? {
+  '@context': 'https://schema.org',
+  '@type': 'WebSite',
+  name: BRAND,
+  url: canonicalUrl,
+  inLanguage: locale,
+  publisher: {
+    '@type': 'Organization',
+    name: BRAND,
+    url: Astro.site.toString(),
+    logo: { '@type': 'ImageObject', url: new URL('/icon-512.png', Astro.site).toString(),
+      width: 512, height: 512 },
+  },
+} : null;
+
+const дорожкаJsonLd = дорожка.length > 1 ? {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: дорожка.map((ш, i) => ({
+    '@type': 'ListItem', position: i + 1, name: ш.name, item: ш.item,
+  })),
+} : null;
 ---
 
 <!DOCTYPE html>
@@ -82,6 +123,8 @@ const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toS
 <meta name="twitter:image" content={new URL(`/og-${locale}.png`, Astro.site).toString()}>
 <meta name="theme-color" content="#0e0f11">
 <link rel="canonical" href={canonicalUrl}>
+{дорожкаJsonLd && <script type="application/ld+json" set:html={JSON.stringify(дорожкаJsonLd)} />}
+{сайтJsonLd && <script type="application/ld+json" set:html={JSON.stringify(сайтJsonLd)} />}
 {translations.map((t) => (
   <link rel="alternate" hreflang={t.locale} href={new URL(getRelativeLocaleUrl(t.locale, path), Astro.site).toString()} />
 ))}

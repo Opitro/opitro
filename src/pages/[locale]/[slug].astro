@@ -320,6 +320,7 @@ const wideLayout = kind === 'media';
   translations={translations}
   path={entry.data.toolSlug}
   breadcrumb={breadcrumb}
+  crumbName={entry.data.navName || entry.data.h1}
   footerContact={false}
 >
   <div class={`main${kind === 'media' ? ' main-media' : ''}${wideLayout ? ' main-wide' : ''}${['keyboard-test', 'key-rollover', 'key-chatter'].includes(entry.data.tool) ? ' main-board' : ''}`}>
