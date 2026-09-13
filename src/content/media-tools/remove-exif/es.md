@@ -9,29 +9,29 @@ navName: "Borrar EXIF"
 summary: "Quitar de la foto las coordenadas y los datos de la cámara"
 description: "Borre los metadatos de una foto: coordenadas, fecha y datos de la cámara, en el propio navegador, sin recomprimir ni perder calidad. Gratis, sin registro, el archivo no sale de ahí."
 faq:
-  - question: "¿Pierde calidad la foto al borrar el EXIF?"
-    answer: "No. La herramienta no recomprime la imagen ni la convierte a otro formato. Trabaja sobre el archivo: localiza el bloque de servicio donde están escritos los campos, recorta solo eso y deja los píxeles intactos, byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacerlo: cada reguardado de JPEG se come calidad."
-  - question: "¿Para qué quitar estos datos antes de publicar una foto?"
-    answer: "El teléfono escribe en el archivo las coordenadas del lugar con precisión de unos metros, además de la fecha, la hora y el modelo del aparato. Una foto de un tablón de anuncios señala una casa; otra, el colegio de un niño. Sin esos campos, usted entrega una imagen y nada más."
-  - question: "¿Adónde va mi foto?"
-    answer: "A ninguna parte. El archivo se lee y se limpia en el propio navegador, en su dispositivo: esta página no tiene servidor propio. La copia limpia se monta aquí mismo y se descarga al instante."
-  - question: "¿Por qué se conserva el giro?"
-    answer: "Una foto de teléfono suele estar tumbada dentro del archivo, y es un campo de servicio el que le dice que se vea derecha. No dice nada de usted, así que se conserva por defecto; de lo contrario la imagen aparecería girada en algunos programas y usted pensaría que la hemos estropeado. Puede desmarcar la casilla y quitarlo junto con lo demás."
+  - question: "¿Cómo borro los metadatos de una foto?"
+    answer: "Pulse «Elegir fotos» o arrastre los archivos a la ventana negra: hasta veinte a la vez. Cada foto se convierte en una ficha con un número grande encima: cuántas etiquetas se encontraron dentro. A partir de ahí hay dos caminos: el botón «Quitar todas las etiquetas», bajo la ventana, limpia de golpe todas las fotos cargadas; y si prefiere elegir, pulse la papelera junto a las etiquetas que deban irse y luego «Quitar las etiquetas elegidas». Entonces el botón deja su sitio a «Guardar» y en la propia ficha aparece la flecha de descarga."
   - question: "¿Qué formatos admite?"
-    answer: "JPEG, PNG, WebP y HEIC: todo lo que graban teléfonos y cámaras. En JPEG se van los bloques EXIF, XMP e IPTC; en PNG, los trozos de servicio; en WebP, los trozos EXIF y XMP; en HEIC el campo se edita en su sitio. El perfil de color no se toca: sin él los colores se desviarían, y no contiene nada sobre la persona."
-  - question: "¿Y las fotos HEIC del iPhone?"
-    answer: "Se limpian igual. En un HEIC los campos están en una parte aparte del archivo y solo esa se toca: los campos que usted conserva se escriben en el mismo sitio y la cola se rellena con ceros. El tamaño del archivo no cambia y los píxeles no se tocan en absoluto."
-  - question: "¿Cómo compruebo que los datos han desaparecido?"
-    answer: "Abra el [página de metadatos](/es/exif-viewer) y elija el archivo descargado: le mostrará lo que queda. Es una página vecina de este mismo sitio y funciona igual, en su navegador."
-  - question: "¿No borran ya las redes sociales los metadatos?"
-    answer: "Las grandes sí, al subir la imagen. Pero las fotos viajan a menudo por otros caminos: por correo, como archivo en mensajería, a un tablón de anuncios, a una carpeta compartida. Allí llegan tal cual, con todos sus campos."
+    answer: "JPEG, PNG, WebP, HEIC y AVIF: todo lo que graban teléfonos y cámaras. Del JPEG se van los bloques EXIF, XMP, IPTC y los comentarios; del PNG los trozos de servicio con etiquetas y pies de foto; del WebP los trozos EXIF y XMP; en el HEIC el bloque se corrige en su sitio, sin mover el resto del archivo."
+  - question: "¿Qué hacen los iconos?"
+    answer: "La papelera de la fila de una etiqueta la tacha del archivo futuro, y la flecha de vuelta la repone: hasta guardar, todo es reversible. El lápiz junto al nombre cambia cómo se llamará el archivo en el disco (por defecto `no-exif_` y su nombre). La flecha hacia abajo de la ficha descarga esa foto, la cruz la quita de la tira. Con varias fotos abajo aparece «Descargar ZIP»: todas en un archivo."
+  - question: "¿Pierde calidad la fotografía?"
+    answer: "No. La herramienta no recomprime la foto ni la convierte a otro formato. Trabaja sobre el archivo: busca el bloque de servicio donde están las etiquetas, recorta solo eso y deja los píxeles intactos, byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacerlo: cada guardado de un JPEG se come calidad."
+  - question: "¿Adónde va mi foto?"
+    answer: "A ninguna parte. El archivo se lee y se limpia en el propio navegador, en su dispositivo: esta página no tiene servidor propio, así que no hay adónde enviarla. La copia limpia se arma aquí mismo y se descarga solo cuando usted pulsa el botón."
+  - question: "¿Por qué se conservan el giro y el perfil de color?"
+    answer: "Son dos etiquetas que no hablan de usted, sino de la propia imagen. El giro es lo que hace que el encuadre se vea derecho; sin él, algunos programas mostrarían la foto tumbada. El perfil de color mantiene los colores como usted los ve. Por eso «Quitar todas las etiquetas» no las toca, aunque puede quitarlas con su propia papelera."
+  - question: "¿Cómo compruebo que los datos se han ido de verdad?"
+    answer: "Abra [metadatos de la foto](/es/exif-viewer) y elija el archivo descargado: le mostrará lo que queda dentro. Es la página vecina del mismo sitio y funciona igual: en su navegador."
+  - question: "¿Por qué quitar esto antes de publicar una foto?"
+    answer: "El teléfono escribe en la foto las coordenadas del lugar con precisión de unos metros, además de la fecha, la hora y el modelo del aparato. Una imagen de un anuncio lleva hasta una casa; otra, hasta el colegio de un niño. Las grandes redes sociales sí borran las etiquetas al subirlas, pero la foto suele viajar por otros caminos: por correo, como archivo en la mensajería, a una carpeta en la nube, y allí llega tal cual."
 related:
   - exif-viewer
   - color-scan
   - qr-scan
 ---
 
-Elija una foto: los campos desaparecen y el archivo se descarga en el acto. La imagen no se recomprime: los píxeles quedan igual, solo cambia la parte de servicio del archivo.
+Elija sus fotos —hasta veinte a la vez—, quite las etiquetas con un botón o una a una con las papeleras y descargue los archivos limpios. La imagen no se recomprime: los píxeles quedan igual, solo cambia la parte de servicio del archivo.
 
 ## Qué se quita exactamente
 
@@ -39,7 +39,7 @@ El modelo de la cámara y del objetivo, la fecha y la hora, los ajustes, el auto
 
 ## Por qué no se pierde calidad
 
-No abrimos ni volvemos a guardar la foto: trabajamos sobre el archivo. Dentro, los píxeles están aparte de los campos de servicio, y solo estos últimos se recortan. Por eso la copia limpia coincide con el original byte a byte en la imagen y pesa menos.
+No abrimos ni volvemos a guardar la foto: trabajamos sobre el archivo. Dentro, los píxeles están aparte de las etiquetas de servicio, y solo estos últimos se recortan. Por eso la copia limpia coincide con el original byte a byte en la imagen y pesa menos.
 
 ## Cómo comprobar el resultado
 
