@@ -138,6 +138,7 @@ const RULES = [
   [/^barcode-scan$/, 'прицел'],
   [/^(datamatrix|pdf417|aztec)-scan$/, 'прицел'],
   [/^exif-viewer$/, 'прицел'],
+  [/^remove-exif$/, 'метла'],
   [/^color-scan$/, 'пипетка'],
   [/^favicon-generator$/, 'кубики'],
   [/^color-converter$/, 'пипетка'],

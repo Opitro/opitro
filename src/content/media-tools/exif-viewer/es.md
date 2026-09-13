@@ -1,7 +1,7 @@
 ---
 toolSlug: exif-viewer
 locale: es
-category: scanners
+category: images
 tool: exif-viewer
 title: "Visor EXIF online gratis — ver los datos de una foto y sus coordenadas"
 h1: "Visor EXIF"

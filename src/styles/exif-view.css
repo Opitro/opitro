@@ -126,3 +126,54 @@
 @media (prefers-reduced-motion: reduce) {
   .эк-итог { animation: none }
 }
+
+/* ---- Уборка полей ------------------------------------------------------------------------------
+   Кнопка скачивания, галочка про поворот и строка о том, что снимок не пережимается. Место под
+   всё это занято заранее: блок появляется после выбора файла, а не сдвигает текст под собой. */
+.эк-уборка { margin-top: 14px; display: flex; flex-direction: column; gap: 10px }
+.эк-уборка[hidden] { display: none }
+.эк-качать {
+  align-self: flex-start; padding: 12px 22px; cursor: pointer; border-radius: 8px;
+  background: var(--accent); border: 1px solid var(--accent); color: #08130d;
+  font: 700 14px var(--мон); transition: background .15s, border-color .15s;
+}
+.эк-качать:hover { background: var(--accent2, #60efb8); border-color: var(--accent2, #60efb8) }
+.эк-качать[disabled] { cursor: not-allowed; background: #2a3a33; border-color: #2a3a33; color: #9aa7a1 }
+.эк-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
+  font: 400 12.5px var(--мон); color: #fff }
+.эк-галка input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer }
+.эк-мелко { font: 400 12px/1.55 var(--мон); color: var(--серый); margin: 0; max-width: 680px }
+
+/* ---- Ход работы и строка состояния -------------------------------------------------------------
+   Замысел владельца: тонкая полоса по нижнему краю окна наливается в миг уборки, рамка на
+   секунду вспыхивает, а под окном строкой говорится, чем дело кончилось. */
+.эк-полоса { position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: #fff;
+  transition: width .45s ease-out; opacity: 0 }
+.эк-полоса.идёт { opacity: 1 }
+.эк-поле.сделано { border-color: #fff }
+
+.эк-статус { margin-top: 12px; display: flex; gap: 14px; align-items: baseline;
+  border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 9px 2px }
+.эк-статус-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: var(--серый) }
+.эк-статус-знач { font: 400 13px/1.5 var(--мон); color: #fff }
+
+/* Вычеркнутое: по завершении убранные поля гаснут и перечёркиваются -- одно за другим, так
+   что видно, ЧТО именно ушло. Место они занимают прежнее, ничего не съезжает. */
+@keyframes эк-вычерк { from { opacity: 1 } to { opacity: .45 } }
+.эк-пары dd.ушло, .эк-пары dt.ушло { animation: эк-вычерк .3s ease-out both }
+.эк-пары dd.ушло { text-decoration: line-through; text-decoration-color: var(--беда, #ff9aa8) }
+.эк-пары dd.ушло::after { content: ' · ' attr(data-подпись); text-decoration: none;
+  color: var(--accent); font-size: 11.5px; letter-spacing: .04em; text-transform: uppercase }
+.эк-пары dd:nth-of-type(1).ушло, .эк-пары dt:nth-of-type(1).ушло { animation-delay: .05s }
+.эк-пары dd:nth-of-type(2).ушло, .эк-пары dt:nth-of-type(2).ушло { animation-delay: .18s }
+.эк-пары dd:nth-of-type(3).ушло, .эк-пары dt:nth-of-type(3).ушло { animation-delay: .31s }
+.эк-пары dd:nth-of-type(4).ушло, .эк-пары dt:nth-of-type(4).ушло { animation-delay: .44s }
+.эк-пары dd:nth-of-type(n+5).ушло, .эк-пары dt:nth-of-type(n+5).ушло { animation-delay: .57s }
+@media (prefers-reduced-motion: reduce) {
+  .эк-пары dd.ушло, .эк-пары dt.ушло { animation: none }
+  .эк-полоса { transition: none }
+}
+
+/* Увод на соседнюю страницу: посмотрел, что внутри, -- и тут же может это убрать. Стоит под
+   ответом, потому что до ответа предлагать нечего. */
+.эк-увод { margin-top: 14px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }

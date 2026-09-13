@@ -587,6 +587,10 @@ const wideLayout = kind === 'media';
     {kind === 'media' && entry.data.tool === 'exif-viewer' && (
       <ExifView locale={entry.data.locale} />
     )}
+    {/* Уборка полей -- тот же компонент другим режимом: разница в кнопке и разговоре. */}
+    {kind === 'media' && entry.data.tool === 'remove-exif' && (
+      <ExifView locale={entry.data.locale} режим="чистить" />
+    )}
     {/* Сканер цвета: камера есть, но ищет не код, а точку -- поэтому свой компонент. */}
     {kind === 'media' && entry.data.tool === 'color-scan' && (
       <ColorScan locale={entry.data.locale} />

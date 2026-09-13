@@ -11,8 +11,12 @@
 // нельзя -- человек пришёл смотреть, что внутри, а не читать нашу выборку.
 import css from '../styles/exif-view.css?inline';
 
-export interface Props { locale?: string }
-const { locale = 'ru' } = Astro.props;
+export interface Props {
+  locale?: string;
+  /** Что делает страница: 'смотреть' -- показать поля, 'чистить' -- убрать их из файла. */
+  режим?: string;
+}
+const { locale = 'ru', режим = 'смотреть' } = Astro.props;
 
 const СЛОВА = {
   ru: {
@@ -30,6 +34,18 @@ const СЛОВА = {
     orientation: 'Поворот', wb: 'Баланс белого', wbAuto: 'автоматический', wbManual: 'вручную',
     coords: 'Координаты', altitude: 'Высота', direction: 'Куда смотрела камера',
     map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
+    wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
+    status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
+    statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
+    gone: 'убрано',
+    strip: 'Скачать снимок без данных', stripping: 'Готовлю…', stripDone: 'Готово',
+    willRemove: 'Что уберём', nothingToRemove: 'Убирать нечего',
+    nothingWhy: 'В этом файле полей нет — ни камеры, ни даты, ни координат. Скачивать очищённую копию незачем: она была бы такой же.',
+    keepTurn: 'Оставить поворот снимка', keepTurnWhy: 'Снимок с телефона часто лежит в файле боком, а стоять прямо ему велит одно служебное поле. О человеке оно не говорит ничего, поэтому по умолчанию остаётся — иначе снимок у всех повернётся набок.',
+    lossless: 'Само изображение не пережимается: точки остаются теми же байт в байт, меняется только служебная часть файла.',
+    removedFields: 'Убрано', sizeBefore: 'Было', sizeAfter: 'Стало',
+    cantStrip: 'Из этого файла убирать нечего',
+    fieldsKinds: { camera: 'камера и объектив', date: 'дата и время съёмки', place: 'координаты места', author: 'автор и права', settings: 'настройки съёмки', other: 'прочие служебные поля' },
     none: 'Полей нет',
     noneWhy: 'В этом файле ничего не записано. Так бывает со снимками из соцсетей и мессенджеров — они стирают поля при загрузке, — со снимками экрана и с картинками, нарисованными на компьютере.',
     heic: 'Это снимок HEIC',
@@ -56,6 +72,18 @@ const СЛОВА = {
     orientation: 'Поворот', wb: 'Баланс білого', wbAuto: 'автоматичний', wbManual: 'вручну',
     coords: 'Координати', altitude: 'Висота', direction: 'Куди дивилася камера',
     map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
+    wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
+    status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
+    statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
+    gone: 'прибрано',
+    strip: 'Завантажити знімок без даних', stripping: 'Готую…', stripDone: 'Готово',
+    willRemove: 'Що приберемо', nothingToRemove: 'Прибирати нічого',
+    nothingWhy: 'У цьому файлі полів немає — ні камери, ні дати, ні координат. Завантажувати очищену копію нема сенсу: вона була б такою самою.',
+    keepTurn: 'Залишити поворот знімка', keepTurnWhy: 'Знімок з телефона часто лежить у файлі боком, а стояти прямо йому велить одне службове поле. Про людину воно не говорить нічого, тому за замовчуванням лишається — інакше знімок у всіх повернеться набік.',
+    lossless: 'Саме зображення не перетискається: точки лишаються тими самими байт у байт, змінюється лише службова частина файлу.',
+    removedFields: 'Прибрано', sizeBefore: 'Було', sizeAfter: 'Стало',
+    cantStrip: 'З цього файлу прибирати нічого',
+    fieldsKinds: { camera: 'камера й обʼєктив', date: 'дата й час зйомки', place: 'координати місця', author: 'автор і права', settings: 'налаштування зйомки', other: 'інші службові поля' },
     none: 'Полів немає',
     noneWhy: 'У цьому файлі нічого не записано. Так буває зі знімками із соцмереж і месенджерів — вони стирають поля під час завантаження, — зі знімками екрана та з картинками, намальованими на компʼютері.',
     heic: 'Це знімок HEIC',
@@ -82,6 +110,18 @@ const СЛОВА = {
     orientation: 'Rotation', wb: 'White balance', wbAuto: 'automatic', wbManual: 'manual',
     coords: 'Coordinates', altitude: 'Altitude', direction: 'Camera pointed',
     map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
+    wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
+    status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
+    statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
+    gone: 'removed',
+    strip: 'Download the photo without data', stripping: 'Preparing…', stripDone: 'Done',
+    willRemove: 'What will be removed', nothingToRemove: 'Nothing to remove',
+    nothingWhy: 'This file has no fields at all — no camera, no date, no coordinates. A cleaned copy would be identical, so there is nothing to download.',
+    keepTurn: 'Keep the rotation', keepTurnWhy: 'A phone photo often lies sideways in the file, and one service field is what tells it to stand upright. It says nothing about a person, so it stays by default — otherwise the picture would appear rotated for everyone.',
+    lossless: 'The picture itself is not re-encoded: the pixels stay the same byte for byte, only the service part of the file changes.',
+    removedFields: 'Removed', sizeBefore: 'Before', sizeAfter: 'After',
+    cantStrip: 'There is nothing to remove from this file',
+    fieldsKinds: { camera: 'camera and lens', date: 'date and time', place: 'location coordinates', author: 'author and rights', settings: 'shooting settings', other: 'other service fields' },
     none: 'No fields',
     noneWhy: 'Nothing is recorded in this file. That happens with pictures from social networks and messengers — they strip the fields on upload — and with screenshots and pictures drawn on a computer.',
     heic: 'This is a HEIC photo',
@@ -108,6 +148,18 @@ const СЛОВА = {
     orientation: 'Giro', wb: 'Balance de blancos', wbAuto: 'automático', wbManual: 'manual',
     coords: 'Coordenadas', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
     map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
+    wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
+    status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
+    statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
+    gone: 'quitado',
+    strip: 'Descargar la foto sin datos', stripping: 'Preparando…', stripDone: 'Listo',
+    willRemove: 'Qué se va a quitar', nothingToRemove: 'No hay nada que quitar',
+    nothingWhy: 'Este archivo no tiene ningún campo: ni cámara, ni fecha, ni coordenadas. Una copia limpia sería idéntica, así que no hay nada que descargar.',
+    keepTurn: 'Conservar el giro', keepTurnWhy: 'Una foto de teléfono suele estar tumbada dentro del archivo, y es un campo de servicio el que le dice que se vea derecha. No dice nada de la persona, así que se conserva por defecto; si no, la imagen aparecería girada para todos.',
+    lossless: 'La imagen no se vuelve a comprimir: los píxeles quedan iguales byte a byte, solo cambia la parte de servicio del archivo.',
+    removedFields: 'Quitado', sizeBefore: 'Antes', sizeAfter: 'Después',
+    cantStrip: 'De este archivo no hay nada que quitar',
+    fieldsKinds: { camera: 'cámara y objetivo', date: 'fecha y hora', place: 'coordenadas del lugar', author: 'autor y derechos', settings: 'ajustes de disparo', other: 'otros campos de servicio' },
     none: 'No hay campos',
     noneWhy: 'En este archivo no hay nada escrito. Pasa con las imágenes de redes sociales y mensajería —borran los campos al subirlas—, con las capturas de pantalla y con los dibujos hechos en el ordenador.',
     heic: 'Es una foto HEIC',
@@ -136,11 +188,31 @@ const ЗАМЕТКИ = {
        '<b>Puede que no haya ningún campo.</b> Las redes y la mensajería los borran al subir la imagen, y las capturas de pantalla nunca los tuvieron. Una respuesta vacía aquí es una respuesta, no una avería.'],
 };
 
+// Заметки под инструментом разные: у просмотра разговор о том, что внутри снимка, у уборки --
+// о том, что с ним станет.
+const ЗАМЕТКИ_УБОРКИ = {
+  ru: ['<b>Снимок не пережимается.</b> Мы выбрасываем только служебную часть файла, а сами точки остаются теми же байт в байт. Расхожий совет «откройте и пересохраните» так не умеет: каждое пересохранение JPEG съедает качество.',
+       '<b>Файл никуда не уходит.</b> Всё происходит в браузере, на вашем устройстве: очищенный снимок собирается здесь же и сразу скачивается.',
+       '<b>Поворот остаётся.</b> Снимку он велит стоять прямо, а о вас не говорит ничего. Убрать и его можно галочкой — но тогда у части программ снимок ляжет набок.'],
+  uk: ['<b>Знімок не перетискається.</b> Ми викидаємо лише службову частину файлу, а самі точки лишаються тими самими байт у байт. Поширена порада «відкрийте і перезбережіть» так не вміє: кожне перезбереження JPEG зʼїдає якість.',
+       '<b>Файл нікуди не йде.</b> Усе відбувається у браузері, на вашому пристрої: очищений знімок збирається тут же і одразу завантажується.',
+       '<b>Поворот лишається.</b> Знімку він велить стояти прямо, а про вас не каже нічого. Прибрати і його можна галочкою — але тоді в частині програм знімок ляже набік.'],
+  en: ['<b>The photo is not re-encoded.</b> We drop only the service part of the file; the pixels stay the same byte for byte. The common advice “open it and save it again” cannot do that: every JPEG re-save eats quality.',
+       '<b>The file goes nowhere.</b> Everything happens in the browser, on your device: the cleaned photo is assembled right here and downloaded straight away.',
+       '<b>The rotation stays.</b> It tells the picture to stand upright and says nothing about you. You can drop it too with the checkbox — but then some programs will show the photo sideways.'],
+  es: ['<b>La foto no se vuelve a comprimir.</b> Quitamos solo la parte de servicio del archivo; los píxeles quedan iguales byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacer eso: cada reguardado de JPEG se come calidad.',
+       '<b>El archivo no sale de aquí.</b> Todo ocurre en el navegador, en su dispositivo: la foto limpia se monta aquí mismo y se descarga al instante.',
+       '<b>El giro se conserva.</b> Le dice a la imagen que se vea derecha y no dice nada de usted. Puede quitarlo también con la casilla, pero entonces algunos programas mostrarán la foto tumbada.'],
+};
+
 const с = СЛОВА[locale] || СЛОВА.ru;
-const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
+const чистим = режим === 'чистить';
+const заметки = чистим
+  ? (ЗАМЕТКИ_УБОРКИ[locale] || ЗАМЕТКИ_УБОРКИ.ru)
+  : (ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru);
 ---
 
-<div class="эк" data-язык={locale} data-words={JSON.stringify(с)}>
+<div class="эк" data-язык={locale} data-words={JSON.stringify(с)} data-режим={режим}>
   <div class="эк-поле" id="эк-поле">
     <img id="эк-снимок" hidden alt="" />
     <span class="эк-центр" id="эк-центр">
@@ -169,6 +241,7 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
     <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
+    {чистим && <span class="эк-полоса" id="эк-полоса"></span>}
     <input type="file" class="эк-файл" id="эк-файл" accept="image/*" />
     {/* ОТДЕЛЬНОЕ ПОЛЕ ДЛЯ СЪЁМКИ. capture просит браузер открыть не список файлов, а родное
         приложение камеры -- снимок приходит настоящим файлом, со всеми полями, которые
@@ -177,7 +250,34 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
     <input type="file" class="эк-файл" id="эк-съёмка" accept="image/*" capture="environment" />
   </div>
 
+  {чистим && (
+    <div class="эк-статус">
+      <span class="эк-статус-имя">{с.status}</span>
+      <span class="эк-статус-знач" id="эк-статус">{с.statusWait}</span>
+    </div>
+  )}
+
   <div class="эк-ответ" id="эк-ответ"></div>
+
+  {чистим && (
+    <div class="эк-уборка" id="эк-уборка" hidden>
+      <button type="button" class="эк-качать" id="эк-качать">{с.strip}</button>
+      <label class="эк-галка">
+        <input type="checkbox" id="эк-поворот" checked />
+        <span>{с.keepTurn}</span>
+      </label>
+      <p class="эк-мелко">{с.lossless}</p>
+    </div>
+  )}
+
+  {!чистим && (
+    <p class="эк-увод">
+      <span>{с.wantRemove}</span>
+      {' '}
+      <a class="эк-ссылка" href={`/${locale}/remove-exif`}>{с.linkRemove}</a>
+    </p>
+  )}
+
   <div class="эк-беда" id="эк-беда"></div>
 
   <div class="эк-заметки">
@@ -188,7 +288,7 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
 <style is:inline set:html={css}></style>
 
 <script>
-  import { разобратьExif, координаты, выдержкой, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
+  import { разобратьExif, координаты, выдержкой, убратьМетаданные, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -211,8 +311,26 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
     let адресСнимка = null;        // держим, пока картинка на экране
     let всеПоля = [];
     let показыватьВсё = false;
+    // Режим уборки: страница не только показывает поля, но и отдаёт файл без них.
+    const чистим = корень.dataset.режим === 'чистить';
+    let последнийФайл = null;
 
     function беда(текст) { бедаЭ.textContent = текст || ''; }
+
+    function сказать(текст) {
+      const строка = document.getElementById('эк-статус');
+      if (строка) строка.textContent = текст;
+    }
+
+    /** Полоса по нижнему краю окна: видно, что работа пошла и когда она кончилась. */
+    function полоса(доля) {
+      const п = document.getElementById('эк-полоса');
+      if (!п) return;
+      if (доля <= 0) { п.classList.remove('идёт'); п.style.width = '0%'; return; }
+      п.classList.add('идёт');
+      п.style.width = доля + '%';
+      if (доля >= 100) setTimeout(() => { п.classList.remove('идёт'); п.style.width = '0%'; }, 700);
+    }
 
     /** Карточка с парами «подпись — значение». Пустые пары не показываем вовсе. */
     function карточка(заголовок, пары, добавка) {
@@ -275,6 +393,27 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
      * Показать разобранное. Порядок карточек -- от общего к личному: сам снимок, камера,
      * съёмка, место. Место последнее нарочно: на нём человек и останавливается.
      */
+    /**
+     * Что именно уберём -- человеческим перечнем, а не списком номеров. Человек решает,
+     * нажимать ли кнопку, и ему нужно видеть, ЧТО он отдаёт и ЧЕГО лишится.
+     */
+    function чтоУберём(разбор) {
+      const виды = [];
+      if (!разбор.есть) return виды;
+      const о = разбор.основные, сн = разбор.снимка;
+      const есть = (карта, ...номера) => номера.some((н) => {
+        const з = карта.get(н);
+        return з !== undefined && з !== '';
+      });
+      if (есть(о, ПОЛЯ.make, ПОЛЯ.model) || есть(сн, ПОЛЯ.lens)) виды.push('camera');
+      if (есть(сн, ПОЛЯ.original, ПОЛЯ.digitized) || есть(о, ПОЛЯ.datetime)) виды.push('date');
+      if (координаты(разбор.gps)) виды.push('place');
+      if (есть(о, ПОЛЯ.artist, ПОЛЯ.copyright)) виды.push('author');
+      if (есть(сн, ПОЛЯ.exposure, ПОЛЯ.fnumber, ПОЛЯ.iso, ПОЛЯ.focal)) виды.push('settings');
+      if (!виды.length) виды.push('other');
+      return виды;
+    }
+
     function показать(разбор, файл, ширина, высота) {
       ответ.innerHTML = '';
       всеПоля = [];
@@ -291,10 +430,30 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
       if (!разбор.есть) {
         const почему = разбор.причина === 'heic' ? [с.heic, с.heicWhy]
           : разбор.причина === 'чужой' ? [с.alien, с.alienWhy]
+          : чистим ? [с.nothingToRemove, с.nothingWhy]
           : [с.none, с.noneWhy];
         карточки.push(карточкаМимо(почему[0], почему[1]));
         for (const к of карточки) if (к) ответ.appendChild(к);
         поле.classList.remove('прочитано');
+        if (чистим) {
+          $('эк-уборка').hidden = true;
+          сказать(разбор.причина === 'нет' ? с.statusNone : почему[0]);
+          полоса(0);
+        }
+        return;
+      }
+
+      // РЕЖИМ УБОРКИ: одна карточка со списком того, что уйдёт, и кнопка. Разбирать снимок
+      // по полочкам тут незачем -- для этого есть соседняя страница, и ссылка на неё в тексте.
+      if (чистим) {
+        const виды = чтоУберём(разбор).map((в) => с.fieldsKinds[в] || в);
+        const ящик = карточка(с.willRemove, виды.map((в, i) => [i === 0 ? с.removedFields : ' ', в]));
+        ящик.id = 'эк-уберём';
+        карточки.push(ящик);
+        for (const к of карточки) if (к) ответ.appendChild(к);
+        $('эк-уборка').hidden = false;
+        // Работа идёт сама: человек выбрал снимок -- значит, уже решил.
+        убратьИОтдать();
         return;
       }
 
@@ -467,6 +626,8 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
       if (!файл) return;
       беда('');
       ответ.innerHTML = '';
+      последнийФайл = файл;
+      if (чистим) { $('эк-уборка').hidden = true; сказать(с.statusRead); полоса(6); }
       const { ширина, высота } = await нарисовать(файл);
       let разбор;
       try {
@@ -485,6 +646,8 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
       ответ.innerHTML = '';
       беда('');
       выбор.value = '';
+      последнийФайл = null;
+      if (чистим) { $('эк-уборка').hidden = true; сказать(с.statusWait); полоса(0); }
       $('эк-съёмка').value = '';
       if (адресСнимка) { URL.revokeObjectURL(адресСнимка); адресСнимка = null; }
     }
@@ -526,12 +689,82 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
       }
     });
 
+    // ---- Уборка и скачивание -----------------------------------------------------------------
+    /**
+     * Убрать поля и сразу отдать файл. Кнопки «скачать» человек не ждёт: он пришёл убрать
+     * данные, и лишнее нажатие тут ничего не решает -- оно только откладывает работу.
+     * Кнопка всё же остаётся, чтобы скачать ещё раз (например, сняв галочку поворота).
+     *
+     * Вау-эффект по просьбе владельца: полоса по низу окна наливается, рамка вспыхивает
+     * белым, а перечень убранного гаснет и перечёркивается -- одно поле за другим, так что
+     * видно, ЧТО именно ушло. Всё это -- только прозрачность и черта, ничего не съезжает.
+     */
+    async function убратьИОтдать() {
+      if (!последнийФайл) return;
+      const кнопка = $('эк-качать');
+      const прежнее = кнопка.textContent;
+      кнопка.textContent = с.stripping;
+      кнопка.disabled = true;
+      сказать(с.statusRead);
+      полоса(12);
+      try {
+        const итог = убратьМетаданные(await последнийФайл.arrayBuffer(),
+          { оставитьПоворот: $('эк-поворот').checked });
+        if (!итог.вышло) { беда(с.cantStrip); сказать(с.cantStrip); полоса(0); return; }
+        полоса(100);
+
+        // Имя латиницей и с понятной приставкой: файл ляжет рядом с исходником и не
+        // перепутается с ним ни в одной папке.
+        const имя = 'no-exif_' + последнийФайл.name;
+        const капля = new Blob([итог.байты], { type: последнийФайл.type || 'image/jpeg' });
+        const адрес = URL.createObjectURL(капля);
+        const ссылка = document.createElement('a');
+        ссылка.href = адрес;
+        ссылка.download = имя;
+        document.body.appendChild(ссылка);
+        ссылка.click();
+        ссылка.remove();
+        // Адрес отпускаем не сразу: браузеру нужно время, чтобы начать скачивание.
+        setTimeout(() => URL.revokeObjectURL(адрес), 4000);
+
+        // Рамка вспыхивает белым -- знак, что файл ушёл на устройство.
+        поле.classList.add('сделано');
+        setTimeout(() => поле.classList.remove('сделано'), 900);
+        // Перечень убранного гаснет и перечёркивается.
+        for (const узел of ответ.querySelectorAll('#эк-уберём dt, #эк-уберём dd')) {
+          if (узел.tagName === 'DD') узел.dataset.подпись = с.gone;
+          узел.classList.add('ушло');
+        }
+
+        const ящик = карточка(с.stripDone, [
+          [с.file, имя],
+          [с.sizeBefore, вес(итог.было)],
+          [с.sizeAfter, вес(итог.стало)],
+        ]);
+        ящик.id = 'эк-готово';
+        const прежний = document.getElementById('эк-готово');
+        if (прежний) прежний.remove();
+        ответ.appendChild(ящик);
+        сказать(с.statusClean);
+      } catch (е) {
+        беда(с.cantStrip);
+        сказать(с.cantStrip);
+        полоса(0);
+      } finally {
+        кнопка.textContent = прежнее;
+        кнопка.disabled = false;
+      }
+    }
+
+    if (чистим) $('эк-качать').addEventListener('click', убратьИОтдать);
+
     window.__экСостояние = () => ({
       снимокВиден: !снимок.hidden,
       карточек: ответ.querySelectorAll('.эк-итог').length,
       мимо: !!ответ.querySelector('.эк-мимо'),
       текст: ответ.textContent.replace(/\s+/g, ' ').trim().slice(0, 400),
       всего: всеПоля.length,
+      уборкаВидна: чистим && !$('эк-уборка').hidden,
     });
   })();
 </script>

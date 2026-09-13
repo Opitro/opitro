@@ -1,7 +1,7 @@
 ---
 toolSlug: exif-viewer
 locale: uk
-category: scanners
+category: images
 tool: exif-viewer
 title: "Сканер EXIF онлайн безкоштовно — подивитися дані фотографії та координати"
 h1: "Сканер EXIF"
