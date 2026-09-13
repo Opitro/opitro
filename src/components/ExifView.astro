@@ -22,7 +22,7 @@ const СЛОВА = {
   ru: {
     pick: 'Выбрать снимки', hint: 'или перетащите файлы сюда (до 20)',
     tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
-    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все снимки', saveZip: 'Скачать ZIP: {н} снимка',
+    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все снимки', saveZip: 'ZIP: {н} снимка',
     removeInAll: 'Удалить всё в {н} снимках', doneAll: 'Удалено', working: 'Убираю {а} из {б}…',
     shoot: 'Сделать фото',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
@@ -51,7 +51,7 @@ const СЛОВА = {
     allFields: 'Все теги файла', counted: 'Найдено тегов: {н}', loadingAll: 'Читаю все теги…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
     dropOne: 'Убрать этот тег', back: 'Вернуть', removeAll: 'Удалить все теги', backAll: 'Вернуть всё',
-    removePicked: 'Удалить выбранные теги', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
+    removePicked: 'Удалить выбранное', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у тега, который хотите убрать',
     outName: 'Имя файла', saveAs: 'Сохраним под именем', rename: 'Изменить имя', kept: 'осталось',
     stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
@@ -77,7 +77,7 @@ const СЛОВА = {
   uk: {
     pick: 'Вибрати знімки', hint: 'або перетягніть файли сюди (до 20)',
     tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
-    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі знімки', saveZip: 'Завантажити ZIP: {н} знімки',
+    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі знімки', saveZip: 'ZIP: {н} знімки',
     removeInAll: 'Видалити все у {н} знімках', doneAll: 'Видалено', working: 'Прибираю {а} з {б}…',
     shoot: 'Зробити фото',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
@@ -106,7 +106,7 @@ const СЛОВА = {
     allFields: 'Усі теги файлу', counted: 'Знайдено тегів: {н}', loadingAll: 'Читаю всі теги…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
     dropOne: 'Прибрати цей тег', back: 'Повернути', removeAll: 'Видалити всі теги', backAll: 'Повернути все',
-    removePicked: 'Видалити вибрані теги', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
+    removePicked: 'Видалити вибране', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля тега, який хочете прибрати',
     outName: 'Імʼя файлу', saveAs: 'Збережемо під іменем', rename: 'Змінити імʼя', kept: 'лишилося',
     stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
@@ -132,7 +132,7 @@ const СЛОВА = {
   en: {
     pick: 'Choose photos', hint: 'or drop files here (up to 20)',
     tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
-    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all photos', saveZip: 'Download ZIP: {н} photos',
+    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all photos', saveZip: 'ZIP: {н} photos',
     removeInAll: 'Remove everything in {н} photos', doneAll: 'Removed', working: 'Cleaning {а} of {б}…',
     shoot: 'Take a photo',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
@@ -161,7 +161,7 @@ const СЛОВА = {
     allFields: 'Every tag in the file', counted: 'Tags found: {н}', loadingAll: 'Reading every tag…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this tag', back: 'Put back', removeAll: 'Remove all tags', backAll: 'Put everything back',
-    removePicked: 'Remove the chosen tags', save: 'Save', savedCount: 'Removed {а} of {б}',
+    removePicked: 'Remove the chosen', save: 'Save', savedCount: 'Removed {а} of {б}',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a tag you want gone',
     outName: 'File name', saveAs: 'Will be saved as', rename: 'Change the name', kept: 'kept',
     stripChosen: 'Download without the ticked tags', nothingChosen: 'Nothing is ticked',
@@ -186,7 +186,7 @@ const СЛОВА = {
   es: {
     pick: 'Elegir fotos', hint: 'o arrastre archivos aquí (hasta 20)',
     tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
-    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas las fotos', saveZip: 'Descargar ZIP: {н} fotos',
+    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas las fotos', saveZip: 'ZIP: {н} fotos',
     removeInAll: 'Quitar todo en {н} fotos', doneAll: 'Quitado', working: 'Limpiando {а} de {б}…',
     shoot: 'Hacer una foto',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
@@ -216,7 +216,7 @@ const СЛОВА = {
     allFields: 'Todas las etiquetas del archivo', counted: 'Etiquetas encontradas: {н}', loadingAll: 'Leyendo todas las etiquetas…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar esta etiqueta', back: 'Devolver', removeAll: 'Quitar todas las etiquetas', backAll: 'Devolver todo',
-    removePicked: 'Quitar las etiquetas elegidas', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
+    removePicked: 'Quitar lo elegido', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto a la etiqueta que quiera quitar',
     outName: 'Nombre del archivo', saveAs: 'Se guardará como', rename: 'Cambiar el nombre', kept: 'conservado',
     stripChosen: 'Descargar sin las etiquetas marcadas', nothingChosen: 'No hay nada marcado',
@@ -343,7 +343,10 @@ const заметки = чистим
         {/* «Сохранить» стоит третьей и появляется только когда есть что сохранять: поверх
             ленты снимков ей места нет. */}
         <span class="эк-низ" id="эк-низ" hidden>
-          <button type="button" class="эк-сохранить" id="эк-сохранить">{с.save}</button>
+          <button type="button" class="эк-сохранить" id="эк-сохранить">
+            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+            <span id="эк-сохранить-слово">{с.save}</span>
+          </button>
         </span>
       </div>
     </div>
@@ -1366,7 +1369,8 @@ const заметки = чистим
       const низ = document.getElementById('эк-низ');
       const выбранное = document.getElementById('эк-качать');
       const готовых = снимки.filter((сн) => сн.готовый).length;
-      if (сохранить) сохранить.textContent = готовых > 1 ? с.saveZip.replace('{н}', готовых) : с.save;
+      const слово = document.getElementById('эк-сохранить-слово');
+      if (слово) слово.textContent = готовых > 1 ? с.saveZip.replace('{н}', готовых) : с.save;
       if (низ) низ.hidden = готовых === 0;
       if (выбранное) выбранное.hidden = готовых > 0;
     }
@@ -1573,9 +1577,10 @@ const заметки = чистим
       // заблокирует, либо человек утонет в окне загрузок.
       if (готовые.length > 1) {
         const кнопка = document.getElementById('эк-сохранить');
-        const прежнее = кнопка.textContent;
+        const слово = document.getElementById('эк-сохранить-слово');
+        const прежнее = слово.textContent;
         кнопка.disabled = true;
-        кнопка.textContent = с.stripping;
+        слово.textContent = с.stripping;
         try {
           const { default: JSZip } = await import('jszip');
           const архив = new JSZip();
@@ -1586,7 +1591,7 @@ const заметки = чистим
           отдать(капля, 'no-exif_' + готовые.length + '.zip');
         } catch (е) { беда(с.cantStrip); }
         кнопка.disabled = false;
-        кнопка.textContent = прежнее;
+        слово.textContent = прежнее;
         return;
       }
       if (!готовыйФайл || !готовыйФайл.байты) return;

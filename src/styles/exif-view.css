@@ -186,12 +186,23 @@
 /* Белая, а не зелёная: на тёмном снимке белое читается при любом кадре, а зелёное спорит с
    зеленью на фотографии. Решение владельца. */
 .эк-сохранить {
-  padding: 11px 26px; cursor: pointer; border-radius: 8px;
+  padding: 11px 22px; cursor: pointer; border-radius: 8px;
+  display: inline-flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid #fff; color: #0b0c0f;
   font: 700 14px var(--мон); box-shadow: 0 6px 22px rgba(0,0,0,.45);
   transition: background .15s, border-color .15s;
 }
+.эк-сохранить svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
 .эк-сохранить:hover { background: #e9ecef; border-color: #e9ecef }
+
+/* НА ТЕЛЕФОНЕ РЯД ДОЛЖЕН ОСТАТЬСЯ ОДНОЙ СТРОКОЙ. «Удалено» и «ZIP: 3 снимка» вдвоём не
+   влезали в 390 точек, и архив уезжал под погасшую кнопку. Поджимаем поля, а не надписи:
+   читаться они должны так же. */
+@media (max-width: 560px) {
+  .эк-дело { padding: 12px 9px; font-size: 12px }
+  .эк-сохранить { padding: 11px 14px; gap: 6px }
+}
 .эк-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   font: 400 12.5px var(--мон); color: #fff }
 .эк-галка input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer }
