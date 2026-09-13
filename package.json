@@ -34,7 +34,9 @@
     "qrcode-generator": "^2.0.4",
     "sql-formatter": "^15.8.2",
     "terser": "^5.51.2",
-    "turndown": "^7.2.4"
+    "topojson-client": "^3.1.0",
+    "turndown": "^7.2.4",
+    "world-atlas": "^2.0.2"
   },
   "devDependencies": {
     "bwip-js": "^4.11.4"

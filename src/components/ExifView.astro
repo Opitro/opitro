@@ -32,7 +32,7 @@ const СЛОВА = {
     iso: 'Светочувствительность', focal: 'Фокусное расстояние', focal35: 'В пересчёте на 35 мм',
     flash: 'Вспышка', flashOn: 'сработала', flashOff: 'не сработала',
     orientation: 'Поворот', wb: 'Баланс белого', wbAuto: 'автоматический', wbManual: 'вручную',
-    coords: 'Координаты', altitude: 'Высота', direction: 'Куда смотрела камера',
+    coords: 'Координаты', country: 'Страна', altitude: 'Высота', direction: 'Куда смотрела камера',
     map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
@@ -83,7 +83,7 @@ const СЛОВА = {
     iso: 'Світлочутливість', focal: 'Фокусна відстань', focal35: 'У перерахунку на 35 мм',
     flash: 'Спалах', flashOn: 'спрацював', flashOff: 'не спрацював',
     orientation: 'Поворот', wb: 'Баланс білого', wbAuto: 'автоматичний', wbManual: 'вручну',
-    coords: 'Координати', altitude: 'Висота', direction: 'Куди дивилася камера',
+    coords: 'Координати', country: 'Країна', altitude: 'Висота', direction: 'Куди дивилася камера',
     map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
@@ -134,7 +134,7 @@ const СЛОВА = {
     iso: 'ISO', focal: 'Focal length', focal35: 'Equivalent at 35 mm',
     flash: 'Flash', flashOn: 'fired', flashOff: 'did not fire',
     orientation: 'Rotation', wb: 'White balance', wbAuto: 'automatic', wbManual: 'manual',
-    coords: 'Coordinates', altitude: 'Altitude', direction: 'Camera pointed',
+    coords: 'Coordinates', country: 'Country', altitude: 'Altitude', direction: 'Camera pointed',
     map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
@@ -185,7 +185,7 @@ const СЛОВА = {
     focal35: 'Equivalente a 35 mm',
     flash: 'Flash', flashOn: 'disparó', flashOff: 'no disparó',
     orientation: 'Giro', wb: 'Balance de blancos', wbAuto: 'automático', wbManual: 'manual',
-    coords: 'Coordenadas', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
+    coords: 'Coordenadas', country: 'País', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
     map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
@@ -353,6 +353,7 @@ const заметки = чистим
 <script>
   import { разобратьExif, координаты, выдержкой, убратьПоля, прочитатьВсё, этоHeic,
     раскрытьHeic, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
+  import { странаПоКоординатам } from '../lib/place.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -520,7 +521,7 @@ const заметки = чистим
       if (к) {
         const ключи = (разбор.gps.сырые || []).map((з) => 'gps:' + з.номер);
         группы.push({ имя: с.place, вместе: ключи, строки: [
-          { ключ: ключи.join('|'), имя: с.coords,
+          { ключ: ключи.join('|'), имя: с.coords, место: к,
             знач: `${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`
               + (к.высота !== null ? ` · ${число(к.высота, 0)} ${с.m}` : '') },
         ] });
@@ -587,8 +588,40 @@ const заметки = чистим
         кнопка.addEventListener('click', () => переключить(ряд));
         ряд.append(имя, знач, кнопка);
         ящик.appendChild(ряд);
+        // У координат дописываем страну: числа человеку ничего не говорят, название -- сразу.
+        if (стр.место) назватьСтрануВСтроке(стр.место, знач);
       }
       return ящик;
+    }
+
+    /**
+     * НАЗВАТЬ СТРАНУ ПО КООРДИНАТАМ. Считается на устройстве по карте границ -- ничего не
+     * спрашиваем у чужих служб: иначе координаты человека ушли бы наружу, а он пришёл сюда
+     * ровно затем, чтобы этого не было. Карта грубая, у самой границы ответ может быть
+     * неточен -- но страну она называет верно.
+     */
+    async function назватьСтрану(к, карточкаМеста) {
+      const строки = карточкаМеста.querySelectorAll('dd');
+      const строка = строки[1];
+      if (!строка) return;
+      const убрать = () => {
+        const подпись = строка.previousElementSibling;
+        if (подпись) подпись.remove();
+        строка.remove();
+      };
+      try {
+        const страна = await странаПоКоординатам(к.широта, к.долгота, язык);
+        if (страна && страна.имя) строка.textContent = страна.имя;
+        else убрать();
+      } catch (е) { убрать(); }
+    }
+
+    /** То же, но в списке уборки: страна дописывается прямо к координатам. */
+    async function назватьСтрануВСтроке(к, узел) {
+      try {
+        const страна = await странаПоКоординатам(к.широта, к.долгота, язык);
+        if (страна && страна.имя) узел.textContent = `${узел.textContent} · ${страна.имя}`;
+      } catch (е) { /* не вышло -- останутся одни числа */ }
     }
 
     /** Вычеркнуть поле или вернуть его обратно. */
@@ -919,9 +952,12 @@ const заметки = чистим
         const напр = разбор.gps.get(ПОЛЯ_GPS.imgDir);
         const место = карточка(с.place, [
           [с.coords, `${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`],
+          [с.country, '…'],
           [с.altitude, к.высота !== null ? `${число(к.высота, 0)} ${с.m}` : ''],
           [с.direction, typeof напр === 'number' ? `${число(напр, 0)}${с.deg}` : ''],
         ], низ);
+        // Страна считается на устройстве по карте границ; пока считается -- в строке многоточие.
+        назватьСтрану(к, место);
         место.classList.add('эк-место');
         карточки.push(место);
       }
@@ -1086,7 +1122,12 @@ const заметки = чистим
       беда('');
       выбор.value = '';
       последнийФайл = null;
+      последнийБуфер = null;
       готовыйФайл = null;
+      // Счётчик полей относится к убранному снимку -- вместе с ним и уходит. Владелец:
+      // «нажимаешь крестик, а надпись „найдено полей“ не пропадает».
+      const счёт = document.getElementById('эк-счёт');
+      if (счёт) { счёт.textContent = ''; счёт.classList.remove('готово'); }
       if (чистим) {
         $('эк-уборка').hidden = true;
         $('эк-низ').hidden = true;
