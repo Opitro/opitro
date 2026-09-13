@@ -253,16 +253,20 @@ const ЗАМЕТКИ = {
 const ЗАМЕТКИ_УБОРКИ = {
   ru: ['<b>Снимок не пережимается.</b> Мы выбрасываем только служебную часть файла, а сами точки остаются теми же байт в байт. Расхожий совет «откройте и пересохраните» так не умеет: каждое пересохранение JPEG съедает качество.',
        '<b>Файл никуда не уходит.</b> Всё происходит в браузере, на вашем устройстве: очищенный снимок собирается здесь же и сразу скачивается.',
-       '<b>Поворот остаётся.</b> Снимку он велит стоять прямо, а о вас не говорит ничего. Убрать и его можно — корзинкой в его строке, — но тогда у части программ снимок ляжет набок.'],
+       '<b>Поворот остаётся.</b> Снимку он велит стоять прямо, а о вас не говорит ничего. Убрать и его можно — корзинкой в его строке, — но тогда у части программ снимок ляжет набок.',
+       '<b>Встроенная копия снимка убирается всегда.</b> Камеры кладут внутрь файла маленькую копию кадра — часто ДО обрезки и правок. Выбирать тут нечего: в очищённом файле ей не место, поэтому она уходит без спроса. Посмотреть, что в ней было, можно на <a href="/ru/exif-viewer">сканере EXIF</a>.'],
   uk: ['<b>Знімок не перетискається.</b> Ми викидаємо лише службову частину файлу, а самі точки лишаються тими самими байт у байт. Поширена порада «відкрийте і перезбережіть» так не вміє: кожне перезбереження JPEG зʼїдає якість.',
        '<b>Файл нікуди не йде.</b> Усе відбувається у браузері, на вашому пристрої: очищений знімок збирається тут же і одразу завантажується.',
-       '<b>Поворот лишається.</b> Знімку він велить стояти прямо, а про вас не каже нічого. Прибрати і його можна — кошиком у його рядку, — але тоді в частині програм знімок ляже набік.'],
+       '<b>Поворот лишається.</b> Знімку він велить стояти прямо, а про вас не каже нічого. Прибрати і його можна — кошиком у його рядку, — але тоді в частині програм знімок ляже набік.',
+       '<b>Вбудована копія знімка прибирається завжди.</b> Камери кладуть усередину файлу маленьку копію кадру — часто ДО обрізки та правок. Обирати тут нічого: в очищеному файлі їй не місце, тому вона йде без питань. Подивитися, що в ній було, можна на <a href="/uk/exif-viewer">сканері EXIF</a>.'],
   en: ['<b>The photo is not re-encoded.</b> We drop only the service part of the file; the pixels stay the same byte for byte. The common advice “open it and save it again” cannot do that: every JPEG re-save eats quality.',
        '<b>The file goes nowhere.</b> Everything happens in the browser, on your device: the cleaned photo is assembled right here and downloaded straight away.',
-       '<b>The rotation stays.</b> It tells the picture to stand upright and says nothing about you. You can drop it too — with the bin in its own row — but then some programs will show the photo sideways.'],
+       '<b>The rotation stays.</b> It tells the picture to stand upright and says nothing about you. You can drop it too — with the bin in its own row — but then some programs will show the photo sideways.',
+       '<b>The embedded copy of the photo always goes.</b> Cameras put a small copy of the frame inside the file — often the one BEFORE cropping and edits. There is nothing to decide here: a cleaned file has no use for it, so it goes without asking. You can see what was in it on the <a href="/en/exif-viewer">EXIF viewer</a>.'],
   es: ['<b>La foto no se vuelve a comprimir.</b> Quitamos solo la parte de servicio del archivo; los píxeles quedan iguales byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacer eso: cada reguardado de JPEG se come calidad.',
        '<b>El archivo no sale de aquí.</b> Todo ocurre en el navegador, en su dispositivo: la foto limpia se monta aquí mismo y se descarga al instante.',
-       '<b>El giro se conserva.</b> Le dice a la imagen que se vea derecha y no dice nada de usted. Puede quitarlo también con la papelera de su fila, pero entonces algunos programas mostrarán la foto tumbada.'],
+       '<b>El giro se conserva.</b> Le dice a la imagen que se vea derecha y no dice nada de usted. Puede quitarlo también con la papelera de su fila, pero entonces algunos programas mostrarán la foto tumbada.',
+       '<b>La copia incrustada de la foto se quita siempre.</b> Las cámaras meten dentro del archivo una copia pequeña del encuadre, a menudo ANTES del recorte y los retoques. Aquí no hay nada que decidir: un archivo limpio no la necesita, así que se va sin preguntar. Puede ver qué había en ella en el <a href="/es/exif-viewer">visor EXIF</a>.'],
 };
 
 const с = СЛОВА[locale] || СЛОВА.ru;
@@ -791,11 +795,14 @@ const заметки = чистим
         { имя: 'xmp', ключ: 'блок:xmp' },
         { имя: 'iptc', ключ: 'блок:iptc' },
         { имя: 'maker', ключ: 'блок:other' },
-        // ВСТРОЕННАЯ МИНИАТЮРА УХОДИТ ВСЕГДА. Она лежит во второй описи файла, а мы
-        // пересобираем описи заново -- и она в новую не попадает. Показывать у неё корзинку
-        // значило бы предлагать выбор, которого нет: проба это и вскрыла. Оставляем строку
-        // (человек должен знать, что копия снимка из файла ушла) и говорим прямо.
-        { имя: 'thumb', ключ: 'блок:thumb', всегда: true },
+        // ВСТРОЕННОЙ МИНИАТЮРЫ В ЭТОМ СПИСКЕ НЕТ НАРОЧНО. Она уходит всегда -- вторая опись
+        // файла при пересборке не переносится, -- и решать по ней нечего: строка без
+        // корзинки только путала («удаляется оно или нет?»). Замысел владельца: «если она не
+        // нужна -- просто удалять, не показывая».
+        //
+        // Но ПРЯТАТЬ САМ ФАКТ нельзя: в миниатюре нередко лежит исходный кадр -- до обрезки и
+        // правок. Поэтому она остаётся видна на сканере EXIF (там это сведение, а не
+        // действие) и названа в заметках под инструментом.
         { имя: 'icc', ключ: 'блок:icc', беречь: true },
       ];
       const строки = [];
