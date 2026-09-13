@@ -2,6 +2,7 @@
 toolSlug: color-scan
 locale: es
 category: scanners
+alsoIn: [images]
 tool: color-scan
 title: "Escáner de color online gratis — obtener HEX y RGB con la cámara"
 h1: "Escáner de color"

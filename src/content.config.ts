@@ -18,6 +18,13 @@ const tools = defineCollection({
     related: z.array(z.string()).optional(),
     locale: z.string(),
     category: z.string(),
+    /** ВТОРОЙ ДОМ. Инструмент живёт в одной рубрике (category -- она и в хлебных крошках),
+        но показывается ещё и в этих. Сканер EXIF, например, по делу лежит в «Изображениях»,
+        а по устройству -- сканер, и в рубрике сканеров его тоже ищут. Страница при этом
+        остаётся ОДНА: второго адреса не появляется, и одинакового текста на сайте не
+        прибавляется. */
+    alsoIn: z.array(z.string()).optional(),
+
     engine: z.enum(['linear-converter', 'temperature-converter']),
     // linear-converter uses {factor}; temperature-converter uses {scale, offset} for the
     // y = x*scale + offset formula (temperature scales don't share a zero point, so a plain
@@ -106,6 +113,13 @@ const mediaTools = defineCollection({
     related: z.array(z.string()).optional(),
     locale: z.string(),
     category: z.string(),
+    /** ВТОРОЙ ДОМ. Инструмент живёт в одной рубрике (category -- она и в хлебных крошках),
+        но показывается ещё и в этих. Сканер EXIF, например, по делу лежит в «Изображениях»,
+        а по устройству -- сканер, и в рубрике сканеров его тоже ищут. Страница при этом
+        остаётся ОДНА: второго адреса не появляется, и одинакового текста на сайте не
+        прибавляется. */
+    alsoIn: z.array(z.string()).optional(),
+
     tool: z.string(),
     title: z.string(),
     h1: z.string(),

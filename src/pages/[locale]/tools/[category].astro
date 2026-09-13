@@ -30,10 +30,13 @@ const translations = allCategories
 
 const allTools = await getCollection('tools');
 const allMedia = await getCollection('mediaTools');
-const tools = [
-  ...allTools.filter((t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale),
-  ...allMedia.filter((t) => t.data.category === entry.data.catSlug && t.data.locale === entry.data.locale),
-];
+// В рубрике показываем и тех, для кого она ВТОРОЙ дом (alsoIn): сканер EXIF по делу лежит
+// в «Изображениях», а по устройству -- сканер, и в рубрике сканеров его ищут тоже. Страница
+// при этом одна: второго адреса не появляется, хлебные крошки ведут в первую рубрику.
+const вРубрике = (t) => t.data.locale === entry.data.locale
+  && (t.data.category === entry.data.catSlug
+    || (t.data.alsoIn || []).includes(entry.data.catSlug));
+const tools = [...allTools.filter(вРубрике), ...allMedia.filter(вРубрике)];
 
 // Categories with lots of units get a working any-to-any converter right on the category
 // page itself, not just a list of links -- add more entries as other categories get one.

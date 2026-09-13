@@ -16,12 +16,16 @@ const categories = allCategories.filter((c) => c.data.locale === locale);
 
 const allTools = await getCollection('tools');
 const allMedia = await getCollection('mediaTools');
+// Инструмент может числиться и во второй рубрике (alsoIn) -- на главной он тогда виден в
+// обеих, но страница у него одна.
+const вРубрике = (t, catSlug) => t.data.locale === locale
+  && (t.data.category === catSlug || (t.data.alsoIn || []).includes(catSlug));
 const toolsByCategory = Object.fromEntries(
   categories.map((c) => [
     c.data.catSlug,
     [
-      ...allTools.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
-      ...allMedia.filter((t) => t.data.category === c.data.catSlug && t.data.locale === locale),
+      ...allTools.filter((t) => вРубрике(t, c.data.catSlug)),
+      ...allMedia.filter((t) => вРубрике(t, c.data.catSlug)),
     ],
   ])
 );

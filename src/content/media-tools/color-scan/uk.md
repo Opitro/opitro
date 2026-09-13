@@ -2,6 +2,7 @@
 toolSlug: color-scan
 locale: uk
 category: scanners
+alsoIn: [images]
 tool: color-scan
 title: "Сканер кольору онлайн безкоштовно — дізнатися HEX і RGB камерою телефона"
 h1: "Сканер кольору"

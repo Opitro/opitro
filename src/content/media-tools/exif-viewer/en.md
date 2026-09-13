@@ -1,7 +1,8 @@
 ---
 toolSlug: exif-viewer
 locale: en
-category: images
+category: scanners
+alsoIn: [images]
 tool: exif-viewer
 title: "EXIF viewer online free — see photo data and GPS coordinates"
 h1: "EXIF viewer"
