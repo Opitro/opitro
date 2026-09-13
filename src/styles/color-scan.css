@@ -1,0 +1,159 @@
+/* СКАНЕР ЦВЕТА -- ТОТ ЖЕ СТРОЙ, ЧТО У ОСТАЛЬНЫХ СКАНЕРОВ РУБРИКИ.
+ *
+ * Чёрное окно, две плитки выбора, моноширинный шрифт, ответ карточкой с зелёными подписями.
+ * Разница одна: здесь человек не ищет код, а тычет в точку -- поэтому в окне живёт прицел с
+ * настоящим цветом внутри, а не рамка для наводки.
+ */
+
+.цв {
+  --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
+  --серый: #b4b4bb;
+  --контур: #3a3a42;
+  font-family: var(--мон);
+}
+
+.цв-окно {
+  position: relative; height: 260px; width: 100%; overflow: hidden;
+  display: flex; align-items: center; justify-content: center;
+  background: #09090b; border: 2px solid var(--контур); border-radius: 4px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
+  transition: border-color .2s;
+}
+.цв-окно.взято { border-color: var(--accent);
+  box-shadow: inset 0 0 0 1px rgba(74,222,158,.35), 0 0 28px rgba(74,222,158,.18) }
+.цв-окно video, .цв-окно img {
+  position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover;
+}
+.цв-окно video[hidden], .цв-окно img[hidden] { display: none }
+/* По застывшему кадру тыкают пальцем -- курсор об этом и говорит. */
+.цв-окно img { cursor: crosshair }
+
+/* ПРИЦЕЛ С ЖИВЫМ ЦВЕТОМ ВНУТРИ. Кружок показывает то, что сейчас под ним: человек видит
+   цвет раньше, чем нажмёт, и целится не вслепую. Белое кольцо и чёрная тень -- чтобы кружок
+   был виден и на белой стене, и на чёрной обложке. */
+.цв-прицел {
+  position: absolute; z-index: 2; width: 54px; height: 54px; border-radius: 50%;
+  transform: translate(-50%, -50%); pointer-events: none;
+  border: 3px solid #fff; box-shadow: 0 0 0 2px rgba(0,0,0,.55), inset 0 0 0 2px rgba(0,0,0,.35);
+  background: transparent;
+}
+.цв-прицел[hidden] { display: none }
+/* Точка ровно по центру прицела: она и есть то место, откуда берётся цвет. */
+.цв-прицел::after {
+  content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px;
+  margin: -2px 0 0 -2px; border-radius: 50%; background: #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.7);
+}
+
+.цв-центр { position: relative; display: flex; align-items: stretch; justify-content: center;
+  gap: 14px; padding: 0 16px }
+.цв-центр[hidden] { display: none }
+.цв-выбор {
+  width: 118px; padding: 16px 10px 14px; cursor: pointer; border-radius: 8px;
+  display: inline-flex; flex-direction: column; align-items: center; gap: 10px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
+  font: 400 13px var(--мон);
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.цв-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
+.цв-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.цв-выбор svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
+
+.цв-намёк { position: absolute; left: 0; right: 0; top: 10px; z-index: 3; text-align: center;
+  font: 400 13px var(--мон); color: #fff; text-shadow: 0 1px 6px rgba(0,0,0,.9); padding: 0 44px }
+.цв-намёк[hidden] { display: none }
+
+.цв-крест {
+  position: absolute; top: 8px; right: 8px; z-index: 3;
+  width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
+  padding: 0; cursor: pointer; border-radius: 4px;
+  border: 1px solid rgba(255,255,255,.45); background: rgba(0,0,0,.55); color: #e4e4e7;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.цв-крест:hover { color: #fff; background: rgba(0,0,0,.85); border-color: #fff }
+.цв-крест[hidden] { display: none }
+.цв-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round }
+
+/* Затвор -- как на сканерах кодов: круглая кнопка внизу кадра. Здесь она не «снимает», а
+   останавливает картинку, чтобы можно было спокойно ткнуть в нужную точку. */
+.цв-затвор-ряд { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 3;
+  display: flex; justify-content: center }
+/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ: правило display выше сильнее, чем display:none из таблицы
+   браузера для [hidden]. Без этой строки затвор оставался лежать поверх застывшего кадра --
+   ровно та же ловушка, что уже ловила на сканерах кодов. */
+.цв-затвор-ряд[hidden] { display: none }
+.цв-затвор {
+  width: 58px; height: 58px; border-radius: 50%; cursor: pointer; flex: none;
+  display: inline-flex; align-items: center; justify-content: center; padding: 0;
+  background: rgba(0,0,0,.35); border: 2px solid rgba(255,255,255,.9);
+}
+.цв-затвор i { width: 42px; height: 42px; border-radius: 50%; background: #fff; display: block }
+.цв-затвор:hover i { background: #e9ecef }
+.цв-затвор[hidden] { display: none }
+
+.цв-файл { display: none }
+
+/* ---- Ответ ------------------------------------------------------------------------------------ */
+@keyframes цв-явился { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+
+.цв-ответ { margin-top: 18px }
+.цв-ответ:empty { display: none }
+.цв-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
+  padding: 12px 13px; display: flex; gap: 14px; align-items: flex-start;
+  animation: цв-явился .28s cubic-bezier(.2,.7,.3,1) both }
+/* Сам цвет -- крупным пятном: ради него и пришли, и сравнивать глазами надо именно пятно. */
+.цв-пятно { flex: none; width: 86px; height: 86px; border-radius: 8px;
+  border: 1px solid rgba(255,255,255,.25) }
+.цв-строки { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 7px }
+.цв-имя { font: 400 10.5px var(--мон); letter-spacing: .08em; text-transform: uppercase;
+  color: var(--accent) }
+.цв-пары { display: grid; grid-template-columns: minmax(0, 64px) minmax(0, 1fr) 34px;
+  gap: 4px 10px; margin: 0; font: 400 13px/1.45 var(--мон); align-items: center }
+.цв-пары dt { color: var(--accent) }
+.цв-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text;
+  font-variant-numeric: tabular-nums }
+
+.цв-копи {
+  flex: none; width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.цв-копи:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
+.цв-копи:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
+.цв-копи svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.цв-копи .галка { display: none }
+/* Ниже наведения нарочно: рука в этот миг лежит на кнопке, и белая рамка перебивала бы
+   зелёную -- при равной силе побеждает записанное ниже. */
+.цв-копи.готово { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.12) }
+.цв-копи.готово:hover { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.18) }
+.цв-копи.готово .лист { display: none }
+.цв-копи.готово .галка { display: block }
+
+/* Взятые цвета: полоска последних, чтобы сравнить два-три оттенка, не переписывая их. */
+.цв-набор { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
+.цв-набор:empty { display: none }
+.цв-кроха {
+  width: 38px; height: 38px; border-radius: 8px; cursor: pointer; padding: 0;
+  border: 1px solid rgba(255,255,255,.25); transition: transform .12s, border-color .15s;
+}
+.цв-кроха:hover { transform: translateY(-2px); border-color: #fff }
+
+.цв-беда { margin-top: 12px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
+.цв-беда:empty { display: none }
+
+.цв-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 10px }
+.цв-заметка { font: 400 13px/1.65 var(--мон); color: #c9c9d1 }
+.цв-заметка b { color: #fff; font-weight: 400 }
+
+@media (max-width: 560px) {
+  .цв-окно { height: 240px }
+  .цв-пятно { width: 64px; height: 64px }
+  .цв-пары { grid-template-columns: minmax(0, 56px) minmax(0, 1fr) 30px; font-size: 12.5px }
+}
+@media (prefers-reduced-motion: reduce) {
+  .цв-итог { animation: none }
+}

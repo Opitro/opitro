@@ -1,0 +1,503 @@
+---
+// СКАНЕР ЦВЕТА: навёл камеру -- получил HEX и RGB.
+//
+// Устройство то же, что у сканеров кодов рубрики: чёрное окно, две плитки выбора (камера или
+// готовый снимок), крестик, затвор. Отличие одно, и оно по делу: здесь человек не ищет код,
+// а выбирает ТОЧКУ. Поэтому в кадре живёт прицел, внутри которого видно цвет под ним, а по
+// застывшему кадру можно ткнуть куда угодно.
+//
+// Цвет берём НЕ ОДНОЙ ТОЧКОЙ, а средним по маленькому пятну: камера шумит, и соседние точки
+// одного и того же листа бумаги отличаются на десяток единиц. Один пиксель прыгал бы на
+// глазах, и человек не понимал бы, какому значению верить.
+//
+// Всё считается на устройстве: кадр никуда не уходит, как и на остальных сканерах.
+import css from '../styles/color-scan.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    camera: 'Камера', file: 'Файл', clear: 'Убрать', shot: 'Остановить кадр', retry: 'Снова камеру',
+    liveHint: 'Наведите кружок на цвет и нажмите кнопку',
+    frozenHint: 'Ткните в любую точку кадра',
+    picked: 'Цвет', name: 'Название', copy: 'Скопировать', copied: 'Скопировано',
+    again: 'Взять другой цвет',
+    askCam: 'Пожалуйста, разрешите доступ к камере в браузере — без него смотреть не на что.',
+    denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер, и отозвать его можно там же, в строке адреса.',
+    noCam: 'Камера недоступна. Проверьте, что она не занята другой программой, и что вы открыли страницу по защищённому адресу.',
+    notImage: 'Это не картинка. Выберите снимок: JPEG, PNG или WebP.',
+    names: {
+      black: 'чёрный', darkgrey: 'тёмно-серый', grey: 'серый', lightgrey: 'светло-серый',
+      white: 'белый', red: 'красный', darkred: 'тёмно-красный', pink: 'розовый',
+      orange: 'оранжевый', brown: 'коричневый', beige: 'бежевый', gold: 'золотой',
+      yellow: 'жёлтый', olive: 'оливковый', lightgreen: 'светло-зелёный', green: 'зелёный',
+      darkgreen: 'тёмно-зелёный', teal: 'сине-зелёный', cyan: 'бирюзовый', skyblue: 'голубой',
+      blue: 'синий', darkblue: 'тёмно-синий', navy: 'тёмно-синий, почти чёрный',
+      violet: 'фиолетовый', purple: 'пурпурный', magenta: 'малиновый', coral: 'коралловый',
+      salmon: 'лососевый', cream: 'кремовый', sand: 'песочный',
+    },
+  },
+  uk: {
+    camera: 'Камера', file: 'Файл', clear: 'Прибрати', shot: 'Зупинити кадр', retry: 'Знову камеру',
+    liveHint: 'Наведіть кружок на колір і натисніть кнопку',
+    frozenHint: 'Торкніться будь-якої точки кадру',
+    picked: 'Колір', name: 'Назва', copy: 'Скопіювати', copied: 'Скопійовано',
+    again: 'Узяти інший колір',
+    askCam: 'Будь ласка, дозвольте доступ до камери у браузері — без нього дивитися нема на що.',
+    denied: 'Доступ до камери не надано. Дозвіл питає сам браузер, і відкликати його можна там само, у рядку адреси.',
+    noCam: 'Камера недоступна. Перевірте, чи не зайнята вона іншою програмою і чи відкрито сторінку за захищеною адресою.',
+    notImage: 'Це не картинка. Виберіть знімок: JPEG, PNG або WebP.',
+    names: {
+      black: 'чорний', darkgrey: 'темно-сірий', grey: 'сірий', lightgrey: 'світло-сірий',
+      white: 'білий', red: 'червоний', darkred: 'темно-червоний', pink: 'рожевий',
+      orange: 'помаранчевий', brown: 'коричневий', beige: 'бежевий', gold: 'золотий',
+      yellow: 'жовтий', olive: 'оливковий', lightgreen: 'світло-зелений', green: 'зелений',
+      darkgreen: 'темно-зелений', teal: 'синьо-зелений', cyan: 'бірюзовий', skyblue: 'блакитний',
+      blue: 'синій', darkblue: 'темно-синій', navy: 'темно-синій, майже чорний',
+      violet: 'фіолетовий', purple: 'пурпуровий', magenta: 'малиновий', coral: 'кораловий',
+      salmon: 'лососевий', cream: 'кремовий', sand: 'пісочний',
+    },
+  },
+  en: {
+    camera: 'Camera', file: 'File', clear: 'Clear', shot: 'Freeze the frame', retry: 'Camera again',
+    liveHint: 'Put the circle on a colour and press the button',
+    frozenHint: 'Tap anywhere on the frame',
+    picked: 'Colour', name: 'Name', copy: 'Copy', copied: 'Copied',
+    again: 'Pick another colour',
+    askCam: 'Please allow camera access in the browser — without it there is nothing to look at.',
+    denied: 'Camera access was not granted. The browser itself asks for it, and you can take it back in the same place, next to the address.',
+    noCam: 'The camera is not available. Check that no other program is using it and that the page is open over a secure address.',
+    notImage: 'This is not a picture. Choose a photo: JPEG, PNG or WebP.',
+    names: {
+      black: 'black', darkgrey: 'dark grey', grey: 'grey', lightgrey: 'light grey',
+      white: 'white', red: 'red', darkred: 'dark red', pink: 'pink',
+      orange: 'orange', brown: 'brown', beige: 'beige', gold: 'gold',
+      yellow: 'yellow', olive: 'olive', lightgreen: 'light green', green: 'green',
+      darkgreen: 'dark green', teal: 'teal', cyan: 'cyan', skyblue: 'sky blue',
+      blue: 'blue', darkblue: 'dark blue', navy: 'navy, almost black',
+      violet: 'violet', purple: 'purple', magenta: 'magenta', coral: 'coral',
+      salmon: 'salmon', cream: 'cream', sand: 'sand',
+    },
+  },
+  es: {
+    camera: 'Cámara', file: 'Archivo', clear: 'Quitar', shot: 'Congelar la imagen',
+    retry: 'Cámara otra vez',
+    liveHint: 'Ponga el círculo sobre un color y pulse el botón',
+    frozenHint: 'Toque cualquier punto de la imagen',
+    picked: 'Color', name: 'Nombre', copy: 'Copiar', copied: 'Copiado',
+    again: 'Tomar otro color',
+    askCam: 'Permita el acceso a la cámara en el navegador: sin él no hay nada que mirar.',
+    denied: 'No se concedió el acceso a la cámara. El permiso lo pide el propio navegador y puede retirarlo en el mismo sitio, junto a la dirección.',
+    noCam: 'La cámara no está disponible. Compruebe que ningún otro programa la esté usando y que la página se abra por una dirección segura.',
+    notImage: 'Esto no es una imagen. Elija una foto: JPEG, PNG o WebP.',
+    names: {
+      black: 'negro', darkgrey: 'gris oscuro', grey: 'gris', lightgrey: 'gris claro',
+      white: 'blanco', red: 'rojo', darkred: 'rojo oscuro', pink: 'rosa',
+      orange: 'naranja', brown: 'marrón', beige: 'beige', gold: 'dorado',
+      yellow: 'amarillo', olive: 'oliva', lightgreen: 'verde claro', green: 'verde',
+      darkgreen: 'verde oscuro', teal: 'verde azulado', cyan: 'turquesa', skyblue: 'celeste',
+      blue: 'azul', darkblue: 'azul oscuro', navy: 'azul marino, casi negro',
+      violet: 'violeta', purple: 'púrpura', magenta: 'magenta', coral: 'coral',
+      salmon: 'salmón', cream: 'crema', sand: 'arena',
+    },
+  },
+};
+
+const ЗАМЕТКИ = {
+  ru: ['<b>Кадр никуда не уходит.</b> Камера открывается прямо в браузере, цвет считается на вашем устройстве, и ни кадр, ни значения мы не храним и не отправляем.',
+       '<b>Цвет берётся средним по пятну, а не одной точкой.</b> Камера шумит, и соседние точки одного листа бумаги отличаются на десяток единиц. Среднее по маленькому кружку держится ровно.',
+       '<b>Это цвет с камеры, а не из банки с краской.</b> Камера сама правит баланс белого, а лампа над столом добавляет свой оттенок. Для подбора «похоже» этого достаточно, для точного совпадения краски — нет.'],
+  uk: ['<b>Кадр нікуди не йде.</b> Камера відкривається просто у браузері, колір рахується на вашому пристрої, і ні кадр, ні значення ми не зберігаємо й не надсилаємо.',
+       '<b>Колір береться середнім по плямі, а не однією точкою.</b> Камера шумить, і сусідні точки одного аркуша паперу відрізняються на десяток одиниць. Середнє по маленькому кружку тримається рівно.',
+       '<b>Це колір з камери, а не з банки з фарбою.</b> Камера сама виправляє баланс білого, а лампа над столом додає свій відтінок. Для добору «схоже» цього досить, для точного збігу фарби — ні.'],
+  en: ['<b>The frame goes nowhere.</b> The camera opens right here in the browser, the colour is measured on your device, and neither the frame nor the values are stored or sent.',
+       '<b>The colour is averaged over a small spot, not read from one pixel.</b> Cameras are noisy: neighbouring points of the same sheet of paper differ by a dozen units. An average over a small circle holds steady.',
+       '<b>This is the colour from a camera, not from a paint tin.</b> The camera adjusts white balance on its own, and the lamp above the table adds its own tint. Good enough for “something like this”, not for matching paint exactly.'],
+  es: ['<b>La imagen no sale de aquí.</b> La cámara se abre en el propio navegador, el color se calcula en su dispositivo y no guardamos ni enviamos ni la imagen ni los valores.',
+       '<b>El color se promedia en una manchita, no se lee de un solo píxel.</b> La cámara tiene ruido: puntos vecinos de la misma hoja de papel se diferencian en una decena de unidades. El promedio de un círculo pequeño se mantiene estable.',
+       '<b>Es el color de una cámara, no el de un bote de pintura.</b> La cámara corrige el balance de blancos por su cuenta y la lámpara de la mesa añade su tono. Sirve para «algo así», no para igualar una pintura con exactitud.'],
+};
+
+const с = СЛОВА[locale] || СЛОВА.ru;
+const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
+---
+
+<div class="цв" data-words={JSON.stringify(с)} data-locale={locale}>
+  <div class="цв-окно" id="цв-окно">
+    <video id="цв-видео" playsinline muted hidden></video>
+    <img id="цв-кадр" hidden alt="" />
+
+    <span class="цв-центр" id="цв-центр">
+      <button type="button" class="цв-выбор" id="цв-пуск" title={с.camera} aria-label={с.camera}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .8-.4l1-1.3a1 1 0 0 1 .8-.4h4.4a1 1 0 0 1 .8.4l1 1.3a1 1 0 0 0 .8.4h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/>
+          <circle cx="12" cy="12.5" r="3.6"/>
+        </svg>
+        <span>{с.camera}</span>
+      </button>
+      <button type="button" class="цв-выбор" id="цв-загрузить" title={с.file} aria-label={с.file}>
+        <svg viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="5" width="18" height="14" rx="2"/>
+          <circle cx="8.5" cy="10" r="1.6"/>
+          <path d="M21 16l-5-5-5 5-2-2-5 5"/>
+        </svg>
+        <span>{с.file}</span>
+      </button>
+    </span>
+
+    <span class="цв-прицел" id="цв-прицел" hidden></span>
+    <span class="цв-намёк" id="цв-намёк" hidden></span>
+
+    <span class="цв-затвор-ряд" id="цв-затвор-ряд" hidden>
+      <button type="button" class="цв-затвор" id="цв-затвор" title={с.shot} aria-label={с.shot}><i></i></button>
+    </span>
+
+    <button type="button" class="цв-крест" id="цв-крест" hidden title={с.clear} aria-label={с.clear}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
+    </button>
+    <input type="file" class="цв-файл" id="цв-файл" accept="image/*" />
+  </div>
+
+  <div class="цв-ответ" id="цв-ответ"></div>
+  <div class="цв-набор" id="цв-набор"></div>
+  <div class="цв-беда" id="цв-беда"></div>
+
+  <div class="цв-заметки">
+    {заметки.map((т) => <p class="цв-заметка" set:html={т} />)}
+  </div>
+</div>
+
+<style is:inline set:html={css}></style>
+
+<script>
+  import { вHex, вHsl, ближайшийЦвет } from '../lib/color-convert.js';
+
+  (() => {
+    const корень = document.querySelector('.цв');
+    if (!корень) return;
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    const окно = $('цв-окно');
+    const видео = $('цв-видео');
+    const кадр = $('цв-кадр');
+    const центр = $('цв-центр');
+    const прицел = $('цв-прицел');
+    const намёк = $('цв-намёк');
+    const крест = $('цв-крест');
+    const затворРяд = $('цв-затвор-ряд');
+    const затвор = $('цв-затвор');
+    const поле = $('цв-файл');
+    const ответ = $('цв-ответ');
+    const набор = $('цв-набор');
+    const бедаЭ = $('цв-беда');
+
+    const ЗН_КОПИ = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
+      + '<rect x="9" y="9" width="11" height="11" rx="2"/>'
+      + '<path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>'
+      + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+
+    let поток = null;
+    let холст = null;          // застывший кадр, по нему и берём цвет
+    let часыКадра = 0;
+    let взятые = [];
+
+    function беда(текст) { бедаЭ.textContent = текст || ''; }
+
+    // ---- Сам замер -------------------------------------------------------------------------
+    /**
+     * Средний цвет по маленькому пятну вокруг точки. Одна точка прыгает от шума камеры на
+     * десяток единиц, и человек не понимает, какому значению верить; среднее по кружку
+     * держится ровно и совпадает с тем, что видит глаз.
+     */
+    function цветВТочке(рисунок, х, у, радиус) {
+      const кон = рисунок.getContext('2d', { willReadFrequently: true });
+      const л = Math.max(0, Math.round(х - радиус));
+      const в = Math.max(0, Math.round(у - радиус));
+      const ш = Math.min(рисунок.width - л, радиус * 2);
+      const выс = Math.min(рисунок.height - в, радиус * 2);
+      if (ш <= 0 || выс <= 0) return null;
+      const точки = кон.getImageData(л, в, ш, выс).data;
+      let r = 0, g = 0, b = 0, сколько = 0;
+      for (let i = 0; i < точки.length; i += 4) {
+        r += точки[i]; g += точки[i + 1]; b += точки[i + 2]; сколько++;
+      }
+      if (!сколько) return null;
+      return { r: Math.round(r / сколько), g: Math.round(g / сколько), b: Math.round(b / сколько) };
+    }
+
+    /** Кадр камеры ровно по окну: что видно, то и меряем (то же правило, что у сканеров кодов). */
+    function кадрВХолст() {
+      const кВ = видео.videoWidth, кВыс = видео.videoHeight;
+      if (!кВ || !кВыс) return null;
+      const р = окно.getBoundingClientRect();
+      const к_окна = р.width / р.height;
+      const к_кадра = кВ / кВыс;
+      let ш = кВ, в = кВыс, сдвигХ = 0, сдвигY = 0;
+      if (к_кадра > к_окна) { ш = Math.round(кВыс * к_окна); сдвигХ = Math.round((кВ - ш) / 2); }
+      else { в = Math.round(кВ / к_окна); сдвигY = Math.round((кВыс - в) / 2); }
+      const х = document.createElement('canvas');
+      х.width = ш; х.height = в;
+      х.getContext('2d', { willReadFrequently: true })
+        .drawImage(видео, сдвигХ, сдвигY, ш, в, 0, 0, ш, в);
+      return х;
+    }
+
+    // ---- Показ -----------------------------------------------------------------------------
+    function поставитьПрицел(долиХ, долиУ, цвет) {
+      прицел.hidden = false;
+      прицел.style.left = `${долиХ * 100}%`;
+      прицел.style.top = `${долиУ * 100}%`;
+      if (цвет) прицел.style.background = `rgb(${цвет.r}, ${цвет.g}, ${цвет.b})`;
+    }
+
+    function строкаRgb(ц) { return `rgb(${ц.r}, ${ц.g}, ${ц.b})`; }
+    function строкаHsl(ц) {
+      const h = вHsl({ ...ц, a: 1 });
+      return `hsl(${Math.round(h.h)}, ${Math.round(h.s)}%, ${Math.round(h.l)}%)`;
+    }
+
+    /** Строка ответа с кнопкой копирования: значение копируется целиком, как написано. */
+    function строка(dl, подпись, значение) {
+      const dt = document.createElement('dt');
+      dt.textContent = подпись;
+      const dd = document.createElement('dd');
+      dd.textContent = значение;
+      const кнопка = document.createElement('button');
+      кнопка.type = 'button';
+      кнопка.className = 'цв-копи';
+      кнопка.title = с.copy;
+      кнопка.setAttribute('aria-label', с.copy);
+      кнопка.innerHTML = ЗН_КОПИ;
+      кнопка.addEventListener('click', async () => {
+        try {
+          await navigator.clipboard.writeText(значение);
+          // Подтверждает галочка, а не слово: слово заняло бы место в строке и сдвинуло вниз
+          // всё, что ниже. Тот же приём, что на сканерах кодов.
+          кнопка.classList.add('готово');
+          кнопка.setAttribute('aria-label', с.copied);
+          clearTimeout(кнопка._часы);
+          кнопка._часы = setTimeout(() => {
+            кнопка.classList.remove('готово');
+            кнопка.setAttribute('aria-label', с.copy);
+          }, 1500);
+        } catch (е) { /* буфер закрыт -- ничего не сломалось */ }
+      });
+      dl.append(dt, dd, кнопка);
+    }
+
+    function показать(цвет) {
+      const hex = вHex({ ...цвет, a: 1 });
+      ответ.innerHTML = '';
+      const ящик = document.createElement('div');
+      ящик.className = 'цв-итог';
+      const пятно = document.createElement('div');
+      пятно.className = 'цв-пятно';
+      пятно.style.background = hex;
+      const строки = document.createElement('div');
+      строки.className = 'цв-строки';
+      const имя = document.createElement('div');
+      имя.className = 'цв-имя';
+      имя.textContent = `${с.picked} · ${с.names[ближайшийЦвет(цвет)] || ''}`;
+      const dl = document.createElement('dl');
+      dl.className = 'цв-пары';
+      строка(dl, 'HEX', hex.toUpperCase());
+      строка(dl, 'RGB', строкаRgb(цвет));
+      строка(dl, 'HSL', строкаHsl(цвет));
+      строки.append(имя, dl);
+      ящик.append(пятно, строки);
+      ответ.appendChild(ящик);
+
+      окно.classList.add('взято');
+      setTimeout(() => окно.classList.remove('взято'), 700);
+
+      // Полоска взятых: два-три оттенка рядом сравнить проще, чем переписывать их в блокнот.
+      взятые = [hex, ...взятые.filter((ц) => ц !== hex)].slice(0, 8);
+      набор.innerHTML = '';
+      for (const ц of взятые) {
+        const к = document.createElement('button');
+        к.type = 'button';
+        к.className = 'цв-кроха';
+        к.style.background = ц;
+        к.title = ц.toUpperCase();
+        к.setAttribute('aria-label', ц.toUpperCase());
+        к.addEventListener('click', () => {
+          const б = ц.replace('#', '');
+          показать({ r: parseInt(б.slice(0, 2), 16), g: parseInt(б.slice(2, 4), 16),
+            b: parseInt(б.slice(4, 6), 16) });
+        });
+        набор.appendChild(к);
+      }
+    }
+
+    // ---- Живая камера ----------------------------------------------------------------------
+    function следить() {
+      clearInterval(часыКадра);
+      // Десять раз в секунду: чаще -- только греет телефон, глаз разницы не видит.
+      часыКадра = setInterval(() => {
+        if (!поток || !видео.videoWidth) return;
+        const х = кадрВХолст();
+        if (!х) return;
+        const ц = цветВТочке(х, х.width / 2, х.height / 2, Math.max(4, Math.round(х.width / 100)));
+        if (ц) поставитьПрицел(0.5, 0.5, ц);
+      }, 100);
+    }
+
+    async function включить() {
+      беда('');
+      кадр.hidden = true;
+      холст = null;
+      let спрашивали = false;
+      try {
+        const п = navigator.permissions && await navigator.permissions.query({ name: 'camera' });
+        if (!п || п.state !== 'granted') { беда(с.askCam); спрашивали = true; }
+      } catch (е) { беда(с.askCam); спрашивали = true; }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 } }, audio: false,
+        });
+      } catch (е) {
+        беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
+        return;
+      }
+      if (спрашивали) беда('');
+      видео.srcObject = поток;
+      видео.hidden = false;
+      центр.hidden = true;
+      крест.hidden = false;
+      затворРяд.hidden = false;
+      намёк.hidden = false;
+      намёк.textContent = с.liveHint;
+      await видео.play().catch(() => {});
+      поставитьПрицел(0.5, 0.5, null);
+      следить();
+    }
+
+    function погасить() {
+      clearInterval(часыКадра);
+      if (поток) { поток.getTracks().forEach((д) => д.stop()); поток = null; }
+      видео.srcObject = null;
+      видео.hidden = true;
+    }
+
+    /** Остановить кадр: дальше человек спокойно тычет в нужную точку. */
+    function остановить() {
+      const х = кадрВХолст();
+      if (!х) return;
+      холст = х;
+      кадр.src = х.toDataURL('image/jpeg', 0.92);
+      кадр.hidden = false;
+      погасить();
+      затворРяд.hidden = true;
+      намёк.textContent = с.frozenHint;
+      намёк.hidden = false;
+      // Цвет из середины отдаём сразу: человек целился именно туда.
+      const ц = цветВТочке(х, х.width / 2, х.height / 2, Math.max(4, Math.round(х.width / 100)));
+      поставитьПрицел(0.5, 0.5, ц);
+      if (ц) показать(ц);
+    }
+
+    /** Нажатие по застывшему кадру: берём цвет ровно оттуда, куда ткнули. */
+    function ткнули(е) {
+      if (!холст || кадр.hidden) return;
+      const р = окно.getBoundingClientRect();
+      const долиХ = Math.min(1, Math.max(0, (е.clientX - р.left) / р.width));
+      const долиУ = Math.min(1, Math.max(0, (е.clientY - р.top) / р.height));
+      const ц = цветВТочке(холст, долиХ * холст.width, долиУ * холст.height,
+        Math.max(4, Math.round(холст.width / 100)));
+      if (!ц) return;
+      поставитьПрицел(долиХ, долиУ, ц);
+      показать(ц);
+    }
+
+    // ---- Готовый снимок --------------------------------------------------------------------
+    async function взятьФайл(файл) {
+      беда('');
+      погасить();
+      let к = null;
+      try {
+        к = window.createImageBitmap
+          ? await createImageBitmap(файл, { imageOrientation: 'from-image' })
+          : await новаяКартинка(файл);
+      } catch (е) { беда(с.notImage); return; }
+      const ш = к.width || к.naturalWidth, в = к.height || к.naturalHeight;
+      if (!ш || !в) { беда(с.notImage); return; }
+      // Рисуем сами, без живого адреса blob: в <img> -- он пропадал с экрана у части браузеров.
+      const р = окно.getBoundingClientRect();
+      const плотность = Math.min(2, window.devicePixelRatio || 1);
+      const пш = Math.max(1, Math.round(р.width * плотность));
+      const пв = Math.max(1, Math.round(р.height * плотность));
+      const х = document.createElement('canvas');
+      х.width = пш; х.height = пв;
+      const кон = х.getContext('2d', { willReadFrequently: true });
+      // Снимок вписываем по короткой стороне и обрезаем -- ровно так же, как показываем.
+      const доля = Math.max(пш / ш, пв / в);
+      const дш = Math.round(ш * доля), дв = Math.round(в * доля);
+      кон.fillStyle = '#fff';
+      кон.fillRect(0, 0, пш, пв);
+      кон.drawImage(к, Math.round((пш - дш) / 2), Math.round((пв - дв) / 2), дш, дв);
+      if (к.close) { try { к.close(); } catch (е) {} }
+      холст = х;
+      кадр.src = х.toDataURL('image/jpeg', 0.92);
+      кадр.hidden = false;
+      центр.hidden = true;
+      крест.hidden = false;
+      затворРяд.hidden = true;
+      намёк.hidden = false;
+      намёк.textContent = с.frozenHint;
+      const ц = цветВТочке(х, х.width / 2, х.height / 2, Math.max(4, Math.round(х.width / 100)));
+      поставитьПрицел(0.5, 0.5, ц);
+      if (ц) показать(ц);
+    }
+
+    function новаяКартинка(файл) {
+      const адрес = URL.createObjectURL(файл);
+      return new Promise((готово, мимо) => {
+        const и = new Image();
+        и.onload = () => { готово(и); setTimeout(() => URL.revokeObjectURL(адрес), 1000); };
+        и.onerror = () => { URL.revokeObjectURL(адрес); мимо(new Error('не картинка')); };
+        и.src = адрес;
+      });
+    }
+
+    function очистить() {
+      погасить();
+      холст = null;
+      кадр.removeAttribute('src');
+      кадр.hidden = true;
+      центр.hidden = false;
+      крест.hidden = true;
+      затворРяд.hidden = true;
+      прицел.hidden = true;
+      намёк.hidden = true;
+      ответ.innerHTML = '';
+      беда('');
+      поле.value = '';
+    }
+
+    $('цв-пуск').addEventListener('click', (е) => { е.stopPropagation(); включить(); });
+    $('цв-загрузить').addEventListener('click', (е) => { е.stopPropagation(); поле.click(); });
+    поле.addEventListener('change', () => { if (поле.files && поле.files[0]) взятьФайл(поле.files[0]); });
+    затвор.addEventListener('click', (е) => { е.stopPropagation(); остановить(); });
+    крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
+    кадр.addEventListener('click', ткнули);
+    окно.addEventListener('dragover', (е) => е.preventDefault());
+    окно.addEventListener('drop', (е) => {
+      е.preventDefault();
+      const ф = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (ф && ф.type.startsWith('image/')) взятьФайл(ф);
+    });
+    window.addEventListener('pagehide', погасить);
+
+    window.__цвСостояние = () => ({
+      камераИдёт: !!поток,
+      кадрЗастыл: !кадр.hidden,
+      прицелВиден: !прицел.hidden,
+      ответ: ответ.textContent.replace(/\s+/g, ' ').trim().slice(0, 200),
+      взятых: взятые.length,
+      беда: бедаЭ.textContent.trim().slice(0, 120),
+    });
+  })();
+</script>
