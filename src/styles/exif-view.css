@@ -372,3 +372,16 @@
   .эк-плитка { width: 112px }
   .эк-плитка-счёт b { font-size: 26px }
 }
+
+/* Значок скачивания у очищенного снимка -- внизу по центру плитки. Слово тут лишнее: значок
+   понятен без чтения и не спорит с числом посередине. */
+.эк-плитка-качать {
+  position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 3;
+  width: 30px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 7px; cursor: pointer;
+  background: rgba(8,19,13,.75); border: 1px solid var(--accent); color: var(--accent);
+  transition: background .15s, color .15s;
+}
+.эк-плитка-качать:hover { background: var(--accent); color: #08130d }
+.эк-плитка-качать svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }

@@ -22,7 +22,7 @@ const СЛОВА = {
   ru: {
     pick: 'Выбрать снимки', hint: 'или перетащите файлы сюда (до 20)',
     tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
-    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все · {н}',
+    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все · {н}', saveZip: 'Скачать ZIP · {н}',
     removeInAll: 'Удалить всё · {н}', working: 'Убираю {а} из {б}…',
     shoot: 'Сделать фото',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
@@ -78,7 +78,7 @@ const СЛОВА = {
   uk: {
     pick: 'Вибрати знімки', hint: 'або перетягніть файли сюди (до 20)',
     tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
-    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі · {н}',
+    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі · {н}', saveZip: 'Завантажити ZIP · {н}',
     removeInAll: 'Видалити все · {н}', working: 'Прибираю {а} з {б}…',
     shoot: 'Зробити фото',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
@@ -134,7 +134,7 @@ const СЛОВА = {
   en: {
     pick: 'Choose photos', hint: 'or drop files here (up to 20)',
     tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
-    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all · {н}',
+    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all · {н}', saveZip: 'Download ZIP · {н}',
     removeInAll: 'Remove everything · {н}', working: 'Cleaning {а} of {б}…',
     shoot: 'Take a photo',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
@@ -189,7 +189,7 @@ const СЛОВА = {
   es: {
     pick: 'Elegir fotos', hint: 'o arrastre archivos aquí (hasta 20)',
     tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
-    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas · {н}',
+    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas · {н}', saveZip: 'Descargar ZIP · {н}',
     removeInAll: 'Quitar todo · {н}', working: 'Limpiando {а} de {б}…',
     shoot: 'Hacer una foto',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
@@ -456,7 +456,6 @@ const заметки = чистим
       // Сколько уже вычищено -- по всем снимкам сразу: это и есть итог работы.
       const убрано = снимки.reduce((с2, сн) => с2 + (сн.убрано || 0), 0);
       if (убрано) части.push(с.cleanedAll.replace('{н}', убрано));
-      if (снимки.length > 1) части.push(с.whichOpen.replace('{а}', текущий + 1));
       строка.textContent = части.join(' · ');
     }
 
@@ -1239,6 +1238,8 @@ const заметки = чистим
 
     const ЗН_КРЕСТИК = '<svg viewBox="0 0 24 24" aria-hidden="true">'
       + '<path d="M6 6l12 12M18 6L6 18"/></svg>';
+    const ЗН_СКАЧАТЬ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>';
 
     /**
      * ЛЕНТА СНИМКОВ. Все загруженные на виду: на каждой плитке имя, крупное число тегов и
@@ -1289,6 +1290,19 @@ const заметки = чистим
         });
 
         плитка.append(имя, число, крестик);
+
+        // У очищенного снимка внизу по центру -- значок скачивания: слово тут лишнее, а
+        // значок понятен без чтения и не спорит с числом посередине.
+        if (сн.готовый) {
+          const качать = document.createElement('span');
+          качать.className = 'эк-плитка-качать';
+          качать.setAttribute('role', 'button');
+          качать.title = с.save;
+          качать.setAttribute('aria-label', `${с.save}: ${сн.файл.name}`);
+          качать.innerHTML = ЗН_СКАЧАТЬ;
+          качать.addEventListener('click', (е) => { е.stopPropagation(); сохранитьОдин(i); });
+          плитка.appendChild(качать);
+        }
         плитка.addEventListener('click', () => { if (i !== текущий) открытьСнимок(i); });
         лента.appendChild(плитка);
       });
@@ -1302,11 +1316,27 @@ const заметки = чистим
           ? с.removeInAll.replace('{н}', снимки.length)
           : с.removeAll;
       }
+      // КОГДА ЕСТЬ ЧТО СОХРАНЯТЬ, «Сохранить» ВСТАЁТ НА МЕСТО «Удалить выбранное»: два
+      // действия разом человеку тут не нужны, а лишняя кнопка в ряду только путает.
+      // Несколько готовых -- значит архив, и кнопка говорит об этом прямо.
       const сохранить = document.getElementById('эк-сохранить');
       const низ = document.getElementById('эк-низ');
+      const выбранное = document.getElementById('эк-качать');
       const готовых = снимки.filter((сн) => сн.готовый).length;
-      if (сохранить) сохранить.textContent = готовых > 1 ? с.saveAll.replace('{н}', готовых) : с.save;
+      if (сохранить) сохранить.textContent = готовых > 1 ? с.saveZip.replace('{н}', готовых) : с.save;
       if (низ) низ.hidden = готовых === 0;
+      if (выбранное) выбранное.hidden = готовых > 0;
+    }
+
+    /** Сохранить ОДИН снимок -- тот, у которого нажали значок. */
+    function сохранитьОдин(номер) {
+      const сн = снимки[номер];
+      if (!сн || !сн.готовый || !сн.готовый.байты) return;
+      // У открытого снимка имя берём из строки с карандашом: человек мог его поправить.
+      const имя = (номер === текущий && имяФайла())
+        ? имяФайла().trim()
+        : 'no-exif_' + сн.файл.name;
+      отдать(new Blob([сн.готовый.байты], { type: сн.файл.type || 'image/jpeg' }), имя);
     }
 
     /** Убрать один снимок из ленты. Последний -- возвращает окно выбора. */
