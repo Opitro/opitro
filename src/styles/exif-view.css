@@ -176,9 +176,8 @@
 .эк-дело[disabled] { cursor: not-allowed; color: #6b6b73; border-color: #26262c;
   background: rgba(255,255,255,.02) }
 
-/* «Сохранить» -- на самом снимке, внизу: итог человек смотрит там же, где и фото. */
-.эк-низ { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 3;
-  display: flex; justify-content: center }
+/* «Сохранить» стоит в ряду действий: поверх ленты снимков ей места нет. */
+.эк-низ { display: inline-flex }
 .эк-низ[hidden] { display: none }
 /* Белая, а не зелёная: на тёмном снимке белое читается при любом кадре, а зелёное спорит с
    зеленью на фотографии. Решение владельца. */
@@ -306,24 +305,6 @@
 .эк-подгруппа { margin-top: 8px; font: 400 11px var(--мон); letter-spacing: .06em;
   text-transform: uppercase; color: var(--серый) }
 
-/* ---- Перелистывание снимков --------------------------------------------------------------------
-   Стрелки живут В ОКНЕ, по краям кадра: человек смотрит на снимок и листает там же, не уводя
-   глаза. Видны только когда снимков больше одного. */
-.эк-стрелка {
-  position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
-  width: 40px; height: 56px; padding: 0; cursor: pointer; border-radius: 8px;
-  display: inline-flex; align-items: center; justify-content: center;
-  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); color: #fff;
-  transition: background .15s, border-color .15s;
-}
-.эк-стрелка:hover { background: rgba(0,0,0,.85); border-color: #fff }
-/* Отклик на нажатие -- на самой стрелке: короткое вдавливание, и сразу назад. */
-.эк-стрелка:active { transform: translateY(-50%) scale(.9); background: rgba(255,255,255,.18) }
-.эк-стрелка[hidden] { display: none }
-.эк-стрелка.влево { left: 8px }
-.эк-стрелка.вправо { right: 8px }
-.эк-стрелка svg { width: 20px; height: 20px; fill: none; stroke: currentColor;
-  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
 
 /* Который снимок из скольких -- внизу по центру кадра. */
 .эк-номер {
@@ -334,14 +315,60 @@
 }
 .эк-номер[hidden] { display: none }
 
-/* Имя снимка на кадре. Стоит сверху по центру, чтобы не спорить со счётчиком слева и
-   крестиком справа; на узком экране обрезается многоточием, а не лезет на всю ширину. */
-.эк-имя-снимка {
-  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 2;
-  max-width: min(58%, 420px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
-  font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
-  border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 4px 10px;
-  pointer-events: none;
-}
-.эк-имя-снимка[hidden] { display: none }
 
+
+/* ---- ЛЕНТА СНИМКОВ -----------------------------------------------------------------------------
+   Все загруженные на виду: на каждой плитке имя, крупное число тегов и крестик. Выбранная
+   обведена -- её разбор показан ниже. Плиток может быть двадцать, поэтому лента
+   прокручивается вбок, а не сжимает картинки в марки. */
+.эк-лента {
+  position: absolute; inset: 0; z-index: 1;
+  display: flex; gap: 10px; align-items: stretch; padding: 10px;
+  overflow-x: auto; overflow-y: hidden; scrollbar-width: thin;
+}
+.эк-лента[hidden] { display: none }
+
+.эк-плитка {
+  position: relative; flex: 0 0 auto; width: 132px; padding: 0; cursor: pointer;
+  border-radius: 10px; overflow: hidden; background: #000;
+  border: 2px solid rgba(255,255,255,.22); transition: border-color .15s, transform .12s;
+}
+.эк-плитка:hover { border-color: rgba(255,255,255,.6); transform: translateY(-2px) }
+.эк-плитка.выбрана { border-color: var(--accent) }
+.эк-плитка img { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
+  opacity: .55 }
+.эк-плитка.выбрана img { opacity: .75 }
+
+/* Имя -- сверху, числа -- посередине: так у соседей, и цифру видно раньше слов. */
+.эк-плитка-имя {
+  /* Кончается ДО крестика, а не подлезает под него: иначе имя и крестик стоят друг на друге,
+     и на узком экране это видно. */
+  position: absolute; left: 0; right: 30px; top: 0; z-index: 2; padding: 5px 6px;
+  font: 400 10.5px var(--мон); color: #fff; background: linear-gradient(rgba(0,0,0,.75), transparent);
+  overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
+}
+.эк-плитка-счёт {
+  position: absolute; inset: 0; z-index: 1; display: flex; flex-direction: column;
+  align-items: center; justify-content: center; gap: 1px; pointer-events: none;
+}
+.эк-плитка-счёт b { font: 700 30px/1 var(--мон); color: #fff;
+  text-shadow: 0 2px 10px rgba(0,0,0,.9) }
+.эк-плитка-счёт i { font: 400 11px var(--мон); font-style: normal; color: #fff;
+  text-shadow: 0 1px 6px rgba(0,0,0,.9) }
+/* Очищенный снимок -- зелёными числами: дело по нему сделано. */
+.эк-плитка-счёт.готово b, .эк-плитка-счёт.готово i { color: var(--accent) }
+
+.эк-плитка-крест {
+  position: absolute; right: 4px; top: 4px; z-index: 3;
+  width: 22px; height: 22px; display: inline-flex; align-items: center; justify-content: center;
+  border-radius: 6px; cursor: pointer;
+  background: rgba(0,0,0,.6); border: 1px solid rgba(255,255,255,.4); color: #fff;
+}
+.эк-плитка-крест:hover { background: rgba(0,0,0,.9); border-color: #fff }
+.эк-плитка-крест svg { width: 12px; height: 12px; fill: none; stroke: currentColor;
+  stroke-width: 2; stroke-linecap: round }
+
+@media (max-width: 560px) {
+  .эк-плитка { width: 112px }
+  .эк-плитка-счёт b { font-size: 26px }
+}
