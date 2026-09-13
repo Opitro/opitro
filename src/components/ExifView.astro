@@ -41,14 +41,14 @@ const СЛОВА = {
     statusPicked: 'Выбрано полей: {н}. Нажмите «Удалить выбранное»',
     blocks: 'Целые куски файла', blockNote: 'Разобрать по полям их нельзя, но убрать целиком — можно',
     iccKeep: 'цвета снимка зависят от него — по умолчанию оставляем',
-    onlyRead: 'Что внутри файла целиком — только для просмотра',
+    onlyRead: 'Данные, которые нельзя удалить', onlyReadWhy: 'Это устройство самого файла: размер картинки, формат, служебные отметки. Без них снимка просто не будет.',
     countBefore: 'Было полей', countAfter: 'Осталось полей', countGone: 'Убрано',
     allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
     dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Удалить всё', backAll: 'Вернуть всё',
     removePicked: 'Удалить выбранное', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
-    outName: 'Имя файла', rename: 'Изменить имя', kept: 'осталось',
+    outName: 'Имя файла', saveAs: 'Сохраним под именем', rename: 'Изменить имя', kept: 'осталось',
     stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
     gone: 'убрано',
     strip: 'Скачать снимок без данных', stripping: 'Готовлю…', stripDone: 'Готово',
@@ -92,14 +92,14 @@ const СЛОВА = {
     statusPicked: 'Вибрано полів: {н}. Натисніть «Видалити вибране»',
     blocks: 'Цілі куски файлу', blockNote: 'Розібрати їх за полями не можна, а прибрати цілком — можна',
     iccKeep: 'кольори знімка залежать від нього — за замовчуванням лишаємо',
-    onlyRead: 'Що всередині файлу цілком — лише для перегляду',
+    onlyRead: 'Дані, які не можна видалити', onlyReadWhy: 'Це будова самого файлу: розмір картинки, формат, службові позначки. Без них знімка просто не буде.',
     countBefore: 'Було полів', countAfter: 'Лишилося полів', countGone: 'Прибрано',
     allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
     dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Видалити все', backAll: 'Повернути все',
     removePicked: 'Видалити вибране', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
-    outName: 'Імʼя файлу', rename: 'Змінити імʼя', kept: 'лишилося',
+    outName: 'Імʼя файлу', saveAs: 'Збережемо під іменем', rename: 'Змінити імʼя', kept: 'лишилося',
     stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
     gone: 'прибрано',
     strip: 'Завантажити знімок без даних', stripping: 'Готую…', stripDone: 'Готово',
@@ -143,14 +143,14 @@ const СЛОВА = {
     statusPicked: '{н} field(s) chosen. Press “Remove the chosen”',
     blocks: 'Whole parts of the file', blockNote: 'They cannot be split into fields, but they can be dropped whole',
     iccKeep: 'the colours depend on it — kept by default',
-    onlyRead: 'Everything inside the file — for viewing only',
+    onlyRead: 'Data that cannot be removed', onlyReadWhy: 'This is how the file itself is built: picture size, format, service marks. Without them there is no photo at all.',
     countBefore: 'Fields before', countAfter: 'Fields left', countGone: 'Removed',
     allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this field', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
     removePicked: 'Remove the chosen', save: 'Save', savedCount: 'Removed {а} of {б}',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
-    outName: 'File name', rename: 'Change the name', kept: 'kept',
+    outName: 'File name', saveAs: 'Will be saved as', rename: 'Change the name', kept: 'kept',
     stripChosen: 'Download without the ticked fields', nothingChosen: 'Nothing is ticked',
     gone: 'removed',
     strip: 'Download the photo without data', stripping: 'Preparing…', stripDone: 'Done',
@@ -194,14 +194,14 @@ const СЛОВА = {
     statusPicked: '{н} campo(s) elegidos. Pulse «Quitar lo elegido»',
     blocks: 'Partes enteras del archivo', blockNote: 'No se pueden dividir en campos, pero sí quitar enteras',
     iccKeep: 'los colores dependen de él: se conserva por defecto',
-    onlyRead: 'Todo lo que hay dentro del archivo, solo para ver',
+    onlyRead: 'Datos que no se pueden quitar', onlyReadWhy: 'Así está construido el archivo: tamaño de la imagen, formato, marcas de servicio. Sin ellos no hay foto.',
     countBefore: 'Campos antes', countAfter: 'Campos restantes', countGone: 'Quitados',
     allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar este campo', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
     removePicked: 'Quitar lo elegido', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
-    outName: 'Nombre del archivo', rename: 'Cambiar el nombre', kept: 'conservado',
+    outName: 'Nombre del archivo', saveAs: 'Se guardará como', rename: 'Cambiar el nombre', kept: 'conservado',
     stripChosen: 'Descargar sin los campos marcados', nothingChosen: 'No hay nada marcado',
     gone: 'quitado',
     strip: 'Descargar la foto sin datos', stripping: 'Preparando…', stripDone: 'Listo',
@@ -627,9 +627,25 @@ const заметки = чистим
       ящик.id = 'эк-все-поля';
       const шапка = document.createElement('div');
       шапка.className = 'эк-вид';
-      шапка.textContent = `${с.allFields} · ${итог.всего}`;
       ящик.appendChild(шапка);
-      for (const группа of итог.группы) {
+      // НА СТРАНИЦЕ УБОРКИ ЭТОТ СПИСОК -- ТОЛЬКО ПРО НЕУДАЛЯЕМОЕ. Всё, что можно убрать,
+      // человек уже видит выше со своей корзинкой; повторять его здесь значит путать: «так
+      // удаляется оно или нет?» -- владелец на это и указал. Остаётся устройство самого файла:
+      // размер картинки, формат, служебные отметки -- без них снимка просто не будет.
+      const УБИРАЕМЫЕ = new Set(['exif', 'gps', 'xmp', 'iptc', 'icc', 'maker', 'thumb']);
+      const показать = чистим
+        ? итог.группы.filter((г) => !УБИРАЕМЫЕ.has(г.имя))
+        : итог.группы;
+      let видимых = 0;
+      for (const г of показать) видимых += г.поля.length;
+      if (чистим) {
+        if (!видимых) { const п = document.getElementById('эк-все-поля'); if (п) п.remove(); return; }
+        const пояснение = document.createElement('div');
+        пояснение.className = 'эк-пояснение эк-мелко';
+        пояснение.textContent = с.onlyReadWhy;
+        ящик.appendChild(пояснение);
+      }
+      for (const группа of показать) {
         const под = document.createElement('div');
         под.className = 'эк-подгруппа';
         под.textContent = с.groups[группа.имя] || группа.имя;
@@ -647,7 +663,9 @@ const заметки = чистим
       }
       const прежний = document.getElementById('эк-все-поля');
       if (прежний) прежний.remove();
-      шапка.textContent = `${с.onlyRead} · ${итог.всего}`;
+      шапка.textContent = чистим
+        ? `${с.onlyRead} · ${видимых}`
+        : `${с.allFields} · ${итог.всего}`;
       ответ.appendChild(ящик);
 
       // ЦЕЛЫЕ КУСКИ ФАЙЛА -- в тот же список, где поля: по полям их не разобрать, а убрать
@@ -769,7 +787,7 @@ const заметки = чистим
       // В режиме уборки первая строка -- ИМЯ БУДУЩЕГО ФАЙЛА, и его можно поправить карандашом:
       // «no-exif_» годится не всем, а переименовывать скачанное потом -- лишняя работа.
       карточки.push(карточка(с.shot, [
-        [чистим ? с.outName : с.file, чистим ? 'no-exif_' + файл.name : файл.name],
+        [чистим ? с.saveAs : с.file, чистим ? 'no-exif_' + файл.name : файл.name],
         [с.size, ширина && высота ? `${ширина} × ${высота}` : ''],
         [с.weight, вес(файл.size)],
         [с.kind, (файл.type || '').replace('image/', '').toUpperCase()],

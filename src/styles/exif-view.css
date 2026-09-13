@@ -159,13 +159,15 @@
 .эк-низ { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 3;
   display: flex; justify-content: center }
 .эк-низ[hidden] { display: none }
+/* Белая, а не зелёная: на тёмном снимке белое читается при любом кадре, а зелёное спорит с
+   зеленью на фотографии. Решение владельца. */
 .эк-сохранить {
   padding: 11px 26px; cursor: pointer; border-radius: 8px;
-  background: var(--accent); border: 1px solid var(--accent); color: #08130d;
+  background: #fff; border: 1px solid #fff; color: #0b0c0f;
   font: 700 14px var(--мон); box-shadow: 0 6px 22px rgba(0,0,0,.45);
   transition: background .15s, border-color .15s;
 }
-.эк-сохранить:hover { background: var(--accent2, #60efb8); border-color: var(--accent2, #60efb8) }
+.эк-сохранить:hover { background: #e9ecef; border-color: #e9ecef }
 .эк-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   font: 400 12.5px var(--мон); color: #fff }
 .эк-галка input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer }
