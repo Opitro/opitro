@@ -37,6 +37,7 @@ const СЛОВА = {
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
+    statusReady: 'Поля найдены. Нажмите кнопку, чтобы скачать снимок без них',
     gone: 'убрано',
     strip: 'Скачать снимок без данных', stripping: 'Готовлю…', stripDone: 'Готово',
     willRemove: 'Что уберём', nothingToRemove: 'Убирать нечего',
@@ -75,6 +76,7 @@ const СЛОВА = {
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
+    statusReady: 'Поля знайдено. Натисніть кнопку, щоб завантажити знімок без них',
     gone: 'прибрано',
     strip: 'Завантажити знімок без даних', stripping: 'Готую…', stripDone: 'Готово',
     willRemove: 'Що приберемо', nothingToRemove: 'Прибирати нічого',
@@ -113,6 +115,7 @@ const СЛОВА = {
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
     statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
+    statusReady: 'Fields found. Press the button to download the photo without them',
     gone: 'removed',
     strip: 'Download the photo without data', stripping: 'Preparing…', stripDone: 'Done',
     willRemove: 'What will be removed', nothingToRemove: 'Nothing to remove',
@@ -151,6 +154,7 @@ const СЛОВА = {
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
     statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
+    statusReady: 'Campos encontrados. Pulse el botón para descargar la foto sin ellos',
     gone: 'quitado',
     strip: 'Descargar la foto sin datos', stripping: 'Preparando…', stripDone: 'Listo',
     willRemove: 'Qué se va a quitar', nothingToRemove: 'No hay nada que quitar',
@@ -452,8 +456,14 @@ const заметки = чистим
         карточки.push(ящик);
         for (const к of карточки) if (к) ответ.appendChild(к);
         $('эк-уборка').hidden = false;
-        // Работа идёт сама: человек выбрал снимок -- значит, уже решил.
-        убратьИОтдать();
+        // РАБОТА НЕ НАЧИНАЕТСЯ САМА. Сначала я так и сделал -- по заданию владельца
+        // «скачивание без кнопки», -- и на живой странице это оказалось самоуправством:
+        // человек только выбрал снимок, а браузер уже спрашивает, куда сохранять, хотя
+        // человек ещё не видел, что внутри. Сначала показываем находку, дальше решает он.
+        сказать(с.statusReady);
+        полоса(0);
+        поле.classList.add('прочитано');
+        setTimeout(() => поле.classList.remove('прочитано'), 900);
         return;
       }
 
