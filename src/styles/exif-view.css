@@ -177,3 +177,47 @@
 /* Увод на соседнюю страницу: посмотрел, что внутри, -- и тут же может это убрать. Стоит под
    ответом, потому что до ответа предлагать нечего. */
 .эк-увод { margin-top: 14px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
+
+/* ---- Выбор полей -------------------------------------------------------------------------------
+   Каждое поле снимка -- своей строкой с галочкой: человек решает сам, что убрать, а что
+   оставить. Замысел владельца: «может, я не хочу удалять всё». */
+.эк-выбор-полей { gap: 2px }
+.эк-ряд-поля { display: grid; grid-template-columns: 18px minmax(0, 170px) minmax(0, 1fr);
+  gap: 4px 10px; align-items: baseline; padding: 3px 0; cursor: pointer;
+  font: 400 12.5px/1.45 var(--мон); border-radius: 6px }
+.эк-ряд-поля:hover { background: rgba(255,255,255,.04) }
+.эк-ряд-поля input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer;
+  align-self: center }
+.эк-поле-имя { color: var(--accent) }
+.эк-поле-знач { color: #fff; overflow-wrap: anywhere }
+
+/* Итог работы видно построчно: убранное гаснет и перечёркивается, оставленное вспыхивает
+   зелёным. Ни то ни другое не меняет размеров -- только цвет и прозрачность. */
+.эк-ряд-поля.ушло { opacity: .45 }
+.эк-ряд-поля.ушло .эк-поле-знач { text-decoration: line-through;
+  text-decoration-color: var(--беда, #ff9aa8) }
+.эк-ряд-поля.ушло .эк-поле-знач::after,
+.эк-ряд-поля.осталось .эк-поле-знач::after {
+  content: ' · ' attr(data-подпись); text-decoration: none; font-size: 11px;
+  letter-spacing: .04em; text-transform: uppercase; color: var(--accent);
+}
+.эк-ряд-поля.осталось { background: rgba(74,222,158,.12) }
+.эк-ряд-поля.осталось .эк-поле-знач { color: var(--accent) }
+.эк-ряд-поля input:disabled { cursor: default }
+
+/* Имя будущего файла: правится прямо в строке, по карандашу. */
+.эк-имя-ряд { display: flex; align-items: center; gap: 8px }
+.эк-имя-поле {
+  flex: 1 1 auto; min-width: 0; background: none; border: 1px solid transparent; color: #fff;
+  font: 400 12.5px var(--мон); padding: 3px 6px; border-radius: 6px; cursor: pointer;
+}
+.эк-имя-поле.правят { border-color: var(--accent); background: rgba(74,222,158,.08); cursor: text }
+.эк-кар {
+  flex: none; width: 26px; height: 26px; padding: 0; cursor: pointer; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
+  transition: color .15s, border-color .15s;
+}
+.эк-кар:hover { color: #fff; border-color: #fff }
+.эк-кар svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6;
+  stroke-linecap: round; stroke-linejoin: round }

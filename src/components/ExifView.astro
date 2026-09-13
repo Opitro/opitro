@@ -37,7 +37,10 @@ const СЛОВА = {
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
-    statusReady: 'Поля найдены. Нажмите кнопку, чтобы скачать снимок без них',
+    statusReady: 'Поля найдены. Отметьте, что убрать, и нажмите кнопку',
+    chooseWhat: 'Отметьте, что убрать', keepAll: 'Оставить всё', removeAll: 'Отметить всё',
+    outName: 'Имя файла', rename: 'Изменить имя', kept: 'осталось',
+    stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
     gone: 'убрано',
     strip: 'Скачать снимок без данных', stripping: 'Готовлю…', stripDone: 'Готово',
     willRemove: 'Что уберём', nothingToRemove: 'Убирать нечего',
@@ -76,7 +79,10 @@ const СЛОВА = {
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
-    statusReady: 'Поля знайдено. Натисніть кнопку, щоб завантажити знімок без них',
+    statusReady: 'Поля знайдено. Позначте, що прибрати, і натисніть кнопку',
+    chooseWhat: 'Позначте, що прибрати', keepAll: 'Залишити все', removeAll: 'Позначити все',
+    outName: 'Імʼя файлу', rename: 'Змінити імʼя', kept: 'лишилося',
+    stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
     gone: 'прибрано',
     strip: 'Завантажити знімок без даних', stripping: 'Готую…', stripDone: 'Готово',
     willRemove: 'Що приберемо', nothingToRemove: 'Прибирати нічого',
@@ -115,7 +121,10 @@ const СЛОВА = {
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
     statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
-    statusReady: 'Fields found. Press the button to download the photo without them',
+    statusReady: 'Fields found. Tick what to remove and press the button',
+    chooseWhat: 'Tick what to remove', keepAll: 'Keep everything', removeAll: 'Tick everything',
+    outName: 'File name', rename: 'Change the name', kept: 'kept',
+    stripChosen: 'Download without the ticked fields', nothingChosen: 'Nothing is ticked',
     gone: 'removed',
     strip: 'Download the photo without data', stripping: 'Preparing…', stripDone: 'Done',
     willRemove: 'What will be removed', nothingToRemove: 'Nothing to remove',
@@ -154,7 +163,10 @@ const СЛОВА = {
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
     statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
-    statusReady: 'Campos encontrados. Pulse el botón para descargar la foto sin ellos',
+    statusReady: 'Campos encontrados. Marque qué quitar y pulse el botón',
+    chooseWhat: 'Marque qué quitar', keepAll: 'Conservar todo', removeAll: 'Marcar todo',
+    outName: 'Nombre del archivo', rename: 'Cambiar el nombre', kept: 'conservado',
+    stripChosen: 'Descargar sin los campos marcados', nothingChosen: 'No hay nada marcado',
     gone: 'quitado',
     strip: 'Descargar la foto sin datos', stripping: 'Preparando…', stripDone: 'Listo',
     willRemove: 'Qué se va a quitar', nothingToRemove: 'No hay nada que quitar',
@@ -266,10 +278,6 @@ const заметки = чистим
   {чистим && (
     <div class="эк-уборка" id="эк-уборка" hidden>
       <button type="button" class="эк-качать" id="эк-качать">{с.strip}</button>
-      <label class="эк-галка">
-        <input type="checkbox" id="эк-поворот" checked />
-        <span>{с.keepTurn}</span>
-      </label>
       <p class="эк-мелко">{с.lossless}</p>
     </div>
   )}
@@ -292,7 +300,7 @@ const заметки = чистим
 <style is:inline set:html={css}></style>
 
 <script>
-  import { разобратьExif, координаты, выдержкой, убратьМетаданные, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
+  import { разобратьExif, координаты, выдержкой, убратьПоля, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -398,6 +406,154 @@ const заметки = чистим
      * съёмка, место. Место последнее нарочно: на нём человек и останавливается.
      */
     /**
+     * ВСЕ поля снимка, разложенные по группам и с ключом у каждого. Ключ -- «опись:номер»:
+     * по нему потом собирается то, что человек решил убрать.
+     */
+    function перечислитьПоля(разбор) {
+      const о = разбор.основные, сн = разбор.снимка;
+      const дать = (карта, номер) => {
+        const з = карта.get(номер);
+        return з === undefined || з === '' ? null : з;
+      };
+      const строка = (метка, карта, номер, имя, как) => {
+        const з = дать(карта, номер);
+        if (з === null) return null;
+        return { ключ: метка + ':' + номер, имя, знач: как ? как(з) : String(з) };
+      };
+      const исо = дать(сн, ПОЛЯ.iso) !== null ? ПОЛЯ.iso : ПОЛЯ.isoNew;
+      const группы = [
+        { имя: с.camera, строки: [
+          строка('0', о, ПОЛЯ.make, с.make),
+          строка('0', о, ПОЛЯ.model, с.model),
+          строка('exif', сн, ПОЛЯ.lens, с.lens),
+          строка('0', о, ПОЛЯ.software, с.software),
+          строка('0', о, ПОЛЯ.artist, с.author),
+          строка('0', о, ПОЛЯ.copyright, с.rights),
+        ] },
+        { имя: с.taken, строки: [
+          строка('exif', сн, ПОЛЯ.original, с.date, датой),
+          строка('exif', сн, ПОЛЯ.digitized, с.dateFile, датой),
+          строка('0', о, ПОЛЯ.datetime, с.dateFile, датой),
+          строка('exif', сн, ПОЛЯ.exposure, с.exposure, (з) => `${выдержкой(з)} ${с.sec}`),
+          строка('exif', сн, ПОЛЯ.fnumber, с.aperture, (з) => `f/${число(з, 1)}`),
+          строка('exif', сн, исо, с.iso, (з) => String(Array.isArray(з) ? з[0] : з)),
+          строка('exif', сн, ПОЛЯ.focal, с.focal, (з) => `${число(з)} ${с.mm}`),
+          строка('exif', сн, ПОЛЯ.focal35, с.focal35, (з) => `${число(з, 0)} ${с.mm}`),
+          строка('exif', сн, ПОЛЯ.flash, с.flash, (з) => (з & 1 ? с.flashOn : с.flashOff)),
+          строка('0', о, ПОЛЯ.orientation, с.orientation, (з) => с.orient[з] || String(з)),
+        ] },
+      ];
+      // Место съёмки -- отдельной группой: его убирают чаще всего, и искать его в общем
+      // списке человек не должен.
+      const к = координаты(разбор.gps);
+      if (к) {
+        const ключи = (разбор.gps.сырые || []).map((з) => 'gps:' + з.номер);
+        группы.push({ имя: с.place, вместе: ключи, строки: [
+          { ключ: ключи.join('|'), имя: с.coords,
+            знач: `${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`
+              + (к.высота !== null ? ` · ${число(к.высота, 0)} ${с.m}` : '') },
+        ] });
+      }
+      // Всё остальное, что есть в файле, -- одной строкой на поле, по номерам.
+      const названные = new Set(Object.values(ПОЛЯ));
+      const прочие = [];
+      for (const [карта, метка] of [[о, '0'], [сн, 'exif']]) {
+        for (const з of карта.сырые || []) {
+          if (названные.has(з.номер)) continue;
+          const в = карта.get(з.номер);
+          const текст = Array.isArray(в) ? в.slice(0, 6).join(', ') : String(в);
+          if (текст === '' || текст.length > 90) continue;
+          прочие.push({ ключ: метка + ':' + з.номер,
+            имя: `0x${з.номер.toString(16).padStart(4, '0')}`, знач: текст });
+        }
+      }
+      if (прочие.length) группы.push({ имя: с.more, строки: прочие });
+      return группы.map((г) => ({ ...г, строки: г.строки.filter(Boolean) }))
+        .filter((г) => г.строки.length);
+    }
+
+    /** Список полей группы с галочкой «убрать» у каждой строки. */
+    function списокСВыбором(группа) {
+      const ящик = document.createElement('div');
+      ящик.className = 'эк-итог эк-выбор-полей';
+      const шапка = document.createElement('div');
+      шапка.className = 'эк-вид';
+      шапка.textContent = группа.имя;
+      ящик.appendChild(шапка);
+      for (const стр of группа.строки) {
+        const ряд = document.createElement('label');
+        ряд.className = 'эк-ряд-поля';
+        ряд.dataset.ключ = стр.ключ;
+        const птица = document.createElement('input');
+        птица.type = 'checkbox';
+        // Поворот по умолчанию НЕ убираем: без него снимок ляжет набок, а о человеке он
+        // не говорит ничего. Всё остальное отмечено -- человек пришёл убирать.
+        птица.checked = стр.ключ !== '0:' + ПОЛЯ.orientation;
+        птица.addEventListener('change', обновитьКнопку);
+        const имя = document.createElement('span');
+        имя.className = 'эк-поле-имя';
+        имя.textContent = стр.имя;
+        const знач = document.createElement('span');
+        знач.className = 'эк-поле-знач';
+        знач.textContent = стр.знач;
+        ряд.append(птица, имя, знач);
+        ящик.appendChild(ряд);
+      }
+      return ящик;
+    }
+
+    const ЗН_КАРАНДАШ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M4 20h4L20 8l-4-4L4 16v4z"/><path d="M14 6l4 4"/></svg>';
+
+    /** Имя будущего файла с карандашиком: правится прямо в строке. */
+    function вставитьИмя(ящик, имяПоУмолчанию) {
+      const dd = ящик && ящик.querySelector('dd');
+      if (!dd) return;
+      dd.classList.add('эк-имя-ряд');
+      dd.textContent = '';
+      const поле = document.createElement('input');
+      поле.type = 'text';
+      поле.id = 'эк-имя';
+      поле.className = 'эк-имя-поле';
+      поле.value = имяПоУмолчанию;
+      поле.readOnly = true;
+      поле.setAttribute('aria-label', с.outName);
+      const кар = document.createElement('button');
+      кар.type = 'button';
+      кар.className = 'эк-кар';
+      кар.title = с.rename;
+      кар.setAttribute('aria-label', с.rename);
+      кар.innerHTML = ЗН_КАРАНДАШ;
+      const править = () => {
+        поле.readOnly = false;
+        поле.classList.add('правят');
+        поле.focus();
+        // Выделяем имя без расширения: правят обычно его.
+        const точка = поле.value.lastIndexOf('.');
+        поле.setSelectionRange(0, точка > 0 ? точка : поле.value.length);
+      };
+      кар.addEventListener('click', править);
+      поле.addEventListener('click', править);
+      поле.addEventListener('blur', () => { поле.readOnly = true; поле.classList.remove('правят'); });
+      поле.addEventListener('keydown', (е) => { if (е.key === 'Enter') поле.blur(); });
+      dd.append(поле, кар);
+    }
+
+    function имяФайла() {
+      const поле = document.getElementById('эк-имя');
+      return поле ? поле.value : '';
+    }
+
+    /** Сколько отмечено -- столько и уберём; ничего не отмечено -- кнопка молчит. */
+    function обновитьКнопку() {
+      const кнопка = $('эк-качать');
+      if (!кнопка) return;
+      const отмечено = ответ.querySelectorAll('.эк-ряд-поля input:checked').length;
+      кнопка.disabled = отмечено === 0;
+      кнопка.textContent = отмечено ? с.stripChosen : с.nothingChosen;
+    }
+
+    /**
      * Что именно уберём -- человеческим перечнем, а не списком номеров. Человек решает,
      * нажимать ли кнопку, и ему нужно видеть, ЧТО он отдаёт и ЧЕГО лишится.
      */
@@ -424,13 +580,16 @@ const заметки = чистим
       показыватьВсё = false;
 
       const карточки = [];
+      // В режиме уборки первая строка -- ИМЯ БУДУЩЕГО ФАЙЛА, и его можно поправить карандашом:
+      // «no-exif_» годится не всем, а переименовывать скачанное потом -- лишняя работа.
       карточки.push(карточка(с.shot, [
-        [с.file, файл.name],
+        [чистим ? с.outName : с.file, чистим ? 'no-exif_' + файл.name : файл.name],
         [с.size, ширина && высота ? `${ширина} × ${высота}` : ''],
         [с.weight, вес(файл.size)],
         [с.kind, (файл.type || '').replace('image/', '').toUpperCase()],
       ]));
 
+      if (чистим) вставитьИмя(карточки[0], 'no-exif_' + файл.name);
       if (!разбор.есть) {
         const почему = разбор.причина === 'heic' ? [с.heic, с.heicWhy]
           : разбор.причина === 'чужой' ? [с.alien, с.alienWhy]
@@ -447,15 +606,14 @@ const заметки = чистим
         return;
       }
 
-      // РЕЖИМ УБОРКИ: одна карточка со списком того, что уйдёт, и кнопка. Разбирать снимок
-      // по полочкам тут незачем -- для этого есть соседняя страница, и ссылка на неё в тексте.
+      // РЕЖИМ УБОРКИ: показываем ВСЕ поля и даём выбрать, какие убрать.
+      // Владелец: «дай мне ощущение принимать решение самому, что удалить… может, я не хочу
+      // удалять всё». И это верно: фотограф убирает координаты, а выдержку и объектив бережёт.
       if (чистим) {
-        const виды = чтоУберём(разбор).map((в) => с.fieldsKinds[в] || в);
-        const ящик = карточка(с.willRemove, виды.map((в, i) => [i === 0 ? с.removedFields : ' ', в]));
-        ящик.id = 'эк-уберём';
-        карточки.push(ящик);
         for (const к of карточки) if (к) ответ.appendChild(к);
+        for (const группа of перечислитьПоля(разбор)) ответ.appendChild(списокСВыбором(группа));
         $('эк-уборка').hidden = false;
+        обновитьКнопку();
         // РАБОТА НЕ НАЧИНАЕТСЯ САМА. Сначала я так и сделал -- по заданию владельца
         // «скачивание без кнопки», -- и на живой странице это оказалось самоуправством:
         // человек только выбрал снимок, а браузер уже спрашивает, куда сохранять, хотя
@@ -711,6 +869,12 @@ const заметки = чистим
      */
     async function убратьИОтдать() {
       if (!последнийФайл) return;
+      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')]
+        .filter((р) => р.querySelector('input').checked);
+      if (!ряды.length) return;
+      const ключи = [];
+      for (const р of ряды) ключи.push(...р.dataset.ключ.split('|'));
+
       const кнопка = $('эк-качать');
       const прежнее = кнопка.textContent;
       кнопка.textContent = с.stripping;
@@ -718,14 +882,11 @@ const заметки = чистим
       сказать(с.statusRead);
       полоса(12);
       try {
-        const итог = убратьМетаданные(await последнийФайл.arrayBuffer(),
-          { оставитьПоворот: $('эк-поворот').checked });
+        const итог = убратьПоля(await последнийФайл.arrayBuffer(), ключи);
         if (!итог.вышло) { беда(с.cantStrip); сказать(с.cantStrip); полоса(0); return; }
         полоса(100);
 
-        // Имя латиницей и с понятной приставкой: файл ляжет рядом с исходником и не
-        // перепутается с ним ни в одной папке.
-        const имя = 'no-exif_' + последнийФайл.name;
+        const имя = (имяФайла() || ('no-exif_' + последнийФайл.name)).trim();
         const капля = new Blob([итог.байты], { type: последнийФайл.type || 'image/jpeg' });
         const адрес = URL.createObjectURL(капля);
         const ссылка = document.createElement('a');
@@ -734,20 +895,30 @@ const заметки = чистим
         document.body.appendChild(ссылка);
         ссылка.click();
         ссылка.remove();
-        // Адрес отпускаем не сразу: браузеру нужно время, чтобы начать скачивание.
         setTimeout(() => URL.revokeObjectURL(адрес), 4000);
 
-        // Рамка вспыхивает белым -- знак, что файл ушёл на устройство.
+        // ВОТ ЗДЕСЬ И ЖИВЁТ ВАУ. Отмеченные строки гаснут и перечёркиваются одна за другой,
+        // оставленные на миг вспыхивают зелёным: видно не только что сделано, но и что
+        // сбережено. Двигается только цвет и прозрачность -- макет стоит на месте.
         поле.classList.add('сделано');
         setTimeout(() => поле.classList.remove('сделано'), 900);
-        // Перечень убранного гаснет и перечёркивается.
-        for (const узел of ответ.querySelectorAll('#эк-уберём dt, #эк-уберём dd')) {
-          if (узел.tagName === 'DD') узел.dataset.подпись = с.gone;
-          узел.classList.add('ушло');
+        let шаг = 0;
+        for (const р of ответ.querySelectorAll('.эк-ряд-поля')) {
+          const птица = р.querySelector('input');
+          const убрали = птица.checked;
+          const задержка = 60 + шаг * 90;
+          шаг++;
+          setTimeout(() => {
+            р.classList.add(убрали ? 'ушло' : 'осталось');
+            р.querySelector('.эк-поле-знач').dataset.подпись = убрали ? с.gone : с.kept;
+            птица.disabled = true;
+            if (!убрали) setTimeout(() => р.classList.remove('осталось'), 1200);
+          }, задержка);
         }
 
         const ящик = карточка(с.stripDone, [
-          [с.file, имя],
+          [с.outName, имя],
+          [с.removedFields, `${итог.убрано}`],
           [с.sizeBefore, вес(итог.было)],
           [с.sizeAfter, вес(итог.стало)],
         ]);
