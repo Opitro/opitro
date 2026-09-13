@@ -60,7 +60,6 @@ const СЛОВА = {
     willRemove: 'Что уберём', nothingToRemove: 'Убирать нечего',
     nothingWhy: 'В этом файле тегов нет — ни камеры, ни даты, ни координат. Скачивать очищённую копию незачем: она была бы такой же.',
     keepTurn: 'Оставить поворот снимка', keepTurnWhy: 'Снимок с телефона часто лежит в файле боком, а стоять прямо ему велит один служебный тег. О человеке он не говорит ничего, поэтому по умолчанию остаётся — иначе снимок у всех повернётся набок.',
-    lossless: 'Само изображение не пережимается: точки остаются теми же байт в байт, меняется только служебная часть файла.',
     removedFields: 'Убрано', sizeBefore: 'Было', sizeAfter: 'Стало',
     cantStrip: 'Из этого файла убирать нечего',
     fieldsKinds: { camera: 'камера и объектив', date: 'дата и время съёмки', place: 'координаты места', author: 'автор и права', settings: 'настройки съёмки', other: 'прочие служебные теги' },
@@ -116,7 +115,6 @@ const СЛОВА = {
     willRemove: 'Що приберемо', nothingToRemove: 'Прибирати нічого',
     nothingWhy: 'У цьому файлі тегів немає — ні камери, ні дати, ні координат. Завантажувати очищену копію нема сенсу: вона була б такою самою.',
     keepTurn: 'Залишити поворот знімка', keepTurnWhy: 'Знімок з телефона часто лежить у файлі боком, а стояти прямо йому велить один службовий тег. Про людину він не говорить нічого, тому за замовчуванням лишається — інакше знімок у всіх повернеться набік.',
-    lossless: 'Саме зображення не перетискається: точки лишаються тими самими байт у байт, змінюється лише службова частина файлу.',
     removedFields: 'Прибрано', sizeBefore: 'Було', sizeAfter: 'Стало',
     cantStrip: 'З цього файлу прибирати нічого',
     fieldsKinds: { camera: 'камера й обʼєктив', date: 'дата й час зйомки', place: 'координати місця', author: 'автор і права', settings: 'налаштування зйомки', other: 'інші службові теги' },
@@ -172,7 +170,6 @@ const СЛОВА = {
     willRemove: 'What will be removed', nothingToRemove: 'Nothing to remove',
     nothingWhy: 'This file has no tags at all — no camera, no date, no coordinates. A cleaned copy would be identical, so there is nothing to download.',
     keepTurn: 'Keep the rotation', keepTurnWhy: 'A phone photo often lies sideways in the file, and one service tag is what tells it to stand upright. It says nothing about a person, so it stays by default — otherwise the picture would appear rotated for everyone.',
-    lossless: 'The picture itself is not re-encoded: the pixels stay the same byte for byte, only the service part of the file changes.',
     removedFields: 'Removed', sizeBefore: 'Before', sizeAfter: 'After',
     cantStrip: 'There is nothing to remove from this file',
     fieldsKinds: { camera: 'camera and lens', date: 'date and time', place: 'location coordinates', author: 'author and rights', settings: 'shooting settings', other: 'other service tags' },
@@ -228,7 +225,6 @@ const СЛОВА = {
     willRemove: 'Qué se va a quitar', nothingToRemove: 'No hay nada que quitar',
     nothingWhy: 'Este archivo no tiene ninguna etiqueta: ni cámara, ni fecha, ni coordenadas. Una copia limpia sería idéntica, así que no hay nada que descargar.',
     keepTurn: 'Conservar el giro', keepTurnWhy: 'Una foto de teléfono suele estar tumbada dentro del archivo, y es una etiqueta de servicio la que le dice que se vea derecha. No dice nada de la persona, así que se conserva por defecto; si no, la imagen aparecería girada para todos.',
-    lossless: 'La imagen no se vuelve a comprimir: los píxeles quedan iguales byte a byte, solo cambia la parte de servicio del archivo.',
     removedFields: 'Quitado', sizeBefore: 'Antes', sizeAfter: 'Después',
     cantStrip: 'De este archivo no hay nada que quitar',
     fieldsKinds: { camera: 'cámara y objetivo', date: 'fecha y hora', place: 'coordenadas del lugar', author: 'autor y derechos', settings: 'ajustes de disparo', other: 'otras etiquetas de servicio' },
@@ -353,7 +349,6 @@ const заметки = чистим
     </div>
   )}
 
-  {чистим && <p class="эк-мелко">{с.lossless}</p>}
 
   <div class="эк-ответ" id="эк-ответ"></div>
 
