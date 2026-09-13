@@ -8,7 +8,7 @@ title: "Visor EXIF online gratis — ver los datos de una foto y sus coordenadas
 h1: "Visor EXIF"
 navName: "Visor EXIF"
 summary: "Ver qué hay escrito dentro de una foto"
-description: "Vea qué escribió la cámara dentro de su foto: el modelo, la fecha, la obturación y las coordenadas del lugar. Gratis y sin registro. El archivo se lee en su navegador y no sale de ahí."
+description: "Vea los metadatos de una foto: el modelo, la fecha, la obturación y las coordenadas del lugar. Gratis y sin registro. El archivo se lee en su navegador y no sale de ahí."
 faq:
   - question: "¿Qué es el EXIF?"
     answer: "Son los campos que la cámara escribe dentro del archivo junto a la propia imagen: el modelo del aparato, el objetivo, la fecha y la hora, la obturación, el diafragma, la sensibilidad y, en un teléfono, también las coordenadas del lugar. La imagen no cambia por ellos: están al lado, en la parte de servicio del archivo."

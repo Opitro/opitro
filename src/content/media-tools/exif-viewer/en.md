@@ -8,7 +8,7 @@ title: "EXIF viewer online free — see photo data and GPS coordinates"
 h1: "EXIF viewer"
 navName: "EXIF viewer"
 summary: "See what is written inside a photo"
-description: "See what the camera wrote inside your photo — the camera itself, the date, the shutter speed and the coordinates of the place. Free, no sign-up. The file is read in your browser and goes nowhere."
+description: "See the metadata of a photo: the camera, the date, the shutter speed and the coordinates of the place. Free, no sign-up. The file is read in your browser and goes nowhere."
 faq:
   - question: "What is EXIF?"
     answer: "These are fields the camera records inside the file alongside the picture itself: the camera model, the lens, date and time, shutter speed, aperture, ISO, and on a phone the coordinates of the place as well. The picture itself does not change because of them — they sit next to it, in the service part of the file."
