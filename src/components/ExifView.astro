@@ -24,7 +24,7 @@ const СЛОВА = {
     tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
     filesLoaded: 'Снимков: {б} · открыт {а}-й', saveAll: 'Сохранить все · {н}',
     removeInAll: 'Удалить всё · {н}', working: 'Убираю {а} из {б}…',
-    shoot: 'Сделать фото', shootHint: 'Снимок с камеры телефона приходит со всеми полями — можно проверить свой телефон прямо сейчас',
+    shoot: 'Сделать фото',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
     shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
     showAll: 'Показать все поля', hideAll: 'Скрыть остальные поля',
@@ -80,7 +80,7 @@ const СЛОВА = {
     tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
     filesLoaded: 'Знімків: {б} · відкритий {а}-й', saveAll: 'Зберегти всі · {н}',
     removeInAll: 'Видалити все · {н}', working: 'Прибираю {а} з {б}…',
-    shoot: 'Зробити фото', shootHint: 'Знімок з камери телефона приходить з усіма полями — можна перевірити свій телефон просто зараз',
+    shoot: 'Зробити фото',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
     shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
     showAll: 'Показати всі поля', hideAll: 'Сховати інші поля',
@@ -136,7 +136,7 @@ const СЛОВА = {
     tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
     filesLoaded: 'Photos: {б} · showing {а}', saveAll: 'Save all · {н}',
     removeInAll: 'Remove everything · {н}', working: 'Cleaning {а} of {б}…',
-    shoot: 'Take a photo', shootHint: 'A shot from the phone camera arrives with all its fields — you can check your own phone right now',
+    shoot: 'Take a photo',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
     shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
     showAll: 'Show every field', hideAll: 'Hide the other fields',
@@ -191,7 +191,7 @@ const СЛОВА = {
     tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
     filesLoaded: 'Fotos: {б} · abierta la {а}', saveAll: 'Guardar todas · {н}',
     removeInAll: 'Quitar todo · {н}', working: 'Limpiando {а} de {б}…',
-    shoot: 'Hacer una foto', shootHint: 'Una foto hecha con la cámara del teléfono llega con todos sus campos: puede comprobar su propio teléfono ahora mismo',
+    shoot: 'Hacer una foto',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
     shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
     showAll: 'Mostrar todos los campos', hideAll: 'Ocultar los demás campos',
@@ -358,12 +358,15 @@ const заметки = чистим
     </div>
   )}
 
-  {чистим && (
-    <div class="эк-статус">
-      <span class="эк-статус-имя">{с.status}</span>
-      <span class="эк-статус-знач" id="эк-статус">{с.statusWait}</span>
-    </div>
-  )}
+  {/* СТРОКА СОСТОЯНИЯ -- НА ОБЕИХ СТРАНИЦАХ. Всё счётное живёт здесь, а не на кадре: на
+      телефоне надписи поверх снимка налезали друг на друга, и читать их было нельзя. */}
+  <div class="эк-статус">
+    <span class="эк-статус-имя">{с.status}</span>
+    <span class="эк-статус-знач">
+      <b class="эк-счёт-строка" id="эк-счёт-строка"></b>
+      <span id="эк-статус">{чистим ? с.statusWait : ''}</span>
+    </span>
+  </div>
 
   {чистим && <p class="эк-мелко">{с.lossless}</p>}
 
@@ -447,7 +450,25 @@ const заметки = чистим
 
     function сказать(текст) {
       const строка = document.getElementById('эк-статус');
-      if (строка) строка.textContent = текст;
+      if (строка) строка.textContent = текст || '';
+    }
+
+    /**
+     * СЧЁТ -- ЗЕЛЁНЫМ И В СТРОКЕ СОСТОЯНИЯ: сколько снимков открыто и сколько в нынешнем
+     * полей. На кадре этим надписям тесно -- на телефоне они налезали на имя файла, -- а
+     * здесь у них своё место, и они не спорят ни с чем.
+     */
+    function обновитьСчёт(полей) {
+      const строка = document.getElementById('эк-счёт-строка');
+      if (!строка) return;
+      const части = [];
+      if (снимки.length > 1) {
+        части.push(с.filesLoaded.replace('{а}', текущий + 1).replace('{б}', снимки.length));
+      }
+      if (полей === undefined) полей = Number(строка.dataset.полей || 0);
+      else строка.dataset.полей = полей;
+      if (полей) части.push(с.counted.replace('{н}', полей));
+      строка.textContent = части.join(' · ');
     }
 
     /** Полоса по нижнему краю окна: видно, что работа пошла и когда она кончилась. */
@@ -710,13 +731,12 @@ const заметки = чистим
      */
     async function показатьВсеПоля(буфер, послеУборки = false) {
       const счёт = document.getElementById('эк-счёт');
-      if (счёт && !послеУборки) счёт.textContent = с.loadingAll;
       let итог;
       try { итог = await прочитатьВсё(буфер); } catch (е) { итог = { вышло: false, группы: [] }; }
       // Для проверок: что именно увидел широкий разборщик.
       window.__экШирокие = итог;
       if (!итог.вышло || !итог.всего) {
-        if (счёт && !послеУборки) счёт.textContent = '';
+        if (!послеУборки) обновитьСчёт(0);
         const прежний = document.getElementById('эк-все-поля');
         if (послеУборки && прежний) прежний.remove();
         return;
@@ -792,7 +812,7 @@ const заметки = чистим
         });
         ответ.append(кнопка, ящик);
       }
-      if (!чистим && счёт && !послеУборки) счёт.textContent = с.counted.replace('{н}', итог.всего);
+      if (!чистим && !послеУборки) обновитьСчёт(итог.всего);
 
       // ЦЕЛЫЕ КУСКИ ФАЙЛА -- в тот же список, где поля: по полям их не разобрать, а убрать
       // целиком можно, и человек должен это видеть и решать. Раньше XMP и подписи IPTC
@@ -852,14 +872,13 @@ const заметки = чистим
      * блоков и неудаляемые. Число всегда сходится с тем, что можно пересчитать глазами.
      */
     function пересчитатьСчётчик() {
-      const счёт = document.getElementById('эк-счёт');
-      if (!счёт || счёт.classList.contains('готово')) return;
       let всего = 0;
       for (const р of ответ.querySelectorAll('.эк-ряд-поля')) {
         всего += Number(р.dataset.полей || 1);
       }
-      всего += Number(ответ.querySelector('#эк-все-поля')?.dataset.полей || 0);
-      if (всего) счёт.textContent = с.counted.replace('{н}', всего);
+      const список = ответ.querySelector('#эк-все-поля');
+      всего += Number((список && список.dataset.полей) || 0);
+      if (всего) обновитьСчёт(всего);
     }
 
     /** Кнопка говорит, сколько уберёт: нажимать вслепую человек не должен. */
@@ -1247,9 +1266,7 @@ const заметки = чистим
       }
       // Счёт снимков говорим и словами: значок на кадре маленький, а строку состояния человек
       // читает. Владелец: «нет понятия, что загружено 5 файлов».
-      if (много && чистим) {
-        сказать(с.filesLoaded.replace('{а}', текущий + 1).replace('{б}', снимки.length));
-      }
+      обновитьСчёт();
       const всёСразу = document.getElementById('эк-всё');
       if (всёСразу) {
         всёСразу.textContent = много
@@ -1297,6 +1314,7 @@ const заметки = чистим
       // «нажимаешь крестик, а надпись „найдено полей“ не пропадает».
       const счёт = document.getElementById('эк-счёт');
       if (счёт) { счёт.textContent = ''; счёт.classList.remove('готово'); }
+      обновитьСчёт(0);
       const имяСнимка = document.getElementById('эк-имя-снимка');
       if (имяСнимка) { имяСнимка.textContent = ''; имяСнимка.hidden = true; }
       if (чистим) {
@@ -1318,7 +1336,6 @@ const заметки = чистим
     пальцемЕсть = !!(пальцем && navigator.mediaDevices);
     if (пальцем && navigator.mediaDevices) {
       кнопкаСъёмки.hidden = false;
-      $('эк-подсказка').textContent = с.shootHint;
       кнопкаСъёмки.addEventListener('click', (е) => { е.stopPropagation(); съёмка.click(); });
       съёмка.addEventListener('change', () => взятьФайлы(съёмка.files));
     }

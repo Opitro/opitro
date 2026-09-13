@@ -199,7 +199,15 @@
 .эк-статус { margin-top: 12px; display: flex; gap: 14px; align-items: baseline;
   border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 9px 2px }
 .эк-статус-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: var(--серый) }
-.эк-статус-знач { font: 400 13px/1.5 var(--мон); color: #fff }
+.эк-статус-знач { font: 400 13px/1.5 var(--мон); color: #fff; min-width: 0 }
+/* Счёт -- зелёным и первым: сколько снимков открыто и сколько в нынешнем полей. */
+.эк-счёт-строка { color: var(--accent); font-weight: 400 }
+.эк-счёт-строка:not(:empty)::after { content: ' · '; color: var(--серый) }
+@media (max-width: 560px) {
+  /* На узком экране подпись «Статус» уходит наверх: иначе значению остаётся полполоски. */
+  .эк-статус { flex-direction: column; gap: 3px }
+  .эк-статус-имя { min-width: 0 }
+}
 
 /* Вычеркнутое: по завершении убранные поля гаснут и перечёркиваются -- одно за другим, так
    что видно, ЧТО именно ушло. Место они занимают прежнее, ничего не съезжает. */
