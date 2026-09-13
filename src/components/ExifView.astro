@@ -41,6 +41,7 @@ const СЛОВА = {
     statusPicked: 'Выбрано полей: {н}. Нажмите «Удалить выбранное»',
     blocks: 'Целые куски файла', blockNote: 'Разобрать по полям их нельзя, но убрать целиком — можно',
     iccKeep: 'цвета зависят от него — «удалить всё» его не трогает, только корзинкой',
+    thumbGone: 'уйдёт в любом случае: это копия снимка, и в очищённом файле ей не место',
     onlyRead: 'Данные, которые нельзя удалить', onlyReadWhy: 'Это устройство самого файла: размер картинки, формат, служебные отметки. Без них снимка просто не будет.',
     countBefore: 'Было полей', countAfter: 'Осталось полей', countGone: 'Убрано',
     allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
@@ -92,6 +93,7 @@ const СЛОВА = {
     statusPicked: 'Вибрано полів: {н}. Натисніть «Видалити вибране»',
     blocks: 'Цілі куски файлу', blockNote: 'Розібрати їх за полями не можна, а прибрати цілком — можна',
     iccKeep: 'кольори залежать від нього — «видалити все» його не чіпає, тільки кошиком',
+    thumbGone: 'піде в будь-якому разі: це копія знімка, і в очищеному файлі їй не місце',
     onlyRead: 'Дані, які не можна видалити', onlyReadWhy: 'Це будова самого файлу: розмір картинки, формат, службові позначки. Без них знімка просто не буде.',
     countBefore: 'Було полів', countAfter: 'Лишилося полів', countGone: 'Прибрано',
     allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
@@ -143,6 +145,7 @@ const СЛОВА = {
     statusPicked: '{н} field(s) chosen. Press “Remove the chosen”',
     blocks: 'Whole parts of the file', blockNote: 'They cannot be split into fields, but they can be dropped whole',
     iccKeep: 'the colours depend on it — “remove everything” leaves it; use its own bin',
+    thumbGone: 'goes in any case: it is a copy of the photo, and a cleaned file has no use for it',
     onlyRead: 'Data that cannot be removed', onlyReadWhy: 'This is how the file itself is built: picture size, format, service marks. Without them there is no photo at all.',
     countBefore: 'Fields before', countAfter: 'Fields left', countGone: 'Removed',
     allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
@@ -194,6 +197,7 @@ const СЛОВА = {
     statusPicked: '{н} campo(s) elegidos. Pulse «Quitar lo elegido»',
     blocks: 'Partes enteras del archivo', blockNote: 'No se pueden dividir en campos, pero sí quitar enteras',
     iccKeep: 'los colores dependen de él: «quitar todo» no lo toca, use su papelera',
+    thumbGone: 'se va en cualquier caso: es una copia de la foto y un archivo limpio no la necesita',
     onlyRead: 'Datos que no se pueden quitar', onlyReadWhy: 'Así está construido el archivo: tamaño de la imagen, formato, marcas de servicio. Sin ellos no hay foto.',
     countBefore: 'Campos antes', countAfter: 'Campos restantes', countGone: 'Quitados',
     allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
@@ -572,12 +576,22 @@ const заметки = чистим
         // За строкой-блоком стоит не одно поле, а несколько: счётчик обязан это знать.
         if (стр.полей) ряд.dataset.полей = стр.полей;
         if (стр.беречь) ряд.dataset.беречь = '1';
+        if (стр.всегда) ряд.dataset.всегда = '1';
         const имя = document.createElement('span');
         имя.className = 'эк-поле-имя';
         имя.textContent = стр.имя;
         const знач = document.createElement('span');
         знач.className = 'эк-поле-знач';
         знач.textContent = стр.знач;
+        // У того, что уходит всегда, корзинки нет: выбора тут не бывает, и рисовать его --
+        // обманывать. Строка сразу показана вычеркнутой.
+        if (стр.всегда) {
+          ряд.classList.add('ушло');
+          знач.dataset.подпись = с.willGo;
+          ряд.append(имя, знач, document.createElement('span'));
+          ящик.appendChild(ряд);
+          continue;
+        }
         const кнопка = document.createElement('button');
         кнопка.type = 'button';
         кнопка.className = 'эк-корзина';
@@ -752,7 +766,11 @@ const заметки = чистим
         { имя: 'xmp', ключ: 'блок:xmp' },
         { имя: 'iptc', ключ: 'блок:iptc' },
         { имя: 'maker', ключ: 'блок:other' },
-        { имя: 'thumb', ключ: 'блок:thumb' },
+        // ВСТРОЕННАЯ МИНИАТЮРА УХОДИТ ВСЕГДА. Она лежит во второй описи файла, а мы
+        // пересобираем описи заново -- и она в новую не попадает. Показывать у неё корзинку
+        // значило бы предлагать выбор, которого нет: проба это и вскрыла. Оставляем строку
+        // (человек должен знать, что копия снимка из файла ушла) и говорим прямо.
+        { имя: 'thumb', ключ: 'блок:thumb', всегда: true },
         { имя: 'icc', ключ: 'блок:icc', беречь: true },
       ];
       const строки = [];
@@ -763,8 +781,11 @@ const заметки = чистим
           ключ: вид.ключ,
           полей: г.поля.length,
           беречь: !!вид.беречь,
+          всегда: !!вид.всегда,
           имя: с.groups[вид.имя] || вид.имя,
-          знач: `${г.поля.length}` + (вид.беречь ? ` · ${с.iccKeep}` : ''),
+          знач: `${г.поля.length}`
+            + (вид.беречь ? ` · ${с.iccKeep}` : '')
+            + (вид.всегда ? ` · ${с.thumbGone}` : ''),
         });
       }
       if (!строки.length) return;
@@ -1217,7 +1238,8 @@ const заметки = чистим
         for (const р of ряды) {
           const поворот = р.dataset.ключ === '0:' + ПОЛЯ.orientation;
           const берегут = р.dataset.беречь === '1';
-          if (!поворот && !берегут && !р.classList.contains('ушло')) переключить(р);
+          const всегда = р.dataset.всегда === '1';
+          if (!поворот && !берегут && !всегда && !р.classList.contains('ушло')) переключить(р);
         }
       }
       const отмеченные = ряды.filter((р) => р.classList.contains('ушло'));
