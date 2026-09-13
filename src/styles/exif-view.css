@@ -33,6 +33,15 @@
 /* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]. */
 .эк-поле img[hidden] { display: none }
 
+/* ПОЛЯ ВЫБОРА ФАЙЛА прячем не display:none, а уводом за край: у некоторых браузеров
+   спрятанное поле выбора всё равно рисуется собственной кнопкой, и она всплывает поверх
+   страницы. Такое поле остаётся рабочим -- по нему кликает код, -- но его не видно. */
+.эк-файл {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap; opacity: 0;
+  pointer-events: none;
+}
+
 /* Плитки выбора: готовый файл и -- на телефоне -- съёмка родной камерой. Значок и подпись
    под ним, как у сканеров кодов. */
 .эк-центр { position: relative; display: flex; flex-direction: column; align-items: center;
@@ -46,10 +55,13 @@
   font: 400 13px var(--мон);
   transition: border-color .15s, background .15s, transform .12s;
 }
-/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ: display из этих правил сильнее, чем display:none из таблицы
-   браузера для [hidden]. Без этой строки плитка съёмки оставалась видна и на компьютере,
-   где снимать нечем. Ловушка та же, что уже ловила на сканерах кодов и цвета. */
-.эк-выбор[hidden] { display: none }
+/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ, И БЕЗ ОГОВОРОК. display из этих правил сильнее, чем
+   display:none из таблицы браузера для [hidden], поэтому правило нужно своё. Пишем с
+   !important и закрываем обе стороны -- саму плитку и её обёртку: владелец прислал снимок
+   экрана, где плитка «Выбрать снимок» осталась висеть поверх страницы и ездила за
+   прокруткой, хотя у меня в Chrome она исчезала. Такую беду лечат наверняка, а не «у меня
+   же работает». */
+.эк-выбор[hidden], .эк-центр[hidden], .эк-ряд[hidden] { display: none !important }
 .эк-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
 .эк-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 .эк-выбор svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
@@ -68,7 +80,6 @@
 .эк-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
-.эк-файл { display: none }
 
 /* ---- Ответ ------------------------------------------------------------------------------------ */
 .эк-ответ { margin-top: 18px; display: flex; flex-direction: column; gap: 12px }
@@ -131,14 +142,30 @@
    Кнопка скачивания, галочка про поворот и строка о том, что снимок не пережимается. Место под
    всё это занято заранее: блок появляется после выбора файла, а не сдвигает текст под собой. */
 .эк-уборка { margin-top: 14px; display: flex; flex-direction: column; gap: 10px }
+.эк-мелко { margin-top: 10px }
 .эк-уборка[hidden] { display: none }
-.эк-качать {
-  padding: 12px 22px; cursor: pointer; border-radius: 8px;
-  background: var(--accent); border: 1px solid var(--accent); color: #08130d;
-  font: 700 14px var(--мон); transition: background .15s, border-color .15s;
+/* ДЕЙСТВИЯ -- спокойные, без зелёного: зелёное на сайте означает «получилось», а тут только
+   начало работы. Стоят сразу под снимком. */
+.эк-дело {
+  padding: 12px 18px; cursor: pointer; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
+  font: 400 13px var(--мон); transition: color .15s, border-color .15s, background .15s;
 }
-.эк-качать:hover { background: var(--accent2, #60efb8); border-color: var(--accent2, #60efb8) }
-.эк-качать[disabled] { cursor: not-allowed; background: #2a3a33; border-color: #2a3a33; color: #9aa7a1 }
+.эк-дело:hover { border-color: #fff; background: rgba(255,255,255,.09) }
+.эк-дело[disabled] { cursor: not-allowed; color: #6b6b73; border-color: #26262c;
+  background: rgba(255,255,255,.02) }
+
+/* «Сохранить» -- на самом снимке, внизу: итог человек смотрит там же, где и фото. */
+.эк-низ { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 3;
+  display: flex; justify-content: center }
+.эк-низ[hidden] { display: none }
+.эк-сохранить {
+  padding: 11px 26px; cursor: pointer; border-radius: 8px;
+  background: var(--accent); border: 1px solid var(--accent); color: #08130d;
+  font: 700 14px var(--мон); box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  transition: background .15s, border-color .15s;
+}
+.эк-сохранить:hover { background: var(--accent2, #60efb8); border-color: var(--accent2, #60efb8) }
 .эк-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   font: 400 12.5px var(--мон); color: #fff }
 .эк-галка input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer }
@@ -217,12 +244,7 @@
 .эк-ряд-поля.осталось .эк-поле-знач { color: var(--accent) }
 /* Две кнопки внизу: «убрать всё» и «скачать». Скачивание -- главное, поэтому оно зелёное. */
 .эк-кнопки { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
-.эк-всё {
-  padding: 12px 18px; cursor: pointer; border-radius: 8px;
-  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
-  font: 400 13px var(--мон); transition: color .15s, border-color .15s, background .15s;
-}
-.эк-всё:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
+
 
 /* Имя будущего файла: правится прямо в строке, по карандашу. */
 .эк-имя-ряд { display: flex; align-items: center; gap: 8px }
@@ -248,6 +270,9 @@
   border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 5px 9px;
 }
 .эк-счёт:empty { display: none }
+/* После уборки счётчик говорит итог и красится зелёным: дело сделано. */
+.эк-счёт.готово { color: var(--accent); border-color: var(--accent);
+  background: rgba(8,19,13,.75) }
 
 /* Полный список полей: читается, но не редактируется -- собирает файл наш код, а этот
    разбор шире нашего и приходит от чужой библиотеки. */

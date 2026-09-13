@@ -36,16 +36,17 @@ const СЛОВА = {
     map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
-    statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
-    statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Скачать»',
-    statusPicked: 'Уберём полей: {н}. Нажмите «Скачать»',
+    statusClean: 'Готово. Нажмите «Сохранить» на снимке', statusNone: 'Полей нет — чистить нечего',
+    statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Удалить выбранное»',
+    statusPicked: 'Выбрано полей: {н}. Нажмите «Удалить выбранное»',
     blocks: 'Целые куски файла', blockNote: 'Разобрать по полям их нельзя, но убрать целиком — можно',
     iccKeep: 'цвета снимка зависят от него — по умолчанию оставляем',
     onlyRead: 'Что внутри файла целиком — только для просмотра',
     countBefore: 'Было полей', countAfter: 'Осталось полей', countGone: 'Убрано',
     allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
-    dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Убрать всё', backAll: 'Вернуть всё',
+    dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Удалить всё', backAll: 'Вернуть всё',
+    removePicked: 'Удалить выбранное', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
     outName: 'Имя файла', rename: 'Изменить имя', kept: 'осталось',
     stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
@@ -86,16 +87,17 @@ const СЛОВА = {
     map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
-    statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
-    statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Завантажити»',
-    statusPicked: 'Приберемо полів: {н}. Натисніть «Завантажити»',
+    statusClean: 'Готово. Натисніть «Зберегти» на знімку', statusNone: 'Полів немає — чистити нічого',
+    statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Видалити вибране»',
+    statusPicked: 'Вибрано полів: {н}. Натисніть «Видалити вибране»',
     blocks: 'Цілі куски файлу', blockNote: 'Розібрати їх за полями не можна, а прибрати цілком — можна',
     iccKeep: 'кольори знімка залежать від нього — за замовчуванням лишаємо',
     onlyRead: 'Що всередині файлу цілком — лише для перегляду',
     countBefore: 'Було полів', countAfter: 'Лишилося полів', countGone: 'Прибрано',
     allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
-    dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Прибрати все', backAll: 'Повернути все',
+    dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Видалити все', backAll: 'Повернути все',
+    removePicked: 'Видалити вибране', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
     outName: 'Імʼя файлу', rename: 'Змінити імʼя', kept: 'лишилося',
     stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
@@ -136,9 +138,9 @@ const СЛОВА = {
     map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
-    statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
-    statusReady: 'Fields found. Bin what you do not want and press Download',
-    statusPicked: 'Will remove {н} field(s). Press Download',
+    statusClean: 'Done. Press Save on the photo', statusNone: 'No fields — nothing to clean',
+    statusReady: 'Fields found. Bin what you do not want and press “Remove the chosen”',
+    statusPicked: '{н} field(s) chosen. Press “Remove the chosen”',
     blocks: 'Whole parts of the file', blockNote: 'They cannot be split into fields, but they can be dropped whole',
     iccKeep: 'the colours depend on it — kept by default',
     onlyRead: 'Everything inside the file — for viewing only',
@@ -146,6 +148,7 @@ const СЛОВА = {
     allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this field', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
+    removePicked: 'Remove the chosen', save: 'Save', savedCount: 'Removed {а} of {б}',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
     outName: 'File name', rename: 'Change the name', kept: 'kept',
     stripChosen: 'Download without the ticked fields', nothingChosen: 'Nothing is ticked',
@@ -186,9 +189,9 @@ const СЛОВА = {
     map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
-    statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
-    statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse Descargar',
-    statusPicked: 'Se quitarán {н} campo(s). Pulse Descargar',
+    statusClean: 'Listo. Pulse Guardar en la foto', statusNone: 'No hay campos: nada que limpiar',
+    statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse «Quitar lo elegido»',
+    statusPicked: '{н} campo(s) elegidos. Pulse «Quitar lo elegido»',
     blocks: 'Partes enteras del archivo', blockNote: 'No se pueden dividir en campos, pero sí quitar enteras',
     iccKeep: 'los colores dependen de él: se conserva por defecto',
     onlyRead: 'Todo lo que hay dentro del archivo, solo para ver',
@@ -196,6 +199,7 @@ const СЛОВА = {
     allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar este campo', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
+    removePicked: 'Quitar lo elegido', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
     outName: 'Nombre del archivo', rename: 'Cambiar el nombre', kept: 'conservado',
     stripChosen: 'Descargar sin los campos marcados', nothingChosen: 'No hay nada marcado',
@@ -265,7 +269,7 @@ const заметки = чистим
     <img id="эк-снимок" hidden alt="" />
     <span class="эк-центр" id="эк-центр">
       <span class="эк-ряд">
-        <button type="button" class="эк-выбор" id="эк-выбрать" title={с.pick} aria-label={с.pick}>
+        <button type="button" class="эк-выбор" id="эк-выбрать" aria-label={с.pick}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <rect x="3" y="5" width="18" height="14" rx="2"/>
             <circle cx="8.5" cy="10" r="1.6"/>
@@ -276,7 +280,7 @@ const заметки = чистим
         {/* Плитка съёмки видна ТОЛЬКО на телефоне и планшете: на компьютере «сделать фото»
             открыло бы тот же выбор файла -- обещание без содержания. Показывает её сам
             скрипт, посмотрев на устройство. */}
-        <button type="button" class="эк-выбор" id="эк-снять" hidden title={с.shoot} aria-label={с.shoot}>
+        <button type="button" class="эк-выбор" id="эк-снять" hidden aria-label={с.shoot}>
           <svg viewBox="0 0 24 24" aria-hidden="true">
             <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .8-.4l1-1.3a1 1 0 0 1 .8-.4h4.4a1 1 0 0 1 .8.4l1 1.3a1 1 0 0 0 .8.4h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/>
             <circle cx="12" cy="12.5" r="3.6"/>
@@ -292,6 +296,12 @@ const заметки = чистим
     <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
+    {/* «Сохранить» появляется НА самом снимке -- там же, где человек смотрит на итог. */}
+    {чистим && (
+      <span class="эк-низ" id="эк-низ" hidden>
+        <button type="button" class="эк-сохранить" id="эк-сохранить">{с.save}</button>
+      </span>
+    )}
     {чистим && <span class="эк-полоса" id="эк-полоса"></span>}
     <input type="file" class="эк-файл" id="эк-файл" accept="image/*" />
     {/* ОТДЕЛЬНОЕ ПОЛЕ ДЛЯ СЪЁМКИ. capture просит браузер открыть не список файлов, а родное
@@ -301,6 +311,17 @@ const заметки = чистим
     <input type="file" class="эк-файл" id="эк-съёмка" accept="image/*" capture="environment" />
   </div>
 
+  {/* ДЕЙСТВИЯ -- СРАЗУ ПОД СНИМКОМ, статус ниже: человек смотрит на фото и нажимает тут же,
+      а не ищет кнопки под списком полей. */}
+  {чистим && (
+    <div class="эк-уборка" id="эк-уборка" hidden>
+      <div class="эк-кнопки">
+        <button type="button" class="эк-дело" id="эк-всё">{с.removeAll}</button>
+        <button type="button" class="эк-дело" id="эк-качать" disabled>{с.removePicked}</button>
+      </div>
+    </div>
+  )}
+
   {чистим && (
     <div class="эк-статус">
       <span class="эк-статус-имя">{с.status}</span>
@@ -308,17 +329,9 @@ const заметки = чистим
     </div>
   )}
 
-  <div class="эк-ответ" id="эк-ответ"></div>
+  {чистим && <p class="эк-мелко">{с.lossless}</p>}
 
-  {чистим && (
-    <div class="эк-уборка" id="эк-уборка" hidden>
-      <div class="эк-кнопки">
-        <button type="button" class="эк-всё" id="эк-всё">{с.removeAll}</button>
-        <button type="button" class="эк-качать" id="эк-качать" disabled>{с.download}</button>
-      </div>
-      <p class="эк-мелко">{с.lossless}</p>
-    </div>
-  )}
+  <div class="эк-ответ" id="эк-ответ"></div>
 
   {!чистим && (
     <p class="эк-увод">
@@ -366,8 +379,26 @@ const заметки = чистим
     const чистим = корень.dataset.режим === 'чистить';
     let последнийФайл = null;
     let последнийБуфер = null;
+    let готовыйФайл = null;      // собранный, но ещё не сохранённый файл
+    let пальцемЕсть = false;     // есть ли на устройстве камера под пальцем
 
     function беда(текст) { бедаЭ.textContent = текст || ''; }
+
+    /**
+     * Убрать выбор файла с глаз. Прячем не только обёртку, но и каждую плитку с подсказкой:
+     * владелец прислал снимок экрана, где плитка «Выбрать снимок» осталась висеть поверх
+     * страницы и ездила за прокруткой. У меня в Chrome такого не было -- значит, надо
+     * закрывать наверняка, а не полагаться на одну скрытую обёртку.
+     */
+    function спрятатьВыбор(прятать = true) {
+      центр.hidden = прятать;
+      for (const э of центр.querySelectorAll('button, .эк-ряд, .эк-подсказка')) э.hidden = прятать;
+      if (!прятать) {
+        // При возврате плитка съёмки остаётся скрытой на компьютере -- там снимать нечем.
+        const съёмка = document.getElementById('эк-снять');
+        if (съёмка) съёмка.hidden = !пальцемЕсть;
+      }
+    }
 
     function сказать(текст) {
       const строка = document.getElementById('эк-статус');
@@ -576,15 +607,20 @@ const заметки = чистим
      * содержимое HEIC. Убирать поля по одному из этого списка нельзя -- их собирает чужой
      * код, а собираем файл мы; поэтому список показываем, а уборка идёт по нашим полям.
      */
-    async function показатьВсеПоля(буфер) {
+    async function показатьВсеПоля(буфер, послеУборки = false) {
       const счёт = document.getElementById('эк-счёт');
-      if (счёт) счёт.textContent = с.loadingAll;
+      if (счёт && !послеУборки) счёт.textContent = с.loadingAll;
       let итог;
       try { итог = await прочитатьВсё(буфер); } catch (е) { итог = { вышло: false, группы: [] }; }
       // Для проверок: что именно увидел широкий разборщик.
       window.__экШирокие = итог;
-      if (!итог.вышло || !итог.всего) { if (счёт) счёт.textContent = ''; return; }
-      if (счёт) счёт.textContent = с.counted.replace('{н}', итог.всего);
+      if (!итог.вышло || !итог.всего) {
+        if (счёт && !послеУборки) счёт.textContent = '';
+        const прежний = document.getElementById('эк-все-поля');
+        if (послеУборки && прежний) прежний.remove();
+        return;
+      }
+      if (счёт && !послеУборки) счёт.textContent = с.counted.replace('{н}', итог.всего);
 
       const ящик = document.createElement('div');
       ящик.className = 'эк-итог эк-всё-поля';
@@ -617,7 +653,7 @@ const заметки = чистим
       // ЦЕЛЫЕ КУСКИ ФАЙЛА -- в тот же список, где поля: по полям их не разобрать, а убрать
       // целиком можно, и человек должен это видеть и решать. Раньше XMP и подписи IPTC
       // уходили молча -- страница делала больше, чем показывала.
-      if (чистим) добавитьБлоки(итог.группы);
+      if (чистим && !послеУборки) добавитьБлоки(итог.группы);
     }
 
     /** Куски файла, которые убираются целиком: заметки XMP, подписи IPTC, цветовой профиль. */
@@ -657,23 +693,8 @@ const заметки = чистим
       if (!кнопка) return;
       const ушло = ответ.querySelectorAll('.эк-ряд-поля.ушло').length;
       кнопка.disabled = ушло === 0;
-      кнопка.textContent = ушло ? `${с.download} · ${с.willGo} ${ушло}` : с.download;
-      const всёСняли = $('эк-всё');
-      if (всёСняли) всёСняли.textContent = ушло > 0 ? с.backAll : с.removeAll;
+      кнопка.textContent = ушло ? `${с.removePicked} · ${ушло}` : с.removePicked;
       сказать(ушло ? с.statusPicked.replace('{н}', ушло) : с.statusReady);
-    }
-
-    /** «Убрать всё» -- кроме поворота: без него снимок ляжет набок, а о человеке он молчит. */
-    function убратьВсё() {
-      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')];
-      const ушло = ряды.filter((р) => р.classList.contains('ушло')).length;
-      const вернуть = ушло > 0;
-      for (const р of ряды) {
-        const поворот = р.dataset.ключ === '0:' + ПОЛЯ.orientation;
-        const надо = вернуть ? false : !поворот;
-        if (р.classList.contains('ушло') !== надо) переключить(р);
-      }
-      обновитьКнопку();
     }
 
     const ЗН_КАРАНДАШ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
@@ -903,6 +924,22 @@ const заметки = чистим
       setTimeout(() => поле.classList.remove('прочитано'), 900);
     }
 
+    /**
+     * Вписать снимок в постоянный квадрат. Размер окна тут ни при чём нарочно: иначе картинка
+     * подгонялась бы под ширину браузера и мельчала бы вместе с ним.
+     */
+    function вКвадрат(что, ш, в, сторона = 1600) {
+      const доля = Math.min(1, сторона / Math.max(ш, в));
+      const дш = Math.max(1, Math.round(ш * доля)), дв = Math.max(1, Math.round(в * доля));
+      const холст = document.createElement('canvas');
+      холст.width = дш; холст.height = дв;
+      const кон = холст.getContext('2d');
+      кон.fillStyle = '#000';
+      кон.fillRect(0, 0, дш, дв);
+      кон.drawImage(что, 0, 0, дш, дв);
+      return холст;
+    }
+
     /** Открыть файл картинкой, которую можно рисовать. */
     async function картинкаИзФайла(файл) {
       if (window.createImageBitmap) {
@@ -938,26 +975,14 @@ const заметки = чистим
       if (буфер && этоHeic(буфер)) {
         try {
           const точки = await раскрытьHeic(буфер);
-          const р = поле.getBoundingClientRect();
-          const плотность = Math.min(2, window.devicePixelRatio || 1);
-          const пш = Math.max(1, Math.round(р.width * плотность));
-          const пв = Math.max(1, Math.round(р.height * плотность));
-          // Кадр кладём на свой холст, а потом вписываем в окно -- как и обычные снимки.
+          // Кадр кладём на свой холст, а потом вписываем -- как и обычные снимки.
           const свой = document.createElement('canvas');
           свой.width = точки.width; свой.height = точки.height;
           свой.getContext('2d').putImageData(точки, 0, 0);
-          const холст = document.createElement('canvas');
-          холст.width = пш; холст.height = пв;
-          const кон = холст.getContext('2d');
-          кон.fillStyle = '#000';
-          кон.fillRect(0, 0, пш, пв);
-          const доля = Math.min(пш / точки.width, пв / точки.height);
-          const дш = Math.max(1, Math.round(точки.width * доля));
-          const дв = Math.max(1, Math.round(точки.height * доля));
-          кон.drawImage(свой, Math.round((пш - дш) / 2), Math.round((пв - дв) / 2), дш, дв);
+          const холст = вКвадрат(свой, точки.width, точки.height);
           снимок.src = холст.toDataURL('image/jpeg', 0.9);
           снимок.hidden = false;
-          центр.hidden = true;
+          спрятатьВыбор();
           крест.hidden = false;
           return { ширина: точки.width, высота: точки.height };
         } catch (е) { /* не раскрылось -- покажем пустое окно, поля всё равно прочитаем */ }
@@ -966,22 +991,15 @@ const заметки = чистим
       try { взято = await картинкаИзФайла(файл); } catch (е) { return { ширина: 0, высота: 0 }; }
       const { к, отпустить } = взято;
       const ш = к.width || к.naturalWidth, в = к.height || к.naturalHeight;
-      const р = поле.getBoundingClientRect();
-      const плотность = Math.min(2, window.devicePixelRatio || 1);
-      const пш = Math.max(1, Math.round(р.width * плотность));
-      const пв = Math.max(1, Math.round(р.height * плотность));
-      const холст = document.createElement('canvas');
-      холст.width = пш; холст.height = пв;
-      const кон = холст.getContext('2d');
-      кон.fillStyle = '#000';
-      кон.fillRect(0, 0, пш, пв);
-      const доля = Math.min(пш / ш, пв / в);
-      const дш = Math.max(1, Math.round(ш * доля)), дв = Math.max(1, Math.round(в * доля));
-      кон.drawImage(к, Math.round((пш - дш) / 2), Math.round((пв - дв) / 2), дш, дв);
+      // РИСУЕМ ПО САМОМУ СНИМКУ, А НЕ ПО ОКНУ. Раньше холст делался по ширине окна, и картинка
+      // получалась ровно под него: стоило сузить окно браузера -- и снимок мельчал, а при
+      // обратном расширении оставался мыльным. Теперь снимок вписывается в постоянный квадрат
+      // (1600 точек по длинной стороне), а подгоняет его под окно уже CSS.
+      const холст = вКвадрат(к, ш, в);
       отпустить();
       снимок.src = холст.toDataURL('image/jpeg', 0.9);
       снимок.hidden = false;
-      центр.hidden = true;
+      спрятатьВыбор();
       крест.hidden = false;
       return { ширина: ш, высота: в };
     }
@@ -991,7 +1009,15 @@ const заметки = чистим
       беда('');
       ответ.innerHTML = '';
       последнийФайл = файл;
-      if (чистим) { $('эк-уборка').hidden = true; сказать(с.statusRead); полоса(6); }
+      готовыйФайл = null;
+      if (чистим) {
+        $('эк-уборка').hidden = true;
+        $('эк-низ').hidden = true;
+        const счёт = document.getElementById('эк-счёт');
+        if (счёт) счёт.classList.remove('готово');
+        сказать(с.statusRead);
+        полоса(6);
+      }
       const буфер = await файл.arrayBuffer();
       последнийБуфер = буфер;
       const { ширина, высота } = await нарисовать(файл, буфер);
@@ -1010,13 +1036,19 @@ const заметки = чистим
     function очистить() {
       снимок.removeAttribute('src');
       снимок.hidden = true;
-      центр.hidden = false;
+      спрятатьВыбор(false);
       крест.hidden = true;
       ответ.innerHTML = '';
       беда('');
       выбор.value = '';
       последнийФайл = null;
-      if (чистим) { $('эк-уборка').hidden = true; сказать(с.statusWait); полоса(0); }
+      готовыйФайл = null;
+      if (чистим) {
+        $('эк-уборка').hidden = true;
+        $('эк-низ').hidden = true;
+        сказать(с.statusWait);
+        полоса(0);
+      }
       $('эк-съёмка').value = '';
       if (адресСнимка) { URL.revokeObjectURL(адресСнимка); адресСнимка = null; }
     }
@@ -1027,6 +1059,7 @@ const заметки = чистим
     const съёмка = $('эк-съёмка');
     const кнопкаСъёмки = $('эк-снять');
     const пальцем = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    пальцемЕсть = !!(пальцем && navigator.mediaDevices);
     if (пальцем && navigator.mediaDevices) {
       кнопкаСъёмки.hidden = false;
       $('эк-подсказка').textContent = с.shootHint;
@@ -1068,47 +1101,62 @@ const заметки = чистим
      * белым, а перечень убранного гаснет и перечёркивается -- одно поле за другим, так что
      * видно, ЧТО именно ушло. Всё это -- только прозрачность и черта, ничего не съезжает.
      */
-    async function убратьИОтдать() {
+    /**
+     * УДАЛИТЬ -- и показать, что вышло. Файл при этом никуда не уходит: он собирается в
+     * памяти, а на снимке появляется кнопка «Сохранить». Так человек видит итог ДО того, как
+     * файл ляжет на диск, и может передумать -- вернуть поле корзинкой и удалить заново.
+     */
+    async function убрать(всё) {
       if (!последнийФайл) return;
-      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля.ушло')];
-      if (!ряды.length) return;
+      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')];
+      if (всё) {
+        for (const р of ряды) {
+          const поворот = р.dataset.ключ === '0:' + ПОЛЯ.orientation;
+          if (!поворот && !р.classList.contains('ушло')) переключить(р);
+        }
+      }
+      const отмеченные = ряды.filter((р) => р.classList.contains('ушло'));
+      if (!отмеченные.length) return;
       const ключи = [];
-      for (const р of ряды) ключи.push(...р.dataset.ключ.split('|'));
+      for (const р of отмеченные) ключи.push(...р.dataset.ключ.split('|'));
 
-      const кнопка = $('эк-качать');
-      const прежнее = кнопка.textContent;
-      кнопка.textContent = с.stripping;
-      кнопка.disabled = true;
       сказать(с.statusRead);
       полоса(12);
       try {
-        const итог = убратьПоля(await последнийФайл.arrayBuffer(), ключи);
+        const итог = убратьПоля(последнийБуфер, ключи);
         if (!итог.вышло) { беда(с.cantStrip); сказать(с.cantStrip); полоса(0); return; }
         полоса(100);
+        готовыйФайл = итог;
 
-        const имя = (имяФайла() || ('no-exif_' + последнийФайл.name)).trim();
-        const капля = new Blob([итог.байты], { type: последнийФайл.type || 'image/jpeg' });
-        const адрес = URL.createObjectURL(капля);
-        const ссылка = document.createElement('a');
-        ссылка.href = адрес;
-        ссылка.download = имя;
-        document.body.appendChild(ссылка);
-        ссылка.click();
-        ссылка.remove();
-        setTimeout(() => URL.revokeObjectURL(адрес), 4000);
+        // Считаем ПО ФАКТУ, перечитывая готовый файл тем же разборщиком, что считал до
+        // уборки: иначе числа «до» и «после» меряны разными линейками.
+        let былоПолей = 0, осталосьПолей = 0;
+        try {
+          const до = await прочитатьВсё(последнийБуфер);
+          const после = await прочитатьВсё(итог.байты.buffer.slice(
+            итог.байты.byteOffset, итог.байты.byteOffset + итог.байты.length));
+          былоПолей = до.всего || 0;
+          осталосьПолей = после.всего || 0;
+        } catch (е) { /* не сочлось -- покажем только размеры */ }
 
-        // ВОТ ЗДЕСЬ И ЖИВЁТ ВАУ. Отмеченные строки гаснут и перечёркиваются одна за другой,
-        // оставленные на миг вспыхивают зелёным: видно не только что сделано, но и что
-        // сбережено. Двигается только цвет и прозрачность -- макет стоит на месте.
+        // Счётчик на снимке говорит главное: сколько ушло и сколько было.
+        const счёт = document.getElementById('эк-счёт');
+        if (счёт && былоПолей) {
+          счёт.textContent = с.savedCount
+            .replace('{а}', былоПолей - осталосьПолей).replace('{б}', былоПолей);
+          счёт.classList.add('готово');
+        }
+        // «Сохранить» -- на самом снимке.
+        const низ = document.getElementById('эк-низ');
+        if (низ) низ.hidden = false;
         поле.classList.add('сделано');
         setTimeout(() => поле.classList.remove('сделано'), 900);
+
         // Убранное уже перечёркнуто -- теперь на миг вспыхивает ОСТАВЛЕННОЕ: видно не только
         // что ушло, но и что сбережено.
         let шаг = 0;
-        for (const р of ответ.querySelectorAll('.эк-ряд-поля')) {
+        for (const р of ряды) {
           const убрали = р.classList.contains('ушло');
-          const задержка = 60 + шаг * 80;
-          шаг++;
           setTimeout(() => {
             р.querySelector('.эк-поле-знач').dataset.подпись = убрали ? с.gone : с.kept;
             if (!убрали) {
@@ -1118,23 +1166,10 @@ const заметки = чистим
                 р.querySelector('.эк-поле-знач').dataset.подпись = '';
               }, 1400);
             }
-          }, задержка);
+          }, 60 + шаг++ * 80);
         }
 
-        // СЧИТАЕМ ПО ФАКТУ, а не по своим записям: перечитываем очищенный файл тем же
-        // широким разборщиком, что считал поля до уборки. Иначе числа «до» и «после» меряны
-        // разными линейками, и человеку кажется, что чистим мы плохо.
-        let былоПолей = 0, осталосьПолей = 0;
-        try {
-          const доУборки = await прочитатьВсё(последнийБуфер);
-          const послеУборки = await прочитатьВсё(итог.байты.buffer.slice(
-            итог.байты.byteOffset, итог.байты.byteOffset + итог.байты.length));
-          былоПолей = доУборки.всего || 0;
-          осталосьПолей = послеУборки.всего || 0;
-        } catch (е) { /* не сочлось -- покажем только размеры */ }
-
         const ящик = карточка(с.stripDone, [
-          [с.outName, имя],
           [с.countGone, былоПолей ? `${былоПолей - осталосьПолей}` : `${итог.убрано}`],
           [с.countBefore, былоПолей || ''],
           [с.countAfter, былоПолей ? осталосьПолей : ''],
@@ -1145,20 +1180,38 @@ const заметки = чистим
         const прежний = document.getElementById('эк-готово');
         if (прежний) прежний.remove();
         ответ.appendChild(ящик);
+        // Полный список перечитываем с ГОТОВОГО файла: иначе внизу страницы остаются старые
+        // значения, и человек видит координаты, которых в файле уже нет.
+        показатьВсеПоля(итог.байты.buffer.slice(
+          итог.байты.byteOffset, итог.байты.byteOffset + итог.байты.length), true);
         сказать(с.statusClean);
       } catch (е) {
         беда(с.cantStrip);
         сказать(с.cantStrip);
         полоса(0);
-      } finally {
-        кнопка.textContent = прежнее;
-        кнопка.disabled = false;
       }
     }
 
+    /** СОХРАНИТЬ -- отдать готовый файл на устройство. Имя берём из строки с карандашом. */
+    function сохранить() {
+      if (!готовыйФайл || !готовыйФайл.байты) return;
+      const имя = (имяФайла() || ('no-exif_' + последнийФайл.name)).trim();
+      const капля = new Blob([готовыйФайл.байты], { type: последнийФайл.type || 'image/jpeg' });
+      const адрес = URL.createObjectURL(капля);
+      const ссылка = document.createElement('a');
+      ссылка.href = адрес;
+      ссылка.download = имя;
+      document.body.appendChild(ссылка);
+      ссылка.click();
+      ссылка.remove();
+      setTimeout(() => URL.revokeObjectURL(адрес), 4000);
+      сказать(с.statusClean);
+    }
+
     if (чистим) {
-      $('эк-качать').addEventListener('click', убратьИОтдать);
-      $('эк-всё').addEventListener('click', убратьВсё);
+      $('эк-качать').addEventListener('click', () => убрать(false));   // удалить выбранное
+      $('эк-всё').addEventListener('click', () => убрать(true));       // удалить всё
+      $('эк-сохранить').addEventListener('click', сохранить);
     }
 
     window.__экСостояние = () => ({
