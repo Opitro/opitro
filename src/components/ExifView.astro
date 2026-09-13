@@ -39,6 +39,10 @@ const СЛОВА = {
     statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
     statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Скачать»',
     statusPicked: 'Уберём полей: {н}. Нажмите «Скачать»',
+    blocks: 'Целые куски файла', blockNote: 'Разобрать по полям их нельзя, но убрать целиком — можно',
+    iccKeep: 'цвета снимка зависят от него — по умолчанию оставляем',
+    onlyRead: 'Что внутри файла целиком — только для просмотра',
+    countBefore: 'Было полей', countAfter: 'Осталось полей', countGone: 'Убрано',
     allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
     dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Убрать всё', backAll: 'Вернуть всё',
@@ -85,6 +89,10 @@ const СЛОВА = {
     statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
     statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Завантажити»',
     statusPicked: 'Приберемо полів: {н}. Натисніть «Завантажити»',
+    blocks: 'Цілі куски файлу', blockNote: 'Розібрати їх за полями не можна, а прибрати цілком — можна',
+    iccKeep: 'кольори знімка залежать від нього — за замовчуванням лишаємо',
+    onlyRead: 'Що всередині файлу цілком — лише для перегляду',
+    countBefore: 'Було полів', countAfter: 'Лишилося полів', countGone: 'Прибрано',
     allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
     dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Прибрати все', backAll: 'Повернути все',
@@ -131,6 +139,10 @@ const СЛОВА = {
     statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
     statusReady: 'Fields found. Bin what you do not want and press Download',
     statusPicked: 'Will remove {н} field(s). Press Download',
+    blocks: 'Whole parts of the file', blockNote: 'They cannot be split into fields, but they can be dropped whole',
+    iccKeep: 'the colours depend on it — kept by default',
+    onlyRead: 'Everything inside the file — for viewing only',
+    countBefore: 'Fields before', countAfter: 'Fields left', countGone: 'Removed',
     allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this field', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
@@ -177,6 +189,10 @@ const СЛОВА = {
     statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
     statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse Descargar',
     statusPicked: 'Se quitarán {н} campo(s). Pulse Descargar',
+    blocks: 'Partes enteras del archivo', blockNote: 'No se pueden dividir en campos, pero sí quitar enteras',
+    iccKeep: 'los colores dependen de él: se conserva por defecto',
+    onlyRead: 'Todo lo que hay dentro del archivo, solo para ver',
+    countBefore: 'Campos antes', countAfter: 'Campos restantes', countGone: 'Quitados',
     allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar este campo', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
@@ -565,6 +581,8 @@ const заметки = чистим
       if (счёт) счёт.textContent = с.loadingAll;
       let итог;
       try { итог = await прочитатьВсё(буфер); } catch (е) { итог = { вышло: false, группы: [] }; }
+      // Для проверок: что именно увидел широкий разборщик.
+      window.__экШирокие = итог;
       if (!итог.вышло || !итог.всего) { if (счёт) счёт.textContent = ''; return; }
       if (счёт) счёт.textContent = с.counted.replace('{н}', итог.всего);
 
@@ -593,7 +611,44 @@ const заметки = чистим
       }
       const прежний = document.getElementById('эк-все-поля');
       if (прежний) прежний.remove();
+      шапка.textContent = `${с.onlyRead} · ${итог.всего}`;
       ответ.appendChild(ящик);
+
+      // ЦЕЛЫЕ КУСКИ ФАЙЛА -- в тот же список, где поля: по полям их не разобрать, а убрать
+      // целиком можно, и человек должен это видеть и решать. Раньше XMP и подписи IPTC
+      // уходили молча -- страница делала больше, чем показывала.
+      if (чистим) добавитьБлоки(итог.группы);
+    }
+
+    /** Куски файла, которые убираются целиком: заметки XMP, подписи IPTC, цветовой профиль. */
+    function добавитьБлоки(группы) {
+      const ВИДЫ = [
+        { имя: 'xmp', ключ: 'блок:xmp' },
+        { имя: 'iptc', ключ: 'блок:iptc' },
+        { имя: 'maker', ключ: 'блок:other' },
+        { имя: 'thumb', ключ: 'блок:thumb' },
+        { имя: 'icc', ключ: 'блок:icc', беречь: true },
+      ];
+      const строки = [];
+      for (const вид of ВИДЫ) {
+        const г = группы.find((х) => х.имя === вид.имя);
+        if (!г || !г.поля.length) continue;
+        строки.push({
+          ключ: вид.ключ,
+          имя: с.groups[вид.имя] || вид.имя,
+          знач: `${г.поля.length}` + (вид.беречь ? ` · ${с.iccKeep}` : ''),
+        });
+      }
+      if (!строки.length) return;
+      const ящик = списокСВыбором({ имя: `${с.blocks} — ${с.blockNote}`, строки });
+      ящик.id = 'эк-блоки';
+      const прежний = document.getElementById('эк-блоки');
+      if (прежний) прежний.remove();
+      // Ставим ПЕРЕД полным списком: сначала то, чем можно распорядиться.
+      const всеПоля = document.getElementById('эк-все-поля');
+      if (всеПоля) ответ.insertBefore(ящик, всеПоля);
+      else ответ.appendChild(ящик);
+      обновитьКнопку();
     }
 
     /** Кнопка говорит, сколько уберёт: нажимать вслепую человек не должен. */
@@ -1066,9 +1121,23 @@ const заметки = чистим
           }, задержка);
         }
 
+        // СЧИТАЕМ ПО ФАКТУ, а не по своим записям: перечитываем очищенный файл тем же
+        // широким разборщиком, что считал поля до уборки. Иначе числа «до» и «после» меряны
+        // разными линейками, и человеку кажется, что чистим мы плохо.
+        let былоПолей = 0, осталосьПолей = 0;
+        try {
+          const доУборки = await прочитатьВсё(последнийБуфер);
+          const послеУборки = await прочитатьВсё(итог.байты.buffer.slice(
+            итог.байты.byteOffset, итог.байты.byteOffset + итог.байты.length));
+          былоПолей = доУборки.всего || 0;
+          осталосьПолей = послеУборки.всего || 0;
+        } catch (е) { /* не сочлось -- покажем только размеры */ }
+
         const ящик = карточка(с.stripDone, [
           [с.outName, имя],
-          [с.removedFields, `${итог.убрано}`],
+          [с.countGone, былоПолей ? `${былоПолей - осталосьПолей}` : `${итог.убрано}`],
+          [с.countBefore, былоПолей || ''],
+          [с.countAfter, былоПолей ? осталосьПолей : ''],
           [с.sizeBefore, вес(итог.было)],
           [с.sizeAfter, вес(итог.стало)],
         ]);
