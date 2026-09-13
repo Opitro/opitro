@@ -22,8 +22,8 @@ const СЛОВА = {
   ru: {
     pick: 'Выбрать снимки', hint: 'или перетащите файлы сюда (до 20)',
     tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
-    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все · {н}', saveZip: 'Скачать ZIP · {н}',
-    removeInAll: 'Удалить всё · {н}', working: 'Убираю {а} из {б}…',
+    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все снимки', saveZip: 'Скачать ZIP: {н} снимка',
+    removeInAll: 'Удалить всё в {н} снимках', doneAll: 'Удалено', working: 'Убираю {а} из {б}…',
     shoot: 'Сделать фото',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
     shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
@@ -51,7 +51,7 @@ const СЛОВА = {
     allFields: 'Все теги файла', counted: 'Найдено тегов: {н}', loadingAll: 'Читаю все теги…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
     dropOne: 'Убрать этот тег', back: 'Вернуть', removeAll: 'Удалить всё', backAll: 'Вернуть всё',
-    removePicked: 'Удалить выбранное', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
+    removePicked: 'Удалить выбранные теги', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
     outName: 'Имя файла', saveAs: 'Сохраним под именем', rename: 'Изменить имя', kept: 'осталось',
     stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
@@ -78,8 +78,8 @@ const СЛОВА = {
   uk: {
     pick: 'Вибрати знімки', hint: 'або перетягніть файли сюди (до 20)',
     tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
-    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі · {н}', saveZip: 'Завантажити ZIP · {н}',
-    removeInAll: 'Видалити все · {н}', working: 'Прибираю {а} з {б}…',
+    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі знімки', saveZip: 'Завантажити ZIP: {н} знімки',
+    removeInAll: 'Видалити все у {н} знімках', doneAll: 'Видалено', working: 'Прибираю {а} з {б}…',
     shoot: 'Зробити фото',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
     shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
@@ -107,7 +107,7 @@ const СЛОВА = {
     allFields: 'Усі теги файлу', counted: 'Знайдено тегів: {н}', loadingAll: 'Читаю всі теги…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
     dropOne: 'Прибрати цей тег', back: 'Повернути', removeAll: 'Видалити все', backAll: 'Повернути все',
-    removePicked: 'Видалити вибране', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
+    removePicked: 'Видалити вибрані теги', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
     outName: 'Імʼя файлу', saveAs: 'Збережемо під іменем', rename: 'Змінити імʼя', kept: 'лишилося',
     stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
@@ -134,8 +134,8 @@ const СЛОВА = {
   en: {
     pick: 'Choose photos', hint: 'or drop files here (up to 20)',
     tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
-    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all · {н}', saveZip: 'Download ZIP · {н}',
-    removeInAll: 'Remove everything · {н}', working: 'Cleaning {а} of {б}…',
+    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all photos', saveZip: 'Download ZIP: {н} photos',
+    removeInAll: 'Remove everything in {н} photos', doneAll: 'Removed', working: 'Cleaning {а} of {б}…',
     shoot: 'Take a photo',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
     shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
@@ -163,7 +163,7 @@ const СЛОВА = {
     allFields: 'Every tag in the file', counted: 'Tags found: {н}', loadingAll: 'Reading every tag…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
     dropOne: 'Remove this tag', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
-    removePicked: 'Remove the chosen', save: 'Save', savedCount: 'Removed {а} of {б}',
+    removePicked: 'Remove the chosen tags', save: 'Save', savedCount: 'Removed {а} of {б}',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
     outName: 'File name', saveAs: 'Will be saved as', rename: 'Change the name', kept: 'kept',
     stripChosen: 'Download without the ticked fields', nothingChosen: 'Nothing is ticked',
@@ -189,8 +189,8 @@ const СЛОВА = {
   es: {
     pick: 'Elegir fotos', hint: 'o arrastre archivos aquí (hasta 20)',
     tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
-    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas · {н}', saveZip: 'Descargar ZIP · {н}',
-    removeInAll: 'Quitar todo · {н}', working: 'Limpiando {а} de {б}…',
+    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas las fotos', saveZip: 'Descargar ZIP: {н} fotos',
+    removeInAll: 'Quitar todo en {н} fotos', doneAll: 'Quitado', working: 'Limpiando {а} de {б}…',
     shoot: 'Hacer una foto',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
     shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
@@ -219,7 +219,7 @@ const СЛОВА = {
     allFields: 'Todas las etiquetas del archivo', counted: 'Etiquetas encontradas: {н}', loadingAll: 'Leyendo todas las etiquetas…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
     dropOne: 'Quitar esta etiqueta', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
-    removePicked: 'Quitar lo elegido', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
+    removePicked: 'Quitar las etiquetas elegidas', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
     outName: 'Nombre del archivo', saveAs: 'Se guardará como', rename: 'Cambiar el nombre', kept: 'conservado',
     stripChosen: 'Descargar sin los campos marcados', nothingChosen: 'No hay nada marcado',
@@ -908,7 +908,9 @@ const заметки = чистим
       if (!кнопка) return;
       const ушло = ответ.querySelectorAll('.эк-ряд-поля.ушло').length;
       кнопка.disabled = ушло === 0;
-      кнопка.textContent = ушло ? `${с.removePicked} · ${ушло}` : с.removePicked;
+      // Со словом, а не голой цифрой: «3» на соседней кнопке -- это снимки, а здесь -- теги,
+      // и рядом два числа без пояснения путали. Владелец на это и указал.
+      кнопка.textContent = ушло ? `${с.removePicked}: ${ушло}` : с.removePicked;
       сказать(ушло ? с.statusPicked.replace('{н}', ушло) : с.statusReady);
     }
 
@@ -1351,10 +1353,14 @@ const заметки = чистим
 
       // Надписи на кнопках говорят, скольких снимков они коснутся.
       const всёСразу = document.getElementById('эк-всё');
+      const готово = снимки.length > 0 && снимки.every((сн) => сн.готовый);
       if (всёСразу) {
-        всёСразу.textContent = снимки.length > 1
-          ? с.removeInAll.replace('{н}', снимки.length)
-          : с.removeAll;
+        // Сделанное дело так и пишется: «Удалено». Звать нажать второй раз, когда убирать уже
+        // нечего, -- значит предлагать пустую работу.
+        всёСразу.textContent = готово
+          ? с.doneAll
+          : (снимки.length > 1 ? с.removeInAll.replace('{н}', снимки.length) : с.removeAll);
+        всёСразу.disabled = готово;
       }
       // КОГДА ЕСТЬ ЧТО СОХРАНЯТЬ, «Сохранить» ВСТАЁТ НА МЕСТО «Удалить выбранное»: два
       // действия разом человеку тут не нужны, а лишняя кнопка в ряду только путает.
