@@ -22,7 +22,7 @@ faq:
   - question: "What about HEIC photos from an iPhone?"
     answer: "They are cleaned the same way. In a HEIC the fields sit as a separate part of the file, and only that part is touched: the fields you keep are written back into the same place and the tail is filled with zeros. The file size does not change and the pixels are not touched at all."
   - question: "How do I check that the data is really gone?"
-    answer: "Open the [EXIF viewer](/en/exif-viewer) and choose the downloaded file — it shows what is left. It is a neighbouring page on this site and works the same way: in your browser."
+    answer: "Open the [photo metadata page](/en/exif-viewer) and choose the downloaded file — it shows what is left. It is a neighbouring page on this site and works the same way: in your browser."
   - question: "Don’t social networks strip metadata themselves?"
     answer: "The big ones do, on upload. But photos often travel elsewhere: by email, as a file in a messenger, to a classifieds board, into a shared folder. There they arrive exactly as they are, with every field."
 related:
@@ -43,4 +43,4 @@ We do not open and re-save the photo — we work on the file. Inside it the pixe
 
 ## How to check the result
 
-Open the downloaded file with the [EXIF viewer](/en/exif-viewer) — it shows everything that is left inside. Both pages work in the browser and send nothing anywhere.
+Open the downloaded file with the [photo metadata page](/en/exif-viewer) — it shows everything that is left inside. Both pages work in the browser and send nothing anywhere.

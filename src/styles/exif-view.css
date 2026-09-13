@@ -143,6 +143,12 @@
 .эк-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 10px }
 .эк-заметка { font: 400 13px/1.65 var(--мон); color: #c9c9d1 }
 .эк-заметка b { color: #fff; font-weight: 400 }
+/* Ссылки в заметках и пояснениях -- цветом сайта, а не тёмно-синим из таблицы браузера:
+   на чёрном фоне синее почти не читается. Владелец на это и указал. */
+.эк-заметка a, .эк-пояснение a, .эк-увод a {
+  color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
+}
+.эк-заметка a:hover, .эк-пояснение a:hover, .эк-увод a:hover { color: var(--accent2, #60efb8) }
 
 @media (max-width: 560px) {
   .эк-поле { height: 180px }

@@ -1,13 +1,13 @@
 ---
 toolSlug: exif-viewer
 locale: en
-category: scanners
-alsoIn: [images]
+category: images
+alsoIn: [scanners]
 tool: exif-viewer
-title: "EXIF viewer online free — see photo data and GPS coordinates"
-h1: "EXIF viewer"
-navName: "EXIF viewer"
-summary: "See what is written inside a photo"
+title: "Photo metadata online — see EXIF, tags and image properties"
+h1: "Photo metadata"
+navName: "Photo metadata"
+summary: "See the EXIF, tags and properties of a photo"
 description: "See the metadata of a photo: the camera, the date, the shutter speed and the coordinates of the place. Free, no sign-up. The file is read in your browser and goes nowhere."
 faq:
   - question: "What is EXIF?"

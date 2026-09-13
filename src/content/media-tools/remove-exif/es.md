@@ -22,7 +22,7 @@ faq:
   - question: "¿Y las fotos HEIC del iPhone?"
     answer: "Se limpian igual. En un HEIC los campos están en una parte aparte del archivo y solo esa se toca: los campos que usted conserva se escriben en el mismo sitio y la cola se rellena con ceros. El tamaño del archivo no cambia y los píxeles no se tocan en absoluto."
   - question: "¿Cómo compruebo que los datos han desaparecido?"
-    answer: "Abra el [visor EXIF](/es/exif-viewer) y elija el archivo descargado: le mostrará lo que queda. Es una página vecina de este mismo sitio y funciona igual, en su navegador."
+    answer: "Abra el [página de metadatos](/es/exif-viewer) y elija el archivo descargado: le mostrará lo que queda. Es una página vecina de este mismo sitio y funciona igual, en su navegador."
   - question: "¿No borran ya las redes sociales los metadatos?"
     answer: "Las grandes sí, al subir la imagen. Pero las fotos viajan a menudo por otros caminos: por correo, como archivo en mensajería, a un tablón de anuncios, a una carpeta compartida. Allí llegan tal cual, con todos sus campos."
 related:
@@ -43,4 +43,4 @@ No abrimos ni volvemos a guardar la foto: trabajamos sobre el archivo. Dentro, l
 
 ## Cómo comprobar el resultado
 
-Abra el archivo descargado con el [visor EXIF](/es/exif-viewer) y verá todo lo que queda dentro. Ambas páginas funcionan en el navegador y no envían nada a ninguna parte.
+Abra el archivo descargado con el [página de metadatos](/es/exif-viewer) y verá todo lo que queda dentro. Ambas páginas funcionan en el navegador y no envían nada a ninguna parte.

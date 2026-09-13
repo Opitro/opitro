@@ -1,13 +1,13 @@
 ---
 toolSlug: exif-viewer
 locale: es
-category: scanners
-alsoIn: [images]
+category: images
+alsoIn: [scanners]
 tool: exif-viewer
-title: "Visor EXIF online gratis — ver los datos de una foto y sus coordenadas"
-h1: "Visor EXIF"
-navName: "Visor EXIF"
-summary: "Ver qué hay escrito dentro de una foto"
+title: "Metadatos de una foto online — ver EXIF, etiquetas y propiedades"
+h1: "Metadatos de foto"
+navName: "Metadatos de foto"
+summary: "Ver el EXIF, las etiquetas y las propiedades de una foto"
 description: "Vea los metadatos de una foto: el modelo, la fecha, la obturación y las coordenadas del lugar. Gratis y sin registro. El archivo se lee en su navegador y no sale de ahí."
 faq:
   - question: "¿Qué es el EXIF?"
