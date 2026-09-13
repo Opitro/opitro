@@ -133,7 +133,7 @@
 .эк-уборка { margin-top: 14px; display: flex; flex-direction: column; gap: 10px }
 .эк-уборка[hidden] { display: none }
 .эк-качать {
-  align-self: flex-start; padding: 12px 22px; cursor: pointer; border-radius: 8px;
+  padding: 12px 22px; cursor: pointer; border-radius: 8px;
   background: var(--accent); border: 1px solid var(--accent); color: #08130d;
   font: 700 14px var(--мон); transition: background .15s, border-color .15s;
 }
@@ -182,12 +182,24 @@
    Каждое поле снимка -- своей строкой с галочкой: человек решает сам, что убрать, а что
    оставить. Замысел владельца: «может, я не хочу удалять всё». */
 .эк-выбор-полей { gap: 2px }
-.эк-ряд-поля { display: grid; grid-template-columns: 18px minmax(0, 170px) minmax(0, 1fr);
-  gap: 4px 10px; align-items: baseline; padding: 3px 0; cursor: pointer;
+.эк-ряд-поля { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr) 32px;
+  gap: 4px 10px; align-items: center; padding: 2px 4px;
   font: 400 12.5px/1.45 var(--мон); border-radius: 6px }
 .эк-ряд-поля:hover { background: rgba(255,255,255,.04) }
-.эк-ряд-поля input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer;
-  align-self: center }
+/* Корзинка у каждой строки: нажал -- поле вычеркнуто из будущего файла, нажал ещё раз --
+   вернулось. Держим её видимой всегда: на телефоне наведения не бывает. */
+.эк-корзина {
+  width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 7px; justify-self: end;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: var(--серый);
+  transition: color .15s, border-color .15s, background .15s;
+}
+.эк-корзина:hover { color: var(--беда, #ff9aa8); border-color: var(--беда, #ff9aa8);
+  background: rgba(255,154,168,.12) }
+.эк-корзина svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
+  stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
+.эк-ряд-поля.ушло .эк-корзина { color: var(--accent); border-color: var(--accent) }
+.эк-ряд-поля.ушло .эк-корзина:hover { background: rgba(74,222,158,.12) }
 .эк-поле-имя { color: var(--accent) }
 .эк-поле-знач { color: #fff; overflow-wrap: anywhere }
 
@@ -203,7 +215,14 @@
 }
 .эк-ряд-поля.осталось { background: rgba(74,222,158,.12) }
 .эк-ряд-поля.осталось .эк-поле-знач { color: var(--accent) }
-.эк-ряд-поля input:disabled { cursor: default }
+/* Две кнопки внизу: «убрать всё» и «скачать». Скачивание -- главное, поэтому оно зелёное. */
+.эк-кнопки { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
+.эк-всё {
+  padding: 12px 18px; cursor: pointer; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
+  font: 400 13px var(--мон); transition: color .15s, border-color .15s, background .15s;
+}
+.эк-всё:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
 
 /* Имя будущего файла: правится прямо в строке, по карандашу. */
 .эк-имя-ряд { display: flex; align-items: center; gap: 8px }

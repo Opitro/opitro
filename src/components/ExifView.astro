@@ -37,8 +37,10 @@ const СЛОВА = {
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл сохранён', statusNone: 'Полей нет — чистить нечего',
-    statusReady: 'Поля найдены. Отметьте, что убрать, и нажмите кнопку',
-    chooseWhat: 'Отметьте, что убрать', keepAll: 'Оставить всё', removeAll: 'Отметить всё',
+    statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Скачать»',
+    statusPicked: 'Уберём полей: {н}. Нажмите «Скачать»',
+    dropOne: 'Убрать это поле', back: 'Вернуть', removeAll: 'Убрать всё', backAll: 'Вернуть всё',
+    willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
     outName: 'Имя файла', rename: 'Изменить имя', kept: 'осталось',
     stripChosen: 'Скачать снимок без отмеченного', nothingChosen: 'Ничего не отмечено',
     gone: 'убрано',
@@ -79,8 +81,10 @@ const СЛОВА = {
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Файл збережено', statusNone: 'Полів немає — чистити нічого',
-    statusReady: 'Поля знайдено. Позначте, що прибрати, і натисніть кнопку',
-    chooseWhat: 'Позначте, що прибрати', keepAll: 'Залишити все', removeAll: 'Позначити все',
+    statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Завантажити»',
+    statusPicked: 'Приберемо полів: {н}. Натисніть «Завантажити»',
+    dropOne: 'Прибрати це поле', back: 'Повернути', removeAll: 'Прибрати все', backAll: 'Повернути все',
+    willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
     outName: 'Імʼя файлу', rename: 'Змінити імʼя', kept: 'лишилося',
     stripChosen: 'Завантажити знімок без позначеного', nothingChosen: 'Нічого не позначено',
     gone: 'прибрано',
@@ -121,8 +125,10 @@ const СЛОВА = {
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
     statusClean: 'Done. File saved', statusNone: 'No fields — nothing to clean',
-    statusReady: 'Fields found. Tick what to remove and press the button',
-    chooseWhat: 'Tick what to remove', keepAll: 'Keep everything', removeAll: 'Tick everything',
+    statusReady: 'Fields found. Bin what you do not want and press Download',
+    statusPicked: 'Will remove {н} field(s). Press Download',
+    dropOne: 'Remove this field', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
+    willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
     outName: 'File name', rename: 'Change the name', kept: 'kept',
     stripChosen: 'Download without the ticked fields', nothingChosen: 'Nothing is ticked',
     gone: 'removed',
@@ -163,8 +169,10 @@ const СЛОВА = {
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
     statusClean: 'Listo. Archivo guardado', statusNone: 'No hay campos: nada que limpiar',
-    statusReady: 'Campos encontrados. Marque qué quitar y pulse el botón',
-    chooseWhat: 'Marque qué quitar', keepAll: 'Conservar todo', removeAll: 'Marcar todo',
+    statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse Descargar',
+    statusPicked: 'Se quitarán {н} campo(s). Pulse Descargar',
+    dropOne: 'Quitar este campo', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
+    willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
     outName: 'Nombre del archivo', rename: 'Cambiar el nombre', kept: 'conservado',
     stripChosen: 'Descargar sin los campos marcados', nothingChosen: 'No hay nada marcado',
     gone: 'quitado',
@@ -209,16 +217,16 @@ const ЗАМЕТКИ = {
 const ЗАМЕТКИ_УБОРКИ = {
   ru: ['<b>Снимок не пережимается.</b> Мы выбрасываем только служебную часть файла, а сами точки остаются теми же байт в байт. Расхожий совет «откройте и пересохраните» так не умеет: каждое пересохранение JPEG съедает качество.',
        '<b>Файл никуда не уходит.</b> Всё происходит в браузере, на вашем устройстве: очищенный снимок собирается здесь же и сразу скачивается.',
-       '<b>Поворот остаётся.</b> Снимку он велит стоять прямо, а о вас не говорит ничего. Убрать и его можно галочкой — но тогда у части программ снимок ляжет набок.'],
+       '<b>Поворот остаётся.</b> Снимку он велит стоять прямо, а о вас не говорит ничего. Убрать и его можно — корзинкой в его строке, — но тогда у части программ снимок ляжет набок.'],
   uk: ['<b>Знімок не перетискається.</b> Ми викидаємо лише службову частину файлу, а самі точки лишаються тими самими байт у байт. Поширена порада «відкрийте і перезбережіть» так не вміє: кожне перезбереження JPEG зʼїдає якість.',
        '<b>Файл нікуди не йде.</b> Усе відбувається у браузері, на вашому пристрої: очищений знімок збирається тут же і одразу завантажується.',
-       '<b>Поворот лишається.</b> Знімку він велить стояти прямо, а про вас не каже нічого. Прибрати і його можна галочкою — але тоді в частині програм знімок ляже набік.'],
+       '<b>Поворот лишається.</b> Знімку він велить стояти прямо, а про вас не каже нічого. Прибрати і його можна — кошиком у його рядку, — але тоді в частині програм знімок ляже набік.'],
   en: ['<b>The photo is not re-encoded.</b> We drop only the service part of the file; the pixels stay the same byte for byte. The common advice “open it and save it again” cannot do that: every JPEG re-save eats quality.',
        '<b>The file goes nowhere.</b> Everything happens in the browser, on your device: the cleaned photo is assembled right here and downloaded straight away.',
-       '<b>The rotation stays.</b> It tells the picture to stand upright and says nothing about you. You can drop it too with the checkbox — but then some programs will show the photo sideways.'],
+       '<b>The rotation stays.</b> It tells the picture to stand upright and says nothing about you. You can drop it too — with the bin in its own row — but then some programs will show the photo sideways.'],
   es: ['<b>La foto no se vuelve a comprimir.</b> Quitamos solo la parte de servicio del archivo; los píxeles quedan iguales byte a byte. El consejo habitual de «ábrala y vuelva a guardarla» no sabe hacer eso: cada reguardado de JPEG se come calidad.',
        '<b>El archivo no sale de aquí.</b> Todo ocurre en el navegador, en su dispositivo: la foto limpia se monta aquí mismo y se descarga al instante.',
-       '<b>El giro se conserva.</b> Le dice a la imagen que se vea derecha y no dice nada de usted. Puede quitarlo también con la casilla, pero entonces algunos programas mostrarán la foto tumbada.'],
+       '<b>El giro se conserva.</b> Le dice a la imagen que se vea derecha y no dice nada de usted. Puede quitarlo también con la papelera de su fila, pero entonces algunos programas mostrarán la foto tumbada.'],
 };
 
 const с = СЛОВА[locale] || СЛОВА.ru;
@@ -277,7 +285,10 @@ const заметки = чистим
 
   {чистим && (
     <div class="эк-уборка" id="эк-уборка" hidden>
-      <button type="button" class="эк-качать" id="эк-качать">{с.strip}</button>
+      <div class="эк-кнопки">
+        <button type="button" class="эк-всё" id="эк-всё">{с.removeAll}</button>
+        <button type="button" class="эк-качать" id="эк-качать" disabled>{с.download}</button>
+      </div>
       <p class="эк-мелко">{с.lossless}</p>
     </div>
   )}
@@ -472,7 +483,21 @@ const заметки = чистим
         .filter((г) => г.строки.length);
     }
 
-    /** Список полей группы с галочкой «убрать» у каждой строки. */
+    const ЗН_КОРЗИНА = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M4 7h16"/><path d="M10 11v6M14 11v6"/>'
+      + '<path d="M6 7l1 12a2 2 0 0 0 2 2h6a2 2 0 0 0 2-2l1-12"/>'
+      + '<path d="M9 7V5a1 1 0 0 1 1-1h4a1 1 0 0 1 1 1v2"/></svg>';
+    const ЗН_ВЕРНУТЬ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
+      + '<path d="M9 14l-5-5 5-5"/><path d="M4 9h9a7 7 0 0 1 0 14h-3"/></svg>';
+
+    /**
+     * Строка поля с КОРЗИНКОЙ. Нажал -- поле вычеркнуто из будущего файла, корзинка сменилась
+     * стрелкой возврата. Исходник на диске при этом не трогается вовсе: мы собираем новый
+     * файл, и «убрать» здесь значит «не переносить».
+     *
+     * Возврат обязателен: без него двенадцать корзинок подряд страшно нажимать, а ошибиться
+     * легко -- строки похожи.
+     */
     function списокСВыбором(группа) {
       const ящик = document.createElement('div');
       ящик.className = 'эк-итог эк-выбор-полей';
@@ -481,25 +506,62 @@ const заметки = чистим
       шапка.textContent = группа.имя;
       ящик.appendChild(шапка);
       for (const стр of группа.строки) {
-        const ряд = document.createElement('label');
+        const ряд = document.createElement('div');
         ряд.className = 'эк-ряд-поля';
         ряд.dataset.ключ = стр.ключ;
-        const птица = document.createElement('input');
-        птица.type = 'checkbox';
-        // Поворот по умолчанию НЕ убираем: без него снимок ляжет набок, а о человеке он
-        // не говорит ничего. Всё остальное отмечено -- человек пришёл убирать.
-        птица.checked = стр.ключ !== '0:' + ПОЛЯ.orientation;
-        птица.addEventListener('change', обновитьКнопку);
         const имя = document.createElement('span');
         имя.className = 'эк-поле-имя';
         имя.textContent = стр.имя;
         const знач = document.createElement('span');
         знач.className = 'эк-поле-знач';
         знач.textContent = стр.знач;
-        ряд.append(птица, имя, знач);
+        const кнопка = document.createElement('button');
+        кнопка.type = 'button';
+        кнопка.className = 'эк-корзина';
+        кнопка.innerHTML = ЗН_КОРЗИНА;
+        кнопка.title = с.dropOne;
+        кнопка.setAttribute('aria-label', с.dropOne);
+        кнопка.addEventListener('click', () => переключить(ряд));
+        ряд.append(имя, знач, кнопка);
         ящик.appendChild(ряд);
       }
       return ящик;
+    }
+
+    /** Вычеркнуть поле или вернуть его обратно. */
+    function переключить(ряд) {
+      const убрано = ряд.classList.toggle('ушло');
+      const кнопка = ряд.querySelector('.эк-корзина');
+      кнопка.innerHTML = убрано ? ЗН_ВЕРНУТЬ : ЗН_КОРЗИНА;
+      кнопка.title = убрано ? с.back : с.dropOne;
+      кнопка.setAttribute('aria-label', убрано ? с.back : с.dropOne);
+      ряд.querySelector('.эк-поле-знач').dataset.подпись = убрано ? с.willGo : '';
+      обновитьКнопку();
+    }
+
+    /** Кнопка говорит, сколько уберёт: нажимать вслепую человек не должен. */
+    function обновитьКнопку() {
+      const кнопка = $('эк-качать');
+      if (!кнопка) return;
+      const ушло = ответ.querySelectorAll('.эк-ряд-поля.ушло').length;
+      кнопка.disabled = ушло === 0;
+      кнопка.textContent = ушло ? `${с.download} · ${с.willGo} ${ушло}` : с.download;
+      const всёСняли = $('эк-всё');
+      if (всёСняли) всёСняли.textContent = ушло > 0 ? с.backAll : с.removeAll;
+      сказать(ушло ? с.statusPicked.replace('{н}', ушло) : с.statusReady);
+    }
+
+    /** «Убрать всё» -- кроме поворота: без него снимок ляжет набок, а о человеке он молчит. */
+    function убратьВсё() {
+      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')];
+      const ушло = ряды.filter((р) => р.classList.contains('ушло')).length;
+      const вернуть = ушло > 0;
+      for (const р of ряды) {
+        const поворот = р.dataset.ключ === '0:' + ПОЛЯ.orientation;
+        const надо = вернуть ? false : !поворот;
+        if (р.classList.contains('ушло') !== надо) переключить(р);
+      }
+      обновитьКнопку();
     }
 
     const ЗН_КАРАНДАШ = '<svg viewBox="0 0 24 24" aria-hidden="true">'
@@ -542,15 +604,6 @@ const заметки = чистим
     function имяФайла() {
       const поле = document.getElementById('эк-имя');
       return поле ? поле.value : '';
-    }
-
-    /** Сколько отмечено -- столько и уберём; ничего не отмечено -- кнопка молчит. */
-    function обновитьКнопку() {
-      const кнопка = $('эк-качать');
-      if (!кнопка) return;
-      const отмечено = ответ.querySelectorAll('.эк-ряд-поля input:checked').length;
-      кнопка.disabled = отмечено === 0;
-      кнопка.textContent = отмечено ? с.stripChosen : с.nothingChosen;
     }
 
     /**
@@ -613,7 +666,7 @@ const заметки = чистим
         for (const к of карточки) if (к) ответ.appendChild(к);
         for (const группа of перечислитьПоля(разбор)) ответ.appendChild(списокСВыбором(группа));
         $('эк-уборка').hidden = false;
-        обновитьКнопку();
+        обновитьКнопку();          // ничего заранее не вычёркиваем: решает человек
         // РАБОТА НЕ НАЧИНАЕТСЯ САМА. Сначала я так и сделал -- по заданию владельца
         // «скачивание без кнопки», -- и на живой странице это оказалось самоуправством:
         // человек только выбрал снимок, а браузер уже спрашивает, куда сохранять, хотя
@@ -869,8 +922,7 @@ const заметки = чистим
      */
     async function убратьИОтдать() {
       if (!последнийФайл) return;
-      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')]
-        .filter((р) => р.querySelector('input').checked);
+      const ряды = [...ответ.querySelectorAll('.эк-ряд-поля.ушло')];
       if (!ряды.length) return;
       const ключи = [];
       for (const р of ряды) ключи.push(...р.dataset.ключ.split('|'));
@@ -902,17 +954,22 @@ const заметки = чистим
         // сбережено. Двигается только цвет и прозрачность -- макет стоит на месте.
         поле.classList.add('сделано');
         setTimeout(() => поле.classList.remove('сделано'), 900);
+        // Убранное уже перечёркнуто -- теперь на миг вспыхивает ОСТАВЛЕННОЕ: видно не только
+        // что ушло, но и что сбережено.
         let шаг = 0;
         for (const р of ответ.querySelectorAll('.эк-ряд-поля')) {
-          const птица = р.querySelector('input');
-          const убрали = птица.checked;
-          const задержка = 60 + шаг * 90;
+          const убрали = р.classList.contains('ушло');
+          const задержка = 60 + шаг * 80;
           шаг++;
           setTimeout(() => {
-            р.classList.add(убрали ? 'ушло' : 'осталось');
             р.querySelector('.эк-поле-знач').dataset.подпись = убрали ? с.gone : с.kept;
-            птица.disabled = true;
-            if (!убрали) setTimeout(() => р.classList.remove('осталось'), 1200);
+            if (!убрали) {
+              р.classList.add('осталось');
+              setTimeout(() => {
+                р.classList.remove('осталось');
+                р.querySelector('.эк-поле-знач').dataset.подпись = '';
+              }, 1400);
+            }
           }, задержка);
         }
 
@@ -937,7 +994,10 @@ const заметки = чистим
       }
     }
 
-    if (чистим) $('эк-качать').addEventListener('click', убратьИОтдать);
+    if (чистим) {
+      $('эк-качать').addEventListener('click', убратьИОтдать);
+      $('эк-всё').addEventListener('click', убратьВсё);
+    }
 
     window.__экСостояние = () => ({
       снимокВиден: !снимок.hidden,
