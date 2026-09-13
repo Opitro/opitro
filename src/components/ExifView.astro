@@ -20,7 +20,10 @@ const { locale = 'ru', режим = 'смотреть' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    pick: 'Выбрать снимок', hint: 'или перетащите файл сюда, или вставьте через Ctrl+V',
+    pick: 'Выбрать снимки', hint: 'или перетащите файлы сюда (до 20)',
+    tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
+    filesLoaded: 'Снимков: {б} · открыт {а}-й', saveAll: 'Сохранить все · {н}',
+    removeInAll: 'Удалить всё · {н}', working: 'Убираю {а} из {б}…',
     shoot: 'Сделать фото', shootHint: 'Снимок с камеры телефона приходит со всеми полями — можно проверить свой телефон прямо сейчас',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
     shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
@@ -73,7 +76,10 @@ const СЛОВА = {
     mm: 'мм', m: 'м', sec: 'с', deg: '°',
   },
   uk: {
-    pick: 'Вибрати знімок', hint: 'або перетягніть файл сюди, або вставте через Ctrl+V',
+    pick: 'Вибрати знімки', hint: 'або перетягніть файли сюди (до 20)',
+    tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
+    filesLoaded: 'Знімків: {б} · відкритий {а}-й', saveAll: 'Зберегти всі · {н}',
+    removeInAll: 'Видалити все · {н}', working: 'Прибираю {а} з {б}…',
     shoot: 'Зробити фото', shootHint: 'Знімок з камери телефона приходить з усіма полями — можна перевірити свій телефон просто зараз',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
     shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
@@ -126,7 +132,10 @@ const СЛОВА = {
     mm: 'мм', m: 'м', sec: 'с', deg: '°',
   },
   en: {
-    pick: 'Choose a photo', hint: 'or drop a file here, or paste with Ctrl+V',
+    pick: 'Choose photos', hint: 'or drop files here (up to 20)',
+    tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
+    filesLoaded: 'Photos: {б} · showing {а}', saveAll: 'Save all · {н}',
+    removeInAll: 'Remove everything · {н}', working: 'Cleaning {а} of {б}…',
     shoot: 'Take a photo', shootHint: 'A shot from the phone camera arrives with all its fields — you can check your own phone right now',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
     shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
@@ -178,7 +187,10 @@ const СЛОВА = {
     mm: 'mm', m: 'm', sec: 's', deg: '°',
   },
   es: {
-    pick: 'Elegir una foto', hint: 'o arrastre un archivo aquí, o péguelo con Ctrl+V',
+    pick: 'Elegir fotos', hint: 'o arrastre archivos aquí (hasta 20)',
+    tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
+    filesLoaded: 'Fotos: {б} · abierta la {а}', saveAll: 'Guardar todas · {н}',
+    removeInAll: 'Quitar todo · {н}', working: 'Limpiando {а} de {б}…',
     shoot: 'Hacer una foto', shootHint: 'Una foto hecha con la cámara del teléfono llega con todos sus campos: puede comprobar su propio teléfono ahora mismo',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
     shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
@@ -1153,8 +1165,16 @@ const заметки = чистим
     }
 
     /** Принять один или несколько файлов: складываем в список и открываем первый новый. */
+    const ПРЕДЕЛ = 20;
+
     async function взятьФайлы(список) {
-      const годные = [...(список || [])].filter((ф) => ф && ф.size);
+      let годные = [...(список || [])].filter((ф) => ф && ф.size);
+      if (!годные.length) return;
+      // Предел не выдуман: каждый снимок держится в памяти целиком, и два десятка
+      // двенадцатимегапиксельных файлов -- это уже сотня мегабайт. Больше берём молча не
+      // станем: лучше сказать прямо, чем уронить вкладку на телефоне.
+      const место = Math.max(0, ПРЕДЕЛ - снимки.length);
+      if (годные.length > место) { годные = годные.slice(0, место); беда(с.tooMany); }
       if (!годные.length) return;
       const былоСколько = снимки.length;
       for (const ф of годные) {
@@ -1224,6 +1244,22 @@ const заметки = чистим
       if (номер) {
         номер.hidden = !много;
         номер.textContent = с.ofAll.replace('{а}', текущий + 1).replace('{б}', снимки.length);
+      }
+      // Счёт снимков говорим и словами: значок на кадре маленький, а строку состояния человек
+      // читает. Владелец: «нет понятия, что загружено 5 файлов».
+      if (много && чистим) {
+        сказать(с.filesLoaded.replace('{а}', текущий + 1).replace('{б}', снимки.length));
+      }
+      const всёСразу = document.getElementById('эк-всё');
+      if (всёСразу) {
+        всёСразу.textContent = много
+          ? с.removeInAll.replace('{н}', снимки.length)
+          : с.removeAll;
+      }
+      const сохранить = document.getElementById('эк-сохранить');
+      if (сохранить) {
+        const готовых = снимки.filter((сн) => сн.готовый).length;
+        сохранить.textContent = готовых > 1 ? с.saveAll.replace('{н}', готовых) : с.save;
       }
     }
 
@@ -1360,6 +1396,7 @@ const заметки = чистим
         полоса(100);
         готовыйФайл = итог;
         if (снимки[текущий]) снимки[текущий].готовый = итог;
+        обновитьЛисталку();
 
         // Считаем ПО ФАКТУ, перечитывая готовый файл тем же разборщиком, что считал до
         // уборки: иначе числа «до» и «после» меряны разными линейками.
@@ -1426,10 +1463,36 @@ const заметки = чистим
     }
 
     /** СОХРАНИТЬ -- отдать готовый файл на устройство. Имя берём из строки с карандашом. */
-    function сохранить() {
+    async function сохранить() {
+      const готовые = снимки.filter((сн) => сн.готовый && сн.готовый.байты);
+      // НЕСКОЛЬКО СНИМКОВ -- ОДНИМ АРХИВОМ. Двадцать отдельных скачиваний браузер либо
+      // заблокирует, либо человек утонет в окне загрузок.
+      if (готовые.length > 1) {
+        const кнопка = document.getElementById('эк-сохранить');
+        const прежнее = кнопка.textContent;
+        кнопка.disabled = true;
+        кнопка.textContent = с.stripping;
+        try {
+          const { default: JSZip } = await import('jszip');
+          const архив = new JSZip();
+          for (const сн of готовые) {
+            архив.file('no-exif_' + сн.файл.name, сн.готовый.байты);
+          }
+          const капля = await архив.generateAsync({ type: 'blob' });
+          отдать(капля, 'no-exif_' + готовые.length + '.zip');
+        } catch (е) { беда(с.cantStrip); }
+        кнопка.disabled = false;
+        кнопка.textContent = прежнее;
+        return;
+      }
       if (!готовыйФайл || !готовыйФайл.байты) return;
       const имя = (имяФайла() || ('no-exif_' + последнийФайл.name)).trim();
-      const капля = new Blob([готовыйФайл.байты], { type: последнийФайл.type || 'image/jpeg' });
+      отдать(new Blob([готовыйФайл.байты], { type: последнийФайл.type || 'image/jpeg' }), имя);
+      сказать(с.statusClean);
+    }
+
+    /** Отдать готовое на устройство. Адрес отпускаем не сразу: браузеру нужно время. */
+    function отдать(капля, имя) {
       const адрес = URL.createObjectURL(капля);
       const ссылка = document.createElement('a');
       ссылка.href = адрес;
@@ -1438,13 +1501,55 @@ const заметки = чистим
       ссылка.click();
       ссылка.remove();
       setTimeout(() => URL.revokeObjectURL(адрес), 4000);
-      сказать(с.statusClean);
     }
 
     if (чистим) {
       $('эк-качать').addEventListener('click', () => убрать(false));   // удалить выбранное
-      $('эк-всё').addEventListener('click', () => убрать(true));       // удалить всё
+      $('эк-всё').addEventListener('click', убратьВезде);              // удалить всё
       $('эк-сохранить').addEventListener('click', сохранить);
+    }
+
+    /**
+     * «Удалить всё» по ВСЕМ снимкам сразу. Человек принёс пять фотографий не затем, чтобы
+     * пять раз нажимать одно и то же.
+     *
+     * Открытый снимок чистим показом -- с перечёркиванием и счётчиком, -- а остальные молча,
+     * тем же правилом: всё, кроме поворота и цветового профиля. По ходу пишем, на каком из
+     * них сейчас работаем: на десятке снимков это не мгновение.
+     */
+    async function убратьВезде() {
+      if (снимки.length < 2) { await убрать(true); return; }
+      const кнопка = $('эк-всё');
+      кнопка.disabled = true;
+      for (let i = 0; i < снимки.length; i++) {
+        const сн = снимки[i];
+        сказать(с.working.replace('{а}', i + 1).replace('{б}', снимки.length));
+        полоса(Math.round(((i + 1) / снимки.length) * 100));
+        if (i === текущий) { await убрать(true); continue; }
+        if (!сн.буфер) сн.буфер = await сн.файл.arrayBuffer();
+        let разбор;
+        try { разбор = разобратьExif(сн.буфер); } catch (е) { разбор = { есть: false }; }
+        if (!разбор.есть) continue;
+        const ключи = [];
+        for (const [карта, метка] of [[разбор.основные, '0'], [разбор.снимка, 'exif'], [разбор.gps, 'gps']]) {
+          for (const з of (карта && карта.сырые) || []) {
+            if (метка === '0' && з.номер === ПОЛЯ.orientation) continue;   // поворот бережём
+            ключи.push(метка + ':' + з.номер);
+          }
+        }
+        // Целые куски -- те же, что и у открытого снимка: заметки и подписи уходят, цветовой
+        // профиль остаётся.
+        ключи.push('блок:xmp', 'блок:iptc', 'блок:comment', 'блок:other', 'блок:thumb');
+        try {
+          const итог = убратьПоля(сн.буфер, ключи);
+          if (итог.вышло) сн.готовый = итог;
+        } catch (е) { /* один снимок не поддался -- остальные не виноваты */ }
+      }
+      кнопка.disabled = false;
+      обновитьЛисталку();
+      const низ = document.getElementById('эк-низ');
+      if (низ) низ.hidden = false;
+      сказать(с.statusClean);
     }
 
     // ---- Передача снимка соседней странице ---------------------------------------------------
