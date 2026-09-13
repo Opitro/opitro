@@ -33,9 +33,11 @@
 /* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]. */
 .эк-поле img[hidden] { display: none }
 
-/* Плитка выбора: одна, камеры здесь нет. Значок и подпись под ним -- как у сканеров кодов. */
+/* Плитки выбора: готовый файл и -- на телефоне -- съёмка родной камерой. Значок и подпись
+   под ним, как у сканеров кодов. */
 .эк-центр { position: relative; display: flex; flex-direction: column; align-items: center;
   gap: 10px; padding: 0 16px; text-align: center }
+.эк-ряд { display: flex; align-items: stretch; justify-content: center; gap: 14px }
 .эк-центр[hidden] { display: none }
 .эк-выбор {
   width: 140px; padding: 16px 10px 14px; cursor: pointer; border-radius: 8px;
@@ -44,11 +46,15 @@
   font: 400 13px var(--мон);
   transition: border-color .15s, background .15s, transform .12s;
 }
+/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ: display из этих правил сильнее, чем display:none из таблицы
+   браузера для [hidden]. Без этой строки плитка съёмки оставалась видна и на компьютере,
+   где снимать нечем. Ловушка та же, что уже ловила на сканерах кодов и цвета. */
+.эк-выбор[hidden] { display: none }
 .эк-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
 .эк-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 .эк-выбор svg { width: 34px; height: 34px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.3; stroke-linecap: round; stroke-linejoin: round }
-.эк-подсказка { font: 400 12px var(--мон); color: var(--серый) }
+.эк-подсказка { font: 400 12px/1.5 var(--мон); color: var(--серый); max-width: 380px }
 
 .эк-крест {
   position: absolute; top: 8px; right: 8px; z-index: 2;

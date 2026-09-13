@@ -17,6 +17,7 @@ const { locale = 'ru' } = Astro.props;
 const СЛОВА = {
   ru: {
     pick: 'Выбрать снимок', hint: 'или перетащите файл сюда, или вставьте через Ctrl+V',
+    shoot: 'Сделать фото', shootHint: 'Снимок с камеры телефона приходит со всеми полями — можно проверить свой телефон прямо сейчас',
     clear: 'Убрать',
     shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
     showAll: 'Показать все поля', hideAll: 'Скрыть остальные поля',
@@ -42,6 +43,7 @@ const СЛОВА = {
   },
   uk: {
     pick: 'Вибрати знімок', hint: 'або перетягніть файл сюди, або вставте через Ctrl+V',
+    shoot: 'Зробити фото', shootHint: 'Знімок з камери телефона приходить з усіма полями — можна перевірити свій телефон просто зараз',
     clear: 'Прибрати',
     shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
     showAll: 'Показати всі поля', hideAll: 'Сховати інші поля',
@@ -67,6 +69,7 @@ const СЛОВА = {
   },
   en: {
     pick: 'Choose a photo', hint: 'or drop a file here, or paste with Ctrl+V',
+    shoot: 'Take a photo', shootHint: 'A shot from the phone camera arrives with all its fields — you can check your own phone right now',
     clear: 'Clear',
     shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
     showAll: 'Show every field', hideAll: 'Hide the other fields',
@@ -91,6 +94,7 @@ const СЛОВА = {
   },
   es: {
     pick: 'Elegir una foto', hint: 'o arrastre un archivo aquí, o péguelo con Ctrl+V',
+    shoot: 'Hacer una foto', shootHint: 'Una foto hecha con la cámara del teléfono llega con todos sus campos: puede comprobar su propio teléfono ahora mismo',
     clear: 'Quitar',
     shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
     showAll: 'Mostrar todos los campos', hideAll: 'Ocultar los demás campos',
@@ -140,20 +144,37 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
   <div class="эк-поле" id="эк-поле">
     <img id="эк-снимок" hidden alt="" />
     <span class="эк-центр" id="эк-центр">
-      <button type="button" class="эк-выбор" id="эк-выбрать" title={с.pick} aria-label={с.pick}>
-        <svg viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="5" width="18" height="14" rx="2"/>
-          <circle cx="8.5" cy="10" r="1.6"/>
-          <path d="M21 16l-5-5-5 5-2-2-5 5"/>
-        </svg>
-        <span>{с.pick}</span>
-      </button>
-      <span class="эк-подсказка">{с.hint}</span>
+      <span class="эк-ряд">
+        <button type="button" class="эк-выбор" id="эк-выбрать" title={с.pick} aria-label={с.pick}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="5" width="18" height="14" rx="2"/>
+            <circle cx="8.5" cy="10" r="1.6"/>
+            <path d="M21 16l-5-5-5 5-2-2-5 5"/>
+          </svg>
+          <span>{с.pick}</span>
+        </button>
+        {/* Плитка съёмки видна ТОЛЬКО на телефоне и планшете: на компьютере «сделать фото»
+            открыло бы тот же выбор файла -- обещание без содержания. Показывает её сам
+            скрипт, посмотрев на устройство. */}
+        <button type="button" class="эк-выбор" id="эк-снять" hidden title={с.shoot} aria-label={с.shoot}>
+          <svg viewBox="0 0 24 24" aria-hidden="true">
+            <path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .8-.4l1-1.3a1 1 0 0 1 .8-.4h4.4a1 1 0 0 1 .8.4l1 1.3a1 1 0 0 0 .8.4h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/>
+            <circle cx="12" cy="12.5" r="3.6"/>
+          </svg>
+          <span>{с.shoot}</span>
+        </button>
+      </span>
+      <span class="эк-подсказка" id="эк-подсказка">{с.hint}</span>
     </span>
     <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
     <input type="file" class="эк-файл" id="эк-файл" accept="image/*" />
+    {/* ОТДЕЛЬНОЕ ПОЛЕ ДЛЯ СЪЁМКИ. capture просит браузер открыть не список файлов, а родное
+        приложение камеры -- снимок приходит настоящим файлом, со всеми полями, которые
+        записал сам телефон. Камерой в браузере (getUserMedia) так сделать нельзя: кадр
+        рисуется на холст, а холст полей не несёт вовсе, и человек получил бы «полей нет». */}
+    <input type="file" class="эк-файл" id="эк-съёмка" accept="image/*" capture="environment" />
   </div>
 
   <div class="эк-ответ" id="эк-ответ"></div>
@@ -464,10 +485,24 @@ const заметки = ЗАМЕТКИ[locale] || ЗАМЕТКИ.ru;
       ответ.innerHTML = '';
       беда('');
       выбор.value = '';
+      $('эк-съёмка').value = '';
       if (адресСнимка) { URL.revokeObjectURL(адресСнимка); адресСнимка = null; }
     }
 
     $('эк-выбрать').addEventListener('click', (е) => { е.stopPropagation(); выбор.click(); });
+    // СЪЁМКА -- ТОЛЬКО ТАМ, ГДЕ ЕСТЬ ЧТО ОТКРЫВАТЬ. Признак не «телефон» по названию браузера
+    // (оно врёт), а грубое указание -- палец вместо мыши -- вместе с наличием камеры.
+    const съёмка = $('эк-съёмка');
+    const кнопкаСъёмки = $('эк-снять');
+    const пальцем = window.matchMedia && window.matchMedia('(pointer: coarse)').matches;
+    if (пальцем && navigator.mediaDevices) {
+      кнопкаСъёмки.hidden = false;
+      $('эк-подсказка').textContent = с.shootHint;
+      кнопкаСъёмки.addEventListener('click', (е) => { е.stopPropagation(); съёмка.click(); });
+      съёмка.addEventListener('change', () => {
+        if (съёмка.files && съёмка.files[0]) взятьФайл(съёмка.files[0]);
+      });
+    }
     крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
     выбор.addEventListener('change', () => { if (выбор.files && выбор.files[0]) взятьФайл(выбор.files[0]); });
 
