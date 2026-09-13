@@ -50,7 +50,7 @@ const СЛОВА = {
     countBefore: 'Было тегов', countAfter: 'Осталось тегов', countGone: 'Убрано',
     allFields: 'Все теги файла', counted: 'Найдено тегов: {н}', loadingAll: 'Читаю все теги…',
     groups: { exif: 'Съёмка и камера', gps: 'Место съёмки', xmp: 'Заметки XMP', iptc: 'Подписи IPTC', icc: 'Цветовой профиль', file: 'Файл', thumb: 'Встроенная миниатюра', maker: 'Заметки производителя', other: 'Прочее' },
-    dropOne: 'Убрать этот тег', back: 'Вернуть', removeAll: 'Удалить всё', backAll: 'Вернуть всё',
+    dropOne: 'Убрать этот тег', back: 'Вернуть', removeAll: 'Удалить все теги', backAll: 'Вернуть всё',
     removePicked: 'Удалить выбранные теги', save: 'Сохранить', savedCount: 'Убрано {а} из {б}',
     willGo: 'убрано', download: 'Скачать снимок', nothingYet: 'Нажмите корзинку у поля, которое хотите убрать',
     outName: 'Имя файла', saveAs: 'Сохраним под именем', rename: 'Изменить имя', kept: 'осталось',
@@ -106,7 +106,7 @@ const СЛОВА = {
     countBefore: 'Було тегів', countAfter: 'Лишилося тегів', countGone: 'Прибрано',
     allFields: 'Усі теги файлу', counted: 'Знайдено тегів: {н}', loadingAll: 'Читаю всі теги…',
     groups: { exif: 'Зйомка й камера', gps: 'Місце зйомки', xmp: 'Нотатки XMP', iptc: 'Підписи IPTC', icc: 'Кольоровий профіль', file: 'Файл', thumb: 'Вбудована мініатюра', maker: 'Нотатки виробника', other: 'Інше' },
-    dropOne: 'Прибрати цей тег', back: 'Повернути', removeAll: 'Видалити все', backAll: 'Повернути все',
+    dropOne: 'Прибрати цей тег', back: 'Повернути', removeAll: 'Видалити всі теги', backAll: 'Повернути все',
     removePicked: 'Видалити вибрані теги', save: 'Зберегти', savedCount: 'Прибрано {а} з {б}',
     willGo: 'прибрано', download: 'Завантажити знімок', nothingYet: 'Натисніть кошик біля поля, яке хочете прибрати',
     outName: 'Імʼя файлу', saveAs: 'Збережемо під іменем', rename: 'Змінити імʼя', kept: 'лишилося',
@@ -162,7 +162,7 @@ const СЛОВА = {
     countBefore: 'Tags before', countAfter: 'Tags left', countGone: 'Removed',
     allFields: 'Every tag in the file', counted: 'Tags found: {н}', loadingAll: 'Reading every tag…',
     groups: { exif: 'Shot and camera', gps: 'Place', xmp: 'XMP notes', iptc: 'IPTC captions', icc: 'Colour profile', file: 'File', thumb: 'Embedded thumbnail', maker: 'Maker notes', other: 'Other' },
-    dropOne: 'Remove this tag', back: 'Put back', removeAll: 'Remove everything', backAll: 'Put everything back',
+    dropOne: 'Remove this tag', back: 'Put back', removeAll: 'Remove all tags', backAll: 'Put everything back',
     removePicked: 'Remove the chosen tags', save: 'Save', savedCount: 'Removed {а} of {б}',
     willGo: 'removed', download: 'Download the photo', nothingYet: 'Press the bin next to a field you want gone',
     outName: 'File name', saveAs: 'Will be saved as', rename: 'Change the name', kept: 'kept',
@@ -218,7 +218,7 @@ const СЛОВА = {
     countBefore: 'Etiquetas antes', countAfter: 'Etiquetas restantes', countGone: 'Quitados',
     allFields: 'Todas las etiquetas del archivo', counted: 'Etiquetas encontradas: {н}', loadingAll: 'Leyendo todas las etiquetas…',
     groups: { exif: 'Disparo y cámara', gps: 'Lugar', xmp: 'Notas XMP', iptc: 'Pies IPTC', icc: 'Perfil de color', file: 'Archivo', thumb: 'Miniatura incrustada', maker: 'Notas del fabricante', other: 'Otros' },
-    dropOne: 'Quitar esta etiqueta', back: 'Devolver', removeAll: 'Quitar todo', backAll: 'Devolver todo',
+    dropOne: 'Quitar esta etiqueta', back: 'Devolver', removeAll: 'Quitar todas las etiquetas', backAll: 'Devolver todo',
     removePicked: 'Quitar las etiquetas elegidas', save: 'Guardar', savedCount: 'Quitados {а} de {б}',
     willGo: 'quitado', download: 'Descargar la foto', nothingYet: 'Pulse la papelera junto al campo que quiera quitar',
     outName: 'Nombre del archivo', saveAs: 'Se guardará como', rename: 'Cambiar el nombre', kept: 'conservado',
@@ -1355,12 +1355,14 @@ const заметки = чистим
       const всёСразу = document.getElementById('эк-всё');
       const готово = снимки.length > 0 && снимки.every((сн) => сн.готовый);
       if (всёСразу) {
-        // Сделанное дело так и пишется: «Удалено». Звать нажать второй раз, когда убирать уже
-        // нечего, -- значит предлагать пустую работу.
-        всёСразу.textContent = готово
-          ? с.doneAll
-          : (снимки.length > 1 ? с.removeInAll.replace('{н}', снимки.length) : с.removeAll);
+        // Просто «Удалить всё»: число снимков на кнопке путало -- рядом стоит число тегов, и
+        // непонятно, чего именно столько. Сделанное дело пишется «Удалено», и нажимать
+        // второй раз незачем.
+        всёСразу.textContent = готово ? с.doneAll : с.removeAll;
         всёСразу.disabled = готово;
+        // ШИРИНУ ЗАПОМИНАЕМ ЗАРАНЕЕ: «Удалено» короче «Удалить всё», и без этого кнопка
+        // съёживалась, а соседняя прыгала за ней. Смещений на сайте не бывает.
+        if (!готово) всёСразу.style.minWidth = Math.ceil(всёСразу.offsetWidth) + 'px';
       }
       // КОГДА ЕСТЬ ЧТО СОХРАНЯТЬ, «Сохранить» ВСТАЁТ НА МЕСТО «Удалить выбранное»: два
       // действия разом человеку тут не нужны, а лишняя кнопка в ряду только путает.
