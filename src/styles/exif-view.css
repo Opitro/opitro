@@ -30,8 +30,8 @@
   transition: border-color .2s, background .2s;
 }
 .эк-поле.держат { border-color: #fff; background: #111114 }
-.эк-поле.прочитано { border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px rgba(74,222,158,.35), 0 0 28px rgba(74,222,158,.18) }
+/* Зелёной вспышки окна больше нет: решение владельца. Отклик даёт сама кнопка, по которой
+   нажали, -- а мигать целым экраном при каждом действии утомительно. */
 
 .эк-поле img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
@@ -200,20 +200,15 @@
 .эк-полоса { position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: #fff;
   transition: width .45s ease-out; opacity: 0 }
 .эк-полоса.идёт { opacity: 1 }
-.эк-поле.сделано { border-color: #fff }
 
-.эк-статус { margin-top: 12px; display: flex; gap: 14px; align-items: baseline;
-  border-top: 1px solid #222; border-bottom: 1px solid #222; padding: 9px 2px }
-.эк-статус-имя { flex: none; min-width: 74px; font: 400 12.5px var(--мон); color: var(--серый) }
-.эк-статус-знач { font: 400 13px/1.5 var(--мон); color: #fff; min-width: 0 }
-/* Счёт -- зелёным и первым: сколько снимков открыто и сколько в нынешнем полей. */
-.эк-счёт-строка { color: var(--accent); font-weight: 400 }
-.эк-счёт-строка:not(:empty)::after { content: ' · '; color: var(--серый) }
-@media (max-width: 560px) {
-  /* На узком экране подпись «Статус» уходит наверх: иначе значению остаётся полполоски. */
-  .эк-статус { flex-direction: column; gap: 3px }
-  .эк-статус-имя { min-width: 0 }
-}
+
+/* ПОДПОЛЬЕ -- строка прямо под снимком: сперва счёт зелёным, следом -- что делать дальше.
+   Слова «Статус» нет: подпись занимала место и ничего не добавляла. */
+.эк-подпол { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 10px;
+  align-items: baseline; padding: 2px }
+.эк-счёт-строка { color: var(--accent); font: 400 13px/1.5 var(--мон) }
+.эк-состояние { font: 400 13px/1.5 var(--мон); color: #fff; min-width: 0 }
+.эк-состояние:empty { display: none }
 
 /* Вычеркнутое: по завершении убранные поля гаснут и перечёркиваются -- одно за другим, так
    что видно, ЧТО именно ушло. Место они занимают прежнее, ничего не съезжает. */
@@ -322,6 +317,8 @@
   transition: background .15s, border-color .15s;
 }
 .эк-стрелка:hover { background: rgba(0,0,0,.85); border-color: #fff }
+/* Отклик на нажатие -- на самой стрелке: короткое вдавливание, и сразу назад. */
+.эк-стрелка:active { transform: translateY(-50%) scale(.9); background: rgba(255,255,255,.18) }
 .эк-стрелка[hidden] { display: none }
 .эк-стрелка.влево { left: 8px }
 .эк-стрелка.вправо { right: 8px }
@@ -347,3 +344,4 @@
   pointer-events: none;
 }
 .эк-имя-снимка[hidden] { display: none }
+
