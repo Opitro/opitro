@@ -2,7 +2,6 @@
 toolSlug: exif-viewer
 locale: ru
 category: images
-alsoIn: [scanners]
 tool: exif-viewer
 title: "Метаданные фото онлайн — узнать EXIF, теги и свойства изображения"
 h1: "Метаданные фото"

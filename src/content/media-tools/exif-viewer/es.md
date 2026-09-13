@@ -2,7 +2,6 @@
 toolSlug: exif-viewer
 locale: es
 category: images
-alsoIn: [scanners]
 tool: exif-viewer
 title: "Metadatos de una foto online — ver EXIF, etiquetas y propiedades"
 h1: "Metadatos de foto"
