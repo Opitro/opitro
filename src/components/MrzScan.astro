@@ -1,0 +1,646 @@
+---
+// СКАНЕР MRZ: две-три строки внизу паспорта, визы или ID-карты.
+//
+// Чем он отличается от прочих сканеров сайта: здесь ответ ПРОВЕРЯЕМ. В машиночитаемой зоне
+// стоят контрольные цифры, и мы их пересчитываем -- поэтому страница говорит не «кажется, тут
+// написано», а «номер прочитан верно, цифра сошлась». Это же позволяет чинить чтение: если
+// распознаватель спутал ноль с буквой O, арифметика укажет единственное верное написание.
+//
+// РАСПОЗНАВАНИЕ ИДЁТ У ЧЕЛОВЕКА В БРАУЗЕРЕ. Для страницы, куда приносят паспорт, это не
+// красивые слова, а условие: ни снимок, ни строки никуда не уходят, и своего сервера у
+// страницы нет вовсе. Движок (Tesseract с моделью OCR-B) лежит у нас же в /mrz/ и
+// подгружается только тогда, когда человек нажал камеру или выбрал файл.
+//
+// Вид окна, луч и карточка ответа взяты у сканеров кодов -- человек ходит между ними, и
+// второй вид ему пришлось бы учить заново.
+import общий from '../styles/code-scan.css?inline';
+import свой from '../styles/mrz-scan.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    camera: 'Камера', file: 'Файл', clear: 'Убрать', retry: 'Снять ещё',
+    aim: 'Наведите две нижние строки документа в рамку — прочитаю сам',
+    looking: 'Читаю…', loading: 'Приношу распознаватель — {н}',
+    firstTime: 'Это бывает один раз: дальше он лежит у вас в браузере.',
+    manual: 'Или впишите строки руками',
+    manualHint: 'Вставьте сюда две (или три) строки MRZ — проверю контрольные цифры',
+    head: 'Документ', kinds: { 'TD3': 'Паспорт', 'TD2': 'Удостоверение', 'TD1': 'ID-карта', 'MRV-A': 'Виза', 'MRV-B': 'Виза' },
+    fields: {
+      документ: 'Вид документа', выдан: 'Выдан', номер: 'Номер документа',
+      фамилия: 'Фамилия', имена: 'Имя', гражданство: 'Гражданство',
+      рождение: 'Дата рождения', пол: 'Пол', срок: 'Действителен до', личный: 'Личный номер',
+    },
+    sexes: { 'м': 'мужской', 'ж': 'женский' }, unknown: 'не указан',
+    stateless: 'без гражданства или беженец',
+    allOk: 'Все контрольные цифры сошлись — строки прочитаны верно',
+    someBad: 'Не сошлось: {н}. Либо снимок прочитан с ошибкой, либо в документе опечатка',
+    fixed: 'подобрано по контрольной цифре',
+    okTip: 'контрольная цифра сошлась', badTip: 'контрольная цифра не сошлась',
+    expired: 'Срок действия истёк', valid: 'Действителен',
+    copy: 'Скопировать строки', copied: 'Скопировано',
+    none: 'Строк не видно',
+    noneWhy: 'В кадре не нашлось двух строк из заглавных букв и знаков «<». Положите документ страницей с фотографией вверх, чтобы нижние строки попали в рамку целиком и не были смазаны.',
+    short: 'Строки неполные',
+    shortWhy: 'Строки видны, но короче положенного: в паспорте их 44 знака, в ID-карте — 30. Снимите ближе и ровнее, чтобы в кадр попали края.',
+    noCam: 'Камера недоступна. Проверьте, что она не занята другой программой.',
+    denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер, и отозвать его можно там же, в строке адреса.',
+    heavy: 'Не получилось принести распознаватель. Похоже, оборвалась связь — попробуйте ещё раз.',
+    zone: 'Машиночитаемая зона',
+  },
+  uk: {
+    camera: 'Камера', file: 'Файл', clear: 'Прибрати', retry: 'Зняти ще',
+    aim: 'Наведіть два нижні рядки документа в рамку — прочитаю сам',
+    looking: 'Читаю…', loading: 'Приношу розпізнавач — {н}',
+    firstTime: 'Це буває один раз: далі він лежить у вас у браузері.',
+    manual: 'Або впишіть рядки руками',
+    manualHint: 'Вставте сюди два (або три) рядки MRZ — перевірю контрольні цифри',
+    head: 'Документ', kinds: { 'TD3': 'Паспорт', 'TD2': 'Посвідчення', 'TD1': 'ID-картка', 'MRV-A': 'Віза', 'MRV-B': 'Віза' },
+    fields: {
+      документ: 'Вид документа', выдан: 'Виданий', номер: 'Номер документа',
+      фамилия: 'Прізвище', имена: 'Імʼя', гражданство: 'Громадянство',
+      рождение: 'Дата народження', пол: 'Стать', срок: 'Дійсний до', личный: 'Особистий номер',
+    },
+    sexes: { 'м': 'чоловіча', 'ж': 'жіноча' }, unknown: 'не вказано',
+    stateless: 'без громадянства або біженець',
+    allOk: 'Усі контрольні цифри зійшлися — рядки прочитано правильно',
+    someBad: 'Не зійшлося: {н}. Або знімок прочитано з помилкою, або в документі помилка',
+    fixed: 'підібрано за контрольною цифрою',
+    okTip: 'контрольна цифра зійшлася', badTip: 'контрольна цифра не зійшлася',
+    expired: 'Термін дії минув', valid: 'Дійсний',
+    copy: 'Скопіювати рядки', copied: 'Скопійовано',
+    none: 'Рядків не видно',
+    noneWhy: 'У кадрі не знайшлося двох рядків із великих літер і знаків «<». Покладіть документ сторінкою з фотографією вгору, щоб нижні рядки потрапили в рамку цілком і не були змазані.',
+    short: 'Рядки неповні',
+    shortWhy: 'Рядки видно, але вони коротші за належне: у паспорті їх 44 знаки, в ID-картці — 30. Зніміть ближче й рівніше, щоб у кадр потрапили краї.',
+    noCam: 'Камера недоступна. Перевірте, що вона не зайнята іншою програмою.',
+    denied: 'Доступ до камери не надано. Дозвіл питає сам браузер, і відкликати його можна там само, у рядку адреси.',
+    heavy: 'Не вийшло принести розпізнавач. Схоже, обірвався звʼязок — спробуйте ще раз.',
+    zone: 'Машинозчитувана зона',
+  },
+  en: {
+    camera: 'Camera', file: 'File', clear: 'Clear', retry: 'Take another',
+    aim: 'Put the two bottom lines of the document inside the frame — I read them myself',
+    looking: 'Reading…', loading: 'Fetching the reader — {н}',
+    firstTime: 'This happens once: after that it stays in your browser.',
+    manual: 'Or type the lines yourself',
+    manualHint: 'Paste the two (or three) MRZ lines here — I will check the digits',
+    head: 'Document', kinds: { 'TD3': 'Passport', 'TD2': 'ID document', 'TD1': 'ID card', 'MRV-A': 'Visa', 'MRV-B': 'Visa' },
+    fields: {
+      документ: 'Document type', выдан: 'Issued by', номер: 'Document number',
+      фамилия: 'Surname', имена: 'Given names', гражданство: 'Nationality',
+      рождение: 'Date of birth', пол: 'Sex', срок: 'Valid until', личный: 'Personal number',
+    },
+    sexes: { 'м': 'male', 'ж': 'female' }, unknown: 'not stated',
+    stateless: 'stateless person or refugee',
+    allOk: 'Every check digit adds up — the lines were read correctly',
+    someBad: 'Does not add up: {н}. Either the photo was misread, or the document has a mistake',
+    fixed: 'recovered from the check digit',
+    okTip: 'check digit adds up', badTip: 'check digit does not add up',
+    expired: 'Expired', valid: 'Valid',
+    copy: 'Copy the lines', copied: 'Copied',
+    none: 'No lines in sight',
+    noneWhy: 'The frame holds no two lines of capital letters and “<”. Lay the document photo page up so the bottom lines fall inside the frame whole and unblurred.',
+    short: 'The lines are incomplete',
+    shortWhy: 'The lines are there but shorter than they should be: a passport has 44 characters, an ID card 30. Move closer and keep the document straight so the edges fit in.',
+    noCam: 'The camera is not available. Check that another program is not holding it.',
+    denied: 'Camera access was not granted. The browser itself asks for it, and you can take it back in the address bar.',
+    heavy: 'The reader could not be fetched. The connection seems to have dropped — please try again.',
+    zone: 'Machine-readable zone',
+  },
+  es: {
+    camera: 'Cámara', file: 'Archivo', clear: 'Quitar', retry: 'Tomar otra',
+    aim: 'Encuadre las dos líneas de abajo del documento — las leo yo',
+    looking: 'Leyendo…', loading: 'Trayendo el lector — {н}',
+    firstTime: 'Esto ocurre una vez: después se queda en su navegador.',
+    manual: 'O escriba las líneas usted mismo',
+    manualHint: 'Pegue aquí las dos (o tres) líneas de la MRZ — comprobaré los dígitos',
+    head: 'Documento', kinds: { 'TD3': 'Pasaporte', 'TD2': 'Documento', 'TD1': 'Tarjeta de identidad', 'MRV-A': 'Visado', 'MRV-B': 'Visado' },
+    fields: {
+      документ: 'Tipo de documento', выдан: 'Expedido por', номер: 'Número de documento',
+      фамилия: 'Apellidos', имена: 'Nombre', гражданство: 'Nacionalidad',
+      рождение: 'Fecha de nacimiento', пол: 'Sexo', срок: 'Válido hasta', личный: 'Número personal',
+    },
+    sexes: { 'м': 'varón', 'ж': 'mujer' }, unknown: 'sin indicar',
+    stateless: 'apátrida o refugiado',
+    allOk: 'Todos los dígitos de control cuadran: las líneas se leyeron bien',
+    someBad: 'No cuadra: {н}. O la foto se leyó mal, o el documento tiene una errata',
+    fixed: 'deducido del dígito de control',
+    okTip: 'el dígito de control cuadra', badTip: 'el dígito de control no cuadra',
+    expired: 'Caducado', valid: 'Vigente',
+    copy: 'Copiar las líneas', copied: 'Copiado',
+    none: 'No se ven las líneas',
+    noneWhy: 'En el encuadre no hay dos líneas de mayúsculas y signos «<». Coloque el documento con la página de la foto hacia arriba para que las líneas de abajo entren enteras y sin movimiento.',
+    short: 'Las líneas están incompletas',
+    shortWhy: 'Se ven las líneas, pero más cortas de lo debido: un pasaporte tiene 44 caracteres y una tarjeta 30. Acérquese y mantenga el documento recto para que entren los bordes.',
+    noCam: 'La cámara no está disponible. Compruebe que no la tenga ocupada otro programa.',
+    denied: 'No se dio acceso a la cámara. El permiso lo pide el propio navegador y puede retirarlo ahí mismo, en la barra de direcciones.',
+    heavy: 'No se pudo traer el lector. Parece que se cortó la conexión: inténtelo otra vez.',
+    zone: 'Zona de lectura mecánica',
+  },
+};
+
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={общий}></style>
+<style is:inline set:html={свой}></style>
+
+<div class="кс мрз" data-words={JSON.stringify(с)} data-locale={locale}>
+  <!-- НА ВХОДЕ -- ТОЛЬКО ПРЕДЛОЖЕНИЕ. Чёрное окно, рамка прицела и поле для строк появляются
+       лишь тогда, когда человек выбрал камеру или файл. Решение владельца, и оно верное: до
+       выбора показывать пустой экран не за чем -- в нём нечего смотреть. -->
+  <div class="мрз-старт" id="мрз-старт">
+    <span class="кс-центр">
+      <button type="button" class="кс-выбор" id="кс-пуск" title={с.camera} aria-label={с.camera}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M4 8.5A2.5 2.5 0 0 1 6.5 6h1.2l1-1.6A1 1 0 0 1 9.6 4h4.8a1 1 0 0 1 .9.4l1 1.6h1.2A2.5 2.5 0 0 1 20 8.5v8A2.5 2.5 0 0 1 17.5 19h-11A2.5 2.5 0 0 1 4 16.5v-8z"/><circle cx="12" cy="12.5" r="3.2"/></svg>
+        <span>{с.camera}</span>
+      </button>
+      <button type="button" class="кс-выбор" id="кс-загрузить" title={с.file} aria-label={с.file}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3.5" y="5" width="17" height="14" rx="2.5"/><path d="M3.8 16.2l4.3-4.3a2 2 0 0 1 2.8 0l3.1 3.1"/><path d="M14 13.4l1.6-1.6a2 2 0 0 1 2.8 0l1.8 1.8"/><circle cx="9" cy="9.6" r="1.4"/></svg>
+        <span>{с.file}</span>
+      </button>
+    </span>
+    <button type="button" class="мрз-руками" id="мрз-руками">{с.manual}</button>
+  </div>
+
+  <div class="кс-окно" id="кс-окно" hidden>
+    <video id="кс-видео" playsinline muted hidden></video>
+    <img id="кс-снимок" alt="" hidden />
+    <!-- Прицел под MRZ: широкая полоса внизу, а не квадрат, как у кодов. -->
+    <span class="мрз-прицел" id="мрз-прицел" hidden></span>
+    <button type="button" class="кс-крест" id="кс-крест" hidden title={с.clear} aria-label={с.clear}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+    </button>
+    <span class="кс-намёк" id="кс-намёк" hidden></span>
+    <span class="кс-луч" id="кс-луч"></span>
+    <span class="кс-затвор-ряд">
+      <button type="button" class="кс-переснять" id="кс-переснять" hidden>{с.retry}</button>
+    </span>
+  </div>
+  <input type="file" class="кс-файл" id="кс-файл" accept="image/*" />
+  <p class="мрз-качаем" id="мрз-качаем" hidden></p>
+
+  <div class="кс-ответ" id="кс-ответ"></div>
+  <div class="кс-беда" id="кс-беда"></div>
+
+  <!-- Руками строки вписывают чаще, чем кажется: сверить набранное, проверить чужой
+       документ по присланному тексту. Распознаватель для этого не нужен вовсе. Поле
+       открывается по надписи под плитками: на входе оно лишнее. -->
+  <textarea class="мрз-ввод" id="мрз-ввод" spellcheck="false" autocapitalize="characters"
+            placeholder={с.manualHint} hidden></textarea>
+</div>
+
+<script>
+  import { разобратьМрз, разобратьСтроки, просрочен } from '../lib/mrz.js';
+  import { пикнуть, подготовитьЗвук } from '../lib/beep.js';
+
+  const корень = document.querySelector('.мрз');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const язык = корень.dataset.locale || 'ru';
+    const $ = (и) => document.getElementById(и);
+
+    const окно = $('кс-окно'), видео = $('кс-видео'), снимок = $('кс-снимок');
+    const старт = $('мрз-старт'), прицел = $('мрз-прицел'), крест = $('кс-крест');
+    const намёк = $('кс-намёк'), переснять = $('кс-переснять'), поле = $('кс-файл');
+    const ответ = $('кс-ответ'), бедаЭ = $('кс-беда'), качаем = $('мрз-качаем'), ввод = $('мрз-ввод');
+    const руками = $('мрз-руками');
+
+    /** Поднять рабочее окно на место предложения -- и наоборот. */
+    function показатьОкно(да) {
+      окно.hidden = !да;
+      старт.hidden = да;
+    }
+
+    let поток = null, работник = null, несёмРаспознаватель = null, читаем = false, часыКамеры = 0;
+
+    const беда = (текст) => { бедаЭ.innerHTML = текст || ''; };
+    const сказать = (текст) => { намёк.textContent = текст || ''; намёк.hidden = !текст; };
+
+    /**
+     * Умеет ли этот браузер SIMD -- набор быстрых команд WebAssembly. Проверяем крошечным
+     * модулем: он проходит проверку только там, где SIMD есть. Разница не косметическая --
+     * на тех же строках быстрая сборка читает заметно скорее.
+     */
+    function поддержкаSIMD() {
+      try {
+        return WebAssembly.validate(new Uint8Array([
+          0, 97, 115, 109, 1, 0, 0, 0, 1, 5, 1, 96, 0, 1, 123, 3, 2, 1, 0,
+          10, 10, 1, 8, 0, 65, 0, 253, 15, 253, 98, 11,
+        ]));
+      } catch (е) { return false; }
+    }
+
+    /**
+     * ПРИНЕСТИ РАСПОЗНАВАТЕЛЬ. Он лежит у нас же, в /mrz/: движок Tesseract и модель OCR-B --
+     * та самая азбука, которой печатают документы. Вместе это около четырёх мегабайт, поэтому
+     * молчать нельзя: показываем ход и честно говорим, что это бывает один раз.
+     *
+     * Модель OCR-B выбрана не наугад: на образце ИКАО она читает строки без единой ошибки, а
+     * обычная английская путает «O» с нулём даже на чистой картинке -- проверено замером.
+     */
+    async function принести() {
+      if (работник) return работник;
+      if (несёмРаспознаватель) return несёмРаспознаватель;
+      несёмРаспознаватель = (async () => {
+        качаем.hidden = false;
+        качаем.textContent = с.loading.replace('{н}', '0%') + ' ' + с.firstTime;
+        const { createWorker } = await import('tesseract.js');
+        // Указываем ФАЙЛ движка, а не папку. Сам tesseract.js, получив папку, просит у неё
+        // «...wasm.js» -- сборку, где wasm вшит в текст и оттого весит на треть больше.
+        // Наша пара «маленький .js + отдельный .wasm» экономит мегабайт с лишним на каждом
+        // первом запуске, но выбрать из неё нужное обязаны мы сами.
+        const быстрый = поддержкаSIMD();
+        const р = await createWorker('ocrb_int', 1, {
+          workerPath: '/mrz/worker.min.js',
+          // ВОРКЕР ПОДНИМАЕМ ПРЯМО ИЗ ФАЙЛА, а не из blob-адреса, как tesseract.js делает по
+          // умолчанию. Внутри blob-воркера «рядом со мной» указывает в никуда, и движок
+          // молча зависал на шаге «initializing»: wasm он искал по blob:-адресу, которого не
+          // существует. Ловушка тихая -- ни ошибки, ни отказа, просто вечное ожидание.
+          workerBlobURL: false,
+          corePath: быстрый ? '/mrz/tesseract-core-simd-lstm.js' : '/mrz/tesseract-core-lstm.js',
+          langPath: '/mrz/',
+          gzip: true,
+          logger: (м) => {
+            if (window.__мрзЛог) window.__мрзЛог(м);
+            if (м && typeof м.progress === 'number' && м.status && м.status.indexOf('load') >= 0) {
+              качаем.textContent = с.loading.replace('{н}', Math.round(м.progress * 100) + '%')
+                + ' ' + с.firstTime;
+            }
+          },
+        });
+        await р.setParameters({
+          tessedit_char_whitelist: 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789<',
+          tessedit_pageseg_mode: '6',
+          preserve_interword_spaces: '0',
+        });
+        качаем.hidden = true;
+        работник = р;
+        return р;
+      })().catch((е) => { несёмРаспознаватель = null; качаем.hidden = true; throw е; });
+      return несёмРаспознаватель;
+    }
+
+    /**
+     * ПОДГОТОВИТЬ КАДР. Распознаватель читает строки тем лучше, чем крупнее и чище знаки:
+     * берём полосу, где лежит MRZ, растягиваем до полутора тысяч точек по ширине, переводим в
+     * серое и разводим по краям гистограммы. Без этого тот же движок на том же снимке
+     * ошибается втрое чаще -- проверено на образцах.
+     */
+    function подготовить(источник, ш, в, доля) {
+      const высотаПолосы = доля ? Math.round(в * доля) : в;
+      const верх = доля ? в - высотаПолосы : 0;
+      const ширинаЦели = Math.min(1600, Math.max(1000, ш * 2));
+      const к = ширинаЦели / ш;
+      const холст = document.createElement('canvas');
+      холст.width = Math.round(ш * к);
+      холст.height = Math.round(высотаПолосы * к);
+      const кон = холст.getContext('2d', { willReadFrequently: true });
+      кон.imageSmoothingQuality = 'high';
+      кон.drawImage(источник, 0, верх, ш, высотаПолосы, 0, 0, холст.width, холст.height);
+      const точки = кон.getImageData(0, 0, холст.width, холст.height);
+      const д = точки.data;
+      // Серое по восприятию, а потом растяжение контраста по 5-му и 95-му проценту: снимок с
+      // телефона всегда сероват, и буквы от фона отличаются слабее, чем кажется глазу.
+      const гисто = new Uint32Array(256);
+      for (let i = 0; i < д.length; i += 4) {
+        const г = (д[i] * 299 + д[i + 1] * 587 + д[i + 2] * 114) / 1000 | 0;
+        д[i] = д[i + 1] = д[i + 2] = г;
+        гисто[г]++;
+      }
+      const всего = холст.width * холст.height;
+      let низ = 0, сумма = 0;
+      while (низ < 255 && сумма < всего * 0.05) { сумма += гисто[низ++]; }
+      let верхП = 255; сумма = 0;
+      while (верхП > 0 && сумма < всего * 0.05) { сумма += гисто[верхП--]; }
+      const размах = Math.max(20, верхП - низ);
+      for (let i = 0; i < д.length; i += 4) {
+        const з = Math.max(0, Math.min(255, ((д[i] - низ) * 255) / размах));
+        д[i] = д[i + 1] = д[i + 2] = з;
+      }
+      кон.putImageData(точки, 0, 0);
+      return холст;
+    }
+
+    /** Прочитать готовый холст: текст от распознавателя -> разбор MRZ. */
+    async function прочитатьХолст(холст) {
+      const р = await принести();
+      const { data } = await р.recognize(холст);
+      return разобратьМрз(data.text || '');
+    }
+
+    // ---- Показ ------------------------------------------------------------------------------
+
+    const ЗН_ОК = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+    const ЗН_НЕТ = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+
+    /** Где какое поле лежит в строках -- чтобы подсветить его прямо в MRZ. */
+    function места(вид) {
+      if (вид === 'TD1') return {
+        документ: [[0, 0, 2]], выдан: [[0, 2, 5]], номер: [[0, 5, 14]],
+        рождение: [[1, 0, 6]], пол: [[1, 7, 8]], срок: [[1, 8, 14]], гражданство: [[1, 15, 18]],
+        фамилия: [[2, 0, 30]], имена: [[2, 0, 30]],
+      };
+      const узкий = вид === 'TD2' || вид === 'MRV-B';
+      const имёнДо = узкий ? 36 : 44;
+      const м = {
+        документ: [[0, 0, 2]], выдан: [[0, 2, 5]],
+        фамилия: [[0, 5, имёнДо]], имена: [[0, 5, имёнДо]],
+        номер: [[1, 0, 9]], гражданство: [[1, 10, 13]], рождение: [[1, 13, 19]],
+        пол: [[1, 20, 21]], срок: [[1, 21, 27]],
+      };
+      if (вид === 'TD3') м.личный = [[1, 28, 42]];
+      return м;
+    }
+
+    /** Строки MRZ, нарезанные так, чтобы каждый кусок можно было подсветить. */
+    function строкиРазметкой(строки) {
+      return строки.map((строка, н) => {
+        const знаки = [...строка].map((з, и) =>
+          `<span class="мрз-кусок" data-строка="${н}" data-место="${и}">${з === '<' ? '&lt;' : з}</span>`);
+        return знаки.join('');
+      }).join('\n');
+    }
+
+    function датойСловами(д) {
+      if (!д) return '';
+      try {
+        return new Date(д.iso + 'T12:00:00Z').toLocaleDateString(язык,
+          { year: 'numeric', month: 'long', day: 'numeric' });
+      } catch (е) { return д.iso; }
+    }
+
+    function страной(код, две) {
+      if (!код) return '';
+      if (!две) return код;
+      try {
+        const имя = new Intl.DisplayNames([язык], { type: 'region' }).of(две);
+        return имя && имя !== две ? `${имя} · ${код}` : код;
+      } catch (е) { return код; }
+    }
+
+    function показать(разбор) {
+      const п = разбор.поля;
+      const ящик = document.createElement('div');
+      ящик.className = 'кс-итог';
+
+      const шапка = document.createElement('div');
+      шапка.className = 'кс-шапка';
+      const вид = document.createElement('span');
+      вид.className = 'кс-вид';
+      вид.textContent = `${с.kinds[разбор.вид] || с.head} · ${разбор.вид}`;
+      шапка.appendChild(вид);
+      const копи = document.createElement('button');
+      копи.type = 'button';
+      копи.className = 'кс-копи';
+      копи.title = с.copy;
+      копи.setAttribute('aria-label', с.copy);
+      копи.innerHTML = '<svg class="лист" viewBox="0 0 24 24" aria-hidden="true">'
+        + '<rect x="9" y="9" width="11" height="11" rx="2"/>'
+        + '<path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>'
+        + '<svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>';
+      копи.addEventListener('click', async () => {
+        try { await navigator.clipboard.writeText(разбор.строки.join('\n')); } catch (е) {}
+        копи.classList.add('готово');
+        setTimeout(() => копи.classList.remove('готово'), 1400);
+      });
+      шапка.appendChild(копи);
+      ящик.appendChild(шапка);
+
+      const строки = document.createElement('pre');
+      строки.className = 'мрз-строки';
+      строки.innerHTML = строкиРазметкой(разбор.строки);
+      ящик.appendChild(строки);
+
+      const карта = места(разбор.вид);
+      const цифры = {};
+      for (const пр of разбор.проверки) цифры[пр.имя] = пр;
+
+      const dl = document.createElement('dl');
+      dl.className = 'мрз-пары';
+      // «Вид документа» в списке не нужен: он уже сказан словом в шапке карточки.
+      const порядок = ['фамилия', 'имена', 'номер', 'гражданство', 'рождение', 'пол', 'срок', 'выдан', 'личный'];
+      const цифраПоля = { номер: 'номер', рождение: 'рождение', срок: 'срок', личный: 'личный номер' };
+
+      for (const имя of порядок) {
+        let знач = п[имя];
+        if (имя === 'рождение' || имя === 'срок') знач = датойСловами(знач);
+        if (имя === 'пол') знач = знач ? (с.sexes[знач] || знач) : с.unknown;
+        if (имя === 'гражданство') знач = п.безГражданства ? с.stateless : страной(п.гражданство, п.странаГражданства);
+        if (имя === 'выдан') знач = страной(п.выдан, п.странаВыдачи);
+        if (!знач) continue;
+
+        const dt = document.createElement('dt');
+        dt.textContent = с.fields[имя] || имя;
+        const dd = document.createElement('dd');
+        const текст = document.createElement('span');
+        текст.textContent = знач;
+        dd.appendChild(текст);
+
+        const пр = цифры[цифраПоля[имя]];
+        if (пр) {
+          const знак = document.createElement('span');
+          знак.className = 'мрз-знак ' + (пр.ок ? (пр.подобрано ? 'сошлось подобрано' : 'сошлось') : 'нет');
+          знак.innerHTML = пр.ок ? ЗН_ОК : ЗН_НЕТ;
+          знак.title = пр.ок ? (пр.подобрано ? с.fixed : с.okTip) : с.badTip;
+          dd.appendChild(знак);
+        }
+        if (имя === 'срок' && п.срок) {
+          const истёк = просрочен(п.срок);
+          const метка = document.createElement('span');
+          метка.className = 'мрз-метка' + (истёк ? ' истёк' : '');
+          метка.textContent = истёк ? с.expired : с.valid;
+          dd.appendChild(метка);
+        }
+
+        // Наведение на поле подсвечивает его же знаки в самой MRZ. Так человек видит, откуда
+        // взялось значение, и заодно понимает, как зона устроена.
+        const куски = карта[имя] || [];
+        const подсветить = (да) => {
+          for (const [н, от, до] of куски) {
+            for (let и = от; и < до; и++) {
+              const э = строки.querySelector(`[data-строка="${н}"][data-место="${и}"]`);
+              if (э) э.classList.toggle('горит', да);
+            }
+          }
+        };
+        for (const э of [dt, dd]) {
+          э.classList.add('строка');
+          э.addEventListener('mouseenter', () => подсветить(true));
+          э.addEventListener('mouseleave', () => подсветить(false));
+        }
+        dl.append(dt, dd);
+      }
+      ящик.appendChild(dl);
+
+      const итог = document.createElement('div');
+      const плохие = разбор.проверки.filter((пр) => !пр.ок).map((пр) => пр.имя);
+      итог.className = 'мрз-итог-проверки' + (плохие.length ? ' беда' : '');
+      итог.innerHTML = (плохие.length ? ЗН_НЕТ : ЗН_ОК)
+        + '<span>' + (плохие.length ? с.someBad.replace('{н}', плохие.join(', ')) : с.allOk) + '</span>';
+      ящик.appendChild(итог);
+
+      ответ.replaceChildren(ящик);
+      беда('');
+    }
+
+    function сказатьПромах(ключ) {
+      const ящик = document.createElement('div');
+      ящик.className = 'кс-итог кс-мимо';
+      ящик.innerHTML = `<span class="кс-вид">${ключ === 'short' ? с.short : с.none}</span>`
+        + `<p class="кс-пояснение">${ключ === 'short' ? с.shortWhy : с.noneWhy}</p>`;
+      ответ.replaceChildren(ящик);
+    }
+
+    // ---- Камера -----------------------------------------------------------------------------
+
+    async function включить() {
+      try {
+        подготовитьЗвук();
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+      } catch (е) {
+        беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
+        return;
+      }
+      видео.srcObject = поток;
+      видео.hidden = false;
+      показатьОкно(true);
+      прицел.hidden = false;
+      крест.hidden = false;
+      сказать(с.aim);
+      await видео.play().catch(() => {});
+      принести().catch(() => беда(с.heavy));
+      искатьЖивьём();
+    }
+
+    function выключить() {
+      clearTimeout(часыКамеры);
+      if (поток) { for (const д of поток.getTracks()) д.stop(); поток = null; }
+      видео.srcObject = null;
+      видео.hidden = true;
+      окно.classList.remove('ищет');
+    }
+
+    /**
+     * ЖИВОЙ ПОИСК. Человек наводит документ -- страница сама берёт кадр раз в полсекунды и
+     * пробует прочитать. Нажимать ничего не нужно: это и есть весь смысл сканера.
+     * Берём только полосу под прицелом -- там, где MRZ, -- и потому чтение идёт быстро.
+     */
+    async function искатьЖивьём() {
+      if (!поток || читаем) return;
+      const ш = видео.videoWidth, в = видео.videoHeight;
+      if (!ш || !в) { часыКамеры = setTimeout(искатьЖивьём, 300); return; }
+      читаем = true;
+      окно.classList.add('ищет');
+      try {
+        const холст = подготовить(видео, ш, в, 0.42);
+        const разбор = await прочитатьХолст(холст);
+        if (разбор.вышло) {
+          // Кадр, на котором получилось, оставляем на экране: человек видит, что именно прочитано.
+          const кадр = document.createElement('canvas');
+          кадр.width = ш; кадр.height = в;
+          кадр.getContext('2d').drawImage(видео, 0, 0);
+          снимок.src = кадр.toDataURL('image/jpeg', 0.9);
+          снимок.classList.add('снят');
+          снимок.hidden = false;
+          выключить();
+          прицел.hidden = true;
+          сказать('');
+          переснять.hidden = false;
+          окно.classList.add('прочитано');
+          setTimeout(() => окно.classList.remove('прочитано'), 900);
+          пикнуть();
+          показать(разбор);
+          читаем = false;
+          return;
+        }
+      } catch (е) {
+        беда(с.heavy);
+        выключить();
+        читаем = false;
+        return;
+      }
+      читаем = false;
+      окно.classList.remove('ищет');
+      часыКамеры = setTimeout(искатьЖивьём, 400);
+    }
+
+    // ---- Файл -------------------------------------------------------------------------------
+
+    async function взятьФайл(файл) {
+      if (!файл) return;
+      выключить();
+      показатьОкно(true);
+      крест.hidden = false;
+      прицел.hidden = true;
+      const адрес = URL.createObjectURL(файл);
+      снимок.classList.remove('снят');
+      снимок.src = адрес;
+      снимок.hidden = false;
+      окно.classList.add('ищет');
+      сказать(с.looking);
+      try {
+        const и = await new Promise((готово, мимо) => {
+          const э = new Image();
+          э.onload = () => готово(э);
+          э.onerror = () => мимо(new Error('не картинка'));
+          э.src = адрес;
+        });
+        // У готового снимка не знаем, где именно зона: пробуем сперва нижнюю треть (так лежит
+        // MRZ на снимке страницы), а если не вышло -- весь кадр целиком.
+        let разбор = await прочитатьХолст(подготовить(и, и.naturalWidth, и.naturalHeight, 0.38));
+        if (!разбор.вышло) разбор = await прочитатьХолст(подготовить(и, и.naturalWidth, и.naturalHeight, 0));
+        окно.classList.remove('ищет');
+        сказать('');
+        переснять.hidden = false;
+        if (разбор.вышло) { пикнуть(); показать(разбор); }
+        else сказатьПромах(разбор.причина === 'непонятно' ? 'short' : 'none');
+      } catch (е) {
+        окно.classList.remove('ищет');
+        сказать('');
+        беда(с.heavy);
+      }
+    }
+
+    // ---- Руками -----------------------------------------------------------------------------
+
+    let часыВвода = 0;
+    ввод.addEventListener('input', () => {
+      clearTimeout(часыВвода);
+      часыВвода = setTimeout(() => {
+        const строки = ввод.value.split(/[\r\n]+/).map((с2) => с2.trim()).filter(Boolean);
+        if (строки.length < 2) { if (!строки.length) { ответ.replaceChildren(); беда(''); } return; }
+        const разбор = разобратьСтроки(строки);
+        if (разбор.вышло) показать(разбор); else сказатьПромах('short');
+      }, 220);
+    });
+
+    // ---- Кнопки -----------------------------------------------------------------------------
+
+    $('кс-пуск').addEventListener('click', включить);
+    // Надпись под плитками открывает поле для строк и сама уходит: два предложения одного и
+    // того же на экране не нужны.
+    руками.addEventListener('click', () => {
+      ввод.hidden = false;
+      руками.hidden = true;
+      ввод.focus();
+    });
+    $('кс-загрузить').addEventListener('click', () => поле.click());
+    поле.addEventListener('change', () => { взятьФайл(поле.files && поле.files[0]); поле.value = ''; });
+    переснять.addEventListener('click', () => { ответ.replaceChildren(); беда(''); переснять.hidden = true; включить(); });
+    крест.addEventListener('click', () => {
+      выключить();
+      снимок.hidden = true; снимок.removeAttribute('src');
+      показатьОкно(false);
+      крест.hidden = true; прицел.hidden = true; переснять.hidden = true;
+      сказать(''); ответ.replaceChildren(); беда('');
+    });
+    window.addEventListener('pagehide', выключить);
+  })();
+</script>

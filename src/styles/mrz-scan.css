@@ -1,0 +1,113 @@
+/* СКАНЕР MRZ -- ДОБАВКА К ОБЩЕМУ ВИДУ СКАНЕРОВ.
+ *
+ * Окно, луч, плитки выбора и карточка ответа берутся из code-scan.css: человек ходит между
+ * сканерами одного сайта, и второй вид ему пришлось бы учить заново. Здесь только то, чего у
+ * кодов нет: прицел под две строки внизу документа, сами строки MRZ и отметки о контрольных
+ * цифрах. */
+
+/* СПРЯТАННОЕ ПРЯЧЕТСЯ ВСЕГДА. У окна свой display из code-scan.css, и [hidden] из таблицы
+   браузера ему проигрывает: на входе «спрятанное» окно оставалось на экране пустой рамкой, и
+   свойство .hidden при этом честно показывало true. Ловит это только снимок экрана. */
+.мрз .кс-окно[hidden] { display: none !important }
+
+/* ВХОД БЕЗ ОКНА. Пока человек не выбрал камеру или файл, на странице только два предложения
+   и тихая надпись под ними. Чёрный прямоугольник на входе показывал пустоту и занимал
+   четверть экрана -- смотреть в нём нечего. */
+.мрз-старт { display: flex; flex-direction: column; align-items: center; gap: 12px;
+  padding: 10px 0 4px }
+.мрз-старт[hidden] { display: none !important }
+.мрз-старт .кс-выбор { width: 160px }
+
+/* «Или впишите строки руками» -- надпись, а не кнопка: действие второстепенное. */
+.мрз-руками {
+  background: none; border: 0; padding: 4px 6px; cursor: pointer;
+  font: 400 12.5px var(--мон); color: var(--серый, #b4b4bb);
+  border-bottom: 1px dashed rgba(255,255,255,.28);
+}
+.мрз-руками:hover { color: #fff; border-bottom-color: #fff }
+.мрз-руками[hidden] { display: none !important }
+
+/* ПРИЦЕЛ ПОД MRZ. Не квадрат, как у кодов: машиночитаемая зона -- широкая полоса внизу
+   страницы, и рамка должна показывать именно её. Человек кладёт документ так, чтобы две
+   строки легли в полосу, -- и больше ему думать не о чем. */
+.мрз-прицел {
+  position: absolute; left: 6%; right: 6%; bottom: 18%; height: 74px; z-index: 2;
+  border: 1px solid rgba(255,255,255,.5); border-radius: 6px; pointer-events: none;
+  box-shadow: 0 0 0 100vmax rgba(0,0,0,.35);
+  transition: border-color .2s, opacity .2s;
+}
+.кс-окно.ищет .мрз-прицел { border-color: rgba(74,222,158,.9) }
+.кс-окно.прочитано .мрз-прицел { border-color: var(--accent) }
+.мрз-прицел[hidden] { display: none !important }
+
+/* САМИ СТРОКИ. Моноширинно и с переносом: на телефоне 44 знака в строку не влезают, а
+   горизонтальная прокрутка внутри ответа -- худшее, что можно предложить. */
+.мрз-строки {
+  margin: 0; padding: 10px 12px; border-radius: 8px; background: #0b0c0f;
+  border: 1px solid var(--контур);
+  font: 400 13px/1.6 var(--мон); color: #fff; overflow-wrap: anywhere; white-space: pre-wrap;
+  user-select: text;
+}
+/* Подсветка куска строки, на который смотрит человек: наведи мышью на поле в списке -- и
+   увидишь, откуда оно взято. Это и есть главное объяснение, как устроена MRZ. */
+.мрз-кусок { border-radius: 3px; padding: 1px 0 }
+.мрз-кусок.горит { background: rgba(74,222,158,.22); box-shadow: 0 0 0 1px rgba(74,222,158,.5) }
+
+/* Ряд поля: подпись, значение и отметка о контрольной цифре. */
+.мрз-пары { display: grid; grid-template-columns: minmax(0, 190px) minmax(0, 1fr);
+  gap: 4px 12px; margin: 0; font: 400 12.5px/1.45 var(--мон) }
+.мрз-пары dt { color: var(--accent) }
+.мрз-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text;
+  display: flex; align-items: center; gap: 8px }
+.мрз-пары .строка:hover dd, .мрз-пары .строка:focus-within dd { color: var(--accent2, #60efb8) }
+
+/* Отметка у поля: сошлась контрольная цифра или нет. Значок, а не слово -- слов в ответе и
+   так много, а смысл тут ровно двоичный. */
+.мрз-знак { flex: none; width: 15px; height: 15px; display: inline-flex }
+.мрз-знак svg { width: 100%; height: 100%; fill: none; stroke-width: 2.2;
+  stroke-linecap: round; stroke-linejoin: round }
+.мрз-знак.сошлось svg { stroke: var(--accent) }
+.мрз-знак.нет svg { stroke: var(--беда, #ff9aa8) }
+/* Подобранное по контрольной цифре: знак тот же, но приглушён -- прочитано не глазом, а
+   выведено арифметикой, и человек вправе об этом знать. */
+.мрз-знак.подобрано svg { stroke: #ffd479 }
+
+/* Годен документ или просрочен -- своя метка своего цвета. Рядом с зелёной галочкой о
+   контрольной цифре надпись «срок истёк» читалась как «истёк, и это хорошо». */
+.мрз-метка { padding: 2px 8px; border-radius: 999px; font: 400 11.5px var(--мон);
+  color: var(--accent); background: rgba(74,222,158,.12); border: 1px solid rgba(74,222,158,.4) }
+.мрз-метка.истёк { color: var(--беда, #ff9aa8); background: rgba(255,154,168,.1);
+  border-color: rgba(255,154,168,.45) }
+
+/* Итог проверки -- одной строкой под полями. Зелёная, если сошлось всё. */
+.мрз-итог-проверки { display: flex; align-items: center; gap: 8px; margin-top: 2px;
+  font: 400 12.5px/1.5 var(--мон); color: var(--accent) }
+.мрз-итог-проверки.беда { color: var(--беда, #ff9aa8) }
+.мрз-итог-проверки svg { width: 16px; height: 16px; flex: none; fill: none;
+  stroke: currentColor; stroke-width: 2.2; stroke-linecap: round; stroke-linejoin: round }
+
+/* Ход загрузки распознавателя: он приезжает один раз и весит несколько мегабайт, поэтому
+   молчать нельзя -- человек должен видеть, что идёт работа, а не поломка. */
+.мрз-качаем { margin-top: 10px; font: 400 12.5px var(--мон); color: var(--серый, #b4b4bb) }
+.мрз-качаем[hidden] { display: none }
+
+/* Подпись над полем для ручного ввода: такая же тихая, как подсказки у прочих сканеров. */
+.мрз-подпись { display: block; margin-top: 16px; font: 400 12.5px var(--мон); color: var(--серый, #b4b4bb) }
+
+/* Поле для ручного ввода: строки можно вписать руками -- проверить чужой документ, сверить
+   набранное, посчитать контрольные цифры. Распознаватель для этого не нужен вовсе. */
+.мрз-ввод {
+  width: 100%; min-height: 64px; resize: vertical; margin-top: 10px;
+  padding: 10px 12px; border-radius: 8px; background: #0b0c0f; color: #fff;
+  border: 1px solid var(--контур); font: 400 13px/1.6 var(--мон);
+}
+.мрз-ввод:focus { outline: none; border-color: var(--accent) }
+.мрз-ввод[hidden] { display: none !important }
+.мрз-ввод::placeholder { color: #6b6b73 }
+
+@media (max-width: 560px) {
+  .мрз-пары { grid-template-columns: 1fr; gap: 2px }
+  .мрз-пары dt { margin-top: 6px }
+  .мрз-строки { font-size: 11.5px }
+  .мрз-прицел { height: 58px; bottom: 14% }
+}
