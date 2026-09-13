@@ -22,7 +22,7 @@ const СЛОВА = {
   ru: {
     pick: 'Выбрать снимки', hint: 'или перетащите файлы сюда (до 20)',
     tooMany: 'Взяли первые 20 снимков — больше за раз браузер не потянет.',
-    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все снимки', saveZip: 'ZIP: {н} снимка',
+    filesLoaded: 'Загружено: {б}', countedAll: 'найдено тегов: {н}', cleanedAll: 'очищено тегов: {н}', cleanedOf: 'Очищено тегов: {а} из {б}', tagsWord: 'тегов', goneWord: 'убрано', whichOpen: 'открыт {а}-й', saveAll: 'Сохранить все снимки', saveZip: 'Скачать {н} фото',
     removeInAll: 'Удалить всё в {н} снимках', doneAll: 'Удалено', working: 'Убираю {а} из {б}…',
     shoot: 'Сделать фото',
     clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
@@ -77,7 +77,7 @@ const СЛОВА = {
   uk: {
     pick: 'Вибрати знімки', hint: 'або перетягніть файли сюди (до 20)',
     tooMany: 'Узяли перші 20 знімків — більше за раз браузер не потягне.',
-    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі знімки', saveZip: 'ZIP: {н} знімки',
+    filesLoaded: 'Завантажено: {б}', countedAll: 'знайдено тегів: {н}', cleanedAll: 'очищено тегів: {н}', cleanedOf: 'Очищено тегів: {а} з {б}', tagsWord: 'тегів', goneWord: 'прибрано', whichOpen: 'відкритий {а}-й', saveAll: 'Зберегти всі знімки', saveZip: 'Завантажити {н} фото',
     removeInAll: 'Видалити все у {н} знімках', doneAll: 'Видалено', working: 'Прибираю {а} з {б}…',
     shoot: 'Зробити фото',
     clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
@@ -132,7 +132,7 @@ const СЛОВА = {
   en: {
     pick: 'Choose photos', hint: 'or drop files here (up to 20)',
     tooMany: 'Took the first 20 photos — a browser will not manage more at once.',
-    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all photos', saveZip: 'ZIP: {н} photos',
+    filesLoaded: 'Loaded: {б}', countedAll: 'tags found: {н}', cleanedAll: 'tags cleaned: {н}', cleanedOf: 'Tags cleaned: {а} of {б}', tagsWord: 'tags', goneWord: 'removed', whichOpen: 'showing {а}', saveAll: 'Save all photos', saveZip: 'Download {н} photos',
     removeInAll: 'Remove everything in {н} photos', doneAll: 'Removed', working: 'Cleaning {а} of {б}…',
     shoot: 'Take a photo',
     clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
@@ -186,7 +186,7 @@ const СЛОВА = {
   es: {
     pick: 'Elegir fotos', hint: 'o arrastre archivos aquí (hasta 20)',
     tooMany: 'Hemos tomado las primeras 20 fotos: el navegador no puede con más a la vez.',
-    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas las fotos', saveZip: 'ZIP: {н} fotos',
+    filesLoaded: 'Cargadas: {б}', countedAll: 'etiquetas encontradas: {н}', cleanedAll: 'etiquetas quitadas: {н}', cleanedOf: 'Etiquetas quitadas: {а} de {б}', tagsWord: 'etiquetas', goneWord: 'quitadas', whichOpen: 'abierta la {а}', saveAll: 'Guardar todas las fotos', saveZip: 'Descargar {н} fotos',
     removeInAll: 'Quitar todo en {н} fotos', doneAll: 'Quitado', working: 'Limpiando {а} de {б}…',
     shoot: 'Hacer una foto',
     clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
@@ -343,10 +343,7 @@ const заметки = чистим
         {/* «Сохранить» стоит третьей и появляется только когда есть что сохранять: поверх
             ленты снимков ей места нет. */}
         <span class="эк-низ" id="эк-низ" hidden>
-          <button type="button" class="эк-сохранить" id="эк-сохранить">
-            <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
-            <span id="эк-сохранить-слово">{с.save}</span>
-          </button>
+          <button type="button" class="эк-сохранить" id="эк-сохранить"><span id="эк-сохранить-слово">{с.save}</span></button>
         </span>
       </div>
     </div>

@@ -189,11 +189,12 @@
   padding: 11px 22px; cursor: pointer; border-radius: 8px;
   display: inline-flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid #fff; color: #0b0c0f;
-  font: 700 14px var(--мон); box-shadow: 0 6px 22px rgba(0,0,0,.45);
+  /* Моноширинный шрифт даёт пробел шириной с букву: между словами получались провалы.
+     Жмём и буквы, и пробелы -- надпись читается одним куском. */
+  font: 700 14px var(--мон); letter-spacing: -.045em; word-spacing: -.28em;
+  box-shadow: 0 6px 22px rgba(0,0,0,.45);
   transition: background .15s, border-color .15s;
 }
-.эк-сохранить svg { width: 16px; height: 16px; flex: none; fill: none; stroke: currentColor;
-  stroke-width: 2; stroke-linecap: round; stroke-linejoin: round }
 .эк-сохранить:hover { background: #e9ecef; border-color: #e9ecef }
 
 /* НА ТЕЛЕФОНЕ РЯД ДОЛЖЕН ОСТАТЬСЯ ОДНОЙ СТРОКОЙ. «Удалено» и «ZIP: 3 снимка» вдвоём не
@@ -201,7 +202,7 @@
    читаться они должны так же. */
 @media (max-width: 560px) {
   .эк-дело { padding: 12px 9px; font-size: 12px }
-  .эк-сохранить { padding: 11px 14px; gap: 6px }
+  .эк-сохранить { padding: 11px 11px; gap: 6px }
 }
 .эк-галка { display: inline-flex; align-items: center; gap: 8px; cursor: pointer;
   font: 400 12.5px var(--мон); color: #fff }
