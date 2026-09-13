@@ -40,7 +40,7 @@ const СЛОВА = {
     statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Удалить выбранное»',
     statusPicked: 'Выбрано полей: {н}. Нажмите «Удалить выбранное»',
     blocks: 'Целые куски файла', blockNote: 'Разобрать по полям их нельзя, но убрать целиком — можно',
-    iccKeep: 'цвета снимка зависят от него — по умолчанию оставляем',
+    iccKeep: 'цвета зависят от него — «удалить всё» его не трогает, только корзинкой',
     onlyRead: 'Данные, которые нельзя удалить', onlyReadWhy: 'Это устройство самого файла: размер картинки, формат, служебные отметки. Без них снимка просто не будет.',
     countBefore: 'Было полей', countAfter: 'Осталось полей', countGone: 'Убрано',
     allFields: 'Все поля файла', counted: 'Найдено полей: {н}', loadingAll: 'Читаю все поля…',
@@ -91,7 +91,7 @@ const СЛОВА = {
     statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Видалити вибране»',
     statusPicked: 'Вибрано полів: {н}. Натисніть «Видалити вибране»',
     blocks: 'Цілі куски файлу', blockNote: 'Розібрати їх за полями не можна, а прибрати цілком — можна',
-    iccKeep: 'кольори знімка залежать від нього — за замовчуванням лишаємо',
+    iccKeep: 'кольори залежать від нього — «видалити все» його не чіпає, тільки кошиком',
     onlyRead: 'Дані, які не можна видалити', onlyReadWhy: 'Це будова самого файлу: розмір картинки, формат, службові позначки. Без них знімка просто не буде.',
     countBefore: 'Було полів', countAfter: 'Лишилося полів', countGone: 'Прибрано',
     allFields: 'Усі поля файлу', counted: 'Знайдено полів: {н}', loadingAll: 'Читаю всі поля…',
@@ -142,7 +142,7 @@ const СЛОВА = {
     statusReady: 'Fields found. Bin what you do not want and press “Remove the chosen”',
     statusPicked: '{н} field(s) chosen. Press “Remove the chosen”',
     blocks: 'Whole parts of the file', blockNote: 'They cannot be split into fields, but they can be dropped whole',
-    iccKeep: 'the colours depend on it — kept by default',
+    iccKeep: 'the colours depend on it — “remove everything” leaves it; use its own bin',
     onlyRead: 'Data that cannot be removed', onlyReadWhy: 'This is how the file itself is built: picture size, format, service marks. Without them there is no photo at all.',
     countBefore: 'Fields before', countAfter: 'Fields left', countGone: 'Removed',
     allFields: 'Every field in the file', counted: 'Fields found: {н}', loadingAll: 'Reading every field…',
@@ -193,7 +193,7 @@ const СЛОВА = {
     statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse «Quitar lo elegido»',
     statusPicked: '{н} campo(s) elegidos. Pulse «Quitar lo elegido»',
     blocks: 'Partes enteras del archivo', blockNote: 'No se pueden dividir en campos, pero sí quitar enteras',
-    iccKeep: 'los colores dependen de él: se conserva por defecto',
+    iccKeep: 'los colores dependen de él: «quitar todo» no lo toca, use su papelera',
     onlyRead: 'Datos que no se pueden quitar', onlyReadWhy: 'Así está construido el archivo: tamaño de la imagen, formato, marcas de servicio. Sin ellos no hay foto.',
     countBefore: 'Campos antes', countAfter: 'Campos restantes', countGone: 'Quitados',
     allFields: 'Todos los campos del archivo', counted: 'Campos encontrados: {н}', loadingAll: 'Leyendo todos los campos…',
@@ -569,6 +569,9 @@ const заметки = чистим
         const ряд = document.createElement('div');
         ряд.className = 'эк-ряд-поля';
         ряд.dataset.ключ = стр.ключ;
+        // За строкой-блоком стоит не одно поле, а несколько: счётчик обязан это знать.
+        if (стр.полей) ряд.dataset.полей = стр.полей;
+        if (стр.беречь) ряд.dataset.беречь = '1';
         const имя = document.createElement('span');
         имя.className = 'эк-поле-имя';
         имя.textContent = стр.имя;
@@ -620,7 +623,7 @@ const заметки = чистим
         if (послеУборки && прежний) прежний.remove();
         return;
       }
-      if (счёт && !послеУборки) счёт.textContent = с.counted.replace('{н}', итог.всего);
+
 
       const ящик = document.createElement('div');
       ящик.className = 'эк-итог эк-всё-поля';
@@ -666,12 +669,15 @@ const заметки = чистим
       шапка.textContent = чистим
         ? `${с.onlyRead} · ${видимых}`
         : `${с.allFields} · ${итог.всего}`;
+      ящик.dataset.полей = чистим ? видимых : итог.всего;
       ответ.appendChild(ящик);
+      if (!чистим && счёт && !послеУборки) счёт.textContent = с.counted.replace('{н}', итог.всего);
 
       // ЦЕЛЫЕ КУСКИ ФАЙЛА -- в тот же список, где поля: по полям их не разобрать, а убрать
       // целиком можно, и человек должен это видеть и решать. Раньше XMP и подписи IPTC
       // уходили молча -- страница делала больше, чем показывала.
       if (чистим && !послеУборки) добавитьБлоки(итог.группы);
+      if (чистим) пересчитатьСчётчик();
     }
 
     /** Куски файла, которые убираются целиком: заметки XMP, подписи IPTC, цветовой профиль. */
@@ -689,6 +695,8 @@ const заметки = чистим
         if (!г || !г.поля.length) continue;
         строки.push({
           ключ: вид.ключ,
+          полей: г.поля.length,
+          беречь: !!вид.беречь,
           имя: с.groups[вид.имя] || вид.имя,
           знач: `${г.поля.length}` + (вид.беречь ? ` · ${с.iccKeep}` : ''),
         });
@@ -703,6 +711,24 @@ const заметки = чистим
       if (всеПоля) ответ.insertBefore(ящик, всеПоля);
       else ответ.appendChild(ящик);
       обновитьКнопку();
+      пересчитатьСчётчик();
+    }
+
+    /**
+     * СЧЁТЧИК НА СНИМКЕ СЧИТАЕТ РОВНО ТО, ЧТО ВИДНО. Раньше он брал число у широкого
+     * разборщика (83), а в списках человек видел вдвое меньше строк -- и справедливо не
+     * понимал, где остальные. Теперь складываем: поля со своими корзинками, поля внутри
+     * блоков и неудаляемые. Число всегда сходится с тем, что можно пересчитать глазами.
+     */
+    function пересчитатьСчётчик() {
+      const счёт = document.getElementById('эк-счёт');
+      if (!счёт || счёт.classList.contains('готово')) return;
+      let всего = 0;
+      for (const р of ответ.querySelectorAll('.эк-ряд-поля')) {
+        всего += Number(р.dataset.полей || 1);
+      }
+      всего += Number(ответ.querySelector('#эк-все-поля')?.dataset.полей || 0);
+      if (всего) счёт.textContent = с.counted.replace('{н}', всего);
     }
 
     /** Кнопка говорит, сколько уберёт: нажимать вслепую человек не должен. */
@@ -1128,9 +1154,14 @@ const заметки = чистим
       if (!последнийФайл) return;
       const ряды = [...ответ.querySelectorAll('.эк-ряд-поля')];
       if (всё) {
+        // «Удалить всё» не трогает то, что страница обещала беречь: поворот (иначе снимок
+        // ляжет набок) и цветовой профиль (иначе поедут цвета). Владелец заметил это
+        // противоречие: в строке написано «по умолчанию оставляем», а «удалить всё» их
+        // помечало. Убрать их можно -- своей корзинкой, вручную.
         for (const р of ряды) {
           const поворот = р.dataset.ключ === '0:' + ПОЛЯ.orientation;
-          if (!поворот && !р.classList.contains('ушло')) переключить(р);
+          const берегут = р.dataset.беречь === '1';
+          if (!поворот && !берегут && !р.classList.contains('ушло')) переключить(р);
         }
       }
       const отмеченные = ряды.filter((р) => р.classList.contains('ушло'));
