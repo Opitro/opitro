@@ -289,3 +289,40 @@
 .эк-всё-поля .эк-пары { grid-template-columns: minmax(0, 230px) minmax(0, 1fr) }
 .эк-подгруппа { margin-top: 8px; font: 400 11px var(--мон); letter-spacing: .06em;
   text-transform: uppercase; color: var(--серый) }
+
+/* ---- Перелистывание снимков --------------------------------------------------------------------
+   Стрелки живут В ОКНЕ, по краям кадра: человек смотрит на снимок и листает там же, не уводя
+   глаза. Видны только когда снимков больше одного. */
+.эк-стрелка {
+  position: absolute; top: 50%; transform: translateY(-50%); z-index: 3;
+  width: 40px; height: 56px; padding: 0; cursor: pointer; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(0,0,0,.55); border: 1px solid rgba(255,255,255,.35); color: #fff;
+  transition: background .15s, border-color .15s;
+}
+.эк-стрелка:hover { background: rgba(0,0,0,.85); border-color: #fff }
+.эк-стрелка[hidden] { display: none }
+.эк-стрелка.влево { left: 8px }
+.эк-стрелка.вправо { right: 8px }
+.эк-стрелка svg { width: 20px; height: 20px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+
+/* Который снимок из скольких -- внизу по центру кадра. */
+.эк-номер {
+  position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2;
+  font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
+  border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 4px 10px;
+  pointer-events: none;
+}
+.эк-номер[hidden] { display: none }
+
+/* Имя снимка на кадре. Стоит сверху по центру, чтобы не спорить со счётчиком слева и
+   крестиком справа; на узком экране обрезается многоточием, а не лезет на всю ширину. */
+.эк-имя-снимка {
+  position: absolute; left: 50%; top: 10px; transform: translateX(-50%); z-index: 2;
+  max-width: min(58%, 420px); overflow: hidden; text-overflow: ellipsis; white-space: nowrap;
+  font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
+  border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 4px 10px;
+  pointer-events: none;
+}
+.эк-имя-снимка[hidden] { display: none }

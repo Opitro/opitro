@@ -22,7 +22,7 @@ const СЛОВА = {
   ru: {
     pick: 'Выбрать снимок', hint: 'или перетащите файл сюда, или вставьте через Ctrl+V',
     shoot: 'Сделать фото', shootHint: 'Снимок с камеры телефона приходит со всеми полями — можно проверить свой телефон прямо сейчас',
-    clear: 'Убрать',
+    clear: 'Убрать', prev: 'Предыдущий снимок', next: 'Следующий снимок', ofAll: '{а} из {б}',
     shot: 'Снимок', camera: 'Камера', taken: 'Съёмка', place: 'Место съёмки', more: 'Остальные поля',
     showAll: 'Показать все поля', hideAll: 'Скрыть остальные поля',
     file: 'Файл', size: 'Размер', weight: 'Вес', kind: 'Формат',
@@ -35,6 +35,7 @@ const СЛОВА = {
     coords: 'Координаты', country: 'Страна', city: 'Ближайший город', altitude: 'Высота', direction: 'Куда смотрела камера',
     map: 'Посмотреть на карте', copy: 'Скопировать координаты', copied: 'Скопировано',
     wantRemove: 'Хотите убрать эти данные из снимка?', linkRemove: 'Удалить EXIF',
+    takeAlong: 'Убрать эти данные', handing: 'Переношу снимок…',
     status: 'Статус', statusWait: 'Жду снимок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Нажмите «Сохранить» на снимке', statusNone: 'Полей нет — чистить нечего',
     statusReady: 'Поля найдены. Уберите лишнее корзинкой и нажмите «Удалить выбранное»',
@@ -74,7 +75,7 @@ const СЛОВА = {
   uk: {
     pick: 'Вибрати знімок', hint: 'або перетягніть файл сюди, або вставте через Ctrl+V',
     shoot: 'Зробити фото', shootHint: 'Знімок з камери телефона приходить з усіма полями — можна перевірити свій телефон просто зараз',
-    clear: 'Прибрати',
+    clear: 'Прибрати', prev: 'Попередній знімок', next: 'Наступний знімок', ofAll: '{а} з {б}',
     shot: 'Знімок', camera: 'Камера', taken: 'Зйомка', place: 'Місце зйомки', more: 'Інші поля',
     showAll: 'Показати всі поля', hideAll: 'Сховати інші поля',
     file: 'Файл', size: 'Розмір', weight: 'Вага', kind: 'Формат',
@@ -87,6 +88,7 @@ const СЛОВА = {
     coords: 'Координати', country: 'Країна', city: 'Найближче місто', altitude: 'Висота', direction: 'Куди дивилася камера',
     map: 'Подивитися на карті', copy: 'Скопіювати координати', copied: 'Скопійовано',
     wantRemove: 'Хочете прибрати ці дані зі знімка?', linkRemove: 'Видалити EXIF',
+    takeAlong: 'Прибрати ці дані', handing: 'Переношу знімок…',
     status: 'Стан', statusWait: 'Чекаю знімок', statusRead: 'Читаю файл…',
     statusClean: 'Готово. Натисніть «Зберегти» на знімку', statusNone: 'Полів немає — чистити нічого',
     statusReady: 'Поля знайдено. Приберіть зайве кошиком і натисніть «Видалити вибране»',
@@ -126,7 +128,7 @@ const СЛОВА = {
   en: {
     pick: 'Choose a photo', hint: 'or drop a file here, or paste with Ctrl+V',
     shoot: 'Take a photo', shootHint: 'A shot from the phone camera arrives with all its fields — you can check your own phone right now',
-    clear: 'Clear',
+    clear: 'Clear', prev: 'Previous photo', next: 'Next photo', ofAll: '{а} of {б}',
     shot: 'Photo', camera: 'Camera', taken: 'Shot', place: 'Where it was taken', more: 'Other fields',
     showAll: 'Show every field', hideAll: 'Hide the other fields',
     file: 'File', size: 'Size', weight: 'Weight', kind: 'Format',
@@ -139,6 +141,7 @@ const СЛОВА = {
     coords: 'Coordinates', country: 'Country', city: 'Nearest town', altitude: 'Altitude', direction: 'Camera pointed',
     map: 'Open the map', copy: 'Copy the coordinates', copied: 'Copied',
     wantRemove: 'Want this data gone from the photo?', linkRemove: 'Remove EXIF',
+    takeAlong: 'Remove this data', handing: 'Taking the photo along…',
     status: 'Status', statusWait: 'Waiting for a photo', statusRead: 'Reading the file…',
     statusClean: 'Done. Press Save on the photo', statusNone: 'No fields — nothing to clean',
     statusReady: 'Fields found. Bin what you do not want and press “Remove the chosen”',
@@ -177,7 +180,7 @@ const СЛОВА = {
   es: {
     pick: 'Elegir una foto', hint: 'o arrastre un archivo aquí, o péguelo con Ctrl+V',
     shoot: 'Hacer una foto', shootHint: 'Una foto hecha con la cámara del teléfono llega con todos sus campos: puede comprobar su propio teléfono ahora mismo',
-    clear: 'Quitar',
+    clear: 'Quitar', prev: 'Foto anterior', next: 'Foto siguiente', ofAll: '{а} de {б}',
     shot: 'Foto', camera: 'Cámara', taken: 'Disparo', place: 'Lugar de la toma', more: 'Otros campos',
     showAll: 'Mostrar todos los campos', hideAll: 'Ocultar los demás campos',
     file: 'Archivo', size: 'Tamaño', weight: 'Peso', kind: 'Formato',
@@ -191,6 +194,7 @@ const СЛОВА = {
     coords: 'Coordenadas', country: 'País', city: 'Ciudad más cercana', altitude: 'Altitud', direction: 'Hacia dónde apuntaba',
     map: 'Ver en el mapa', copy: 'Copiar las coordenadas', copied: 'Copiado',
     wantRemove: '¿Quiere quitar estos datos de la foto?', linkRemove: 'Borrar EXIF',
+    takeAlong: 'Quitar estos datos', handing: 'Llevando la foto…',
     status: 'Estado', statusWait: 'Esperando una foto', statusRead: 'Leyendo el archivo…',
     statusClean: 'Listo. Pulse Guardar en la foto', statusNone: 'No hay campos: nada que limpiar',
     statusReady: 'Campos encontrados. Tire a la papelera lo que sobre y pulse «Quitar lo elegido»',
@@ -297,6 +301,18 @@ const заметки = чистим
     {/* Счётчик прямо на снимке: сколько полей нашлось. Человек видит цифру раньше, чем
         начнёт читать список, -- так у соседей, и это удобно. */}
     <span class="эк-счёт" id="эк-счёт"></span>
+    {/* СТРЕЛКИ ПЕРЕЛИСТЫВАНИЯ. Видны только когда снимков больше одного: на одном они были бы
+        обманом -- листать нечего. */}
+    <button type="button" class="эк-стрелка влево" id="эк-влево" hidden aria-label={с.prev}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M15 5l-7 7 7 7"/></svg>
+    </button>
+    <button type="button" class="эк-стрелка вправо" id="эк-вправо" hidden aria-label={с.next}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M9 5l7 7-7 7"/></svg>
+    </button>
+    <span class="эк-номер" id="эк-номер" hidden></span>
+    {/* Имя файла -- на самом снимке: когда их пять, по картинке не всегда понятно, который
+        сейчас перед глазами. */}
+    <span class="эк-имя-снимка" id="эк-имя-снимка" hidden></span>
     <button type="button" class="эк-крест" id="эк-крест" hidden title={с.clear} aria-label={с.clear}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 6l12 12M18 6L6 18"/></svg>
     </button>
@@ -307,7 +323,7 @@ const заметки = чистим
       </span>
     )}
     {чистим && <span class="эк-полоса" id="эк-полоса"></span>}
-    <input type="file" class="эк-файл" id="эк-файл" accept="image/*" />
+    <input type="file" class="эк-файл" id="эк-файл" accept="image/*" multiple />
     {/* ОТДЕЛЬНОЕ ПОЛЕ ДЛЯ СЪЁМКИ. capture просит браузер открыть не список файлов, а родное
         приложение камеры -- снимок приходит настоящим файлом, со всеми полями, которые
         записал сам телефон. Камерой в браузере (getUserMedia) так сделать нельзя: кадр
@@ -341,7 +357,10 @@ const заметки = чистим
     <p class="эк-увод">
       <span>{с.wantRemove}</span>
       {' '}
-      <a class="эк-ссылка" href={`/${locale}/remove-exif`}>{с.linkRemove}</a>
+      {/* Кнопка уводит СО СНИМКОМ: выбирать тот же файл заново -- лишняя работа, а на
+          телефоне ещё и долгая. Ссылка рядом остаётся для тех, кто пришёл без файла. */}
+      <button type="button" class="эк-ссылка" id="эк-унести" hidden>{с.takeAlong}</button>
+      <a class="эк-ссылка" id="эк-ссылка-уборка" href={`/${locale}/remove-exif`}>{с.linkRemove}</a>
     </p>
   )}
 
@@ -358,6 +377,7 @@ const заметки = чистим
   import { разобратьExif, координаты, выдержкой, убратьПоля, прочитатьВсё, этоHeic,
     раскрытьHeic, ПОЛЯ, ПОЛЯ_GPS } from '../lib/exif.js';
   import { странаПоКоординатам, ближайшийГород } from '../lib/place.js';
+  import { отложить, забрать } from '../lib/handoff.js';
 
   (() => {
     const корень = document.querySelector('.эк');
@@ -383,6 +403,11 @@ const заметки = чистим
     const чистим = корень.dataset.режим === 'чистить';
     let последнийФайл = null;
     let последнийБуфер = null;
+    // НЕСКОЛЬКО СНИМКОВ ЗА РАЗ. Человек приносит папку из отпуска, а не один файл. Разбор
+    // показывается по выбранному, листают стрелками прямо в окне -- ленты миниатюр нет
+    // нарочно: на телефоне она съедает половину экрана, а смотрят всё равно на один кадр.
+    let снимки = [];          // { файл, буфер, превью, ширина, высота, готовый }
+    let текущий = -1;
     let готовыйФайл = null;      // собранный, но ещё не сохранённый файл
     let пальцемЕсть = false;     // есть ли на устройстве камера под пальцем
 
@@ -1120,36 +1145,101 @@ const заметки = чистим
       return { ширина: ш, высота: в };
     }
 
-    async function взятьФайл(файл) {
-      if (!файл) return;
+    /** Принять один или несколько файлов: складываем в список и открываем первый новый. */
+    async function взятьФайлы(список) {
+      const годные = [...(список || [])].filter((ф) => ф && ф.size);
+      if (!годные.length) return;
+      const былоСколько = снимки.length;
+      for (const ф of годные) {
+        снимки.push({ файл: ф, буфер: null, превью: null, ширина: 0, высота: 0, готовый: null });
+      }
+      await открытьСнимок(былоСколько);
+    }
+
+    /**
+     * Открыть снимок из списка: нарисовать, разобрать и показать.
+     *
+     * Нарисованный кадр и прочитанный файл храним при снимке: перелистывание назад не должно
+     * ни читать файл заново, ни раскрывать HEIC второй раз -- это секунды на телефоне.
+     */
+    async function открытьСнимок(номер) {
+      if (номер < 0 || номер >= снимки.length) return;
+      текущий = номер;
+      const сн = снимки[номер];
       беда('');
       ответ.innerHTML = '';
-      последнийФайл = файл;
-      готовыйФайл = null;
+      последнийФайл = сн.файл;
+      готовыйФайл = сн.готовый;
       if (чистим) {
         $('эк-уборка').hidden = true;
-        $('эк-низ').hidden = true;
+        $('эк-низ').hidden = !сн.готовый;
         const счёт = document.getElementById('эк-счёт');
         if (счёт) счёт.classList.remove('готово');
         сказать(с.statusRead);
         полоса(6);
       }
-      const буфер = await файл.arrayBuffer();
-      последнийБуфер = буфер;
-      const { ширина, высота } = await нарисовать(файл, буфер);
-      let разбор;
-      try {
-        разбор = разобратьExif(буфер);
-      } catch (е) {
-        разбор = { есть: false, причина: 'нет' };
+      if (!сн.буфер) сн.буфер = await сн.файл.arrayBuffer();
+      последнийБуфер = сн.буфер;
+
+      if (сн.превью) {
+        снимок.src = сн.превью;
+        снимок.hidden = false;
+        спрятатьВыбор();
+        крест.hidden = false;
+      } else {
+        const { ширина, высота } = await нарисовать(сн.файл, сн.буфер);
+        сн.ширина = ширина; сн.высота = высота;
+        сн.превью = снимок.getAttribute('src') || null;
       }
-      показать(разбор, файл, ширина, высота);
+
+      let разбор;
+      try { разбор = разобратьExif(сн.буфер); }
+      catch (е) { разбор = { есть: false, причина: 'нет' }; }
+      показать(разбор, сн.файл, сн.ширина, сн.высота);
       // ШИРОКИЙ РАЗБОР идёт следом и догружается только теперь: он показывает ВСЁ, что есть в
       // файле, включая заметки производителя, XMP и цветовой профиль, и умеет HEIC.
-      показатьВсеПоля(буфер);
+      показатьВсеПоля(сн.буфер);
+      обновитьЛисталку();
+      const имяСнимка = document.getElementById('эк-имя-снимка');
+      if (имяСнимка) { имяСнимка.textContent = сн.файл.name; имяСнимка.hidden = false; }
+      const унести = document.getElementById('эк-унести');
+      if (унести) { унести.hidden = false; document.getElementById('эк-ссылка-уборка').hidden = true; }
+    }
+
+    /** Стрелки и номер снимка: видны только когда снимков больше одного. */
+    function обновитьЛисталку() {
+      const влево = document.getElementById('эк-влево');
+      const вправо = document.getElementById('эк-вправо');
+      const номер = document.getElementById('эк-номер');
+      const много = снимки.length > 1;
+      if (влево) влево.hidden = !много;
+      if (вправо) вправо.hidden = !много;
+      if (номер) {
+        номер.hidden = !много;
+        номер.textContent = с.ofAll.replace('{а}', текущий + 1).replace('{б}', снимки.length);
+      }
+    }
+
+    /** Листаем по кругу: с последнего -- на первый, чтобы не упираться в край. */
+    function листать(куда) {
+      if (снимки.length < 2) return;
+      открытьСнимок((текущий + куда + снимки.length) % снимки.length);
+    }
+
+    /** Крестик убирает ТЕКУЩИЙ снимок. Остальные остаются -- их ещё не смотрели. */
+    function убратьТекущий() {
+      if (снимки.length > 1) {
+        снимки.splice(текущий, 1);
+        открытьСнимок(Math.min(текущий, снимки.length - 1));
+        return;
+      }
+      очистить();
     }
 
     function очистить() {
+      снимки = [];
+      текущий = -1;
+      обновитьЛисталку();
       снимок.removeAttribute('src');
       снимок.hidden = true;
       спрятатьВыбор(false);
@@ -1164,6 +1254,8 @@ const заметки = чистим
       // «нажимаешь крестик, а надпись „найдено полей“ не пропадает».
       const счёт = document.getElementById('эк-счёт');
       if (счёт) { счёт.textContent = ''; счёт.classList.remove('готово'); }
+      const имяСнимка = document.getElementById('эк-имя-снимка');
+      if (имяСнимка) { имяСнимка.textContent = ''; имяСнимка.hidden = true; }
       if (чистим) {
         $('эк-уборка').hidden = true;
         $('эк-низ').hidden = true;
@@ -1185,20 +1277,26 @@ const заметки = чистим
       кнопкаСъёмки.hidden = false;
       $('эк-подсказка').textContent = с.shootHint;
       кнопкаСъёмки.addEventListener('click', (е) => { е.stopPropagation(); съёмка.click(); });
-      съёмка.addEventListener('change', () => {
-        if (съёмка.files && съёмка.files[0]) взятьФайл(съёмка.files[0]);
-      });
+      съёмка.addEventListener('change', () => взятьФайлы(съёмка.files));
     }
-    крест.addEventListener('click', (е) => { е.stopPropagation(); очистить(); });
-    выбор.addEventListener('change', () => { if (выбор.files && выбор.files[0]) взятьФайл(выбор.files[0]); });
+    крест.addEventListener('click', (е) => { е.stopPropagation(); убратьТекущий(); });
+    выбор.addEventListener('change', () => взятьФайлы(выбор.files));
+    $('эк-влево').addEventListener('click', (е) => { е.stopPropagation(); листать(-1); });
+    $('эк-вправо').addEventListener('click', (е) => { е.stopPropagation(); листать(1); });
+    // Стрелками на клавиатуре -- тоже: рука уже там, когда смотришь на снимок.
+    window.addEventListener('keydown', (е) => {
+      const где = (е.target && е.target.tagName) || '';
+      if (снимки.length < 2 || /INPUT|TEXTAREA/.test(где)) return;
+      if (е.key === 'ArrowLeft') листать(-1);
+      if (е.key === 'ArrowRight') листать(1);
+    });
 
     поле.addEventListener('dragover', (е) => { е.preventDefault(); поле.classList.add('держат'); });
     поле.addEventListener('dragleave', () => поле.classList.remove('держат'));
     поле.addEventListener('drop', (е) => {
       е.preventDefault();
       поле.classList.remove('держат');
-      const ф = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
-      if (ф) взятьФайл(ф);
+      if (е.dataTransfer && е.dataTransfer.files) взятьФайлы(е.dataTransfer.files);
     });
     // Вставка из буфера: снимок экрана попадает сюда сразу, без сохранения в файл.
     window.addEventListener('paste', (е) => {
@@ -1207,7 +1305,7 @@ const заметки = чистим
       for (const ч of части) {
         if (ч.type && ч.type.startsWith('image/')) {
           const ф = ч.getAsFile();
-          if (ф) { взятьФайл(ф); break; }
+          if (ф) { взятьФайлы([ф]); break; }
         }
       }
     });
@@ -1254,6 +1352,7 @@ const заметки = чистим
         if (!итог.вышло) { беда(с.cantStrip); сказать(с.cantStrip); полоса(0); return; }
         полоса(100);
         готовыйФайл = итог;
+        if (снимки[текущий]) снимки[текущий].готовый = итог;
 
         // Считаем ПО ФАКТУ, перечитывая готовый файл тем же разборщиком, что считал до
         // уборки: иначе числа «до» и «после» меряны разными линейками.
@@ -1341,6 +1440,31 @@ const заметки = чистим
       $('эк-сохранить').addEventListener('click', сохранить);
     }
 
+    // ---- Передача снимка соседней странице ---------------------------------------------------
+    // Посмотрел, что внутри, -- и убирает это там же, не выбирая файл заново. Снимок едет
+    // через хранилище браузера на этом же устройстве; наружу по-прежнему ничего не уходит.
+    const кнопкаУнести = document.getElementById('эк-унести');
+    if (!чистим && кнопкаУнести) {
+      кнопкаУнести.addEventListener('click', async () => {
+        if (!последнийФайл) return;
+        кнопкаУнести.textContent = с.handing;
+        кнопкаУнести.disabled = true;
+        await отложить({ имя: последнийФайл.name, файл: последнийФайл, способ: 'exif' });
+        window.location.href = `/${язык}/remove-exif`;
+      });
+    }
+
+    // На странице уборки забираем отложенное, если оно есть: человек пришёл со сканера.
+    if (чистим) {
+      забрать().then((работа) => {
+        if (!работа || работа.способ !== 'exif' || !работа.файл) return;
+        const файл = работа.файл instanceof File
+          ? работа.файл
+          : new File([работа.файл], работа.имя || 'снимок.jpg', { type: работа.файл.type });
+        взятьФайлы([файл]);
+      }).catch(() => {});
+    }
+
     window.__экСостояние = () => ({
       снимокВиден: !снимок.hidden,
       карточек: ответ.querySelectorAll('.эк-итог').length,
@@ -1348,6 +1472,8 @@ const заметки = чистим
       текст: ответ.textContent.replace(/\s+/g, ' ').trim().slice(0, 400),
       всего: всеПоля.length,
       уборкаВидна: чистим && !$('эк-уборка').hidden,
+      снимков: снимки.length,
+      текущий: текущий + 1,
     });
   })();
 </script>
