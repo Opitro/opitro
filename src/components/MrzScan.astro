@@ -21,7 +21,7 @@ const { locale = 'ru' } = Astro.props;
 
 const СЛОВА = {
   ru: {
-    camera: 'Камера', file: 'Файл', clear: 'Убрать', retry: 'Снять ещё',
+    camera: 'Камера', file: 'Файл', clear: 'Убрать', retry: 'Снять ещё', another: 'Выбрать другой файл',
     aim: 'Наведите две нижние строки документа в рамку — прочитаю сам',
     looking: 'Читаю…', loading: 'Приношу распознаватель — {н}',
     firstTime: 'Это бывает один раз: дальше он лежит у вас в браузере.',
@@ -51,7 +51,7 @@ const СЛОВА = {
     zone: 'Машиночитаемая зона',
   },
   uk: {
-    camera: 'Камера', file: 'Файл', clear: 'Прибрати', retry: 'Зняти ще',
+    camera: 'Камера', file: 'Файл', clear: 'Прибрати', retry: 'Зняти ще', another: 'Вибрати інший файл',
     aim: 'Наведіть два нижні рядки документа в рамку — прочитаю сам',
     looking: 'Читаю…', loading: 'Приношу розпізнавач — {н}',
     firstTime: 'Це буває один раз: далі він лежить у вас у браузері.',
@@ -81,7 +81,7 @@ const СЛОВА = {
     zone: 'Машинозчитувана зона',
   },
   en: {
-    camera: 'Camera', file: 'File', clear: 'Clear', retry: 'Take another',
+    camera: 'Camera', file: 'File', clear: 'Clear', retry: 'Take another', another: 'Choose another file',
     aim: 'Put the two bottom lines of the document inside the frame — I read them myself',
     looking: 'Reading…', loading: 'Fetching the reader — {н}',
     firstTime: 'This happens once: after that it stays in your browser.',
@@ -111,7 +111,7 @@ const СЛОВА = {
     zone: 'Machine-readable zone',
   },
   es: {
-    camera: 'Cámara', file: 'Archivo', clear: 'Quitar', retry: 'Tomar otra',
+    camera: 'Cámara', file: 'Archivo', clear: 'Quitar', retry: 'Tomar otra', another: 'Elegir otro archivo',
     aim: 'Encuadre las dos líneas de abajo del documento — las leo yo',
     looking: 'Leyendo…', loading: 'Trayendo el lector — {н}',
     firstTime: 'Esto ocurre una vez: después se queda en su navegador.',
@@ -216,6 +216,23 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     let поток = null, работник = null, несёмРаспознаватель = null, читаем = false, часыКамеры = 0;
+    // Откуда пришёл разбор: 'камера' или 'файл'. От этого зависит, что предлагать после
+    // промаха. Раньше предлагали «Снять ещё» и тому, кто камеру вовсе не включал.
+    let способ = 'камера';
+
+    /** Убрать прежний снимок с экрана. Без этого он лежал ПОВЕРХ живого видео: камера
+     *  работала, а человек видел старую фотографию и решал, что ничего не произошло. */
+    function убратьСнимок() {
+      снимок.hidden = true;
+      снимок.classList.remove('снят');
+      снимок.removeAttribute('src');
+    }
+
+    /** Что предложить после разбора: снять ещё раз или выбрать другой файл. */
+    function позватьЗаново() {
+      переснять.textContent = способ === 'файл' ? с.another : с.retry;
+      переснять.hidden = false;
+    }
 
     const беда = (текст) => { бедаЭ.innerHTML = текст || ''; };
     const сказать = (текст) => { намёк.textContent = текст || ''; намёк.hidden = !текст; };
@@ -498,6 +515,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     // ---- Камера -----------------------------------------------------------------------------
 
     async function включить() {
+      способ = 'камера';
+      убратьСнимок();
+      переснять.hidden = true;
+      ответ.replaceChildren();
+      беда('');
       try {
         подготовитьЗвук();
         поток = await navigator.mediaDevices.getUserMedia({
@@ -552,7 +574,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           выключить();
           прицел.hidden = true;
           сказать('');
-          переснять.hidden = false;
+          позватьЗаново();
           окно.classList.add('прочитано');
           setTimeout(() => окно.classList.remove('прочитано'), 900);
           пикнуть();
@@ -575,7 +597,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
     async function взятьФайл(файл) {
       if (!файл) return;
+      способ = 'файл';
       выключить();
+      переснять.hidden = true;
+      ответ.replaceChildren();
+      беда('');
       показатьОкно(true);
       крест.hidden = false;
       прицел.hidden = true;
@@ -598,7 +624,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         if (!разбор.вышло) разбор = await прочитатьХолст(подготовить(и, и.naturalWidth, и.naturalHeight, 0));
         окно.classList.remove('ищет');
         сказать('');
-        переснять.hidden = false;
+        позватьЗаново();
         if (разбор.вышло) { пикнуть(); показать(разбор); }
         else сказатьПромах(разбор.причина === 'непонятно' ? 'short' : 'none');
       } catch (е) {
@@ -633,10 +659,14 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     });
     $('кс-загрузить').addEventListener('click', () => поле.click());
     поле.addEventListener('change', () => { взятьФайл(поле.files && поле.files[0]); поле.value = ''; });
-    переснять.addEventListener('click', () => { ответ.replaceChildren(); беда(''); переснять.hidden = true; включить(); });
+    переснять.addEventListener('click', () => {
+      ответ.replaceChildren(); беда(''); переснять.hidden = true;
+      // Пришли из файла -- открываем выбор файла, а не камеру: человек камеру и не включал.
+      if (способ === 'файл') поле.click(); else включить();
+    });
     крест.addEventListener('click', () => {
       выключить();
-      снимок.hidden = true; снимок.removeAttribute('src');
+      убратьСнимок();
       показатьОкно(false);
       крест.hidden = true; прицел.hidden = true; переснять.hidden = true;
       сказать(''); ответ.replaceChildren(); беда('');
