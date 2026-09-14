@@ -3,7 +3,7 @@ toolSlug: battery-test
 locale: ru
 category: device-tests
 tool: battery-test
-title: "Тест батареи онлайн — износ аккумулятора"
+title: "Тест батареи телефона и ноутбука онлайн"
 h1: Проверка батареи
 navName: Тест батареи
 summary: "Заряд, питание и здоровье аккумулятора"

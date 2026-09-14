@@ -3,7 +3,7 @@ toolSlug: mock-data
 locale: uk
 category: dev
 tool: mock-data
-title: "Генератор тестових даних онлайн безкоштовно"
+title: "Генератор тестових даних онлайн — JSON, CSV, SQL"
 h1: Генератор тестових моків
 navName: "Генератор тестових даних"
 summary: "Імена, пошти, адреси для тестів"

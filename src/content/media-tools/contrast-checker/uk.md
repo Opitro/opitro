@@ -3,7 +3,7 @@ toolSlug: contrast-checker
 locale: uk
 category: dev
 tool: contrast-checker
-title: "Перевірка контрастності кольорів онлайн безкоштовно"
+title: "Перевірка контрастності кольорів онлайн — WCAG"
 h1: Перевірка контрасту кольорів (WCAG)
 navName: "Перевірка контрасту"
 summary: "Чи вистачає контрасту за правилами WCAG"
