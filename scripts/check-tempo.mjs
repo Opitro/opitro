@@ -42,9 +42,21 @@ for (let i = 0; i < 100; i++) {
   try { await fetch('http://127.0.0.1:4398/'); break; } catch { await sleep(300); }
 }
 await sleep(3000);
+// ОКНО ДОЛЖНО СЧИТАТЬСЯ ВИДИМЫМ, иначе проверка врёт на пустом месте. Когда окно проверки
+// перекрыто другими, Chrome объявляет страницу скрытой (visibilityState = hidden) и
+// перестаёт крутить requestAnimationFrame -- бегунок замирает, и четыре проверки падают
+// так, будто сломан сайт. Он при этом исправен: звук идёт, положение считается, просто
+// рисовать браузер не считает нужным. Отключаем расчёт перекрытия и поднимаем вкладку
+// вперёд -- тогда меряем сайт, а не расположение окон на столе.
 spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome',[`--remote-debugging-port=${PORT}`,
  `--user-data-dir=${DIR}/tp-prof`,'--no-first-run','--no-default-browser-check',
- '--disable-backgrounding-occluded-windows','--autoplay-policy=no-user-gesture-required','--window-size=1300,900','about:blank'],{stdio:'ignore'});
+ '--disable-backgrounding-occluded-windows','--disable-renderer-backgrounding',
+ '--disable-features=CalculateNativeWinOcclusion',
+ // Без окна на столе: в headless страница всегда считается видимой, и анимация идёт. На
+ // живом столе окно проверки оказывается перекрытым чужими окнами, и Chrome усыпляет
+ // отрисовку -- проверка тогда мерила расположение окон, а не сайт.
+ '--headless=new',
+ '--autoplay-policy=no-user-gesture-required','--window-size=1300,900','about:blank'],{stdio:'ignore'});
 let ws,id=0;const pend=new Map();const errs=[];
 const send=(m,p={},s)=>new Promise((res,rej)=>{const i=++id;pend.set(i,{res,rej});ws.send(JSON.stringify({id:i,method:m,params:p,sessionId:s}))});
 let v;for(let i=0;i<60;i++){try{v=await(await fetch(`http://127.0.0.1:${PORT}/json/version`)).json();break}catch{await sleep(400)}}
@@ -53,7 +65,12 @@ ws.addEventListener('message',m=>{const d=JSON.parse(m.data);if(d.id&&pend.has(d
  if(d.method==='Runtime.exceptionThrown')errs.push((d.params.exceptionDetails.exception?.description||'').slice(0,140))});
 const {targetId}=await send('Target.createTarget',{url:'http://127.0.0.1:4398/ru/change-tempo'});
 const {sessionId:S}=await send('Target.attachToTarget',{targetId,flatten:true});
-await send('Runtime.enable',{},S);await send('DOM.enable',{},S);await sleep(3000);
+await send('Runtime.enable',{},S);await send('DOM.enable',{},S);
+await send('Page.enable',{},S);await send('Page.bringToFront',{},S);await sleep(3000);
+// Если страница всё же считается скрытой -- говорим об этом прямо, а не выдаём чужую беду
+// за поломку сайта. Это первое, что нужно знать, читая список «не прошло».
+const видимость = await (async()=>(await send('Runtime.evaluate',{expression:'document.visibilityState',returnByValue:true},S)).result.value)();
+if (видимость !== 'visible') console.log('ВНИМАНИЕ: окно проверки скрыто ('+видимость+') -- бегунок рисоваться не будет');
 const q=async e=>(await send('Runtime.evaluate',{expression:e,returnByValue:true,awaitPromise:true},S)).result.value;
 let pass=0; const fails=[];
 const ok=(n,c,d)=>{ if(c) pass++; else fails.push(d? n+' -- '+d : n); };
