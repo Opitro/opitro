@@ -1,0 +1,608 @@
+---
+// СКАНЕР ТЕКСТА С ФОТО.
+//
+// Что человек получает сверх «текста строкой»: он видит, ЧТО именно прочитано (найденные
+// строки обведены прямо на снимке), где движок не уверен (слово подчёркнуто волной), может
+// прочитать только нужный кусок (обвёл рамкой), повернуть снимок, читать двумя азбуками
+// разом (кириллица вперемешку с латиницей -- обычное дело), забрать результат текстом,
+// файлом .txt или PDF, в котором текст ищется поиском.
+//
+// Всё считается в браузере: движок и азбуки лежат у нас в /tess/ и приезжают только после
+// выбора снимка. Чужое письмо, договор, рецепт -- ничего из этого никуда не уходит.
+import css from '../styles/text-scan.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    camera: 'Камера', file: 'Файл', invite: 'Перетащите снимок сюда',
+    inviteTouch: 'Снимите или выберите снимок', or: 'или выберите',
+    langs: 'Азбука:', langNames: { rus: 'Русская', ukr: 'Українська', eng: 'English', spa: 'Español' },
+    loading: 'Приношу распознаватель — {н}', firstTime: 'Это бывает один раз.',
+    reading: 'Читаю…', nothing: 'Текста не видно',
+    stepOpen: 'Открываю снимок', stepEngine: 'Приношу распознаватель', stepRead: 'Читаю текст', stepDone: 'Готово',
+    nothingWhy: 'На снимке не нашлось букв. Снимите ближе и ровнее, чтобы строки шли горизонтально и не были смазаны. Если буквы светлые на тёмном — включите значок с луной.',
+    copy: 'Скопировать текст', copied: 'Скопировано', txt: 'Скачать .txt',
+    pdf: 'PDF с текстовым слоем', rotate: 'Повернуть', invert: 'Светлые буквы на тёмном',
+    crop: 'Прочитать только кусок', cropOn: 'Обведите кусок на снимке', cropOff: 'Читать весь снимок',
+    again: 'Другой снимок', shaky: 'Проверьте {н} слов: движок в них не уверен',
+    counted: '{з} · {с}', charForms: ['знак', 'знака', 'знаков'], wordForms: ['слово', 'слова', 'слов'],
+    shakyOne: 'Проверьте {н} {ф} — движок в нём сомневается', langTooMany: 'Больше двух азбук разом — читается дольше, а точнее не станет',
+    noCam: 'Камера недоступна. Проверьте, что она не занята другой программой.',
+    denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер.',
+    heavy: 'Не получилось принести распознаватель. Похоже, оборвалась связь — попробуйте ещё раз.',
+    notImage: 'Это не картинка. Выберите снимок: JPEG, PNG, WebP или HEIC.',
+    shot: 'Снять кадр',
+  },
+  uk: {
+    camera: 'Камера', file: 'Файл', invite: 'Перетягніть знімок сюди',
+    inviteTouch: 'Зніміть або виберіть знімок', or: 'або виберіть',
+    langs: 'Абетка:', langNames: { rus: 'Русская', ukr: 'Українська', eng: 'English', spa: 'Español' },
+    loading: 'Приношу розпізнавач — {н}', firstTime: 'Це буває один раз.',
+    reading: 'Читаю…', nothing: 'Тексту не видно',
+    stepOpen: 'Відкриваю знімок', stepEngine: 'Приношу розпізнавач', stepRead: 'Читаю текст', stepDone: 'Готово',
+    nothingWhy: 'На знімку не знайшлося літер. Зніміть ближче й рівніше, щоб рядки йшли горизонтально й не були змазані. Якщо літери світлі на темному — увімкніть значок із місяцем.',
+    copy: 'Скопіювати текст', copied: 'Скопійовано', txt: 'Завантажити .txt',
+    pdf: 'PDF із текстовим шаром', rotate: 'Повернути', invert: 'Світлі літери на темному',
+    crop: 'Прочитати лише шматок', cropOn: 'Обведіть шматок на знімку', cropOff: 'Читати весь знімок',
+    again: 'Інший знімок', shaky: 'Перевірте {н} слів: розпізнавач у них не впевнений',
+    counted: '{з} · {с}', charForms: ['знак', 'знаки', 'знаків'], wordForms: ['слово', 'слова', 'слів'],
+    shakyOne: 'Перевірте {н} {ф} — розпізнавач сумнівається', langTooMany: 'Більше двох абеток разом — читається довше, а точніше не стане',
+    noCam: 'Камера недоступна. Перевірте, чи не зайнята вона іншою програмою.',
+    denied: 'Доступ до камери не надано. Дозвіл питає сам браузер.',
+    heavy: 'Не вийшло принести розпізнавач. Схоже, обірвався звʼязок — спробуйте ще раз.',
+    notImage: 'Це не картинка. Виберіть знімок: JPEG, PNG, WebP або HEIC.',
+    shot: 'Зняти кадр',
+  },
+  en: {
+    camera: 'Camera', file: 'File', invite: 'Drop a photo here',
+    inviteTouch: 'Take or choose a photo', or: 'or choose',
+    langs: 'Alphabet:', langNames: { rus: 'Русская', ukr: 'Українська', eng: 'English', spa: 'Español' },
+    loading: 'Fetching the reader — {н}', firstTime: 'This happens once.',
+    reading: 'Reading…', nothing: 'No text in sight',
+    stepOpen: 'Opening the photo', stepEngine: 'Fetching the reader', stepRead: 'Reading the text', stepDone: 'Done',
+    nothingWhy: 'No letters were found in the photo. Move closer and keep it straight so the lines run horizontally and stay sharp. If the letters are light on a dark background, switch on the moon.',
+    copy: 'Copy the text', copied: 'Copied', txt: 'Download .txt',
+    pdf: 'PDF with a text layer', rotate: 'Rotate', invert: 'Light letters on dark',
+    crop: 'Read one part only', cropOn: 'Draw a box on the photo', cropOff: 'Read the whole photo',
+    again: 'Another photo', shaky: 'Check {н} words: the reader is unsure about them',
+    counted: '{з} · {с}', charForms: ['character', 'characters', 'characters'], wordForms: ['word', 'words', 'words'],
+    shakyOne: 'Check {н} {ф} — the reader is unsure', langTooMany: 'More than two alphabets at once is slower and no more accurate',
+    noCam: 'The camera is not available. Check that another program is not holding it.',
+    denied: 'Camera access was not granted. The browser itself asks for it.',
+    heavy: 'The reader could not be fetched. The connection seems to have dropped — please try again.',
+    notImage: 'That is not a picture. Choose a photo: JPEG, PNG, WebP or HEIC.',
+    shot: 'Take the frame',
+  },
+  es: {
+    camera: 'Cámara', file: 'Archivo', invite: 'Suelte una foto aquí',
+    inviteTouch: 'Haga o elija una foto', or: 'o elija',
+    langs: 'Alfabeto:', langNames: { rus: 'Русская', ukr: 'Українська', eng: 'English', spa: 'Español' },
+    loading: 'Trayendo el lector — {н}', firstTime: 'Esto ocurre una vez.',
+    reading: 'Leyendo…', nothing: 'No se ve texto',
+    stepOpen: 'Abriendo la foto', stepEngine: 'Trayendo el lector', stepRead: 'Leyendo el texto', stepDone: 'Listo',
+    nothingWhy: 'No se han encontrado letras en la foto. Acérquese y mantenga la hoja recta para que las líneas queden horizontales y nítidas. Si las letras son claras sobre fondo oscuro, active la luna.',
+    copy: 'Copiar el texto', copied: 'Copiado', txt: 'Descargar .txt',
+    pdf: 'PDF con capa de texto', rotate: 'Girar', invert: 'Letras claras sobre oscuro',
+    crop: 'Leer solo un trozo', cropOn: 'Dibuje un recuadro en la foto', cropOff: 'Leer la foto entera',
+    again: 'Otra foto', shaky: 'Revise {н} palabras: el lector no está seguro de ellas',
+    counted: '{з} · {с}', charForms: ['carácter', 'caracteres', 'caracteres'], wordForms: ['palabra', 'palabras', 'palabras'],
+    shakyOne: 'Revise {н} {ф} — el lector no está seguro', langTooMany: 'Más de dos alfabetos a la vez tarda más y no acierta más',
+    noCam: 'La cámara no está disponible. Compruebe que no la tenga ocupada otro programa.',
+    denied: 'No se dio acceso a la cámara. El permiso lo pide el propio navegador.',
+    heavy: 'No se pudo traer el lector. Parece que se cortó la conexión: inténtelo otra vez.',
+    notImage: 'Eso no es una imagen. Elija una foto: JPEG, PNG, WebP o HEIC.',
+    shot: 'Tomar el fotograma',
+  },
+};
+
+const с = СЛОВА[locale] || СЛОВА.ru;
+// Азбука по умолчанию -- языка страницы: чаще всего читают на своём.
+const ПО_ЯЗЫКУ = { ru: 'rus', uk: 'ukr', en: 'eng', es: 'spa' };
+const своя = ПО_ЯЗЫКУ[locale] || 'rus';
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="тс" data-words={JSON.stringify(с)} data-locale={locale} data-lang={своя}>
+  <!-- ВХОД -- ПРИГЛАШЕНИЕ. Пустого окна до выбора нет: смотреть в нём нечего. -->
+  <div class="тс-старт" id="тс-старт">
+    <svg class="тс-старт-знак" viewBox="0 0 24 24" aria-hidden="true">
+      <rect x="3" y="4.5" width="18" height="15" rx="2.5"/>
+      <path d="M7 9.5h10M7 13h7"/>
+    </svg>
+    <p class="тс-зов" id="тс-зов">{с.invite}</p>
+    <p class="тс-или" id="тс-или">{с.or}</p>
+    <span class="тс-ряд">
+      <button type="button" class="тс-выбор" id="тс-камера" title={с.camera} aria-label={с.camera}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .8-.4l1-1.3a1 1 0 0 1 .8-.4h4.4a1 1 0 0 1 .8.4l1 1.3a1 1 0 0 0 .8.4h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/><circle cx="12" cy="12.5" r="3.6"/></svg>
+        <span>{с.camera}</span>
+      </button>
+      <button type="button" class="тс-выбор" id="тс-файл" title={с.file} aria-label={с.file}>
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-5 5-2-2-5 5"/></svg>
+        <span>{с.file}</span>
+      </button>
+    </span>
+  </div>
+
+  <!-- Азбуки: показываем всегда, даже до снимка -- человек сразу видит, что читает не только
+       по-русски, и может выбрать заранее. Две разом -- обычное дело для смешанного текста. -->
+  <div class="тс-языки" id="тс-языки">
+    <span class="тс-языки-подпись">{с.langs}</span>
+    {['rus', 'ukr', 'eng', 'spa'].map((к) => (
+      <button type="button" class={`тс-язык${к === своя ? ' взят' : ''}`} data-язык={к}>{с.langNames[к]}</button>
+    ))}
+  </div>
+
+  <!-- Полоса загрузки: видна, пока едут движок с азбукой и идёт чтение. Снимок показываем
+       уже готовым, с обведёнными строками, -- как делают хорошие загрузчики. -->
+  <div class="тс-грузим" id="тс-грузим" hidden>
+    <div class="тс-грузим-верх">
+      <span class="тс-грузим-имя" id="тс-грузим-имя"></span>
+      <span class="тс-грузим-доля" id="тс-грузим-доля">0%</span>
+    </div>
+    <div class="тс-полоса"><i id="тс-полоса"></i></div>
+    <div class="тс-грузим-шаг" id="тс-грузим-шаг"></div>
+  </div>
+
+  <div class="тс-окно" id="тс-окно" hidden>
+    <video id="тс-видео" playsinline muted hidden></video>
+    <img id="тс-снимок" alt="" />
+    <span class="тс-слой" id="тс-слой"></span>
+    <span class="тс-выдел" id="тс-выдел" hidden></span>
+    <span class="тс-ход" id="тс-ход"></span>
+  </div>
+
+  <div class="тс-дела" id="тс-дела" hidden>
+    <button type="button" class="тс-кнопка" id="тс-копи" title={с.copy} aria-label={с.copy}>
+      <svg class="лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+      <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-txt" title={с.txt} aria-label={с.txt}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-pdf" title={с.pdf} aria-label={с.pdf}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/><path d="M14 3v5h5"/><path d="M9 13h6M9 16.5h4"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-поворот" title={с.rotate} aria-label={с.rotate}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M21 12a9 9 0 1 1-2.6-6.4"/><path d="M21 4v5h-5"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-луна" title={с.invert} aria-label={с.invert}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-кусок" title={с.crop} aria-label={с.crop}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-ещё" title={с.again} aria-label={с.again}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+    </button>
+    <span class="тс-счёт" id="тс-счёт"></span>
+  </div>
+
+  <div class="тс-ждём" id="тс-ждём" hidden></div>
+  <div class="тс-текст" id="тс-текст" hidden></div>
+  <div class="тс-беда" id="тс-беда"></div>
+</div>
+
+<script>
+  import { поднятьЧтеца, подготовить, разобратьЧтение, сомнительных } from '../lib/ocr.js';
+  import { выбратьФайл } from '../lib/pick-file.js';
+
+  const корень = document.querySelector('.тс');
+  if (корень) (() => {
+    const с = JSON.parse(корень.dataset.words || '{}');
+    const $ = (и) => document.getElementById(и);
+    const старт = $('тс-старт'), окно = $('тс-окно'), снимок = $('тс-снимок'), слой = $('тс-слой');
+    const выдел = $('тс-выдел'), ход = $('тс-ход'), дела = $('тс-дела'), текстЭ = $('тс-текст');
+    const бедаЭ = $('тс-беда'), ждёмЭ = $('тс-ждём'), счёт = $('тс-счёт'), видео = $('тс-видео');
+    const грузим = $('тс-грузим'), полоса = $('тс-полоса');
+    const грузимИмя = $('тс-грузим-имя'), грузимДоля = $('тс-грузим-доля'), грузимШаг = $('тс-грузим-шаг');
+
+    let языки = [корень.dataset.lang || 'rus'];
+    let картинка = null;          // готовый холст со снимком (уже повёрнутый)
+    let поворот = 0;              // сколько раз повернули на 90°
+    let исходник = null;          // то, что выбрал человек, до поворота
+    let светлыйНаТёмном = false;
+    let кусок = null;             // доля кадра, если обвели рамкой
+    let выделяем = false;
+    let читаем = false;
+    let последнее = null;         // разбор последнего чтения
+    let поток = null;
+
+    const беда = (т) => { бедаЭ.textContent = т || ''; };
+
+    /**
+     * ПОЛОСА ЗАГРУЗКИ -- то, что человек видит сразу после выбора снимка.
+     *
+     * Под неё приезжают движок и азбука (несколько мегабайт в первый раз) и идёт само чтение.
+     * Снимок показываем уже готовым, с обведёнными строками: так делают хорошие загрузчики --
+     * сперва ход работы, потом результат, а не пустой экран с картинкой и неизвестностью.
+     *
+     * Доля честная: ход движка приходит от него самого, а шаги разложены по своим долям.
+     */
+    function ползёт(доля, шаг) {
+      грузим.hidden = false;
+      const н = Math.max(0, Math.min(100, Math.round(доля * 100)));
+      полоса.style.width = н + '%';
+      грузимДоля.textContent = н + '%';
+      if (шаг) грузимШаг.textContent = шаг;
+    }
+    function полосуУбрать() {
+      // Доводим до конца и убираем следующим кадром: рывок от 70% сразу к исчезновению
+      // выглядит обрывом работы, а не её завершением.
+      ползёт(1, с.stepDone);
+      setTimeout(() => { грузим.hidden = true; полоса.style.width = '0%'; }, 260);
+    }
+    const ждём = (т) => { ждёмЭ.textContent = т || ''; ждёмЭ.hidden = !т; };
+
+    // Пальцем не перетаскивают: там, где нет мыши, зовём иначе.
+    if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
+      $('тс-зов').textContent = с.inviteTouch;
+      $('тс-или').hidden = true;
+    }
+
+    /* ---- Азбуки ------------------------------------------------------------------------- */
+    for (const кнопка of корень.querySelectorAll('.тс-язык')) {
+      кнопка.addEventListener('click', () => {
+        const к = кнопка.dataset['язык'];
+        if (языки.includes(к)) {
+          if (языки.length === 1) return;        // хотя бы одна азбука нужна всегда
+          языки = языки.filter((я) => я !== к);
+        } else {
+          // Две азбуки разом -- польза (кириллица с латиницей), три -- только медленнее.
+          if (языки.length >= 2) { беда(с.langTooMany); setTimeout(() => беда(''), 2500); return; }
+          языки = [...языки, к];
+        }
+        for (const э of корень.querySelectorAll('.тс-язык')) {
+          э.classList.toggle('взят', языки.includes(э.dataset['язык']));
+        }
+        if (картинка) прочитать();
+      });
+    }
+
+    /* ---- Снимок ------------------------------------------------------------------------- */
+    function показатьОкно(да) {
+      окно.hidden = !да;
+      старт.hidden = да;
+      дела.hidden = !да;
+    }
+
+    /** Повернуть исходник на нужный угол и показать. Поворот нужен чаще, чем кажется: снятый
+     *  боком лист движок читает как набор палок. */
+    function перерисовать() {
+      if (!исходник) return;
+      const ш = исходник.width || исходник.naturalWidth;
+      const в = исходник.height || исходник.naturalHeight;
+      const боком = поворот % 2 === 1;
+      const х = document.createElement('canvas');
+      х.width = боком ? в : ш;
+      х.height = боком ? ш : в;
+      const к = х.getContext('2d');
+      к.translate(х.width / 2, х.height / 2);
+      к.rotate((поворот % 4) * Math.PI / 2);
+      к.drawImage(исходник, -ш / 2, -в / 2);
+      картинка = х;
+      снимок.src = х.toDataURL('image/jpeg', 0.92);
+      слой.replaceChildren();
+    }
+
+    async function взятьФайлВнутрь(файл) {
+      if (!файл) return;
+      беда('');
+      // Полоса поднимается ПЕРВОЙ -- до разбора снимка: она и есть ответ на нажатие.
+      старт.hidden = true;
+      грузимИмя.textContent = файл.name || '';
+      ползёт(0.06, с.stepOpen);
+      try {
+        исходник = window.createImageBitmap
+          ? await createImageBitmap(файл, { imageOrientation: 'from-image' })
+          : await новаяКартинка(файл);
+      } catch (е) {
+        грузим.hidden = true;
+        старт.hidden = false;
+        беда(с.notImage);
+        return;
+      }
+      поворот = 0; кусок = null; выдел.hidden = true;
+      перерисовать();
+      ползёт(0.12, с.stepEngine);
+      await прочитать({ сПолосой: true });
+    }
+
+    function новаяКартинка(файл) {
+      const адрес = URL.createObjectURL(файл);
+      return new Promise((готово, мимо) => {
+        const и = new Image();
+        и.onload = () => { готово(и); setTimeout(() => URL.revokeObjectURL(адрес), 1000); };
+        и.onerror = () => { URL.revokeObjectURL(адрес); мимо(new Error('не картинка')); };
+        и.src = адрес;
+      });
+    }
+
+    /* ---- Чтение ------------------------------------------------------------------------- */
+    async function прочитать({ сПолосой = false } = {}) {
+      if (!картинка || читаем) return;
+      читаем = true;
+      беда('');
+      слой.replaceChildren();
+      // Повторное чтение (повернули, сменили азбуку, обвели кусок) идёт при уже открытом
+      // снимке: там хватает тонкой линии по нижнему краю, полоса во весь блок была бы криком.
+      if (!сПолосой) { ждём(с.reading); ход.classList.add('идёт'); ход.style.width = '10%'; }
+      try {
+        const чтец = await поднятьЧтеца(языки.join('+'), (доля, что) => {
+          const везут = /load|init/i.test(что);
+          if (сПолосой) ползёт(везут ? 0.12 + доля * 0.5 : 0.62 + доля * 0.36,
+            везут ? с.stepEngine : с.stepRead);
+          else ход.style.width = Math.round(10 + доля * 82) + '%';
+        });
+        if (сПолосой) ползёт(0.64, с.stepRead);
+        const холст = подготовить(картинка, {
+          ш: картинка.width, в: картинка.height, часть: кусок, светлыйНаТёмном,
+        });
+        const { data } = await чтец.recognize(холст, {}, { text: true, blocks: true, pdf: true });
+        последнее = разобратьЧтение(data, { ш: холст.width, в: холст.height, часть: кусок });
+        последнее.pdf = data.pdf || null;
+        // Снимок открываем ВМЕСТЕ с прочитанным: строки на нём уже обведены, читать нечего
+        // заново. Ради этого полоса и нужна.
+        if (сПолосой) { полосуУбрать(); показатьОкно(true); }
+        показатьТекст(последнее);
+      } catch (е) {
+        if (сПолосой) { грузим.hidden = true; показатьОкно(true); }
+        беда(с.heavy);
+      }
+      if (!сПолосой) {
+        ход.style.width = '100%';
+        setTimeout(() => { ход.classList.remove('идёт'); ход.style.width = '0%'; }, 250);
+        ждём('');
+      }
+      читаем = false;
+    }
+
+    /**
+     * «1 слово», «2 слова», «5 слов». Машинное «21 слов» в счётчике сразу выдаёт поделку, а
+     * правило простое и одинаковое для русского с украинским; в английском и испанском формы
+     * совпадают, и таблица просто отдаёт то же слово.
+     */
+    function склонить(н, формы) {
+      if (!формы) return '';
+      const с100 = Math.abs(н) % 100, с10 = с100 % 10;
+      if (с100 > 10 && с100 < 20) return формы[2];
+      if (с10 === 1) return формы[0];
+      if (с10 >= 2 && с10 <= 4) return формы[1];
+      return формы[2];
+    }
+
+    function показатьТекст(разбор) {
+      текстЭ.hidden = false;
+      текстЭ.replaceChildren();
+      слой.replaceChildren();
+      if (!разбор.абзацы.length) {
+        const п = document.createElement('p');
+        п.className = 'тс-пусто';
+        п.textContent = с.nothing + '. ' + с.nothingWhy;
+        текстЭ.appendChild(п);
+        счёт.textContent = '';
+        return;
+      }
+      for (const абзац of разбор.абзацы) {
+        const п = document.createElement('p');
+        п.className = 'тс-абзац';
+        for (const строка of абзац.строки) {
+          const э = document.createElement('span');
+          э.className = 'тс-стр';
+          // Слова с низкой уверенностью подчёркиваем волной: человек сразу видит, что
+          // проверить, вместо того чтобы перечитывать всё подряд.
+          for (const слово of строка.слова) {
+            const сл = document.createElement('span');
+            сл.textContent = слово.текст + ' ';
+            if (слово.уверенность < 70) сл.className = 'тс-шатко';
+            э.appendChild(сл);
+          }
+          э.appendChild(document.createTextNode('\n'));
+          // Рамка этой же строки поверх снимка -- и связь между ними по наведению.
+          const рамка = document.createElement('span');
+          рамка.className = 'тс-строка-рамка';
+          рамка.style.left = (строка.место.х * 100) + '%';
+          рамка.style.top = (строка.место.у * 100) + '%';
+          рамка.style.width = (строка.место.ш * 100) + '%';
+          рамка.style.height = (строка.место.в * 100) + '%';
+          слой.appendChild(рамка);
+          э.addEventListener('mouseenter', () => рамка.classList.add('горит'));
+          э.addEventListener('mouseleave', () => рамка.classList.remove('горит'));
+          п.appendChild(э);
+        }
+        текстЭ.appendChild(п);
+      }
+      const знаков = разбор.текст.length;
+      const слов = разбор.текст.split(/\s+/).filter(Boolean).length;
+      const { плохих } = сомнительных(разбор.абзацы);
+      счёт.textContent = с.counted
+          .replace('{з}', знаков + ' ' + склонить(знаков, с.charForms))
+          .replace('{с}', слов + ' ' + склонить(слов, с.wordForms))
+        + (плохих ? ' · ' + с.shakyOne.replace('{н}', плохих)
+            .replace('{ф}', склонить(плохих, с.wordForms)) : '');
+    }
+
+    /* ---- Выделение куска ---------------------------------------------------------------- */
+    let началоВыдел = null;
+    окно.addEventListener('pointerdown', (е) => {
+      if (!выделяем || !картинка) return;
+      const р = снимок.getBoundingClientRect();
+      началоВыдел = { х: (е.clientX - р.left) / р.width, у: (е.clientY - р.top) / р.height };
+      выдел.hidden = false;
+      обновитьВыдел(началоВыдел, началоВыдел);
+      окно.setPointerCapture(е.pointerId);
+    });
+    окно.addEventListener('pointermove', (е) => {
+      if (!началоВыдел) return;
+      const р = снимок.getBoundingClientRect();
+      обновитьВыдел(началоВыдел, {
+        х: Math.min(1, Math.max(0, (е.clientX - р.left) / р.width)),
+        у: Math.min(1, Math.max(0, (е.clientY - р.top) / р.height)),
+      });
+    });
+    окно.addEventListener('pointerup', () => {
+      if (!началоВыдел || !кусок) { началоВыдел = null; return; }
+      началоВыдел = null;
+      // Слишком маленькую рамку считаем промахом пальца, а не выбором.
+      if (кусок.ш < 0.04 || кусок.в < 0.02) { кусок = null; выдел.hidden = true; return; }
+      выделяем = false;
+      $('тс-кусок').classList.remove('взята');
+      $('тс-кусок').title = с.crop;
+      окно.classList.remove('выделяем');
+      ждём('');
+      прочитать();
+    });
+    function обновитьВыдел(а, б) {
+      const х = Math.min(а.х, б.х), у = Math.min(а.у, б.у);
+      const ш = Math.abs(б.х - а.х), в = Math.abs(б.у - а.у);
+      кусок = { х, у, ш, в };
+      выдел.style.left = (х * 100) + '%';
+      выдел.style.top = (у * 100) + '%';
+      выдел.style.width = (ш * 100) + '%';
+      выдел.style.height = (в * 100) + '%';
+    }
+
+    /* ---- Действия ------------------------------------------------------------------------ */
+    const отдать = (капля, имя) => {
+      const а = document.createElement('a');
+      а.href = URL.createObjectURL(капля);
+      а.download = имя;
+      document.body.appendChild(а);
+      а.click();
+      setTimeout(() => { URL.revokeObjectURL(а.href); а.remove(); }, 1000);
+    };
+
+    $('тс-копи').addEventListener('click', async () => {
+      if (!последнее) return;
+      try { await navigator.clipboard.writeText(последнее.текст); } catch (е) {}
+      const к = $('тс-копи');
+      к.classList.add('готово');
+      setTimeout(() => к.classList.remove('готово'), 1400);
+    });
+    $('тс-txt').addEventListener('click', () => {
+      if (!последнее) return;
+      отдать(new Blob([последнее.текст], { type: 'text/plain;charset=utf-8' }), 'text.txt');
+    });
+    $('тс-pdf').addEventListener('click', () => {
+      // PDF с текстовым слоем: снимок виден как есть, а текст внутри ищется поиском и
+      // выделяется мышью. Его отдаёт сам движок -- собирать нечего.
+      if (!последнее || !последнее.pdf) return;
+      отдать(new Blob([new Uint8Array(последнее.pdf)], { type: 'application/pdf' }), 'text.pdf');
+    });
+    $('тс-поворот').addEventListener('click', () => {
+      if (!исходник) return;
+      поворот = (поворот + 1) % 4;
+      кусок = null; выдел.hidden = true;
+      перерисовать();
+      прочитать();
+    });
+    $('тс-луна').addEventListener('click', () => {
+      светлыйНаТёмном = !светлыйНаТёмном;
+      $('тс-луна').classList.toggle('взята', светлыйНаТёмном);
+      прочитать();
+    });
+    $('тс-кусок').addEventListener('click', () => {
+      if (кусок) {         // кусок уже выбран -- вторым нажатием возвращаем весь снимок
+        кусок = null; выдел.hidden = true; выделяем = false;
+        $('тс-кусок').classList.remove('взята');
+        $('тс-кусок').title = с.crop;
+        окно.classList.remove('выделяем');
+        прочитать();
+        return;
+      }
+      выделяем = !выделяем;
+      $('тс-кусок').classList.toggle('взята', выделяем);
+      окно.classList.toggle('выделяем', выделяем);
+      ждём(выделяем ? с.cropOn : '');
+    });
+    $('тс-ещё').addEventListener('click', () => {
+      картинка = null; исходник = null; последнее = null; кусок = null; поворот = 0;
+      выдел.hidden = true; слой.replaceChildren();
+      снимок.removeAttribute('src');
+      текстЭ.hidden = true; текстЭ.replaceChildren();
+      счёт.textContent = '';
+      показатьОкно(false);
+      грузим.hidden = true;
+      беда(''); ждём('');
+      выключитьКамеру();
+    });
+
+    /* ---- Откуда берём снимок -------------------------------------------------------------- */
+    $('тс-файл').addEventListener('click', async () => {
+      const файл = await выбратьФайл({ берём: 'image/*' });
+      if (файл) взятьФайлВнутрь(файл);
+    });
+
+    function выключитьКамеру() {
+      if (поток) { for (const д of поток.getTracks()) д.stop(); поток = null; }
+      видео.srcObject = null; видео.hidden = true;
+      снимок.hidden = false;
+    }
+
+    $('тс-камера').addEventListener('click', async () => {
+      // На телефоне проще снять родной камерой: кадр приходит настоящим снимком, а не
+      // кадром из потока -- он резче, и текст читается лучше.
+      if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
+        const файл = await выбратьФайл({ берём: 'image/*', съёмка: 'environment' });
+        if (файл) взятьФайлВнутрь(файл);
+        return;
+      }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+      } catch (е) {
+        беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
+        return;
+      }
+      видео.srcObject = поток;
+      видео.hidden = false;
+      снимок.hidden = true;
+      показатьОкно(true);
+      await видео.play().catch(() => {});
+      ждём(с.shot);
+      // Кадр берём по нажатию на окно: держать снимок в руке и целиться удобнее, чем искать
+      // отдельную кнопку.
+      const снять = () => {
+        if (!поток || !видео.videoWidth) return;
+        const х = document.createElement('canvas');
+        х.width = видео.videoWidth; х.height = видео.videoHeight;
+        х.getContext('2d').drawImage(видео, 0, 0);
+        исходник = х;
+        выключитьКамеру();
+        поворот = 0; кусок = null; выдел.hidden = true;
+        перерисовать();
+        ждём('');
+        прочитать({ сПолосой: false });
+        окно.removeEventListener('click', снять);
+      };
+      окно.addEventListener('click', снять);
+    });
+
+    /* ---- Перетаскивание -------------------------------------------------------------------- */
+    for (const имя of ['dragenter', 'dragover']) {
+      старт.addEventListener(имя, (е) => { е.preventDefault(); старт.classList.add('держат'); });
+    }
+    for (const имя of ['dragleave', 'dragend']) {
+      старт.addEventListener(имя, () => старт.classList.remove('держат'));
+    }
+    старт.addEventListener('drop', (е) => {
+      е.preventDefault();
+      старт.classList.remove('держат');
+      const файл = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (файл) взятьФайлВнутрь(файл);
+    });
+    // Снимок экрана вставляют из буфера -- это самый частый способ принести текст с экрана.
+    window.addEventListener('paste', (е) => {
+      const части = е.clipboardData && е.clipboardData.items;
+      if (!части) return;
+      for (const ч of части) {
+        if (ч.type && ч.type.startsWith('image/')) { взятьФайлВнутрь(ч.getAsFile()); break; }
+      }
+    });
+    window.addEventListener('pagehide', выключитьКамеру);
+  })();
+</script>

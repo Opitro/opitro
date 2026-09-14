@@ -85,6 +85,7 @@ import CodeScan from '../../components/CodeScan.astro';
 import ExifView from '../../components/ExifView.astro';
 import ColorScan from '../../components/ColorScan.astro';
 import MrzScan from '../../components/MrzScan.astro';
+import TextScan from '../../components/TextScan.astro';
 import FaviconGen from '../../components/FaviconGen.astro';
 import ColorConvert from '../../components/ColorConvert.astro';
 import PaletteGen from '../../components/PaletteGen.astro';
@@ -600,6 +601,10 @@ const wideLayout = kind === 'media';
     {/* Сканер MRZ: камера читает строки паспорта и пересчитывает контрольные цифры. */}
     {kind === 'media' && entry.data.tool === 'mrz-scan' && (
       <MrzScan locale={entry.data.locale} />
+    )}
+    {/* Текст с фото: то же распознавание, но читает не две строки, а всё подряд. */}
+    {kind === 'media' && entry.data.tool === 'image-to-text' && (
+      <TextScan locale={entry.data.locale} />
     )}
     {kind === 'media' && entry.data.tool === 'favicon-generator' && (
       <FaviconGen locale={entry.data.locale} />
