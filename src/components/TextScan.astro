@@ -122,11 +122,16 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
 
 
   <div class="тс-окно" id="тс-окно" hidden>
-    <video id="тс-видео" playsinline muted hidden></video>
-    <img id="тс-снимок" alt="" />
-    <span class="тс-слой" id="тс-слой"></span>
-    <span class="тс-выдел" id="тс-выдел" hidden></span>
-    <span class="тс-луч" id="тс-луч"></span>
+    <!-- Кадр обёрнут отдельно и ровно по картинке: рамки найденных строк кладутся на него, и
+         при любом размере снимка они остаются на своих местах. Снимок с телефона -- это три
+         тысячи точек по длинной стороне, и без ограничения высоты он занимал всю страницу. -->
+    <span class="тс-кадр" id="тс-кадр">
+      <video id="тс-видео" playsinline muted hidden></video>
+      <img id="тс-снимок" alt="" />
+      <span class="тс-слой" id="тс-слой"></span>
+      <span class="тс-выдел" id="тс-выдел" hidden></span>
+      <span class="тс-луч" id="тс-луч"></span>
+    </span>
   </div>
 
   <div class="тс-дела" id="тс-дела" hidden>
@@ -269,9 +274,24 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
           ? await createImageBitmap(файл, { imageOrientation: 'from-image' })
           : await новаяКартинка(файл);
       } catch (е) {
-        полосуУбрать();
-        беда(с.notImage);
-        return;
+        // HEIC -- то, чем снимает айфон по умолчанию. Браузер его не открывает (кроме Safari),
+        // и без этой ветки человек просто возвращался на первый экран без объяснений.
+        // Раскрыватель тот же, что на странице метаданных, и приезжает только сюда и сейчас.
+        try {
+          ползёт(0.2, с.loadingWord);
+          const { раскрытьHeic, этоHeic } = await import('../lib/exif.js');
+          const байты = await файл.arrayBuffer();
+          if (!этоHeic(байты)) throw е;
+          const точки = await раскрытьHeic(байты);
+          const х = document.createElement('canvas');
+          х.width = точки.width; х.height = точки.height;
+          х.getContext('2d').putImageData(точки, 0, 0);
+          исходник = х;
+        } catch (е2) {
+          полосуУбрать();
+          беда(с.notImage);
+          return;
+        }
       }
       поворот = 0; кусок = null; выдел.hidden = true;
       перерисовать();

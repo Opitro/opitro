@@ -50,8 +50,14 @@
 .тс-окно {
   position: relative; margin-top: 14px; border: 2px solid var(--контур); border-radius: 6px;
   background: #09090b; overflow: hidden; line-height: 0;
+  display: flex; justify-content: center; align-items: center;
 }
-.тс-окно img { display: block; width: 100%; height: auto }
+/* СНИМОК ВПИСЫВАЕТСЯ, А НЕ РАСТЯГИВАЕТСЯ. С телефона приходит кадр в три тысячи точек, и во
+   всю ширину он занимал целый экран: чтобы дойти до прочитанного текста, приходилось
+   пролистывать страницу. Ограничиваем высоту двумя третями окна браузера. */
+.тс-кадр { position: relative; display: inline-block; line-height: 0; max-width: 100% }
+.тс-окно img, .тс-окно video { display: block; max-width: 100%; max-height: 62vh;
+  width: auto; height: auto }
 /* Найденные строки лежат поверх снимка полупрозрачными рамками -- видно, что именно прочитано
    и не пропущено ли что-то. Наведение на строку в тексте зажигает её же на фотографии. */
 .тс-слой { position: absolute; inset: 0; pointer-events: none }
@@ -108,11 +114,16 @@
 .тс-счёт { margin-left: auto; font: 400 12px var(--мон); color: var(--серый) }
 
 /* ---- Текст --------------------------------------------------------------------------------- */
+/* ПРОЧИТАННОЕ ВЫГЛЯДИТ ЛИСТОМ БУМАГИ -- решение владельца, и оно верное: со снимка сняли
+   текст, и человек видит его так, как привык видеть документ. Белая бумага, тёмные буквы,
+   поля по краям, лёгкая тень. Моноширинный шрифт тут не нужен -- это не код. */
 .тс-текст {
-  margin-top: 12px; padding: 14px 15px; border-radius: 10px; background: #16181d;
-  border: 1px solid var(--контур); font: 400 13.5px/1.65 var(--мон); color: #fff;
+  margin-top: 12px; padding: 26px 28px; border-radius: 4px;
+  background: #fbfbf7; border: 1px solid #d9d7cf; color: #1a1a1a;
+  font: 400 15px/1.7 Georgia, 'Times New Roman', serif;
   white-space: pre-wrap; overflow-wrap: anywhere; user-select: text;
   min-height: 96px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.6) inset;
 }
 .тс-абзац { margin: 0 0 14px }
 .тс-абзац:last-child { margin-bottom: 0 }
@@ -122,11 +133,14 @@
   opacity: 0; animation: тс-строка-вышла .18s ease-out forwards }
 @keyframes тс-строка-вышла { from { opacity: 0; transform: translateY(2px) } to { opacity: 1; transform: none } }
 @media (prefers-reduced-motion: reduce) { .тс-стр { animation: none; opacity: 1 } }
-.тс-стр:hover { background: rgba(74,222,158,.12) }
+/* Наведение подсвечивает строку маркером -- на белом листе зелёная заливка выглядела бы
+   чужой, а жёлтый маркер понятен без объяснений. */
+.тс-стр:hover { background: rgba(255,214,102,.45) }
 /* Слово, в котором движок не уверен: подчёркнуто волной, как опечатка в редакторе. Человек
    сразу видит, что проверить глазами, а не перечитывает всё. */
-.тс-шатко { text-decoration: underline wavy rgba(255,209,121,.75); text-underline-offset: 3px }
-.тс-пусто { color: var(--серый) }
+/* Слово, в котором движок не уверен, подчёркнуто волной -- как опечатка в редакторе. */
+.тс-шатко { text-decoration: underline wavy rgba(214,69,69,.6); text-underline-offset: 3px }
+.тс-пусто { color: #6b6b63; font: 400 14px/1.6 var(--мон) }
 /* Курсор на конце печатающегося текста: пока мигает -- работа идёт. */
 .тс-курсор { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px;
   background: var(--accent); animation: тс-мигает .8s steps(2, start) infinite }
@@ -137,8 +151,11 @@
 .тс-ждём { margin-top: 12px; font: 400 12.5px var(--мон); color: var(--серый) }
 
 @media (max-width: 560px) {
+  /* На телефоне экран и так узкий: снимку хватает половины высоты, иначе текст уходит
+     за нижний край и его не видно вовсе. */
+  .тс-окно img, .тс-окно video { max-height: 52vh }
   .тс-старт { padding: 24px 14px 22px }
   .тс-выбор { width: 132px }
-  .тс-текст { font-size: 13px }
+  .тс-текст { font-size: 14px; padding: 20px 18px }
   .тс-счёт { margin-left: 0; width: 100% }
 }
