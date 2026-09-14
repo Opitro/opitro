@@ -93,7 +93,14 @@
 .цв-затвор:hover i { background: #e9ecef }
 .цв-затвор[hidden] { display: none }
 
-.цв-файл { display: none }
+/* Поле выбора файла уводим за край, а не гасим display:none: Safari на iPhone рисует такое
+   поле собственной кнопкой, и она всплывает поверх страницы и ездит за прокруткой. По коду
+   поле остаётся рабочим -- по нему кликает кнопка рядом. */
+.цв-файл {
+  position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
+  clip-path: inset(50%); overflow: hidden; white-space: nowrap; opacity: 0;
+  pointer-events: none;
+}
 
 /* ---- Ответ ------------------------------------------------------------------------------------ */
 @keyframes цв-явился { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
