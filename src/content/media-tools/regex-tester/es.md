@@ -3,11 +3,11 @@ toolSlug: regex-tester
 locale: es
 category: dev
 tool: regex-tester
-title: Probador de RegEx online — Probador y depurador de expresiones regulares
+title: "Probador de RegEx online gratis"
 h1: Probador de expresiones regulares (RegEx)
 navName: "Probador de expresiones regulares"
 summary: "Probar la expresión con su propio texto"
-description: "Herramienta profesional para probar y depurar expresiones regulares online. Valida tu sintaxis RegEx, encuentra coincidencias de texto y resalta grupos al instante de forma local."
+description: "Herramienta profesional para probar y depurar expresiones regulares online. Valida tu sintaxis RegEx, encuentra coincidencias de texto y resalta grupos al instante de forma local. Gratis, sin registro."
 faq:
   - question: ¿Qué son las expresiones regulares y para qué sirven?
     answer: "Son un lenguaje muy escueto para describir patrones de texto. En lugar de «una cadena con letras, luego una arroba, luego un punto y más letras» se escriben unos pocos caracteres, y el motor encuentra todos esos fragmentos en cualquier cantidad de texto. Con ellas se criban registros de servidor, se extraen números y fechas de volcados, se reemplaza por patrón en carpetas enteras y se valida lo que la gente escribe en un formulario. Su fuerza es la brevedad; su debilidad, la misma: veinte caracteres de patrón se leen peor que una página de código corriente, y por eso hay que probar el patrón sobre texto real y no mentalmente."

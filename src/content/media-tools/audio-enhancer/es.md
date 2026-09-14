@@ -3,11 +3,11 @@ toolSlug: audio-enhancer
 locale: es
 category: audio
 tool: enhance
-title: Mejorar audio online gratis — reducción de ruido y volumen en un paso
+title: "Mejorar audio online gratis"
 h1: Mejorar el sonido online
 navName: "Mejorar el audio"
 summary: "Sonido más claro: ruido, retumbe y silencios"
-description: Mejora la calidad de un audio en segundos desde el navegador — quita el ruido, sube el volumen y aclara la voz. Con casos listos para voz, pódcast, música, llamada o grabación antigua, y comparación antes y después. Gratis, sin registro, sin subir nada a un servidor.
+description: "Mejora la calidad de un audio en segundos desde el navegador — quita el ruido, sube el volumen y aclara la voz. Gratis, sin registro, sin subir nada a un servidor."
 faq:
   - question: ¿En qué se diferencia de usar la reducción de ruido y la normalización por separado?
     answer: Son los mismos efectos aplicados juntos y en el orden correcto en una sola pasada — más rápido que pasar el archivo por dos herramientas, y con ajustes preparados para cada tipo de grabación en lugar de configurarlo a mano.

@@ -3,11 +3,11 @@ toolSlug: split-vocal
 locale: es
 category: audio
 tool: split-vocal
-title: Separar la voz de la música online — dividir una canción en dos pistas
+title: "Separar la voz de la música online gratis"
 h1: Separar la voz de la música
 navName: "Separar voz y música"
 summary: "Voz y música en dos archivos separados"
-description: "Divide una canción en voz y música en una sola pasada: las dos pistas quedan juntas, escucha y descarga la que necesites. Calcula tu navegador y el archivo no sale de él."
+description: "Divide una canción en voz y música en una sola pasada: las dos pistas quedan juntas, escucha y descarga la que necesites. Calcula tu navegador y el archivo no sale de él. Gratis, sin registro."
 faq:
   - question: ¿En qué se diferencia de «quitar la voz»?
     answer: "Allí sale una sola pista, la base, y la página está hecha para eso. Aquí el mismo cálculo entrega las dos: la voz y la música quedan una al lado de otra y cada una se escucha y se descarga por separado. La operación es la misma; cambia lo que te llevas."

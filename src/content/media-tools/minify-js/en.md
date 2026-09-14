@@ -3,7 +3,7 @@ toolSlug: minify-js
 locale: en
 category: dev
 tool: minify-js
-title: JS Minifier Online — Compress JavaScript Code & Obfuscate Scripts
+title: "JS Minifier Online — Compress JavaScript"
 h1: JavaScript Code Minifier
 navName: "JS Minifier"
 summary: "Shrink the script, shorten the names"

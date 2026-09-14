@@ -3,7 +3,7 @@ toolSlug: pdf417-scan
 locale: es
 category: scanners
 tool: pdf417-scan
-title: "Escáner PDF417 online gratis — leer el código del permiso o la tarjeta de embarque"
+title: "Escáner PDF417 online gratis"
 h1: "Escáner PDF417"
 navName: "Escáner PDF417"
 summary: "Leer un código PDF417 con la cámara o desde una foto"

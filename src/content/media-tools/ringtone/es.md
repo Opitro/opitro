@@ -7,7 +7,7 @@ title: Crear un tono de llamada para iPhone y Android online gratis
 h1: Crear un tono de llamada
 navName: "Crear un tono de llamada"
 summary: "Cortar un trozo y hacerlo tono de llamada"
-description: Haz un tono a partir de una canción o de un vídeo para iPhone, Android, Telegram, WhatsApp, una alarma o una notificación — elige un tramo y descarga el archivo. Gratis, sin registro y sin generar nada — es tu propia pista, no una melodía inventada por una IA, y no se sube a ningún sitio.
+description: "Haz un tono a partir de una canción o de un vídeo para iPhone, Android, Telegram, WhatsApp, una alarma o una notificación — elige un tramo y descarga el archivo."
 faq:
   - question: ¿Cómo pongo el tono en un iPhone?
     answer: Descarga el archivo con la opción de iPhone — es un M4R de verdad, el formato nativo de tonos de Apple. Luego abre la app Archivos, tócalo y elige Compartir → Más → Usar como tono, y aparecerá al momento en Ajustes → Sonidos y vibraciones. Esto funciona a partir de iOS 26; en versiones anteriores hace falta GarageBand.

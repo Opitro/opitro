@@ -4,9 +4,9 @@ locale: en
 name: Audio
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Trim, join, clean up noise, pull out the vocal
-title: Audio Tools Online, Free — Trim, Convert, Volume, Speed, Pitch & More
+title: "Audio Tools Online — Edit Sound in Browser"
 h1: Audio Tools
-description: Edit and convert audio files right in your browser — trim, merge, change volume, speed, pitch, format, and more. Free, no sign-up, files never leave your device.
+description: "Edit and convert audio files right in your browser — trim, merge, change volume, speed, pitch, format, and more. Free, no sign-up, files never leave your device."
 ---
 
 Everything below runs in your browser — no upload to a server, no account, no watermark. Pick a tool, load a file, and the result downloads straight to your device.

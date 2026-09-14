@@ -3,11 +3,11 @@ toolSlug: css-gradient
 locale: en
 category: dev
 tool: css-gradient
-title: CSS Gradient Generator Online — Build Linear & Radial CSS Color Gradients
+title: "CSS Gradient Generator Online Free"
 h1: CSS Gradient Generator
 navName: "CSS Gradient Generator"
 summary: "Build the gradient, take the CSS"
-description: "Professional online tool to generate custom CSS gradients. Instantly create linear or radial backgrounds, adjust color stops, and copy production-ready CSS code snippets."
+description: "Professional online tool to generate custom CSS gradients. Instantly create linear or radial backgrounds, adjust color stops, and copy production-ready CSS code snippets. Free, no sign-up."
 faq:
   - question: What is the difference between a linear and a radial gradient?
     answer: "A linear gradient carries colours along a straight line, and the direction is set by an angle: 0° runs bottom to top, 90° left to right, 180° top to bottom. It suits backgrounds, headers and buttons — anywhere an even transition is wanted. A radial gradient spreads in circles from a centre and does something else: glow, volume, a soft vignette. The rule of thumb is simple: if the transition should be an unnoticed background, go linear; if it is an object in its own right — a pool of light, a highlight — go radial."

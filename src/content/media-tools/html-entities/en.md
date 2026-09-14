@@ -3,11 +3,11 @@ toolSlug: html-entities
 locale: en
 category: dev
 tool: html-entities
-title: HTML Entities Encoder & Decoder Online — Convert Special Characters to Web Code
+title: "HTML Entities Encoder & Decoder Online Free"
 h1: HTML Entity Encoder / Decoder
 navName: "HTML Entity Encoder"
 summary: "Special characters ↔ entities, escaped once"
-description: "Professional online tool to escape or unescape special characters into secure HTML entities. Instantly convert HTML tags, quotes, and ampersands locally in your browser."
+description: "Professional online tool to escape or unescape special characters into secure HTML entities. Instantly convert HTML tags, quotes, and ampersands locally in your browser. Free, no sign-up."
 faq:
   - question: Why turn special characters into entities?
     answer: "Because the browser does not see letters in the less-than sign, the greater-than sign and the ampersand — it sees markup. Show a code example on a page as it is and the browser will try to execute it: the layout breaks, and in the worst case somebody else's script, carried in your own text, runs on your page. Replacing those characters with entities tells the browser: these are just letters, display them."

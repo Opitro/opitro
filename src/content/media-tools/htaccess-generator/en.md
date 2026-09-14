@@ -3,11 +3,11 @@ toolSlug: htaccess-generator
 locale: en
 category: dev
 tool: htaccess-generator
-title: .htaccess Generator Online — Apache Configuration & Rewrite Rules Builder
+title: ".htaccess Generator Online Free"
 h1: .htaccess Generator
 navName: ".htaccess Generator"
 summary: "Redirects, HTTPS, www — a ready file"
-description: "Professional online tool to generate .htaccess files for Apache servers. Instantly build 301 redirects, WWW/HTTPS routing rules, security headers, and caching directives locally."
+description: "Professional online tool to generate .htaccess files for Apache servers. Instantly build 301 redirects, WWW/HTTPS routing rules, security headers, and caching directives locally. Free, no sign-up."
 faq:
   - question: What is .htaccess and which folder does it go in?
     answer: "It is a settings file for the Apache web server that applies to one folder and everything nested inside it. It lets you change how the server behaves without touching the global configuration — which is exactly why it became the main tool wherever the global configuration is out of reach, that is, on almost any ordinary hosting account. It belongs in the site root: the same folder as index.php or index.html. Hosts name that folder differently — public_html, www, httpdocs. The rules apply to it and to everything within."

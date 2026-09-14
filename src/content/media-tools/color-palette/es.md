@@ -3,11 +3,11 @@ toolSlug: color-palette
 locale: es
 category: dev
 tool: color-palette
-title: Generador de paletas de colores online — Crear esquemas de color formales
+title: "Generador de paletas de colores online gratis"
 h1: Generador de paletas de colores
 navName: "Generador de paletas"
 summary: "Una paleta a partir de un color"
-description: "Herramienta profesional para generar paletas y esquemas de colores online. Crea combinaciones armónicas (monocromáticas, triadas, complementarias) para diseño web y CSS de forma local."
+description: "Herramienta profesional para generar paletas y esquemas de colores online. Crea combinaciones armónicas (monocromáticas, triadas, complementarias) para diseño web y CSS de forma local. Gratis, sin registro."
 faq:
   - question: ¿Cómo ayudan las reglas de armonía cromática al diseñar una interfaz?
     answer: "Cada regla resuelve un problema distinto. La complementaria toma el punto opuesto del círculo: ese es el botón que destaca sobre el tono principal, el que se supone que hay que pulsar. La análoga escoge vecinos: una serie suave para fondos, paneles y transiciones, donde el contraste solo estorbaría. La tríada da tres colores independientes que no se pelean entre sí, y va bien allí donde hay muchos elementos que distinguir: barras de un gráfico, etiquetas, estados de tareas. La monocromática es un solo tono en distintas luminosidades: aspecto sobrio y una fuente cómoda de matices para el paso del ratón, la pulsación y el estado desactivado."

@@ -3,11 +3,11 @@ toolSlug: unix-timestamp
 locale: es
 category: dev
 tool: unix-timestamp
-title: Conversor de Unix Timestamp online — Convertir tiempo Epoch a fecha y hora
+title: "Conversor de Unix Timestamp online gratis"
 h1: Conversor de Unix Timestamp
 navName: "Conversor de marcas Unix"
 summary: "Marca ↔ fecha, en cualquier zona horaria"
-description: "Herramienta profesional para la conversión de Unix Time (Epoch) online. Transforma segundos y milisegundos en fechas legibles de forma 100% local e instantánea."
+description: "Herramienta profesional para la conversión de Unix Time (Epoch) online. Transforma segundos y milisegundos en fechas legibles de forma 100% local e instantánea. Gratis, sin registro."
 faq:
   - question: ¿Qué es una marca de tiempo Unix y desde cuándo se cuenta?
     answer: "Es una forma de anotar un instante con un solo número entero: los segundos transcurridos desde la medianoche del 1 de enero de 1970 en tiempo universal coordinado (UTC). El formato no depende de ninguna zona horaria, ni de idioma, ni del calendario de ningún país, y por eso las bases de datos comparan y ordenan registros por él más rápido que por nada: se comparan simplemente dos números. El punto de partida no se eligió por ningún acontecimiento astronómico sino por comodidad: una fecha redonda cercana al nacimiento del propio Unix."

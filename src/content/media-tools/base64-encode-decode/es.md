@@ -3,11 +3,11 @@ toolSlug: base64-encode-decode
 locale: es
 category: dev
 tool: base64-encode-decode
-title: Base64 online — codificador y decodificador de texto (encode / decode)
+title: "Base64: codificar y decodificar online gratis"
 h1: Codificación y decodificación Base64
 navName: "Codificador Base64"
 summary: "Texto ↔ Base64, sin romper los acentos"
-description: "Herramienta gratuita para codificar y decodificar Base64 online. Convierte texto plano a Base64 o despliega una cadena ya hecha, con acentos y eñes correctos y forma segura para enlaces."
+description: "Herramienta gratuita para codificar y decodificar Base64 online. Convierte texto plano a Base64 o despliega una cadena ya hecha, con acentos y eñes correctos y forma segura para enlaces. Gratis, sin registro."
 faq:
   - question: ¿Qué es la codificación Base64 y para qué sirve?
     answer: "Base64 es una forma de escribir cualquier dato con sesenta y cuatro caracteres sencillos: letras latinas, cifras y un par de símbolos. Hace falta allí donde el canal solo entiende texto plano y estropea todo lo demás: en las cabeceras del correo, en los adjuntos, en los tokens, en las imágenes escritas dentro de la propia página. Los datos no cambian; lo que cambia es la manera de anotarlos."

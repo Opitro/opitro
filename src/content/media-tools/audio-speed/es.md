@@ -3,11 +3,11 @@ toolSlug: audio-speed
 locale: es
 category: audio
 tool: speed
-title: Cambiar la velocidad de un audio online gratis — acelerar o ralentizar
+title: "Cambiar la velocidad de un audio online gratis"
 h1: Cambiar la velocidad de reproducción
 navName: "Cambiar la velocidad"
 summary: "Más rápido o más lento sin voz de ardilla"
-description: Acelera o ralentiza una grabación de 0,25x a 4x conservando el tono, sin que la voz salga chillona ni cavernosa. Va bien para escuchar una clase más rápido o frenar una música para sacarla. Gratis, sin registro, el archivo no se sube a ningún sitio.
+description: "Acelera o ralentiza una grabación de 0,25x a 4x conservando el tono, sin que la voz salga chillona ni cavernosa. Va bien para escuchar una clase más rápido o frenar una música para sacarla."
 faq:
   - question: ¿La voz saldrá chillona al acelerar?
     answer: No, mientras la casilla de conservar el tono esté marcada, y viene marcada de serie. Solo cambia el tempo; la altura del sonido se queda como estaba. No es lo mismo que reproducir la grabación más rápido, donde la voz se va hacia arriba.

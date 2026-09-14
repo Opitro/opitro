@@ -3,11 +3,11 @@ toolSlug: key-rollover
 locale: es
 category: device-tests
 tool: key-rollover
-title: Cuántas teclas a la vez — test de rollover y antighosting del teclado
+title: "Cuántas teclas a la vez en línea gratis"
 h1: Cuántas teclas a la vez
 navName: "Test de pulsaciones simultáneas"
 summary: "Cuántas teclas registra a la vez"
-description: "Mantén varias teclas a la vez y mira cuántas llegan al ordenador. Prueba de rollover y antighosting, importante para los juegos."
+description: "Mantén varias teclas a la vez y mira cuántas llegan al ordenador. Prueba de rollover y antighosting, importante para los juegos. Gratis, sin registro."
 faq:
   - question: ¿Cuántas teclas deberían registrarse a la vez?
     answer: "Un teclado USB corriente llega a seis más los modificadores: así se transmiten los datos, y no es una avería. Los teclados con rollover completo aguantan todas a la vez y el contador pasa de diez. Menos de seis significa que se pierden pulsaciones dentro del propio teclado."

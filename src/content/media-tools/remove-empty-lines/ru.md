@@ -3,7 +3,7 @@ toolSlug: remove-empty-lines
 locale: ru
 category: text
 tool: remove-empty-lines
-title: Удаление пустых строк онлайн — убрать пустые строки из текста бесплатно
+title: "Удаление пустых строк онлайн бесплатно"
 h1: Удаление пустых строк
 navName: "Удаление пустых строк"
 summary: "Сжать пропуски между строками"

@@ -3,11 +3,11 @@ toolSlug: barcode
 locale: es
 category: dev
 tool: barcode
-title: Generador de códigos de barras online — crear EAN-13 y Code 128 gratis
+title: "Generador de códigos de barras online gratis"
 h1: Generador de códigos de barras
 navName: "Generador de códigos de barras"
 summary: "EAN-13, Code-128 → PNG y SVG"
-description: "Crea un código de barras EAN-13, EAN-8, UPC, Code 128, Code 39 o ITF-14. Calculamos el dígito de control y te lo decimos. Descarga en PNG y SVG. Gratis y en tu navegador."
+description: "Crea un código de barras EAN-13, EAN-8, UPC, Code 128, Code 39 o ITF-14. Calculamos el dígito de control y te lo decimos. Descarga en PNG y SVG. Gratis y en tu navegador. Gratis, sin registro."
 faq:
   - question: ¿PNG o SVG?
     answer: "Para imprenta, el SVG. Se describe con líneas y se amplía sin perder nitidez, y en un código de barras la nitidez de los bordes lo decide todo: un borde borroso hace que el lector falle. El PNG está hecho de puntos y va bien para un documento, una factura o una página web."

@@ -3,11 +3,11 @@ toolSlug: word-frequency
 locale: es
 category: text
 tool: word-frequency
-title: Frecuencia de palabras online — analizador de densidad de palabras clave
+title: "Frecuencia de palabras online gratis"
 h1: Frecuencia de palabras en un texto
 navName: "Contador de frecuencia de palabras"
 summary: "Qué palabras aparecen más veces"
-description: "Analizador gratuito de frecuencia de palabras. Crea una lista de frecuencias, mide la densidad de palabras clave y descarta las palabras vacías. El texto no sale del navegador."
+description: "Analizador gratuito de frecuencia de palabras. Crea una lista de frecuencias, mide la densidad de palabras clave y descarta las palabras vacías. El texto no sale del navegador. Gratis, sin registro."
 faq:
   - question: ¿Qué es la densidad de palabras clave y para qué mirarla?
     answer: "La densidad es la parte que ocupa una palabra concreta dentro del texto, en porcentaje. Vale la pena mirarla por un motivo: enseña si has caído en repetir la misma palabra. Pero no es una cifra que haya que alcanzar: ningún buscador publica un umbral a partir del cual un texto se considera sobreoptimizado, y lo de «no pases del tres por ciento» es folclore del oficio, no una regla. Leer el texto en voz alta es más fiable: si una palabra chirría, es que sobra."

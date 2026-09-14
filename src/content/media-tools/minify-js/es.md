@@ -3,11 +3,11 @@ toolSlug: minify-js
 locale: es
 category: dev
 tool: minify-js
-title: Minificador JS online — Comprimir código JavaScript y optimizar scripts
+title: "Minificador JS online gratis"
 h1: Minificador de código JavaScript (JS)
 navName: "Minificador JS"
 summary: "Encoger el script y acortar los nombres"
-description: "Herramienta profesional para minificar y comprimir código JavaScript online. Elimina espacios en blanco, comentarios y reduce variables de forma 100% local."
+description: "Herramienta profesional para minificar y comprimir código JavaScript online. Elimina espacios en blanco, comentarios y reduce variables de forma 100% local. Gratis, sin registro."
 faq:
   - question: ¿Qué diferencia hay entre minificar sin más y acortar los nombres?
     answer: "Minificar sin más quita el formato: espacios sobrantes, saltos de línea, comentarios. La lógica y los nombres se quedan como estaban. Acortar los nombres —lo que suele llamarse mangling— es un trabajo de otro orden: la herramienta analiza el código en un árbol, halla el ámbito de cada variable y sustituye los nombres largos y legibles por letras sueltas. <code>userAge</code> pasa a ser <code>a</code>. En archivos grandes de ahí sale casi todo el ahorro, y además vuelve el código incómodo de leer para un tercero, aunque llamarlo ofuscación sería excesivo: la lógica se ve igual, solo cuesta más seguirla."

@@ -3,11 +3,11 @@ toolSlug: qr-scan
 locale: es
 category: scanners
 tool: qr-scan
-title: Escáner de código QR online — leer un QR con la cámara o una imagen
+title: "Escáner de código QR online gratis"
 h1: Escáner de códigos QR
 navName: "Escáner de códigos QR"
 summary: "Leer un QR con la cámara o una imagen"
-description: "Lee un código QR con la cámara, desde una imagen o una captura. Mostramos la dirección completa y avisamos de enlaces engañosos. Nada se abre solo. Todo en tu navegador."
+description: "Lee un código QR con la cámara, desde una imagen o una captura. Mostramos la dirección completa y avisamos de enlaces engañosos. Nada se abre solo. Todo en tu navegador. Gratis, sin registro."
 faq:
   - question: ¿Cómo leo un QR guardado como imagen o captura?
     answer: "Cambia a «Archivo». Puedes elegir un archivo, arrastrar una imagen con el ratón o simplemente copiar una captura y pulsar Ctrl+V, o Cmd+V en Mac. La imagen se descifra al instante y se queda a la vista."

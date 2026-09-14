@@ -3,11 +3,11 @@ toolSlug: htaccess-generator
 locale: es
 category: dev
 tool: htaccess-generator
-title: Generador de .htaccess online — Crear archivo de configuración Apache
+title: "Generador de .htaccess online gratis"
 h1: Generador de archivos .htaccess
 navName: "Generador de .htaccess"
 summary: "Redirecciones, HTTPS, www: archivo listo"
-description: "Herramienta profesional para generar archivos .htaccess para servidores Apache online. Configura redirecciones 301, forzado de HTTPS, compresión y caché al instante de forma local."
+description: "Herramienta profesional para generar archivos .htaccess para servidores Apache online. Configura redirecciones 301, forzado de HTTPS, compresión y caché al instante de forma local. Gratis, sin registro."
 faq:
   - question: ¿Qué es .htaccess y en qué carpeta va?
     answer: "Es un archivo de configuración del servidor web Apache que rige una carpeta y todo lo que hay dentro de ella. Permite cambiar el comportamiento del servidor sin tocar la configuración global, y por eso se convirtió en la herramienta principal allí donde la configuración global queda fuera de alcance: es decir, en casi cualquier alojamiento corriente. Va en la raíz del sitio, la misma carpeta donde está index.php o index.html. Cada proveedor la llama de una forma: public_html, www, httpdocs. Las reglas se aplican a ella y a todo su interior."

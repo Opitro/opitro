@@ -4,9 +4,9 @@ locale: es
 name: Temperatura
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Celsius, Fahrenheit, Kelvin
-title: Calculadora de temperatura online gratis — Celsius, Fahrenheit, Kelvin
+title: "Calculadora de temperatura online gratis"
 h1: Calculadora de Temperatura
-description: Convierte temperatura entre Celsius, Fahrenheit y Kelvin. Calculadoras precisas para cada par de escalas — sin registro, sin anuncios en la portada.
+description: "Convierte temperatura entre Celsius, Fahrenheit y Kelvin. Calculadoras precisas para cada par de escalas — sin registro, sin anuncios en la portada. Gratis, sin registro."
 ---
 
 Tres escalas de temperatura se usan en distintas situaciones — Celsius casi en todas partes, Fahrenheit en Estados Unidos, Kelvin en ciencia (donde la temperatura nunca puede ser negativa).

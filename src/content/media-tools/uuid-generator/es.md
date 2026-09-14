@@ -3,11 +3,11 @@ toolSlug: uuid-generator
 locale: es
 category: dev
 tool: uuid-generator
-title: Generador de UUID / GUID online — Crear identificadores UUIDv4 gratis
+title: "Generador de UUID / GUID online gratis"
 h1: Generador de UUID y GUID
 navName: "Generador de UUID"
 summary: "UUID v4 y v7, mil de una vez"
-description: "Herramienta profesional para generar UUID y GUID online. Crea paquetes de identificadores únicos aleatorios estándar UUIDv4 de forma 100% local e instantánea."
+description: "Herramienta profesional para generar UUID y GUID online. Crea paquetes de identificadores únicos aleatorios estándar UUIDv4 de forma 100% local e instantánea. Gratis, sin registro."
 faq:
   - question: ¿Qué diferencia hay entre UUID y GUID?
     answer: "Técnicamente ninguna: son dos nombres para un mismo estándar. UUID arraigó en el mundo abierto: Linux, macOS, Java, Python, Go. GUID es el nombre que usa Microsoft en Windows, MS SQL Server y .NET. La estructura es idéntica: 128 bits escritos con treinta y dos caracteres hexadecimales y separados por guiones en grupos de 8-4-4-4-12. Un identificador hecho aquí sirve para ambos."

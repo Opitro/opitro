@@ -3,11 +3,11 @@ toolSlug: hash-generator
 locale: en
 category: dev
 tool: hash-generator
-title: Online Hash Generator — Create MD5, SHA-256, SHA-1 Cryptographic Hashes
+title: "Online Hash Generator Free"
 h1: Cryptographic Hash Generator (MD5, SHA-256)
 navName: "Hash Generator"
 summary: "MD5, SHA-1, SHA-256 and SHA-512"
-description: "Professional online tool to generate cryptographic hashes from text strings. Support for MD5, SHA-1, SHA-256, and SHA-512 outputs processed locally in your browser."
+description: "Professional online tool to generate cryptographic hashes from text strings. Support for MD5, SHA-1, SHA-256, and SHA-512 outputs processed locally in your browser. Free, no sign-up."
 faq:
   - question: What is hashing, and how does it differ from encryption?
     answer: "Hashing turns data of any size into a string of fixed length, and it does so in one direction only: there is no reverse operation. Encryption is a two-way street: what is encrypted can be decrypted with a key — that is the whole point of it. Hence their different jobs. You encrypt what has to be read later: messages, files, a connection. You hash what does not need reading but does need comparing: whether a downloaded file matches the original, whether the right password was typed, whether a record has been tampered with."

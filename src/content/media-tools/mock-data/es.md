@@ -3,11 +3,11 @@ toolSlug: mock-data
 locale: es
 category: dev
 tool: mock-data
-title: Generador de datos de prueba online — crear datos falsos (JSON, CSV, SQL)
+title: "Generador de datos de prueba online gratis"
 h1: Generador de datos de prueba
 navName: "Generador de datos de prueba"
 summary: "Nombres, correos y direcciones de prueba"
-description: "Genera datos de prueba online: nombres, correos, teléfonos, fechas y UUID en cuatro idiomas. Salida en JSON, CSV o SQL INSERT. Correos solo en example.com. Todo en tu navegador."
+description: "Genera datos de prueba online: nombres, correos, teléfonos, fechas y UUID en cuatro idiomas. Salida en JSON, CSV o SQL INSERT. Correos solo en example.com. Todo en tu navegador. Gratis, sin registro."
 faq:
   - question: ¿Qué son los datos de prueba y para qué sirven?
     answer: "Son registros inventados con aspecto real: nombres, correos, teléfonos, fechas, identificadores. Hacen falta cuando la interfaz ya se está montando y la base sigue vacía, cuando quieres ver cómo se comporta una lista con mil filas o cuando la documentación necesita un ejemplo. Y sobre todo permiten no meter datos de personas reales en el desarrollo."

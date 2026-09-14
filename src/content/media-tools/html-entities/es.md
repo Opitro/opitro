@@ -3,11 +3,11 @@ toolSlug: html-entities
 locale: es
 category: dev
 tool: html-entities
-title: Codificador de entidades HTML online — Convertir caracteres especiales a HTML entities
+title: "Codificador de entidades HTML online gratis"
 h1: Codificador y decodificador de entidades HTML
 navName: "Codificador de entidades HTML"
 summary: "Caracteres especiales ↔ entidades, sin doble escape"
-description: "Herramienta profesional para codificar y decodificar caracteres especiales en entidades HTML de forma segura. Convierte símbolos web al instante y 100% local."
+description: "Herramienta profesional para codificar y decodificar caracteres especiales en entidades HTML de forma segura. Convierte símbolos web al instante y 100% local. Gratis, sin registro."
 faq:
   - question: ¿Para qué convertir caracteres especiales en entidades?
     answer: "Porque el navegador no ve letras en el signo «menor que», en el «mayor que» ni en el ampersand: ve marcado. Si muestra un ejemplo de código tal cual, el navegador intentará ejecutarlo: la maquetación se rompe y, en el peor caso, un script ajeno contenido en su propio texto se ejecuta en su página. Sustituir esos caracteres por entidades le dice al navegador: esto son solo letras, muéstralas."

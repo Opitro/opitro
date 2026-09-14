@@ -3,7 +3,7 @@ catSlug: scanners
 locale: es
 name: Escáneres
 blurb: Leer un código con la cámara o desde una imagen
-title: Escáneres de códigos online — QR, código de barras, Data Matrix, PDF417, Aztec
+title: "Escáneres de códigos online gratis"
 description: "Lea códigos con la cámara del móvil o desde una imagen: QR, códigos de barras, Data Matrix, PDF417, Aztec. Gratis, sin registro, la imagen no sale de su dispositivo."
 h1: Escáneres de códigos
 ---

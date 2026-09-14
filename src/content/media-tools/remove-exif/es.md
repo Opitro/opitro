@@ -3,7 +3,7 @@ toolSlug: remove-exif
 locale: es
 category: images
 tool: remove-exif
-title: "Borrar EXIF de una foto online gratis — quitar GPS y datos de la cámara"
+title: "Borrar EXIF de una foto online gratis"
 h1: "Borrar los datos EXIF"
 navName: "Borrar EXIF"
 summary: "Quitar de la foto las coordenadas y los datos de la cámara"

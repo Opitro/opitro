@@ -3,7 +3,7 @@ toolSlug: code-diff
 locale: uk
 category: dev
 tool: code-diff
-title: "Порівняння коду онлайн — Diff Checker: знайти відмінності у двох файлах"
+title: "Порівняння коду онлайн безкоштовно"
 h1: "Diff Checker — порівняння коду онлайн"
 navName: "Порівняння коду"
 summary: "Відмінності двох файлів: номери рядків, патч"

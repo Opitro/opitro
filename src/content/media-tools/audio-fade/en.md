@@ -7,7 +7,7 @@ title: Audio Fade In and Fade Out Online, Free
 h1: Audio Fade In and Fade Out
 navName: "Fade In and Fade Out"
 summary: "A smooth start and a fade at the end"
-description: Make a track ease in at the start and fade away at the end instead of cutting off abruptly. Move a slider and you hear it immediately, with both fade regions highlighted right on the waveform. Free, no sign-up, nothing uploaded.
+description: "Make a track ease in at the start and fade away at the end instead of cutting off abruptly. Move a slider and you hear it immediately, with both fade regions highlighted right on the waveform."
 faq:
   - question: What's a typical fade length?
     answer: 1-3 seconds is subtle and works for most tracks. Longer fades of 5 seconds or more feel more dramatic, and suit ambient pieces, endings, and background music under video.

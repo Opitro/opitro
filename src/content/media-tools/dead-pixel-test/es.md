@@ -3,11 +3,11 @@ toolSlug: dead-pixel-test
 locale: es
 category: device-tests
 tool: dead-pixel-test
-title: Test de píxeles muertos online — comprobar la pantalla del monitor o el móvil
+title: "Test de píxeles muertos online gratis"
 h1: Píxeles muertos
 navName: "Test de píxeles muertos"
 summary: "Llenar la pantalla de color y buscar puntos muertos"
-description: "Nueve colores sólidos a pantalla completa: sobre ellos se ven los píxeles muertos y atascados. Vale para monitor, portátil, móvil y televisor."
+description: "Nueve colores sólidos a pantalla completa: sobre ellos se ven los píxeles muertos y atascados. Vale para monitor, portátil, móvil y televisor. Gratis, sin registro."
 faq:
   - question: ¿En qué se diferencia un píxel muerto de uno atascado?
     answer: "El muerto no se enciende nunca: sobre blanco es un punto negro y se ve en cualquier color. El atascado hace lo contrario, muestra siempre el mismo color, así que sobre negro aparece un punto rojo, verde o azul brillante. La diferencia importa: el atascado a veces se recupera, el muerto casi nunca."

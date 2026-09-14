@@ -7,7 +7,7 @@ title: Ecualizador de audio online gratis — cambia cómo suena una canción
 h1: Ecualizador de audio
 navName: "Ecualizador"
 summary: "Graves, medios y agudos, banda a banda"
-description: Un ecualizador gráfico de 10 bandas en el navegador — añade graves, quita el retumbe, saca la voz o dale brillo. Se oye el cambio mientras mueves el control. Gratis, sin registro, el archivo no se sube a ningún sitio.
+description: "Un ecualizador gráfico de 10 bandas en el navegador — añade graves, quita el retumbe, saca la voz o dale brillo. Se oye el cambio mientras mueves el control."
 faq:
   - question: ¿Por qué diez bandas?
     answer: Es el ecualizador gráfico clásico, con un paso de una octava — 31, 62, 125, 250 y 500 Hz, y 1, 2, 4, 8 y 16 kHz. Con tres bandas no se afina nada, y treinta y una hacen falta ya para trabajo de estudio y solo estorban a quien no vive de esto.

@@ -3,11 +3,11 @@ toolSlug: loop-audio
 locale: es
 category: audio
 tool: loop
-title: Poner un audio en bucle online gratis — repetir un tema varias veces
+title: "Poner un audio en bucle online gratis"
 h1: Poner audio en bucle
 navName: "Repetir en bucle"
 summary: "Repetir un fragmento las veces que haga falta"
-description: Repite una grabación de 2 a 50 veces en un solo archivo — la duración final se ve al elegir, y las uniones se suavizan para que no haya chasquido. Gratis, sin registro, no se sube nada.
+description: "Repite una grabación de 2 a 50 veces en un solo archivo — la duración final se ve al elegir, y las uniones se suavizan para que no haya chasquido. Gratis, sin registro, no se sube nada."
 faq:
   - question: ¿Se oye la unión entre repeticiones?
     answer: Cada costura lleva un fundido cruzado de 50 milisegundos, porque sin él un empalme a hueso casi siempre chasquea. Eso hace que el resultado sea más corto que una suma simple en 0,05 segundos por costura.

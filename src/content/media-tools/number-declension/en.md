@@ -3,11 +3,11 @@ toolSlug: number-declension
 locale: en
 category: text
 tool: number-declension
-title: Number Forms Calculator Online — Cardinal, Ordinal and Cheque Formats
+title: "Number Forms Calculator Online Free"
 h1: Number Forms and Formats
 navName: "Number Declension"
 summary: "5 tables, 21 tables — the right form"
-description: "Free online tool for the written forms of a number: cardinal, ordinal and the formal wording used on cheques. Numbers never leave your browser."
+description: "Free online tool for the written forms of a number: cardinal, ordinal and the formal wording used on cheques. Numbers never leave your browser. Free, no sign-up."
 faq:
   - question: Why are there different written forms for the same number?
     answer: "English numerals have no grammatical cases, so nothing changes with the role of the number in a sentence. What does change is the form. Counting uses the cardinal — five hundred forty-two. Ordering uses the ordinal — five hundred forty-second. And a cheque uses a formal wording of its own, with “and” before the last part."

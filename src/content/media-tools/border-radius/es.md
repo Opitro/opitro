@@ -3,11 +3,11 @@ toolSlug: border-radius
 locale: es
 category: dev
 tool: border-radius
-title: Generador de border-radius CSS online — Vista previa de esquinas redondeadas
+title: "Generador de border-radius CSS online gratis"
 h1: Generador de border-radius CSS
 navName: "Generador de esquinas redondeadas"
 summary: "Ajuste las esquinas y llévese el CSS"
-description: "Herramienta profesional para configurar border-radius online. Diseña esquinas redondeadas simples y elípticas complejas con generación de código CSS instantánea."
+description: "Herramienta profesional para configurar border-radius online. Diseña esquinas redondeadas simples y elípticas complejas con generación de código CSS instantánea. Gratis, sin registro."
 faq:
   - question: ¿Qué significa la barra en la propiedad border-radius?
     answer: "Separa dos conjuntos de radios. Cada esquina tiene en realidad dos: uno a lo ancho y otro a lo alto. Antes de la barra van los radios horizontales de las cuatro esquinas y después los verticales. Mientras coinciden, el segundo grupo se omite y la línea queda corta. En cuanto se separan, la esquina deja de ser parte de una circunferencia y pasa a ser parte de una elipse. De esos pares es de donde salen las formas «líquidas» para avatares y fondos decorativos: ocho números en lugar de cuatro."

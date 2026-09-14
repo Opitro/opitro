@@ -3,7 +3,7 @@ toolSlug: pdf417-scan
 locale: en
 category: scanners
 tool: pdf417-scan
-title: "PDF417 Scanner Online Free — read the code from a licence or boarding pass"
+title: "PDF417 Scanner Online Free"
 h1: "PDF417 Scanner"
 navName: "PDF417 Scanner"
 summary: "Read a PDF417 code by camera or photo"

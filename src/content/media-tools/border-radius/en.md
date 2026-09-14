@@ -3,11 +3,11 @@ toolSlug: border-radius
 locale: en
 category: dev
 tool: border-radius
-title: CSS Border Radius Generator Online — Interactive Corner Preview Tool
+title: "CSS Border Radius Generator Online Free"
 h1: CSS Border Radius Generator
 navName: "Border Radius Generator"
 summary: "Drag the corners, take the CSS"
-description: "Professional online tool to visualize and generate CSS border-radius properties. Create simple corners or complex elliptical organic shapes with instant CSS export layout."
+description: "Professional online tool to visualize and generate CSS border-radius properties. Create simple corners or complex elliptical organic shapes with instant CSS export layout. Free, no sign-up."
 faq:
   - question: What does the slash in border-radius mean?
     answer: "It separates two sets of radii. Every corner actually has two: one across, one along. Before the slash come the horizontal radii of all four corners, after it the vertical ones. While they match, the second set is left out and the line stays short. Separate them and the corner stops being part of a circle and becomes part of an ellipse. Those pairs are what “blob” shapes for avatars and decorative panels are made of: eight numbers instead of four."

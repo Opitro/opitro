@@ -3,11 +3,11 @@ toolSlug: text-diff
 locale: en
 category: text
 tool: text-diff
-title: "Compare Two Texts Online — Find Differences by Word and by Character"
+title: "Compare Two Texts Online Free"
 h1: "Compare Two Texts Online"
 navName: "Text Comparison"
 summary: "Two texts compared: lines, words, characters"
-description: "Compare two texts online: differences by line, by word and by character, in two columns or one flow. For contracts, articles and correspondence. Your texts never leave the browser."
+description: "Compare two texts online: differences by line, by word and by character, in two columns or one flow. For contracts, articles and correspondence. Your texts never leave the browser. Free, no sign-up."
 faq:
   - question: How does comparing two texts work?
     answer: "The tool looks for the shortest chain of edits that turns the first text into the second: what was removed, what was added, what stayed. The method is called the Myers algorithm and runs in time proportional to the number of edits rather than the length of the texts. That is why two nearly identical documents compare instantly even when they run to thousands of lines."

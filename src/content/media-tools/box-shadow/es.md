@@ -3,11 +3,11 @@ toolSlug: box-shadow
 locale: es
 category: dev
 tool: box-shadow
-title: Generador de box-shadow CSS online — Crear sombras de sombreado web
+title: "Generador de box-shadow CSS online gratis"
 h1: Generador de sombras box-shadow CSS
 navName: "Generador de sombras CSS"
 summary: "Mueva la sombra y llévese el CSS"
-description: "Herramienta profesional para crear sombras box-shadow online. Ajusta el desplazamiento, desenfoque, propagación y color para obtener códigos CSS listos para producción."
+description: "Herramienta profesional para crear sombras box-shadow online. Ajusta el desplazamiento, desenfoque, propagación y color para obtener códigos CSS listos para producción. Gratis, sin registro."
 faq:
   - question: ¿De qué se encargan el desenfoque y la propagación?
     answer: "El desenfoque suaviza el borde de la sombra. A cero la sombra calca el objeto, como recortada en papel; cuanto mayor es el valor, más ancha es la franja en la que la sombra se desvanece. La propagación cambia el tamaño de la sombra antes del desenfoque: en positivo la infla en todas direcciones alejándola del objeto, en negativo la recoge hacia dentro. Un truco que conviene conocer: una propagación algo negativa junto con mucho desenfoque da una sombra recogida bajo el objeto en lugar de esparcida a su alrededor, que es justo el aspecto de la sombra de una tarjeta apoyada en una mesa."

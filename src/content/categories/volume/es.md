@@ -4,9 +4,9 @@ locale: es
 name: Volumen
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Litros, galones, tazas, onzas
-title: Calculadora de volumen online gratis, sin registro — litros, galones, ml, tazas, onzas
+title: "Calculadora de volumen online gratis"
 h1: Calculadora de Volumen Online
-description: Convierte entre cualquier unidad de volumen a la vez — litros, mililitros, galones, tazas, onzas líquidas. Introduce un número, elige las unidades, listo.
+description: "Convierte entre cualquier unidad de volumen a la vez — litros, mililitros, galones, tazas, onzas líquidas. Introduce un número, elige las unidades, listo. Gratis, sin registro."
 faq:
   - question: ¿Qué unidades admite la calculadora?
     answer: Mililitros, litros, metros cúbicos, galones (EE. UU.), tazas, onzas líquidas y cucharadas — elige cualquier par.

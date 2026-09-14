@@ -3,11 +3,11 @@ toolSlug: text-diff
 locale: es
 category: text
 tool: text-diff
-title: "Comparar dos textos online — encontrar diferencias por palabra y por letra"
+title: "Comparar dos textos online gratis"
 h1: "Comparación de dos textos online"
 navName: "Comparación de textos"
 summary: "Dos textos comparados: líneas, palabras, letras"
-description: "Compara dos textos online: diferencias por línea, por palabra y por letra, en dos columnas o en un solo flujo. Para contratos, artículos y correspondencia. Los textos no salen del navegador."
+description: "Compara dos textos online: diferencias por línea, por palabra y por letra, en dos columnas o en un solo flujo. Para contratos, artículos y correspondencia. Los textos no salen del navegador. Gratis, sin registro."
 faq:
   - question: ¿Cómo funciona la comparación de dos textos?
     answer: "La herramienta busca la cadena de cambios más corta que convierte el primer texto en el segundo: qué se quitó, qué se añadió y qué se mantuvo. El método se llama algoritmo de Myers y trabaja en un tiempo proporcional al número de cambios, no a la longitud de los textos. Por eso dos documentos casi idénticos se comparan al instante aunque tengan miles de líneas."

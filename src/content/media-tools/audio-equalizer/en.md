@@ -7,7 +7,7 @@ title: Audio Equalizer Online, Free — Change How a Song Sounds
 h1: Audio Equalizer
 navName: "Equaliser"
 summary: "Bass, mids, treble — band by band"
-description: A real 10-band graphic equalizer right in your browser — add bass, cut boominess, bring a voice forward, or brighten a dull track. Change how a song sounds by ear — you hear every slider move as you make it. Free, no sign-up, nothing uploaded.
+description: "A real 10-band graphic equalizer right in your browser — add bass, cut boominess, bring a voice forward, or brighten a dull track. Free, no sign-up, nothing uploaded."
 faq:
   - question: Why ten bands specifically?
     answer: It's the classic graphic-equalizer layout, one band per octave — 31, 62, 125, 250, 500 Hz, then 1, 2, 4, 8, and 16 kHz. Three bands is too coarse to shape anything precisely, and 31 bands is studio territory that mostly gets in the way for everyday use.

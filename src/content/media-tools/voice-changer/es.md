@@ -3,11 +3,11 @@ toolSlug: voice-changer
 locale: es
 category: audio
 tool: voice
-title: "Cambiar la voz en línea gratis — 15 efectos y grabación con micrófono"
+title: "Cambiar la voz en línea gratis"
 h1: Cambiar la voz en línea
 navName: "Cambiador de voz"
 summary: "Robot, eco, teléfono y otros efectos"
-description: "Graba tu voz aquí mismo o sube un archivo y pulsa un efecto: robot, monstruo, alien, eco, sala, reverso y más. Se oye al instante y se descarga en un clic. Gratis, nada sale de tu dispositivo."
+description: "Graba tu voz aquí mismo o sube un archivo y pulsa un efecto: robot, monstruo, alien, eco, sala, reverso y más. Se oye al instante y se descarga en un clic. Gratis, nada sale de tu dispositivo. Gratis, sin registro."
 faq:
   - question: ¿Puede convertir una voz masculina en femenina?
     answer: "Sinceramente, no. Una conversión de voz convincente necesita redes neuronales y proceso en servidor, y aquí todo se calcula en tu navegador. Un simple cambio de tono con filtros suena artificial y se nota como falso enseguida, así que no lo prometemos. En cambio, los efectos de abajo salen realmente bien."

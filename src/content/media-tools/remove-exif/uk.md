@@ -3,7 +3,7 @@ toolSlug: remove-exif
 locale: uk
 category: images
 tool: remove-exif
-title: "Видалити EXIF із фото онлайн безкоштовно — прибрати геомітки й дані камери"
+title: "Видалити EXIF із фото онлайн безкоштовно"
 h1: "Видалити дані EXIF"
 navName: "Видалити EXIF"
 summary: "Прибрати з фото координати й дані камери"

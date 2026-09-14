@@ -7,7 +7,7 @@ title: Recortar audio online gratis — quedarte con el trozo que quieras
 h1: Recortar audio
 navName: "Recortar audio"
 summary: "Eliminar lo sobrante por ambos extremos"
-description: Corta la parte que necesitas de una canción o una grabación — arrastra los bordes de la selección sobre la onda, escucha el resultado y descárgalo. O al revés, quita un trozo del medio. Gratis, sin registro, no se sube nada.
+description: "Corta la parte que necesitas de una canción o una grabación — arrastra los bordes de la selección sobre la onda, escucha el resultado y descárgalo. O al revés, quita un trozo del medio."
 faq:
   - question: ¿Cómo elijo el fragmento?
     answer: Arrastra los bordes de la selección sobre la propia onda, o escribe un inicio y un final en segundos — los campos y la onda están enlazados, así que al cambiar uno se actualiza el otro. El botón de reproducir que hay junto a los tiempos suena exactamente lo que vas a descargar, fundidos incluidos.

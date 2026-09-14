@@ -4,7 +4,7 @@ locale: uk
 category: scanners
 alsoIn: [images]
 tool: color-scan
-title: "Сканер кольору онлайн безкоштовно — дізнатися HEX і RGB камерою телефона"
+title: "Сканер кольору онлайн безкоштовно"
 h1: "Сканер кольору"
 navName: "Сканер кольору"
 summary: "Дізнатися колір предмета камерою"

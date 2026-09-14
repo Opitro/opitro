@@ -3,11 +3,11 @@ toolSlug: vocal-range
 locale: es
 category: audio
 tool: vocal-range
-title: Averigua tu registro vocal online gratis — de la nota más grave a la más aguda
+title: "Averigua tu registro vocal online gratis"
 h1: Averigua tu registro vocal
 navName: "Rango vocal"
 summary: "De qué nota a qué nota canta"
-description: Graba o sube algo cantado y averigua tu registro — de la nota más grave a la más aguda, en notas y octavas. Gratis, sin registro, la grabación no sale de tu dispositivo.
+description: "Graba o sube algo cantado y averigua tu registro — de la nota más grave a la más aguda, en notas y octavas. Gratis, sin registro, la grabación no sale de tu dispositivo."
 faq:
   - question: ¿Cómo debo cantar para que salga preciso?
     answer: Una escala lenta desde tu nota grave más cómoda hasta la más aguda, sosteniendo cada nota un segundo o algo así. No fuerces hasta el grito arriba ni hasta el ronquido abajo — las notas que no puedes sostener con firmeza no forman parte de tu registro de trabajo.

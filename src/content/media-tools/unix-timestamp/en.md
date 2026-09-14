@@ -3,11 +3,11 @@ toolSlug: unix-timestamp
 locale: en
 category: dev
 tool: unix-timestamp
-title: Unix Timestamp Converter Online — Epoch Time to Readable Date & Vice Versa
+title: "Unix Timestamp Converter Online Free"
 h1: Unix Timestamp Converter
 navName: "Unix Timestamp Converter"
 summary: "Timestamp ↔ date, in any time zone"
-description: "Professional online Epoch time converter. Instantly transform Unix timestamps (seconds/milliseconds) into human-readable date-time strings locally in your browser."
+description: "Professional online Epoch time converter. Instantly transform Unix timestamps (seconds/milliseconds) into human-readable date-time strings locally in your browser. Free, no sign-up."
 faq:
   - question: What is a Unix timestamp, and when does the count start?
     answer: "It is a way of writing down a moment as a single whole number — the count of seconds since midnight on 1 January 1970, Coordinated Universal Time (UTC). The format depends on no time zone, no language and no national calendar, which is why databases compare and sort by it faster than by anything else: it is simply two numbers being compared. The starting point was not chosen for any astronomical event but for convenience — a round date close to the birth of Unix itself."

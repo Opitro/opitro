@@ -3,11 +3,11 @@ toolSlug: number-base-converter
 locale: es
 category: dev
 tool: number-base-converter
-title: Conversor de sistemas de numeración online — Convertir Binario, Decimal, HEX
+title: "Conversor de sistemas de numeración online gratis"
 h1: Conversor de sistemas de numeración
 navName: "Conversor de bases numéricas"
 summary: "Base 2, 8, 10, 16, todas a la vez"
-description: "Herramienta profesional para convertir números entre diferentes bases: binario, octal, decimal y hexadecimal. Realiza conversiones matemáticas de forma instantánea y 100% local."
+description: "Herramienta profesional para convertir números entre diferentes bases: binario, octal, decimal y hexadecimal. Realiza conversiones matemáticas de forma instantánea y 100% local. Gratis, sin registro."
 faq:
   - question: ¿Cómo funciona realmente la conversión entre binario y hexadecimal?
     answer: "Apenas hace falta calcular. La forma binaria se parte en grupos de cuatro dígitos desde la derecha, y cada grupo es exactamente un carácter hexadecimal: 1010 es A, 0010 1010 es 2A. La coincidencia no es casual: dieciséis es dos elevado a la cuarta, así que cuatro bits agotan justo un carácter. De ahí la costumbre de escribir direcciones de memoria y máscaras de bits en hexadecimal: 64 bits se encogen a 16 caracteres sin perder nada."

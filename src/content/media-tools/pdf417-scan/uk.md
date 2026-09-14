@@ -3,7 +3,7 @@ toolSlug: pdf417-scan
 locale: uk
 category: scanners
 tool: pdf417-scan
-title: "Сканер PDF417 онлайн безкоштовно — прочитати код із прав або посадкового талона"
+title: "Сканер PDF417 онлайн безкоштовно"
 h1: "Сканер PDF417"
 navName: "Сканер PDF417"
 summary: "Прочитати код PDF417 камерою або з фото"

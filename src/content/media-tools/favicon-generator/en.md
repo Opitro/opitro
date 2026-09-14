@@ -3,7 +3,7 @@ toolSlug: favicon-generator
 locale: en
 category: dev
 tool: favicon-generator
-title: Favicon Generator Online — Convert Image to ICO & Web App Icons
+title: "Favicon Generator Online — Image to ICO and PNG"
 h1: Favicon Generator
 navName: "Favicon Generator"
 summary: "An image → site icons in every size"

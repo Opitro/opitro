@@ -3,11 +3,11 @@ toolSlug: lorem-ipsum
 locale: es
 category: text
 tool: lorem-ipsum
-title: Generador de Lorem Ipsum online — texto de relleno para maquetación
+title: "Generador de Lorem Ipsum online gratis"
 h1: Generador Lorem Ipsum
 navName: "Generador de Lorem Ipsum"
 summary: "Relleno para maquetar: párrafos, palabras, listas"
-description: "Generador gratuito de Lorem Ipsum online. Crea párrafos, frases o palabras de relleno para tu maqueta, con el arranque clásico y frases de longitud variada."
+description: "Generador gratuito de Lorem Ipsum online. Crea párrafos, frases o palabras de relleno para tu maqueta, con el arranque clásico y frases de longitud variada. Gratis, sin registro."
 faq:
   - question: ¿Qué es Lorem Ipsum y de dónde viene?
     answer: "Es texto de relleno que se usa para montar una maqueta antes de que exista el texto real. Las palabras vienen del tratado de Cicerón «Sobre los fines de los bienes y los males», escrito en el año 45 a. C. Los cajistas del siglo XVI las barajaron para que el texto dejara de leerse pero mantuviera el aspecto del latín de verdad."

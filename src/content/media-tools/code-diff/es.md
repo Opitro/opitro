@@ -3,11 +3,11 @@ toolSlug: code-diff
 locale: es
 category: dev
 tool: code-diff
-title: "Comparar código online — Diff Checker: encontrar diferencias entre dos archivos"
+title: "Comparar código online gratis"
 h1: "Diff Checker — comparación de código online"
 navName: "Comparador de código"
 summary: "Dos archivos comparados: líneas y parche"
-description: "Compara dos fragmentos de código online: números de línea, tramos idénticos plegados, copia como parche. Señala las causas invisibles: CRLF, tabuladores, espacios al final. El código no sale del navegador."
+description: "Compara dos fragmentos de código online: números de línea, tramos idénticos plegados, copia como parche. Señala las causas invisibles: CRLF, tabuladores, espacios al final. Gratis, sin registro."
 faq:
   - question: ¿Por qué el código parece idéntico y la comparación marca diferencias?
     answer: "Casi siempre por un carácter que no se ve: un tabulador donde el otro lado tiene espacios, un espacio al final de la línea, un espacio duro venido de un editor o una marca de orden de bytes al principio del archivo. Esta página nombra la causa sin rodeos, en el recuadro sobre el resultado, y los interruptores de al lado permiten no tenerla en cuenta. Los finales de línea merecen mención aparte: el campo de entrada del navegador iguala por su cuenta la forma de Windows a la de Unix, así que aquí no producen diferencias. Los seguimos señalando, pero como una propiedad de sus archivos y no como la causa de lo que está viendo: en git y en su editor ese archivo aparece cambiado por completo."

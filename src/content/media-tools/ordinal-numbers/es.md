@@ -3,11 +3,11 @@ toolSlug: ordinal-numbers
 locale: es
 category: text
 tool: ordinal-numbers
-title: Números ordinales a letras online — convertir cifras a orden textual
+title: "Números ordinales a letras online gratis"
 h1: Números ordinales en letras
 navName: "Números ordinales"
 summary: "5 → quinto, en palabras"
-description: "Conversor gratuito de números ordinales. Da la forma en letras y la abreviatura correcta (1.º, 25.ª), con género y número, hasta el 9999."
+description: "Conversor gratuito de números ordinales. Da la forma en letras y la abreviatura correcta (1.º, 25.ª), con género y número, hasta el 9999. Gratis, sin registro."
 faq:
   - question: ¿Qué diferencia hay entre cardinales y ordinales?
     answer: "Los cardinales responden a «cuántos»: uno, treinta, cien. Los ordinales responden a «en qué orden»: primero, trigésimo, centésimo. Los primeros cuentan cosas; los segundos indican una posición: un piso, una cláusula, un puesto en una clasificación."

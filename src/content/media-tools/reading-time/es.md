@@ -3,11 +3,11 @@ toolSlug: reading-time
 locale: es
 category: text
 tool: reading-time
-title: Tiempo de lectura de un texto online — calculadora de velocidad de lectura
+title: "Tiempo de lectura de un texto online gratis"
 h1: Tiempo de lectura de un texto
 navName: "Calculadora de tiempo de lectura"
 summary: "Cuántos minutos lleva leerlo"
-description: "Calculadora gratuita del tiempo de lectura. Descubre cuántos minutos lleva un artículo, una charla o un guion, por separado en silencio y en voz alta."
+description: "Calculadora gratuita del tiempo de lectura. Descubre cuántos minutos lleva un artículo, una charla o un guion, por separado en silencio y en voz alta. Gratis, sin registro."
 faq:
   - question: ¿Cómo se calcula el tiempo de lectura?
     answer: "Se cuentan las palabras y ese número se divide por una velocidad de lectura. Se usan dos: en silencio, unas 240 palabras por minuto; en voz alta, unas 180. Esas cifras vienen de grandes estudios sobre lectura, pero son medias: una persona concreta puede ir al doble o a la mitad. Para eso están los tres botones de arriba."

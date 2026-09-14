@@ -4,9 +4,9 @@ locale: en
 name: Length
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Inches, centimetres, feet, miles, steps
-title: Length Calculator — Free, No Sign-Up — mm, cm, m, km, inches, feet & more
+title: "Length Calculator Online Free"
 h1: Length Calculator Online
-description: Converts between any length units at once — millimeters, centimeters, meters, kilometers, inches, feet, yards, miles, steps. Enter a number, pick the units, done. Free, no sign-up.
+description: "Converts between any length units at once — millimeters, centimeters, meters, kilometers, inches, feet, yards, miles, steps. Enter a number, pick the units, done. Free, no sign-up."
 faq:
   - question: Which units does the calculator support?
     answer: Millimeters, centimeters, meters, kilometers, inches, feet, yards, miles, nautical miles, and steps — pick any pair.

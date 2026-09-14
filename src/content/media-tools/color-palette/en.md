@@ -3,11 +3,11 @@ toolSlug: color-palette
 locale: en
 category: dev
 tool: color-palette
-title: Color Palette Generator Online — Build Harmonious CSS Color Schemes
+title: "Color Palette Generator Online Free"
 h1: Color Palette Generator
 navName: "Palette Generator"
 summary: "A palette built from one colour"
-description: "Professional online tool to generate cohesive color palettes. Create monochromatic, analog, and complementary web color schemes with instant CSS/JSON export layout."
+description: "Professional online tool to generate cohesive color palettes. Create monochromatic, analog, and complementary web color schemes with instant CSS/JSON export layout. Free, no sign-up."
 faq:
   - question: How do colour-harmony rules help when designing an interface?
     answer: "Each rule solves a different problem. Complementary takes the opposite point on the wheel — that is the button that stands out against the main tone, the one people are meant to press. Analogous picks neighbours: a soft run for backgrounds, panels and gentle transitions, where contrast would only get in the way. A triad gives three independent colours that do not argue with one another, which suits places with many elements to tell apart: chart bars, tags, task states. Monochromatic is one hue at different lightnesses: a restrained look, and a convenient source of shades for hover, pressed and disabled states."

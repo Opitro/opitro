@@ -3,11 +3,11 @@ toolSlug: favicon-generator
 locale: es
 category: dev
 tool: favicon-generator
-title: Generador de favicon online — Convertir imagen a ICO y PNG para web
+title: "Generador de favicon online gratis"
 h1: Generador de favicon desde imagen
 navName: "Generador de favicon"
 summary: "Una imagen → iconos de todos los tamaños"
-description: "Herramienta profesional para crear favicons online. Convierte imágenes PNG, JPG o SVG en formatos ICO y paquetes completos de iconos web de forma local e instantánea."
+description: "Herramienta profesional para crear favicons online. Convierte imágenes PNG, JPG o SVG en formatos ICO y paquetes completos de iconos web de forma local e instantánea. Gratis, sin registro."
 faq:
   - question: ¿Para qué sirve el archivo favicon.ico si los navegadores modernos admiten PNG?
     answer: "Los navegadores modernos leen perfectamente .png e incluso .svg vectorial. Pero además, navegadores y rastreadores piden /favicon.ico en la raíz del sitio por su cuenta, aunque el código de la página no diga nada de él: es una costumbre heredada de los noventa. Si el archivo no está, cada una de esas peticiones se convierte en un error 404 más en el registro del servidor. No frena el sitio de forma apreciable, pero ese ruido dificulta encontrar los fallos de verdad, y algunos programas antiguos no entienden nada que no sea .ico. Nosotros metemos tres capas en un solo .ico: 16, 32 y 48 píxeles."

@@ -3,11 +3,11 @@ toolSlug: punctuation-remover
 locale: es
 category: text
 tool: punctuation-remover
-title: Eliminar signos de puntuación online — quitar la puntuación de un texto
+title: "Eliminar signos de puntuación online gratis"
 h1: Eliminar signos de puntuación
 navName: "Eliminar signos de puntuación"
 summary: "Quitar puntos, comas, guiones y paréntesis"
-description: "Herramienta gratuita para eliminar signos de puntuación online. Quita puntos, comas, guiones, comillas de cualquier tipo y símbolos sin pegar las palabras ni tocar los espacios."
+description: "Herramienta gratuita para eliminar signos de puntuación online. Quita puntos, comas, guiones, comillas de cualquier tipo y símbolos sin pegar las palabras ni tocar los espacios. Gratis, sin registro."
 faq:
   - question: ¿Para qué quitar la puntuación de un texto?
     answer: "Tres motivos habituales. Para el análisis de frecuencia de palabras, donde los signos estorban al contar. Para normalizar cadenas antes de buscar o cotejar, de modo que «García, J. L.» y «García J L» coincidan. Para el aprendizaje automático, donde el texto se corta en palabras sueltas. También sirve para limpiar exportaciones de hojas de cálculo y bases antiguas donde la puntuación llegó como basura."

@@ -7,7 +7,7 @@ title: Cambiar la frecuencia de muestreo de un audio online gratis
 h1: Cambiar la frecuencia de muestreo
 navName: "Frecuencia de muestreo"
 summary: "44,1 kHz, 48 kHz y otras, sin perder calidad"
-description: Pasa un archivo de audio a otra frecuencia de muestreo, de 8.000 a 96.000 Hz. La frecuencia actual del archivo se ve al lado y el resultado se puede escuchar antes de descargar. Gratis, sin registro, no se sube nada.
+description: "Pasa un archivo de audio a otra frecuencia de muestreo, de 8.000 a 96.000 Hz. La frecuencia actual del archivo se ve al lado y el resultado se puede escuchar antes de descargar."
 faq:
   - question: ¿Qué frecuencia elijo?
     answer: 44.100 Hz, la calidad de CD, cubre casi todo lo normal, y 48.000 Hz es el estándar para vídeo. Los valores bajos, de 8.000 a 16.000 Hz, dan ese sonido telefónico y reducen mucho el tamaño; suelen pedirlos los sistemas de voz y la telefonía. Los 96.000 Hz hacen falta en edición y grabación profesional.

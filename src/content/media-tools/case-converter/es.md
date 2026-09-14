@@ -3,11 +3,11 @@ toolSlug: case-converter
 locale: es
 category: dev
 tool: case-converter
-title: Convertir CamelCase a snake_case online — convertidor de estilos de código
+title: "Convertir CamelCase a snake_case online gratis"
 h1: Convertidor de CamelCase y snake_case
 navName: "Conversor camelCase y snake_case"
 summary: "camelCase, snake_case, kebab-case"
-description: "Conversor gratuito entre camelCase, PascalCase, snake_case, kebab-case y UPPER_CASE. Funciona con listas, separa bien las siglas y conserva los guiones bajos de los extremos."
+description: "Conversor gratuito entre camelCase, PascalCase, snake_case, kebab-case y UPPER_CASE. Funciona con listas, separa bien las siglas y conserva los guiones bajos de los extremos. Gratis, sin registro."
 faq:
   - question: ¿Qué diferencia hay entre camelCase y snake_case?
     answer: "Son convenciones para escribir nombres compuestos en código. camelCase junta las palabras y marca los límites con mayúsculas: myVariableName. snake_case lo pone todo en minúscula y separa con guiones bajos: my_variable_name. Cada lenguaje tiene su costumbre — JavaScript prefiere camelCase y Python snake_case — así que portar código de uno a otro obliga a reescribir nombres en bloque."

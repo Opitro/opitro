@@ -3,11 +3,11 @@ toolSlug: base64-file
 locale: es
 category: dev
 tool: base64-file
-title: Codificador de archivos a Base64 online — convertir imágenes a cadena Base64
+title: "Codificador de archivos a Base64 online gratis"
 h1: Codificador de archivos a Base64
 navName: "Archivo a Base64"
 summary: "Archivo → cadena Base64 o data URL"
-description: "Codifica archivos a Base64 y Data URL online: imágenes, fuentes, documentos. Mostramos cuánto crece el peso y avisamos cuando incrustar no compensa. El archivo no sale del navegador."
+description: "Codifica archivos a Base64 y Data URL online: imágenes, fuentes, documentos. Mostramos cuánto crece el peso y avisamos cuando incrustar no compensa. El archivo no sale del navegador. Gratis, sin registro."
 faq:
   - question: ¿Qué es codificar un archivo a Base64 y para qué sirve?
     answer: "Base64 convierte el contenido binario de un archivo en una cadena de caracteres de texto seguros. Hace falta allí donde los datos binarios no pueden viajar y el texto sí: incrustar un icono pequeño en la hoja de estilos, meter una imagen en un campo JSON, mandar un archivo en el cuerpo de una petición."

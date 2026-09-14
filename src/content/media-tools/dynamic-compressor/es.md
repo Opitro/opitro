@@ -3,11 +3,11 @@ toolSlug: dynamic-compressor
 locale: es
 category: audio
 tool: dynamic-compressor
-title: Nivelar el volumen de una grabación online — compresor de audio gratis
+title: "Nivelar el volumen de una grabación online gratis"
 h1: Nivelar el volumen
 navName: "Igualar el volumen"
 summary: "Lo bajo sube, lo alto baja"
-description: Sube las partes flojas hacia las fuertes para no tener que ir tocando el volumen. Cuatro modos para voz, pódcast y música. Gratis, sin registro, no se sube nada.
+description: "Sube las partes flojas hacia las fuertes para no tener que ir tocando el volumen. Cuatro modos para voz, pódcast y música. Gratis, sin registro, no se sube nada."
 faq:
   - question: ¿En qué se diferencia de normalizar?
     answer: Normalizar multiplica toda la grabación por un mismo número — lo flojo y lo fuerte mantienen su relación y simplemente todo sube. Un compresor es selectivo, sujeta solo los momentos fuertes para que después el conjunto pueda subir. Esto es lo que quita los saltos; normalizar no.

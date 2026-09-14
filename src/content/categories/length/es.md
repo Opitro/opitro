@@ -4,9 +4,9 @@ locale: es
 name: Longitud
 # Строка «что внутри» под названием рубрики на главной.
 blurb: Pulgadas, centímetros, pies, millas, pasos
-title: Calculadora de longitud online gratis — mm, cm, m, km, pulgadas, pies
+title: "Calculadora de longitud online gratis"
 h1: Calculadora de Longitud Online
-description: Convierte entre cualquier unidad de longitud a la vez — milímetros, centímetros, metros, kilómetros, pulgadas, pies, yardas, millas. Introduce un número, elige las unidades, listo.
+description: "Convierte entre cualquier unidad de longitud a la vez — milímetros, centímetros, metros, kilómetros, pulgadas, pies, yardas, millas. Introduce un número, elige las unidades, listo. Gratis, sin registro."
 faq:
   - question: ¿Qué unidades admite la calculadora?
     answer: Milímetros, centímetros, decímetros, metros, kilómetros, pulgadas, pies, yardas, millas, millas náuticas y pasos — elige cualquier par.

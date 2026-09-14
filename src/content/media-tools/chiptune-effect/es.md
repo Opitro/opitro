@@ -3,11 +3,11 @@ toolSlug: chiptune-effect
 locale: es
 category: audio
 tool: chiptune
-title: Efecto chiptune de 8 bits online gratis — sonido de consola antigua
+title: "Efecto chiptune de 8 bits online gratis"
 h1: Efecto de 8 bits y chiptune
 navName: "Efecto de 8 bits"
 summary: "El sonido de una consola de los ochenta"
-description: Convierte una grabación en el sonido de una consola antigua — tres estilos listos, del NES más áspero al lo-fi suave. Escúchalo en la propia página. Gratis, sin registro, no se sube nada.
+description: "Convierte una grabación en el sonido de una consola antigua — tres estilos listos, del NES más áspero al lo-fi suave. Escúchalo en la propia página. Gratis, sin registro, no se sube nada."
 faq:
   - question: ¿De dónde sale el sonido retro?
     answer: De dos cosas a la vez. Primero, las muestras se mantienen en escalones sin suavizado, y de ahí vienen la aspereza y los artefactos metálicos. Segundo, la resolución se degrada a 3 o 5 bits, lo que convierte los cambios suaves de nivel en peldaños. Bajar solo la frecuencia de muestreo suena apagado, nunca a 8 bits.

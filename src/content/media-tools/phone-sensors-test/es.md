@@ -3,11 +3,11 @@ toolSlug: phone-sensors-test
 locale: es
 category: device-tests
 tool: phone-sensors-test
-title: "Prueba de sensores de móvil online — test de giroscopio y acelerómetro"
+title: "Prueba de sensores de móvil online gratis"
 h1: Test de sensores de smartphone
 navName: "Test de sensores del móvil"
 summary: "Inclinación, giro, pasos y luz"
-description: "Herramienta para probar los sensores del móvil. Prueba el acelerómetro, el giroscopio, el sensor de luz ambiental y la brújula en tiempo real desde el navegador."
+description: "Herramienta para probar los sensores del móvil. Prueba el acelerómetro, el giroscopio, el sensor de luz ambiental y la brújula en tiempo real desde el navegador. Gratis, sin registro."
 faq:
   - question: ¿Por qué hay que pulsar primero un botón de acceso?
     answer: "El navegador no entrega los sensores de movimiento a una página sin tu consentimiento. En el iPhone es una regla explícita: hasta que pulsas un botón tú mismo, la página no recibe ningún dato de inclinación ni de aceleración. Es una protección contra el rastreo: el movimiento de un móvil dice mucho de su dueño. Una pulsación, un aviso del sistema y los indicadores cobran vida."

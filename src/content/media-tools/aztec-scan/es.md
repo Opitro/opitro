@@ -3,7 +3,7 @@ toolSlug: aztec-scan
 locale: es
 category: scanners
 tool: aztec-scan
-title: "Escáner de códigos Aztec online gratis — leer el billete de tren o avión"
+title: "Escáner de códigos Aztec online gratis"
 h1: "Escáner de códigos Aztec"
 navName: "Escáner Aztec"
 summary: "Leer un código Aztec con la cámara o desde una foto"

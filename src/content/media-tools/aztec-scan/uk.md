@@ -3,7 +3,7 @@ toolSlug: aztec-scan
 locale: uk
 category: scanners
 tool: aztec-scan
-title: "Сканер Aztec онлайн безкоштовно — прочитати код із квитка на потяг або літак"
+title: "Сканер Aztec онлайн безкоштовно"
 h1: "Сканер Aztec"
 navName: "Сканер Aztec"
 summary: "Прочитати код Aztec камерою або з фото"

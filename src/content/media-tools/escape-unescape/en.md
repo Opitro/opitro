@@ -3,11 +3,11 @@ toolSlug: escape-unescape
 locale: en
 category: dev
 tool: escape-unescape
-title: Escape and Unescape Online — HTML, JavaScript and CSS String Escaper
+title: "Escape and Unescape Online Free"
 h1: String Escape and Unescape
 navName: "String Escaper"
 summary: "Quotes and slashes for a string in code"
-description: "Free online escaper and unescaper for HTML, JavaScript and CSS. Unescaping runs in a single pass and never corrupts strings that contain backslashes."
+description: "Free online escaper and unescaper for HTML, JavaScript and CSS. Unescaping runs in a single pass and never corrupts strings that contain backslashes. Free, no sign-up."
 faq:
   - question: What is escaping and why is it needed?
     answer: "It replaces characters that carry a special meaning in a given place with a safe way of writing them. In HTML an angle bracket starts a tag, so the text “<div>” has to be written as “&lt;div&gt;” or the browser will read it as markup. Inside a JavaScript string the quote and the backslash are the special ones. Escaping lets arbitrary text sit where some characters are reserved."

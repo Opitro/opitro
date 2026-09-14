@@ -3,11 +3,11 @@ toolSlug: remove-empty-lines
 locale: es
 category: text
 tool: remove-empty-lines
-title: Eliminar líneas vacías online — quitar líneas en blanco de un texto gratis
+title: "Eliminar líneas vacías online gratis"
 h1: Eliminar líneas vacías
 navName: "Eliminar líneas vacías"
 summary: "Eliminar los huecos entre líneas"
-description: "Herramienta gratuita para quitar las líneas en blanco de un texto o una lista. Las líneas hechas de espacios también cuentan como vacías y hay un modo que las reduce a una. Sin registro, todo en tu navegador."
+description: "Herramienta gratuita para quitar las líneas en blanco de un texto o una lista. Las líneas hechas de espacios también cuentan como vacías y hay un modo que las reduce a una. Gratis, sin registro."
 faq:
   - question: ¿Qué diferencia hay entre quitar y reducir?
     answer: "Quitar significa no dejar ninguna línea vacía: el texto queda como una lista compacta. Es lo que necesita una exportación, una lista de direcciones o cualquier archivo donde una línea vacía rompe el análisis. Reducir significa dejar exactamente una línea vacía entre bloques: la división en párrafos se conserva y solo desaparece el vacío sobrante. Es lo que necesita un artículo."

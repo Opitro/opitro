@@ -7,7 +7,7 @@ title: Visualizador de audio online gratis — vídeo a partir de música
 h1: Visualizador de audio
 navName: "Visualizador de audio"
 summary: "Onda y espectro: ver cómo suena"
-description: Convierte un tema en un vídeo con una onda en movimiento, un espectro o barras de frecuencia — para YouTube, un clip o una historia. Diez estilos, vista previa en segundos y tamaño hasta 1080p. Gratis, sin registro, no se sube nada.
+description: "Convierte un tema en un vídeo con una onda en movimiento, un espectro o barras de frecuencia — para YouTube, un clip o una historia. Diez estilos, vista previa en segundos y tamaño hasta 1080p."
 faq:
   - question: ¿Por qué primero una vista previa y no el vídeo directamente?
     answer: Renderizar vídeo en el navegador es la operación más pesada del sitio, minutos enteros para un tema largo. Da rabia esperarlos y descubrir que el estilo no era. Por eso primero se calcula un trozo corto con los mismos ajustes que el archivo final — lo miras, te convence, lanzas el render completo.

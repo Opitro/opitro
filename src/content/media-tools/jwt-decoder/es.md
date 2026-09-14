@@ -3,11 +3,11 @@ toolSlug: jwt-decoder
 locale: es
 category: dev
 tool: jwt-decoder
-title: Decodificador JWT online — Verificar firma y parsear JSON Web Token
+title: "Decodificador JWT online gratis"
 h1: Decodificador y validador JWT
 navName: "Decodificador JWT"
 summary: "Leer un token y verificar la firma"
-description: "Herramienta profesional para decodificar, depurar y verificar la firma de tokens JWT online. Analiza el Header y Payload de forma 100% local en tu navegador."
+description: "Herramienta profesional para decodificar, depurar y verificar la firma de tokens JWT online. Analiza el Header y Payload de forma 100% local en tu navegador. Gratis, sin registro."
 faq:
   - question: ¿Es seguro introducir la clave secreta en el sitio de otro?
     answer: "Aquí va la respuesta honesta y no la publicitaria. Esta página no hace ninguna petición de red, y puede comprobarlo usted mismo: abra la pestaña «Red» del navegador, escriba una clave y no aparecerá nada. Pero nadie le obliga a creernos, y lo esencial no está en nosotros. La costumbre de pegar claves de producción en páginas web es peligrosa de por sí: la mayoría de esas páginas están hechas de otro modo, y una clave pegada una vez ya no se puede despegar. La regla es simple: pruebe la herramienta ajena con una clave aparte, desechable, y no pegue la de producción en ninguna parte."

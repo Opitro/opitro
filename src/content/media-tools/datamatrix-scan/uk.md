@@ -3,7 +3,7 @@ toolSlug: datamatrix-scan
 locale: uk
 category: scanners
 tool: datamatrix-scan
-title: "Сканер Data Matrix онлайн безкоштовно — прочитати код камерою або з фото"
+title: "Сканер Data Matrix онлайн безкоштовно"
 h1: "Сканер Data Matrix"
 navName: "Сканер Data Matrix"
 summary: "Прочитати код Data Matrix камерою"

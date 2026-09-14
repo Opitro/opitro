@@ -3,11 +3,11 @@ toolSlug: barcode
 locale: en
 category: dev
 tool: barcode
-title: Barcode Generator Online — Create EAN-13 and Code 128 Barcodes Free
+title: "Barcode Generator Online Free"
 h1: Barcode Generator
 navName: "Barcode Generator"
 summary: "EAN-13, Code-128 → PNG and SVG"
-description: "Create an EAN-13, EAN-8, UPC, Code 128, Code 39 or ITF-14 barcode. We work out the check digit and tell you what it is. Download as PNG or SVG. Free, all in your browser."
+description: "Create an EAN-13, EAN-8, UPC, Code 128, Code 39 or ITF-14 barcode. We work out the check digit and tell you what it is. Download as PNG or SVG. Free, all in your browser. Free, no sign-up."
 faq:
   - question: PNG or SVG — which should I download?
     answer: "For print, the SVG. It is described by lines and scales to any size without losing sharpness, and with a barcode edge sharpness decides everything: a blurred edge makes the scanner misread. A PNG is made of dots and suits a document, an invoice or a web page where the code is shown at its original size."

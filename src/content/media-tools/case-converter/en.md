@@ -3,11 +3,11 @@ toolSlug: case-converter
 locale: en
 category: dev
 tool: case-converter
-title: CamelCase to snake_case Converter Online — Naming Style Transformer
+title: "CamelCase to snake_case Converter Online Free"
 h1: CamelCase and snake_case Converter
 navName: "camelCase and snake_case Converter"
 summary: "camelCase, snake_case, kebab-case"
-description: "Free online converter between camelCase, PascalCase, snake_case, kebab-case and UPPER_CASE. Works on lists, splits acronyms correctly and keeps edge underscores."
+description: "Free online converter between camelCase, PascalCase, snake_case, kebab-case and UPPER_CASE. Works on lists, splits acronyms correctly and keeps edge underscores. Free, no sign-up."
 faq:
   - question: What is the difference between camelCase and snake_case?
     answer: "They are conventions for writing compound names in code. camelCase joins the words and marks the boundaries with capitals: myVariableName. snake_case lowercases everything and separates words with underscores: my_variable_name. Different languages have different habits — JavaScript prefers camelCase, Python prefers snake_case — so porting code from one to the other means rewriting names in bulk."

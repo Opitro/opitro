@@ -3,11 +3,11 @@ toolSlug: escape-unescape
 locale: es
 category: dev
 tool: escape-unescape
-title: Escape y unescape online — escapar caracteres especiales HTML, JS, CSS
+title: "Escape y unescape online gratis"
 h1: Escapar caracteres especiales
 navName: "Escapador de cadenas"
 summary: "Comillas y barras para una cadena de código"
-description: "Herramienta gratuita para escapar y desescapar caracteres especiales en HTML, JavaScript y CSS. El desescapado va en una sola pasada y no estropea las barras."
+description: "Herramienta gratuita para escapar y desescapar caracteres especiales en HTML, JavaScript y CSS. El desescapado va en una sola pasada y no estropea las barras. Gratis, sin registro."
 faq:
   - question: ¿Qué es escapar y para qué sirve?
     answer: "Consiste en sustituir los caracteres que tienen un significado especial en un sitio concreto por una forma segura de escribirlos. En HTML el corchete angular abre una etiqueta, así que el texto «<div>» hay que escribirlo como «&lt;div&gt;» o el navegador lo tomará por código. Dentro de una cadena de JavaScript los especiales son la comilla y la barra invertida."

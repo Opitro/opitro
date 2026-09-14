@@ -3,11 +3,11 @@ toolSlug: css-gradient
 locale: es
 category: dev
 tool: css-gradient
-title: Generador de degradados CSS online — Crear linear y radial gradient para web
+title: "Generador de degradados CSS online gratis"
 h1: Generador de degradados CSS
 navName: "Generador de degradados CSS"
 summary: "Componga el degradado y llévese el CSS"
-description: "Herramienta profesional para crear degradados CSS online. Ajusta puntos de color, ángulos de inclinación y opacidad para obtener códigos CSS limpios y listos para producción."
+description: "Herramienta profesional para crear degradados CSS online. Ajusta puntos de color, ángulos de inclinación y opacidad para obtener códigos CSS limpios y listos para producción. Gratis, sin registro."
 faq:
   - question: ¿En qué se diferencian el degradado lineal y el radial?
     answer: "El lineal lleva los colores a lo largo de una recta, y la dirección la fija un ángulo: 0° va de abajo arriba, 90° de izquierda a derecha, 180° de arriba abajo. Sirve para fondos, cabeceras y botones, allí donde se busca una transición uniforme. El radial se expande en círculos desde un centro y hace otra cosa: resplandor, volumen, un viñeteado suave. La regla es sencilla: si la transición debe ser un fondo que no se note, lineal; si es un objeto en sí misma —una mancha de luz, un brillo—, radial."

@@ -3,11 +3,11 @@ toolSlug: mobile-typing-test
 locale: es
 category: device-tests
 tool: mobile-typing-test
-title: Test de escritura en el móvil — comprueba tu velocidad en 30 segundos
+title: "Test de escritura en el móvil en línea gratis"
 h1: Pon a prueba tu velocidad de escritura en el móvil
 navName: "Velocidad de escritura en móvil"
 summary: "Su velocidad escribiendo con los pulgares"
-description: "Descubre cuántas palabras por minuto escribes en el móvil. Un test de medio minuto: texto grande, recuento honesto con precisión, sin botones de más ni registro."
+description: "Descubre cuántas palabras por minuto escribes en el móvil. Un test de medio minuto: texto grande, recuento honesto con precisión, sin botones de más ni registro. Gratis, sin registro."
 faq:
   - question: ¿En qué se diferencia de la prueba normal de mecanografía?
     answer: "Aquella es de teclado: tres líneas de letra pequeña, uno o dos minutos, niveles y un análisis por teclas. Esta es de móvil: treinta segundos, letras grandes para el pulgar, palabras cortas y un solo número al final. Las dos cuentan igual, así que puedes comparar tus propios resultados con honestidad."
