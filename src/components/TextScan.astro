@@ -18,7 +18,7 @@ const СЛОВА = {
   ru: {
     camera: 'Камера', file: 'Файл', invite: 'Перетащите снимок сюда',
     inviteTouch: 'Снимите или выберите снимок', or: 'или выберите',
-    reading: 'Сканирую…', nothing: 'Текста не видно',
+    loadingWord: 'Загрузка…', reading: 'Сканирую…', nothing: 'Текста не видно',
     nothingWhy: 'На снимке не нашлось букв. Снимите ближе и ровнее, чтобы строки шли горизонтально и не были смазаны. Если буквы светлые на тёмном — включите значок с луной.',
     copy: 'Скопировать текст', copied: 'Скопировано', txt: 'Скачать .txt',
     pdf: 'PDF с текстовым слоем', rotate: 'Повернуть', invert: 'Светлые буквы на тёмном',
@@ -35,7 +35,7 @@ const СЛОВА = {
   uk: {
     camera: 'Камера', file: 'Файл', invite: 'Перетягніть знімок сюди',
     inviteTouch: 'Зніміть або виберіть знімок', or: 'або виберіть',
-    reading: 'Сканую…', nothing: 'Тексту не видно',
+    loadingWord: 'Завантаження…', reading: 'Сканую…', nothing: 'Тексту не видно',
     nothingWhy: 'На знімку не знайшлося літер. Зніміть ближче й рівніше, щоб рядки йшли горизонтально й не були змазані. Якщо літери світлі на темному — увімкніть значок із місяцем.',
     copy: 'Скопіювати текст', copied: 'Скопійовано', txt: 'Завантажити .txt',
     pdf: 'PDF із текстовим шаром', rotate: 'Повернути', invert: 'Світлі літери на темному',
@@ -52,7 +52,7 @@ const СЛОВА = {
   en: {
     camera: 'Camera', file: 'File', invite: 'Drop a photo here',
     inviteTouch: 'Take or choose a photo', or: 'or choose',
-    reading: 'Scanning…', nothing: 'No text in sight',
+    loadingWord: 'Loading…', reading: 'Scanning…', nothing: 'No text in sight',
     nothingWhy: 'No letters were found in the photo. Move closer and keep it straight so the lines run horizontally and stay sharp. If the letters are light on a dark background, switch on the moon.',
     copy: 'Copy the text', copied: 'Copied', txt: 'Download .txt',
     pdf: 'PDF with a text layer', rotate: 'Rotate', invert: 'Light letters on dark',
@@ -69,7 +69,7 @@ const СЛОВА = {
   es: {
     camera: 'Cámara', file: 'Archivo', invite: 'Suelte una foto aquí',
     inviteTouch: 'Haga o elija una foto', or: 'o elija',
-    reading: 'Escaneando…', nothing: 'No se ve texto',
+    loadingWord: 'Cargando…', reading: 'Escaneando…', nothing: 'No se ve texto',
     nothingWhy: 'No se han encontrado letras en la foto. Acérquese y mantenga la hoja recta para que las líneas queden horizontales y nítidas. Si las letras son claras sobre fondo oscuro, active la luna.',
     copy: 'Copiar el texto', copied: 'Copiado', txt: 'Descargar .txt',
     pdf: 'PDF con capa de texto', rotate: 'Girar', invert: 'Letras claras sobre oscuro',
@@ -263,7 +263,7 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
       // Полоса идёт ПОД ПЛИТКАМИ, а плитки остаются на месте: файл пошёл в работу, но
       // страница ещё не перестроилась. Перестроится она разом -- когда откроется снимок.
       полосаОтработала = false;
-      ползёт(0.08, с.reading);
+      ползёт(0.08, с.loadingWord);
       try {
         исходник = window.createImageBitmap
           ? await createImageBitmap(файл, { imageOrientation: 'from-image' })
@@ -327,7 +327,7 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
           база: языки,
           ход: ({ доля, что }) => {
             if (!сНачала) return;
-            if (/load|init/i.test(что || '')) ползёт(0.1 + (доля || 0) * 0.6, с.reading);
+            if (/load|init/i.test(что || '')) ползёт(0.1 + (доля || 0) * 0.6, с.loadingWord);
             else открытьИПустьИдёт();
           },
         });

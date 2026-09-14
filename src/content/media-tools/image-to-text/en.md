@@ -16,7 +16,7 @@ faq:
   - question: "What do the icons under the photo do?"
     answer: "The sheet copies the whole text. The down arrow saves a .txt file. The page with a folded corner gives you a PDF where the photo looks as usual but the text inside can be searched and selected. The circular arrow turns the photo by 90° (a page shot sideways reads badly). The moon is for light letters on a dark background. The corners let you read one boxed part only. The cross takes another photo."
   - question: "Do I have to choose the language of the text?"
-    answer: "No, there is nothing to choose. The page reads Latin together with Cyrillic from the start — that covers most photos, where names, addresses and brands are mixed in. If the photo turns out to hold another script — Chinese, Arabic, Greek, Hebrew — the page works that out by itself and reads it: the scan simply takes a few seconds longer."
+    answer: "No, there is nothing to choose. The page reads Latin together with Cyrillic from the start — that covers most photos, where names, addresses and brands are mixed in. If the photo turns out to hold another language — French, German, Spanish, Polish — or another script altogether (Chinese, Arabic, Greek, Hebrew), the page works it out from the look of the words and reads it with the right alphabet: the scan simply takes a few seconds longer."
   - question: "Why are some words underlined with a wave?"
     answer: "Those are the words the reader is unsure about. It is not an error but an honest warning: check them with your eyes and take the rest as it is. The count of such words is written underneath."
   - question: "Where does my photo go?"

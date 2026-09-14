@@ -16,7 +16,7 @@ faq:
   - question: "¿Qué hacen los iconos bajo la foto?"
     answer: "La hoja copia todo el texto. La flecha hacia abajo guarda un .txt. La página con la esquina doblada entrega un PDF en el que la foto se ve igual pero el texto se puede buscar y seleccionar. La flecha circular gira la foto 90° (una hoja tomada de lado se lee mal). La luna es para letras claras sobre fondo oscuro. Las esquinas permiten leer solo el trozo que encuadre. La cruz toma otra foto."
   - question: "¿Hay que elegir el idioma del texto?"
-    answer: "No, no hay nada que elegir. La página lee de entrada el alfabeto latino junto con el cirílico, que es lo que aparece en la mayoría de las fotos, con nombres, direcciones y marcas mezclados. Si la foto lleva otra escritura —china, árabe, griega, hebrea—, la página lo deduce sola y la lee: el escaneo solo tarda unos segundos más."
+    answer: "No, no hay nada que elegir. La página lee de entrada el alfabeto latino junto con el cirílico, que es lo que aparece en la mayoría de las fotos, con nombres, direcciones y marcas mezclados. Si la foto lleva otro idioma —francés, alemán, italiano, polaco— u otra escritura (china, árabe, griega, hebrea), la página lo deduce sola por el aspecto de las palabras y la lee con el alfabeto correcto: el escaneo solo tarda unos segundos más."
   - question: "¿Por qué hay palabras subrayadas con una onda?"
     answer: "Son las palabras de las que el lector no está seguro. No es un error, sino una advertencia honrada: revíselas con la vista y tome el resto tal cual. Debajo se indica cuántas son."
   - question: "¿Adónde va mi foto?"
