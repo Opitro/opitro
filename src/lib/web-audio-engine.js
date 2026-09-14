@@ -824,6 +824,21 @@ export function createPlayer() {
   // `options.loop` repeats the buffer forever instead of ending. That's how the noise generators
   // play for hours on a few megabytes: a short seamless loop rather than an hours-long buffer.
   function play(buf, onProgress, onEnded, seekTo, buildChain, options = {}) {
+    // СНАЧАЛА ГЛУШИМ ПРЕЖНИЙ ИСТОЧНИК. Узел буфера не перематывается: чтобы играть с другого
+    // места, приходится заводить новый. Если старый при этом не остановить, он продолжит
+    // звучать -- а ссылку на него мы уже потеряли, и остановить его больше нечем. Владелец
+    // поймал это на странице «Аудио в MIDI»: перетащил бегунок, нажал паузу -- играет; нажал
+    // пуск -- звучат двое разом. Останавливаем здесь, в общем движке, а не на одной странице:
+    // перемотка во время звучания есть у всех плееров сайта.
+    //
+    // pausedAt НЕ трогаем: его вот-вот задаст seekTo, а stop() обнулил бы его и перемотка
+    // всякий раз начиналась бы с начала файла.
+    if (source) {
+      source.onended = null;
+      try { if (source.stop) source.stop(); else source.disconnect(); } catch (e) {}
+      source = null;
+      cancelAnimationFrame(rafId);
+    }
     buffer = buf;
     if (seekTo != null) pausedAt = Math.max(0, Math.min(seekTo, buffer.duration));
     const c = getCtx();
