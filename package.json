@@ -18,7 +18,8 @@
     "check:player": "node scripts/check-player.mjs",
     "check:mrz": "node scripts/check-mrz.mjs",
     "check:tempo": "node scripts/check-tempo.mjs",
-    "check:editor": "node scripts/check-editor.mjs"
+    "check:editor": "node scripts/check-editor.mjs",
+    "check:players": "node scripts/check-players.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
