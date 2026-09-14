@@ -118,6 +118,36 @@
   pointer-events: none;
 }
 
+/* ---- Первый экран ------------------------------------------------------------------------------
+   Приглашение вместо пустого чёрного окна. По первому экрану судят обо всём инструменте, и
+   показывать в нём пустоту незачем: человеку нужны два действия и понятное место, куда можно
+   бросить фото. Рамка пунктиром -- общепринятый знак «сюда можно перетащить». */
+@media (max-width: 560px) {
+  .цв-старт { padding: 24px 14px 22px }
+  .цв-старт .цв-выбор { width: 132px }
+}
+.цв-старт {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 30px 20px 26px; border-radius: 12px;
+  border: 1.5px dashed var(--контур); background: rgba(255,255,255,.015);
+  transition: border-color .18s, background .18s;
+}
+.цв-старт[hidden] { display: none !important }
+/* Файл тащат над зоной -- она отзывается: рамка сплошная и зелёная, как «сюда». */
+.цв-старт.держат { border-color: var(--accent); border-style: solid;
+  background: rgba(74,222,158,.06) }
+.цв-старт-знак { width: 34px; height: 34px; fill: none; stroke: var(--accent); stroke-width: 1.4;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .9 }
+.цв-старт-зов { margin: 2px 0 0; font: 400 14px var(--мон); color: #fff }
+.цв-старт-или { margin: 0 0 4px; font: 400 12px var(--мон); color: var(--серый, #b4b4bb) }
+.цв-старт-или[hidden] { display: none }
+.цв-старт-ряд { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center }
+.цв-старт .цв-выбор { width: 150px }
+
+/* Спрятанное окно должно исчезать: у него свой display, и [hidden] из таблицы браузера ему
+   проигрывает -- на этом я уже попадался на сканере MRZ. */
+.цв .цв-окно[hidden] { display: none !important }
+
 /* ---- Ответ ------------------------------------------------------------------------------------ */
 @keyframes цв-проявился { from { opacity: 0 } to { opacity: 1 } }
 
