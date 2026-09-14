@@ -19,8 +19,24 @@
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
   transition: border-color .2s;
 }
-.цв-окно.взято { border-color: var(--accent);
-  box-shadow: inset 0 0 0 1px rgba(74,222,158,.35), 0 0 28px rgba(74,222,158,.18) }
+/* Зелёной вспышки окна больше нет: она красила весь кадр цветом «получилось» там, где
+   результат и так очевиден, и спорила с самим взятым оттенком. Отклик теперь -- кольцо
+   от прицела, см. .цв-эхо. */
+
+/* КОЛЬЦО ОТ ПРИЦЕЛА: расходится из точки, куда ткнули, и окрашено в ТОТ САМЫЙ цвет, который
+   человек только что взял. Отклик стоит на месте действия, ничего не двигает и ничего не
+   перекрашивает -- чистый CSS, одна анимация, никаких библиотек. */
+.цв-эхо {
+  position: absolute; z-index: 3; width: 54px; height: 54px; border-radius: 50%;
+  margin: -27px 0 0 -27px; pointer-events: none; opacity: 0;
+  border: 2px solid #fff;
+  box-shadow: 0 0 0 1px rgba(0,0,0,.45);
+}
+.цв-эхо.идёт { animation: цв-кольцо .55s cubic-bezier(.22,.7,.3,1) both }
+@keyframes цв-кольцо {
+  from { opacity: .95; transform: scale(.45) }
+  to   { opacity: 0;   transform: scale(2.1) }
+}
 .цв-окно video, .цв-окно img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover;
 }
@@ -103,16 +119,21 @@
 }
 
 /* ---- Ответ ------------------------------------------------------------------------------------ */
-@keyframes цв-явился { from { opacity: 0; transform: translateY(8px) } to { opacity: 1; transform: none } }
+@keyframes цв-проявился { from { opacity: 0 } to { opacity: 1 } }
 
 .цв-ответ { margin-top: 18px }
 .цв-ответ:empty { display: none }
+/* Карточка НЕ выезжает при каждом замере: она одна и та же, меняются только значения.
+   Прежде на каждое нажатие она пересоздавалась и заново подпрыгивала снизу -- владелец
+   попросил убрать это дёрганье. Появление первого ответа осталось мягким, но без сдвига:
+   только проявление. */
 .цв-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
   padding: 12px 13px; display: flex; gap: 14px; align-items: flex-start;
-  animation: цв-явился .28s cubic-bezier(.2,.7,.3,1) both }
+  animation: цв-проявился .22s ease-out both }
 /* Сам цвет -- крупным пятном: ради него и пришли, и сравнивать глазами надо именно пятно. */
 .цв-пятно { flex: none; width: 86px; height: 86px; border-radius: 8px;
-  border: 1px solid rgba(255,255,255,.25) }
+  border: 1px solid rgba(255,255,255,.25);
+  transition: background-color .28s cubic-bezier(.4,0,.2,1) }
 .цв-строки { flex: 1 1 auto; min-width: 0; display: flex; flex-direction: column; gap: 7px }
 .цв-имя { font: 400 10.5px var(--мон); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent) }
@@ -162,5 +183,6 @@
   .цв-пары { grid-template-columns: minmax(0, 56px) minmax(0, 1fr) 30px; font-size: 12.5px }
 }
 @media (prefers-reduced-motion: reduce) {
-  .цв-итог { animation: none }
+  .цв-итог, .цв-эхо.идёт { animation: none }
+  .цв-пятно { transition: none }
 }
