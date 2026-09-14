@@ -31,37 +31,20 @@
 .тс-выбор svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.3;
   stroke-linecap: round; stroke-linejoin: round }
 
-/* ---- Языки: чипами, можно два разом ------------------------------------------------------- */
-.тс-языки { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-top: 14px }
-.тс-языки-подпись { font: 400 12px var(--мон); color: var(--серый); margin-right: 2px }
-.тс-язык {
-  padding: 7px 13px; border-radius: 999px; cursor: pointer;
-  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
-  font: 400 12.5px var(--мон); transition: color .15s, border-color .15s, background .15s;
-}
-.тс-язык:hover { color: #fff; border-color: #fff }
-.тс-язык.взят { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.1) }
-.тс-язык[disabled] { opacity: .5; cursor: not-allowed }
-
-/* ---- Полоса загрузки -----------------------------------------------------------------------
-   Выбрал файл -- и сразу видно, что работа пошла: имя снимка, полоса и шаг словами. Под эту
-   же полосу приезжают движок и азбука, поэтому ожидание не выглядит пустым: человек смотрит
-   на ход, а не в неподвижный экран. Место занято заранее -- когда полоса уходит и появляется
-   снимок, ничего не подпрыгивает. */
-.тс-грузим {
-  margin-top: 14px; padding: 18px 16px; border-radius: 12px;
-  border: 1px solid var(--контур); background: #16181d;
-  display: flex; flex-direction: column; gap: 10px;
-}
-.тс-грузим-верх { display: flex; align-items: center; gap: 10px; justify-content: space-between }
-.тс-грузим-имя { font: 400 12.5px var(--мон); color: #fff; overflow: hidden;
-  text-overflow: ellipsis; white-space: nowrap }
-.тс-грузим-доля { font: 400 12.5px var(--мон); color: var(--accent); font-variant-numeric: tabular-nums }
-.тс-полоса { height: 4px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden }
+/* ---- Полоса загрузки ПОД ПЛИТКАМИ -----------------------------------------------------------
+   Тонкая линия прямо под «Камерой» и «Файлом», как у обычных загрузчиков: файл читается,
+   движок едет -- видно, что работа пошла. Блок стоит на месте всегда (нулевая высота и
+   прозрачность), поэтому когда полоса появляется, ничего не подпрыгивает.
+   Большой блок с процентами отсюда убран: он выглядел загрузчиком файлов, а это сканер. */
+.тс-грузим { width: 100%; max-width: 330px; display: flex; flex-direction: column; gap: 6px;
+  opacity: 0; transition: opacity .2s; pointer-events: none }
+.тс-грузим.идёт { opacity: 1 }
+.тс-полоса { height: 3px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden }
 .тс-полоса i { display: block; height: 100%; width: 0; border-radius: 999px;
   background: linear-gradient(90deg, var(--accent), var(--accent2, #60efb8));
   transition: width .25s cubic-bezier(.4,0,.2,1) }
-.тс-грузим-шаг { font: 400 12px var(--мон); color: var(--серый) }
+.тс-грузим-шаг { font: 400 11.5px var(--мон); color: var(--серый); text-align: center;
+  min-height: 15px }
 
 /* ---- Снимок ------------------------------------------------------------------------------- */
 .тс-окно {
@@ -80,10 +63,28 @@
   pointer-events: none }
 .тс-окно.выделяем { cursor: crosshair }
 
-/* Ход работы: тонкая линия по низу снимка. Ни цифр, ни процентов -- работа видна и так. */
-.тс-ход { position: absolute; left: 0; bottom: 0; height: 2px; width: 0; background: var(--accent);
-  transition: width .2s linear; opacity: 0 }
-.тс-ход.идёт { opacity: 1 }
+/* ЛУЧ ПО СНИМКУ. Ровно тот же, что у сканеров кодов: человек пришёл на сканер, и работа
+   должна выглядеть сканированием -- линия идёт по кадру сверху вниз и обратно, пока читается
+   текст. Свечение даёт тень, а не заливка, поэтому снимок под лучом виден целиком. */
+.тс-луч { position: absolute; left: 0; right: 0; top: 0; height: 2px; pointer-events: none;
+  opacity: 0; background: #4ade9e;
+  box-shadow: 0 0 10px 2px rgba(74,222,158,.85), 0 0 26px 6px rgba(74,222,158,.35) }
+.тс-окно.сканирует .тс-луч { animation: тс-бег 1.9s cubic-bezier(.45,0,.55,1) infinite }
+@keyframes тс-бег {
+  0%   { top: 0; opacity: 0 }
+  8%   { opacity: 1 }
+  46%  { top: calc(100% - 2px); opacity: 1 }
+  54%  { top: calc(100% - 2px); opacity: 1 }
+  92%  { top: 0; opacity: 1 }
+  100% { top: 0; opacity: 0 }
+}
+/* Рамки строк проявляются одна за другой, вслед за лучом -- видно, как текст «снимается». */
+.тс-строка-рамка { opacity: 0; animation: тс-проявилась .25s ease-out forwards }
+@keyframes тс-проявилась { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) {
+  .тс-окно.сканирует .тс-луч { animation: none; opacity: .6 }
+  .тс-строка-рамка { animation: none; opacity: 1 }
+}
 
 /* ---- Ряд действий -------------------------------------------------------------------------- */
 .тс-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
@@ -115,12 +116,21 @@
 }
 .тс-абзац { margin: 0 0 14px }
 .тс-абзац:last-child { margin-bottom: 0 }
-.тс-стр { display: block; border-radius: 3px; padding: 0 2px; margin: 0 -2px; cursor: default }
+/* Строки проявляются одна за другой -- как будто текст снимается со снимка вслед за лучом.
+   Место занято сразу: строки на месте и невидимы, поэтому ничего не подпрыгивает. */
+.тс-стр { display: block; border-radius: 3px; padding: 0 2px; margin: 0 -2px; cursor: default;
+  opacity: 0; animation: тс-строка-вышла .18s ease-out forwards }
+@keyframes тс-строка-вышла { from { opacity: 0; transform: translateY(2px) } to { opacity: 1; transform: none } }
+@media (prefers-reduced-motion: reduce) { .тс-стр { animation: none; opacity: 1 } }
 .тс-стр:hover { background: rgba(74,222,158,.12) }
 /* Слово, в котором движок не уверен: подчёркнуто волной, как опечатка в редакторе. Человек
    сразу видит, что проверить глазами, а не перечитывает всё. */
 .тс-шатко { text-decoration: underline wavy rgba(255,209,121,.75); text-underline-offset: 3px }
 .тс-пусто { color: var(--серый) }
+/* Курсор на конце печатающегося текста: пока мигает -- работа идёт. */
+.тс-курсор { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px;
+  background: var(--accent); animation: тс-мигает .8s steps(2, start) infinite }
+@keyframes тс-мигает { to { opacity: 0 } }
 
 .тс-беда { margin-top: 12px; font: 400 12.5px/1.6 var(--мон); color: var(--беда, #ff9aa8) }
 .тс-беда:empty { display: none }
