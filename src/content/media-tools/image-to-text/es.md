@@ -3,10 +3,10 @@ toolSlug: image-to-text
 locale: es
 category: scanners
 tool: image-to-text
-title: "Extraer texto de una imagen en línea gratis"
+title: "Reconocer texto de una foto en línea gratis"
 h1: "Texto de una foto"
 navName: "Texto de una foto"
-summary: "Leer el texto de una foto"
+summary: "Copiar el texto de una foto"
 description: "Sacamos el texto de una foto o una captura de pantalla en el propio navegador: llévelo como texto, como archivo .txt o como PDF en el que el texto se puede buscar. Gratis, sin registro, la foto no sale de aquí."
 faq:
   - question: "¿Cómo saco el texto de una fotografía?"

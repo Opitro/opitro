@@ -21,6 +21,7 @@ const СЛОВА = {
     loadingWord: 'Загрузка…', reading: 'Сканирую…', nothing: 'Текста не видно',
     nothingWhy: 'На снимке не нашлось букв. Снимите ближе и ровнее, чтобы строки шли горизонтально и не были смазаны. Если буквы светлые на тёмном — включите значок с луной.',
     copy: 'Скопировать текст', copied: 'Скопировано', txt: 'Скачать .txt',
+    onPaper: 'Показать текст на снимке', onPhoto: 'Показать фотографию',
     pdf: 'PDF с текстовым слоем', rotate: 'Повернуть', invert: 'Светлые буквы на тёмном',
     crop: 'Прочитать только кусок', cropOn: 'Обведите кусок на снимке', cropOff: 'Читать весь снимок',
     again: 'Другой снимок', shaky: 'Проверьте {н} слов: движок в них не уверен',
@@ -38,6 +39,7 @@ const СЛОВА = {
     loadingWord: 'Завантаження…', reading: 'Сканую…', nothing: 'Тексту не видно',
     nothingWhy: 'На знімку не знайшлося літер. Зніміть ближче й рівніше, щоб рядки йшли горизонтально й не були змазані. Якщо літери світлі на темному — увімкніть значок із місяцем.',
     copy: 'Скопіювати текст', copied: 'Скопійовано', txt: 'Завантажити .txt',
+    onPaper: 'Показати текст на знімку', onPhoto: 'Показати фотографію',
     pdf: 'PDF із текстовим шаром', rotate: 'Повернути', invert: 'Світлі літери на темному',
     crop: 'Прочитати лише шматок', cropOn: 'Обведіть шматок на знімку', cropOff: 'Читати весь знімок',
     again: 'Інший знімок', shaky: 'Перевірте {н} слів: розпізнавач у них не впевнений',
@@ -55,6 +57,7 @@ const СЛОВА = {
     loadingWord: 'Loading…', reading: 'Scanning…', nothing: 'No text in sight',
     nothingWhy: 'No letters were found in the photo. Move closer and keep it straight so the lines run horizontally and stay sharp. If the letters are light on a dark background, switch on the moon.',
     copy: 'Copy the text', copied: 'Copied', txt: 'Download .txt',
+    onPaper: 'Show the text on the photo', onPhoto: 'Show the photo',
     pdf: 'PDF with a text layer', rotate: 'Rotate', invert: 'Light letters on dark',
     crop: 'Read one part only', cropOn: 'Draw a box on the photo', cropOff: 'Read the whole photo',
     again: 'Another photo', shaky: 'Check {н} words: the reader is unsure about them',
@@ -72,6 +75,7 @@ const СЛОВА = {
     loadingWord: 'Cargando…', reading: 'Escaneando…', nothing: 'No se ve texto',
     nothingWhy: 'No se han encontrado letras en la foto. Acérquese y mantenga la hoja recta para que las líneas queden horizontales y nítidas. Si las letras son claras sobre fondo oscuro, active la luna.',
     copy: 'Copiar el texto', copied: 'Copiado', txt: 'Descargar .txt',
+    onPaper: 'Mostrar el texto sobre la foto', onPhoto: 'Mostrar la foto',
     pdf: 'PDF con capa de texto', rotate: 'Girar', invert: 'Letras claras sobre oscuro',
     crop: 'Leer solo un trozo', cropOn: 'Dibuje un recuadro en la foto', cropOff: 'Leer la foto entera',
     again: 'Otra foto', shaky: 'Revise {н} palabras: el lector no está seguro de ellas',
@@ -129,6 +133,9 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
       <video id="тс-видео" playsinline muted hidden></video>
       <img id="тс-снимок" alt="" />
       <span class="тс-слой" id="тс-слой"></span>
+      <!-- Тот же текст, но НА МЕСТЕ фотографии: строки стоят там, где были на снимке. Удобно
+           сверять глазами -- решение владельца. -->
+      <span class="тс-лист" id="тс-лист" hidden></span>
       <span class="тс-выдел" id="тс-выдел" hidden></span>
       <span class="тс-луч" id="тс-луч"></span>
     </span>
@@ -150,6 +157,9 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
     </button>
     <button type="button" class="тс-кнопка" id="тс-луна" title={с.invert} aria-label={с.invert}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M20 14.5A8.5 8.5 0 0 1 9.5 4a8.5 8.5 0 1 0 10.5 10.5z"/></svg>
+    </button>
+    <button type="button" class="тс-кнопка" id="тс-налисте" title={с.onPaper} aria-label={с.onPaper}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="4" y="3" width="16" height="18" rx="2"/><path d="M8 8h8M8 12h8M8 16h5"/></svg>
     </button>
     <button type="button" class="тс-кнопка" id="тс-кусок" title={с.crop} aria-label={с.crop}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M6 2v16h16"/><path d="M2 6h16v16"/></svg>
@@ -341,6 +351,39 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
         };
         const начало = Date.now();
         if (!сНачала) { окно.classList.add('сканирует'); ждём(с.reading); }
+        // СНАЧАЛА НЕЙРОСЕТЬ. Она находит куски текста на снимке и читает каждый отдельно --
+        // потому и берёт фотографии товаров, вывесок и упаковок, где разбор строк бессилен.
+        // Замер на фотографии пакета молока: нейросеть за две секунды вытащила «Partenariats
+        // durables», «Rémunération garantie», «Issu de vaches nourries», а старый движок на
+        // том же снимке выдал арабскую вязь.
+        let черезСеть = null;
+        try {
+          const { прочитатьСнимок } = await import('../lib/pp-ocr.js');
+          черезСеть = await прочитатьСнимок(картинка, {
+            ход: (что) => { if (сНачала && что && что.качаем) ползёт(0.3, с.loadingWord); },
+          });
+        } catch (е) { черезСеть = null; }
+
+        // Наши распознаватели знают латиницу и кириллицу. Если на снимке иероглифы или вязь,
+        // сеть найдёт строки, но прочитает их как попало -- тогда отдаём работу старому
+        // движку, у которого азбук больше. Признак простой: букв почти нет либо сеть сама себе
+        // не верит.
+        const сетьСправилась = черезСеть && черезСеть.строки.length
+          && (черезСеть.текст.match(/\p{L}/gu) || []).length >= 8
+          && черезСеть.строки.reduce((н, с) => н + с.уверенность, 0) / черезСеть.строки.length >= 55;
+
+        if (сетьСправилась) {
+          открытьИПустьИдёт();
+          const прошлоСеть = Date.now() - начало;
+          if (прошлоСеть < 1100) await new Promise((г) => setTimeout(г, 1100 - прошлоСеть));
+          последнее = отСети(черезСеть);
+          window.__тс = { движок: 'сеть', азбука: черезСеть.азбука, строк: черезСеть.строки.length };
+          показатьТекст(последнее);
+          ждём('');
+          читаем = false;
+          return;
+        }
+
         // Азбуку подбираем САМИ: сперва своя с латиницей, а не вышло -- перебираем другие
         // письменности. Человек ничего не выбирает и об этом не читает.
         const { data, набор: чем, подбирали, канал: каналВыбран, холст: чемЧитали } = await прочитатьСамо(холст, {
@@ -390,6 +433,32 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
       if (с10 === 1) return формы[0];
       if (с10 >= 2 && с10 <= 4) return формы[1];
       return формы[2];
+    }
+
+    /**
+     * Ответ нейросети в общий вид. Она отдаёт готовые строки с рамками -- слова внутри строки
+     * делим сами: подсветка и пометки неуверенных слов устроены одинаково для обоих движков.
+     */
+    function отСети(итог) {
+      const абзацы = [{ строки: итог.строки.map((с) => ({
+        текст: с.текст,
+        уверенность: с.уверенность,
+        место: местоРамки(с.рамка),
+        слова: с.текст.split(/(\s+)/).filter((ч) => ч.trim()).map((сл) => ({
+          текст: сл, уверенность: с.уверенность, место: местоРамки(с.рамка),
+        })),
+      })) }];
+      const текст = итог.строки.map((с) => с.текст).join('\n');
+      return { абзацы, текст, уверенность: Math.round(
+        итог.строки.reduce((н, с) => н + с.уверенность, 0) / Math.max(1, итог.строки.length)) };
+    }
+
+    /** Рамка сети -- четыре угла в точках снимка; для показа нужны доли. */
+    function местоРамки(рамка) {
+      const хс = рамка.углы.map((т) => т[0]), ус = рамка.углы.map((т) => т[1]);
+      const ш = картинка.width || 1, в = картинка.height || 1;
+      const х = Math.min(...хс) / ш, у = Math.min(...ус) / в;
+      return { х, у, ш: (Math.max(...хс) - Math.min(...хс)) / ш, в: (Math.max(...ус) - Math.min(...ус)) / в };
     }
 
     function показатьТекст(разбор) {
@@ -545,10 +614,40 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
       окно.classList.toggle('выделяем', выделяем);
       ждём(выделяем ? с.cropOn : '');
     });
+    // ТЕКСТ НА МЕСТЕ ФОТОГРАФИИ. Строки ставим по их же рамкам и подгоняем кегль под высоту
+    // строки: получается «перепечатанный» лист, с которого удобно читать и сверять.
+    let наЛисте = false;
+    function нарисоватьЛист() {
+      const лист = $('тс-лист');
+      лист.replaceChildren();
+      if (!последнее) return;
+      const р = снимок.getBoundingClientRect();
+      for (const абзац of последнее.абзацы) for (const строка of абзац.строки) {
+        const м = строка.место;
+        const э = document.createElement('span');
+        э.className = 'тс-лист-строка';
+        э.textContent = строка.текст;
+        э.style.left = (м.х * 100) + '%';
+        э.style.top = (м.у * 100) + '%';
+        э.style.fontSize = Math.max(9, Math.round(м.в * р.height * 0.82)) + 'px';
+        лист.appendChild(э);
+      }
+    }
+    $('тс-налисте').addEventListener('click', () => {
+      наЛисте = !наЛисте;
+      $('тс-налисте').classList.toggle('взята', наЛисте);
+      $('тс-налисте').title = наЛисте ? с.onPhoto : с.onPaper;
+      if (наЛисте) нарисоватьЛист();
+      $('тс-лист').hidden = !наЛисте;
+      слой.hidden = наЛисте;
+    });
+
     $('тс-ещё').addEventListener('click', () => {
       картинка = null; исходник = null; последнее = null; кусок = null; поворот = 0;
       выдел.hidden = true; слой.replaceChildren();
       снимок.removeAttribute('src');
+      наЛисте = false; $('тс-лист').hidden = true; $('тс-лист').replaceChildren();
+      $('тс-налисте').classList.remove('взята'); слой.hidden = false;
       текстЭ.hidden = true; текстЭ.replaceChildren();
       счёт.textContent = '';
       показатьОкно(false);
@@ -613,6 +712,16 @@ const своя = ПО_ЯЗЫКУ[locale] || 'rus';
     // Крючок для живых проверок: прочитать нынешний снимок названной азбукой и вернуть, что
     // вышло. Человеку он не виден и ничего не меняет -- но без него проверка не может
     // спросить «а китайской азбукой читается?», не переписывая половину страницы.
+    // Крючок для опыта с нейросетью PP-OCR: пока держим рядом со старым движком, чтобы
+    // сравнить их на одних и тех же снимках -- числами, а не на глаз.
+    window.__ппOCR = async () => {
+      const { прочитатьСнимок } = await import('../lib/pp-ocr.js');
+      if (!картинка) return { беда: 'снимка нет' };
+      const т0 = Date.now();
+      const итог = await прочитатьСнимок(картинка, {});
+      return { текст: итог.текст, строк: итог.строки.length, азбука: итог.азбука, мс: Date.now() - т0 };
+    };
+
     // Крючок для опытов: даёт пробе поднять чтеца и прочитать ЛЮБОЙ холст. Нужен, чтобы
     // подбирать обработку на настоящих снимках, а не на рисованных.
     window.__тсДвижок = async () => {

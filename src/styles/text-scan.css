@@ -92,6 +92,14 @@
   .тс-строка-рамка { animation: none; opacity: 1 }
 }
 
+/* ТЕКСТ НА МЕСТЕ ФОТОГРАФИИ. Белый лист поверх кадра, и каждая строка стоит ровно там, где
+   была на снимке: видно, что откуда взято, и читать удобнее, чем по фотографии. */
+.тс-лист { position: absolute; inset: 0; background: #fbfbf7; overflow: hidden }
+.тс-лист[hidden] { display: none !important }
+.тс-лист-строка { position: absolute; color: #1a1a1a; white-space: nowrap;
+  font-family: Georgia, 'Times New Roman', serif; line-height: 1;
+  transform-origin: left top; user-select: text }
+
 /* ---- Ряд действий -------------------------------------------------------------------------- */
 .тс-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
 .тс-кнопка {

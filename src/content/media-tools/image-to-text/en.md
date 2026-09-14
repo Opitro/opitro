@@ -3,10 +3,10 @@ toolSlug: image-to-text
 locale: en
 category: scanners
 tool: image-to-text
-title: "Image to Text Online — Free OCR in Your Browser"
+title: "Image to Text Online — Free Photo Text Recognition"
 h1: "Text from a photo"
 navName: "Text from a photo"
-summary: "Read the text on a photo"
+summary: "Copy the text from a photo"
 description: "Pull the text out of a photo or a screenshot right in your browser: take it as text, as a .txt file, or as a PDF whose text can be searched. Free, no sign-up, the photo goes nowhere."
 faq:
   - question: "How do I get the text out of a photo?"
