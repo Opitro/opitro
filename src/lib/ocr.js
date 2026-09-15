@@ -387,7 +387,9 @@ export const КАНАЛЫ = ['серый', 'B', 'G', 'R'];
 export async function прочитатьСамо(холст, { база, ход, приРезультате, картинка = null, видКадра = null } = {}) {
   const читать = async (набор, где) => {
     const чтец = await поднятьЧтеца(набор, (доля, что) => ход && ход({ набор, доля, что }));
-    const { data } = await чтец.recognize(где, {}, { text: true, blocks: true, pdf: true });
+    // PDF у движка больше не просим: файл собирается из строк сами (lib/pdf-text.js), и он
+    // текстовый, а не снимок в оболочке. Лишняя сборка отнимала время на каждом чтении.
+    const { data } = await чтец.recognize(где, {}, { text: true, blocks: true });
     return data;
   };
   const оценить = (data, где) => разобратьЧтение(data, { ш: где.width, в: где.height });
