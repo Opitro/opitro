@@ -22,7 +22,8 @@
     "check:players": "node scripts/check-players.mjs",
     "check:pdf": "node scripts/check-pdf.mjs",
     "check:text-scan": "node scripts/check-text-scan.mjs",
-    "check:pdf-text": "node scripts/check-pdf-text.mjs"
+    "check:pdf-text": "node scripts/check-pdf-text.mjs",
+    "check:doc-scan": "node scripts/check-doc-scan.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",

@@ -1,0 +1,453 @@
+---
+// СКАНЕР ДОКУМЕНТОВ В PDF.
+//
+// Снял лист камерой или выбрал фотографию -- подогнал четыре угла -- получил ровный лист.
+// Листы копятся, и в конце уходят одним PDF: договор на пять страниц забирается одним файлом.
+//
+// УГЛЫ СТАВИТ ЧЕЛОВЕК, а не мы. Искать края листа самостоятельно можно, но на пёстром столе
+// и при слабом свете такой поиск ошибается через раз. Обещать то, что работает через раз,
+// нельзя; ручные углы не промахиваются никогда. Рамка при этом уже стоит почти по месту --
+// подвинуть надо обычно один-два угла.
+//
+// Всё считается на устройстве: ни снимок, ни готовый PDF никуда не уходят.
+import css from '../styles/doc-scan.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    camera: 'Камера', file: 'Файл', invite: 'Перетащите снимок листа сюда',
+    inviteTouch: 'Снимите или выберите лист', or: 'или выберите',
+    shot: 'Нажмите на кадр, чтобы снять', corners: 'Подгоните углы по краям листа',
+    add: 'Добавить лист', addMore: 'Добавить ещё лист', save: 'Скачать PDF',
+    pages: 'Листов: {н}', page: 'Лист {н}', drop: 'Убрать лист',
+    working: 'Выправляю…', building: 'Собираю PDF…',
+    fail: 'Не получилось собрать PDF. Попробуйте ещё раз.',
+    badCorners: 'Углы легли в одну линию — разведите их по краям листа.',
+    notImage: 'Это не картинка. Выберите снимок: JPEG, PNG, WebP или HEIC.',
+    noCam: 'Камера недоступна. Проверьте, что она не занята другой программой.',
+    denied: 'Доступ к камере не дан. Разрешение спрашивает сам браузер.',
+    again: 'Начать заново', reshoot: 'Снять заново', dropShot: 'Убрать этот снимок',
+  },
+  uk: {
+    camera: 'Камера', file: 'Файл', invite: 'Перетягніть знімок аркуша сюди',
+    inviteTouch: 'Зніміть або виберіть аркуш', or: 'або виберіть',
+    shot: 'Натисніть на кадр, щоб зняти', corners: 'Підженіть кути по краях аркуша',
+    add: 'Додати аркуш', addMore: 'Додати ще аркуш', save: 'Завантажити PDF',
+    pages: 'Аркушів: {н}', page: 'Аркуш {н}', drop: 'Прибрати аркуш',
+    working: 'Вирівнюю…', building: 'Збираю PDF…',
+    fail: 'Не вийшло зібрати PDF. Спробуйте ще раз.',
+    badCorners: 'Кути лягли в одну лінію — розведіть їх по краях аркуша.',
+    notImage: 'Це не картинка. Виберіть знімок: JPEG, PNG, WebP або HEIC.',
+    noCam: 'Камера недоступна. Перевірте, чи не зайнята вона іншою програмою.',
+    denied: 'Доступ до камери не надано. Дозвіл питає сам браузер.',
+    again: 'Почати спочатку', reshoot: 'Зняти заново', dropShot: 'Прибрати цей знімок',
+  },
+  en: {
+    camera: 'Camera', file: 'File', invite: 'Drop a photo of the page here',
+    inviteTouch: 'Take or choose a page', or: 'or choose',
+    shot: 'Tap the frame to take the shot', corners: 'Drag the corners to the edges of the page',
+    add: 'Add the page', addMore: 'Add another page', save: 'Download PDF',
+    pages: 'Pages: {н}', page: 'Page {н}', drop: 'Remove the page',
+    working: 'Straightening…', building: 'Building the PDF…',
+    fail: 'The PDF could not be built. Please try again.',
+    badCorners: 'The corners line up — spread them to the edges of the page.',
+    notImage: 'That is not a picture. Choose a photo: JPEG, PNG, WebP or HEIC.',
+    noCam: 'The camera is not available. Check that another program is not holding it.',
+    denied: 'Camera access was not granted. The browser itself asks for it.',
+    again: 'Start over', reshoot: 'Shoot again', dropShot: 'Discard this shot',
+  },
+  es: {
+    camera: 'Cámara', file: 'Archivo', invite: 'Suelte aquí la foto de la hoja',
+    inviteTouch: 'Haga o elija una hoja', or: 'o elija',
+    shot: 'Toque el encuadre para capturar', corners: 'Ajuste las esquinas a los bordes de la hoja',
+    add: 'Añadir la hoja', addMore: 'Añadir otra hoja', save: 'Descargar PDF',
+    pages: 'Hojas: {н}', page: 'Hoja {н}', drop: 'Quitar la hoja',
+    working: 'Enderezando…', building: 'Montando el PDF…',
+    fail: 'No se pudo montar el PDF. Inténtelo otra vez.',
+    badCorners: 'Las esquinas están alineadas: sepárelas hacia los bordes de la hoja.',
+    notImage: 'Eso no es una imagen. Elija una foto: JPEG, PNG, WebP o HEIC.',
+    noCam: 'La cámara no está disponible. Compruebe que no la tenga ocupada otro programa.',
+    denied: 'No se dio acceso a la cámara. El permiso lo pide el propio navegador.',
+    again: 'Empezar de nuevo', reshoot: 'Capturar otra vez', dropShot: 'Descartar esta foto',
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="дс" data-locale={locale} data-words={JSON.stringify(с)}>
+  <!-- ВХОД -- ПРИГЛАШЕНИЕ. Пустого окна до выбора нет: смотреть в нём нечего. -->
+  <div class="дс-старт" id="дс-старт">
+    <svg class="дс-старт-знак" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M5 3.5h9l5 5v12a1 1 0 0 1-1 1H5a1 1 0 0 1-1-1v-16a1 1 0 0 1 1-1z"/>
+      <path d="M14 3.5v5h5"/><path d="M8 13h8M8 16.5h5"/>
+    </svg>
+    <p class="дс-зов" id="дс-зов">{с.invite}</p>
+    <p class="дс-или">{с.or}</p>
+    <span class="дс-ряд">
+      <button type="button" class="дс-выбор" id="дс-камера">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M3 8.5A2.5 2.5 0 0 1 5.5 6h1.7a1 1 0 0 0 .8-.4l1-1.3a1 1 0 0 1 .8-.4h4.4a1 1 0 0 1 .8.4l1 1.3a1 1 0 0 0 .8.4h1.7A2.5 2.5 0 0 1 21 8.5v8A2.5 2.5 0 0 1 18.5 19h-13A2.5 2.5 0 0 1 3 16.5Z"/><circle cx="12" cy="12.5" r="3.6"/></svg>
+        <span>{с.camera}</span>
+      </button>
+      <button type="button" class="дс-выбор" id="дс-файл">
+        <svg viewBox="0 0 24 24" aria-hidden="true"><rect x="3" y="5" width="18" height="14" rx="2"/><circle cx="8.5" cy="10" r="1.6"/><path d="M21 16l-5-5-5 5-2-2-5 5"/></svg>
+        <span>{с.file}</span>
+      </button>
+    </span>
+  </div>
+
+  <!-- ОКНО ПОДГОНКИ. Снимок и поверх него рамка с четырьмя ручками. -->
+  <div class="дс-окно" id="дс-окно" hidden>
+    <span class="дс-кадр" id="дс-кадр">
+      <video id="дс-видео" playsinline muted hidden></video>
+      <img id="дс-снимок" alt="" draggable="false" />
+      <!-- Рамка рисуется поверх снимка: сама фигура не ловит нажатия, ловят только ручки. -->
+      <svg class="дс-рамка" id="дс-рамка" hidden aria-hidden="true">
+        <polygon id="дс-четырёх" points=""></polygon>
+      </svg>
+      <span class="дс-ручки" id="дс-ручки" hidden></span>
+    </span>
+    <!-- Крестик в углу снимка убирает ТОЛЬКО этот снимок: собранные листы остаются. -->
+    <button type="button" class="дс-крест" id="дс-снимок-долой" title={с.dropShot} aria-label={с.dropShot}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+    </button>
+  </div>
+
+  <div class="дс-дела" id="дс-дела" hidden>
+    <button type="button" class="дс-кнопка дс-главная" id="дс-добавить">{с.add}</button>
+    <button type="button" class="дс-кнопка" id="дс-переснять">{с.reshoot}</button>
+    <span class="дс-счёт" id="дс-счёт"></span>
+  </div>
+
+  <!-- СОБРАННЫЕ ЛИСТЫ. Место под них занято заранее: когда первый появится, ничего не прыгнет. -->
+  <div class="дс-листы" id="дс-листы" hidden></div>
+
+  <div class="дс-низ" id="дс-низ" hidden>
+    <button type="button" class="дс-кнопка дс-главная дс-широкая" id="дс-сохранить">{с.save}</button>
+    <button type="button" class="дс-кнопка" id="дс-ещё">{с.addMore}</button>
+    <!-- «Начать заново» стоит ЗДЕСЬ, а не в окне снимка: к тому времени, когда листы собраны,
+         окно уже закрыто, и кнопка в нём была бы недостижима. -->
+    <button type="button" class="дс-кнопка" id="дс-заново">{с.again}</button>
+  </div>
+
+  <div class="дс-ждём" id="дс-ждём" hidden></div>
+  <div class="дс-беда" id="дс-беда"></div>
+</div>
+
+<script>
+  import { выбратьФайл } from '../lib/pick-file.js';
+  import { выправить, углыПоУмолчанию } from '../lib/perspective.js';
+
+  (() => {
+    const корень = document.querySelector('.дс');
+    if (!корень) return;
+    const $ = (и) => document.getElementById(и);
+    const с = JSON.parse(корень.dataset.words || '{}');
+
+    const старт = $('дс-старт'), окно = $('дс-окно'), кадр = $('дс-кадр');
+    const снимок = $('дс-снимок'), видео = $('дс-видео');
+    const рамка = $('дс-рамка'), четырёх = $('дс-четырёх'), ручкиЭ = $('дс-ручки');
+    const дела = $('дс-дела'), листыЭ = $('дс-листы'), низ = $('дс-низ');
+    const снимокДолой = $('дс-снимок-долой');
+    const ждёмЭ = $('дс-ждём'), бедаЭ = $('дс-беда'), счёт = $('дс-счёт');
+
+    const ждём = (т) => { ждёмЭ.textContent = т || ''; ждёмЭ.hidden = !т; };
+    const беда = (т) => { бедаЭ.textContent = т || ''; бедаЭ.hidden = !т; };
+
+    let картинка = null;      // текущий снимок (Image), уже загруженный
+    let углы = null;          // четыре угла В ТОЧКАХ СНИМКА
+    let поток = null;         // живая камера
+    const листы = [];         // собранные выправленные листы (холсты)
+
+    /* ---- Снимок в окно ---------------------------------------------------------------- */
+    async function взятьФайлВнутрь(файл) {
+      if (!файл) return;
+      if (!/^image\//.test(файл.type || '') && !/\.(jpe?g|png|webp|heic|heif)$/i.test(файл.name || '')) {
+        беда(с.notImage); return;
+      }
+      беда('');
+      const адрес = URL.createObjectURL(файл);
+      const и = new Image();
+      и.onload = () => {
+        // Адрес освобождаем ТОЛЬКО когда снимок уже показан: Safari чистит сразу, и картинка
+        // пропадала бы с экрана.
+        поставитьСнимок(и);
+        setTimeout(() => URL.revokeObjectURL(адрес), 1000);
+      };
+      и.onerror = () => { URL.revokeObjectURL(адрес); беда(с.notImage); };
+      и.src = адрес;
+    }
+
+    function поставитьСнимок(и) {
+      выключитьКамеру();
+      картинка = и;
+      снимок.src = и.src;
+      снимок.hidden = false;
+      видео.hidden = true;
+      окно.hidden = false;
+      старт.hidden = true;
+      дела.hidden = false;
+      углы = углыПоУмолчанию(и.naturalWidth || и.width, и.naturalHeight || и.height);
+      рамка.hidden = false;
+      ручкиЭ.hidden = false;
+      нарисоватьРамку();
+      ждём(с.corners);
+    }
+
+    /* ---- Рамка и ручки ------------------------------------------------------------------
+       Ручки -- обычные узлы поверх снимка, а не части рисунка: их проще двигать пальцем и
+       они не требуют пересчёта размеров рисунка при каждом изменении окна. */
+    function долиУгла(угол) {
+      const ш = картинка.naturalWidth || картинка.width;
+      const в = картинка.naturalHeight || картинка.height;
+      return { х: угол[0] / ш, у: угол[1] / в };
+    }
+
+    function нарисоватьРамку() {
+      if (!углы || !картинка) return;
+      const р = снимок.getBoundingClientRect();
+      const к = кадр.getBoundingClientRect();
+      const ш = р.width, в = р.height;
+      const сдвигХ = р.left - к.left, сдвигУ = р.top - к.top;
+      рамка.setAttribute('viewBox', `0 0 ${ш} ${в}`);
+      рамка.style.left = сдвигХ + 'px';
+      рамка.style.top = сдвигУ + 'px';
+      рамка.style.width = ш + 'px';
+      рамка.style.height = в + 'px';
+      четырёх.setAttribute('points', углы.map((у) => {
+        const д = долиУгла(у);
+        return (д.х * ш) + ',' + (д.у * в);
+      }).join(' '));
+
+      ручкиЭ.replaceChildren();
+      углы.forEach((угол, и) => {
+        const д = долиУгла(угол);
+        const ручка = document.createElement('span');
+        ручка.className = 'дс-ручка';
+        ручка.dataset.угол = String(и);
+        ручка.style.left = (сдвигХ + д.х * ш) + 'px';
+        ручка.style.top = (сдвигУ + д.у * в) + 'px';
+        ручкиЭ.appendChild(ручка);
+      });
+    }
+
+    let тянем = -1;
+    кадр.addEventListener('pointerdown', (е) => {
+      const ручка = е.target.closest && е.target.closest('.дс-ручка');
+      if (!ручка || !углы) return;
+      // Без preventDefault браузер принимает протяжку по снимку за перетаскивание картинки:
+      // после первого же движения приходит pointercancel, и ручка застывает на месте.
+      е.preventDefault();
+      тянем = Number(ручка.dataset.угол);
+      кадр.setPointerCapture(е.pointerId);
+      ручка.classList.add('взята');
+    });
+    кадр.addEventListener('pointermove', (е) => {
+      if (тянем < 0 || !углы) return;
+      const р = снимок.getBoundingClientRect();
+      const ш = картинка.naturalWidth || картинка.width;
+      const в = картинка.naturalHeight || картинка.height;
+      const дх = Math.min(1, Math.max(0, (е.clientX - р.left) / р.width));
+      const ду = Math.min(1, Math.max(0, (е.clientY - р.top) / р.height));
+      углы[тянем] = [дх * ш, ду * в];
+      нарисоватьРамку();
+    });
+    for (const имя of ['pointerup', 'pointercancel']) {
+      кадр.addEventListener(имя, () => {
+        тянем = -1;
+        ручкиЭ.querySelectorAll('.взята').forEach((р) => р.classList.remove('взята'));
+      });
+    }
+    // Окно браузера меняет размер -- ручки обязаны переехать вместе со снимком.
+    addEventListener('resize', () => { if (углы) нарисоватьРамку(); });
+
+    /* ---- Камера -------------------------------------------------------------------------- */
+    function выключитьКамеру() {
+      if (!поток) return;
+      for (const д of поток.getTracks()) д.stop();
+      поток = null;
+      видео.srcObject = null;
+    }
+
+    $('дс-камера').addEventListener('click', async () => {
+      // На телефоне проще снять родной камерой: кадр приходит настоящим снимком, а не кадром
+      // из потока -- он резче, и мелкий шрифт на нём читается.
+      if (window.matchMedia && window.matchMedia('(hover: none)').matches) {
+        const файл = await выбратьФайл({ берём: 'image/*', съёмка: 'environment' });
+        if (файл) взятьФайлВнутрь(файл);
+        return;
+      }
+      try {
+        поток = await navigator.mediaDevices.getUserMedia({
+          video: { facingMode: { ideal: 'environment' }, width: { ideal: 1920 }, height: { ideal: 1080 } },
+          audio: false,
+        });
+      } catch (е) {
+        беда(е && е.name === 'NotAllowedError' ? с.denied : с.noCam);
+        return;
+      }
+      видео.srcObject = поток;
+      видео.hidden = false;
+      снимок.hidden = true;
+      рамка.hidden = true;
+      ручкиЭ.hidden = true;
+      окно.hidden = false;
+      старт.hidden = true;
+      await видео.play().catch(() => {});
+      ждём(с.shot);
+      const снять = () => {
+        if (!поток || !видео.videoWidth) return;
+        const х = document.createElement('canvas');
+        х.width = видео.videoWidth; х.height = видео.videoHeight;
+        х.getContext('2d').drawImage(видео, 0, 0);
+        const и = new Image();
+        и.onload = () => поставитьСнимок(и);
+        и.src = х.toDataURL('image/jpeg', 0.95);
+        кадр.removeEventListener('click', снять);
+      };
+      кадр.addEventListener('click', снять);
+    });
+
+    $('дс-файл').addEventListener('click', async () => {
+      const файл = await выбратьФайл({ берём: 'image/*' });
+      if (файл) взятьФайлВнутрь(файл);
+    });
+
+    /* ---- Листы --------------------------------------------------------------------------- */
+    $('дс-добавить').addEventListener('click', () => {
+      if (!картинка || !углы) return;
+      ждём(с.working);
+      беда('');
+      // Даём кадру отрисоваться с надписью, прежде чем занять поток счётом.
+      setTimeout(() => {
+        const лист = выправить(картинка, углы);
+        if (!лист) { ждём(''); беда(с.badCorners); return; }
+        листы.push(лист);
+        показатьЛисты();
+        ждём('');
+        кСъёмке();
+      }, 30);
+    });
+
+    $('дс-переснять').addEventListener('click', кСъёмке);
+    $('дс-ещё').addEventListener('click', кСъёмке);
+
+    /** Вернуться к выбору нового листа, не теряя уже собранных. */
+    function кСъёмке() {
+      выключитьКамеру();
+      картинка = null; углы = null;
+      снимок.removeAttribute('src');
+      окно.hidden = true;
+      дела.hidden = true;
+      рамка.hidden = true; ручкиЭ.hidden = true;
+      старт.hidden = false;
+      ждём(''); беда('');
+      $('дс-зов').textContent = листы.length ? с.addMore : с.invite;
+    }
+
+    function показатьЛисты() {
+      листыЭ.hidden = !листы.length;
+      низ.hidden = !листы.length;
+      листыЭ.replaceChildren();
+      листы.forEach((лист, и) => {
+        const плитка = document.createElement('span');
+        плитка.className = 'дс-лист';
+        // Уменьшенный вид: держать в памяти второй холст на каждый лист незачем, но и
+        // показывать полный лист в плитке тоже -- страница от этого тяжелеет.
+        const вид = document.createElement('img');
+        вид.alt = с.page.replace('{н}', и + 1);
+        вид.src = уменьшить(лист, 220);
+        плитка.appendChild(вид);
+        const номер = document.createElement('span');
+        номер.className = 'дс-номер';
+        номер.textContent = String(и + 1);
+        плитка.appendChild(номер);
+        const убрать = document.createElement('button');
+        убрать.type = 'button';
+        убрать.className = 'дс-убрать';
+        убрать.title = с.drop;
+        убрать.setAttribute('aria-label', с.drop + ' ' + (и + 1));
+        убрать.innerHTML = '<svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>';
+        убрать.addEventListener('click', () => { листы.splice(и, 1); показатьЛисты(); });
+        плитка.appendChild(убрать);
+        листыЭ.appendChild(плитка);
+      });
+      счёт.textContent = листы.length ? с.pages.replace('{н}', листы.length) : '';
+    }
+
+    function уменьшить(холст, предел) {
+      const к = Math.min(1, предел / Math.max(холст.width, холст.height));
+      const м = document.createElement('canvas');
+      м.width = Math.max(1, Math.round(холст.width * к));
+      м.height = Math.max(1, Math.round(холст.height * к));
+      const кон = м.getContext('2d');
+      кон.imageSmoothingQuality = 'high';
+      кон.drawImage(холст, 0, 0, м.width, м.height);
+      return м.toDataURL('image/jpeg', 0.8);
+    }
+
+    /* ---- Готовый файл --------------------------------------------------------------------- */
+    let собираем = false;
+    $('дс-сохранить').addEventListener('click', async () => {
+      if (!листы.length || собираем) return;
+      собираем = true;
+      const кнопка = $('дс-сохранить');
+      кнопка.classList.add('ждёт');
+      ждём(с.building);
+      try {
+        const { собратьPdfИзЛистов } = await import('../lib/pdf-image.js');
+        const байты = await собратьPdfИзЛистов(листы, { заголовок: document.title });
+        const а = document.createElement('a');
+        а.href = URL.createObjectURL(new Blob([байты], { type: 'application/pdf' }));
+        а.download = 'scan.pdf';
+        document.body.appendChild(а);
+        а.click();
+        setTimeout(() => { URL.revokeObjectURL(а.href); а.remove(); }, 1000);
+        ждём('');
+      } catch (е) {
+        ждём('');
+        беда(с.fail);
+        window.__дсОшибка = String((е && е.message) || е);
+      } finally {
+        кнопка.classList.remove('ждёт');
+        собираем = false;
+      }
+    });
+
+    // Крестик в окне -- только текущий снимок; собранные листы целы.
+    снимокДолой.addEventListener('click', кСъёмке);
+    // «Начать заново» стирает всё.
+    $('дс-заново').addEventListener('click', () => {
+      листы.length = 0;
+      показатьЛисты();
+      кСъёмке();
+      $('дс-зов').textContent = с.invite;
+    });
+
+    /* ---- Перетаскивание -------------------------------------------------------------------- */
+    for (const имя of ['dragenter', 'dragover']) {
+      старт.addEventListener(имя, (е) => { е.preventDefault(); старт.classList.add('держат'); });
+    }
+    for (const имя of ['dragleave', 'dragend']) {
+      старт.addEventListener(имя, () => старт.classList.remove('держат'));
+    }
+    старт.addEventListener('drop', (е) => {
+      е.preventDefault();
+      старт.classList.remove('держат');
+      const файл = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (файл) взятьФайлВнутрь(файл);
+    });
+    addEventListener('pagehide', выключитьКамеру);
+
+    // Крючок для живых проверок: сколько листов собрано и какого они размера.
+    window.__дс = () => ({
+      листов: листы.length,
+      размеры: листы.map((л) => л.width + 'x' + л.height),
+      углы: углы ? углы.map((у) => у.map(Math.round)) : null,
+    });
+    window.__дсУглы = (новые) => { углы = новые; нарисоватьРамку(); };
+  })();
+</script>
