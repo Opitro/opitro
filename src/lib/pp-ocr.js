@@ -41,18 +41,38 @@ export async function прочитатьОфициальным(картинка,
       textDetectionModelAsset: { url: ПУТЬ + 'det.tar' },
       textRecognitionModelName: имяЧтеца,
       textRecognitionModelAsset: { url: ПУТЬ + (азбука === 'cyrillic' ? 'rec-cyrillic.tar' : 'rec-latin.tar') },
-      ortOptions: { backend: 'wasm', wasmPaths: ПУТЬ },
+      // СЧЁТ УХОДИТ В ОТДЕЛЬНЫЙ ПОТОК. Пока он шёл в главном, страница подвисала: луч дёргался,
+      // кнопки отвечали с задержкой. Тяжёлой работе не место там, где рисуется картинка.
+      worker: true,
+      ortOptions: {
+        backend: 'wasm',
+        // Пути поимённо: по одной папке движок просит сборку с поддержкой видеокарты, а она
+        // весит 21 МБ. Нам довольно обычной на 11 -- считаем на процессоре.
+        wasmPaths: {
+          mjs: ПУТЬ + 'ort-wasm-simd-threaded.mjs',
+          wasm: ПУТЬ + 'ort-wasm-simd-threaded.wasm',
+        },
+      },
     }));
   }
   const ocr = await движки.get(азбука);
+  // СНИМОК УМЕНЬШАЕМ ПЕРЕД ПЕРЕДАЧЕЙ. Движок считает в своём потоке, но подготовку кадра
+  // делает в главном -- и на двенадцати мегапикселях страница подвисала: луч дёргался,
+  // кнопки отвечали с задержкой. Полторы тысячи точек по длинной стороне детектору хватает
+  // с избытком (проверено: больше -- хуже), а работы становится в шесть раз меньше.
+  const предел = 1600;
+  const к = Math.min(1, предел / Math.max(картинка.width, картинка.height));
   const холст = document.createElement('canvas');
-  холст.width = картинка.width; холст.height = картинка.height;
-  холст.getContext('2d').drawImage(картинка, 0, 0);
+  холст.width = Math.max(1, Math.round(картинка.width * к));
+  холст.height = Math.max(1, Math.round(картинка.height * к));
+  const кон = холст.getContext('2d');
+  кон.imageSmoothingQuality = 'high';
+  кон.drawImage(картинка, 0, 0, холст.width, холст.height);
   const капля = await new Promise((готово) => холст.toBlob(готово, 'image/jpeg', 0.92));
   const [итог] = await ocr.predict(капля);
   // Рамка у него зовётся poly и приходит четырьмя точками -- либо парами чисел, либо
   // объектами с x и y. Приводим к нашему виду, иначе подсветка строк ляжет мимо снимка.
-  const вУгол = (т) => (Array.isArray(т) ? [т[0], т[1]] : [т.x, т.y]);
+  const вУгол = (т) => (Array.isArray(т) ? [т[0] / к, т[1] / к] : [т.x / к, т.y / к]);
   const строки = (итог.items || []).map((и) => {
     const углы = (и.poly || и.box || []).map(вУгол);
     const хс = углы.map((т) => т[0]), ус = углы.map((т) => т[1]);

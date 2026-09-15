@@ -94,11 +94,16 @@
 
 /* ТЕКСТ НА МЕСТЕ ФОТОГРАФИИ. Белый лист поверх кадра, и каждая строка стоит ровно там, где
    была на снимке: видно, что откуда взято, и читать удобнее, чем по фотографии. */
-.тс-лист { position: absolute; inset: 0; background: #fbfbf7; overflow: hidden }
+/* ЭТО ТЕКСТ, А НЕ КАРТИНКА БЕЗ ФОНА. Сперва строки стояли ровно там, где были на снимке, --
+   и выходило похоже на фотографию, с которой стёрли фон: «почему стили букв сохранены?».
+   Теперь строки идут обычным потоком сверху вниз, одним шрифтом и кеглем, как в документе:
+   их видно текстом, можно выделить мышью и скопировать. */
+.тс-лист { position: absolute; inset: 0; background: #fbfbf7; overflow: auto;
+  padding: 22px 24px; cursor: text }
 .тс-лист[hidden] { display: none !important }
-.тс-лист-строка { position: absolute; color: #1a1a1a; white-space: nowrap;
-  font-family: Georgia, 'Times New Roman', serif; line-height: 1;
-  transform-origin: left top; user-select: text }
+.тс-лист-строка { display: block; color: #1a1a1a;
+  font: 400 15px/1.7 Georgia, 'Times New Roman', serif; user-select: text }
+.тс-лист-строка:hover { background: rgba(255,214,102,.4) }
 
 /* ---- Ряд действий -------------------------------------------------------------------------- */
 .тс-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
