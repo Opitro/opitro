@@ -14,9 +14,9 @@ faq:
   - question: "Which photos does it take?"
     answer: "JPEG, PNG, WebP and HEIC — everything phones shoot, plus screenshots. A screenshot can simply be pasted: press Ctrl+V (⌘+V on a Mac) anywhere on the page, no file picking needed."
   - question: "What do the buttons under the photo do?"
-    answer: "The sheet copies the whole text. The down arrow saves a .txt file. PDF saves the text as a document of its own: the letters in it are real, they can be selected with the mouse and found by search. The circular arrow turns the photo by 90° (a page shot sideways reads badly). The moon is for light letters on a dark background. The “Photo” button shows the picture instead of the text, and “Text” brings the text back. The corners let you box a part and read only that. The cross takes another photo."
+    answer: "The sheet copies the whole text. The down arrow saves a .txt file. PDF saves the text as a document. The circular arrow turns the photo by 90° (a page shot sideways reads badly). The corners let you box a part and read only that. The cross in the corner of the photo takes another one."
   - question: "How do I read only part of the photo?"
-    answer: "Press the corners — the picture opens in the frame. Draw a box around the part you want and the page rereads just that. Pressing the corners again brings the whole photo back. This is more than convenience: a boxed part reads noticeably better than the same text in the middle of a full page."
+    answer: "Press the corners and draw a box on the photo itself — the page rereads just that part. Pressing the corners again brings the whole photo back. This is more than convenience: a boxed part reads noticeably better than the same text in the middle of a full page."
   - question: "Do I have to choose the language of the text?"
     answer: "No, there is nothing to choose. The page reads Latin together with Cyrillic from the start — that covers most photos, where names, addresses and brands are mixed in. If the photo turns out to hold another language — French, German, Spanish, Polish — or another script altogether (Chinese, Arabic, Greek, Hebrew), the page works it out from the look of the words and reads it with the right alphabet: the scan simply takes a few seconds longer."
   - question: "Why are some words underlined with a wave?"
@@ -25,8 +25,6 @@ faq:
     answer: "No. Everything is worked out in your browser, on your device. Neither the photo nor the recognised text is stored or passed anywhere: this page has no server of its own. That is why a contract, a letter or a prescription can safely be brought here."
   - question: "Why does something download the first time?"
     answer: "Those are the files the text is read with — a few megabytes. They download once, after which the browser keeps them and the next photo is read straight away. We do not fetch them on arrival."
-  - question: "Why does a phone give a worse result than a computer?"
-    answer: "It reads the same — the difference is in the photo itself. A screenshot from a computer is sharp and square, while a handheld photo of a page is almost always a little blurred, taken at an angle and under uneven light. Three things help: get closer so the text fills the frame, hold the phone parallel to the page, and box off the part you need with the corners."
   - question: "How accurate is it?"
     answer: "Printed text from a straight photo comes out almost perfect. Handwriting, blurred frames, slanted lines and small letters on a busy background are harder. If there are many mistakes, the photo is nearly always the reason: shoot it again — closer, so the text fills the frame, with the phone parallel to the page and your own shadow off the paper. When you only need one part, box it with the corners: its letters then stay large."
 related:
@@ -43,7 +41,7 @@ Anyone who would otherwise retype the text by hand: a contract, a certificate, a
 
 ## How it differs from the scanner in your phone
 
-The built-in scanner hands you text to copy, and that is all. Here you also get files: a .txt and a PDF whose letters are real and can be found by search. And you can see what was actually read — every line found is outlined on the photo, and words the reader is unsure about are underlined with a wave, so you catch them there and then rather than after the mistake has travelled on. It also works on a computer, with screenshots, and nothing needs installing. If you just want to copy a phone number off a photo, though, the built-in one is quicker.
+The built-in scanner hands you text to copy, and that is all. Here you also get files: a .txt and a PDF. And you can see what was actually read — every line found is outlined on the photo, and words the reader is unsure about are underlined with a wave, so you catch them there and then rather than after the mistake has travelled on. It also works on a computer, with screenshots, and nothing needs installing.
 
 ## When it reads badly
 
