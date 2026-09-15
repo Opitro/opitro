@@ -20,7 +20,7 @@ const СЛОВА = {
     camera: 'Камера', file: 'Файл', invite: 'Перетащите снимок листа сюда',
     inviteTouch: 'Снимите или выберите лист', or: 'или выберите',
     shot: 'Нажмите на кадр, чтобы снять', corners: 'Подгоните углы по краям листа',
-    add: 'Добавить лист', addMore: 'Добавить ещё лист', save: 'Скачать PDF',
+    add: 'Выровнять лист', addMore: 'Добавьте ещё лист', save: 'Скачать PDF',
     pages: 'Листов: {н}', page: 'Лист {н}', drop: 'Убрать лист',
     working: 'Выправляю…', building: 'Собираю PDF…',
     fail: 'Не получилось собрать PDF. Попробуйте ещё раз.',
@@ -34,7 +34,7 @@ const СЛОВА = {
     camera: 'Камера', file: 'Файл', invite: 'Перетягніть знімок аркуша сюди',
     inviteTouch: 'Зніміть або виберіть аркуш', or: 'або виберіть',
     shot: 'Натисніть на кадр, щоб зняти', corners: 'Підженіть кути по краях аркуша',
-    add: 'Додати аркуш', addMore: 'Додати ще аркуш', save: 'Завантажити PDF',
+    add: 'Вирівняти аркуш', addMore: 'Додайте ще аркуш', save: 'Завантажити PDF',
     pages: 'Аркушів: {н}', page: 'Аркуш {н}', drop: 'Прибрати аркуш',
     working: 'Вирівнюю…', building: 'Збираю PDF…',
     fail: 'Не вийшло зібрати PDF. Спробуйте ще раз.',
@@ -48,7 +48,7 @@ const СЛОВА = {
     camera: 'Camera', file: 'File', invite: 'Drop a photo of the page here',
     inviteTouch: 'Take or choose a page', or: 'or choose',
     shot: 'Tap the frame to take the shot', corners: 'Drag the corners to the edges of the page',
-    add: 'Add the page', addMore: 'Add another page', save: 'Download PDF',
+    add: 'Straighten the page', addMore: 'Add another page', save: 'Download PDF',
     pages: 'Pages: {н}', page: 'Page {н}', drop: 'Remove the page',
     working: 'Straightening…', building: 'Building the PDF…',
     fail: 'The PDF could not be built. Please try again.',
@@ -62,7 +62,7 @@ const СЛОВА = {
     camera: 'Cámara', file: 'Archivo', invite: 'Suelte aquí la foto de la hoja',
     inviteTouch: 'Haga o elija una hoja', or: 'o elija',
     shot: 'Toque el encuadre para capturar', corners: 'Ajuste las esquinas a los bordes de la hoja',
-    add: 'Añadir la hoja', addMore: 'Añadir otra hoja', save: 'Descargar PDF',
+    add: 'Enderezar la hoja', addMore: 'Añada otra hoja', save: 'Descargar PDF',
     pages: 'Hojas: {н}', page: 'Hoja {н}', drop: 'Quitar la hoja',
     working: 'Enderezando…', building: 'Montando el PDF…',
     fail: 'No se pudo montar el PDF. Inténtelo otra vez.',
@@ -127,8 +127,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
 
   <div class="дс-низ" id="дс-низ" hidden>
     <button type="button" class="дс-кнопка дс-главная дс-широкая" id="дс-сохранить">{с.save}</button>
-    <button type="button" class="дс-кнопка" id="дс-ещё">{с.addMore}</button>
-    <!-- «Начать заново» стоит ЗДЕСЬ, а не в окне снимка: к тому времени, когда листы собраны,
+    <!-- «Добавить ещё лист» здесь НЕ НУЖНА: после добавления наверху снова открывается
+         приглашение с «Камерой» и «Файлом», и надпись в нём уже зовёт добавить следующий.
+         Владелец: «логика этой кнопки вообще не понятна, когда она нужна?» -- незачем.
+         «Начать заново» стоит ЗДЕСЬ, а не в окне снимка: к тому времени, когда листы собраны,
          окно уже закрыто, и кнопка в нём была бы недостижима. -->
     <button type="button" class="дс-кнопка" id="дс-заново">{с.again}</button>
   </div>
@@ -150,6 +152,17 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const старт = $('дс-старт'), окно = $('дс-окно'), кадр = $('дс-кадр');
     const снимок = $('дс-снимок'), видео = $('дс-видео');
     const рамка = $('дс-рамка'), четырёх = $('дс-четырёх'), ручкиЭ = $('дс-ручки');
+
+    /**
+     * Спрятать или показать -- ЧЕРЕЗ АТРИБУТ, а не через свойство `.hidden`.
+     *
+     * У SVG свойства `.hidden` нет вовсе: оно есть у HTMLElement, а SVGElement от него не
+     * наследуется. Присваивание `рамка.hidden = false` заводило обычное поле в объекте и
+     * возвращало false при чтении, а атрибут в разметке ОСТАВАЛСЯ -- и правило
+     * `.дс [hidden] { display: none }` держало рамку невидимой. Снаружи это выглядело так,
+     * будто рамки нет вовсе, хотя все точки посчитаны верно.
+     */
+    const показать = (э, да) => { if (да) э.removeAttribute('hidden'); else э.setAttribute('hidden', ''); };
     const дела = $('дс-дела'), листыЭ = $('дс-листы'), низ = $('дс-низ');
     const снимокДолой = $('дс-снимок-долой');
     const ждёмЭ = $('дс-ждём'), бедаЭ = $('дс-беда'), счёт = $('дс-счёт');
@@ -191,8 +204,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       старт.hidden = true;
       дела.hidden = false;
       углы = углыПоУмолчанию(и.naturalWidth || и.width, и.naturalHeight || и.height);
-      рамка.hidden = false;
-      ручкиЭ.hidden = false;
+      показать(рамка, true);
+      показать(ручкиЭ, true);
       нарисоватьРамку();
       ждём(с.corners);
     }
@@ -292,8 +305,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       видео.srcObject = поток;
       видео.hidden = false;
       снимок.hidden = true;
-      рамка.hidden = true;
-      ручкиЭ.hidden = true;
+      показать(рамка, false);
+      показать(ручкиЭ, false);
       окно.hidden = false;
       старт.hidden = true;
       await видео.play().catch(() => {});
@@ -333,7 +346,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     });
 
     $('дс-переснять').addEventListener('click', кСъёмке);
-    $('дс-ещё').addEventListener('click', кСъёмке);
 
     /** Вернуться к выбору нового листа, не теряя уже собранных. */
     function кСъёмке() {
@@ -342,7 +354,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       снимок.removeAttribute('src');
       окно.hidden = true;
       дела.hidden = true;
-      рамка.hidden = true; ручкиЭ.hidden = true;
+      показать(рамка, false); показать(ручкиЭ, false);
       старт.hidden = false;
       ждём(''); беда('');
       $('дс-зов').textContent = листы.length ? с.addMore : с.invite;

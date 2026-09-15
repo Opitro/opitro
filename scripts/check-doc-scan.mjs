@@ -160,10 +160,19 @@ const УГЛЫ = JSON.parse(await выполнить(`(async () => {
 await сон(600);
 
 console.log('\n════ подгонка углов');
-проба('снимок открылся, рамка и ручки видны',
+проба('снимок открылся и ручки на месте',
   await выполнить(`!document.getElementById('дс-окно').hidden
-    && !document.getElementById('дс-рамка').hidden
     && document.querySelectorAll('.дс-ручка').length === 4`));
+// РАМКУ МЕРЯЕМ, А НЕ СПРАШИВАЕМ. У SVG свойства `.hidden` нет вовсе, и проверка вида
+// `!рамка.hidden` отвечала «видна», когда рамки на экране не было совсем.
+проба('рамка листа действительно видна на экране',
+  await выполнить(`(() => {
+    const р = document.getElementById('дс-рамка');
+    const п = document.getElementById('дс-четырёх').getBoundingClientRect();
+    return getComputedStyle(р).display !== 'none' && п.width > 50 && п.height > 50;
+  })()`),
+  await выполнить(`(() => { const п = document.getElementById('дс-четырёх').getBoundingClientRect();
+    return Math.round(п.width) + 'x' + Math.round(п.height); })()`));
 
 // Тянем одну ручку НАСТОЯЩЕЙ мышью: если её перехватит перетаскивание картинки, угол не сдвинется.
 const доТяги = JSON.parse(await выполнить(`JSON.stringify(window.__дс().углы)`));
@@ -223,8 +232,12 @@ const разброс = Math.max(...мера.столбы) - Math.min(...мера
   'разброс по ширине ' + разброс.toFixed(4) + ' (на снимке линии сходились)');
 
 console.log('\n════ второй лист и PDF');
-await нажать('дс-ещё');
-await сон(300);
+// «Добавить ещё лист» убрана: после добавления наверху снова открыто приглашение.
+проба('лишней кнопки «добавить ещё» нет', await выполнить(`!document.getElementById('дс-ещё')`));
+проба('приглашение снова открыто и зовёт добавить следующий',
+  await выполнить(`document.getElementById('дс-старт').hidden !== true
+    && /ще|ещё|another|otra/i.test(document.getElementById('дс-зов').textContent)`));
+await сон(200);
 await выполнить(`(async () => {
   const х = document.createElement('canvas'); х.width = 900; х.height = 700;
   const к = х.getContext('2d');

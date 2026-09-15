@@ -46,8 +46,14 @@
 /* Рамка листа. Сама фигура нажатий НЕ ловит -- их ловят только ручки, иначе протяжка по
    середине листа таскала бы весь четырёхугольник. */
 .дс-рамка { position: absolute; pointer-events: none; overflow: visible }
-.дс-рамка polygon { fill: rgba(74,222,158,.10); stroke: var(--accent); stroke-width: 2;
-  stroke-linejoin: round; vector-effect: non-scaling-stroke }
+/* ТОНКАЯ ЛИНИЯ, а не жирная рамка -- решение владельца: «перетягиваешь кружочки и сразу по
+   линии смотришь, что попало в зону, а что нет». Толстая линия сама закрывает край листа,
+   по которому и целятся. Заливка почти прозрачная: она показывает зону, но не мешает
+   разглядеть буквы под ней. */
+.дс-рамка polygon { fill: rgba(74,222,158,.06); stroke: var(--accent); stroke-width: 1;
+  stroke-linejoin: round; vector-effect: non-scaling-stroke;
+  /* Тень под линией: на светлом листе тонкая зелёная черта иначе теряется. */
+  filter: drop-shadow(0 0 1px rgba(0,0,0,.65)) }
 .дс-ручки { position: absolute; inset: 0; pointer-events: none }
 /* Ручка крупная НАРОЧНО: пальцем в двенадцать точек не попасть. Видимый кружок меньше, чем
    область нажатия, -- так он не закрывает угол листа, который человек и подгоняет. */
@@ -89,10 +95,12 @@
   transition: color .15s, border-color .15s, background .15s;
 }
 .дс-кнопка:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
-/* Главное действие -- одно на экран, и оно названо словом: «Добавить лист», «Скачать PDF».
-   Значком тут не обойтись, это не одинокая кнопка в ряду, а конец работы. */
-.дс-главная { color: #0a0a0b; background: var(--accent); border-color: var(--accent); font-weight: 700 }
-.дс-главная:hover { color: #0a0a0b; background: #6ff0da; border-color: #6ff0da }
+/* Главное действие -- одно на экран, и оно названо словом: «Выровнять лист», «Скачать PDF».
+   Значком тут не обойтись, это не одинокая кнопка в ряду, а конец работы.
+   БЕЛАЯ, а не зелёная -- решение владельца. Зелёный на этой странице занят рамкой листа, и
+   кнопка того же цвета спорила с ней за внимание. */
+.дс-главная { color: #0a0a0b; background: #fff; border-color: #fff; font-weight: 700 }
+.дс-главная:hover { color: #0a0a0b; background: #e6e6e9; border-color: #e6e6e9 }
 .дс-широкая { padding: 0 24px }
 .дс-кнопка.ждёт { opacity: .5; pointer-events: none }
 .дс-счёт { margin-left: auto; font: 400 12px var(--мон); color: var(--серый) }
