@@ -21,7 +21,8 @@
     "check:editor": "node scripts/check-editor.mjs",
     "check:players": "node scripts/check-players.mjs",
     "check:pdf": "node scripts/check-pdf.mjs",
-    "check:text-scan": "node scripts/check-text-scan.mjs"
+    "check:text-scan": "node scripts/check-text-scan.mjs",
+    "check:pdf-text": "node scripts/check-pdf-text.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
@@ -40,6 +41,7 @@
     "libheif-js": "^1.23.2",
     "marked": "^18.0.11",
     "onnxruntime-web": "1.22",
+    "pdfjs-dist": "^5.7.284",
     "qrcode-generator": "^2.0.4",
     "sql-formatter": "^15.8.2",
     "terser": "^5.51.2",

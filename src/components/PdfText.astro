@@ -1,0 +1,398 @@
+---
+// ТЕКСТ ИЗ PDF.
+//
+// Две совершенно разные работы под одной кнопкой, и человеку не надо знать, какая из них
+// случится. Если внутри файла настоящие буквы -- достаём их мгновенно и без ошибок. Если
+// внутри скан (одна картинка на страницу) -- рисуем страницу и читаем распознавателем, тем
+// же, что и фотографию. Бесплатные сервисы на сканах обычно отдают пустоту.
+//
+// Всё считается на устройстве: pdf.js и распознаватель лежат у нас, файл никуда не уходит.
+import css from '../styles/pdf-text.css?inline';
+
+export interface Props { locale?: string }
+const { locale = 'ru' } = Astro.props;
+
+const СЛОВА = {
+  ru: {
+    file: 'Выбрать PDF', invite: 'Перетащите PDF сюда', or: 'или',
+    reading: 'Читаю…', page: 'Страница {н} из {в}', recognising: 'Распознаю страницу {н} из {в}…',
+    nothing: 'Текста не нашлось',
+    nothingWhy: 'Ни букв внутри, ни читаемых страниц. Так бывает у снимков плохого качества и у файлов, где вместо текста рисунки.',
+    notPdf: 'Это не PDF. Выберите файл с расширением .pdf.',
+    locked: 'Файл под паролем', lockedWhy: 'Введите пароль — он нужен только здесь, на вашем устройстве.',
+    pass: 'Пароль', unlock: 'Открыть', wrongPass: 'Пароль не подошёл. Проверьте раскладку и попробуйте ещё раз.',
+    heavy: 'Не получилось принести читалку. Похоже, оборвалась связь — попробуйте ещё раз.',
+    copy: 'Скопировать текст', txt: 'Скачать .txt', pdf: 'Скачать PDF с текстом', again: 'Другой файл',
+    pdfBusy: 'Собираю PDF…', pdfFail: 'PDF не собрался. Попробуйте ещё раз или скачайте .txt.',
+    pdfScript: 'В PDF такое письмо не ляжет — в шрифте есть латиница, кириллица и греческий. Скачайте .txt.',
+    pageMark: 'Страница {н}', scanned: 'страниц распознано: {н}',
+    counted: '{з} · {с}', charForms: ['знак', 'знака', 'знаков'], wordForms: ['слово', 'слова', 'слов'],
+  },
+  uk: {
+    file: 'Вибрати PDF', invite: 'Перетягніть PDF сюди', or: 'або',
+    reading: 'Читаю…', page: 'Сторінка {н} з {в}', recognising: 'Розпізнаю сторінку {н} з {в}…',
+    nothing: 'Тексту не знайшлося',
+    nothingWhy: 'Ні літер усередині, ні придатних до читання сторінок. Так буває у знімків поганої якості та у файлах, де замість тексту малюнки.',
+    notPdf: 'Це не PDF. Виберіть файл із розширенням .pdf.',
+    locked: 'Файл під паролем', lockedWhy: 'Введіть пароль — він потрібен лише тут, на вашому пристрої.',
+    pass: 'Пароль', unlock: 'Відкрити', wrongPass: 'Пароль не підійшов. Перевірте розкладку й спробуйте ще раз.',
+    heavy: 'Не вийшло принести читалку. Схоже, обірвався звʼязок — спробуйте ще раз.',
+    copy: 'Скопіювати текст', txt: 'Завантажити .txt', pdf: 'Завантажити PDF із текстом', again: 'Інший файл',
+    pdfBusy: 'Збираю PDF…', pdfFail: 'PDF не зібрався. Спробуйте ще раз або завантажте .txt.',
+    pdfScript: 'У PDF таке письмо не ляже — у шрифті є латиниця, кирилиця й грецька. Завантажте .txt.',
+    pageMark: 'Сторінка {н}', scanned: 'сторінок розпізнано: {н}',
+    counted: '{з} · {с}', charForms: ['знак', 'знаки', 'знаків'], wordForms: ['слово', 'слова', 'слів'],
+  },
+  en: {
+    file: 'Choose a PDF', invite: 'Drop a PDF here', or: 'or',
+    reading: 'Reading…', page: 'Page {н} of {в}', recognising: 'Reading page {н} of {в}…',
+    nothing: 'No text found',
+    nothingWhy: 'No letters inside and no readable pages. That happens with poor scans and with files that hold drawings instead of text.',
+    notPdf: 'That is not a PDF. Choose a file ending in .pdf.',
+    locked: 'The file is password-protected', lockedWhy: 'Type the password — it is needed here only, on your device.',
+    pass: 'Password', unlock: 'Open', wrongPass: 'That password did not work. Check the keyboard layout and try again.',
+    heavy: 'The reader could not be fetched. The connection seems to have dropped — please try again.',
+    copy: 'Copy the text', txt: 'Download .txt', pdf: 'Download PDF with the text', again: 'Another file',
+    pdfBusy: 'Building the PDF…', pdfFail: 'The PDF could not be built. Try again or download the .txt.',
+    pdfScript: 'This script will not fit in the PDF — the font covers Latin, Cyrillic and Greek. Download the .txt.',
+    pageMark: 'Page {н}', scanned: 'pages recognised: {н}',
+    counted: '{з} · {с}', charForms: ['character', 'characters', 'characters'], wordForms: ['word', 'words', 'words'],
+  },
+  es: {
+    file: 'Elegir un PDF', invite: 'Suelte un PDF aquí', or: 'o',
+    reading: 'Leyendo…', page: 'Página {н} de {в}', recognising: 'Leyendo la página {н} de {в}…',
+    nothing: 'No se ha encontrado texto',
+    nothingWhy: 'Ni letras dentro ni páginas legibles. Ocurre con escaneos de mala calidad y con archivos que llevan dibujos en lugar de texto.',
+    notPdf: 'Eso no es un PDF. Elija un archivo con extensión .pdf.',
+    locked: 'El archivo tiene contraseña', lockedWhy: 'Escriba la contraseña: solo hace falta aquí, en su dispositivo.',
+    pass: 'Contraseña', unlock: 'Abrir', wrongPass: 'La contraseña no ha servido. Revise el teclado e inténtelo otra vez.',
+    heavy: 'No se pudo traer el lector. Parece que se cortó la conexión: inténtelo otra vez.',
+    copy: 'Copiar el texto', txt: 'Descargar .txt', pdf: 'Descargar PDF con el texto', again: 'Otro archivo',
+    pdfBusy: 'Montando el PDF…', pdfFail: 'No se pudo montar el PDF. Inténtelo otra vez o descargue el .txt.',
+    pdfScript: 'Esa escritura no cabe en el PDF: la fuente cubre latín, cirílico y griego. Descargue el .txt.',
+    pageMark: 'Página {н}', scanned: 'páginas reconocidas: {н}',
+    counted: '{з} · {с}', charForms: ['carácter', 'caracteres', 'caracteres'], wordForms: ['palabra', 'palabras', 'palabras'],
+  },
+};
+const с = СЛОВА[locale] || СЛОВА.ru;
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="пт" data-locale={locale} data-words={JSON.stringify(с)}>
+  <!-- ВХОД -- ПРИГЛАШЕНИЕ. Пустого окна до выбора нет: смотреть в нём нечего. -->
+  <div class="пт-старт" id="пт-старт">
+    <svg class="пт-старт-знак" viewBox="0 0 24 24" aria-hidden="true">
+      <path d="M7 3h7l5 5v13a1 1 0 0 1-1 1H7a1 1 0 0 1-1-1V4a1 1 0 0 1 1-1z"/>
+      <path d="M14 3v5h5"/><path d="M9 13h6M9 16.5h4"/>
+    </svg>
+    <p class="пт-зов">{с.invite}</p>
+    <p class="пт-или">{с.or}</p>
+    <!-- Без title: слово написано на самой кнопке, и подсказка браузера его бы повторяла. -->
+    <button type="button" class="пт-выбор" id="пт-файл">{с.file}</button>
+    <!-- Полоса стоит на месте всегда: пока она невидима, ничего не сдвигается. -->
+    <div class="пт-грузим" id="пт-грузим">
+      <div class="пт-полоса"><i id="пт-полоса"></i></div>
+      <div class="пт-шаг" id="пт-шаг"></div>
+    </div>
+  </div>
+
+  <!-- Пароль спрашиваем прямо здесь: уводить человека некуда, файл уже у него в браузере. -->
+  <div class="пт-замок" id="пт-замок" hidden>
+    <p class="пт-замок-что">{с.locked}</p>
+    <p class="пт-замок-зачем">{с.lockedWhy}</p>
+    <span class="пт-замок-ряд">
+      <input type="password" id="пт-пароль" class="пт-поле" autocomplete="off" placeholder={с.pass} aria-label={с.pass} />
+      <button type="button" class="пт-кнопка пт-кнопка-слово" id="пт-открыть">{с.unlock}</button>
+    </span>
+  </div>
+
+  <div class="пт-дела" id="пт-дела" hidden>
+    <button type="button" class="пт-кнопка" id="пт-копи" title={с.copy} aria-label={с.copy}>
+      <svg class="лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+      <svg class="галка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+    </button>
+    <button type="button" class="пт-кнопка" id="пт-txt" title={с.txt} aria-label={с.txt}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
+    </button>
+    <button type="button" class="пт-кнопка пт-кнопка-слово" id="пт-pdf" title={с.pdf} aria-label={с.pdf}>PDF</button>
+    <button type="button" class="пт-кнопка" id="пт-ещё" title={с.again} aria-label={с.again}>
+      <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
+    </button>
+    <span class="пт-счёт" id="пт-счёт"></span>
+  </div>
+
+  <div class="пт-ждём" id="пт-ждём" hidden></div>
+  <div class="пт-текст" id="пт-текст" hidden></div>
+  <div class="пт-беда" id="пт-беда"></div>
+</div>
+
+<script>
+  import { выбратьФайл } from '../lib/pick-file.js';
+  import { сшить } from '../lib/text-lines.js';
+
+  (() => {
+    const корень = document.querySelector('.пт');
+    if (!корень) return;
+    const $ = (и) => document.getElementById(и);
+    const старт = $('пт-старт'), текстЭ = $('пт-текст'), делаЭ = $('пт-дела');
+    const ждёмЭ = $('пт-ждём'), бедаЭ = $('пт-беда'), счёт = $('пт-счёт');
+    const грузим = $('пт-грузим'), полоса = $('пт-полоса'), шаг = $('пт-шаг');
+    const замок = $('пт-замок');
+
+    const locale = корень.dataset.locale || 'ru';
+    // Слова языка страницы -- из разметки: так они собираются один раз и не задваиваются
+    // между сервером и браузером.
+    const с = JSON.parse(корень.dataset.words || '{}');
+
+    const ждём = (т) => { ждёмЭ.textContent = т || ''; ждёмЭ.hidden = !т; };
+    const беда = (т) => { бедаЭ.textContent = т || ''; бедаЭ.hidden = !т; };
+    const ползёт = (доля, подпись) => {
+      грузим.classList.add('идёт');
+      полоса.style.width = Math.round(Math.max(0, Math.min(1, доля)) * 100) + '%';
+      шаг.textContent = подпись || '';
+    };
+    const полосуУбрать = () => { грузим.classList.remove('идёт'); полоса.style.width = '0'; шаг.textContent = ''; };
+
+    let данные = null;        // байты выбранного файла
+    let последнее = null;     // { абзацы: [{текст, строки}], текст, распознано }
+    let читаем = false;
+    let сырыеПервой = [];   // строки первой страницы до сшивки -- только для проверок
+
+    /** «1 слово», «2 слова», «5 слов» -- машинное «21 слов» сразу выдаёт поделку. */
+    function склонить(н, формы) {
+      if (!формы) return '';
+      const с100 = Math.abs(н) % 100, с10 = с100 % 10;
+      if (с100 > 10 && с100 < 20) return формы[2];
+      if (с10 === 1) return формы[0];
+      if (с10 >= 2 && с10 <= 4) return формы[1];
+      return формы[2];
+    }
+
+    async function взятьФайл(файл) {
+      if (!файл) return;
+      if (!/\.pdf$/i.test(файл.name || '') && файл.type !== 'application/pdf') { беда(с.notPdf); return; }
+      беда('');
+      данные = new Uint8Array(await файл.arrayBuffer());
+      прочитать('');
+    }
+
+    /**
+     * ЧТЕНИЕ ФАЙЛА.
+     *
+     * Каждую страницу сперва пробуем взять текстовым слоем -- это мгновенно и точно. Если букв
+     * в слое почти нет, значит перед нами скан, и только тогда поднимается распознаватель. На
+     * обычном текстовом PDF он не понадобится ни разу, и человек не ждёт лишних мегабайтов.
+     */
+    async function прочитать(пароль) {
+      if (!данные || читаем) return;
+      читаем = true;
+      замок.hidden = true;
+      текстЭ.hidden = true;
+      ждём(с.reading);
+      ползёт(0.05, '');
+      let док = null;
+      try {
+        const { открытьPdf, буквВСтроках, НуженПароль } = await import('../lib/pdf-read.js');
+        try {
+          док = await открытьPdf(данные, { пароль });
+        } catch (е) {
+          if (е instanceof НуженПароль || (е && е.name === 'НуженПароль')) {
+            полосуУбрать(); ждём('');
+            замок.hidden = false;
+            if (пароль) беда(с.wrongPass);
+            $('пт-пароль').focus();
+            читаем = false;
+            return;
+          }
+          throw е;
+        }
+
+        const всего = док.страниц;
+        const строкиВсех = [];
+        let распознано = 0;
+        for (let н = 1; н <= всего; н++) {
+          ползёт(0.05 + (н - 1) / всего * 0.9, с.page.replace('{н}', н).replace('{в}', всего));
+          let строки = await док.строки(н);
+          if (буквВСтроках(строки) < 8) {
+            // СКАН. Рисуем страницу и читаем её распознавателем -- тем же, что и фотографию.
+            ползёт(0.05 + (н - 0.5) / всего * 0.9, с.recognising.replace('{н}', н).replace('{в}', всего));
+            строки = await распознатьСтраницу(док, н);
+            if (строки.length) распознано++;
+          }
+          // Абзацы сшиваем ПОСТРАНИЧНО: строка, перенесённая с конца одной страницы на
+          // начало другой, -- редкость, а склейка колонтитула с текстом была бы на каждой.
+          for (const а of сшить(строки)) строкиВсех.push({ ...а, страница: н });
+          if (н === 1) сырыеПервой = строки;   // крючок для живых проверок, см. ниже
+        }
+
+        последнее = {
+          абзацы: строкиВсех,
+          страниц: всего,
+          распознано,
+          текст: строкиВсех.map((а) => а.текст).join('\n\n'),
+        };
+        полосуУбрать();
+        ждём('');
+        показать();
+      } catch (е) {
+        полосуУбрать();
+        ждём('');
+        беда(с.heavy);
+        window.__птОшибка = String((е && е.message) || е);
+      } finally {
+        if (док) док.закрыть();
+        читаем = false;
+      }
+    }
+
+    /** Страница-картинка -- тем же распознавателем, что и фотография на сканере текста. */
+    async function распознатьСтраницу(док, номер) {
+      const холст = await док.нарисовать(номер);
+      const { прочитатьОфициальным } = await import('../lib/pp-ocr.js');
+      // Порядок азбук по языку страницы: на русской странице скан скорее русский.
+      const своя = (locale === 'ru' || locale === 'uk') ? 'cyrillic' : 'latin';
+      const словами = (и, какие) => (и && и.текст
+        ? (и.текст.match(какие === 'cyrillic' ? /[А-Яа-яЁёЇїІіЄєҐґ]{3,}/g : /[A-Za-zÀ-ÿ]{3,}/g) || []).length
+        : 0);
+      let итог = await прочитатьОфициальным(холст, своя);
+      if (словами(итог, своя) < 4) {
+        const чужая = своя === 'cyrillic' ? 'latin' : 'cyrillic';
+        const второе = await прочитатьОфициальным(холст, чужая);
+        if (словами(второе, чужая) > словами(итог, своя)) итог = второе;
+      }
+      const ш = холст.width || 1, в = холст.height || 1;
+      return (итог.строки || []).map((стр) => {
+        const хс = стр.рамка.углы.map((т) => т[0]), ус = стр.рамка.углы.map((т) => т[1]);
+        return {
+          текст: стр.текст,
+          место: {
+            х: Math.min(...хс) / ш, у: Math.min(...ус) / в,
+            ш: (Math.max(...хс) - Math.min(...хс)) / ш,
+            в: (Math.max(...ус) - Math.min(...ус)) / в,
+          },
+        };
+      });
+    }
+
+    function показать() {
+      старт.hidden = true;
+      делаЭ.hidden = false;
+      текстЭ.hidden = false;
+      текстЭ.replaceChildren();
+      if (!последнее.абзацы.length) {
+        const п = document.createElement('p');
+        п.className = 'пт-пусто';
+        п.textContent = с.nothing + '. ' + с.nothingWhy;
+        текстЭ.appendChild(п);
+        счёт.textContent = '';
+        return;
+      }
+      let прошлая = 0;
+      for (const абзац of последнее.абзацы) {
+        // Номер страницы -- только когда страниц больше одной: на одностраничном файле это
+        // была бы лишняя надпись ни о чём.
+        if (последнее.страниц > 1 && абзац.страница !== прошлая) {
+          прошлая = абзац.страница;
+          const м = document.createElement('p');
+          м.className = 'пт-метка';
+          м.textContent = с.pageMark.replace('{н}', абзац.страница);
+          текстЭ.appendChild(м);
+        }
+        const п = document.createElement('p');
+        п.className = 'пт-абзац';
+        п.textContent = абзац.текст;
+        текстЭ.appendChild(п);
+      }
+      const знаков = последнее.текст.length;
+      const слов = последнее.текст.split(/\s+/).filter(Boolean).length;
+      счёт.textContent = с.counted
+          .replace('{з}', знаков + ' ' + склонить(знаков, с.charForms))
+          .replace('{с}', слов + ' ' + склонить(слов, с.wordForms))
+        + (последнее.распознано ? ' · ' + с.scanned.replace('{н}', последнее.распознано) : '');
+    }
+
+    /* ---- Действия ------------------------------------------------------------------------ */
+    const отдать = (капля, имя) => {
+      const а = document.createElement('a');
+      а.href = URL.createObjectURL(капля);
+      а.download = имя;
+      document.body.appendChild(а);
+      а.click();
+      setTimeout(() => { URL.revokeObjectURL(а.href); а.remove(); }, 1000);
+    };
+
+    $('пт-файл').addEventListener('click', async () => {
+      const файл = await выбратьФайл({ берём: 'application/pdf,.pdf' });
+      if (файл) взятьФайл(файл);
+    });
+    $('пт-открыть').addEventListener('click', () => { беда(''); прочитать($('пт-пароль').value); });
+    $('пт-пароль').addEventListener('keydown', (е) => { if (е.key === 'Enter') $('пт-открыть').click(); });
+
+    $('пт-копи').addEventListener('click', async () => {
+      if (!последнее) return;
+      try { await navigator.clipboard.writeText(последнее.текст); } catch (е) {}
+      const к = $('пт-копи');
+      к.classList.add('готово');
+      setTimeout(() => к.classList.remove('готово'), 1400);
+    });
+    $('пт-txt').addEventListener('click', () => {
+      if (!последнее) return;
+      отдать(new Blob([последнее.текст], { type: 'text/plain;charset=utf-8' }), 'text.txt');
+    });
+
+    let собираемPdf = false;
+    $('пт-pdf').addEventListener('click', async () => {
+      if (!последнее || !последнее.абзацы.length || собираемPdf) return;
+      собираемPdf = true;
+      const кнопка = $('пт-pdf');
+      кнопка.classList.add('ждёт');
+      ждём(с.pdfBusy);
+      try {
+        const { собратьPdf, долянеЗнакомых } = await import('../lib/pdf-text.js');
+        if (await долянеЗнакомых(последнее.текст) > 0.2) { ждём(с.pdfScript); return; }
+        const абзацы = последнее.абзацы.map((а) => ({ строки: [{ текст: а.текст }] }));
+        отдать(new Blob([await собратьPdf(абзацы, { заголовок: document.title })],
+          { type: 'application/pdf' }), 'text.pdf');
+        ждём('');
+      } catch (е) {
+        ждём(с.pdfFail);
+      } finally {
+        кнопка.classList.remove('ждёт');
+        собираемPdf = false;
+      }
+    });
+
+    $('пт-ещё').addEventListener('click', () => {
+      данные = null; последнее = null;
+      текстЭ.hidden = true; текстЭ.replaceChildren();
+      делаЭ.hidden = true; замок.hidden = true;
+      $('пт-пароль').value = '';
+      старт.hidden = false;
+      счёт.textContent = '';
+      полосуУбрать(); ждём(''); беда('');
+    });
+
+    /* ---- Перетаскивание -------------------------------------------------------------------- */
+    for (const имя of ['dragenter', 'dragover']) {
+      старт.addEventListener(имя, (е) => { е.preventDefault(); старт.classList.add('держат'); });
+    }
+    for (const имя of ['dragleave', 'dragend']) {
+      старт.addEventListener(имя, () => старт.classList.remove('держат'));
+    }
+    старт.addEventListener('drop', (е) => {
+      е.preventDefault();
+      старт.classList.remove('держат');
+      const файл = е.dataTransfer && е.dataTransfer.files && е.dataTransfer.files[0];
+      if (файл) взятьФайл(файл);
+    });
+
+    // Крючок для живых проверок: чем прочитано и сколько страниц пришлось распознавать.
+    window.__пт = () => (последнее
+      ? { страниц: последнее.страниц, распознано: последнее.распознано, абзацев: последнее.абзацы.length }
+      : null);
+    // Рамки строк до сшивки: по ним видно, почему абзацы сложились именно так. Человеку это
+    // не показывается -- ему всё равно, откуда взялись границы.
+    window.__птРамки = () => сырыеПервой;
+  })();
+</script>

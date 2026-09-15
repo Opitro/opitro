@@ -1,0 +1,102 @@
+/* ТЕКСТ ИЗ PDF.
+ *
+ * Строй общий со сканером текста с фото: человек ходит между ними, и второй вид ему пришлось
+ * бы учить заново. Своё здесь только приглашение под файл и разговор про пароль -- камеры,
+ * снимка и обводки на этой странице нет вовсе.
+ *
+ * СВОЙ ФАЙЛ, а не ветка в общем: правка здесь не может достать соседнюю страницу. */
+
+.пт { --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace; --контур: #3a3a42;
+  --серый: #b4b4bb; font-family: var(--мон) }
+.пт [hidden] { display: none !important }
+
+/* ---- Вход: приглашение, а не пустое окно ------------------------------------------------- */
+.пт-старт {
+  display: flex; flex-direction: column; align-items: center; gap: 8px;
+  padding: 30px 20px 26px; border-radius: 12px;
+  border: 1.5px dashed var(--контур); background: rgba(255,255,255,.015);
+  transition: border-color .18s, background .18s;
+}
+.пт-старт.держат { border-color: var(--accent); border-style: solid; background: rgba(74,222,158,.06) }
+.пт-старт-знак { width: 34px; height: 34px; fill: none; stroke: var(--accent); stroke-width: 1.4;
+  stroke-linecap: round; stroke-linejoin: round; opacity: .9 }
+.пт-зов { margin: 2px 0 0; font: 400 14px var(--мон); color: #fff }
+.пт-или { margin: 0 0 4px; font: 400 12px var(--мон); color: var(--серый) }
+.пт-выбор {
+  padding: 13px 22px; cursor: pointer; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
+  font: 400 13px var(--мон); transition: border-color .15s, background .15s, transform .12s;
+}
+.пт-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
+
+/* ---- Полоса чтения ПОД КНОПКОЙ ---------------------------------------------------------------
+   Блок стоит на месте всегда (нулевая высота и прозрачность), поэтому когда полоса
+   появляется, ничего не подпрыгивает. Под ней -- «Страница 3 из 12»: на файле в полсотни
+   страниц человеку важно видеть, что работа идёт и сколько осталось. */
+.пт-грузим { width: 100%; max-width: 330px; margin-top: 4px; display: flex; flex-direction: column;
+  gap: 6px; opacity: 0; transition: opacity .2s; pointer-events: none }
+.пт-грузим.идёт { opacity: 1 }
+.пт-полоса { height: 3px; border-radius: 999px; background: rgba(255,255,255,.08); overflow: hidden }
+.пт-полоса i { display: block; height: 100%; width: 0; border-radius: 999px;
+  background: linear-gradient(90deg, var(--accent), var(--accent2, #60efb8));
+  transition: width .25s cubic-bezier(.4,0,.2,1) }
+.пт-шаг { font: 400 11.5px var(--мон); color: var(--серый); text-align: center; min-height: 15px }
+
+/* ---- Пароль ------------------------------------------------------------------------------- */
+.пт-замок { margin-top: 14px; padding: 18px 20px; border-radius: 10px;
+  border: 1px solid var(--контур); background: rgba(255,255,255,.03) }
+.пт-замок-что { margin: 0; font: 400 14px var(--мон); color: #fff }
+.пт-замок-зачем { margin: 6px 0 12px; font: 400 12.5px/1.6 var(--мон); color: var(--серый) }
+.пт-замок-ряд { display: flex; gap: 8px; flex-wrap: wrap }
+.пт-поле { flex: 1 1 200px; height: 38px; padding: 0 12px; border-radius: 8px;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
+  font: 400 13px var(--мон) }
+.пт-поле:focus { outline: none; border-color: var(--accent) }
+
+/* ---- Ряд действий -------------------------------------------------------------------------- */
+.пт-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
+.пт-кнопка {
+  width: 38px; height: 38px; padding: 0; cursor: pointer; border-radius: 8px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
+  transition: color .15s, border-color .15s, background .15s;
+}
+.пт-кнопка:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
+.пт-кнопка svg { width: 17px; height: 17px; fill: none; stroke: currentColor; stroke-width: 1.7;
+  stroke-linecap: round; stroke-linejoin: round }
+.пт-кнопка .галка { display: none }
+.пт-кнопка.готово { color: var(--accent); border-color: var(--accent) }
+.пт-кнопка.готово .лист { display: none }
+.пт-кнопка.готово .галка { display: block }
+/* Сборка PDF занимает долю секунды, но шрифт в первый раз ещё едет по сети. Кнопка на это
+   время гаснет и перестаёт нажиматься -- иначе человек жмёт второй раз. */
+.пт-кнопка.ждёт { opacity: .5; pointer-events: none }
+/* Надписью -- там, где значок непонятен без тыканья: «PDF» знают все, лист с уголком -- нет. */
+.пт-кнопка-слово { width: auto; padding: 0 14px; font: 400 12.5px var(--мон); letter-spacing: .02em }
+
+.пт-счёт { margin-left: auto; font: 400 12px var(--мон); color: var(--серый) }
+
+/* ---- Текст --------------------------------------------------------------------------------- */
+/* Прочитанное выглядит листом бумаги: белая бумага, тёмные буквы, поля по краям. Моноширинный
+   шрифт тут не нужен -- это не код. */
+.пт-текст {
+  margin-top: 12px; padding: 26px 28px; border-radius: 4px;
+  background: #fbfbf7; border: 1px solid #d9d7cf; color: #1a1a1a;
+  font: 400 15px/1.7 Georgia, 'Times New Roman', serif;
+  overflow-wrap: anywhere; user-select: text; min-height: 96px;
+  box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.6) inset;
+}
+/* Абзацы, а не строки листа: переносы, сделанные печатником, сшиты обратно. */
+.пт-абзац { margin: 0 0 14px }
+.пт-абзац:last-child { margin-bottom: 0 }
+/* Номер страницы -- тонкой чертой поперёк, как разделитель в книге. Появляется только когда
+   страниц больше одной. */
+.пт-метка { margin: 26px 0 12px; font: 400 11px var(--мон); color: #8a8a80;
+  letter-spacing: .08em; text-transform: uppercase;
+  border-top: 1px solid #e3e1d8; padding-top: 10px }
+.пт-метка:first-child { margin-top: 0; border-top: 0; padding-top: 0 }
+.пт-пусто { color: #6b6b63; font: 400 14px/1.6 var(--мон) }
+
+.пт-ждём { margin-top: 10px; font: 400 12.5px var(--мон); color: var(--серый) }
+.пт-беда { margin-top: 10px; font: 400 12.5px/1.6 var(--мон); color: #f0a0a0 }
+.пт-беда:empty { display: none }
