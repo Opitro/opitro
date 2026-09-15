@@ -20,7 +20,8 @@
     "check:tempo": "node scripts/check-tempo.mjs",
     "check:editor": "node scripts/check-editor.mjs",
     "check:players": "node scripts/check-players.mjs",
-    "check:pdf": "node scripts/check-pdf.mjs"
+    "check:pdf": "node scripts/check-pdf.mjs",
+    "check:text-scan": "node scripts/check-text-scan.mjs"
   },
   "dependencies": {
     "@astrojs/sitemap": "^3.7.3",
