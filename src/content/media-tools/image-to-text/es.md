@@ -37,6 +37,14 @@ related:
 
 Suelte una foto y reciba el texto: la lectura ocurre en el propio navegador, en su dispositivo. Cada línea encontrada queda marcada sobre la imagen, así que se ve de un vistazo qué se leyó y qué quedó fuera.
 
+## A quién le sirve
+
+A quien de otro modo teclearía el texto a mano: un contrato, un certificado, una página de un libro, una diapositiva de clase, una factura, una conversación desde una captura. La ganancia es mayor cuando hay varias páginas: el tiempo se va en el trabajo y no en teclear.
+
+## En qué se diferencia del escáner del móvil
+
+El escáner integrado le da un texto para copiar, y ahí acaba. Aquí, además de copiar, hay archivos: un .txt y un PDF cuyas letras son reales y se encuentran con la búsqueda. Y se ve qué se ha leído en realidad: cada línea encontrada queda marcada sobre la foto y las palabras dudosas van subrayadas con una onda, así que se detectan al momento y no cuando el error ya ha seguido su camino. Funciona también en el ordenador, con capturas de pantalla, y no hay que instalar nada. Ahora bien, si solo quiere copiar un número de teléfono de una foto, el integrado es más rápido.
+
 ## Cuándo lee mal
 
 El lector se entiende con letras impresas, no con la letra manuscrita. Le estorban el encuadre movido, las líneas muy inclinadas, las sombras cruzando la hoja y la letra pequeña sobre fondos abigarrados. Tres cosas que casi siempre ayudan: acercarse, girar la foto con el botón si la hoja estaba de lado y encuadrar solo el trozo necesario: así se lee únicamente ese trozo y sus letras siguen siendo grandes.

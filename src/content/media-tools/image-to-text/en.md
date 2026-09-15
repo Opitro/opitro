@@ -37,6 +37,14 @@ related:
 
 Drop in a photo and get the text: the reading happens right in the browser, on your device. Every line found is outlined on the picture itself, so you can see at a glance what was read and what was missed.
 
+## Who it helps
+
+Anyone who would otherwise retype the text by hand: a contract, a certificate, a page of a book, a lecture slide, an invoice, a conversation from a screenshot. The gain is biggest when there are several pages — the time goes into the work instead of the typing.
+
+## How it differs from the scanner in your phone
+
+The built-in scanner hands you text to copy, and that is all. Here you also get files: a .txt and a PDF whose letters are real and can be found by search. And you can see what was actually read — every line found is outlined on the photo, and words the reader is unsure about are underlined with a wave, so you catch them there and then rather than after the mistake has travelled on. It also works on a computer, with screenshots, and nothing needs installing. If you just want to copy a phone number off a photo, though, the built-in one is quicker.
+
 ## When it reads badly
 
 The reader deals with printed letters, not handwriting. A blurred frame, strongly slanted lines, shadows across the page and small type on a busy background all get in its way. Three things that nearly always help: get closer, turn the photo with the button if the page lay sideways, and box off just the part you need — then only that part is read, and its letters stay large.
