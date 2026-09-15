@@ -218,16 +218,22 @@ const изСкана = (await ждатьАбзацы()).join(' ');
   await выполнить(`JSON.stringify(window.__пт())`));
 
 console.log('\n════ что уносит человек');
-await выполнить(`window.__пойман = null;
-  const п = URL.createObjectURL.bind(URL);
-  URL.createObjectURL = (о) => { if (о && о.type === 'application/pdf') window.__пойман = о; return п(о); }; true`);
-await выполнить(`document.getElementById('пт-pdf').click(); true`);
-for (let и = 0; и < 40; и++) { await сон(500); if (await выполнить(`!!window.__пойман`)) break; }
-проба('PDF собрался и не пустой',
-  await выполнить(`(async () => { if (!window.__пойман) return false;
-    const б = new Uint8Array(await window.__пойман.arrayBuffer());
-    let с = ''; for (const з of б) с += String.fromCharCode(з);
-    return б.length > 20000 && с.startsWith('%PDF-') && с.includes('/FontFile2'); })()`));
+// PDF на выходе здесь НЕТ: «принёс PDF -- унёс PDF» бессмысленно, решение владельца.
+// Заодно страница не тянет шрифт для сборки PDF.
+проба('кнопки PDF нет', await выполнить(`!document.getElementById('пт-pdf')`));
+проба('остались копирование и .txt',
+  await выполнить(`!!document.getElementById('пт-копи') && !!document.getElementById('пт-txt')`));
+проба('шрифт для сборки PDF страницей не запрашивался',
+  await выполнить(`!performance.getEntriesByType('resource').some((з) => з.name.includes('/pdf/text.ttf'))`));
+
+// Выделение на белом листе: буквы обязаны остаться видимыми. Общее правило когда-то красило
+// их в белый, и на светлой панели выделенный текст пропадал совсем.
+проба('при выделении цвет букв не подменяется',
+  await выполнить(`(() => {
+    const л = [...document.styleSheets].flatMap((т) => { try { return [...т.cssRules]; } catch (е) { return []; } })
+      .filter((п) => п.selectorText && /::selection/.test(п.selectorText) && !/\.рг-поле/.test(п.selectorText));
+    return л.length > 0 && л.every((п) => !п.style.color);
+  })()`));
 
 console.log('\n════ крестик');
 await выполнить(`document.getElementById('пт-ещё').click(); true`);

@@ -7,6 +7,11 @@
 // же, что и фотографию. Бесплатные сервисы на сканах обычно отдают пустоту.
 //
 // Всё считается на устройстве: pdf.js и распознаватель лежат у нас, файл никуда не уходит.
+//
+// PDF НА ВЫХОДЕ ЗДЕСЬ НЕТ, и это решение владельца: «принёс PDF -- унёс PDF» бессмысленно.
+// Человек пришёл за текстом, и забирает он текст -- кнопкой или файлом .txt. На сканере
+// текста с фото такая кнопка осталась: там на входе фотография, и документ появляется из
+// ничего. Заодно страница перестала тянуть шрифт в 82 КБ, нужный только для сборки PDF.
 import css from '../styles/pdf-text.css?inline';
 
 export interface Props { locale?: string }
@@ -22,9 +27,7 @@ const СЛОВА = {
     locked: 'Файл под паролем', lockedWhy: 'Введите пароль — он нужен только здесь, на вашем устройстве.',
     pass: 'Пароль', unlock: 'Открыть', wrongPass: 'Пароль не подошёл. Проверьте раскладку и попробуйте ещё раз.',
     heavy: 'Не получилось принести читалку. Похоже, оборвалась связь — попробуйте ещё раз.',
-    copy: 'Скопировать текст', txt: 'Скачать .txt', pdf: 'Скачать PDF с текстом', again: 'Другой файл',
-    pdfBusy: 'Собираю PDF…', pdfFail: 'PDF не собрался. Попробуйте ещё раз или скачайте .txt.',
-    pdfScript: 'В PDF такое письмо не ляжет — в шрифте есть латиница, кириллица и греческий. Скачайте .txt.',
+    copy: 'Скопировать текст', txt: 'Скачать .txt', again: 'Другой файл',
     pageMark: 'Страница {н}', scanned: 'страниц распознано: {н}',
     counted: '{з} · {с}', charForms: ['знак', 'знака', 'знаков'], wordForms: ['слово', 'слова', 'слов'],
   },
@@ -37,9 +40,7 @@ const СЛОВА = {
     locked: 'Файл під паролем', lockedWhy: 'Введіть пароль — він потрібен лише тут, на вашому пристрої.',
     pass: 'Пароль', unlock: 'Відкрити', wrongPass: 'Пароль не підійшов. Перевірте розкладку й спробуйте ще раз.',
     heavy: 'Не вийшло принести читалку. Схоже, обірвався звʼязок — спробуйте ще раз.',
-    copy: 'Скопіювати текст', txt: 'Завантажити .txt', pdf: 'Завантажити PDF із текстом', again: 'Інший файл',
-    pdfBusy: 'Збираю PDF…', pdfFail: 'PDF не зібрався. Спробуйте ще раз або завантажте .txt.',
-    pdfScript: 'У PDF таке письмо не ляже — у шрифті є латиниця, кирилиця й грецька. Завантажте .txt.',
+    copy: 'Скопіювати текст', txt: 'Завантажити .txt', again: 'Інший файл',
     pageMark: 'Сторінка {н}', scanned: 'сторінок розпізнано: {н}',
     counted: '{з} · {с}', charForms: ['знак', 'знаки', 'знаків'], wordForms: ['слово', 'слова', 'слів'],
   },
@@ -52,9 +53,7 @@ const СЛОВА = {
     locked: 'The file is password-protected', lockedWhy: 'Type the password — it is needed here only, on your device.',
     pass: 'Password', unlock: 'Open', wrongPass: 'That password did not work. Check the keyboard layout and try again.',
     heavy: 'The reader could not be fetched. The connection seems to have dropped — please try again.',
-    copy: 'Copy the text', txt: 'Download .txt', pdf: 'Download PDF with the text', again: 'Another file',
-    pdfBusy: 'Building the PDF…', pdfFail: 'The PDF could not be built. Try again or download the .txt.',
-    pdfScript: 'This script will not fit in the PDF — the font covers Latin, Cyrillic and Greek. Download the .txt.',
+    copy: 'Copy the text', txt: 'Download .txt', again: 'Another file',
     pageMark: 'Page {н}', scanned: 'pages recognised: {н}',
     counted: '{з} · {с}', charForms: ['character', 'characters', 'characters'], wordForms: ['word', 'words', 'words'],
   },
@@ -67,9 +66,7 @@ const СЛОВА = {
     locked: 'El archivo tiene contraseña', lockedWhy: 'Escriba la contraseña: solo hace falta aquí, en su dispositivo.',
     pass: 'Contraseña', unlock: 'Abrir', wrongPass: 'La contraseña no ha servido. Revise el teclado e inténtelo otra vez.',
     heavy: 'No se pudo traer el lector. Parece que se cortó la conexión: inténtelo otra vez.',
-    copy: 'Copiar el texto', txt: 'Descargar .txt', pdf: 'Descargar PDF con el texto', again: 'Otro archivo',
-    pdfBusy: 'Montando el PDF…', pdfFail: 'No se pudo montar el PDF. Inténtelo otra vez o descargue el .txt.',
-    pdfScript: 'Esa escritura no cabe en el PDF: la fuente cubre latín, cirílico y griego. Descargue el .txt.',
+    copy: 'Copiar el texto', txt: 'Descargar .txt', again: 'Otro archivo',
     pageMark: 'Página {н}', scanned: 'páginas reconocidas: {н}',
     counted: '{з} · {с}', charForms: ['carácter', 'caracteres', 'caracteres'], wordForms: ['palabra', 'palabras', 'palabras'],
   },
@@ -115,7 +112,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <button type="button" class="пт-кнопка" id="пт-txt" title={с.txt} aria-label={с.txt}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M12 4v11"/><path d="M7 11l5 5 5-5"/><path d="M5 19h14"/></svg>
     </button>
-    <button type="button" class="пт-кнопка пт-кнопка-слово" id="пт-pdf" title={с.pdf} aria-label={с.pdf}>PDF</button>
     <button type="button" class="пт-кнопка" id="пт-ещё" title={с.again} aria-label={с.again}>
       <svg viewBox="0 0 24 24" aria-hidden="true"><path d="M7 7l10 10M17 7L7 17"/></svg>
     </button>
@@ -339,28 +335,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('пт-txt').addEventListener('click', () => {
       if (!последнее) return;
       отдать(new Blob([последнее.текст], { type: 'text/plain;charset=utf-8' }), 'text.txt');
-    });
-
-    let собираемPdf = false;
-    $('пт-pdf').addEventListener('click', async () => {
-      if (!последнее || !последнее.абзацы.length || собираемPdf) return;
-      собираемPdf = true;
-      const кнопка = $('пт-pdf');
-      кнопка.classList.add('ждёт');
-      ждём(с.pdfBusy);
-      try {
-        const { собратьPdf, долянеЗнакомых } = await import('../lib/pdf-text.js');
-        if (await долянеЗнакомых(последнее.текст) > 0.2) { ждём(с.pdfScript); return; }
-        const абзацы = последнее.абзацы.map((а) => ({ строки: [{ текст: а.текст }] }));
-        отдать(new Blob([await собратьPdf(абзацы, { заголовок: document.title })],
-          { type: 'application/pdf' }), 'text.pdf');
-        ждём('');
-      } catch (е) {
-        ждём(с.pdfFail);
-      } finally {
-        кнопка.classList.remove('ждёт');
-        собираемPdf = false;
-      }
     });
 
     $('пт-ещё').addEventListener('click', () => {
