@@ -15,6 +15,8 @@ import path from 'node:path';
 import os from 'node:os';
 import { spawn, execSync } from 'node:child_process';
 import { fileURLToPath } from 'node:url';
+import { createRequire } from 'node:module';
+const require = createRequire(import.meta.url);
 
 const КОРЕНЬ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
 const ДИСТ = path.join(КОРЕНЬ, 'dist');
@@ -31,8 +33,42 @@ if (!fs.existsSync(path.join(ДИСТ, 'index.html'))) {
 const ТИПЫ = { '.html': 'text/html; charset=utf-8', '.js': 'text/javascript', '.mjs': 'text/javascript',
   '.css': 'text/css', '.json': 'application/json', '.wasm': 'application/wasm', '.svg': 'image/svg+xml',
   '.png': 'image/png', '.jpg': 'image/jpeg', '.ttf': 'font/ttf', '.pdf': 'application/pdf' };
+/* ---- Образец HEIC ---------------------------------------------------------------------------
+   HEIC -- то, чем снимает айфон по умолчанию, и Chrome не открывает его вовсе (проверено:
+   ни картинкой, ни через createImageBitmap). Страница обязана раскрывать его сама. Образец
+   делаем системным `sips`: своего HEIC в репозитории держать незачем. */
+const образецHeic = (() => {
+  const где = path.join(os.tmpdir(), 'opitro-проба-heic');
+  fs.mkdirSync(где, { recursive: true });
+  const png = path.join(где, 'и.png'), heic = path.join(где, 'и.heic');
+  // Простейший PNG в три строки: содержимое неважно, важен лишь формат на выходе.
+  const zlib = require('node:zlib');
+  const ш = 600, в = 400;
+  const сырое = Buffer.concat(Array.from({ length: в }, () =>
+    Buffer.concat([Buffer.from([0]), Buffer.alloc(ш * 3, 0xf0)])));
+  const кусок = (т, д) => { const тело = Buffer.concat([Buffer.from(т), д]);
+    const дл = Buffer.alloc(4); дл.writeUInt32BE(д.length);
+    const кс = Buffer.alloc(4); кс.writeUInt32BE(zlib.crc32 ? zlib.crc32(тело) : требуетCrc(тело));
+    return Buffer.concat([дл, тело, кс]); };
+  const ihdr = Buffer.alloc(13);
+  ihdr.writeUInt32BE(ш, 0); ihdr.writeUInt32BE(в, 4); ihdr[8] = 8; ihdr[9] = 2;
+  fs.writeFileSync(png, Buffer.concat([
+    Buffer.from([0x89, 0x50, 0x4E, 0x47, 0x0D, 0x0A, 0x1A, 0x0A]),
+    кусок('IHDR', ihdr), кусок('IDAT', zlib.deflateSync(сырое)), кусок('IEND', Buffer.alloc(0)),
+  ]));
+  try {
+    execSync(`sips -s format heic ${JSON.stringify(png)} --out ${JSON.stringify(heic)}`, { stdio: 'ignore' });
+    return fs.readFileSync(heic);
+  } catch (е) { return null; }
+})();
+
 const сервер = http.createServer((зап, отв) => {
   const адрес = decodeURIComponent((зап.url || '/').split('?')[0]);
+  if (адрес === '/образец.heic' && образецHeic) {
+    отв.writeHead(200, { 'Content-Type': 'image/heic' });
+    отв.end(образецHeic);
+    return;
+  }
   let файл = path.join(ДИСТ, path.normalize(адрес).replace(/^(\.\.[/\\])+/, ''));
   if (fs.existsSync(файл) && fs.statSync(файл).isDirectory()) файл = path.join(файл, 'index.html');
   if (!fs.existsSync(файл)) { отв.writeHead(404); отв.end('нет'); return; }
@@ -82,12 +118,18 @@ const мышь = (тип, х, у, { держим = false } = {}) => шлём('In
   type: тип, x: Math.round(х), y: Math.round(у), button: 'left', clickCount: 1,
   buttons: тип === 'mousePressed' ? 1 : (тип === 'mouseMoved' && держим ? 1 : 0),
 }, sessionId);
+/**
+ * Нажать кнопку. Видимость проверяем ПО РАЗМЕРУ НА ЭКРАНЕ, а не по её собственному `hidden`:
+ * кнопка может лежать внутри скрытого блока, и тогда `э.hidden` отвечает false, размеры
+ * нулевые, а нажатие уходит в угол экрана -- проверка при этом молчит.
+ */
 const нажать = async (что) => {
   const р = await выполнить(`(() => { const э = document.getElementById('${что}');
-    if (!э || э.hidden) return null; э.scrollIntoView({ block: 'center' });
+    if (!э) return null; э.scrollIntoView({ block: 'center' });
     const р = э.getBoundingClientRect();
+    if (р.width < 2 || р.height < 2) return null;
     return JSON.stringify({ x: р.left + р.width / 2, y: р.top + р.height / 2 }); })()`);
-  if (!р) throw new Error('нет кнопки ' + что);
+  if (!р) throw new Error('кнопки ' + что + ' нет на экране');
   const { x, y } = JSON.parse(р);
   await мышь('mousePressed', x, y);
   await мышь('mouseReleased', x, y);
@@ -273,6 +315,34 @@ if (файл) {
   проба('каждый лист лежит картинкой JPEG', п.картинок === 2);
   проба('файл начинается и кончается как PDF', п.начало === '%PDF-1.7' && п.конец === '%%EOF');
   проба('смещения записаны на каждый объект', п.места >= 8, п.места);
+}
+
+console.log('\n════ HEIC -- то, чем снимает айфон');
+if (!образецHeic) {
+  console.log('  · sips не сделал HEIC, пропускаю (нужен macOS)');
+} else {
+  проба('Chrome сам HEIC не открывает -- значит проверяем НАШ раскрыватель',
+    (await выполнить(`(async () => { const б = await (await fetch('/образец.heic')).blob();
+      try { await createImageBitmap(б); return false; } catch (е) { return true; } })()`)));
+  await выполнить(`(async () => {
+    const б = await (await fetch('/образец.heic')).blob();
+    const дт = new DataTransfer();
+    дт.items.add(new File([б], 'айфон.heic', { type: 'image/heic' }));
+    document.getElementById('дс-старт').dispatchEvent(new DragEvent('drop', { dataTransfer: дт, bubbles: true, cancelable: true }));
+    return true;
+  })()`);
+  let открылось = false;
+  for (let и = 0; и < 40; и++) {
+    await сон(500);
+    if (await выполнить(`document.getElementById('дс-окно').hidden !== true`)) { открылось = true; break; }
+  }
+  проба('снимок с айфона открылся', открылось,
+    await выполнить(`document.getElementById('дс-беда').textContent || 'без жалоб'`));
+  проба('размер снимка прочитан',
+    await выполнить(`(() => { const с = document.getElementById('дс-снимок');
+      return !!(с.naturalWidth > 100 && с.naturalHeight > 100); })()`),
+    await выполнить(`(() => { const с = document.getElementById('дс-снимок');
+      return с.naturalWidth + 'x' + с.naturalHeight; })()`));
 }
 
 console.log('\n════ крестик стирает всё');

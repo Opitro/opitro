@@ -20,7 +20,7 @@ const СЛОВА = {
     camera: 'Камера', file: 'Файл', invite: 'Перетащите снимок листа сюда',
     inviteTouch: 'Снимите или выберите лист', or: 'или выберите',
     shot: 'Нажмите на кадр, чтобы снять', corners: 'Подгоните углы по краям листа',
-    add: 'Выровнять лист', addMore: 'Добавьте ещё лист', save: 'Скачать PDF',
+    add: 'Добавить в PDF', addMore: 'Добавьте ещё лист', save: 'Скачать PDF',
     pages: 'Листов: {н}', page: 'Лист {н}', drop: 'Убрать лист',
     working: 'Выправляю…', building: 'Собираю PDF…',
     fail: 'Не получилось собрать PDF. Попробуйте ещё раз.',
@@ -34,7 +34,7 @@ const СЛОВА = {
     camera: 'Камера', file: 'Файл', invite: 'Перетягніть знімок аркуша сюди',
     inviteTouch: 'Зніміть або виберіть аркуш', or: 'або виберіть',
     shot: 'Натисніть на кадр, щоб зняти', corners: 'Підженіть кути по краях аркуша',
-    add: 'Вирівняти аркуш', addMore: 'Додайте ще аркуш', save: 'Завантажити PDF',
+    add: 'Додати до PDF', addMore: 'Додайте ще аркуш', save: 'Завантажити PDF',
     pages: 'Аркушів: {н}', page: 'Аркуш {н}', drop: 'Прибрати аркуш',
     working: 'Вирівнюю…', building: 'Збираю PDF…',
     fail: 'Не вийшло зібрати PDF. Спробуйте ще раз.',
@@ -48,7 +48,7 @@ const СЛОВА = {
     camera: 'Camera', file: 'File', invite: 'Drop a photo of the page here',
     inviteTouch: 'Take or choose a page', or: 'or choose',
     shot: 'Tap the frame to take the shot', corners: 'Drag the corners to the edges of the page',
-    add: 'Straighten the page', addMore: 'Add another page', save: 'Download PDF',
+    add: 'Add to the PDF', addMore: 'Add another page', save: 'Download PDF',
     pages: 'Pages: {н}', page: 'Page {н}', drop: 'Remove the page',
     working: 'Straightening…', building: 'Building the PDF…',
     fail: 'The PDF could not be built. Please try again.',
@@ -62,7 +62,7 @@ const СЛОВА = {
     camera: 'Cámara', file: 'Archivo', invite: 'Suelte aquí la foto de la hoja',
     inviteTouch: 'Haga o elija una hoja', or: 'o elija',
     shot: 'Toque el encuadre para capturar', corners: 'Ajuste las esquinas a los bordes de la hoja',
-    add: 'Enderezar la hoja', addMore: 'Añada otra hoja', save: 'Descargar PDF',
+    add: 'Añadir al PDF', addMore: 'Añada otra hoja', save: 'Descargar PDF',
     pages: 'Hojas: {н}', page: 'Hoja {н}', drop: 'Quitar la hoja',
     working: 'Enderezando…', building: 'Montando el PDF…',
     fail: 'No se pudo montar el PDF. Inténtelo otra vez.',
@@ -182,22 +182,53 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         беда(с.notImage); return;
       }
       беда('');
+      ждём(с.working);
       const адрес = URL.createObjectURL(файл);
-      const и = new Image();
-      и.onload = () => {
+      try {
+        const и = await новаяКартинка(адрес);
         // Адрес освобождаем ТОЛЬКО когда снимок уже показан: Safari чистит сразу, и картинка
         // пропадала бы с экрана.
-        поставитьСнимок(и);
+        поставитьСнимок(и, адрес);
         setTimeout(() => URL.revokeObjectURL(адрес), 1000);
-      };
-      и.onerror = () => { URL.revokeObjectURL(адрес); беда(с.notImage); };
-      и.src = адрес;
+        return;
+      } catch (е) {
+        URL.revokeObjectURL(адрес);
+      }
+      // HEIC -- то, чем снимает айфон по умолчанию. Браузер его не открывает (проверено:
+      // Chrome 152 не берёт HEIC ни картинкой, ни через createImageBitmap). Раскрыватель
+      // тот же, что на странице метаданных и на сканере текста, и приезжает только сюда и
+      // только сейчас -- весит он под два мегабайта.
+      try {
+        const байты = await файл.arrayBuffer();
+        const { раскрытьHeic, этоHeic } = await import('../lib/exif.js');
+        if (!этоHeic(байты)) throw new Error('не heic');
+        const точки = await раскрытьHeic(байты);
+        const х = document.createElement('canvas');
+        х.width = точки.width; х.height = точки.height;
+        х.getContext('2d').putImageData(точки, 0, 0);
+        // Выправлять будем ПО ХОЛСТУ, а показывать -- его же снимком: так не теряется ни
+        // одна точка исходника, а в <img> уходит лёгкая копия.
+        поставитьСнимок(х, х.toDataURL('image/jpeg', 0.92));
+      } catch (е) {
+        ждём('');
+        беда(с.notImage);
+      }
     }
 
-    function поставитьСнимок(и) {
+    /** Картинка из адреса -- обещанием, чтобы HEIC ловился обычным try/catch. */
+    function новаяКартинка(адрес) {
+      return new Promise((готово, мимо) => {
+        const и = new Image();
+        и.onload = () => готово(и);
+        и.onerror = () => мимо(new Error('браузер не открыл'));
+        и.src = адрес;
+      });
+    }
+
+    function поставитьСнимок(и, адрес) {
       выключитьКамеру();
       картинка = и;
-      снимок.src = и.src;
+      снимок.src = адрес || и.src;
       снимок.hidden = false;
       видео.hidden = true;
       окно.hidden = false;
@@ -316,9 +347,8 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         const х = document.createElement('canvas');
         х.width = видео.videoWidth; х.height = видео.videoHeight;
         х.getContext('2d').drawImage(видео, 0, 0);
-        const и = new Image();
-        и.onload = () => поставитьСнимок(и);
-        и.src = х.toDataURL('image/jpeg', 0.95);
+        const адрес = х.toDataURL('image/jpeg', 0.95);
+        новаяКартинка(адрес).then((и) => поставитьСнимок(и, адрес)).catch(() => беда(с.notImage));
         кадр.removeEventListener('click', снять);
       };
       кадр.addEventListener('click', снять);
