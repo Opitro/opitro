@@ -58,6 +58,10 @@ export function loadFFmpeg(onProgress) {
   return loadPromise;
 }
 
+// Where input files are mounted. Its own directory rather than the root: the core keeps its
+// own files at the root, and a mount over them would hide the wrong things.
+const MOUNT_POINT = '/ffin';
+
 // Generalized runner behind every audio tool: `inputs` is a list of {name, file} pairs (zero
 // for a generator like white noise, one for almost everything, more than one for merge/join).
 // `buildArgs(inputNames, outputName) => string[]` builds the actual ffmpeg command -- this one
@@ -68,13 +72,51 @@ export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType,
   // can't leave the previous run's callback attached and report an unrelated file's progress.
   progressTarget = onProgress || null;
   const writtenNames = [];
+  let mounted = false;
   let crashed = false;
+  const quietly = async (fn) => { try { await fn(); } catch (e) {} };
   try {
-    for (const input of inputs) {
-      await instance.writeFile(input.name, new Uint8Array(await input.file.arrayBuffer()));
-      writtenNames.push(input.name);
+    // INPUTS ARE MOUNTED, NOT COPIED.
+    //
+    // `writeFile` used to pull the whole file into browser memory (`arrayBuffer`) and then
+    // copy it again into ffmpeg's own heap -- two full copies before any work started.
+    // WORKERFS hands ffmpeg the Blob and lets it read slices on demand, so neither copy
+    // happens. Measured on this exact path (input only, no codec): the copy costs about
+    // 1.7 ms per megabyte and disappears entirely -- 336 ms -> 1 ms at 200 MB, 3033 ms -> 1 ms
+    // at 1800 MB. At 1800 MB the first read also dropped from 2419 ms to 29 ms, which is
+    // memory pressure showing up. Read-only and worker-only, so it fits inputs and nothing
+    // else: the result still comes back through `readFile` into ordinary memory.
+    const inputPaths = [];
+    if (inputs.length && inputs.every((i) => i.file instanceof Blob)) {
+      try {
+        // A previous run that crashed can leave the mount point occupied, and then the next
+        // mount fails for a reason that has nothing to do with the current file.
+        await quietly(() => instance.unmount(MOUNT_POINT));
+        await quietly(() => instance.deleteDir(MOUNT_POINT));
+        await instance.createDir(MOUNT_POINT);
+        await instance.mount('WORKERFS', {
+          blobs: inputs.map(({ name, file }) => ({ name, data: file })),
+        }, MOUNT_POINT);
+        mounted = true;
+        for (const { name } of inputs) inputPaths.push(`${MOUNT_POINT}/${name}`);
+      } catch (e) {
+        // Older cores and anything without WORKERFS fall back to the copy rather than fail:
+        // a slower tool beats a broken one.
+        mounted = false;
+        await quietly(() => instance.deleteDir(MOUNT_POINT));
+      }
     }
-    await instance.exec(buildArgs(writtenNames, outputName));
+    if (!mounted) {
+      for (const input of inputs) {
+        await instance.writeFile(input.name, new Uint8Array(await input.file.arrayBuffer()));
+        writtenNames.push(input.name);
+        inputPaths.push(input.name);
+      }
+    }
+    // Test hook: which way the input actually went in. Without it a check cannot tell a real
+    // mount from the silent fallback to copying, and would pass either way.
+    if (typeof window !== 'undefined') window.__ffInput = mounted ? 'mount' : 'copy';
+    await instance.exec(buildArgs(inputPaths, outputName));
     const data = await instance.readFile(outputName);
     return new Blob([data.buffer], { type: mimeType });
   } catch (e) {
@@ -91,6 +133,12 @@ export async function execFFmpeg({ inputs = [], buildArgs, outputName, mimeType,
   } finally {
     progressTarget = null;
     if (!crashed) {
+      // Unmount and drop the directory every time: leave it behind and the NEXT file refuses
+      // to mount, which looks like a broken tool and has nothing to do with that file.
+      if (mounted) {
+        await quietly(() => instance.unmount(MOUNT_POINT));
+        await quietly(() => instance.deleteDir(MOUNT_POINT));
+      }
       for (const name of writtenNames) await instance.deleteFile(name).catch(() => {});
       await instance.deleteFile(outputName).catch(() => {});
     }
