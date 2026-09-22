@@ -62,11 +62,14 @@ const сервер = http.createServer((зап, отв) => {
 await new Promise((р) => сервер.listen(ПОРТ, р));
 
 try { execSync(`lsof -ti tcp:${БРАУЗЕР} | xargs kill -9`, { stdio: 'ignore' }); } catch (е) {}
-// Ядро ffmpeg (32 МБ) приезжает с чужого CDN, поэтому интернет здесь НЕ закрываем -- в
-// отличие от прочих живых проверок. Это само по себе слабое место, но чинится отдельно.
+// ИНТЕРНЕТ СТРАНИЦЕ ЗАКРЫТ, как и на всех прочих живых проверках. Раньше здесь приходилось
+// делать исключение: ядро ffmpeg (30,6 МиБ) ехало с чужого CDN, и без сети звуковые
+// инструменты были мертвы. Теперь ядро лежит у нас, и это условие -- главное доказательство.
 const браузер = spawn('/Applications/Google Chrome.app/Contents/MacOS/Google Chrome', [
   `--remote-debugging-port=${БРАУЗЕР}`, `--user-data-dir=${path.join(os.tmpdir(), 'opitro-проверка-ffmpeg')}`,
-  '--headless=new', '--no-first-run', '--no-default-browser-check', 'about:blank'], { stdio: 'ignore' });
+  '--headless=new', '--no-first-run', '--no-default-browser-check',
+  '--host-resolver-rules=MAP * 0.0.0.0:1, EXCLUDE 127.0.0.1',
+  'about:blank'], { stdio: 'ignore' });
 process.on('exit', () => { try { браузер.kill(); } catch (е) {} try { сервер.close(); } catch (е) {} });
 
 let верс;
@@ -139,7 +142,12 @@ async function прогон(адрес) {
   return { надпись: '(не дождался)', ушло: былоУшло, ввод: await выполнить(`window.__ffInput || '-'`) };
 }
 
-console.log(`════ страница ${СТРАНИЦА}`);
+console.log(`════ страница ${СТРАНИЦА} (интернет странице закрыт)`);
+проба('ядро ffmpeg лежит у нас, а не на чужом сервере',
+  await выполнить(`(async () => {
+    const о = await fetch('/ffmpeg/0.12.6/ffmpeg-core.wasm.1', { method: 'HEAD' });
+    return о.ok;
+  })()`));
 console.log('\n════ первый файл');
 const первый = await прогон('/один.wav');
 проба('ввод СМОНТИРОВАН, а не скопирован', первый.ввод === 'mount', первый.ввод);

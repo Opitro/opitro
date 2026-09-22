@@ -1,5 +1,6 @@
-// Browser-only. Lazy-loads ffmpeg.wasm's core+wasm (~32 MB) from a CDN via toBlobURL only
-// when an audio tool is actually opened -- never bundled into the static build. The FFmpeg
+// Browser-only. Lazy-loads ffmpeg.wasm's core+wasm (~32 MB on disk, ~8.8 MB over the wire
+// after brotli) only when an audio tool is actually opened -- never bundled into the static
+// build. Served from our own domain, not a third-party CDN: see CORE_BASE below. The FFmpeg
 // instance and its load promise are module-level singletons, so every tool on a page (or a
 // sequence of tools used in one session) shares a single loaded encoder instead of each
 // re-downloading/re-initializing it. Single-threaded core deliberately (see project memory) --
@@ -11,7 +12,27 @@ const CORE_VERSION = '0.12.6';
 // @ffmpeg/ffmpeg's worker (0.12.x) is itself an ES module, so `importScripts()` inside it
 // always fails and it falls back to a dynamic `import()` of the core script -- that only works
 // against the ESM build (`export default createFFmpegCore`), not the UMD one.
-const CORE_BASE = `https://cdn.jsdelivr.net/npm/@ffmpeg/core@${CORE_VERSION}/dist/esm`;
+//
+// OUR OWN DOMAIN, not cdn.jsdelivr.net. The core used to come from a third party, which meant
+// every audio tool depended on someone else's server staying up, and that third party saw
+// everyone who opened one. Files live in public/ffmpeg/<version>/ -- refresh them with
+// `node scripts/fetch-ffmpeg-core.mjs`.
+const CORE_BASE = `/ffmpeg/${CORE_VERSION}`;
+// Cloudflare refuses a static file over 25 MiB and the core is 30.6 MiB, so it is stored in
+// two pieces and glued back together here. Blob takes the pieces as they are -- nothing is
+// copied byte by byte.
+const WASM_PARTS = 2;
+
+async function coreWasmURL() {
+  const pieces = await Promise.all(
+    Array.from({ length: WASM_PARTS }, async (_, i) => {
+      const res = await fetch(`${CORE_BASE}/ffmpeg-core.wasm.${i + 1}`);
+      if (!res.ok) throw new Error(`ffmpeg-core.wasm.${i + 1}: ${res.status}`);
+      return res.blob();
+    }),
+  );
+  return URL.createObjectURL(new Blob(pieces, { type: 'application/wasm' }));
+}
 
 let ffmpeg = null;
 let loadPromise = null;
@@ -47,9 +68,12 @@ export function loadFFmpeg(onProgress) {
     instance.on('progress', ({ progress }) => {
       if (progressTarget) progressTarget(Math.max(0, Math.min(100, Math.round(progress * 100))));
     });
+    // The core must be handed over as a blob, never as a plain URL: the library tries to
+    // encode a plain URL with btoa and dies on the first non-Latin1 byte inside the core
+    // ("InvalidCharacterError"). Cost me a broken test harness before I remembered why.
     await instance.load({
       coreURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.js`, 'text/javascript'),
-      wasmURL: await toBlobURL(`${CORE_BASE}/ffmpeg-core.wasm`, 'application/wasm'),
+      wasmURL: await coreWasmURL(),
     });
     ffmpeg = instance;
     return instance;
