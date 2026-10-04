@@ -90,3 +90,13 @@
 .рот-кнопка .рот-слово-готово { visibility: hidden }
 .рот-кнопка.готово .рот-слово-копи { visibility: hidden }
 .рот-кнопка.готово .рот-слово-готово { visibility: visible }
+
+.рот-вывод { position: relative }
+.рот-вывод textarea { padding-right: 54px }
+.рот-значок { position: absolute; top: 9px; right: 9px; z-index: 2; width: 32px; height: 32px; padding: 0; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #c8cddc; transition: color .15s, background .15s, border-color .15s }
+.рот-значок:hover { color: #fff; background: rgba(255,255,255,.12); border-color: #fff }
+.рот-значок svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.рот-значок .рот-галочка { display: none }
+.рот-значок.готово { color: var(--accent); border-color: var(--accent) }
+.рот-значок.готово .рот-лист { display: none }
+.рот-значок.готово .рот-галочка { display: block }

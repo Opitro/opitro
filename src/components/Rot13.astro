@@ -96,6 +96,10 @@ const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
     </div>
     <div class="рот-поле рот-вывод">
       <textarea class="рот-ввод" id="рот-вывод" placeholder={с.result} readonly></textarea>
+      <button type="button" class="рот-значок" id="рот-значок" title={с.copyBig} aria-label={с.copyBig}>
+        <svg class="рот-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="рот-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
     <div class="рот-счётчики">
       <span>{с.shift}: <b id="рот-сдвиг">{с.shiftBoth}</b></span>
@@ -189,6 +193,7 @@ const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
     });
 
     $('рот-копировать').addEventListener('click', async () => {
+    $('рот-значок').addEventListener('click', () => $('рот-копировать').click());
       const кнопка = $('рот-копировать');
       if (!вывод.value) { сказать(с.nothing); return; }
       let вышло = false;
@@ -198,9 +203,9 @@ const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.classList.add('готово');
+      [кнопка, $('рот-значок')].forEach((э) => э && э.classList.add('готово'));
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
+      кнопка._т = setTimeout(() => { [кнопка, $('рот-значок')].forEach((э) => э && э.classList.remove('готово')); }, 1500);
     });
 
     $('рот-очистить').addEventListener('click', () => {

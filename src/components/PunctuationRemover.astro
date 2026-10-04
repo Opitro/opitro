@@ -83,6 +83,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
     <div class="зп-поле зп-вывод">
       <textarea class="зп-ввод" id="зп-вывод" placeholder={с.result} readonly></textarea>
+      <button type="button" class="зп-значок" id="зп-значок" title={с.copyBig} aria-label={с.copyBig}>
+        <svg class="зп-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="зп-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
     <div class="зп-счётчики">
       <span>{с.before}: <b id="зп-до">0</b></span>
@@ -173,6 +177,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('зп-символы').addEventListener('change', пересчитать);
 
     $('зп-копировать').addEventListener('click', async () => {
+    $('зп-значок').addEventListener('click', () => $('зп-копировать').click());
       const кнопка = $('зп-копировать');
       if (!вывод.value) { сказать(с.nothing); return; }
       let вышло = false;
@@ -182,9 +187,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.classList.add('готово');
+      [кнопка, $('зп-значок')].forEach((э) => э && э.classList.add('готово'));
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
+      кнопка._т = setTimeout(() => { [кнопка, $('зп-значок')].forEach((э) => э && э.classList.remove('готово')); }, 1500);
     });
 
     $('зп-очистить').addEventListener('click', () => {

@@ -95,3 +95,13 @@
 .хтм-кнопка .хтм-слово-готово { visibility: hidden }
 .хтм-кнопка.готово .хтм-слово-копи { visibility: hidden }
 .хтм-кнопка.готово .хтм-слово-готово { visibility: visible }
+
+.хтм-вывод { position: relative }
+.хтм-вывод textarea { padding-right: 54px }
+.хтм-значок { position: absolute; top: 9px; right: 9px; z-index: 2; width: 32px; height: 32px; padding: 0; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #c8cddc; transition: color .15s, background .15s, border-color .15s }
+.хтм-значок:hover { color: #fff; background: rgba(255,255,255,.12); border-color: #fff }
+.хтм-значок svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.хтм-значок .хтм-галочка { display: none }
+.хтм-значок.готово { color: var(--accent); border-color: var(--accent) }
+.хтм-значок.готово .хтм-лист { display: none }
+.хтм-значок.готово .хтм-галочка { display: block }

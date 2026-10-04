@@ -109,3 +109,13 @@
 .эк-кнопка .эк-слово-готово { visibility: hidden }
 .эк-кнопка.готово .эк-слово-копи { visibility: hidden }
 .эк-кнопка.готово .эк-слово-готово { visibility: visible }
+
+.эк-вывод { position: relative }
+.эк-вывод textarea { padding-right: 54px }
+.эк-значок { position: absolute; top: 9px; right: 9px; z-index: 2; width: 32px; height: 32px; padding: 0; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #c8cddc; transition: color .15s, background .15s, border-color .15s }
+.эк-значок:hover { color: #fff; background: rgba(255,255,255,.12); border-color: #fff }
+.эк-значок svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.эк-значок .эк-галочка { display: none }
+.эк-значок.готово { color: var(--accent); border-color: var(--accent) }
+.эк-значок.готово .эк-лист { display: none }
+.эк-значок.готово .эк-галочка { display: block }

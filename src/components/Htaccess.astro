@@ -178,6 +178,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="хт-окно">
     <textarea class="хт-вывод" id="хт-вывод" readonly spellcheck="false"
               placeholder={с.empty}></textarea>
+      <button type="button" class="хт-значок" id="хт-значок" title={с.copy} aria-label={с.copy}>
+        <svg class="хт-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="хт-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     <div class="хт-счёт" id="хт-счёт">
       <span class="хт-беда" id="хт-беда" hidden></span>
       <span class="хт-числа" id="хт-числа"></span>
@@ -329,12 +333,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     $('хт-копировать').addEventListener('click', async () => {
+    $('хт-значок').addEventListener('click', () => $('хт-копировать').click());
       const к = $('хт-копировать');
       if (!$('хт-вывод').value) return;
       try { await navigator.clipboard.writeText($('хт-вывод').value); } catch (е) { return; }
-      к.classList.add('готово');
+      [к, $('хт-значок')].forEach((э) => э && э.classList.add('готово'));
       clearTimeout(к._т);
-      к._т = setTimeout(() => { к.classList.remove('готово'); }, 1500);
+      к._т = setTimeout(() => { [к, $('хт-значок')].forEach((э) => э && э.classList.remove('готово')); }, 1500);
     });
 
     $('хт-скачать').addEventListener('click', () => {

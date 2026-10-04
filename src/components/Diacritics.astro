@@ -75,6 +75,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
     <div class="дк-поле дк-вывод">
       <textarea class="дк-ввод" id="дк-вывод" placeholder={с.result} readonly></textarea>
+      <button type="button" class="дк-значок" id="дк-значок" title={с.copyBig} aria-label={с.copyBig}>
+        <svg class="дк-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="дк-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
     <div class="дк-счётчики">
       <span>{с.chars}: <b id="дк-знаков">0</b></span>
@@ -169,6 +173,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('дк-адрес').addEventListener('change', перевести);
 
     $('дк-копировать').addEventListener('click', async () => {
+    $('дк-значок').addEventListener('click', () => $('дк-копировать').click());
       const кнопка = $('дк-копировать');
       if (!вывод.value) { сказать(с.nothing); return; }
       let вышло = false;
@@ -178,9 +183,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.classList.add('готово');
+      [кнопка, $('дк-значок')].forEach((э) => э && э.classList.add('готово'));
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
+      кнопка._т = setTimeout(() => { [кнопка, $('дк-значок')].forEach((э) => э && э.classList.remove('готово')); }, 1500);
     });
 
     $('дк-очистить').addEventListener('click', () => {

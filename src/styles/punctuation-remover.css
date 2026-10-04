@@ -96,3 +96,13 @@
 .зп-кнопка .зп-слово-готово { visibility: hidden }
 .зп-кнопка.готово .зп-слово-копи { visibility: hidden }
 .зп-кнопка.готово .зп-слово-готово { visibility: visible }
+
+.зп-вывод { position: relative }
+.зп-вывод textarea { padding-right: 54px }
+.зп-значок { position: absolute; top: 9px; right: 9px; z-index: 2; width: 32px; height: 32px; padding: 0; cursor: pointer; border-radius: 6px; display: inline-flex; align-items: center; justify-content: center; background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #c8cddc; transition: color .15s, background .15s, border-color .15s }
+.зп-значок:hover { color: #fff; background: rgba(255,255,255,.12); border-color: #fff }
+.зп-значок svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor; stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.зп-значок .зп-галочка { display: none }
+.зп-значок.готово { color: var(--accent); border-color: var(--accent) }
+.зп-значок.готово .зп-лист { display: none }
+.зп-значок.готово .зп-галочка { display: block }

@@ -110,6 +110,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
     <div class="б64-поле б64-вывод" id="б64-обёртка">
       <textarea class="б64-ввод" id="б64-вывод" placeholder={с.resEnc} readonly></textarea>
+      <button type="button" class="б64-значок" id="б64-значок" title={с.copyBig} aria-label={с.copyBig}>
+        <svg class="б64-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="б64-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
     <div class="б64-счётчики">
       <span>{с.mode}: <b id="б64-режим-подпись">{с.modeEnc}</b></span>
@@ -259,6 +263,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     намёкКнопка.addEventListener('click', () => поставитьРежим(!кодируем));
 
     $('б64-копировать').addEventListener('click', async () => {
+    $('б64-значок').addEventListener('click', () => $('б64-копировать').click());
       const кнопка = $('б64-копировать');
       if (!вывод.value || обёртка.classList.contains('беда')) { сказать(с.nothing); return; }
       let вышло = false;
@@ -268,9 +273,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.classList.add('готово');
+      [кнопка, $('б64-значок')].forEach((э) => э && э.classList.add('готово'));
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
+      кнопка._т = setTimeout(() => { [кнопка, $('б64-значок')].forEach((э) => э && э.classList.remove('готово')); }, 1500);
     });
 
     $('б64-очистить').addEventListener('click', () => {
