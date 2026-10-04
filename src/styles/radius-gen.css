@@ -136,3 +136,9 @@
   .ру-показ { min-height: 250px; padding: 24px }
   .ру-образец { width: 160px; height: 128px }
 }
+
+.ру-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.ру-кнопка > span { grid-area: 1 / 1 }
+.ру-кнопка .ру-слово-готово { visibility: hidden }
+.ру-кнопка.готово .ру-слово-копи { visibility: hidden }
+.ру-кнопка.готово .ру-слово-готово { visibility: visible }

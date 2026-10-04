@@ -84,7 +84,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="дк-низ">
-    <button type="button" class="дк-кнопка" id="дк-копировать">{с.copyBig}</button>
+    <button type="button" class="дк-кнопка" id="дк-копировать">
+      <span class="дк-слово-копи">{с.copyBig}</span>
+      <span class="дк-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="дк-простая" id="дк-очистить">{с.clearAll}</button>
   </div>
 
@@ -175,9 +178,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('дк-очистить').addEventListener('click', () => {

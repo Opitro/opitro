@@ -112,3 +112,9 @@
   .дт2-кнопки { width: 100% }
   .дт2-выбор { flex: 1 1 0; padding: 0 8px; font-size: 11.5px }
 }
+
+.дт2-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.дт2-кнопка > span { grid-area: 1 / 1 }
+.дт2-кнопка .дт2-слово-готово { visibility: hidden }
+.дт2-кнопка.готово .дт2-слово-копи { visibility: hidden }
+.дт2-кнопка.готово .дт2-слово-готово { visibility: visible }

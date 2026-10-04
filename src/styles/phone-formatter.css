@@ -104,3 +104,9 @@
   .тел-ввод { min-height: 150px }
   .тел-список { width: 100% }
 }
+
+.тел-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.тел-кнопка > span { grid-area: 1 / 1 }
+.тел-кнопка .тел-слово-готово { visibility: hidden }
+.тел-кнопка.готово .тел-слово-копи { visibility: hidden }
+.тел-кнопка.готово .тел-слово-готово { visibility: visible }

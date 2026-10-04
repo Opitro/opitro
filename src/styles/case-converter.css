@@ -103,3 +103,9 @@
   .кс-кнопки { width: 100% }
   .кс-выбор { flex: 1 1 0; padding: 0 8px }
 }
+
+.кс-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.кс-кнопка > span { grid-area: 1 / 1 }
+.кс-кнопка .кс-слово-готово { visibility: hidden }
+.кс-кнопка.готово .кс-слово-копи { visibility: hidden }
+.кс-кнопка.готово .кс-слово-готово { visibility: visible }

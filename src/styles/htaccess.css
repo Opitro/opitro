@@ -135,3 +135,9 @@
   .хт-минус { width: 44px; height: 38px }
   .хт-счёт { font-size: 11.5px; gap: 6px }
 }
+
+.хт-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.хт-кнопка > span { grid-area: 1 / 1 }
+.хт-кнопка .хт-слово-готово { visibility: hidden }
+.хт-кнопка.готово .хт-слово-копи { visibility: hidden }
+.хт-кнопка.готово .хт-слово-готово { visibility: visible }

@@ -120,7 +120,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   <div class="чт-вывод-строка" id="чт-строка">{с.empty}</div>
 
   <div class="чт-низ">
-    <button type="button" class="чт-кнопка" id="чт-копировать">{с.copyBig}</button>
+    <button type="button" class="чт-кнопка" id="чт-копировать">
+      <span class="чт-слово-копи">{с.copyBig}</span>
+      <span class="чт-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="чт-простая" id="чт-очистить">{с.clearAll}</button>
   </div>
 
@@ -219,9 +222,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       try { await navigator.clipboard.writeText(отчёт); вышло = true; }
       catch (ошибка) { вышло = false; }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('чт-очистить').addEventListener('click', () => {

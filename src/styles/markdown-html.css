@@ -90,3 +90,9 @@
   .мх-поле { min-height: 200px; font-size: 12.5px }
   .мх-рамка { height: 260px }
 }
+
+.мх-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.мх-кнопка > span { grid-area: 1 / 1 }
+.мх-кнопка .мх-слово-готово { visibility: hidden }
+.мх-кнопка.готово .мх-слово-копи { visibility: hidden }
+.мх-кнопка.готово .мх-слово-готово { visibility: visible }

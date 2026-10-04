@@ -421,17 +421,18 @@ const заметки = [с.n1, с.n2, с.n3, с.n4, с.n5, с.n6].filter(Boolean
       const кнопка = document.createElement('button');
       кнопка.type = 'button';
       кнопка.className = 'пор-копия';
-      кнопка.textContent = с.copy;
+      кнопка.append(
+        Object.assign(document.createElement('span'), { className: 'пор-слово-копи', textContent: с.copy }),
+        Object.assign(document.createElement('span'), { className: 'пор-слово-готово', textContent: с.copied }),
+      );
       кнопка.addEventListener('click', async () => {
         let вышло = false;
         try { await navigator.clipboard.writeText(форма); вышло = true; }
         catch (ошибка) { вышло = false; }
         if (!вышло) return;
-        кнопка.textContent = с.copied;
         кнопка.classList.add('готово');
         clearTimeout(кнопка._т);
         кнопка._т = setTimeout(() => {
-          кнопка.textContent = с.copy;
           кнопка.classList.remove('готово');
         }, 1000);
       });

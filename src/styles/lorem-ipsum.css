@@ -108,3 +108,9 @@
 @media (max-width: 560px) {
   .ли-верх { gap: 8px 12px }
 }
+
+.ли-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.ли-кнопка > span { grid-area: 1 / 1 }
+.ли-кнопка .ли-слово-готово { visibility: hidden }
+.ли-кнопка.готово .ли-слово-копи { visibility: hidden }
+.ли-кнопка.готово .ли-слово-готово { visibility: visible }

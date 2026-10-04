@@ -89,3 +89,9 @@
   .рв-кнопки { width: 100% }
   .рв-выбор { flex: 1 1 0; padding: 0 8px }
 }
+
+.рв-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.рв-кнопка > span { grid-area: 1 / 1 }
+.рв-кнопка .рв-слово-готово { visibility: hidden }
+.рв-кнопка.готово .рв-слово-копи { visibility: hidden }
+.рв-кнопка.готово .рв-слово-готово { visibility: visible }

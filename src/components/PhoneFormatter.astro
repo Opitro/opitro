@@ -120,7 +120,10 @@ const СПИСОК_СТРАН = [
   </div>
 
   <div class="тел-низ">
-    <button type="button" class="тел-кнопка" id="тел-копировать">{с.copyBig}</button>
+    <button type="button" class="тел-кнопка" id="тел-копировать">
+      <span class="тел-слово-копи">{с.copyBig}</span>
+      <span class="тел-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="тел-простая" id="тел-очистить">{с.clearAll}</button>
   </div>
 
@@ -319,9 +322,9 @@ const СПИСОК_СТРАН = [
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('тел-очистить').addEventListener('click', () => {

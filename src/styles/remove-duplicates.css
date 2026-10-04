@@ -83,3 +83,9 @@
   .дб-кнопки { grid-template-columns: 1fr 1fr }
   .дб-кнопка { font-size: 12px; padding: 10px 8px }
 }
+
+.дб-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.дб-кнопка > span { grid-area: 1 / 1 }
+.дб-кнопка .дб-слово-готово { visibility: hidden }
+.дб-кнопка.готово .дб-слово-копи { visibility: hidden }
+.дб-кнопка.готово .дб-слово-готово { visibility: visible }

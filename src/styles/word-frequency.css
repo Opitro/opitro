@@ -114,3 +114,9 @@
   .чс-полоса { display: none }
   .чс-ввод { min-height: 150px }
 }
+
+.чс-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.чс-кнопка > span { grid-area: 1 / 1 }
+.чс-кнопка .чс-слово-готово { visibility: hidden }
+.чс-кнопка.готово .чс-слово-копи { visibility: hidden }
+.чс-кнопка.готово .чс-слово-готово { visibility: visible }

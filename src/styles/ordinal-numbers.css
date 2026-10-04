@@ -119,3 +119,9 @@
   .пор-кнопки { width: 100% }
   .пор-выбор { flex: 1 1 0; padding: 0 8px }
 }
+
+.пор-копия { display: inline-grid; align-items: center; justify-items: center }
+.пор-копия > span { grid-area: 1 / 1 }
+.пор-копия .пор-слово-готово { visibility: hidden }
+.пор-копия.готово .пор-слово-копи { visibility: hidden }
+.пор-копия.готово .пор-слово-готово { visibility: visible }

@@ -185,7 +185,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="хт-ряд">
-    <button type="button" class="хт-кнопка" id="хт-копировать" disabled>{с.copy}</button>
+    <button type="button" class="хт-кнопка" id="хт-копировать" disabled>
+      <span class="хт-слово-копи">{с.copy}</span>
+      <span class="хт-слово-готово">{с.copied}</span>
+    </button>
     <button type="button" class="хт-обводка" id="хт-скачать" disabled>{с.download}</button>
     <button type="button" class="хт-обводка" id="хт-очистить">{с.clear}</button>
   </div>
@@ -329,9 +332,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       const к = $('хт-копировать');
       if (!$('хт-вывод').value) return;
       try { await navigator.clipboard.writeText($('хт-вывод').value); } catch (е) { return; }
-      к.textContent = с.copied;
+      к.classList.add('готово');
       clearTimeout(к._т);
-      к._т = setTimeout(() => { к.textContent = с.copy; }, 1500);
+      к._т = setTimeout(() => { к.classList.remove('готово'); }, 1500);
     });
 
     $('хт-скачать').addEventListener('click', () => {

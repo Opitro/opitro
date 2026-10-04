@@ -76,3 +76,9 @@
 @media (max-width: 560px) {
   .дк-ввод { min-height: 130px }
 }
+
+.дк-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.дк-кнопка > span { grid-area: 1 / 1 }
+.дк-кнопка .дк-слово-готово { visibility: hidden }
+.дк-кнопка.готово .дк-слово-копи { visibility: hidden }
+.дк-кнопка.готово .дк-слово-готово { visibility: visible }

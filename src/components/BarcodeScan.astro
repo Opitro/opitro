@@ -268,7 +268,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="скш-ряд" id="скш-ряд">
-    <button type="button" class="скш-кнопка" id="скш-копировать" disabled>{с.copy}</button>
+    <button type="button" class="скш-кнопка" id="скш-копировать" disabled>
+      <span class="скш-слово-копи">{с.copy}</span>
+      <span class="скш-слово-готово">{с.copied}</span>
+    </button>
     <a class="скш-обводка" id="скш-туда" href={`/${locale}/qr-scan`} style="display:none">{с.goOther}</a>
     <button type="button" class="скш-обводка" id="скш-база" style="display:none">{с.base}</button>
 
@@ -764,9 +767,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       if (!найдено) return;
       try { await navigator.clipboard.writeText(найдено); }
       catch (е) { return; }
-      кнопка.textContent = с.copied;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     window.addEventListener('pagehide', выключить);

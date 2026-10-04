@@ -240,3 +240,9 @@
 .скш-крестик-кадра { display: none }
 .скш-глазок.снимок .скш-крестик-кадра { display: inline-flex }
 .скш-глазок.ищет .скш-крестик-кадра { opacity: .45; pointer-events: none }
+
+.скш-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.скш-кнопка > span { grid-area: 1 / 1 }
+.скш-кнопка .скш-слово-готово { visibility: hidden }
+.скш-кнопка.готово .скш-слово-копи { visibility: hidden }
+.скш-кнопка.готово .скш-слово-готово { visibility: visible }

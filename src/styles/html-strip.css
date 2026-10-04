@@ -89,3 +89,9 @@
 @media (max-width: 560px) {
   .хтм-ввод { min-height: 130px }
 }
+
+.хтм-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.хтм-кнопка > span { grid-area: 1 / 1 }
+.хтм-кнопка .хтм-слово-готово { visibility: hidden }
+.хтм-кнопка.готово .хтм-слово-копи { visibility: hidden }
+.хтм-кнопка.готово .хтм-слово-готово { visibility: visible }

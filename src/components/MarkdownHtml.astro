@@ -126,7 +126,10 @@ const привет = 'мир';
   </div>
 
   <div class="мх-ряд">
-    <button type="button" class="мх-кнопка" id="мх-копировать">{с.copy}</button>
+    <button type="button" class="мх-кнопка" id="мх-копировать">
+      <span class="мх-слово-копи">{с.copy}</span>
+      <span class="мх-слово-готово">{с.copied}</span>
+    </button>
     <button type="button" class="мх-обводка" id="мх-очистить">{с.clear}</button>
   </div>
 
@@ -259,9 +262,9 @@ const привет = 'мир';
       const кнопка = $('мх-копировать');
       if (!$('мх-вывод').value) return;
       try { await navigator.clipboard.writeText($('мх-вывод').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('мх-очистить').addEventListener('click', () => {

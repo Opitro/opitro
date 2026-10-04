@@ -101,3 +101,9 @@
   .чт-карточки { grid-template-columns: 1fr }
   .чт-ввод { min-height: 140px }
 }
+
+.чт-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.чт-кнопка > span { grid-area: 1 / 1 }
+.чт-кнопка .чт-слово-готово { visibility: hidden }
+.чт-кнопка.готово .чт-слово-копи { visibility: hidden }
+.чт-кнопка.готово .чт-слово-готово { visibility: visible }

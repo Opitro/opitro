@@ -90,7 +90,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="пр-низ">
-    <button type="button" class="пр-кнопка главная" id="пр-копировать">{с.copyBig}</button>
+    <button type="button" class="пр-кнопка главная" id="пр-копировать">
+      <span class="пр-слово-копи">{с.copyBig}</span>
+      <span class="пр-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="пр-простая" id="пр-очистить">{с.clearAll}</button>
     <button type="button" class="пр-простая" id="пр-отменить" disabled>{с.undo}</button>
   </div>
@@ -181,9 +184,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('пр-очистить').addEventListener('click', () => {

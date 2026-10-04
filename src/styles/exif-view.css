@@ -322,3 +322,9 @@
 .эк-плитка-качать:hover { background: rgba(0,0,0,.9); border-color: #fff }
 .эк-плитка-качать svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+
+.эк-ссылка { display: inline-grid; align-items: center; justify-items: center }
+.эк-ссылка > span { grid-area: 1 / 1 }
+.эк-ссылка .эк-слово-готово { visibility: hidden }
+.эк-ссылка.готово .эк-слово-копи { visibility: hidden }
+.эк-ссылка.готово .эк-слово-готово { visibility: visible }

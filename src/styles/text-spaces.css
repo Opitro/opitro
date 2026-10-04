@@ -66,3 +66,9 @@
   .пр-кнопки { grid-template-columns: 1fr 1fr }
   .пр-кнопка { font-size: 12px; padding: 10px 8px }
 }
+
+.пр-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.пр-кнопка > span { grid-area: 1 / 1 }
+.пр-кнопка .пр-слово-готово { visibility: hidden }
+.пр-кнопка.готово .пр-слово-копи { visibility: hidden }
+.пр-кнопка.готово .пр-слово-готово { visibility: visible }

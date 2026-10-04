@@ -146,7 +146,10 @@ const УГЛЫ = [
   </div>
 
   <div class="ру-ряд">
-    <button type="button" class="ру-кнопка" id="ру-копировать">{с.copy}</button>
+    <button type="button" class="ру-кнопка" id="ру-копировать">
+      <span class="ру-слово-копи">{с.copy}</span>
+      <span class="ру-слово-готово">{с.copied}</span>
+    </button>
     <button type="button" class="ру-обводка" id="ру-сбросить">{с.reset}</button>
   </div>
 
@@ -290,9 +293,9 @@ const УГЛЫ = [
     $('ру-копировать').addEventListener('click', async () => {
       const кнопка = $('ру-копировать');
       try { await navigator.clipboard.writeText($('ру-код').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('ру-сбросить').addEventListener('click', () => { s = НАЧАЛО(); перерисовать(); });

@@ -89,7 +89,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     <button type="button" class="рг-кнопка" data-с="sentence">{с.sentence}</button>
     <button type="button" class="рг-кнопка" data-с="title">{с.title}</button>
     <button type="button" class="рг-кнопка" data-с="toggle">{с.toggle}</button>
-    <button type="button" class="рг-кнопка главная" id="рг-копировать">{с.copyBig}</button>
+    <button type="button" class="рг-кнопка главная" id="рг-копировать">
+      <span class="рг-слово-копи">{с.copyBig}</span>
+      <span class="рг-слово-готово">{с.copiedBig}</span>
+    </button>
   </div>
 
   <div class="рг-низ">
@@ -193,9 +196,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       }
       if (!вышло) { сказать(с.copyFail); return; }
 
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('рг-вставить').addEventListener('click', async () => {

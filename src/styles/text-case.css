@@ -63,3 +63,9 @@
   .рг-кнопки { grid-template-columns: 1fr 1fr }
   .рг-кнопка { font-size: 12px; padding: 10px 8px }
 }
+
+.рг-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.рг-кнопка > span { grid-area: 1 / 1 }
+.рг-кнопка .рг-слово-готово { visibility: hidden }
+.рг-кнопка.готово .рг-слово-копи { visibility: hidden }
+.рг-кнопка.готово .рг-слово-готово { visibility: visible }

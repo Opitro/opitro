@@ -86,3 +86,9 @@
   .тл-ввод { min-height: 130px }
   .тл-выбор { flex: 1 1 auto; min-width: 0 }
 }
+
+.тл-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.тл-кнопка > span { grid-area: 1 / 1 }
+.тл-кнопка .тл-слово-готово { visibility: hidden }
+.тл-кнопка.готово .тл-слово-копи { visibility: hidden }
+.тл-кнопка.готово .тл-слово-готово { visibility: visible }

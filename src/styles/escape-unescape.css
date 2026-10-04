@@ -103,3 +103,9 @@
   .эк-кнопки { width: 100% }
   .эк-выбор { flex: 1 1 0; padding: 0 8px }
 }
+
+.эк-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.эк-кнопка > span { grid-area: 1 / 1 }
+.эк-кнопка .эк-слово-готово { visibility: hidden }
+.эк-кнопка.готово .эк-слово-копи { visibility: hidden }
+.эк-кнопка.готово .эк-слово-готово { visibility: visible }

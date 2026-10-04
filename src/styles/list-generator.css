@@ -153,3 +153,9 @@
   .сп-поле-мал { width: 100% }
   .сп-поле-мал.широкое, .сп-поле-мал.буква { width: 100% }
 }
+
+.сп-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.сп-кнопка > span { grid-area: 1 / 1 }
+.сп-кнопка .сп-слово-готово { visibility: hidden }
+.сп-кнопка.готово .сп-слово-копи { visibility: hidden }
+.сп-кнопка.готово .сп-слово-готово { visibility: visible }

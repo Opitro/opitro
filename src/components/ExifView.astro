@@ -951,12 +951,15 @@ const заметки = чистим
         const копи = document.createElement('button');
         копи.type = 'button';
         копи.className = 'эк-ссылка';
-        копи.textContent = с.copy;
+        копи.append(
+          Object.assign(document.createElement('span'), { className: 'эк-слово-копи', textContent: с.copy }),
+          Object.assign(document.createElement('span'), { className: 'эк-слово-готово', textContent: с.copied }),
+        );
         копи.addEventListener('click', async () => {
           try {
             await navigator.clipboard.writeText(`${к.широта.toFixed(6)}, ${к.долгота.toFixed(6)}`);
-            копи.textContent = с.copied;
-            setTimeout(() => { копи.textContent = с.copy; }, 1500);
+            копи.classList.add('готово');
+            setTimeout(() => копи.classList.remove('готово'), 1500);
           } catch (е) {  }
         });
         низ.append(карта, копи);

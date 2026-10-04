@@ -104,3 +104,9 @@
   .б64-режимы { width: 100%; }
   .б64-режим { flex: 1 1 0; padding: 0 8px }
 }
+
+.б64-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.б64-кнопка > span { grid-area: 1 / 1 }
+.б64-кнопка .б64-слово-готово { visibility: hidden }
+.б64-кнопка.готово .б64-слово-копи { visibility: hidden }
+.б64-кнопка.готово .б64-слово-готово { visibility: visible }

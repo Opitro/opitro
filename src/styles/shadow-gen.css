@@ -154,3 +154,9 @@
   .тн-образец { width: 150px; height: 106px }
   .тн-слой { grid-template-columns: 1fr; gap: 3px }
 }
+
+.тн-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.тн-кнопка > span { grid-area: 1 / 1 }
+.тн-кнопка .тн-слово-готово { visibility: hidden }
+.тн-кнопка.готово .тн-слово-копи { visibility: hidden }
+.тн-кнопка.готово .тн-слово-готово { visibility: visible }

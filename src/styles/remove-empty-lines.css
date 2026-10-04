@@ -79,3 +79,9 @@
 @media (max-width: 560px) {
   .пс-ввод { min-height: 130px }
 }
+
+.пс-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.пс-кнопка > span { grid-area: 1 / 1 }
+.пс-кнопка .пс-слово-готово { visibility: hidden }
+.пс-кнопка.готово .пс-слово-копи { visibility: hidden }
+.пс-кнопка.готово .пс-слово-готово { visibility: visible }

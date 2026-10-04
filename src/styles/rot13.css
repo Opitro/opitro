@@ -84,3 +84,9 @@
 @media (max-width: 560px) {
   .рот-ввод { min-height: 130px }
 }
+
+.рот-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.рот-кнопка > span { grid-area: 1 / 1 }
+.рот-кнопка .рот-слово-готово { visibility: hidden }
+.рот-кнопка.готово .рот-слово-копи { visibility: hidden }
+.рот-кнопка.готово .рот-слово-готово { visibility: visible }

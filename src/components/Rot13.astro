@@ -106,7 +106,10 @@ const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
   </div>
 
   <div class="рот-низ">
-    <button type="button" class="рот-кнопка" id="рот-копировать">{с.copyBig}</button>
+    <button type="button" class="рот-кнопка" id="рот-копировать">
+      <span class="рот-слово-копи">{с.copyBig}</span>
+      <span class="рот-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="рот-простая" id="рот-очистить">{с.clearAll}</button>
   </div>
 
@@ -195,9 +198,9 @@ const кирВерх = [...КИР], кирНиз = сдвинуть(КИР, 16);
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('рот-очистить').addEventListener('click', () => {

@@ -137,7 +137,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="гр-ряд">
-    <button type="button" class="гр-кнопка" id="гр-копировать">{с.copy}</button>
+    <button type="button" class="гр-кнопка" id="гр-копировать">
+      <span class="гр-слово-копи">{с.copy}</span>
+      <span class="гр-слово-готово">{с.copied}</span>
+    </button>
     <button type="button" class="гр-обводка" id="гр-очистить">{с.clear}</button>
   </div>
 
@@ -330,9 +333,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('гр-копировать').addEventListener('click', async () => {
       const кнопка = $('гр-копировать');
       try { await navigator.clipboard.writeText($('гр-код').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('гр-очистить').addEventListener('click', () => {

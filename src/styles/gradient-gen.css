@@ -145,3 +145,9 @@
   .гр-краска { height: 180px }
   .гр-угол-ряд .гр-ползунок { width: 110px }
 }
+
+.гр-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.гр-кнопка > span { grid-area: 1 / 1 }
+.гр-кнопка .гр-слово-готово { visibility: hidden }
+.гр-кнопка.готово .гр-слово-копи { visibility: hidden }
+.гр-кнопка.готово .гр-слово-готово { visibility: visible }

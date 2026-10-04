@@ -96,3 +96,9 @@
   .урл-охват-обёртка { width: 100%; flex-wrap: wrap; gap: 6px }
   .урл-режим { flex: 1 1 0; padding: 0 8px }
 }
+
+.урл-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.урл-кнопка > span { grid-area: 1 / 1 }
+.урл-кнопка .урл-слово-готово { visibility: hidden }
+.урл-кнопка.готово .урл-слово-копи { visibility: hidden }
+.урл-кнопка.готово .урл-слово-готово { visibility: visible }

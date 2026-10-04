@@ -119,3 +119,9 @@
   .скл-кнопки { width: 100% }
   .скл-выбор { flex: 1 1 0; padding: 0 8px }
 }
+
+.скл-копия { display: inline-grid; align-items: center; justify-items: center }
+.скл-копия > span { grid-area: 1 / 1 }
+.скл-копия .скл-слово-готово { visibility: hidden }
+.скл-копия.готово .скл-слово-копи { visibility: hidden }
+.скл-копия.готово .скл-слово-готово { visibility: visible }

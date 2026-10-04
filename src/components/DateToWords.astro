@@ -115,7 +115,10 @@ const заметки = [с.n1, с.n2, с.n3, с.n4, с.n5, с.n6].filter(Boolean
   </div>
 
   <div class="дт2-низ">
-    <button type="button" class="дт2-кнопка" id="дт2-копировать">{с.copyBig}</button>
+    <button type="button" class="дт2-кнопка" id="дт2-копировать">
+      <span class="дт2-слово-копи">{с.copyBig}</span>
+      <span class="дт2-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="дт2-простая" id="дт2-очистить">{с.clearAll}</button>
   </div>
 
@@ -426,9 +429,9 @@ const заметки = [с.n1, с.n2, с.n3, с.n4, с.n5, с.n6].filter(Boolean
       try { await navigator.clipboard.writeText(ответ.textContent); вышло = true; }
       catch (ошибка) { вышло = false; }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('дт2-очистить').addEventListener('click', () => {

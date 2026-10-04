@@ -85,7 +85,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="рв-низ">
-    <button type="button" class="рв-кнопка" id="рв-копировать">{с.copyBig}</button>
+    <button type="button" class="рв-кнопка" id="рв-копировать">
+      <span class="рв-слово-копи">{с.copyBig}</span>
+      <span class="рв-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="рв-простая" id="рв-очистить">{с.clearAll}</button>
   </div>
 
@@ -166,9 +169,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('рв-очистить').addEventListener('click', () => {

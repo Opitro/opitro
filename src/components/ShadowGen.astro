@@ -145,7 +145,10 @@ const ПОЛЗУНКИ = [
   </div>
 
   <div class="тн-ряд">
-    <button type="button" class="тн-кнопка" id="тн-копировать">{с.copy}</button>
+    <button type="button" class="тн-кнопка" id="тн-копировать">
+      <span class="тн-слово-копи">{с.copy}</span>
+      <span class="тн-слово-готово">{с.copied}</span>
+    </button>
     <button type="button" class="тн-обводка" id="тн-сбросить">{с.reset}</button>
   </div>
 
@@ -292,9 +295,9 @@ const ПОЛЗУНКИ = [
     $('тн-копировать').addEventListener('click', async () => {
       const кнопка = $('тн-копировать');
       try { await navigator.clipboard.writeText($('тн-код').value); } catch (е) { return; }
-      кнопка.textContent = с.copied;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copy; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('тн-сбросить').addEventListener('click', () => {

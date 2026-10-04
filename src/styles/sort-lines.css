@@ -77,3 +77,9 @@
   .ср-кнопки { grid-template-columns: 1fr 1fr }
   .ср-кнопка { font-size: 12px; padding: 10px 8px }
 }
+
+.ср-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.ср-кнопка > span { grid-area: 1 / 1 }
+.ср-кнопка .ср-слово-готово { visibility: hidden }
+.ср-кнопка.готово .ср-слово-копи { visibility: hidden }
+.ср-кнопка.готово .ср-слово-готово { visibility: visible }

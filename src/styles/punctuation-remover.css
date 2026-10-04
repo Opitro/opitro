@@ -90,3 +90,9 @@
 @media (max-width: 560px) {
   .зп-ввод { min-height: 130px }
 }
+
+.зп-кнопка { display: inline-grid; align-items: center; justify-items: center }
+.зп-кнопка > span { grid-area: 1 / 1 }
+.зп-кнопка .зп-слово-готово { visibility: hidden }
+.зп-кнопка.готово .зп-слово-копи { visibility: hidden }
+.зп-кнопка.готово .зп-слово-готово { visibility: visible }

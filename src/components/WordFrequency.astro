@@ -120,7 +120,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="чс-низ">
-    <button type="button" class="чс-кнопка" id="чс-копировать">{с.copyBig}</button>
+    <button type="button" class="чс-кнопка" id="чс-копировать">
+      <span class="чс-слово-копи">{с.copyBig}</span>
+      <span class="чс-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="чс-простая" id="чс-очистить">{с.clearAll}</button>
   </div>
 
@@ -314,9 +317,9 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       try { await navigator.clipboard.writeText(текст); вышло = true; }
       catch (ошибка) { вышло = false; }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
+      кнопка._т = setTimeout(() => { кнопка.classList.remove('готово'); }, 1500);
     });
 
     $('чс-очистить').addEventListener('click', () => {
