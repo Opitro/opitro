@@ -117,7 +117,7 @@
 .рч-сгенерировать[disabled] { cursor: default; background: #16181d; color: #fff;
   border-color: var(--accent) }
 
-.рч-сгенерировать.считает { background: #16181d; color: #fff; border-color: var(--accent) }
+.рч-сгенерировать.считает { background: #16181d; color: #fff; border-color: #fff }
 .рч-сгенерировать.считает:hover { background: #1c1f26; border-color: #fff }
 
 .рч-треки { display: flex; flex-direction: column; gap: 10px; margin-top: 18px }
