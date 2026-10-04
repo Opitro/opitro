@@ -1,21 +1,5 @@
 ---
-// ТЕСТ BLUETOOTH -- своя страница со своим кодом и стилями.
-//
-// Что делаем:
-//   * ПРОВЕРЯЕМ БРАУЗЕР И АДАПТЕР. navigator.bluetooth есть только в браузерах на Chromium;
-//     getAvailability() отвечает, есть ли в устройстве сам модуль.
-//   * ОТКРЫВАЕМ СИСТЕМНОЕ ОКНО ВЫБОРА через requestDevice({acceptAllDevices}). Список
-//     ближних устройств рисует БРАУЗЕР, а не страница.
-//   * ПОКАЗЫВАЕМ ВЫБРАННОЕ: имя, номер, состояние связи; по кнопке соединяемся и, если
-//     устройство отдаёт стандартную службу батареи, показываем заряд.
-//
-// ГЛАВНАЯ ЧЕСТНОСТЬ, о которой молчат другие такие страницы:
-//   1. Сайт НЕ МОЖЕТ просканировать эфир и вывести список соседних устройств. Он видит
-//      ровно одно -- то, которое человек сам выбрал в окне браузера. Так устроена защита:
-//      иначе любой сайт составлял бы карту вашей техники.
-//   2. Web Bluetooth видит только устройства Bluetooth Low Energy в режиме объявления.
-//      Обычные наушники, колонки и клавиатуры работают на классическом Bluetooth и в окне
-//      выбора не появятся -- это не поломка адаптера.
+
 import css from '../styles/bluetooth-test.css?inline';
 
 const { locale = 'ru' } = Astro.props;
@@ -145,7 +129,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     const с = JSON.parse(корень.dataset.words || '{}');
     const $ = (и) => document.getElementById(и);
     const есть = !!(navigator.bluetooth && navigator.bluetooth.requestDevice);
-    const выбранные = new Map();     // id -> {устройство, узел}
+    const выбранные = new Map();
 
     $('бл-браузер').textContent = есть ? с.ok : с.no;
     $('бл-браузер').classList.toggle('плохо', !есть);
@@ -170,7 +154,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       имя.textContent = устройство.name || '(без имени)';
       const ид = document.createElement('span');
       ид.className = 'бл-ид';
-      // Номер устройства длинный и для человека бесполезен целиком -- показываем начало.
+
       ид.textContent = 'ID: ' + String(устройство.id || '').slice(0, 10) + '…';
       const состояние = document.createElement('span');
       состояние.className = 'бл-заряд';
@@ -208,8 +192,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
           значок(true);
           кнопка.textContent = с.disconnect;
           состояние.textContent = '';
-          // Стандартная служба батареи есть далеко не у всех: у многих производителей
-          // она своя и закрытая. Поэтому пробуем, но молчим при отказе.
+
           try {
             const служба = await сервер.getPrimaryService('battery_service');
             const черта = await служба.getCharacteristic('battery_level');
@@ -236,8 +219,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       кнопка.classList.add('ищем');
       кнопка.textContent = с.scanning;
       try {
-        // Окно выбора рисует браузер. Служба батареи заявляется заранее -- иначе после
-        // соединения читать её будет нельзя.
+
         const устройство = await navigator.bluetooth.requestDevice({
           acceptAllDevices: true,
           optionalServices: ['battery_service', 'device_information'],
@@ -247,7 +229,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         }
         $('бл-итог').textContent = с.hint;
       } catch (ошибка) {
-        // Закрытое окно выбора -- это NotFoundError, и ошибкой он не является.
+
         $('бл-итог').textContent = (ошибка && ошибка.name === 'NotFoundError') ? с.cancelled : с.failed;
       }
       кнопка.classList.remove('ищем');

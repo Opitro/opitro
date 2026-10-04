@@ -1,21 +1,8 @@
-/* СТИЛИ СТРАНИЦЫ «СКОРОСТЬ КЛИКА».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство:
- *   1. ПОЛЕ ДЛЯ КЛИКОВ ОГРОМНОЕ. Промахнуться по нему нельзя ни мышью, ни пальцем -- иначе
- *      замер меряет не скорость, а меткость.
- *   2. ВРЕМЯ ИДЁТ С ПЕРВОГО НАЖАТИЯ. Секунды на раздумье в результат не попадают.
- *   3. НИЧЕГО НЕ ПРЫГАЕТ. Счётчик и время стоят на своих местах, цифры моноширинные:
- *      при десяти нажатиях в секунду дрожащая строка невыносима.
- */
 
 .кс {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   max-width: 720px; margin: 0 auto;
 }
-
-/* ---- Настройки ------------------------------------------------------------------- */
 
 .кс-верх { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px }
 .кс-к { font-size: 10px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
@@ -33,8 +20,6 @@
 .кс-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
   border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
 
-/* ---- Поле ------------------------------------------------------------------------ */
-
 .кс-поле {
   position: relative; width: 100%; min-height: 300px; border-radius: 18px; cursor: pointer;
   border: 1px solid var(--line); background: var(--surface);
@@ -47,28 +32,23 @@
 .кс.ждёт .кс-поле { border-color: rgba(74,222,158,.35) }
 .кс.идёт .кс-поле { border-color: rgba(74,222,158,.5);
   box-shadow: 0 0 0 1px rgba(74,222,158,.14), 0 24px 60px -30px rgba(74,222,158,.35) }
-/* Отклик на каждое нажатие: без него непонятно, засчитан клик или нет. */
+
 .кс.бьёт .кс-поле { background: color-mix(in srgb, var(--accent) 7%, var(--surface)) }
 
-/* Оба состояния поля -- ожидание и счёт -- стоят по центру и не двигают поле. */
 .кс-ждёт, .кс-идёт { display: flex; flex-direction: column; align-items: center; gap: 8px }
 .кс-ждёт[hidden], .кс-идёт[hidden] { display: none }
 .кс-зов { font: 800 21px var(--ui); color: var(--text) }
 .кс-под { font: 500 13.5px var(--ui); color: var(--muted); max-width: 40ch }
 
-/* Полоса времени по верхнему краю поля -- видно, не отрывая глаз от места нажатия. */
 .кс-полоса { position: absolute; left: 0; right: 0; top: 0; height: 3px; border-radius: 18px 18px 0 0;
   background: rgba(255,255,255,.06); overflow: hidden }
 .кс-полоса i { display: block; height: 100%; width: 100%; background: var(--accent);
   transform-origin: left; transition: transform .1s linear }
 .кс.мало .кс-полоса i { background: #f5c451 }
 
-/* Счётчик во время нажатий: одно крупное число и время под ним. */
 .кс-счёт { font: 800 84px/1 var(--ui); color: var(--accent); font-variant-numeric: tabular-nums;
   letter-spacing: -.03em }
 .кс-время { font: 700 15px var(--ui); color: var(--muted); font-variant-numeric: tabular-nums }
-
-/* ---- Итог ------------------------------------------------------------------------- */
 
 .кс-итог { position: absolute; inset: 0; display: none; flex-direction: column;
   align-items: center; justify-content: center; gap: 4px; padding: 24px 20px;
@@ -82,7 +62,7 @@
   letter-spacing: -.03em }
 .кс-мера { margin-top: 6px; font: 500 13px var(--ui); color: var(--muted) }
 .кс-мелочь { display: flex; gap: 10px; margin-top: 18px }
-/* Плитки того же вида, что и на счётчике текста: приподнятые, с гранью и тенью. */
+
 .кс-плитка { min-width: 104px; padding: 12px 14px 13px; border-radius: 11px; text-align: center;
   background: linear-gradient(180deg, #23262e, #191b21);
   border: 1px solid rgba(255,255,255,.10);
@@ -92,8 +72,6 @@
 .кс-плитка span { display: block; margin-top: 5px; font: 600 11px var(--ui); letter-spacing: .05em;
   color: rgba(214,219,230,.72) }
 .кс-слово { margin-top: 16px; max-width: 44ch; font: 400 13px/1.55 var(--ui); color: var(--muted) }
-
-/* ---- Низ --------------------------------------------------------------------------- */
 
 .кс-низ { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px }
 .кс-подсказка { font-size: 13px; color: var(--muted) }

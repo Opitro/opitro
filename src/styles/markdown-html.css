@@ -1,11 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «КОНВЕРТЕР MARKDOWN ↔ HTML».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой), текст результата белый, а не
- * приглушённо-серый (#A1A1AA), и счётчики под полями тоже не серые. Результат -- главное на
- * странице, ради него и пришли; приглушать его нельзя.
- */
 
 .мх {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,8 +21,7 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .мх-список:hover { border-color: #fff }
-/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
-   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+
 .мх-список:focus { border-color: #fff; outline: none }
 
 .мх-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
@@ -43,8 +34,6 @@
   transform: scale(0); transition: transform .12s ease }
 .мх-галка input:checked + i { border-color: var(--accent) }
 .мх-галка input:checked + i::after { transform: scale(1) }
-
-/* ---- Поля ---------------------------------------------------------------------------------- */
 
 .мх-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch }
 .мх-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
@@ -63,22 +52,16 @@
 }
 .мх-поле:focus { outline: none }
 .мх-поле::placeholder { color: #8b93a0 }
-/* Текст результата белый: приглушать то, ради чего пришли, нельзя. */
+
 .мх-вывод { color: #fff }
 
-/* Счётчик под полем. Место держится постоянным: он появляется при первом же знаке, и без
-   запаса поля прыгали бы. */
 .мх-счёт { min-height: 32px; display: flex; align-items: center; flex-wrap: wrap; gap: 4px 8px;
   padding: 7px 14px; border-top: 1px solid rgba(255,255,255,.08);
   font: 400 11.5px var(--цифры); color: var(--accent);
   font-variant-numeric: tabular-nums }
 
-/* ---- Показ --------------------------------------------------------------------------------- */
-
 .мх-окно-показ { margin-top: 14px }
 .мх-рамка { width: 100%; height: 320px; border: 0; display: block; background: #0f1115 }
-
-/* ---- Кнопки и заметки ------------------------------------------------------------------------ */
 
 .мх-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px }
 .мх-кнопка {

@@ -1,17 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «JSON ФОРМАТТЕР И ВАЛИДАТОР».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
- *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
- *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
- *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
- *   -- в строке отчёта подпись зелёная, значение белое.
- *
- * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
- * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
- * уже забраковал на Base64, и повторять эту ошибку незачем.
- */
 
 .дж {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -20,8 +6,6 @@
   --беда: #ff9aa8;
   font-family: var(--цифры);
 }
-
-/* ---- Пульт -------------------------------------------------------------------------------- */
 
 .дж-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
   margin-bottom: 12px }
@@ -38,12 +22,9 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .дж-список:hover { border-color: #fff }
-/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
-   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+
 .дж-список:focus { border-color: #fff; outline: none }
 
-/* Знак годности. Место под него занято всегда -- он появляется по ходу набора, и без запаса
-   пульт дёргался бы на каждой букве. */
 .дж-знак {
   margin-left: auto; height: 28px; display: inline-flex; align-items: center;
   padding: 0 12px; border-radius: 5px; font: 700 11.5px var(--цифры);
@@ -52,8 +33,6 @@
 }
 .дж-знак.годен { background: #fff; border-color: #fff; color: #000 }
 .дж-знак.негоден { border-color: var(--беда); color: var(--беда); background: transparent }
-
-/* ---- Поля --------------------------------------------------------------------------------- */
 
 .дж-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
 .дж-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
@@ -70,9 +49,6 @@
 .дж-ввод:focus { outline: none }
 .дж-ввод::placeholder { color: #7d848f }
 
-/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
-   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
-   и без запаса кнопки прыгали бы вниз на первой же букве. */
 .дж-отчёт {
   min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
   padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
@@ -85,17 +61,11 @@
 .дж-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .дж-сказ.видно { opacity: 1 }
 
-/* Предупреждение о повторных ключах: не ошибка, но молчать о нём нельзя. */
 .дж-повторы { display: none; margin-top: 8px; padding: 10px 13px; border-radius: 9px;
   border: 1px solid rgba(245,196,81,.45); background: rgba(245,196,81,.07);
   font: 400 12.5px/1.5 var(--ui); color: #fff }
 .дж-повторы.видны { display: block }
 .дж-повторы b { font-weight: 700 }
-
-/* ---- Кнопки -------------------------------------------------------------------------------- */
-
-/* ---- Полоса кнопок у нижнего края окна вывода ------------------------------------------------
-   Кнопки встроены в само поле: окон два, и без этого неясно, из какого берётся текст. */
 
 .дж-подвал {
   display: flex; justify-content: flex-end; align-items: center; gap: 6px; min-height: 48px;
@@ -114,14 +84,13 @@
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
 }
 .дж-копи .галка { display: none }
-/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+
 .дж-копи.готово { border-color: var(--accent); color: var(--accent) }
 .дж-копи.готово .лист { display: none }
 .дж-копи.готово .галка { display: block }
 .дж-копи:focus-visible, .дж-корзина:focus-visible {
   outline: 2px solid var(--accent); outline-offset: 2px }
 
-/* Нижние углы поля вывода теперь держит полоса кнопок. */
 .дж-вывод .дж-ввод { border-radius: 9px 9px 0 0 }
 
 .дж-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
@@ -138,8 +107,7 @@
 .дж-обводка:hover { background: #fff; color: #000 }
 
 .дж-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
-   каждому выделенному слову. */
+
 .дж-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: #fff }
 .дж-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
@@ -150,12 +118,11 @@
 
 @media (min-width: 1000px) {
   .дж-пара { grid-template-columns: 1fr 1fr }
-  /* Кнопки идут МЕЖДУ полями и в две колонки не лезут: они относятся к обоим сразу. */
+
   .дж-пара .дж-поле:first-child { grid-column: 1 }
 }
 @media (max-width: 560px) {
   .дж-ввод { min-height: 170px }
   .дж-знак { margin-left: 0 }
-  /* Кнопки НЕ растягиваем: раньше тут стояло flex: 1 1 auto, и «Форматировать» со
-     «Сжать» разъезжались во всю ширину экрана. Ширина у них теперь по своему тексту. */
+
 }

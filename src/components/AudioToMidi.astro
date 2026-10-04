@@ -1,18 +1,7 @@
 ---
 import playerCss from '../styles/player.css?inline';
 import css from '../styles/audio-to-midi.css?inline';
-// Audio to MIDI. Separate from AudioTool.astro because nothing about it fits that component's
-// shape: there is no rendered audio buffer to export, the output is notes rather than sound, and
-// the result needs four different views of the same data instead of one waveform.
-//
-// The recognition itself is Spotify's Basic Pitch (Apache 2.0) -- a 0.9 MB model, loaded from a
-// CDN on demand and run in the visitor's own browser. The audio never leaves the device, same as
-// every other tool here.
-//
-// What this file adds on top of the model is the part that decides whether the result is usable:
-// a sensitivity control (measured to move F1 from 52 to 100 across its range on test material),
-// fragment merging, beat-synchronous chord estimation and the three export formats. All of that
-// lives in src/lib/midi-transcribe.js so it can be tested in Node -- see tests/midi-transcribe.
+
 import AdSlot from './AdSlot.astro';
 
 interface Props {
@@ -22,21 +11,12 @@ interface Props {
 
 const { locale, labels } = Astro.props;
 
-// Same 24x24, 2px round-capped family as the audio tools, so a visitor moving between pages sees
-// one icon set rather than two.
 const ICO = {
   download: '<path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><path d="M7 10l5 5 5-5M12 15V3"/>',
   notes: '<circle cx="7" cy="18" r="3"/><circle cx="18" cy="15" r="3"/><path d="M10 18V5l11-2v12"/>',
 };
 ---
 
-{/* The component's stylesheet is imported as a string and written out here, rather
-    than left as an Astro <style> block. Astro attaches a page's styles by walking what
-    the page module imports, not what it renders, so one route file importing all the
-    tool components put every component's CSS into every page -- an identical 47 KB
-    everywhere, of which a calculator page used almost none. As a plain string it lands
-    only on the page that renders this component. It goes first, before any markup, so
-    nothing is ever painted unstyled. */}
 <style is:inline set:html={playerCss + css}></style>
 
 <div class="midi-tool" data-locale={locale} data-labels={JSON.stringify(labels)}>
@@ -46,13 +26,11 @@ const ICO = {
     <div class="small">{labels.dropHint}</div>
     <div class="small formats">{labels.midiBestOnLabel}</div>
   </div>
-  {/* No `accept` on purpose: with accept="audio/*" iOS Safari's picker hides files the OS does
-      not recognise by MIME, which makes perfectly valid recordings unselectable. */}
+
   <input type="file" id="mt-file">
 
   <div class="panel" id="mt-panel">
-    {/* Панель того же вида, что на остальных аудиоинструментах: имя файла -- верхняя строка,
-        волна, под ней ряд управления. */}
+
     <div class="wave-shell compact" id="mt-wave-shell">
       <div class="fileinfo" id="mt-fileinfo"></div>
       <div class="wave-area" id="mt-wave-area">
@@ -79,7 +57,7 @@ const ICO = {
     <div class="stage-text" id="mt-stage"></div>
 
     <div class="controls" id="mt-run-row">
-      {/* Disabled until a file is loaded -- see the note on resetAll(). */}
+
       <button type="button" class="act primary" id="mt-run" disabled>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.notes} />
         <span id="mt-run-label">{labels.midiRunLabel}</span>
@@ -146,8 +124,7 @@ const ICO = {
       </div>
 
       <div class="view" id="mt-view-score" hidden>
-        {/* Real sheet music on white, inside a dark page. It reads as paper, and -- unlike white
-            staff lines on black -- it prints without anyone having to think about it. */}
+
         <div class="score-paper" id="mt-score-paper">
           <div class="score-status" id="mt-score-status"></div>
           <div id="mt-score"></div>
@@ -190,11 +167,9 @@ const ICO = {
     keyFromNotes, tempoFromNotes, notesToScore,
   } from '../lib/midi-transcribe.js';
 
-  // Pinned versions, not a floating tag: a silent major bump in either would change the model's
-  // output for everyone with no way to notice.
   const BASIC_PITCH = 'https://cdn.jsdelivr.net/npm/@spotify/basic-pitch@1.0.1/+esm';
   const MODEL_URL = 'https://cdn.jsdelivr.net/npm/@spotify/basic-pitch@1.0.1/model/model.json';
-  const MODEL_RATE = 22050;   // what Basic Pitch was trained on; anything else is wrong, not just worse
+  const MODEL_RATE = 22050;
   const VEXFLOW = 'https://cdn.jsdelivr.net/npm/vexflow@4.2.3/+esm';
   const MAX_MINUTES = 12;
 
@@ -255,15 +230,11 @@ const ICO = {
     const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
     const player = createPlayer();
-    // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
-    // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница
-    // говорит, что случилось, вместо того чтобы молча притворяться рабочей.
+
     player.onStuck(() => showError(labels.audioStuckLabel));
     let file = null;
     let sourceBuffer = null;
-    // The model's raw output, kept so the sensitivity slider can re-derive notes without running
-    // the network again -- that turns a two-second wait into an instant one, and is the whole
-    // reason the control is usable at all rather than a "re-transcribe" button in disguise.
+
     let modelOutput = null;
     let bpApi = null;
     let rawNotes = [];
@@ -275,7 +246,6 @@ const ICO = {
     let chordStyle = 'chord';
     let rafId = 0;
 
-    /* --- small helpers ------------------------------------------------------------------- */
     function showError(msg) { errBox.textContent = msg; errBox.classList.add('show'); }
     function clearError() { errBox.classList.remove('show'); }
     function fmtClock(s) {
@@ -297,7 +267,6 @@ const ICO = {
       stageTimer = window.setTimeout(() => { progress.classList.remove('on'); stageEl.textContent = ''; }, 2200);
     }
 
-    /* --- file in ------------------------------------------------------------------------- */
     drop.addEventListener('click', () => fileInput.click());
     drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
     drop.addEventListener('dragleave', () => drop.classList.remove('over'));
@@ -308,10 +277,7 @@ const ICO = {
     });
     fileInput.addEventListener('change', (e) => {
       const f = e.target.files[0];
-      // Clear the input straight away, otherwise picking the SAME file again -- after removing it,
-      // or via the swap button -- leaves the value unchanged and the browser fires no change event
-      // at all, so the page just sits there doing nothing. Caught by scripting remove-then-re-add
-      // in a real browser; it would have looked like a dead button to anyone who hit it.
+
       e.target.value = '';
       if (f) pickFile(f);
     });
@@ -325,13 +291,11 @@ const ICO = {
       fileInfo.innerHTML = '';
       panel.classList.remove('on');
       drop.style.display = '';
-      // Symmetry with pickFile(): the shell is hidden here, so it has to be shown there. The
-      // audio tools had exactly this bug -- remove a file, add another, no waveform until reload.
+
       waveShell.style.display = 'none';
       results.style.display = 'none';
       runRow.style.display = '';
-      // Disabled, not enabled: there is no file to work on after a reset. The audio tools had the
-      // mirror image of this -- a download button left live with nothing loaded.
+
       runBtn.disabled = true;
       playBtn.disabled = true;
       playIco.innerHTML = ICO_PLAY;
@@ -383,8 +347,6 @@ const ICO = {
       window.dispatchEvent(new Event('opitro:tool-interaction'));
     }
 
-    // The canvas needs a real layout box before it can size itself; on the first paint after the
-    // panel is revealed it can still measure zero, which silently draws nothing.
     function drawWave(attempt = 0) {
       if (!sourceBuffer) return;
       if (waveCanvas.clientWidth < 2 && attempt < 6) {
@@ -395,10 +357,6 @@ const ICO = {
     }
     new ResizeObserver(() => { if (sourceBuffer) drawWaveform(waveCanvas, sourceBuffer); }).observe(waveCanvas);
 
-    /* --- playback ------------------------------------------------------------------------ */
-    // Positioned against the CANVAS, not against the whole shell. As a percentage of the shell the
-    // marker starts underneath the play button and slides across it, which is what it was doing.
-    // The audio tools solve it the same way; keep the two in step.
     function setPlayhead(frac) {
       const base = waveCanvas.offsetLeft;
       const w = waveCanvas.clientWidth || waveShell.clientWidth;
@@ -431,7 +389,7 @@ const ICO = {
       cancelAnimationFrame(rafId);
       rafId = requestAnimationFrame(tick);
     }
-    // Стоп: остановить и вернуть в начало. Выделения на этой странице нет.
+
     if (stopBtn) {
       stopBtn.addEventListener('click', () => {
         player.reset();
@@ -444,7 +402,7 @@ const ICO = {
         stopBtn.disabled = true;
       });
     }
-    // Подсказка со временем под курсором -- как на остальных инструментах.
+
     if (waveArea && waveGuide && waveTip) {
       waveArea.addEventListener('mousemove', (e) => {
         if (!sourceBuffer) return;
@@ -463,9 +421,7 @@ const ICO = {
       });
     }
     playBtn.addEventListener('click', (e) => {
-      // The handler swaps the glyph, which detaches the event target from the DOM -- without
-      // this the shell's own click handler then sees a target it cannot match and stops
-      // playback a few milliseconds after it started. Learned the hard way on the audio tools.
+
       e.stopPropagation();
       if (!sourceBuffer) return;
       if (player.isPlaying()) { player.pause(); playIco.innerHTML = ICO_PLAY; cancelAnimationFrame(rafId); }
@@ -474,18 +430,14 @@ const ICO = {
     waveShell.addEventListener('click', (e) => {
       if (!sourceBuffer) return;
       if (e.composedPath().some((n) => n instanceof Element && n.classList?.contains('wave-play-btn'))) return;
-      // Against the canvas, matching where the marker is drawn. Measured off the whole shell, a
-      // click landed a button's width away from the spot in the waveform under the cursor.
+
       const r = waveCanvas.getBoundingClientRect();
       const at = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * sourceBuffer.duration;
       startPlayback(at);
     });
 
-    /* --- recognition --------------------------------------------------------------------- */
     async function toModelRate(buffer) {
-      // Mono at exactly 22050 Hz. A single-channel destination downmixes for us, and the
-      // OfflineAudioContext resampler is the browser's own -- better than anything worth
-      // hand-writing here.
+
       const oc = new OfflineAudioContext(1, Math.ceil(buffer.duration * MODEL_RATE), MODEL_RATE);
       const src = oc.createBufferSource();
       src.buffer = buffer;
@@ -503,7 +455,7 @@ const ICO = {
       try {
         if (!bpApi) {
           setStage(labels.midiLoadingModelLabel, 5);
-          bpApi = await import(/* @vite-ignore */ BASIC_PITCH);
+          bpApi = await import( BASIC_PITCH);
         }
         setStage(labels.midiPreparingLabel, 12);
         const mono = await toModelRate(sourceBuffer);
@@ -530,8 +482,6 @@ const ICO = {
       }
     });
 
-    // Re-derives the note list from cached model output. Runs on load and on every sensitivity
-    // change; no network, no model, just thresholds applied to numbers we already have.
     function deriveNotes() {
       if (!modelOutput || !bpApi) return;
       const s = SENSITIVITY[Number(sensInput.value)] || SENSITIVITY[SENSITIVITY_DEFAULT];
@@ -543,15 +493,9 @@ const ICO = {
         dur: +n.durationSeconds.toFixed(4),
         amp: Math.max(0, Math.min(1, n.amplitude)),
       })));
-      // Deleting a note is keyed on pitch+onset rather than on an index, so the deletions a
-      // person made survive a sensitivity change instead of silently jumping to other notes.
+
       removed = new Set([...removed].filter((k) => rawNotes.some((n) => noteKey(n) === k)));
 
-      // Read tempo and key off the notes we are about to show, not off the raw audio. Measured
-      // on the test piece (C major, 120 BPM, with reverb) the audio detectors answered G major
-      // and 156 BPM; the note-based ones answer C major and 120. They also cannot disagree with
-      // what is on screen, which is the point. The audio detectors stay as a fallback for
-      // material too sparse to read a grid from -- a few long chords and nothing else.
       bpm = tempoFromNotes(rawNotes) || detectBpm(sourceBuffer) || 120;
       key = keyFromNotes(rawNotes) || detectKey(sourceBuffer);
       applyEdits();
@@ -581,7 +525,6 @@ const ICO = {
     $('mt-semi-down').addEventListener('click', () => setTranspose(transpose - 1));
     $('mt-semi-up').addEventListener('click', () => setTranspose(transpose + 1));
 
-    /* --- views --------------------------------------------------------------------------- */
     tabsEl.addEventListener('click', (e) => {
       const btn = e.target.closest('.tab');
       if (!btn) return;
@@ -626,7 +569,6 @@ const ICO = {
         .join('');
     }
 
-    // --- piano roll ---
     const KEY_W = 46;
     const ROW_H = 9;
     let rollLo = 36, rollHi = 84, pxPerSec = 90;
@@ -638,13 +580,11 @@ const ICO = {
         if (n.midi > hi) hi = n.midi;
         if (n.onset + n.dur > last) last = n.onset + n.dur;
       }
-      // Always show whole octaves with a little air, so the C labels line up and the highest and
-      // lowest notes are not glued to the edge of the picture.
+
       rollLo = Math.floor((lo - 2) / 12) * 12;
       rollHi = Math.ceil((hi + 2) / 12) * 12;
       const avail = Math.max(240, rollWrap.clientWidth - KEY_W);
-      // Short pieces fill the width; long ones scroll rather than squeezing every note into
-      // one pixel. 90 px/sec is about a finger-width per beat at 120 BPM.
+
       pxPerSec = Math.max(avail / Math.max(last, 0.001), 90);
       if (last * pxPerSec < avail) pxPerSec = avail / Math.max(last, 0.001);
       return true;
@@ -668,7 +608,6 @@ const ICO = {
       const y = (midi) => (rollHi - midi) * ROW_H;
       const isBlack = (m) => [1, 3, 6, 8, 10].includes(((m % 12) + 12) % 12);
 
-      // keyboard column
       const kc = rollKeys.getContext('2d');
       kc.setTransform(dpr, 0, 0, dpr, 0, 0);
       kc.clearRect(0, 0, KEY_W, h);
@@ -688,7 +627,6 @@ const ICO = {
       kc.strokeStyle = 'rgba(255,255,255,0.09)';
       kc.beginPath(); kc.moveTo(KEY_W - 0.5, 0); kc.lineTo(KEY_W - 0.5, h); kc.stroke();
 
-      // roll
       const c = rollCanvas.getContext('2d');
       c.setTransform(dpr, 0, 0, dpr, 0, 0);
       c.clearRect(0, 0, w, h);
@@ -699,8 +637,7 @@ const ICO = {
         c.fillStyle = 'rgba(255,255,255,0.022)';
         c.fillRect(0, y(m), w, ROW_H);
       }
-      // Bar lines from the detected tempo, so the picture is readable as music and not just as
-      // a scatter of blocks. Beats faint, downbeats brighter.
+
       if (bpm > 0) {
         const beat = 60 / bpm;
         for (let b = 0, t = 0; t < last + beat; b++, t = b * beat) {
@@ -718,8 +655,7 @@ const ICO = {
         if (n.midi < rollLo || n.midi > rollHi) continue;
         const x = n.onset * pxPerSec;
         const nw = Math.max(2.5, n.dur * pxPerSec - 1);
-        // Louder notes read stronger, which is what tells a melody apart from an accompaniment
-        // at a glance -- a flat single colour makes every roll look like the same grey soup.
+
         const a = 0.42 + 0.58 * Math.min(1, n.amp);
         c.fillStyle = `rgba(74,222,158,${a.toFixed(3)})`;
         const top = y(n.midi) + 1;
@@ -735,7 +671,7 @@ const ICO = {
       const x = pos * pxPerSec;
       rollPlayhead.style.transform = `translateX(${x}px)`;
       rollPlayhead.style.display = '';
-      // Keep the playhead in view without yanking the scroll on every frame.
+
       const left = rollScroll.scrollLeft, width = rollScroll.clientWidth;
       if (x < left + 40 || x > left + width - 40) rollScroll.scrollLeft = Math.max(0, x - width / 2);
     }
@@ -748,7 +684,6 @@ const ICO = {
     new ResizeObserver(() => drawRoll()).observe(rollWrap);
     new ResizeObserver(() => drawScore()).observe($('mt-score-paper'));
 
-    // --- note list ---
     function renderList() {
       const flats = keyUsesFlats(key);
       if (!notes.length) { noteListEl.innerHTML = `<div class="nl-empty">${escapeHtml(labels.midiEmptyLabel)}</div>`; return; }
@@ -772,11 +707,9 @@ const ICO = {
       if (row) { removed.add(row.dataset.key); applyEdits(); }
     });
 
-    // --- chords ---
     let chordSpans = [];
     function renderChords() {
-      // Chords are estimated from the transposed notes, so shifting the piece shifts the chart
-      // with it instead of leaving a chord sheet that no longer matches what is on screen.
+
       chordSpans = notes.length ? estimateChords(notes, bpm, { key: transposedKey() }) : [];
       if (!chordSpans.length) { chordsEl.innerHTML = `<div class="nl-empty">${escapeHtml(labels.midiEmptyLabel)}</div>`; return; }
       chordsEl.innerHTML = chordSpans.map((c) => {
@@ -803,16 +736,13 @@ const ICO = {
       startPlayback(Math.min(Number(btn.dataset.at) || 0, sourceBuffer.duration));
     });
 
-    /* --- sheet music --------------------------------------------------------------------- */
-    // VexFlow is about 300 KB over the wire and only matters to someone who opens this tab, so it
-    // is fetched the first time that happens and never on page load.
     let vf = null;
     let vfFailed = false;
     async function ensureVexflow() {
       if (vf || vfFailed) return vf;
       scoreStatus.textContent = labels.midiScoreLoadingLabel;
       try {
-        vf = await import(/* @vite-ignore */ VEXFLOW);
+        vf = await import( VEXFLOW);
       } catch (e) {
         vfFailed = true;
         scoreStatus.textContent = labels.midiScoreFailedLabel;
@@ -822,8 +752,8 @@ const ICO = {
       return vf;
     }
 
-    const STAFF_GAP = 92;       // treble baseline to bass baseline
-    const SYSTEM_GAP = 186;     // one system to the next
+    const STAFF_GAP = 92;
+    const SYSTEM_GAP = 186;
     const REST_KEY = { treble: 'b/4', bass: 'd/3' };
 
     async function drawScore() {
@@ -834,7 +764,7 @@ const ICO = {
       scoreEl.innerHTML = '';
 
       const width = Math.max(320, scoreEl.clientWidth || 640);
-      // Fewer bars per line on a narrow screen, or the notes are packed too tightly to read.
+
       const perSystem = width < 480 ? 1 : width < 700 ? 2 : 4;
       const systems = Math.ceil(score.measures.length / perSystem);
 
@@ -846,8 +776,7 @@ const ICO = {
       for (let s = 0; s < systems; s++) {
         const bars = score.measures.slice(s * perSystem, (s + 1) * perSystem);
         const y = 10 + s * SYSTEM_GAP;
-        // The opening bar of each system carries the clef and key signature, so it needs more
-        // room than the rest; the remainder is shared out evenly.
+
         const lead = 58 + Math.abs(score.key.fifths) * 9 + (s === 0 ? 26 : 0);
         const plain = Math.max(90, (width - 20 - lead) / bars.length);
         let x = 10;
@@ -887,16 +816,13 @@ const ICO = {
             const voice = new V.Voice({ num_beats: score.beatsPerMeasure, beat_value: 4 })
               .setMode(V.Voice.Mode.SOFT)
               .addTickables(built.map((b) => b.note));
-            // Let VexFlow decide which accidentals the key signature already covers, rather than
-            // printing a sharp on every black key -- that is what makes a score look machine-made.
+
             V.Accidental.applyAccidentals([voice], score.key.name);
             const beams = V.Beam.generateBeams(built.filter((b) => !b.ev.rest).map((b) => b.note));
             new V.Formatter().joinVoices([voice]).formatToStave([voice], stave);
             voice.setStave(stave).draw(ctx, stave);
             beams.forEach((b) => b.setContext(ctx).draw());
-            // Ties between the pieces of one long note. Only within a bar: a tie across a barline
-            // or a line break needs a curve VexFlow cannot place from here, and a half-drawn one
-            // reads worse than none.
+
             built.forEach((b, i) => {
               if (!b.ev.tieStart || !built[i + 1] || !built[i + 1].ev.tieEnd) return;
               new V.StaveTie({ first_note: b.note, last_note: built[i + 1].note }).setContext(ctx).draw();
@@ -912,7 +838,6 @@ const ICO = {
     }
     $('mt-print').addEventListener('click', () => window.print());
 
-    /* --- export -------------------------------------------------------------------------- */
     function renderFmtHint() {
       const hints = labels.midiFmtHints || {};
       fmtHint.textContent = hints[fmtSelect.value] || '';
@@ -947,4 +872,3 @@ const ICO = {
     });
   }
 </script>
-

@@ -12,18 +12,15 @@ interface Props {
   locale: string;
   title: string;
   description: string;
-  /** Other language versions of this exact page, for hreflang + the language switcher. Omit on pages that don't vary by tool (e.g. homepage). */
+
   translations?: Translation[];
-  /** Path after the locale segment, e.g. "km-v-mili" or "" for the homepage. */
+
   path?: string;
-  /** Category link shown above the page content, e.g. { label: "Длина", href: "/ru/tools/length" }. Omit on pages with no parent category (homepage, category pages themselves). */
+
   breadcrumb?: { label: string; href: string };
-  /** КОРОТКОЕ имя самой страницы для дорожки в поиске: «Сканер EXIF», а не длинный title.
-      Без него дорожка обрывается на рубрике, и Google показывает голый адрес. */
+
   crumbName?: string;
-  /** Показывать ли в подвале ссылку «Написать нам». Страницы инструментов её отключают: у них
-      та же ссылка стоит плиткой в конце текста, и в подвале она оказывалась вторым таким же
-      приглашением в паре сантиметров от первого. */
+
   footerContact?: boolean;
 }
 
@@ -32,37 +29,20 @@ const { locale, title, description, translations = [], path = '', breadcrumb, cr
 const LOCALE_NAMES: Record<string, string> = { en: 'English', ru: 'Русский', es: 'Español', uk: 'Українська' };
 const DEFAULT_LOCALE = 'en';
 
-// Standing rule: every page title ends with the site name. Applied here rather than typed into
-// each of the ~170 content files, so it can't be forgotten on a new page and can be changed in
-// one place. Titles that already name the brand are left alone instead of doubling it up.
 const BRAND = 'Opitro';
 const fullTitle = title.includes(BRAND) ? title : `${title} | ${BRAND}`;
 
-// Every page needs a way to browse to other categories — fetched here once, in the shared
-// Layout, instead of every page having to remember to pass it down.
 const allCategories = await getCollection('categories');
 const navCategories = allCategories.filter((c) => c.data.locale === locale);
 
-// Astro's own astro:i18n helper, not a hand-rolled string template -- verified via a real
-// build that it still produces no trailing slash (must match wrangler.jsonc's
-// html_handling: "drop-trailing-slash", or canonical/hreflang disagree with what the server
-// actually serves, a bug caught live twice already before this URL-building was centralized).
 const canonicalUrl = new URL(getRelativeLocaleUrl(locale, path), Astro.site).toString();
 
-// ДОРОЖКА ДЛЯ ПОИСКА (BreadcrumbList). Видимая строка «← Сканеры» была, а машинной разметки
-// не было вовсе -- и в выдаче под заголовком стоял голый адрес вместо пути «Opitro › Сканеры
-// › Сканер EXIF». Собираем её здесь, в одном месте: страница даёт рубрику и своё короткое
-// имя, остальное известно самому макету.
 const дорожка = [
   { name: 'Opitro', item: new URL(getRelativeLocaleUrl(locale, ''), Astro.site).toString() },
   ...(breadcrumb ? [{ name: breadcrumb.label, item: new URL(breadcrumb.href, Astro.site).toString() }] : []),
   ...(crumbName ? [{ name: crumbName, item: canonicalUrl }] : []),
 ];
-// САЙТ КАК СУЩНОСТЬ. Без этой разметки поиск знает только набор страниц: кто их издаёт, как
-// сайт называется и какой у него значок -- приходится угадывать. Ставим её один раз, на
-// главной каждого языка: на всех страницах подряд она была бы повтором без пользы.
-// Поиска по сайту в разметке НЕТ нарочно: он у нас работает прямо на главной, без отдельного
-// адреса с запросом, и объявить его значило бы дать поиску ссылку, которая никуда не ведёт.
+
 const главнаяЯзыка = path === '';
 const сайтJsonLd = главнаяЯзыка ? {
   '@context': 'https://schema.org',
@@ -108,11 +88,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
 <meta property="og:title" content={fullTitle}>
 <meta property="og:description" content={description}>
 <meta property="og:url" content={canonicalUrl}>
-{/* Картинка для мессенджеров, соцсетей и предпросмотра поиска -- своя на каждый язык:
-    на ней есть текст, и русская строка на английской странице была бы браком. Рисуется
-    скриптом scripts/make-og.mjs. Браузер её НЕ скачивает: за ней приходят только поисковик
-    и мессенджер, когда строят предпросмотр, поэтому на скорость страницы она не влияет.
-    Адрес полный: относительный путь мессенджеры не понимают. */}
+
 <meta property="og:image" content={new URL(`/og-${locale}.png`, Astro.site).toString()}>
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
@@ -128,9 +104,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
 {translations.map((t) => (
   <link rel="alternate" hreflang={t.locale} href={new URL(getRelativeLocaleUrl(t.locale, path), Astro.site).toString()} />
 ))}
-{/* x-default -- это «версия для тех, чей язык мы не угадали». Для главной такая версия у нас
-    есть: страница выбора языка в корне. Для остальных страниц выбора нет, и роль запасной
-    играет английская. */}
+
 {translations.some((t) => t.locale === DEFAULT_LOCALE) && (
   <link rel="alternate" hreflang="x-default"
         href={path === '' ? Astro.site.toString() : new URL(getRelativeLocaleUrl(DEFAULT_LOCALE, path), Astro.site).toString()} />
@@ -140,28 +114,13 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
     --bg:#0e0f11;--surface:#181a20;--surface-2:#1c1e24;--line:rgba(255,255,255,0.09);
     --accent:#4ade9e;--accent2:#60efb8;--text:#f0f0f2;--muted:rgba(214,219,230,0.82);
   }
-  /* Подсветка выделенного и найденного текста.
-     ВЫДЕЛЕНИЕ -- НЕЙТРАЛЬНОЕ, БЕЗ ЦВЕТА. Зелёный владельцу не понравился, и он прав: зелёный
-     на сайте занят делом -- им помечено включённое и удавшееся. Выделение же означает всего
-     лишь «я это сейчас копирую», и красить его в цвет со смыслом неверно. Светло-серая
-     заливка на тёмном читается спокойно и не спорит ни с чем.
-     ::target-text -- подсветка той фразы, ради которой человек перешёл из поиска Google;
-     это ОТМЕТКА, а не выделение, и там цвет к месту -- он говорит «вот то, что вы искали». */
-  /* ЦВЕТ БУКВ ПРИ ВЫДЕЛЕНИИ НЕ ТРОГАЕМ. Раньше здесь стояло color:#fff -- верно для тёмного
-     фона сайта и гибельно для светлых панелей: на «листе бумаги» с прочитанным текстом буквы
-     становились белыми на белом и пропадали совсем. Владелец поймал это на тексте из PDF,
-     а светлые панели есть в шести десятках инструментов.
-     Фон -- нейтральный серый: он виден и на тёмном, и на белом. Жёлтый маркер не годится:
-     им уже подсвечивается абзац по наведению, и выделение стало бы от него неотличимо. */
+
   ::selection{background:rgba(130,130,148,0.55)}
   ::target-text{background:rgba(74,222,158,0.30);color:#fff}
   *{box-sizing:border-box;margin:0;padding:0}
   html{background:var(--bg);overflow-x:hidden;width:100%}
   body{background:var(--bg);color:var(--text);font-family:-apple-system,BlinkMacSystemFont,'Segoe UI',Roboto,'Helvetica Neue',Arial,sans-serif;font-size:14px;display:flex;flex-direction:column;min-height:100vh;overflow-x:hidden;width:100%}
-  /* ТОЛЬКО ШАПКА, а не всякий <nav> на странице. Голый селектор nav цеплял и ряды переходов
-     внутри страниц: на рубрике «Работа с текстом» кнопки полок переносились на три строки,
-     а высота оставалась шапочной (56 px) -- и третья строка наезжала на заголовок первой
-     полки. Ловушка повторная: в Minify.astro из-за неё уже отказались от <nav>. */
+
   .site-nav{display:flex;align-items:center;justify-content:space-between;padding:0 2.5rem;height:56px;border-bottom:1px solid rgba(255,255,255,0.06);position:relative}
   main{flex:1;display:flex;flex-direction:column}
   .logo{font-size:20px;font-weight:700;color:#fff;text-decoration:none;display:flex;align-items:center;gap:8px}
@@ -175,15 +134,11 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   .dd-btn-icon svg{width:24px;height:24px;color:#f0f0f2}
   .dd-menu{display:none;position:absolute;top:calc(100% + 6px);right:0;min-width:170px;max-height:70vh;overflow-y:auto;background:#14161c;border:1px solid rgba(255,255,255,0.1);border-radius:12px;flex-direction:column;gap:0;padding:6px;z-index:100;box-shadow:0 12px 36px rgba(0,0,0,0.5)}
   .dd-menu.open{display:flex}
-  /* Открытие по наведению -- только там, где есть настоящая мышь.
-     На телефоне и планшете наведения нет: браузер подделывает его первым касанием, и меню
-     открывалось бы, но первое нажатие по ссылке уходило бы впустую. Поэтому проверяем
-     и hover, и точность указателя -- нажатие продолжает работать везде, включая мышь. */
+
   @media (hover:hover) and (pointer:fine){
     .dropdown:hover .dd-menu,
     .dropdown:focus-within .dd-menu{display:flex}
-    /* Полоска-мостик под кнопкой: без неё меню закрывается, пока ведёшь мышь
-       через зазор в 6 точек между кнопкой и меню. */
+
     .dropdown:hover::after{content:'';position:absolute;left:0;right:0;top:100%;height:8px}
   }
   .dd-link{font-size:13.5px;color:rgba(210,215,228,0.82);text-decoration:none;padding:10px 12px;border-radius:8px;white-space:nowrap;transition:all 0.15s}
@@ -205,19 +160,13 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   .lc-swap{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:2px auto;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
   .lc-swap:hover{border-color:var(--accent);color:var(--accent)}
   .lc-swap svg{width:16px;height:16px}
-  /* Ширина калькулятора -- его собственное свойство, а не свойство страницы, поэтому она
-     лежит здесь, рядом с остальными его стилями. Раньше она стояла в стилях страницы рубрики
-     и оттуда не доставала до чужой разметки -- приходилось снимать защиту через :global.
-     616 пикселей: растянутый во всю ширину, он разносил два поля ввода по краям экрана,
-     и взгляд ходил между ними через всю страницу. */
+
   .uc-widget{max-width:616px;margin-left:auto;margin-right:auto}
   .uc-row{display:flex;align-items:center;gap:10px}
   .uc-row .field{flex:1;display:flex;flex-direction:column;gap:8px;margin-bottom:0}
   .uc-row input,.uc-row select{height:46px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--text);font-family:inherit;font-size:15px;padding:0 12px;width:100%}
   .uc-row input#uc-output{color:var(--accent);font-weight:700}
-  /* Та же стрелка, что во всех аудиоинструментах: своя тонкая галочка вместо браузерной,
-     которая на каждой платформе рисуется по-своему и не совпадает ни с одним нашим значком.
-     Отдельным правилом, а не в строке выше, потому что поле ввода рядом стрелки не имеет. */
+
   .uc-row select{appearance:none;-webkit-appearance:none;padding-right:38px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
@@ -226,18 +175,16 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   .uc-swap svg{width:17px;height:17px}
   @media(max-width:480px){.uc-row{flex-direction:column;align-items:stretch}.uc-swap{align-self:center;margin-top:0;transform:rotate(90deg)}}
   @supports (appearance: base-select) {
-    /* nowrap: в этом режиме <select> становится флекс-контейнером, и длинные подписи вроде
-       «Морские мили» переносились бы на вторую строку, раздувая коробку. */
+
     .uc-row select{appearance:base-select;cursor:pointer;display:flex;align-items:center;
       white-space:nowrap;overflow:hidden}
     .uc-row select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;position-try-fallbacks:none}
-    /* Стрелку рисует наша картинка выше; браузерная ::picker-icon -- сплошной треугольник. */
+
     .uc-row select::picker-icon{display:none}
     .uc-row option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
     .uc-row option:hover,.uc-row option:focus,.uc-row option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
     .uc-row option:checked{color:var(--accent)}
-    /* Псевдоэлемент живёт на option, а не на select. Прежняя запись `select::checkmark`
-       не срабатывала ни разу: галочка слева оставалась и сдвигала текст всех пунктов. */
+
     .uc-row option::checkmark{display:none}
   }
   section.seo{max-width:680px;margin:40px auto 0;padding:0 2rem;color:var(--muted);font-size:13px;line-height:1.7}
@@ -246,15 +193,10 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   section.seo p{margin-bottom:14px}
   section.seo a{color:var(--accent);text-decoration:underline;text-decoration-color:rgba(74,222,158,0.4)}
   section.seo a:hover{text-decoration-color:var(--accent)}
-  /* --- Образец новой вёрстки текста. Пока включён только на /ru/audio-to-midi (класс v2 ставит
-     [slug].astro). Если понравится -- условие снимается и это становится общим правилом.
-     Смысл правок: инструменту дать ширину, а тексту наоборот оставить узкую колонку, потому что
-     строка длиннее ~75 символов читается заметно хуже. Сам текст был 13px приглушённо-серым --
-     это и есть причина, по которой он "сливался". */
+
   section.seo.v2{font-size:15px;line-height:1.75;color:rgba(216,221,232,0.92)}
   section.seo.v2 h2{font-size:21px;color:var(--text);font-weight:650;letter-spacing:-.01em;margin:38px 0 15px}
-  /* Короткая цветная черта под заголовком: глазу есть за что зацепиться при прокрутке, и разделы
-     отличаются друг от друга не только словами. Цвет задаётся переменной ниже. */
+
   section.seo.v2 h2::after{content:"";display:block;width:44px;height:3px;border-radius:2px;margin-top:10px;background:var(--rule,var(--accent))}
   section.seo.v2 > h2:nth-of-type(1){--rule:#4ade9e;margin-top:0}
   section.seo.v2 > h2:nth-of-type(2){--rule:#e8b563}
@@ -265,8 +207,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   section.seo.v2 li{position:relative;padding-left:20px;margin-bottom:9px}
   section.seo.v2 li::before{content:"";position:absolute;left:2px;top:9px;width:6px;height:6px;border-radius:50%;background:var(--accent);opacity:.75}
   section.seo.v2 li strong{color:var(--text);font-weight:600}
-  /* Вопросы. Каждый отделён волосяной линией сверху и своей короткой чертой под текстом -- так
-     двенадцать вопросов подряд перестают быть одной сплошной стеной. */
+
   section.seo.v2 > div{margin-bottom:0 !important;padding:18px 0;border-top:1px solid rgba(255,255,255,0.07)}
   section.seo.v2 > div:first-of-type{border-top:none}
   section.seo.v2 h3{font-size:16.5px;color:var(--text);font-weight:600;margin-bottom:0;line-height:1.4}
@@ -276,31 +217,15 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   section.seo.v2 > div:nth-of-type(4n+3) h3{--rule:#7fa8f0}
   section.seo.v2 > div:nth-of-type(4n+4) h3{--rule:#f08a72}
   section.seo.v2 > div p{margin-bottom:0}
-  /* Картинка внутри ответа: пример кода. Небольшая и аккуратная -- это пример, а не плакат.
-     Белая подложка обязательна: код чёрным по прозрачному на тёмной странице не виден вовсе.
-     Строчные элементы, а не figure: ответ уже лежит внутри <p>. */
+
   section.seo.v2 .faq-shot{display:block;margin:14px 0 4px}
   section.seo.v2 .faq-shot img{display:block;max-width:100%;height:auto;border-radius:8px;background:#fff;padding:8px;box-sizing:content-box}
   @media(max-width:640px){section.seo.v2{font-size:14.5px}section.seo.v2 h2{font-size:19px;margin-top:30px}}
 
-
-  /* Плитки «Попробуйте ещё». Раскладка та же, что у карточек на страницах категорий, чтобы на
-     сайте был один язык, а не два. Значок обозначает род действия -- резать, склеивать, слушать;
-     см. src/lib/tool-icons.js, там же объяснено, почему не по значку на каждый инструмент.
-     ВНИМАНИЕ: эти правила однажды были снесены заодно с отвергнутыми набросками оформления,
-     и плитки уехали на боевой сайт без стилей -- гигантский значок вместо ряда плиток. Держать
-     их отдельным блоком и проверять плитки глазами после любой уборки в этом файле. */
-  /* ПЛИТКИ «ПОПРОБУЙТЕ ЕЩЁ» внизу страницы инструмента. Две колонки на телефоне, дальше
-     по ширине окна. Раньше здесь были длинные кнопки во всю строку -- ряд одинаковых полос,
-     по которым не хочется нажимать. Сетка и правила те же, что у плиток рубрики: одна плитка
-     на весь сайт, и выглядит она везде одинаково.
-     max-width и column-span сбрасывают правила текстового блока, внутри которого она стоит. */
   section.seo.v2 .рядом-сетка{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));
     gap:10px;margin:0 0 10px;padding:0;max-width:none;column-span:all}
   @media(max-width:760px){section.seo.v2 .рядом-сетка{grid-template-columns:repeat(2,1fr);gap:8px}}
-  /* Плитка стоит внутри текстового блока, а там ссылки подчёркнуты и набраны кеглем статьи.
-     Для плитки это чужое: подчёркивание превращает её в строку текста, а крупные буквы
-     разносят названия на три строки, и ряд теряет ровный край. */
+
   section.seo.v2 .рядом-сетка a{text-decoration:none}
   section.seo.v2 .рядом-сетка .tc-name{font-size:14px;line-height:1.3;font-weight:600;
     color:var(--text)}
@@ -317,12 +242,6 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
     background:rgba(74,222,158,0.06)}
   section.seo.v2 ul.chips svg{width:19px;height:19px;flex:none;color:var(--accent)}
 
-  /* Д. Одна широкая колонка: текст идёт во всю ширину контейнера, подчёркнуты только
-     заголовки разделов -- у вопросов ни полос, ни цвета. Кегль поднят до 16px и межстрочное
-     Кегль такой же, как везде -- 15px: поднимать его на широкой строке я пробовал, но это
-     удлиняет строку в знаках, а не укорачивает. */
-  /* Ширину в 1000px задаёт [slug].astro и только медиастраницам. Здесь -- ширина по умолчанию:
-     на странице калькулятора текст остаётся в колонке инструмента, иначе края разъезжаются. */
   section.seo.ve{max-width:680px}
   section.seo.ve h2{font-size:22px;color:#fff;font-weight:650;letter-spacing:-.015em;
     margin:46px 0 18px;padding-bottom:11px;border-bottom:2px solid var(--rule,rgba(74,222,158,0.5))}
@@ -337,29 +256,21 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   section.seo.ve > p:first-of-type{font-size:16.5px;line-height:1.65;color:rgba(226,231,240,0.95);margin-bottom:8px}
   @media(max-width:640px){section.seo.ve h2{font-size:20px;margin-top:32px}}
 
-
-  /* Список инструментов шире текста: текст читается узкой колонкой, а плитки -- наоборот,
-     чем шире, тем меньше прокрутки. На большом экране это шесть колонок вместо трёх. */
-  /* width:100% обязателен: main -- гибкая колонка, и без него раздел сжимается по содержимому,
-     а не занимает отведённые 1360. Из-за этого на широком экране было четыре колонки вместо шести. */
   .all-tools{max-width:1360px;width:100%;margin:50px auto 0;padding:0 2rem}
   .all-tools-title{font-size:18px;font-weight:600;color:rgba(210,215,228,0.85);margin-bottom:18px;text-align:center}
-  /* Колонка чуть шире прежних 205: названия теперь называют дело («Генератор QR-кода»,
-     а не «QR-код») и оттого длиннее. */
+
   .all-tools-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(232px,1fr));gap:10px}
   .tool-card{display:flex;align-items:center;gap:10px;padding:13px 14px;min-height:52px;background:var(--surface);border:1px solid var(--line);border-radius:13px;text-decoration:none;transition:transform .12s,border-color .2s,background .2s}
   .tool-card:hover{transform:translateY(-3px);border-color:var(--shelf,var(--accent));
     background:color-mix(in srgb,var(--shelf,var(--accent)) 6%,transparent)}
   .tc-name{font-size:14px;font-weight:600;color:var(--text);text-align:left;line-height:1.3}
-  /* Значок обозначает род дела, а не сам инструмент: их тринадцать на семьдесят восемь страниц,
-     и оттого они узнаются -- увидев ножницы второй раз, человек уже знает, что это про резку. */
+
   .tc-ico{flex:none;width:19px;height:19px;color:var(--shelf,var(--accent))}
   @media(max-width:760px){.all-tools-grid{grid-template-columns:repeat(2,1fr)}.all-tools{padding:0 1rem}}
   @media(max-width:640px){.main{padding:1.5rem 1rem 2rem}section.seo{padding:0 1rem}}
   footer{padding:1.25rem;text-align:center;font-size:12px;color:rgba(200,205,220,0.78);border-top:1px solid rgba(255,255,255,0.05);margin-top:auto}
   footer a{color:rgba(200,205,220,0.75);text-decoration:none;margin:0 8px}
-  /* Подсказка о языке: прижата к низу, поверх всего, ничего не двигает. Появляется редко и
-     уходит навсегда, если человек её закрыл. */
+
   .яз-подсказка {
     position: fixed; left: 12px; right: 12px; bottom: 12px; z-index: 60;
     display: flex; align-items: center; gap: 12px; margin: 0 auto; max-width: 520px;
@@ -385,10 +296,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
 </head>
 <body>
 <script is:inline>
-  // Запоминает сбои в коде страницы, чтобы человек мог приложить их к письму, если сам захочет.
-  // Никуда ничего не отправляется: это sessionStorage, он живёт до закрытия вкладки и виден
-  // только этому браузеру. Молчаливую отправку на сервер здесь делать нельзя -- на каждой
-  // странице обещано, что данные остаются у человека, и отладка не повод это нарушать.
+
   (() => {
     const KEY = 'opitro:errors';
     const push = (text) => {
@@ -397,7 +305,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
         if (list.includes(text) || list.length >= 5) return;
         list.push(text);
         sessionStorage.setItem(KEY, JSON.stringify(list));
-      } catch { /* приватный режим -- просто ничего не запоминаем */ }
+      } catch {  }
     };
     addEventListener('error', (e) => {
       const where = e.filename ? ' (' + String(e.filename).split('/').pop() + ':' + e.lineno + ')' : '';
@@ -455,8 +363,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   )}
 </footer>
 <script is:inline>
-  // ПОДСКАЗКА О ЯЗЫКЕ. Адрес нужной версии берём из hreflang в голове страницы -- он там уже
-  // есть и всегда указывает на ЭТУ ЖЕ страницу на другом языке, а не на главную.
+
   (function () {
     var СЛОВА = {
       uk: { т: 'Ця сторінка є українською', д: 'Перейти' },
@@ -477,8 +384,6 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
     var ссылка = document.querySelector('link[rel="alternate"][hreflang="' + хочет + '"]');
     if (!ссылка) return;
 
-    // Полоску собираем здесь, а не в разметке: ссылка без адреса в готовой странице -- это
-    // битая ссылка, и она была бы на каждой странице сайта.
     var полоска = document.createElement('div');
     полоска.className = 'яз-подсказка';
     полоска.setAttribute('lang', хочет);
@@ -503,8 +408,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
 
 <script>
   const dropdowns = document.querySelectorAll<HTMLElement>('[data-dropdown]');
-  // Само открытие делает CSS (см. выше). Здесь только держим в порядке отметку для читалок
-  // экрана: она должна говорить правду о том, открыто меню или нет.
+
   if (window.matchMedia('(hover:hover) and (pointer:fine)').matches) {
     dropdowns.forEach((dd) => {
       const btn = dd.querySelector('.dd-btn');

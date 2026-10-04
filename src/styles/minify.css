@@ -1,10 +1,3 @@
-/* СТИЛИ СТРАНИЦ «МИНИФИКАТОР HTML / CSS / JS».
- *
- * Один файл на три страницы: вид у них общий, разнятся только наладки и заметки.
- *
- * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); вывод и счётчики не
- * приглушённо-серые, а белые -- мелкое сделано тонким начертанием, а не полупрозрачным.
- */
 
 .мн {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -12,8 +5,6 @@
   --линия: rgba(255,255,255,.16);
   font-family: var(--цифры);
 }
-
-/* ---- Ряд соседей ---------------------------------------------------------------------------- */
 
 .мн-соседи { display: flex; gap: 6px; margin-bottom: 16px; flex-wrap: wrap }
 .мн-сосед {
@@ -24,12 +15,10 @@
   transition: border-color .15s, background .15s, color .15s;
 }
 .мн-сосед:hover { border-color: #fff; background: #23272f; color: #fff }
-/* Своя страница -- обводкой, без заливки: залитая читалась бы как нажатая кнопка. */
+
 .мн-тут { border-color: var(--accent); color: var(--accent); background: transparent;
   cursor: default }
 .мн-сосед:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-
-/* ---- Галочки -------------------------------------------------------------------------------- */
 
 .мн-галки { display: flex; flex-wrap: wrap; gap: 10px 20px; align-items: center;
   margin-bottom: 12px }
@@ -46,15 +35,12 @@
 .мн-галка input:checked + i::after { transform: scale(1) }
 .мн-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
 
-/* ---- Окна кода ------------------------------------------------------------------------------ */
-
 .мн-ввод {
   width: 100%; min-height: 220px; resize: vertical; display: block;
   padding: 14px 16px; border-radius: 12px;
   font: 400 13px/1.7 var(--цифры); color: #fff; background: #09090b;
   border: 1px solid var(--линия);
-  /* Переносим, а не прокручиваем вбок: сжатый код -- это одна строка в тысячи знаков, и
-     горизонтальная полоса сделала бы её нечитаемой. Отступы исходника при этом целы. */
+
   white-space: pre-wrap; overflow-wrap: anywhere;
   transition: border-color .15s;
 }
@@ -71,28 +57,19 @@
   width: 100%; min-height: 200px; resize: vertical;
   padding: 14px 16px; border: 0; background: transparent; color: #fff;
   font: 400 13px/1.7 var(--цифры);
-  /* Переносим, а не прокручиваем вбок: сжатый код -- это одна строка в тысячи знаков, и
-     горизонтальная полоса сделала бы её нечитаемой. Отступы исходника при этом целы. */
+
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .мн-вывод:focus { outline: none }
 .мн-вывод::placeholder { color: #8b93a0 }
 
-/* Строка счётчиков занимает место всегда -- иначе кнопки под ней прыгали бы после первого
-   сжатия. */
-/* ВЫСОТА ЭТОЙ СТРОКИ ОДНА И ТА ЖЕ ВО ВСЕХ ТРЁХ СОСТОЯНИЯХ. Мерил, а не прикидывал: пустая
-   выходила 34 пикселя, с числами 36, с сообщением об ошибке 35 -- и кнопки под окном
-   прыгали при каждом сжатии. Виновата была не разница шрифтов сама по себе, а выравнивание
-   строчных боксов по базовой линии: подпись в 11 пунктов растягивала строку до 19 пикселей,
-   а сообщение в 12 давало 18. Обе половины сделаны флексовыми с одинаковой наименьшей
-   высотой, и выравнивание по базовой линии из счёта выпадает. */
 .мн-счёт { min-height: 48px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 6px 8px 6px 16px; border-top: 1px solid rgba(255,255,255,.08);
   font: 400 12px/18px var(--цифры); color: #fff; font-variant-numeric: tabular-nums;
-  /* Нижние углы окна держит эта полоса. */
+
   border-radius: 0 0 11px 11px }
 .мн-счёт > span { display: flex; align-items: center; gap: 5px; min-height: 19px }
-/* Кнопки прижаты к правому краю полосы, счётчики остаются слева. */
+
 .мн-знаки { gap: 6px; flex: none; margin-left: auto }
 
 .мн-копи, .мн-корзина {
@@ -108,7 +85,7 @@
   stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round;
 }
 .мн-копи .галка { display: none }
-/* Готово -- зелёная галочка в зелёной обводке, без заливки. */
+
 .мн-копи.готово { border-color: var(--accent); color: var(--accent) }
 .мн-копи.готово .лист { display: none }
 .мн-копи.готово .галка { display: block }
@@ -119,11 +96,8 @@
 .мн-имя { font-size: 11px; letter-spacing: .06em; color: var(--accent) }
 .мн-числа b { font-weight: 700; color: #fff }
 .мн-беда { color: #ff8f8f; overflow-wrap: anywhere }
-/* Правило display выше сильнее, чем display:none у браузера для [hidden], -- без этой
-   строки спрятанное сообщение осталось бы на виду. */
-.мн-беда[hidden] { display: none }
 
-/* ---- Кнопки и заметки ------------------------------------------------------------------------ */
+.мн-беда[hidden] { display: none }
 
 .мн-кнопка {
   flex: 0 0 auto; height: 44px; padding: 0 20px; border-radius: 6px; cursor: pointer;
@@ -135,7 +109,7 @@
 .мн-кнопка[disabled]:hover { background: #14161b; color: #8b93a0 }
 
 .мн-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+
 .мн-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: #fff }
 .мн-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
@@ -146,7 +120,7 @@
 
 @media (max-width: 560px) {
   .мн-ввод, .мн-вывод { font-size: 12px; min-height: 170px }
-  /* Кнопку на всю ширину не растягиваем: полоса во весь экран кнопкой не читается. */
+
   .мн-пуск { padding: 0 22px }
   .мн-счёт { font-size: 11.5px; gap: 6px }
 }

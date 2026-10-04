@@ -1,19 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ТЕСТ ПРОЕКТОРА».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство то же, что у цветов монитора: восемь таблиц карточками, каждая со своим именем
- * и строкой «что смотреть», по нажатию -- во весь экран. Одна общая «проверка проектора»
- * бесполезна: человек смотрит на картинку и не знает, что на ней должно быть не так.
- *
- * Особенность проектора: смотреть на таблицу и нажимать кнопки приходится из разных мест
- * комнаты. Поэтому таблицы листаются не только нажатием, но и стрелками с пробелом -- с
- * пультом-презентером это те же клавиши.
- *
- * Цвет свой -- бирюзовый. Все остальные из знака сайта уже заняты соседними страницами про
- * экран: коралловый у частоты обновления, сиреневый у пикселей, янтарный у выгорания,
- * розовый у цветов, оранжевый у HDR.
- */
 
 .пр {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -28,8 +12,6 @@
 }
 .пр-совет svg { flex: none; width: 17px; height: 17px; margin-top: 1px; color: var(--свой) }
 
-/* ---- Таблицы -------------------------------------------------------------------------- */
-
 .пр-сетка { display: grid; grid-template-columns: repeat(auto-fit, minmax(230px, 1fr)); gap: 10px }
 .пр-карта {
   display: flex; flex-direction: column; text-align: left; padding: 0; overflow: hidden;
@@ -43,8 +25,6 @@
 .пр-имя { display: block; padding: 11px 13px 3px; font: 700 13.5px var(--ui); color: var(--text) }
 .пр-что { display: block; padding: 0 13px 13px; font-size: 12px; line-height: 1.5; color: var(--muted) }
 
-/* Образцы -- уменьшенные подобия самих таблиц. Значок не сказал бы, что откроется, а
-   рисовать восемь холстов ради картинки размером со спичечный коробок незачем. */
 .пр-обр-1 {
   background:
     repeating-linear-gradient(90deg, #d8d8d8 0 1px, transparent 1px 13px),
@@ -76,8 +56,6 @@
 .пр-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
 .пр-заметка { display: flex; gap: 9px; font-size: 12.5px; line-height: 1.5; color: var(--muted) }
 .пр-заметка::before { content: "•"; color: rgba(255,255,255,.28); flex: none }
-
-/* ---- Полный экран --------------------------------------------------------------------- */
 
 .пр-слой { position: fixed; inset: 0; z-index: 9999; display: none; background: #000;
   cursor: pointer; -webkit-user-select: none; user-select: none; touch-action: manipulation }

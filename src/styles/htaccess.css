@@ -1,11 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР .htaccess».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ: фон страницы не задаём (у сайта свой); вывод и счётчики не
- * приглушённо-серые, а белые -- мелкое сделано тонким начертанием, а не полупрозрачным.
- * Выбор зеркала -- ряд кнопок, а не выпадающий список: вариантов три, и все видны сразу.
- */
 
 .хт {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -13,8 +5,6 @@
   --линия: rgba(255,255,255,.16);
   font-family: var(--цифры);
 }
-
-/* ---- Разделы --------------------------------------------------------------------------- */
 
 .хт-раздел { padding: 16px 0; border-top: 1px solid var(--линия) }
 .хт-раздел:first-child { padding-top: 0; border-top: 0 }
@@ -43,8 +33,6 @@
 .хт-окошко:focus { border-color: #fff; outline: none }
 .хт-окошко::placeholder { color: #8b93a0 }
 
-/* ---- Галочки и выбор -------------------------------------------------------------------- */
-
 .хт-галки { display: flex; flex-wrap: wrap; gap: 10px 22px; align-items: center;
   margin-bottom: 12px }
 .хт-галка { display: inline-flex; align-items: center; gap: 9px; cursor: pointer;
@@ -63,7 +51,7 @@
 .хт-выбор { display: flex; align-items: center; flex-wrap: wrap; gap: 8px 12px }
 .хт-выбор .хт-подпись { margin-bottom: 0 }
 .хт-набор { display: inline-flex; gap: 6px; flex-wrap: wrap }
-/* Выбранное -- обводкой, без заливки: залитая кнопка читалась бы как нажатая навсегда. */
+
 .хт-кнопка-выбора {
   height: 34px; padding: 0 14px; border-radius: 6px; cursor: pointer; flex: 0 0 auto;
   font: 600 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -73,8 +61,6 @@
 .хт-кнопка-выбора.хт-выбран { border-color: var(--accent); color: var(--accent);
   background: transparent }
 .хт-кнопка-выбора:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
-
-/* ---- Строки перенаправлений --------------------------------------------------------------- */
 
 .хт-переносы { display: flex; flex-direction: column; gap: 8px; margin-bottom: 10px }
 .хт-перенос { display: flex; align-items: center; gap: 8px }
@@ -87,8 +73,6 @@
 }
 .хт-минус:hover { border-color: #fff; background: #23272f }
 
-/* ---- Пуск, вывод, кнопки ------------------------------------------------------------------- */
-
 .хт-ряд-пуска { margin: 16px 0 12px }
 .хт-пуск { height: 48px; padding: 0 26px; font-size: 14px }
 
@@ -98,21 +82,18 @@
   width: 100%; min-height: 360px; resize: vertical;
   padding: 14px 16px; border: 0; background: transparent; color: #fff;
   font: 400 13px/1.65 var(--цифры);
-  /* Переносим, а не прокручиваем вбок: строки настроек длинные, а горизонтальная полоса
-     делает их нечитаемыми. */
+
   white-space: pre-wrap; overflow-wrap: anywhere;
 }
 .хт-вывод:focus { outline: none }
 .хт-вывод::placeholder { color: #8b93a0 }
 
-/* Высота строки одна во всех состояниях: обе половины флексовые с одинаковой наименьшей
-   высотой, иначе выравнивание по базовой линии разводит их на пиксель и кнопки прыгают. */
 .хт-счёт { min-height: 36px; display: flex; align-items: center; gap: 10px; flex-wrap: wrap;
   padding: 8px 16px; border-top: 1px solid rgba(255,255,255,.08);
   font: 400 12px/18px var(--цифры); color: #fff; font-variant-numeric: tabular-nums }
 .хт-счёт > span { display: flex; align-items: center; gap: 5px; min-height: 19px }
 .хт-беда { color: #ff8f8f; overflow-wrap: anywhere }
-/* Правило display выше сильнее, чем display:none у браузера для [hidden]. */
+
 .хт-беда[hidden] { display: none }
 
 .хт-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 14px 0 10px }
@@ -134,7 +115,7 @@
 .хт-узкая { height: 38px; padding: 0 14px; font-size: 12.5px }
 
 .хт-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+
 .хт-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: #fff }
 .хт-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
@@ -146,11 +127,11 @@
 @media (max-width: 560px) {
   .хт-вывод { font-size: 12px; min-height: 280px }
   .хт-строка, .хт-окошко { font-size: 12.5px }
-  /* Строка перенаправления в две полосы: три поля в ряд на узком экране не помещаются. */
+
   .хт-перенос { flex-wrap: wrap }
   .хт-перенос .хт-строка { flex: 1 1 100% }
   .хт-стрелка { display: none }
-  /* Кнопку во всю ширину не растягиваем: полоса во весь экран кнопкой не читается. */
+
   .хт-минус { width: 44px; height: 38px }
   .хт-счёт { font-size: 11.5px; gap: 6px }
 }

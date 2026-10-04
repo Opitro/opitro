@@ -1,18 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ТЕСТ БАТАРЕИ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Вид -- сервисная панель того же языка, что у геймпада, датчиков, вибрации и камеры.
- * Чёрный фон, тонкие линии, моноширинные цифры. Единственное цветное пятно -- сам заряд:
- * он рисуется зелёным цветом сайта. Светофора из красного и жёлтого тут нет намеренно:
- * низкий заряд -- это не поломка, пугать им человека незачем.
- *
- * Устройство:
- *   1. СЛЕВА ТЕЛЕМЕТРИЯ строками, справа -- контур батареи и график расхода.
- *   2. ГРАФИК ведётся всё время, пока страница открыта, а не только под нагрузкой: заряд
- *      меняется медленно, и линия нужна длинная.
- *   3. НАГРУЗКА ОТДЕЛЬНО, внизу: это не «проверка», а замер расхода, и путать их нельзя.
- */
 
 .бт {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -20,7 +5,7 @@
   --буквы: #ffffff;
   --буквы2: #a9b0ba;
   --линия: rgba(255,255,255,.18);
-  /* Зелёный сайта. Второй тон светлее -- для блика на заливке. */
+
   --свой: #4ade9e;
   --свой2: #60efb8;
   font-family: var(--ui);
@@ -29,20 +14,17 @@
 .бт-нет { display: none; margin-bottom: 12px; padding: 13px 14px; border-radius: 10px;
   border: 1px solid rgba(255,154,168,.5); font: 400 13px/1.6 var(--ui); color: #ffd9df }
 .бт.без .бт-нет { display: block }
-/* Без доступа прячем только то, чего действительно нет: график заряда и живые числа.
-   Сама панель, контур батареи и замер под нагрузкой остаются -- на айфоне страница
-   обязана работать, просто заряд человек смотрит глазами. */
+
 .бт.без .бт-график, .бт.без .бт-число { display: none }
 .бт.без .бт-строка .з { color: var(--буквы2) }
-/* Внутри контура вместо заливки -- строгая надпись о том, кто закрыл доступ. */
+
 .бт-заглушка { display: none; height: 100%; align-items: center; justify-content: center;
   text-align: center; padding: 0 8px; font: 400 11px/1.35 var(--цифры); color: var(--буквы2) }
 .бт.без .бт-заглушка { display: flex }
 .бт.без .бт-заряд { display: none }
 
 .бт-панель { display: grid; grid-template-columns: minmax(0, 1fr) minmax(0, 1fr); gap: 10px }
-/* Окна СВЕТЛЕЕ страницы, а не темнее: фон сайта #0e0f11, и чернота панелей читалась как
-   продолжение страницы -- границы не было видно вовсе. */
+
 .бт-окно { background: linear-gradient(180deg, #1a1c22, #15171c);
   border: 1px solid var(--линия); border-radius: 12px; padding: 13px 14px;
   box-shadow: 0 18px 40px -28px #000, inset 0 1px 0 rgba(255,255,255,.05) }
@@ -54,13 +36,11 @@
 .бт-строка .з { font: 500 12.5px var(--цифры); color: var(--буквы); text-align: right;
   font-variant-numeric: tabular-nums }
 
-/* Контур батареи: прямоугольник с носиком, заливка белым ровно на величину заряда. */
 .бт-вид { display: flex; flex-direction: column; align-items: center; gap: 10px }
-/* Без overflow: hidden -- иначе носик батареи, торчащий вправо, срезается вместе с ним,
-   и контур перестаёт читаться как батарея. Скругление заливке задано своё. */
+
 .бт-корпус { position: relative; width: 168px; height: 76px; border: 1px solid var(--линия);
   border-radius: 8px; padding: 5px }
-/* Носик батареи -- своим цветом, чтобы контур читался как батарея, а не как рамка. */
+
 .бт-корпус::after { content: ""; position: absolute; right: -6px; top: 50%; width: 5px; height: 22px;
   margin-top: -11px; border-radius: 0 3px 3px 0; background: var(--линия) }
 .бт-заряд {
@@ -69,7 +49,7 @@
   box-shadow: 0 0 18px rgba(74,222,158,.45), inset 0 1px 0 rgba(255,255,255,.35);
   transition: width .5s cubic-bezier(.22,.61,.36,1);
 }
-/* Тонкий блик поверх заливки: без него зелёное поле выглядит плоской краской. */
+
 .бт-заряд::after { content: ""; position: absolute; inset: 0 0 55% 0; border-radius: 4px 4px 0 0;
   background: linear-gradient(180deg, rgba(255,255,255,.22), transparent) }
 .бт-молния { position: absolute; inset: 0; display: none; align-items: center;
@@ -82,8 +62,6 @@
 .бт-график { width: 100%; margin-top: 4px; border: 1px solid var(--линия); border-radius: 8px;
   overflow: hidden }
 .бт-график canvas { display: block; width: 100%; height: 92px }
-
-/* ---- Нагрузка --------------------------------------------------------------------------- */
 
 .бт-нагрузка { margin-top: 10px; background: linear-gradient(180deg, #1a1c22, #15171c);
   border: 1px solid var(--линия); border-radius: 12px; padding: 13px 14px;
@@ -109,9 +87,7 @@
 .бт-итог .плохо { color: #ff9aa8; font-weight: 600 }
 
 .бт-заметки { margin-top: 18px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка -- ОБЫЧНЫЙ АБЗАЦ с точкой сбоку, а не флекс. Флекс делает каждое <b> посреди
-   фразы отдельным столбцом: «Base64 -- это [не] [шифрование], а способ записи» расползалось
-   на три колонки с пробелами между ними. Точка вынесена в отступ и стоит рядом. */
+
 .бт-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: var(--буквы2) }
 .бт-заметка::before { content: "•"; position: absolute; left: 0; top: 0;

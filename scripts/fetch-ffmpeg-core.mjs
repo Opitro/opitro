@@ -1,29 +1,16 @@
-// ЯДРО FFMPEG — К СЕБЕ.
-//
-// Раньше оно ехало с чужого сервера (cdn.jsdelivr.net). Это значило три вещи: все звуковые
-// инструменты держались на чужом дяде, посторонний сервис видел каждого, кто их открыл, а
-// живым проверкам приходилось оставлять странице интернет — в отличие от всех прочих.
-//
-// ПОЧЕМУ ФАЙЛ РЕЖЕТСЯ. Cloudflare не принимает статический файл больше 25 МиБ, а ядро весит
-// 30,6 МиБ. Части кладутся рядом и склеиваются в браузере обратно — склейка ничего не стоит,
-// Blob умеет собираться из кусков сам.
-//
-// Запускать: node scripts/fetch-ffmpeg-core.mjs
-// Версия берётся из src/lib/audio-engine.js, чтобы она была в одном месте, а не в двух.
+
 import fs from 'node:fs';
 import path from 'node:path';
 import { fileURLToPath } from 'node:url';
 
 const КОРЕНЬ = path.join(path.dirname(fileURLToPath(import.meta.url)), '..');
-const ЧАСТЕЙ = 2;                       // 30,6 МиБ / 2 = 15,3 МиБ, с запасом до предела в 25
+const ЧАСТЕЙ = 2;
 const ИСТОЧНИК = 'https://cdn.jsdelivr.net/npm/@ffmpeg/core@';
 
 const движок = fs.readFileSync(path.join(КОРЕНЬ, 'src/lib/audio-engine.js'), 'utf8');
 const версия = (движок.match(/CORE_VERSION = '([^']+)'/) || [])[1];
 if (!версия) { console.log('не нашёл CORE_VERSION в src/lib/audio-engine.js'); process.exit(1); }
 
-// Версия В ПУТИ — тогда файлы можно отдавать «навсегда» (см. public/_headers): новая версия
-// придёт по новому адресу, и ничей браузер не останется со старым куском в кармане.
 const куда = path.join(КОРЕНЬ, 'public/ffmpeg', версия);
 fs.mkdirSync(куда, { recursive: true });
 

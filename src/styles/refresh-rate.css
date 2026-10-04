@@ -1,19 +1,9 @@
-/* СТИЛИ СТРАНИЦЫ «ЧАСТОТА ОБНОВЛЕНИЯ ЭКРАНА».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство то же, что у частоты опроса мыши: площадка -- экран прибора, а не пустая
- * коробка. Но цвет свой: в знаке сайта четыре цвета, и если каждая страница красится
- * зелёным, знак перестаёт работать. Экран -- коралловый.
- */
 
 .чоэ {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --свой: #f2857b;
   max-width: 760px; margin: 0 auto;
 }
-
-/* ---- Площадка ---------------------------------------------------------------------- */
 
 .чоэ-поле {
   position: relative; min-height: 250px; border-radius: 18px;
@@ -50,15 +40,11 @@
   animation: чоэ-пульс 1.1s ease-in-out infinite }
 @keyframes чоэ-пульс { 0%,100% { opacity: 1 } 50% { opacity: .25 } }
 
-/* Бегунок: полоска, которая едет по площадке ровно за один проход в секунду. Глазу она
-   говорит то, чего не скажет число, -- плавно ли идёт картинка на самом деле. */
 .чоэ-дорожка { position: relative; width: 100%; max-width: 520px; height: 26px; margin-top: 18px;
   border-radius: 8px; background: rgba(255,255,255,.04); overflow: hidden }
 .чоэ-бегунок { position: absolute; top: 0; bottom: 0; width: 34px; border-radius: 8px;
   background: linear-gradient(180deg, #f7a49c, var(--свой));
   box-shadow: 0 0 18px rgba(242,133,123,.55) }
-
-/* ---- Числа ------------------------------------------------------------------------- */
 
 .чоэ-плитки { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 8px;
   margin-top: 12px }
@@ -71,8 +57,6 @@
 .чоэ-плитка span { display: block; margin-top: 5px; font: 600 11px var(--ui); letter-spacing: .05em;
   color: rgba(214,219,230,.72) }
 
-/* ---- График ------------------------------------------------------------------------- */
-
 .чоэ-блок { margin-top: 12px; padding: 15px 16px 16px; border-radius: 16px;
   border: 1px solid var(--line); background: var(--surface) }
 .чоэ-заг { font-size: 10.5px; font-weight: 700; letter-spacing: .13em; text-transform: uppercase;
@@ -82,8 +66,6 @@
   color: var(--muted) }
 .чоэ-ключ span { display: inline-flex; align-items: center; gap: 6px }
 .чоэ-ключ i { width: 9px; height: 9px; border-radius: 2px }
-
-/* ---- Низ ---------------------------------------------------------------------------- */
 
 .чоэ-низ { display: flex; flex-wrap: wrap; align-items: center; gap: 12px; margin-top: 12px }
 .чоэ-подсказка { font-size: 13px; color: var(--muted) }

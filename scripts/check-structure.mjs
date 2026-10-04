@@ -1,6 +1,4 @@
-// Проверка структуры всех собранных страниц по общим правилам вёрстки и SEO, а не по вкусу.
-// Ходит по dist целиком: каждая страница, каждый язык. Ничего не запускает в браузере -- здесь
-// проверяется разметка как таковая, браузерные замечания собирает check-pages.mjs.
+
 import fs from 'node:fs';
 import path from 'node:path';
 
@@ -14,15 +12,6 @@ const pages = [];
   }
 })(DIST);
 
-// Ошибки и замечания разведены намеренно. Ошибка -- это то, что сломано: нет заголовка, битая
-// ссылка, повторяющийся id. Замечание -- то, на что стоит взглянуть, но что ломаться не обязано.
-//
-// Длина title и description сюда попадала как ошибка и давала 297 «проблем» на ровном месте.
-// Это неверно: поисковик читает тег целиком для ранжирования и обрезает только показ. Проверено
-// на самых длинных описаниях -- видимые 155 знаков везде законченная мысль, а обрезается хвост
-// вроде «бесплатно, без регистрации», по которому находят в длинных запросах. Резать его -- значит
-// менять поисковый сигнал на косметику. Поэтому длина теперь замечание, и порог поднят до того
-// места, где страдает уже начало строки, а не хвост.
 const problems = [];
 const notes = [];
 const add = (page, kind, detail) => problems.push({ page: page.replace(/^dist/, '').replace(/\/index\.html$/, '') || '/', kind, detail });
@@ -36,7 +25,6 @@ for (const file of pages) {
   const html = fs.readFileSync(file, 'utf8');
   const url = file.replace(/^dist/, '').replace(/\/index\.html$/, '');
 
-  // --- заголовки: ровно один h1, и уровни не перепрыгиваются
   const heads = [...html.matchAll(/<h([1-6])\b[^>]*>([\s\S]*?)<\/h\1>/g)]
     .map((m) => ({ level: Number(m[1]), text: m[2].replace(/<[^>]+>/g, '').trim() }));
   const h1s = heads.filter((h) => h.level === 1);
@@ -48,7 +36,6 @@ for (const file of pages) {
   }
   for (const h of heads) if (!h.text) add(url, 'заголовки', `пустой h${h.level}`);
 
-  // --- title и description: есть, не пустые, не повторяются между страницами
   const title = (html.match(/<title>([\s\S]*?)<\/title>/) || [])[1]?.trim();
   const desc = (html.match(/<meta name="description" content="([^"]*)"/) || [])[1]?.trim();
   if (!title) add(url, 'мета', 'нет title');
@@ -64,25 +51,17 @@ for (const file of pages) {
     else descriptions.set(desc, url);
   }
 
-  // --- lang, canonical
   if (!/<html lang="[a-z]{2}"/.test(html)) add(url, 'разметка', 'нет lang у <html>');
   const canon = (html.match(/rel="canonical" href="([^"]+)"/) || [])[1];
   if (!canon) add(url, 'мета', 'нет canonical');
   else if (!canon.endsWith(url) && !(url === '' && canon.endsWith('/'))) add(url, 'мета', `canonical не совпадает с адресом: ${canon}`);
 
-  // --- повторяющиеся id
   const ids = [...html.matchAll(/\sid="([^"]+)"/g)].map((m) => m[1]);
   const dup = ids.filter((x, i) => ids.indexOf(x) !== i);
   for (const d of new Set(dup)) add(url, 'разметка', `id встречается дважды: ${d}`);
 
-  // РАЗМЕТКУ СМОТРИМ БЕЗ ДАННЫХ. В data-атрибутах страниц лежат словари текстов, а в них
-  // попадаются написанные словами теги: «Тег <img>» на base64-file, пример со ссылкой в
-  // заметке code-diff. Для браузера это просто строки внутри кавычек, а для нашего поиска по
-  // выражению выглядели как настоящая картинка без alt и ссылка без href -- восемь ложных
-  // тревог из шестнадцати. Вырезаем data-атрибуты и смотрим на то, что и правда разметка.
   const разметка = html.replace(/\sdata-[\w-]+="[^"]*"/g, '');
 
-  // --- ссылки: пустые, без текста, ведущие в никуда
   for (const m of разметка.matchAll(/<a\b([^>]*)>([\s\S]*?)<\/a>/g)) {
     const attrs = m[1];
     const inner = m[2].replace(/<[^>]+>/g, '').trim();
@@ -98,17 +77,12 @@ for (const file of pages) {
     }
   }
 
-  // --- структурированные данные должны разбираться
   const данные = [];
   for (const m of html.matchAll(/<script type="application\/ld\+json"[^>]*>([\s\S]*?)<\/script>/g)) {
     try { данные.push(JSON.parse(m[1])); }
     catch (e) { add(url, 'разметка', 'структурированные данные не разбираются: ' + e.message.slice(0, 60)); }
   }
 
-  // --- ДОРОЖКА ДЛЯ ПОИСКА. Видимая строка «← Сканеры» у страниц была давно, а машинной
-  // разметки не было вовсе -- и в выдаче под заголовком стоял голый адрес. Пропало это молча
-  // именно потому, что проверка сюда не смотрела; теперь смотрит.
-  // Ждём её там, где есть видимая дорожка: на страницах инструментов и рубрик.
   const виднаДорожка = /class="breadcrumb"/.test(html) || /\/tools\//.test(url);
   if (виднаДорожка) {
     const дорожка = данные.find((д) => д && д['@type'] === 'BreadcrumbList');
@@ -121,7 +95,7 @@ for (const file of pages) {
         if (!ш.name) add(url, 'мета', 'шаг дорожки без названия');
         if (!ш.item || !/^https:\/\//.test(ш.item)) add(url, 'мета', `шаг дорожки без полного адреса: ${ш.item}`);
       }
-      // Последний шаг -- сама страница: дорожка, ведущая не туда, хуже, чем её отсутствие.
+
       const последний = шаги[шаги.length - 1];
       if (последний && canon && последний.item !== canon) {
         add(url, 'мета', `дорожка кончается не на этой странице: ${последний.item}`);
@@ -129,13 +103,11 @@ for (const file of pages) {
     }
   }
 
-  // --- изображения без описания
   for (const m of разметка.matchAll(/<img\b([^>]*)>/g)) {
     if (!/alt="/.test(m[1])) add(url, 'доступность', 'картинка без alt');
   }
 }
 
-// --- файлы, которые должны быть у любого сайта
 for (const f of ['robots.txt', 'sitemap-index.xml', '404.html']) {
   if (!fs.existsSync(path.join(DIST, f))) add('/', 'сайт', `нет файла ${f}`);
 }

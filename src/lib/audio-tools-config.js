@@ -1,38 +1,14 @@
-// One entry per audio tool. `engine: 'webaudio'` tools run entirely on the native Web Audio
-// API (src/lib/web-audio-engine.js) -- no ffmpeg, no ~32 MB download, and the decoded buffer
-// lets the UI draw a waveform and let the user listen to the result before downloading.
-// `engine: 'ffmpeg'` is reserved for the few things Web Audio genuinely can't do: real
-// format/codec transcoding (convert, ringtone's final export), reading a video container
-// (video-to-audio), muxing a video output (visualizer), and spectral noise reduction
-// (denoise/enhance -- no native noise-reduction node exists in Web Audio).
+
 import { wsolaStretch, pitchShift, resampleLinear, sliceBuffer } from './web-audio-engine.js';
 
-// Шумоподавление ffmpeg: строка фильтра целиком, из одной силы подавления.
-//
-// Раньше и здесь, и в "улучшить звук" стояло просто `afftdn=nr=N`. Так фильтр не убирал ничего:
-// у afftdn есть второй параметр -- пол шума (nf), и по умолчанию он равен -50 дБ, то есть шумом
-// считается только то, что тише -50 дБ. Настоящее шипение с микрофона или с кассеты громче, оно
-// попадало в "полезный звук", и файл возвращался ровно таким, каким пришёл. Измерено: на записи
-// с шипением -18 дБ и `nr=22` (самая сильная настройка из трёх) шум уменьшился на 0,0 дБ.
-//
-// Поэтому пол шума задаётся явно и растёт вместе с силой, а `tn=1` включает слежение за шумом --
-// afftdn подстраивается под конкретную запись, а не работает по одному числу для всех.
-//
-// Что даёт (измерено на трёх видах записи, голос во всех случаях остался нетронутым, -0,1 дБ):
-//   шипение -18 дБ: лёгкая -4,6 | средняя -7,9 | сильная -10,7 дБ
-//   шипение -40 дБ: лёгкая -3,6 | средняя -5,3 | сильная -6,0 дБ
-//   чистая запись : 0,0 дБ во всех трёх -- нечего убирать, ничего и не портится
 export function noiseFloorFor(nr) {
-  // Прямая, снятая по трём измеренным точкам: 6 -> -30, 12 -> -25, 22 -> -20. Границы не дают
-  // уйти ни в бесполезное (-50, ничего не убирает), ни в опасное (-15, начинает есть голос).
+
   return Math.round(Math.max(-30, Math.min(-20, -32 + nr / 2)));
 }
 export function denoiseFilter(nr) {
   return `afftdn=nr=${nr}:nf=${noiseFloorFor(nr)}:tn=1`;
 }
 
-// Where the cuts fall, for a given file and settings. One function so the "you'll get N parts"
-// line and the export can never disagree.
 export function splitPlan(duration, { splitMode, splitValue }) {
   const out = [];
   if (splitMode === 'duration') {
@@ -48,9 +24,6 @@ export function splitPlan(duration, { splitMode, splitValue }) {
 
 const MP3_OUT = { outputName: 'out.mp3', mimeType: 'audio/mpeg', ext: 'mp3' };
 
-// Standard ISO octave centres for a 10-band graphic EQ. Q of 1.41 is the usual choice at
-// one-octave spacing -- narrow enough that bands stay distinct, wide enough that all ten set
-// flat sums back to a flat response.
 const EQ_BANDS = [
   { id: 'b31', freq: 31, label: '31' },
   { id: 'b62', freq: 62, label: '62' },
@@ -64,21 +37,9 @@ const EQ_BANDS = [
   { id: 'b16k', freq: 16000, label: '16k' },
 ];
 
-// Writes a linear fade-in/fade-out envelope onto a GainNode's `gain` AudioParam.
-//
-// `offset` is where playback starts inside the track (0 for an offline render, the current
-// position when re-scheduling a live preview mid-playback) and `now` is the context clock time
-// that offset corresponds to. Everything is expressed relative to those two so the SAME function
-// drives both the live preview and the exported file -- there's no second implementation that
-// could drift from what the user actually heard.
-//
-// Linear rather than exponential: exponential can't reach or leave true zero, so it needs a
-// 0.0001 fudge at both ends, and over a long fade the early part is nearly inaudible, which
-// reads as "the fade doesn't start until later".
 function scheduleFadeAutomation(param, offset, total, fadeIn, fadeOut, now) {
   const fi = Math.max(0, Math.min(fadeIn, total));
-  // Overlapping fades would fight over the same stretch of time; give fade-in what it asked for
-  // and let fade-out use whatever is left.
+
   const fo = Math.max(0, Math.min(fadeOut, total - fi));
   const foStart = total - fo;
   param.cancelScheduledValues(now);
@@ -95,12 +56,6 @@ function scheduleFadeAutomation(param, offset, total, fadeIn, fadeOut, now) {
   }
 }
 
-// ---- Voice effects -------------------------------------------------------------------------
-// Every effect here is something Web Audio can genuinely do well offline. There is deliberately
-// no "make it sound like a woman/man" effect: that needs real voice conversion, which a
-// pitch shift plus some EQ cannot fake convincingly.
-
-// Runs a node graph over a buffer in an OfflineAudioContext and hands back the rendered result.
 function renderGraph(buffer, build) {
   const oc = new OfflineAudioContext(buffer.numberOfChannels, buffer.length, buffer.sampleRate);
   const src = oc.createBufferSource();
@@ -110,8 +65,6 @@ function renderGraph(buffer, build) {
   return oc.startRendering();
 }
 
-// tanh-shaped soft clipping. `drive` above ~3 starts sounding genuinely broken up, which is
-// exactly what the megaphone/radio effects want.
 function distortionCurve(drive) {
   const curve = new Float32Array(1024);
   for (let i = 0; i < 1024; i++) {
@@ -121,8 +74,6 @@ function distortionCurve(drive) {
   return curve;
 }
 
-// Band-limits the signal, which is what actually sells "telephone"/"radio"/"megaphone" -- the
-// characteristic sound of those devices is mostly their narrow frequency response.
 function bandPass(oc, src, lowHz, highHz) {
   const hp = oc.createBiquadFilter();
   hp.type = 'highpass'; hp.frequency.value = lowHz; hp.Q.value = 0.7;
@@ -132,8 +83,6 @@ function bandPass(oc, src, lowHz, highHz) {
   return lp;
 }
 
-// Mixes processed and dry signal by `amount` (0..1) so the intensity slider does something
-// meaningful for every effect rather than only for a few.
 function blendBuffers(dry, wet, amount) {
   const out = new AudioBuffer({ numberOfChannels: dry.numberOfChannels, length: dry.length, sampleRate: dry.sampleRate });
   for (let c = 0; c < dry.numberOfChannels; c++) {
@@ -146,20 +95,14 @@ function blendBuffers(dry, wet, amount) {
 }
 
 async function applyVoiceEffect(buffer, effect, intensityPct) {
-  // 0 % must be a true no-op, and the slider should never fully mute the character of an
-  // effect the user explicitly picked, so it maps onto a 0.15..1 blend rather than 0..1.
+
   const amount = Math.max(0, Math.min(1, (Number(intensityPct) || 0) / 100));
   const mix = 0.15 + amount * 0.85;
   const sr = buffer.sampleRate;
   let wet;
 
   if (effect === 'robot') {
-    // Робот -- это ПЛОСКАЯ высота плюс металлический призвук. Кольцевая модуляция даёт призвук,
-    // но одной её мало: раньше несущая была 45-80 Гц и результат подмешивался к исходному
-    // наполовину, поэтому голос оставался почти собой. Владелец так и сказал: «вообще не похож
-    // на робота». Теперь: несущая выше (110-150 Гц -- слышимый металл), сигнал предварительно
-    // ограничивается по громкости (речь становится ровной, без живых перепадов), и подмешивания
-    // нет вовсе -- эффект идёт целиком.
+
     const carrier = 110 + amount * 40;
     const ровный = await renderGraph(buffer, (oc, src) => {
       const cp = oc.createDynamicsCompressor();
@@ -176,9 +119,9 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       for (let i = 0; i < d.length; i++) o[i] = d[i] * Math.sin((2 * Math.PI * carrier * i) / sr);
     }
     wet = await renderGraph(wet, (oc, src) => bandPass(oc, src, 300, 3800));
-    return wet;   // без подмешивания: полумеры здесь читаются как «ничего не изменилось»
+    return wet;
   } else if (effect === 'reverse') {
-    // Задом наперёд -- самый узнаваемый эффект и ни на что не похож.
+
     wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length, sampleRate: sr });
     for (let c = 0; c < buffer.numberOfChannels; c++) {
       const d = buffer.getChannelData(c);
@@ -186,9 +129,9 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       const n = d.length;
       for (let i = 0; i < n; i++) o[i] = d[n - 1 - i];
     }
-    return wet;   // подмешивать исходное нельзя: получится каша из двух направлений
+    return wet;
   } else if (effect === 'echo') {
-    // Эхо: три отражения через треть секунды, каждое тише предыдущего.
+
     const задержка = 0.28;
     const хвост = Math.ceil(задержка * 3 * sr);
     wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length + хвост, sampleRate: sr });
@@ -204,9 +147,9 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       }
       for (let i = 0; i < o.length; i++) o[i] = Math.max(-1, Math.min(1, o[i]));
     }
-    return wet;   // длина выросла -- подмешивание к исходному здесь неприменимо
+    return wet;
   } else if (effect === 'hall') {
-    // Зал: густой хвост из множества близких отражений, а не одно эхо.
+
     const длина = 1.2 + amount * 1.3;
     const хвост = Math.ceil(длина * sr);
     wet = new AudioBuffer({ numberOfChannels: buffer.numberOfChannels, length: buffer.length + хвост, sampleRate: sr });
@@ -223,7 +166,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
     }
     return wet;
   } else if (effect === 'monster') {
-    // Чудовище: вниз по высоте и рычащее насыщение -- не просто «низкий голос».
+
     const shifted = pitchShift(buffer, -(7 + amount * 3));
     wet = await renderGraph(shifted, (oc, src) => {
       const sh = oc.createWaveShaper(); sh.curve = distortionCurve(2.2); sh.oversample = '4x';
@@ -233,7 +176,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       return cut;
     });
   } else if (effect === 'alien') {
-    // Пришелец: высокая кольцевая модуляция даёт неземной призвук, плюс сдвиг вверх.
+
     const shifted = pitchShift(buffer, 4 + amount * 3);
     const carrier = 400 + amount * 500;
     wet = new AudioBuffer({ numberOfChannels: shifted.numberOfChannels, length: shifted.length, sampleRate: sr });
@@ -243,7 +186,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       for (let i = 0; i < d.length; i++) o[i] = d[i] * (0.6 + 0.4 * Math.sin((2 * Math.PI * carrier * i) / sr));
     }
   } else if (effect === 'underwater') {
-    // Под водой: глухо и с медленным колыханием.
+
     wet = await renderGraph(buffer, (oc, src) => {
       const lp = oc.createBiquadFilter(); lp.type = 'lowpass'; lp.frequency.value = 700; lp.Q.value = 3;
       const кач = oc.createOscillator(); кач.frequency.value = 0.7;
@@ -253,7 +196,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       return lp;
     });
   } else if (effect === 'chorus') {
-    // Хор: две копии с небольшой расстройкой и сдвигом -- голос звучит как несколько.
+
     const вверх = pitchShift(buffer, 0.3);
     const вниз = pitchShift(buffer, -0.3);
     const сдвиг = Math.round(0.018 * sr);
@@ -271,10 +214,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
     }
     return wet;
   } else if (effect === 'phone') {
-    // Телефон -- это не «чуть глуше». Узкая полоса 400-3000 (в трубке нет ни низа, ни верха),
-    // резкий провал под ней и над ней, горб около 1,8 кГц -- он и даёт ту самую «жестянку»,
-    // плюс сильное сжатие: телефонная линия равняет громкость до плоского. Подмешивания нет:
-    // с половиной исходного эффект читался как «почти без изменений» (владелец 21.08.2026).
+
     wet = await renderGraph(buffer, (oc, src) => {
       const hp = oc.createBiquadFilter(); hp.type = 'highpass'; hp.frequency.value = 400; hp.Q.value = 0.9;
       const hp2 = oc.createBiquadFilter(); hp2.type = 'highpass'; hp2.frequency.value = 400; hp2.Q.value = 0.9;
@@ -292,15 +232,13 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
     });
     return wet;
   } else if (effect === 'radio') {
-    // Радио отличается от телефона тем, что там есть ЭФИР: несущий шип на фоне и лёгкая
-    // качка громкости, будто станцию слегка ведёт. Раньше это был просто фильтр с перегрузом,
-    // и на слух он почти не отличался от исходного.
+
     const шип = new AudioBuffer({ numberOfChannels: 1, length: buffer.length, sampleRate: sr });
     const ш = шип.getChannelData(0);
     let b0 = 0;
     for (let i = 0; i < ш.length; i++) {
       const бел = Math.random() * 2 - 1;
-      b0 = 0.94 * b0 + 0.06 * бел;      // шип, а не белый треск
+      b0 = 0.94 * b0 + 0.06 * бел;
       ш[i] = b0 * (0.05 + amount * 0.07);
     }
     wet = await renderGraph(buffer, (oc, src) => {
@@ -311,11 +249,11 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       жм.threshold.value = -28; жм.ratio.value = 10; жм.attack.value = 0.005; жм.release.value = 0.15;
       const sh = oc.createWaveShaper(); sh.curve = distortionCurve(2 + amount * 2); sh.oversample = '4x';
       const g = oc.createGain(); g.gain.value = 1.4;
-      // Качка громкости: станцию слегка «ведёт».
+
       const кач = oc.createOscillator(); кач.frequency.value = 0.35;
       const глуб = oc.createGain(); глуб.gain.value = 0.12;
       кач.connect(глуб); глуб.connect(g.gain); кач.start();
-      // Эфирный шип поверх голоса.
+
       const шумИст = oc.createBufferSource(); шумИст.buffer = шип; шумИст.start();
       const шумГр = oc.createGain(); шумГр.gain.value = 1;
       шумИст.connect(шумГр); шумГр.connect(g);
@@ -334,8 +272,7 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
       return g;
     });
   } else if (effect === 'retro') {
-    // Bit-depth quantization plus sample-and-hold decimation -- the two things that actually
-    // make audio sound like an early digital toy. Smooth resampling alone just sounds muffled.
+
     const bits = 6 - Math.round(amount * 2);
     const targetRate = 11025 - Math.round(amount * 3000);
     const step = Math.max(1, Math.round(sr / targetRate));
@@ -369,9 +306,6 @@ async function applyVoiceEffect(buffer, effect, intensityPct) {
   return blendBuffers(buffer, wet, mix);
 }
 
-// Returns the chain's last node plus the filter list, so the live-preview caller can keep the
-// filters around and tweak `.gain.value` on them while audio is playing (that's what makes
-// dragging a slider audible instantly instead of needing a re-render).
 function buildEqChain(ctx, src, bands) {
   let node = src;
   const filters = [];
@@ -393,21 +327,12 @@ export const AUDIO_TOOLS = {
     engine: 'ffmpeg',
     controls: 'convert',
     accept: 'audio/*',
-    // Sample-rate/channel dropdowns -- gated to just this tool (not video-to-audio, which
-    // reuses the same 'convert' controls block) so that one stays simple. Format list expanded
-    // from the original 6 based on ffmpegwasm/ffmpeg.wasm's actual Dockerfile (checked directly,
-    // not guessed) -- libmp3lame/libvorbis/libopus are compiled in, plus ffmpeg's own native
-    // codecs (wmav2, aiff/pcm) that need no external library at all.
+
     advancedConvert: true,
     runLabel: 'convertLabel',
-    // Waveform replaced with a plain "file loaded, tap to listen" bar -- a converter doesn't
-    // need the visual, and the canvas render was extra weight for no real benefit here.
+
     simplePreview: true,
-    // Batch: files process sequentially (never in parallel -- ffmpeg.wasm is a single shared
-    // instance) with a fresh instance between each (see the runBtn handler's comment on why).
-    // Limits are deliberately explicit and shown in the UI/FAQ rather than left as "however
-    // much your device can handle" -- 20 files / 2GB combined is generous for the free-tool
-    // tier without inviting someone to queue up their entire music library.
+
     allowBatch: true,
     maxBatchFiles: 20,
     maxBatchMB: 2048,
@@ -424,9 +349,7 @@ export const AUDIO_TOOLS = {
       const extra = [];
       if (channels && channels !== 'auto') extra.push('-ac', channels);
       if (format === 'opus') {
-        // libopus's 48kHz internal resample path is a confirmed ffmpeg.wasm crash (see the
-        // ringtone config's comment for the full writeup) -- force a safe rate regardless of
-        // the sample-rate dropdown rather than let a user pick their way into that crash.
+
         return ['-i', inp, ...extra, '-ar', '24000', '-c:a', 'libopus', '-b:a', `${bitrate}k`, out];
       }
       if (sampleRate && sampleRate !== 'auto') extra.push('-ar', sampleRate);
@@ -443,15 +366,11 @@ export const AUDIO_TOOLS = {
   },
 
   trim: {
-    // Was a plain slice with no fade and no way to remove a middle section instead of keeping
-    // it -- both real gaps vs. competitors. directRender replaces the old node-graph slice so
-    // fades and the cut-out mode can be applied directly on the sample data.
+
     engine: 'webaudio',
     controls: 'trim',
     accept: 'audio/*',
-    // Was MP3-or-WAV via two buttons that only appeared after a "Process" step. Now the same
-    // export bar every other tool has: pick a format, download. The play button previews the
-    // exact result, so there's nothing left for a separate Process step to do.
+
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
     directRender: (buffer, { start, end, cutOut, fadeIn, fadeOut }) => {
@@ -494,23 +413,18 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio-merge',
     controls: 'multi-file',
     accept: 'audio/*',
-    // Unlike the single-file tools there IS nothing to download until the files have actually
-    // been joined, so this one keeps its action button -- it just leads to a waveform you can
-    // listen to before exporting, instead of straight to a file.
+
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
     runLabel: 'mergeRunLabel',
   },
 
   volume: {
-    // Deliberately minimal: one slider. A gain change is cheap enough to run as a LIVE node, so
-    // the preview updates as you drag instead of re-rendering the file -- same approach as the
-    // EQ and fade tools. Loudness normalisation and compression live on their own pages.
+
     engine: 'webaudio',
     controls: 'volume1',
     accept: 'audio/*',
-    // No Original/Result switch: comparing loudness A/B is a rigged test anyway -- the louder
-    // side always wins -- and the whole point here is one slider and nothing else.
+
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
@@ -559,22 +473,14 @@ export const AUDIO_TOOLS = {
   },
 
   speed: {
-    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
-    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+
     abWaveform: true,
     renderedAb: true,
-    // TEMPO only. Pitch is preserved by default (WSOLA time-stretch) because that's what people
-    // actually want when speeding up a lecture or slowing music down to learn a part -- the old
-    // playbackRate behaviour made everything sound like a chipmunk or a monster.
-    // The "keep pitch" checkbox can be turned off for the deliberate tape/vinyl effect. That is
-    // NOT a duplicate of the pitch tool: this changes tempo (and lets pitch follow), the pitch
-    // tool changes pitch while holding tempo. Neither borrows the other's control.
+
     engine: 'webaudio',
     controls: 'speed1',
     accept: 'audio/*',
-    // No Original/Result switch here: at a different tempo the two aren't comparable moment to
-    // moment the way they are for EQ or fades -- you'd be A/B-ing two tracks of different
-    // lengths. A plain Reset back to 1x is what's actually useful.
+
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
@@ -585,18 +491,14 @@ export const AUDIO_TOOLS = {
     directRender: (buffer, { value, keepPitch }) => {
       const pct = value || 100;
       if (pct === 100) return buffer;
-      // 200% speed -> half the length. wsolaStretch takes an output/input length ratio.
+
       return keepPitch === false ? resampleLinear(buffer, pct / 100) : wsolaStretch(buffer, 100 / pct);
     },
   },
 
   pitch: {
     renderedAb: true,
-    // MUSIC transposition only -- one semitone slider and nothing else. Voice-character presets
-    // deliberately do NOT live here; they belong to the separate voice-effects tool, so the two
-    // pages don't turn into duplicates competing for the same searches.
-    // Real pitch-shift with tempo locked (resample + WSOLA), not the old playbackRate trick that
-    // changed speed along with pitch.
+
     engine: 'webaudio',
     controls: 'pitch1',
     accept: 'audio/*',
@@ -607,41 +509,29 @@ export const AUDIO_TOOLS = {
     exportDeck: true,
     semitoneMin: -12,
     semitoneMax: 12,
-    // Cents are hundredths of a semitone -- the fine-tuning musicians actually need: matching a
-    // recording that drifted off-pitch, lining two takes up that sit a quarter-tone apart, or
-    // retuning to A=432 instead of 440. Still the same single job (pitch), just a finer step.
+
     centsMin: -50,
     centsMax: 50,
     directRender: (buffer, { value, cents }) => pitchShift(buffer, (value || 0) + (cents || 0) / 100),
   },
 
   voice: {
-    // Микрофон прямо на первом экране: сюда приходят «поговорить своим голосом», и заставлять
-    // человека сперва где-то записать файл, а потом принести его сюда -- лишний круг.
+
     allowMicInput: true,
-    // Обычный проигрыватель: живой обработки нет (voicefx не входит в живые цепочки), эффект
-    // считается один раз. Вместе с переводом приходит и правило «звучало -- продолжаем с того
-    // же места», и переключение «было / стало» без двойного звука.
+
     elementPlayback: true,
     renderedAb: true,
-    // VOICE EFFECTS, deliberately not "voice conversion". With Web Audio alone (no AI, no
-    // server) you cannot convincingly turn one person's voice into another's -- pitch shifting
-    // plus filtering just doesn't get there, and promising it would leave people disappointed.
-    // So the whole page is framed as effects that genuinely do sound right computed locally.
-    // Also: no semitone control anywhere here on purpose -- that's the pitch tool's job, and
-    // exposing one would make these two pages duplicates competing for the same searches.
+
     engine: 'webaudio',
     controls: 'voicefx',
     accept: 'audio/*',
-    // Переключателя «было / стало» здесь нет: его работу делает сама плашка -- нажал эффект,
-    // нажал ещё раз и слышишь оригинал. Два способа сравнить одно и то же только путают.
+
     abCompare: false,
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
-    // Эффекты подобраны так, чтобы КАЖДЫЙ был слышно другим: высота, тембр, время и
-    // направление -- четыре разных способа изменить голос, а не восемь оттенков одного.
+
     voiceEffects: [
       { key: 'robot', emoji: '🤖', label: 'voiceRobotLabel', desc: 'voiceRobotDesc' },
       { key: 'deep', emoji: '🔉', label: 'voiceDeepLabel', desc: 'voiceDeepDesc' },
@@ -663,18 +553,14 @@ export const AUDIO_TOOLS = {
   },
 
   reverse: {
-    // Человек пришёл СЛУШАТЬ ПЕРЕВЁРНУТОЕ -- значит и показываем сразу его, а «было» пусть
-    // включает тот, кому нужно сравнить. Владелец 17.08.2026.
+
     abResultFirst: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
-    // Без этого файл переворачивался сразу при загрузке и сравнить было не с чем: человек
-    // слышал только вывернутый звук и не мог понять, то ли это вообще. Переключатель
-    // "Оригинал / Результат" даёт послушать обе стороны, а сам переворот считается по нажатию.
+
     abCompare: true,
-    // Волна перерисовывается на зеркальную при выборе «Результата» -- у реверса это
-    // единственное, что видно глазом, и без этого переключатель выглядит бездействующим.
+
     abWaveform: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
@@ -693,24 +579,20 @@ export const AUDIO_TOOLS = {
   },
 
   loop: {
-    // Обычный проигрыватель: живой обработки нет, звук считается один раз. Заодно страница
-    // получает проверенное правило «звучало -- продолжаем с того же места»: владелец
-    // жаловался, что при добавлении циклов звук рвётся.
+
     elementPlayback: true,
-    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
-    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+
     abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Length is exactly predictable without rendering: N copies less one crossfade per seam.
+
     note: ({ buffer, params, labels, fmtTime }) => {
       if (!buffer) return '';
       const times = Math.max(1, Math.round(Number(params.value) || 1));
-      // Как и в "добавить тишину": при одном повторе итоговая длина равна длине файла, и это
-      // тоже правда. Строка не должна появляться на втором повторе и сдвигать страницу.
+
       const total = buffer.duration * times - 0.05 * (times - 1);
       return (labels.loopResultNote || '').replace('{len}', fmtTime(total));
     },
@@ -723,8 +605,7 @@ export const AUDIO_TOOLS = {
     sliderDefault: 2,
     sliderUnit: 'x',
     sliderStep: 1,
-    // 50ms crossfade at each seam so repeats don't click/pop at the boundary -- plain
-    // concatenation (the old behavior) sounds like an audible edit at every loop point.
+
     directRender: (buffer, { value }) => {
       const times = Math.max(1, Math.round(value));
       const sr = buffer.sampleRate;
@@ -759,18 +640,16 @@ export const AUDIO_TOOLS = {
   },
 
   'remove-silence': {
-    // Обычный проигрыватель и вместе с ним правило «звучало -- продолжаем с того же места».
-    // Живой обработки нет: тишина вырезается один раз, дальше звук просто играется.
+
     elementPlayback: true,
-    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
-    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+
     abWaveform: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Only knowable after a render, so this stays empty until the user presses play or exports.
+
     note: ({ buffer, rendered, labels, fmtTime }) => {
       if (!buffer || !rendered) return '';
       const cut = Math.max(0, buffer.duration - rendered.duration);
@@ -783,8 +662,7 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'slider',
     accept: 'audio/*',
-    // Was a hardcoded 0.02 threshold with zero user control -- now a 1-10 sensitivity slider
-    // mapped onto a 0.006-0.06 amplitude range (1 = only cut near-total silence, 10 = aggressive).
+
     sliderLabel: 'silenceSensitivityLabel',
     sliderMin: 1,
     sliderMax: 10,
@@ -819,27 +697,18 @@ export const AUDIO_TOOLS = {
   },
 
   fade: {
-    // Fade in / fade out only -- everything else (trim, volume, EQ...) has its own page.
-    // Preview is live: a single GainNode whose automation is (re)scheduled from the current
-    // playback position, so moving a slider is audible immediately without re-rendering.
-    // scheduleFadeAutomation is shared with the offline export render below, so the preview and
-    // the downloaded file follow exactly the same curve.
+
     engine: 'webaudio',
     controls: 'fade2',
     accept: 'audio/*',
-    // «Было / стало» здесь не нужно (владелец 16.08.2026): фейд слышно и видно сразу,
-    // сравнивать с исходником нечего -- это не чистка и не выравнивание, где на слух
-    // разница спорная.
+
     abCompare: false,
     compactPreview: true,
     transport: true,
     fadeRegions: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     exportDeck: true,
-    // Строка «Эффекты готовы к сохранению» убрана по просьбе владельца: она лишняя.
-    // Человек и так видит, что фейд включён -- кнопка нажата, спад нарисован на волне.
-    // Флаг readyNote больше не выставляет НИКТО; сама разметка и её обработчик в
-    // AudioTool.astro оставлены нетронутыми, чтобы ничего не задеть.
+
     fadeMax: 15,
     fadePresets: [
       { key: 'soft', emoji: '🎵', label: 'fadeSoftStartLabel', fadeIn: 2, fadeOut: 0 },
@@ -858,18 +727,15 @@ export const AUDIO_TOOLS = {
   },
 
   compress: {
-    // Проигрывание обычным проигрывателем: живой обработки здесь нет, звук считается один
-    // раз и дальше просто играется. Переживает сон телефона, в отличие от движка.
-    // Список из девяти пунктов для таких страниц -- в памяти (project-element-playback).
+
     elementPlayback: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
     exportDeck: true,
-    // MP3 only: the whole tool is "same audio, smaller file", and every other format here
-    // would either ignore the bitrate (WAV) or need a different quality scale (OGG).
+
     downloadFormats: ['mp3'],
-    // Constant-bitrate MP3 size is arithmetic, not a guess: kbps x seconds / 8.
+
     note: ({ buffer, fileSize, params, labels, size }) => {
       if (!buffer) return '';
       const kbps = Number(params.value) || 128;
@@ -887,13 +753,9 @@ export const AUDIO_TOOLS = {
     sliderDefault: 128,
     sliderUnit: ' kbps',
     sliderStep: 8,
-    // MPEG-1 Layer III defines exactly these bitrates. A free-running slider offered values like
-    // 150 kbps, which does not exist -- the encoder quietly rounded to 160 and the file came out
-    // bigger than the number on screen promised. Measured: asked 150, got a 160 kbps file.
-    // The slider now snaps to the ladder, so the displayed number is always the real one.
+
     snapValues: [32, 40, 48, 56, 64, 80, 96, 112, 128, 160, 192, 224, 256, 320],
-    // Quick-pick buttons under the slider -- each just sets the bitrate to a size target
-    // people actually search for, rather than making them guess a kbps number.
+
     presets: [
       { key: 'email', label: 'presetEmailLabel', set: { value: 48 } },
       { key: 'messenger', label: 'presetMessengerLabel', set: { value: 96 } },
@@ -910,16 +772,13 @@ export const AUDIO_TOOLS = {
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Converting a file that is already mono produces an identical file.
+
     note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels < 2 ? labels.noteAlreadyMono : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
     outputChannels: 1,
-    // Кнопки СЛОВАМИ, без значков. Динамики здесь соврали бы: на «моно в стерео» они
-    // отвечают на вопрос «куда пойдёт звук», а тут вопрос другой -- какой канал взять и
-    // смешивать ли их в один. Два ярких динамика читались бы как «звучат оба», хотя на
-    // деле каналы СЛИВАЮТСЯ в один. Значки там, где честны; слова там, где рисунок соврёт.
+
     selectAsChips: true,
     chipDefault: 'mix',
     selectLabel: 'channelModeLabel',
@@ -950,24 +809,16 @@ export const AUDIO_TOOLS = {
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Feeding a real stereo file to this discards the right channel entirely -- channel 0 is
-    // read and copied to both sides. Silently losing half a recording is the kind of thing
-    // people only notice later, so it gets said up front.
-    // Одна короткая строка на все случаи: она сообщает ФАКТ о файле, а не объясняет, что
-    // будет сделано, -- объяснение всё равно зависело бы от выбранной кнопки, а кнопки и так
-    // видны рядом. Владелец 16.08.2026: «можно просто надпись — этот файл уже стерео».
+
     note: ({ buffer, labels }) => (buffer && buffer.numberOfChannels >= 2 ? labels.noteAlreadyStereo : ''),
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
     outputChannels: 2,
-    // Кнопки вместо списка, и ПОРЯДОК повторяет смысл: левый слева, оба посередине,
-    // правый справа. Не нужно читать подписи, чтобы понять, куда пойдёт звук.
+
     selectAsChips: true,
     chipDefault: 'duplicate',
-    // Вместо слов -- два динамика: звучащий яркий и с дужками звука, молчащий тусклый и без
-    // них. Понятно без чтения и на любом языке. Слова никуда не делись, они остались в коде
-    // для озвучки экрана (aria-label) -- человек с плохим зрением услышит «Левый».
+
     chipIcons: {
       panleft: '<svg class="chip-ico" viewBox="0 0 24 24" aria-hidden="true"><g class="sp on" transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
       duplicate: '<svg class="chip-ico" viewBox="0 0 52 24" aria-hidden="true"><g class="sp on" transform="translate(24 0) scale(-1 1)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g><g class="sp on" transform="translate(28 0)"><path d="M11 5L6 9H2v6h4l5 4V5z"/><path d="M15.6 8.5a5 5 0 0 1 0 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/><path d="M19.1 5a10 10 0 0 1 0 14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/></g></svg>',
@@ -995,19 +846,12 @@ export const AUDIO_TOOLS = {
   },
 
   equalizer: {
-    // Deliberately the most "hands-on" tool in the set: a real 10-band graphic EQ and nothing
-    // else. No denoise/normalize/limiter/compressor here on purpose -- those all live on their
-    // own pages, and mixing them in is what makes competitors' EQ pages feel like a dumping
-    // ground. Preview is a LIVE Web Audio filter chain (see buildLiveChain), so dragging a
-    // slider is audible instantly instead of re-rendering the whole file per input event; the
-    // same band values feed an OfflineAudioContext render only when exporting.
+
     engine: 'webaudio',
     controls: 'eq10',
     accept: 'audio/*',
     abCompare: true,
-    // Same one-row player as the enhance tool (play button beside the waveform, not floating on
-    // top of it) -- an overlaid button both obscured the waveform and, being absolutely
-    // positioned, was fragile against the shared hover rule.
+
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
@@ -1023,19 +867,15 @@ export const AUDIO_TOOLS = {
       { key: 'movie', emoji: '🎬', label: 'eqMovieLabel', gains: [5, 4, 1, 0, 2, 3, 2, 2, 3, 3] },
       { key: 'radio', emoji: '📻', label: 'eqRadioLabel', gains: [-6, -5, -2, 2, 4, 4, 3, 0, -4, -8] },
     ],
-    // Both the live preview chain and the offline export render go through buildEqChain, so
-    // what you hear while dragging is exactly what gets written to the file.
+
     buildLiveChain: buildEqChain,
     render: (oc, src, params) => buildEqChain(oc, src, params.bands || {}).output,
   },
 
   'reverb-echo': {
-    // Заготовки рядом кнопок, а не выпадающим списком: их четыре, и ради каждой делать
-    // нажатие, ждать открытия списка и выбирать -- лишняя работа. Значки здесь не годятся:
-    // «комнату» и «зал» без подписи различит только тот, кто уже знает разницу.
+
     selectAsChips: true,
-    // Расшифровка под кнопками: что именно делает каждая заготовка. Без неё «комната» и
-    // «зал» ничего не говорят человеку, который не занимается звуком.
+
     chipHints: [
       { value: 'echo', label: 'reverbPresetEchoLabel', hint: 'reverbHintEcho' },
       { value: 'slapback', label: 'reverbPresetSlapbackLabel', hint: 'reverbHintSlapback' },
@@ -1047,11 +887,7 @@ export const AUDIO_TOOLS = {
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Was echo-only despite the name (a plain delay+feedback loop, no actual room simulation).
-    // Presets now include real convolution reverb -- a ConvolverNode fed a synthetically
-    // generated impulse response (exponentially-decaying noise, the standard technique when
-    // there's no recorded IR file to load) -- alongside the original echo, so "Room"/"Hall"
-    // genuinely sound like a space, not a repeating delay.
+
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -1101,29 +937,15 @@ export const AUDIO_TOOLS = {
   },
 
   ringtone: {
-    // Обычный проигрыватель: живой обработки нет, кусок вырезается один раз. Заодно уходят
-    // три беды разом -- невнятная кнопка «прослушать фрагмент», нерабочая громкость и
-    // непохожий на остальные вид. Владелец 17.08.2026.
+
     elementPlayback: true,
-    // mp3/wav targets are pure Web Audio, no ffmpeg. Telegram/WhatsApp (ogg) touch ffmpeg only
-    // for the final encode, on a small already-trimmed clip -- never the original file. Opus
-    // doesn't support 44.1kHz, so ffmpeg's libopus wrapper resamples to 48kHz internally before
-    // encoding, and that specific internal path has a confirmed ffmpeg.wasm bug: "Out of bounds
-    // memory access" (ffmpegwasm/ffmpeg.wasm#591, #867) -- reproduced live on both iOS and
-    // Android, not desktop. Other Opus rates (24kHz) don't trigger it, so the clip is
-    // pre-resampled to 24kHz via Web Audio (resampleBuffer) before it ever reaches ffmpeg, so
-    // ffmpeg's own resampler is never invoked. If libopus still crashes on some device, the
-    // target-click handler falls back to libvorbis (buildOggVorbisArgs below) -- same .ogg
-    // container, already proven stable (the Convert tool uses it), just not the round
-    // voice-note bubble Opus gets in Telegram/WhatsApp.
+
     engine: 'ringtone-hybrid',
     controls: 'ringtone-targets',
     accept: 'audio/*',
     oggSampleRate: 24000,
     targets: [
-      // Real M4R (AAC audio in an MP4 container, just renamed .m4r) -- matches timbrica.com's
-      // own iPhone tile, not just an MP3 workaround. iOS 26+ can set it straight as a ringtone
-      // via Files -> Share -> Use as Ringtone, same flow as MP3/M4A (verified 2026-08-03).
+
       { key: 'iphone', emoji: '📱', name: 'iPhone', fmt: 'm4r', max: 30 },
       { key: 'android', emoji: '🤖', name: 'Android', fmt: 'mp3', max: 0 },
       { key: 'telegram', emoji: '✈️', name: 'Telegram', fmt: 'ogg', max: 0 },
@@ -1135,16 +957,12 @@ export const AUDIO_TOOLS = {
     ],
     buildOpusArgs: ([inp], out) => ['-i', inp, '-ar', '24000', '-c:a', 'libopus', '-b:a', '48k', out],
     buildOggVorbisArgs: ([inp], out) => ['-i', inp, '-c:a', 'libvorbis', '-b:a', '96k', out],
-    // Same AAC recipe the Convert tool already uses successfully -- no known ffmpeg.wasm crash
-    // risk here (unlike libopus). Output container is plain MP4/AAC; only the .m4r extension on
-    // download makes it a "ringtone" file, that's the whole difference from a .m4a.
+
     buildAacArgs: ([inp], out) => ['-i', inp, '-c:a', 'aac', '-b:a', '192k', out],
   },
 
   'video-to-audio': {
-    // Плеер здесь ЕСТЬ (в отличие от конвертера рядом -- я проверил только его и снял флаг
-    // с обеих страниц разом, владелец поправил). Живой обработки нет: звук извлекается один
-    // раз и дальше просто играется.
+
     elementPlayback: true,
     engine: 'ffmpeg',
     controls: 'convert',
@@ -1153,8 +971,7 @@ export const AUDIO_TOOLS = {
     transport: true,
     runLabel: 'extractRunLabel',
     formats: ['mp3', 'm4a', 'wav'],
-    // Loudness-normalize checkbox (EBU R128 -16 LUFS, a common podcast/creator target) -- cheap
-    // to add since it's just one more filter, and was flagged as a real gap vs competitors.
+
     showNormalize: true,
     output: (params) => {
       const map = { mp3: 'audio/mpeg', m4a: 'audio/mp4', wav: 'audio/wav' };
@@ -1170,18 +987,14 @@ export const AUDIO_TOOLS = {
 
   'sample-rate': {
     renderedAb: true,
-    // Deliberately one control. The processed side is a real resample, so it renders on demand
-    // and the play button plays THAT -- hearing 8 kHz next to 44.1 kHz is the entire point of
-    // the tool, and resampling is fast enough that waiting for it isn't a burden.
+
     engine: 'webaudio',
     controls: 'rate1',
     accept: 'audio/*',
     compactPreview: true,
     transport: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // MPEG audio only defines these rates -- MPEG-1 gives 32/44.1/48, MPEG-2 adds 16/22.05/24
-    // and MPEG-2.5 adds 8/11.025/12. 96 kHz simply has no representation in MP3, so offering it
-    // would hand back a file that is either broken or silently retagged at another rate.
+
     mp3Rates: [8000, 11025, 12000, 16000, 22050, 24000, 32000, 44100, 48000],
     rateOptions: [
       { value: 8000, label: '8 000 Hz' },
@@ -1196,19 +1009,14 @@ export const AUDIO_TOOLS = {
   },
 
   chiptune: {
-    // Заготовки рядом кнопок, а не списком. Пояснений НЕ добавляем -- владелец 17.08.2026:
-    // «список прессетов в кнопки без пояснений, логика здесь правильная». Названия говорят
-    // сами за себя, и лишний текст только загромоздил бы страницу.
+
     selectAsChips: true,
     compactPreview: true,
     transport: true,
     renderedAb: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Was just a smooth resample down to 11025Hz -- sounds muffled, not "8-bit", because
-    // OfflineAudioContext's resampler interpolates. Real chiptune character comes from
-    // sample-and-hold decimation (audible stair-steps/aliasing, no smoothing) plus bit-depth
-    // quantization -- both done manually here since Web Audio has no crusher node.
+
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
@@ -1239,20 +1047,13 @@ export const AUDIO_TOOLS = {
   },
 
   visualizer: {
-    // Turning audio into a video is by far the slowest thing on this site -- x264 encoding
-    // inside WebAssembly runs at a fraction of native speed, so a few minutes of audio can mean
-    // a genuinely long wait. Making somebody sit through that only to discover they picked the
-    // wrong style is the real problem here, so the tool renders a SHORT preview (previewSeconds)
-    // through the exact same pipeline first. Same filters, same encoder, same everything -- just
-    // truncated -- so what you preview cannot differ from what you download.
+
     engine: 'ffmpeg',
     controls: 'vizstyles',
     accept: 'audio/*',
     previewSeconds: 6,
     runLabel: 'vizDownloadLabel',
-    // No waveform on this page: there's no region to pick and the result is judged from the
-    // video preview, so the canvas was decoration -- and it forced a full decode of the file
-    // just to draw it. Duration is read from the file's metadata instead, which is instant.
+
     noWaveform: true,
     vizStyles: [
       { key: 'wave-green', emoji: '\u3030\uFE0F', label: 'visualizerWaveGreenLabel' },
@@ -1280,27 +1081,22 @@ export const AUDIO_TOOLS = {
         bars: `showfreqs=s=${size}:mode=bar:ascale=log:colors=0x4ade9e`,
         spectrum: `showspectrum=s=${size}:mode=combined:color=intensity`,
         circle: `avectorscope=s=${size}:zoom=1.5:draw=line:rc=74:gc=222:bc=158`,
-        // Constant-Q transform: frequencies laid out by musical note rather than linearly, so
-        // the picture moves in time with the music. Much the best-looking option, and also the
-        // most expensive -- flagged `slow` so the UI can warn before someone starts a render.
+
         musical: `showcqt=s=${size}`,
         freqline: `showfreqs=s=${size}:mode=line:ascale=log:colors=0x4ade9e`,
         wavepoint: `showwaves=s=${size}:mode=point:colors=0x4ade9e`,
-        // The existing 'circle' entry is avectorscope's default (lissajous); polar is a
-        // genuinely different shape rather than a recolour.
+
         polar: `avectorscope=s=${size}:mode=polar:zoom=1.5:draw=line:rc=74:gc=222:bc=158`,
         volume: `showvolume=w=${Math.round(Number(size.split('x')[0]) * 0.75)}:h=60:f=0.5:c=VOLUME,pad=${size.replace('x', ':')}:(ow-iw)/2:(oh-ih)/2`,
       };
       const filter = filters[params.value] || filters['wave-green'];
       const args = ['-i', inp];
-      // A preview is the same command with a duration cap -- deliberately not a separate,
-      // cheaper code path that could end up looking different from the real export.
+
       if (params.previewSeconds) args.push('-t', String(params.previewSeconds));
       args.push(
         '-filter_complex', `[0:a]${filter}[v]`,
         '-map', '[v]', '-map', '0:a',
-        // ultrafast + a sane CRF: encoding speed is the whole bottleneck in wasm, and for a
-        // waveform animation the visual cost of a fast preset is essentially invisible.
+
         '-c:v', 'libx264', '-preset', 'ultrafast', '-crf', '26',
         '-pix_fmt', 'yuv420p', '-c:a', 'aac', '-b:a', '192k', '-shortest', out,
       );
@@ -1309,28 +1105,20 @@ export const AUDIO_TOOLS = {
   },
 
   denoise: {
-    // Was a single fixed afftdn pass with no control at all -- now a strength picker mapped
-    // onto afftdn's own noise-reduction-amount parameter (nr, in dB).
+
     engine: 'ffmpeg',
     controls: 'select',
     accept: 'audio/*',
-    // Same shape as the enhancer: picking a strength renders a preview and plays it, with an
-    // Original/Result switch, so noise reduction can be judged by ear before committing. It used
-    // to hand back a file you had not heard, from a filter you could not compare.
+
     compactPreview: true,
-    // Переключателя «было / стало» здесь нет по решению владельца 15.08.2026: сила выбирается
-    // тремя кнопками, и сравнение с исходником только добавляло органов управления.
+
     abCompare: false,
-    // Was locked to MP3, so cleaning up a WAV always came back lossy.
+
     formats: ['mp3', 'wav', 'm4a'],
     runLabel: 'denoiseRunLabel',
-    // Проигрывание обычным проигрывателем, а не движком: живой обработки здесь нет, звук
-    // считается один раз и дальше просто играется. Обычный <audio> переживает сон телефона,
-    // а движок после него умирает молча -- это первая страница перевода после диктофона.
+
     elementPlayback: true,
-    // Три силы -- ряд кнопок, а не выпадающий список: ради трёх пунктов человек делает
-    // нажатие, ждёт открытия и выбирает. Заодно уходит ещё одно место, где Chrome строит
-    // отдельное окошко списка (см. project-select-inp). На телефоне три кнопки в ряд встают.
+
     selectAsChips: true,
     selectLabel: 'denoiseStrengthLabel',
     selectOptions: [
@@ -1354,15 +1142,7 @@ export const AUDIO_TOOLS = {
   },
 
   enhance: {
-    // ВОЗВРАЩЕНО НА ДВИЖОК по решению владельца 17.08.2026. Перевод этой страницы потребовал
-    // шести доделок подряд, и почти все находил он, а не я: залипшая кнопка, дёрганый бегунок,
-    // неработающий «стоп», два голоса разом, устаревший файл после смены заготовки. Движок
-    // этих болезней не имел -- он обкатан месяцами. Лечим корень (пробуждение после сна),
-    // а не переписываем пульт на каждой странице.
-    // One-click positioning per the redesign: preset CARDS (not a bare dropdown) with an
-    // Auto default, a single big "Enhance" action, and A/B compare (original vs result) --
-    // the settings themselves (afftdn strength, a rumble-cutting highpass, a presence EQ bump,
-    // loudnorm target) all stay hidden behind the preset choice, never exposed as raw knobs.
+
     engine: 'ffmpeg',
     controls: 'select',
     accept: 'audio/*',
@@ -1370,13 +1150,10 @@ export const AUDIO_TOOLS = {
     abCompare: true,
     compactPreview: true,
     runLabel: 'enhanceRunLabel',
-    // Output format choice -- was hardcoded to MP3, which meant a WAV upload always came back
-    // lossy even though nothing about "enhance" should force that. MP3/WAV/M4A cover the
-    // popular cases without turning this into the full Convert tool.
+
     formats: ['mp3', 'wav', 'm4a'],
     selectLabel: 'enhancePresetLabel',
-    // `hero: true` marks the entry driven by the big standalone button above the cards, not a
-    // card of its own -- there's no separate "pick Auto" click, the hero button IS that choice.
+
     selectOptions: [
       { value: 'auto', emoji: '✨', label: 'enhanceAutoOptionLabel', hero: true, desc: 'enhanceAutoDesc' },
       { value: 'voice', emoji: '🎤', label: 'enhanceVoiceLabel', desc: 'enhanceVoiceDesc' },
@@ -1400,9 +1177,7 @@ export const AUDIO_TOOLS = {
         music: { nr: 4, i: -14, hp: 0, presence: 0 },
         call: { nr: 16, i: -16, hp: 200, presence: 4 },
         old: { nr: 20, i: -16, hp: 90, presence: 1 },
-        // Запись через комнату: тише всех, гулкая и без верха. Отсюда и настройки --
-        // выше срез низа (там гул помещения), больше разборчивости на 3 кГц и сильнее
-        // шумоподавление, потому что вместе с голосом микрофон набрал всю комнату.
+
         room: { nr: 14, i: -16, hp: 120, presence: 5 },
       };
       const p = presets[params.value] || presets.auto;
@@ -1418,19 +1193,12 @@ export const AUDIO_TOOLS = {
   },
 
   dictaphone: {
-    // Input is the microphone, not a file. Once a recording exists it behaves exactly like an
-    // uploaded one, so it opts into the same waveform, info strip and export bar.
-    //
-    // The waveform is the full-width band rather than the compact player: on this page it is the
-    // thing being edited, not a preview strip, and the transport lives next to the record button
-    // where the hand already is -- play on the left of it, pause on the right.
+
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
     engine: 'webaudio',
     controls: 'recorder',
-    // Handles on the waveform, and the selection is what gets saved: drag the two edges in and
-    // press download. Every take starts with the gap before you speak and ends with the reach
-    // for the stop button, and those are what you drag off.
+
     trimSelection: true,
     directRender: (buffer, { start, end }) => {
       const s = start || 0;
@@ -1470,8 +1238,7 @@ export const AUDIO_TOOLS = {
       const k = tools.detectKey(buffer);
       if (!k) return null;
       const modeName = k.mode === 'major' ? labels.keyMajorLabel : labels.keyMinorLabel;
-      // The correlation coefficient is not a probability, so it is reported as a plain
-      // strong/moderate/weak rather than dressed up as a percentage of certainty.
+
       const conf = k.score > 0.75 ? labels.keyConfHigh : k.score > 0.55 ? labels.keyConfMid : labels.keyConfLow;
       return {
         headline: k.name + ' ' + modeName,
@@ -1506,8 +1273,7 @@ export const AUDIO_TOOLS = {
     },
   },
   tempo: {
-    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
-    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+
     abWaveform: true,
     compactPreview: true,
     transport: true,
@@ -1521,16 +1287,13 @@ export const AUDIO_TOOLS = {
       if (!buffer) return '';
       const from = Number(params.bpmFrom) || 0;
       const to = Number(params.bpmTo) || 0;
-      // Пустая строка была только когда темпы равны, то есть в начальном состоянии обоих полей.
-      // Стоило тронуть любое -- строка возникала и толкала кнопку скачивания вниз. Теперь она
-      // есть всегда: при равных темпах она честно говорит "100% от исходной".
+
       if (!from || !to) return '';
       return (labels.bpmResultNote || '')
         .replace('{pct}', String(Math.round((to / from) * 100)))
         .replace('{len}', fmtTime(buffer.duration * (from / to)));
     },
-    // Same WSOLA stretch the speed tool uses, driven by a ratio of two tempos instead of a
-    // percentage -- so the pitch stays where it was.
+
     directRender: (buffer, { bpmFrom, bpmTo }) => {
       const from = Number(bpmFrom) || 0;
       const to = Number(bpmTo) || 0;
@@ -1539,8 +1302,7 @@ export const AUDIO_TOOLS = {
     },
   },
   mix: {
-    // Layers the files on top of each other, where merge puts them end to end. The first file is
-    // the main one and keeps its level; everything after it is the bed, at whatever level you set.
+
     engine: 'webaudio-mix',
     controls: 'multi-file',
     accept: 'audio/*',
@@ -1548,18 +1310,14 @@ export const AUDIO_TOOLS = {
     transport: true,
     exportDeck: true,
     downloadFormats: ['wav', 'mp3', 'ogg'],
-    // Громкость -- на каждом файле, своим ползунком прямо в списке. Общий ползунок "громкость
-    // подложки" (mixVolume) убран: он делал одинаково тихими все файлы кроме первого, а
-    // приглушить обычно нужно один -- музыку под голосом, а не второй голос вместе с ней.
+
     perFileVolume: true,
-    // Ряд управления под волной играет ПОСЧИТАННЫЙ микс, а не какой-то из исходных файлов --
-    // отдельного исходника у микшера нет вовсе. Этот флаг и говорит плееру брать результат.
+
     renderedAb: true,
     runLabel: 'mixRunLabel',
   },
   'split-audio': {
-    // Produces many files rather than one, so it has its own export button and hands back a ZIP
-    // instead of using the shared single-file bar.
+
     compactPreview: true,
     transport: true,
     engine: 'webaudio',
@@ -1576,11 +1334,9 @@ export const AUDIO_TOOLS = {
     },
   },
   'add-silence': {
-    // Живой обработки нет (silence2 не входит в живые цепочки), плеер есть -- переводим на
-    // обычный проигрыватель. Тишина дописывается один раз, дальше звук просто играется.
+
     elementPlayback: true,
-    // Волна следует за результатом: этот инструмент меняет длительность, и показывать
-    // исходную форму означало бы вести бегунок по звуку, которого уже нет.
+
     abWaveform: true,
     compactPreview: true,
     transport: true,
@@ -1594,9 +1350,7 @@ export const AUDIO_TOOLS = {
       if (!buffer) return '';
       const a = Number(params.silenceStart) || 0;
       const b = Number(params.silenceEnd) || 0;
-      // Строка есть с самого начала, ещё при нулевой тишине: тогда итоговая длина равна длине
-      // файла -- утверждение верное и полезное. Раньше при нулях возвращалась пустота, строка
-      // появлялась в момент первого введённого числа и толкала вниз всё, что под ней.
+
       return (labels.addSilenceNote || '').replace('{len}', fmtTime(buffer.duration + a + b));
     },
     directRender: (buffer, { silenceStart, silenceEnd }) => {
@@ -1613,9 +1367,7 @@ export const AUDIO_TOOLS = {
     },
   },
   'dynamic-compressor': {
-    // Проигрывание обычным проигрывателем: живой обработки здесь нет, звук считается один
-    // раз и дальше просто играется. Переживает сон телефона, в отличие от движка.
-    // Список из девяти пунктов для таких страниц -- в памяти (project-element-playback).
+
     elementPlayback: true,
     compactPreview: true,
     transport: true,
@@ -1625,12 +1377,9 @@ export const AUDIO_TOOLS = {
     engine: 'webaudio',
     controls: 'select',
     accept: 'audio/*',
-    // Заготовки рядом кнопок, а не выпадающим списком -- как в шумоподавлении: четыре
-    // варианта, ради каждого делать нажатие и ждать открытия списка незачем.
+
     selectAsChips: true,
-    // Расшифровка режимов стоит СРАЗУ под кнопками, до всякого текста страницы.
-    // Владелец 16.08.2026: выбирая режим, человек должен видеть, что тот делает, а не
-    // искать это в середине статьи.
+
     chipHints: [
       { value: 'voice', label: 'compressorVoiceLabel', hint: 'compressorVoiceHint' },
       { value: 'podcast', label: 'compressorPodcastLabel', hint: 'compressorPodcastHint' },
@@ -1658,8 +1407,7 @@ export const AUDIO_TOOLS = {
       comp.attack.value = cfg.attack;
       comp.release.value = cfg.release;
       comp.knee.value = cfg.knee;
-      // A compressor only ever turns things down, so without make-up gain the result is quieter
-      // than the input and reads as "it did nothing, just worse".
+
       const gain = oc.createGain();
       gain.gain.value = cfg.makeup;
       src.connect(comp);
@@ -1667,49 +1415,29 @@ export const AUDIO_TOOLS = {
       return gain;
     },
   },
-  // «Убрать голос», «убрать музыку» и «отделить вокал» живут на своём компоненте
-  // (components/StemTool.astro) со своими стилями -- у них накапливается несколько результатов,
-  // и каждый со своим воспроизведением и скачиванием. Здесь их настроек нет намеренно.
 
-  // ШУМОМЕР. Показывает оценку громкости вокруг в децибелах. Точного числа браузер дать не
-  // может: чувствительность микрофона неизвестна, поэтому берём общепринятую поправку и прямо
-  // пишем на странице, что это оценка ±10 дБ. Главное на экране -- крупное число и понятное
-  // сравнение («как разговор», «как оживлённая улица»), а не выдуманная точность.
   'sound-meter': {
     engine: 'webaudio',
     controls: 'sound-meter',
   },
 
-  // ШУМ МИКРОФОНА. Замер фона: десять секунд человек молчит, мы копим уровень и говорим,
-  // годится ли комната для записи. Децибелов шумомера здесь быть не может -- браузер не знает
-  // чувствительности микрофона, число было бы выдумкой. Показываем уровень относительно
-  // микрофона и понятный вывод.
   'mic-noise': {
     engine: 'webaudio',
     controls: 'mic-noise',
   },
 
-  // ТЕСТ МИКРОФОНА. Файла нет, обработки нет: показываем живую волну с микрофона, даём
-  // выбрать устройство, если их несколько, и записываем пять секунд -- послушать себя.
-  // Без записи человек не верит, что звук идёт: дёргающаяся полоска ничего не доказывает.
   'mic-test': {
     engine: 'webaudio',
     controls: 'mic-test',
   },
 
-  // ТЕСТ ЗВУКА. Ничего не грузим и не считаем: браузер сам умеет направить тон в нужный
-  // канал. Человек нажимает «левый», «оба» или «правый» и слышит, откуда идёт звук, --
-  // так проверяются наушники и колонки: подключены ли и не перепутаны ли местами.
   'sound-test': {
     engine: 'tone',
     controls: 'sound-test',
   },
 
   'white-noise': {
-    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
-    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
-    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
-    // reason the old "build the whole duration as one buffer" approach had to go.
+
     engine: 'noise',
     controls: 'noise',
     color: 'white',
@@ -1718,10 +1446,7 @@ export const AUDIO_TOOLS = {
   },
 
   'pink-noise': {
-    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
-    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
-    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
-    // reason the old "build the whole duration as one buffer" approach had to go.
+
     engine: 'noise',
     controls: 'noise',
     color: 'pink',
@@ -1729,10 +1454,7 @@ export const AUDIO_TOOLS = {
     downloadFormats: ['mp3', 'wav'],
   },
   'brown-noise': {
-    // A player first: a short seamless loop plays on repeat for as long as you like, so listening
-    // for eight hours costs the same few megabytes as listening for one minute. Downloading a
-    // file is the secondary action, capped at 30 minutes -- see makeNoiseLoop for the measured
-    // reason the old "build the whole duration as one buffer" approach had to go.
+
     engine: 'noise',
     controls: 'noise',
     color: 'brown',
@@ -1741,14 +1463,4 @@ export const AUDIO_TOOLS = {
   },
 };
 
-
-// Семь инструментов единого редактора -- ЕДИНСТВЕННЫЙ список. Он был продублирован в
-// [slug].astro и в AudioEditor.astro, я исправил одну копию, а решала другая: страница
-// «сжать аудиофайл» так и осталась редактором. Один источник, чтобы это не повторилось.
-//
-// 'compress' -- сжатие ВЕСА файла (битрейт, размер, кнопки «почта/Discord»), отдельная
-// страница со своим устройством. Компрессор ДИНАМИКИ здесь называется 'dynamic-compressor'.
-// ШЕСТЬ инструментов, компрессора здесь НЕТ -- владелец 16.08.2026: «мы обговорили только
-// 6 значков в инструменте и компрессор туда не входил». Я ошибочно держал его седьмым, и в
-// памяти у меня было записано неверно. Компрессор динамики живёт на своей странице.
 export const EDITOR_TOOLS = ['trim', 'equalizer', 'volume', 'normalize', 'speed', 'pitch'];

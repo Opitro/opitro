@@ -3,21 +3,6 @@ import css from '../styles/audio-editor.css?inline';
 import { AUDIO_TOOLS, EDITOR_TOOLS } from '../lib/audio-tools-config.js';
 import AdSlot from './AdSlot.astro';
 
-/*
-  Один редактор -- семь точек входа.
-
-  Страница остаётся собой: свой адрес, свой заголовок, свой текст. Меняется только то, какой
-  инструмент открыт при заходе. Адрес при переключении НЕ меняется -- это решение владельца,
-  обсуждалось отдельно. Тексты страниц про соседние инструменты не пишут: иначе семь страниц
-  станут дублями друг друга.
-
-  Живут здесь только семь инструментов из EDITOR_TOOLS. Остальные 33 остаются на AudioTool.astro
-  нетронутыми -- ограничение риска, а не половинчатость: они все на одном компоненте, и поломка
-  редактора не должна задеть диктофон, конвертер или разделение файла.
-
-  Полный список согласованных решений -- в памяти project-audio-editor.
-*/
-
 interface Props {
   tool: string;
   locale: string;
@@ -26,14 +11,6 @@ interface Props {
 
 const { tool, labels } = Astro.props;
 
-// Порядок ряда. Обрезка первой: это самый частый вход, и без неё на /trim-audio не была бы
-// подсвечена ни одна вкладка. Реверс сюда не входит -- владелец: «это другая потребность».
-// Тональность выведена из редактора по решению владельца и живёт отдельной страницей на
-// прежнем компоненте: её пересчёт синхронный и на длинной записи замораживает страницу.
-// Скорость страдает тем же и остаётся здесь до тех пор, пока расчёт не уедет в отдельный
-// поток -- см. project-audio-editor.
-// Список один на весь сайт, лежит в audio-tools-config.js -- см. пояснение там.
-
 const ICONS: Record<string, string> = {
   trim: '<circle cx="6" cy="18" r="2.6"/><circle cx="18" cy="18" r="2.6"/><path d="M7.8 16.2L20 4M16.2 16.2L4 4"/>',
   equalizer: '<path d="M4 21v-7M4 10V3M12 21v-9M12 8V3M20 21v-5M20 12V3"/><path d="M1 14h6M9 8h6M17 16h6"/>',
@@ -41,10 +18,7 @@ const ICONS: Record<string, string> = {
   normalize: '<path d="M3 12h4l3-8 4 16 3-8h4"/>',
   speed: '<path d="M13 2L4.1 12.8a1 1 0 0 0 .8 1.6H11l-1 7.6 8.9-10.8a1 1 0 0 0-.8-1.6H12z"/>',
   pitch: '<path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/>',
-  // Ключ = имя инструмента из EDITOR_TOOLS. Переименовал инструмент в 'dynamic-compressor'
-  // (чтобы не путать со сжатием ВЕСА файла), а здесь ключ оставил старым -- вкладка вышла
-  // с названием «undefined» и без значка. Имена должны совпадать во всех трёх местах:
-  // список инструментов, значки, названия, панель.
+
   'dynamic-compressor': '<path d="M4 6h16M4 18h16"/><path d="M8 10l4-3 4 3M8 14l4 3 4-3"/>',
 };
 
@@ -72,10 +46,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     <div class="small">{labels.dropHint || 'Перетащите сюда или нажмите, чтобы выбрать'}</div>
     <div class="formats">{labels.dropFormats || 'MP3, WAV, M4A, AAC, OGG, OPUS, FLAC, WMA, AIFF'}</div>
   </div>
-  {/* БЕЗ accept намеренно. На айфоне `accept="audio/*"` сводит выбор к музыкальной
-      библиотеке, и файлы из «Файлов» и iCloud выбрать нельзя вовсе. Страницы, где выбор
-      работает (конвертер, темп), атрибута не имеют -- владелец сравнил и нашёл разницу.
-      Значение из настроек инструмента здесь НЕ берём: у обрезки там как раз 'audio/*'. */}
+
   <input type="file" id="ed-file" />
   <div class="audio-ed-err" id="ed-err"></div>
 
@@ -98,7 +69,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <canvas id="ed-canvas"></canvas>
       <div class="ed-sel" id="ed-sel">
         <svg class="ed-move" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 8L22 12L18 16"/><path d="M6 8L2 12L6 16"/><path d="M2 12H22"/></svg>
-        {/* Время прямо на ручке: смотришь туда, где палец, а не вниз на строку. */}
+
         <div class="ed-handle ed-handle-l"><span></span><b id="ed-h0">00:00.0</b></div>
         <div class="ed-handle ed-handle-r"><span></span><b id="ed-h1">00:00.0</b></div>
       </div>
@@ -115,16 +86,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       <button type="button" class="ed-btn ed-stop" id="ed-stop" aria-label={labels.stopLabel || 'Стоп'}>
         <svg viewBox="0 0 24 24" fill="currentColor"><rect x="6" y="6" width="12" height="12" rx="2"/></svg>
       </button>
-      {/* ОДНО число: сколько длится выбранный кусок. Границы и так написаны на самих ручках,
-          а здесь важно другое -- что получится после обрезки (владелец 21.08.2026). */}
+
       <div class="ed-stamps" id="ed-len">00:00.0</div>
     </div>
 
     <div class="ed-row-bottom">
       <div class="ed-panel" id="ed-panel"></div>
-    {/* Формат и скачивание -- ПОСЛЕДНЕЕ действие, поэтому стоят в самом низу, под всеми
-        настройками. Раньше они сидели в одном ряду с кнопкой воспроизведения, то есть
-        предлагались раньше, чем человек что-либо настроил. */}
+
     <div class="ed-deck ed-bottom">
       <select class="ed-fmt" id="ed-fmt">
         <option value="wav">wav</option>
@@ -136,8 +104,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       </button>
     </div>
     </div>
-    {/* Ползунок длины спада: всплывает под нажатой кнопкой фейда и исчезает вместе с ним.
-        Лежит в общем поле инструмента, чтобы не вылезать за его края. */}
+
     <div class="ed-pop" id="ed-fade-pop" style="display:none">
       <input type="range" min="0.1" max="3" step="0.1" value="1" aria-label={labels.edFadeLen || 'Длина спада'}>
       <span class="ed-pop-val">1.0 с</span>
@@ -165,59 +132,41 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     const pick = $('ed-select'), err = $('ed-err');
 
     let active = wrap.dataset.active;
-    let originalBuffer = null;   // исходник, не трогаем никогда
-    let baseBuffer = null;       // после необратимых правок (обрезка, нормализация)
-    let workBuffer = null;       // base + тональность и скорость; это слышно и скачается
+    let originalBuffer = null;
+    let baseBuffer = null;
+    let workBuffer = null;
     let fileName = '';
-    let selStart = 0, selEnd = 1;   // доли от длительности
+    let selStart = 0, selEnd = 1;
 
-    // Живая цепочка: эти три ничего не пересчитывают, они висят на звуке настройками.
-    // Комбинируются свободно и качество не портят -- в этом главная разница с конкурентом,
-    // у которого каждый шаг пересобирает файл.
-    // fadeIn/fadeOut -- НЕ разовое действие, а состояние: кнопка остаётся нажатой, спад
-    // отсчитывается от ручки обрезки (не от нуля) и виден прямо на волне. Пока не нажали
-    // «Обрезать» или «Скачать», звук не тронут -- это по-прежнему настройка, а не правка.
     const live = {
       gain: 1, eq: new Array(10).fill(0),
       comp: { threshold: -24, ratio: 4, release: 0.25 }, compOn: false,
       fadeIn: 0, fadeOut: 0, fadeInSec: 0, fadeOutSec: 0, fadeInManual: false, fadeOutManual: false,
-      // Тональность и скорость -- НАСТРОЙКИ, а не разовые правки. Хранятся числом и каждый
-      // раз пересчитываются от baseBuffer, а не поверх уже пересчитанного. Иначе сдвиг
-      // накапливается: −3, потом ещё −3 даёт −6, хотя на ползунке стоит −3.
+
       pitch: 0, speed: 1,
     };
-    // Длина спада НЕ запоминается в момент нажатия: иначе включил один фейд, подвинул
-    // ручки, включил второй -- и они разной длины. На волне это видно сразу, левый спад
-    // сильнее правого. Считается всегда от текущего выделения, поэтому они равны.
-    // По умолчанию 1,5 секунды -- на слух это внятный спад и на любой дорожке к месту.
-    // Четверть выделения давала на длинном файле три секунды, а это уже перебор.
-    // Короткое выделение -- берём четверть, чтобы спад не съел весь кусок.
+
     const fadeLen = () => {
       if (!workBuffer) return 0;
       const selSec = (selEnd - selStart) * workBuffer.duration;
       return Math.max(0.2, Math.min(1.5, selSec / 4));
     };
-    // Длину можно задать руками ползунком; пока не трогали -- она считается сама от выделения.
-    // Верхний предел -- половина выделения: длиннее спад просто съест весь кусок.
+
     const пределСпада = () => {
       if (!workBuffer) return 3;
       return Math.max(0.3, Math.min(10, (selEnd - selStart) * workBuffer.duration / 2));
     };
-    // Пока ползунок не трогали, длина считается САМА от выделения -- и оба спада остаются
-    // одинаковыми, даже если подвинуть ручки. Как только длину задали руками, она держится
-    // ровно такой, какую поставили. Замораживать её в момент включения нельзя: тогда включил
-    // один фейд, подвинул ручки, включил второй -- и они разной длины (поймано проверкой).
+
     const fiSec = () => (live.fadeIn ? Math.min(live.fadeInManual ? live.fadeInSec : fadeLen(), пределСпада()) : 0);
     const foSec = () => (live.fadeOut ? Math.min(live.fadeOutManual ? live.fadeOutSec : fadeLen(), пределСпада()) : 0);
     const EQ_HZ = [31, 62, 125, 250, 500, 1000, 2000, 4000, 8000, 16000];
 
-    startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
+    startKeeper();
     const player = createPlayer();
     player.onStuck(() => showError(window.__opitroLabels?.audioStuckLabel || 'Браузер приостановил звук. Нажмите ещё раз.'));
 
     function showError(msg) { err.textContent = msg || ''; }
-    // Округляем ДО деления на минуты, а не после: при 59.97 с обе части считались отдельно
-    // и получалось «00:60.0» вместо «01:00.0».
+
     const fmtTime = (s) => {
       const tenths = Math.round(Math.max(0, s) * 10);
       const m = Math.floor(tenths / 600);
@@ -225,9 +174,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       return `${String(m).padStart(2, '0')}:${r.toFixed(1).padStart(4, '0')}`;
     };
 
-    // --- переключатель: ряд или список, решаем ЗАМЕРОМ -----------------------------------
-    // Не по ширине экрана: подписи на испанском и украинском длиннее русских, и любая
-    // жёсткая граница для них соврала бы.
     function fitTools() {
       toolsEl.style.display = 'flex';
       listEl.style.display = 'none';
@@ -249,17 +195,10 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       fitTools();
     }
 
-    // --- панели инструментов --------------------------------------------------------------
-    // Заголовков у панелей нет намеренно: название стоит в переключателе прямо над ней.
-    // `center` -- значение, на котором «ничего не меняется». Если оно попадает внутрь хода,
-    // на дорожке рисуется тонкая черта: без неё вернуть ползунок точно в ноль на глаз
-    // почти невозможно. Там, где ноль совпадает с краем (скорость, порог), черта не нужна.
     const row = (label, min, max, step, val, id, unit, center) => {
       const hasC = center != null && center > +min && center < +max;
       const pct = hasC ? ((center - min) / (max - min)) * 100 : 0;
-      // Черта лежит в обёртке вокруг САМОЙ дорожки. Раньше она отмерялась от всей строки --
-      // вместе с подписью слева и цифрой справа, -- и на громкости ноль оказывался не по
-      // центру дорожки. Та же ошибка была на эквалайзере и лечится так же.
+
       return `<div class="ed-row"><label for="${id}">${label}</label>
         <span class="ed-slot${hasC ? ' has-center' : ''}">
           ${hasC ? `<span class="ed-mid" style="left:${pct}%"></span>` : ''}
@@ -274,8 +213,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           <button type="button" class="ed-btn" id="ed-fadein" title="${lbl('edFadeIn', 'Плавное начало')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 20C10 20 12 5 20 5L20 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 20C10 20 12 5 20 5"/></svg></button>
           <button type="button" class="ed-btn" id="ed-fadeout" title="${lbl('edFadeOut', 'Плавный конец')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round"><path d="M4 5C12 5 14 20 20 20L4 20Z" fill="currentColor" fill-opacity=".22" stroke="none"/><path d="M4 5C12 5 14 20 20 20"/></svg></button>
           <button type="button" class="ed-btn" id="ed-cutmid" title="${lbl('edCutMiddle', 'Вырезать середину')}"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round">
-            <!-- Края дорожки остаются -- они сплошные. Середина заштрихована: это то, что уйдёт.
-                 Так видно, ЧТО именно вырезается, без слов. -->
             <rect x="3" y="3.2" width="4" height="17.6" rx="1.4" fill="currentColor" stroke="none"/>
             <rect x="17" y="3.2" width="4" height="17.6" rx="1.4" fill="currentColor" stroke="none"/>
             <path d="M9.4 18.6 12 5.4M12.6 18.6 15.2 5.4" opacity=".5"/>
@@ -291,8 +228,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       volume: () => row('', -100, 100, 1, Math.round((live.gain - 1) * 100), 'ed-vol', pctLabel(live.gain), 0),
       normalize: () => row(lbl('edTarget', 'Целевой уровень'), -30, 0, 1, -14, 'ed-norm', '−14 dB')
         + `<div class="ed-deck" style="margin-top:10px"><button type="button" class="ed-btn" id="ed-apply-norm">${lbl('edApply', 'Применить')}</button></div>`,
-      // Ни кнопки «Применить», ни подписи: отпустил ползунок -- пересчиталось. Кнопка
-      // читалась как «ничего не произошло», а слово «полутонов» владелец назвал непонятным.
+
       speed: () => row('', 50, 200, 1, Math.round(live.speed * 100), 'ed-speed', live.speed.toFixed(2) + '×', 100)
         + `<div class="ed-live" id="ed-speed-live"></div>`,
       pitch: () => row('', -12, 12, 1, live.pitch, 'ed-pitch', live.pitch > 0 ? '+' + live.pitch : String(live.pitch), 0)
@@ -313,16 +249,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       radio:  [-8, -6, -2, 3, 5, 4, 2, -2, -6, -8],
     };
 
-    // Заливка дорожки и подсказка. Считаются от СЕРЕДИНЫ, а не от края: у эквалайзера,
-    // громкости и высоты тона ноль посередине, и заливка «слева направо» врала бы.
     function paintSlider(el, centerVal, fmt) {
       const min = +el.min, max = +el.max, v = +el.value;
       const c = centerVal == null ? min : centerVal;
       const pos = (x) => ((x - min) / (max - min)) * 100;
       const a = Math.min(pos(c), pos(v)), b = Math.max(pos(c), pos(v));
       const vertical = el.closest('.ed-band') ? el.closest('.ed-fader') : null;
-      // У вертикальных полос ноль внизу шкалы соответствует НИЗУ дорожки, поэтому
-      // направление заливки обратное.
+
       const dir = vertical ? 'to top' : 'to right';
       el.style.setProperty('--fill', Math.abs(b - a) < 0.5 ? 'none'
         : `linear-gradient(${dir},transparent ${a}%,var(--accent) ${a}%,var(--accent) ${b}%,transparent ${b}%)`);
@@ -331,8 +264,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       if (holder && fmt) holder.style.setProperty('--tip', JSON.stringify(fmt(v)));
     }
 
-    // Подсказка живёт только пока тянут -- постоянные цифры у десяти движков превратили бы
-    // панель в таблицу.
     panel.addEventListener('pointerdown', (e) => {
       const h = e.target.closest && e.target.closest('.ed-fader, .ed-slot');
       if (h && e.target.tagName === 'INPUT') h.classList.add('is-dragging');
@@ -349,13 +280,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       syncStamps();
     }
 
-    // --- живая цепочка ---------------------------------------------------------------------
-    // Узлы пересоздаются на каждое воспроизведение, но ссылки держим здесь, чтобы менять
-    // параметры ПОКА играет: полоса эквалайзера слышна в тот же миг, без пересборки файла.
-    // Таймер автозакрытия ползунка спада живёт ЗДЕСЬ, в общей области. Пока он объявлялся
-    // внутри отрисовки панели, обработчик ползунка (привязывается один раз) сбрасывал таймер
-    // из СТАРОЙ отрисовки, а свежий тикал сам по себе -- окно закрывалось прямо во время
-    // перетаскивания. Владелец: «ему всё равно, что я его тяну».
     let таймерПопа = 0;
     const спрятатьПоп = () => { const p = $('ed-fade-pop'); if (p) p.style.display = 'none'; };
     const закрытьПоп = () => { clearTimeout(таймерПопа); таймерПопа = 0; спрятатьПоп(); };
@@ -364,17 +288,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       таймерПопа = window.setTimeout(спрятатьПоп, 2000);
     };
     let chainNodes = null, fadeGain = null;
-    const peakCache = {};   // огибающая волны: считается один раз, переиспользуется
-    // `live` -- строим ли цепочку для ЗВУЧАЩЕГО тракта. При сведении для скачивания
-    // цепочка строится заново в отдельном движке, и её узлы НЕ должны подменять живые:
-    // иначе после скачивания регулировки уходят в мёртвые узлы, а живой узел фейда
-    // остаётся на нуле после спада -- и звука больше нет вообще.
+    const peakCache = {};
+
     function buildChain(ctx, source, isLive = true) {
-      // Отдельный узел под фейды, первым в цепочке. Раньше спад накладывался ТОЛЬКО при
-      // скачивании: на волне он рисовался, в файл попадал, а на слух его не было -- живая
-      // цепочка про него просто не знала.
+
       const fg = ctx.createGain();
-      fg.gain.value = 1;   // при сведении спад уже наложен applyFade, узел просто пропускает
+      fg.gain.value = 1;
       if (isLive) fadeGain = fg;
       source.connect(fg);
       const g = ctx.createGain();
@@ -404,12 +323,11 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       return node;
     }
 
-    // --- отрисовка -------------------------------------------------------------------------
     function redraw() {
       if (!workBuffer) return;
       drawWaveform(canvas, workBuffer, fileName, {
         rich: true, gain: live.gain, peaks: peakCache,
-        // Доли от всей дорожки: спад отсчитывается от ручек обрезки, а не от краёв файла.
+
         fade: (live.fadeIn || live.fadeOut) ? {
           selStart, selEnd,
           inStart: selStart,
@@ -420,15 +338,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       });
       dimOutside();
       placeSelection();
-      // Строки времени под дорожкой больше нет: время висит на самих ручках и в ряду кнопок.
+
       const т0 = $('ed-t0'); if (т0) т0.textContent = '00:00.0';
       const т1 = $('ed-t1'); if (т1) т1.textContent = fmtTime(workBuffer.duration);
       syncStamps();
     }
 
-    // За ручками волна приглушена, между ними обычная. Так с одного взгляда видно, что
-    // останется, а что уйдёт -- без единой подписи. Гасим прозрачность самих столбиков
-    // (destination-out), а не кладём сверху плёнку: плёнка притушила бы и имя файла.
     function dimOutside() {
       if (selStart <= 0 && selEnd >= 1) return;
       const g = canvas.getContext('2d');
@@ -441,9 +356,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       g.restore();
     }
 
-
-    // Считаем от холста, а не от обёртки -- ровно так это сделано в обрезке, которая
-    // работает. Обёртка и холст сейчас совпадают, но полагаться на совпадение нельзя.
     function setPlayhead(frac) {
       const ph = $('ed-playhead');
       if (!ph) return;
@@ -462,16 +374,12 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const н = fmtTime(selStart * workBuffer.duration), к = fmtTime(selEnd * workBuffer.duration);
       const длина = $('ed-len');
       if (длина) длина.textContent = fmtTime((selEnd - selStart) * workBuffer.duration);
-      // Те же числа -- на самих ручках.
+
       const рН = $('ed-h0'), рК = $('ed-h1');
       if (рН) рН.textContent = н;
       if (рК) рК.textContent = к;
     }
 
-    // --- загрузка файла ---------------------------------------------------------------------
-    // Один сброс на всех: и крестик, и «Сбросить», и загрузка нового файла. Раньше каждый
-    // из них обнулял своё, и новый файл открывался с настройками прошлого -- громкость,
-    // полосы эквалайзера, фейды, скорость и высота оставались от предыдущего.
     function resetSettings() {
       live.gain = 1;
       live.eq = new Array(10).fill(0);
@@ -522,7 +430,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     ['dragleave', 'drop'].forEach((n) => $('ed-drop').addEventListener(n, () => $('ed-drop').classList.remove('over')));
     $('ed-drop').addEventListener('drop', (e) => { e.preventDefault(); if (e.dataTransfer.files[0]) loadFile(e.dataTransfer.files[0]); });
 
-    // --- переключение вкладок ---------------------------------------------------------------
     toolsEl.addEventListener('click', (e) => {
       const b = e.target.closest('.ed-tool');
       if (!b || busy) return;
@@ -533,16 +440,11 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     pick.addEventListener('change', () => { active = pick.value; renderTools(); renderPanel(); });
     new ResizeObserver(fitTools).observe(wrap);
 
-    // --- воспроизведение --------------------------------------------------------------------
     const ICO_PLAY = '<path d="M8 5v14l11-7z"/>';
     const ICO_PAUSE = '<path d="M6 5h4v14H6zM14 5h4v14h-4z"/>';
-    // Воспроизведение идёт через обработчик в звуковом потоке, а не через обычный узел.
-    // Благодаря этому скорость и высота меняются на ходу, независимо друг от друга, и звук
-    // при этом не прерывается: меняется лишь число в уже работающем обработчике.
+
     let actx = null, node = null, loadedFor = null, chain = null;
 
-    // Возврат на вкладку и разблокировка экрана: будим контекст сразу, не дожидаясь плея.
-    // Без этого первое нажатие уходило в мёртвый контекст и выглядело как отсутствие отклика.
     document.addEventListener('visibilitychange', () => {
       if (!document.hidden && actx && actx.state !== 'running') {
         try { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {}
@@ -550,18 +452,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     });
 
     async function ensureNode() {
-      // Разряд звуковой сессии -- до создания контекста: иначе на iPhone с включённым
-      // беззвучным режимом воспроизведение идёт, бегунок ползёт, а слышно ничего.
+
       openAudioSession();
       if (!actx) {
         actx = new (window.AudioContext || window.webkitAudioContext)();
         await actx.audioWorklet.addModule('/audio-stretch-worklet.js');
       }
-      // НЕ ждать пробуждения. На iPhone после блокировки экрана или ухода со вкладки
-      // контекст переходит в состояние 'interrupted', и обещание от resume() там может не
-      // выполниться НИКОГДА. С `await` мы навсегда застревали здесь -- отсюда жалоба
-      // «нажимаю плей, ничего не происходит» на уже загруженном файле. Будим без ожидания
-      // и идём дальше: к моменту запуска источника контекст обычно уже жив.
+
       if (actx.state !== 'running') { try { const r = actx.resume(); if (r && r.catch) r.catch(() => {}); } catch (e) {} }
       if (!node) {
         node = new AudioWorkletNode(actx, 'audio-stretch', { outputChannelCount: [2] });
@@ -573,8 +470,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         chain = buildChain(actx, node);
         chain.connect(actx.destination);
       }
-      // Каналы отдаём один раз на буфер: передача отсоединяет массив от страницы,
-      // поэтому шлём КОПИИ, иначе исходный звук пропадёт после первого запуска.
+
       if (loadedFor !== workBuffer) {
         const chans = [];
         for (let c = 0; c < Math.max(1, workBuffer.numberOfChannels); c++) {
@@ -598,8 +494,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       setPlayhead(sec / workBuffer.duration);
     }
 
-    // Огибающая спада в секундах звукового движка, считая от момента запуска. Делим на
-    // скорость: при ускорении вдвое участок в две секунды звучит одну.
     function scheduleFades(sec) {
       if (!fadeGain || !actx) return;
       const t0 = actx.currentTime;
@@ -609,11 +503,9 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const fi = fiSec(), fo = foSec();
       const inEnd = selStart * workBuffer.duration + fi;
       const outStart = selEnd * workBuffer.duration - fo;
-      // Прямая, а не экспонента. Экспонента почти весь путь держится у нуля и взлетает
-      // в конце -- на слух это «сначала тишина, потом звук вдруг», и на глаз не совпадает
-      // с тем, что нарисовано на волне. Прямая совпадает и с картинкой, и с ощущением.
+
       if (live.fadeIn && sec < inEnd) {
-        // Начинаем не с нуля, если запуск попал в середину подъёма.
+
         const from = Math.max(0, (sec - selStart * workBuffer.duration) / fi);
         gp.setValueAtTime(from, t0);
         gp.linearRampToValueAtTime(1, t0 + (inEnd - sec) / k);
@@ -644,14 +536,13 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         $('ed-play-ico').innerHTML = ICO_PLAY;
         return;
       }
-      // Всегда от ручки обрезки; с места паузы -- только если оно внутри выделения.
+
       const from = selStart * workBuffer.duration, until = selEnd * workBuffer.duration;
       await startFrom(pausedAt >= from && pausedAt < until ? pausedAt : from);
     });
 
     $('ed-stop').addEventListener('click', () => { if (!busy) stopPlayback(); });
 
-    // --- «Сбросить» и крестик ----------------------------------------------------------------
     $('ed-reset').addEventListener('click', () => {
       if (!originalBuffer) return;
       player.stop();
@@ -676,7 +567,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       showError('');
     });
 
-    // --- скачивание ---------------------------------------------------------------------------
     $('ed-save').addEventListener('click', async () => {
       if (!workBuffer) return;
       const fmt = $('ed-fmt').value;
@@ -684,10 +574,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       const was = btn.textContent;
       btn.textContent = lbl('edPreparing', 'Готовим…');
       try {
-        // Скачиваем ТО, ЧТО ВЫДЕЛЕНО. Раньше в файл уходил весь звук целиком: ручки
-        // двигали, на волне видели выбранный кусок, а получали исходник. Отсюда же
-        // ехали и фейды -- спад ложился по краям файла вместо краёв выделения.
-        // Нажимать «Обрезать» ради скачивания не должно быть обязательно.
+
         const d = workBuffer.duration;
         const src = (selStart > 0 || selEnd < 1)
           ? sliceBuffer(workBuffer, selStart * d, selEnd * d)
@@ -703,11 +590,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       }
     });
 
-    // Живые настройки сводим в звук ОДИН раз, при скачивании. До этого момента файл не
-    // пересчитывался ни разу -- поэтому сколько бы вкладок ни трогали, качество то же.
-    // Свой спад вместо общего applyFade: тот ведёт громкость по экспоненте, а нам нужна
-    // ровно та же прямая, что звучит при прослушивании и нарисована на волне. Общий
-    // applyFade не трогаем -- на нём живут остальные инструменты.
     async function linearFade(buf, fi, fo) {
       if (!fi && !fo) return buf;
       const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
@@ -730,9 +612,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     async function bakeLive(buf) {
       let b = buf;
-      // Обработчик звукового потока меняет звук ТОЛЬКО пока он играет -- в файл так ничего
-      // не попадёт. Поэтому при скачивании те же скорость и высота считаются по-настоящему,
-      // порционно, с полосой выполнения. Ожидание тут уместно: человек нажал «Скачать».
+
       if (Math.abs(live.speed - 1) > 0.001) b = await wsolaStretchChunked(b, 1 / live.speed, showBusy);
       if (live.pitch) b = await pitchShiftChunked(b, live.pitch, showBusy);
       showBusy(null);
@@ -741,8 +621,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       if (Math.abs(live.gain - 1) < 0.001 && noEq && !live.compOn && !live.pitch) return b;
       buf = b;
       const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
-      // При сдвиге высоты запись становится короче или длиннее -- отводим под неё
-      // соответствующую длину, иначе конец обрежется молча.
+
       const off = new OC(buf.numberOfChannels, buf.length, buf.sampleRate);
       const src = off.createBufferSource();
       src.buffer = buf;
@@ -752,7 +631,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       return off.startRendering();
     }
 
-    // --- органы управления панелей -------------------------------------------------------------
     function repaintAll() {
       panel.querySelectorAll('#ed-eq input').forEach((el) => paintSlider(el, 0, (v) => (v > 0 ? '+' : '') + v + ' dB'));
       const vol = $('ed-vol'); if (vol) paintSlider(vol, 0, (v) => (v > 0 ? '+' : '') + v + ' %');
@@ -763,7 +641,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
     function wirePanel() {
       const on = (id, ev, fn) => { const el = $(id); if (el) el.addEventListener(ev, fn); };
 
-      // эквалайзер: слышно сразу, звук не пересчитывается
       const eq = $('ed-eq');
       if (eq) eq.addEventListener('input', (e) => {
         const i = +e.target.dataset.b;
@@ -784,18 +661,15 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         if (chainNodes) chainNodes.filters.forEach((f, i) => { f.gain.value = live.eq[i]; });
       });
 
-      // громкость: тоже живая
       on('ed-vol', 'input', (e) => {
         live.gain = 1 + (+e.target.value) / 100;
         $('ed-vol-v').textContent = pctLabel(live.gain);
         paintSlider(e.target, 0, (v) => (v > 0 ? '+' : '') + v + ' %');
         if (chainNodes) chainNodes.gain.gain.value = live.gain;
-        // Не чаще одного кадра: ползунок шлёт события пачками, и рисовать на каждое --
-        // значит соревноваться с самим собой.
+
         if (!volFrame) volFrame = requestAnimationFrame(() => { volFrame = 0; redraw(); });
       });
 
-      // компрессор: живой, включается первым же движением
       [['ed-th', 'threshold', (v) => v + ' dB'], ['ed-ra', 'ratio', (v) => v + ':1'], ['ed-re', 'release', (v) => v + ' мс']]
         .forEach(([id, key, fmt]) => on(id, 'input', (e) => {
           const v = +e.target.value;
@@ -804,33 +678,29 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           $(id + '-v').textContent = fmt(v);
         }));
 
-      // скорость: пересчитывает, поэтому отдельная кнопка «Применить»
       on('ed-speed', 'input', (e) => {
         const k = (+e.target.value) / 100;
-        // Запись значения обязательна: без неё ползунок только рисует цифры, а скачанный
-        // файл остаётся прежней длины -- и человек об этом узнаёт уже дома.
+
         live.speed = k;
         $('ed-speed-v').textContent = k.toFixed(2) + '×';
         paintSlider(e.target, 100, (v) => (v / 100).toFixed(2) + '×');
         if (node) node.parameters.get('speed').value = k;
-        // Огибающая была расписана под прежнюю скорость -- переписываем от текущего места.
+
         if (playing) scheduleFades(lastPos);
         const el = $('ed-speed-live');
         if (el && workBuffer) el.textContent = fmtTime(workBuffer.duration) + ' -> ' + fmtTime(workBuffer.duration / k);
       });
-
 
       on('ed-pitch', 'input', (e) => {
         const v = +e.target.value;
         $('ed-pitch-v').textContent = v > 0 ? '+' + v : String(v);
         paintSlider(e.target, 0, (x) => (x > 0 ? '+' : '') + x);
         live.pitch = v;
-        // Меняем прямо у звучащего узла: слышно сразу, воспроизведение не прерывается.
+
         if (node) node.parameters.get('pitchRatio').value = Math.pow(2, v / 12);
         const el = $('ed-pitch-live');
         if (el && workBuffer) el.textContent = fmtTime(workBuffer.duration) + ' -> ' + fmtTime(workBuffer.duration / Math.pow(2, v / 12));
       });
-
 
       on('ed-norm', 'input', (e) => { $('ed-norm-v').textContent = '−' + Math.abs(+e.target.value) + ' dB'; });
       on('ed-apply-norm', 'click', async () => {
@@ -853,11 +723,6 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           live.speed = 1; live.pitch = 0;
         });
       });
-      // Переключатели, а не разовые действия: нажал -- кнопка осталась нажатой, спад
-      // нарисовался на волне от ручки обрезки. Нажал ещё раз -- снялся.
-      // Всплывающий ползунок длины спада. Нажал кнопку -- спад включился и тут же появился
-      // ползунок; тянешь -- длина меняется и СРАЗУ слышна, если звук идёт. Нажал ту же
-      // кнопку ещё раз -- спад снят, ползунок убран (владелец 21.08.2026).
 
       const показатьПоп = (key, кнопка) => {
         const поп = $('ed-fade-pop');
@@ -874,14 +739,14 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         поп.dataset.key = key;
         поп.classList.toggle('is-manual', !!live[key + 'Manual']);
         поп.style.display = 'flex';
-        // Ставим под кнопкой, но не даём вылезти за край поля инструмента.
+
         const рк = кнопка.getBoundingClientRect();
         const рп = поп.offsetParent ? поп.offsetParent.getBoundingClientRect() : { left: 0, top: 0, width: window.innerWidth };
         const ширина = поп.offsetWidth || 220;
         let x = рк.left - рп.left + рк.width / 2 - ширина / 2;
         x = Math.max(6, Math.min(рп.width - ширина - 6, x));
         поп.style.left = x + 'px';
-        // ВЫШЕ кнопки: снизу он попадал под палец и закрывал собой соседние кнопки.
+
         const высота = поп.offsetHeight || 44;
         const сверху = рк.top - рп.top - высота - 8;
         поп.style.top = (сверху >= 0 ? сверху : рк.bottom - рп.top + 8) + 'px';
@@ -904,15 +769,15 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         ползунок.addEventListener('input', () => {
           const key = поп.dataset.key === 'fadeIn' ? 'fadeIn' : 'fadeOut';
           live[key + 'Sec'] = +ползунок.value;
-          live[key + 'Manual'] = true;   // тронули руками -- дальше держим заданное
+          live[key + 'Manual'] = true;
           поп.querySelector('.ed-pop-val').textContent = (+ползунок.value).toFixed(1) + ' ' + lbl('secShort', 'с');
           redraw();
-          поп.classList.add('is-manual');   // длину задали руками -- дорожка меняет цвет
+          поп.classList.add('is-manual');
           отложитьЗакрытие();
-          // Слышно СРАЗУ: расписание переписывается от текущего места, без перезапуска.
+
           if (playing) scheduleFades(lastPos);
         });
-        // Нажали мимо -- ползунок убираем, но сам спад остаётся включённым.
+
         document.addEventListener('pointerdown', (e) => {
           if (поп.style.display === 'none') return;
           if (поп.contains(e.target)) return;
@@ -937,18 +802,8 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       return out;
     }
 
-    // Пересобираем слышимое из базы. Порядок важен: сначала растяжение по времени, потом
-    // сдвиг высоты -- обратный порядок даёт другой результат при тех же цифрах на ползунках.
-    // Высоты тона здесь НЕТ намеренно. Она меняется как на пластинке -- средствами самого
-    // браузера (detune на узле воспроизведения), без единого расчёта: крутится мгновенно и
-    // прямо во время звучания, запись не прерывается. Плата -- длительность едет вместе с
-    // высотой, ровно как у конкурента. Скорость осталась пересчётом, потому что она наоборот
-    // сохраняет высоту -- иначе оба ползунка делали бы одно и то же.
-    // Пересчитывать нечего: скорость и высота живут в обработчике звукового потока.
     function rebuild() { workBuffer = baseBuffer; loadedFor = null; }
 
-    // Полоса поверх волны: пока идёт пересчёт, видно, что работа идёт и сколько осталось.
-    // Без неё пауза читается как поломка -- ровно то, на что владелец и пожаловался.
     function showBusy(frac) {
       const el = $('ed-busy');
       if (!el) return;
@@ -967,8 +822,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       try { await fn(); loadedFor = null; redraw(); renderPanel(); }
       catch (e) { showError(lbl('edOpError', 'Не получилось применить. Попробуйте ещё раз.')); }
       finally {
-        // Звук после пересчёта -- уже другой буфер. Что бы ни оставалось играть, оно играет
-        // старое; останавливаем и приводим кнопку в согласие с тем, что слышно.
+
         busy = false;
         root.classList.remove('is-busy');
         showBusy(null);
@@ -976,23 +830,20 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       }
     }
 
-    // --- ручки обрезки на волне ------------------------------------------------------------------
     let drag = null, dragFrom = 0, dragSpan = 0, downAt = 0, moved = false;
-    // Пока идёт пересчёт, звук остановлен, и кнопка воспроизведения без этого замка считала,
-    // что играть нечего, и ЗАПУСКАЛА вместо остановки. Отсюда «нажал паузу -- заиграло».
+
     let busy = false, volFrame = 0, playing = false, pausedAt = 0, lastPos = 0;
     $('ed-wave').addEventListener('pointerdown', (e) => {
       if (!workBuffer || busy) return;
       const r = $('ed-wave').getBoundingClientRect();
       const x = (e.clientX - r.left) / r.width;
-      // Порог в ТОЧКАХ, а не в долях длительности: доля 0.05 на часовой лекции -- это три
-      // минуты, и ручка ловилась бы за полэкрана до себя.
+
       const grab = 16 / r.width;
       const dl = Math.abs(x - selStart), dr = Math.abs(x - selEnd);
       if (Math.min(dl, dr) <= grab) {
         drag = dl < dr ? 'start' : 'end';
       } else if (x > selStart && x < selEnd) {
-        // Тот же приём, что в обрезке: тянем всё выделение целиком, не трогая его длину.
+
         drag = 'move';
         dragFrom = x;
         dragSpan = selEnd - selStart;
@@ -1001,13 +852,10 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
         dragFrom = x;
         dragSpan = selEnd - selStart;
       }
-      // Клик и перетаскивание различаем по пройденному пути, а не по месту нажатия.
-      // Раньше при выделении на весь файл (а это состояние по умолчанию) любая точка
-      // считалась «внутри», клик уходил в перетаскивание, и перемотка не работала никогда.
+
       downAt = x;
       moved = false;
-      // Захват указателя -- удобство (палец может уехать за пределы волны), а не необходимость.
-      // Браузер отказывает, если указателя с таким номером уже нет; падать из-за этого нельзя.
+
       try { $('ed-wave').setPointerCapture(e.pointerId); } catch (err) {}
     });
     $('ed-wave').addEventListener('pointermove', (e) => {
@@ -1023,14 +871,10 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
       } else if (drag === 'start') selStart = Math.min(x, selEnd - 0.01);
       else selEnd = Math.max(x, selStart + 0.01);
       redraw();
-      // Спад отсчитывается ОТ РУЧКИ обрезки, значит сдвинули ручку -- сдвинулся и спад.
-      // Без этой строки расписание оставалось от прежних границ, и услышать новый спад можно
-      // было только перезапустив звук. Владелец описал ровно это (21.08.2026).
+
       if (playing) scheduleFades(lastPos);
     });
-    // Полоса за курсором и часы над ней. Не изобретено здесь заново: ровно тот же приём,
-    // что в компактной панели плеера (AudioTool.astro, #wave-guide/#wave-tip) -- включая
-    // прижатие подсказки к краям, иначе у начала и конца дорожки её срезает рамкой.
+
     $('ed-wave').addEventListener('mousemove', (e) => {
       if (!workBuffer) return;
       const r = $('ed-wave').getBoundingClientRect();
@@ -1050,10 +894,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
 
     $('ed-wave').addEventListener('pointerup', () => {
       if (drag && !moved && workBuffer && !busy) {
-        // Логика как в остальных плеерах сайта: клик только СТАВИТ черточку, и она стоит,
-        // пока не нажмут плей. Если звук шёл -- клик его ОСТАНАВЛИВАЕТ, а не перематывает
-        // на ходу. Так человек всегда управляет воспроизведением кнопкой, а дорожкой --
-        // только выбором места.
+
         pausedAt = downAt * workBuffer.duration;
         lastPos = pausedAt;
         if (playing) {
@@ -1061,7 +902,7 @@ const toolsData = EDITOR_TOOLS.map((id) => ({ id, name: NAMES[id], ico: ICONS[id
           playing = false;
           $('ed-play-ico').innerHTML = ICO_PLAY;
         }
-        // Черточка остаётся видимой на выбранном месте -- в отличие от «Стоп», который её убирает.
+
         setPlayhead(downAt);
       }
       drag = null;

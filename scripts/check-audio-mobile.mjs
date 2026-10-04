@@ -1,16 +1,4 @@
-// Простая, но самая важная проверка: НА ТЕЛЕФОНЕ НАЖАЛ ПЛЕЙ -- И ЗВУК ИДЁТ.
-//
-// Зачем она заведена. Плеер один на все 40 инструментов, поэтому любая правка в нём
-// задевает сразу всех. Владелец 16.08.2026, дословно: «ты улучшаешь одно, а ломаешь
-// другое». Так и было: правка нажатия по волне глушила звук через миллисекунды после
-// запуска, потому что нажатие по кнопке «играть» всплывало на дорожку. Поймал это
-// владелец на своём телефоне, а не я.
-//
-// Что меряем: после касания по «играть» бегунок должен ДВИГАТЬСЯ. Если он стоит --
-// звук не пошёл или его тут же оборвали. Косвенно, зато честно: сам звук из браузера
-// не вытащить, а положение бегунка берётся из хода воспроизведения.
-//
-// Своё окно, своя папка, свой порт -- к чужому браузеру не подключаемся (см. память).
+
 import { spawn, execSync } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
@@ -33,7 +21,7 @@ if (!fs.existsSync('dist')) {
   console.error('Нет собранного сайта. Сначала: npm run build');
   process.exit(1);
 }
-// Проба звука: секунда тона, если своего файла не передали.
+
 if (!fs.existsSync(ФАЙЛ)) {
   const sr = 44100, n = sr * 3, буф = Buffer.alloc(44 + n * 2);
   буф.write('RIFF', 0); буф.writeUInt32LE(36 + n * 2, 4); буф.write('WAVEfmt ', 8);
@@ -56,8 +44,6 @@ const браузер = spawn('/Applications/Google Chrome.app/Contents/MacOS/Goo
 const закрыть = () => { try { браузер.kill(); } catch {} try { раздатчик.kill(); } catch {} };
 process.on('exit', закрыть);
 
-// Ждём ГОТОВНОСТИ, а не отмеренных секунд: с фиксированной паузой проверка падала,
-// когда раздатчик поднимался медленнее, и это выглядело как поломка сайта.
 for (let i = 0; i < 120; i++) { try { await fetch(`http://127.0.0.1:${ПОРТ_РАЗДАЧИ}/`); break; } catch { await сон(300); } }
 let верс; for (let i = 0; i < 120; i++) { try { верс = await (await fetch(`http://127.0.0.1:${ПОРТ_БРАУЗЕРА}/json/version`)).json(); break; } catch { await сон(300); } }
 
@@ -82,8 +68,7 @@ for (const [имя, адрес] of СТРАНИЦЫ) {
   if (!поле.nodeId) { беды.push(`${имя} -- нет поля выбора файла`); continue; }
   await шлём('DOM.setFileInputFiles', { files: [ФАЙЛ], nodeId: поле.nodeId }, S);
   await сон(3500);
-  // Кнопка «играть» называется по-разному: в обычных инструментах wave-play-btn,
-  // в редакторе ed-play. Бегунок тоже: playhead и ed-playhead.
+
   const кн = await q('(function(){var el=document.getElementById("wave-play-btn")||document.getElementById("ed-play");if(!el)return "";var r=el.getBoundingClientRect();return JSON.stringify({x:r.x+r.width/2,y:r.y+r.height/2,off:el.disabled});})()');
   if (!кн) { беды.push(`${имя} -- нет кнопки «играть»`); continue; }
   const b = JSON.parse(кн);

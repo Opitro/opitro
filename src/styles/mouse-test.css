@@ -1,10 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ТЕСТ МЫШИ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Мышь нарисована обычными прямоугольниками со скруглениями, а не картинкой: так каждую кнопку
- * можно подсветить отдельно, и рисунок остаётся чётким на любом экране без второго файла.
- */
 
 .ms-pad {
   display: flex; flex-direction: column; align-items: center; gap: 16px;
@@ -13,8 +6,6 @@
   touch-action: manipulation;
 }
 
-/* Корпус: вытянутый овал сверху, скруглённое дно. Пропорции взяты у обычной мыши, чтобы
-   рисунок узнавался с одного взгляда. */
 .ms-body {
   position: relative; width: 168px; height: 258px;
   border: 2px solid var(--line); border-radius: 84px 84px 66px 66px;
@@ -25,30 +16,26 @@
   border: 0; background: var(--surface-2); cursor: pointer;
   transition: background .08s, box-shadow .12s;
 }
-/* Разделитель между кнопками -- отдельной чертой поверх заливки: когда обе кнопки отмечены
-   зелёным, обычная граница в этой заливке тонет, и верх мыши читается одним пятном. */
+
 .ms-btn.left { left: 0; border-radius: 82px 0 0 0 }
 .ms-btn.right { right: 0; border-radius: 0 82px 0 0 }
 .ms-body::before {
   content: ""; position: absolute; left: 50%; top: 0; width: 2px; height: 46%;
   transform: translateX(-50%); background: #0a0b0d; z-index: 2; pointer-events: none;
 }
-/* Нижняя граница кнопок -- та же черта, что делит корпус пополам у настоящей мыши. */
+
 .ms-body::after {
   content: ""; position: absolute; left: 0; right: 0; top: 46%; height: 2px;
   background: #0a0b0d; z-index: 2; pointer-events: none;
 }
-/* Колесо сидит в вырезе между кнопками -- как на настоящей мыши. */
-/* Колесо стоит поверх разделителя -- как в жизни, и оттого сразу узнаётся. Рамка потемнее,
-   чтобы оно не сливалось с подсвеченными кнопками. */
+
 .ms-wheel {
   position: absolute; left: 50%; top: 11%; transform: translateX(-50%); z-index: 3;
   width: 30px; height: 68px; border-radius: 15px;
   background: var(--surface-2); border: 2px solid #0a0b0d; cursor: pointer;
   transition: background .08s, box-shadow .12s;
 }
-/* Боковые кнопки -- «назад» и «вперёд», их проверяют реже всего и о них чаще всего спрашивают. */
-/* Боковые кнопки выступают за корпус -- так они и стоят на мыши, и так их видно на рисунке. */
+
 .ms-side {
   position: absolute; left: -10px; width: 20px; height: 38px; border-radius: 9px;
   background: var(--surface-2); border: 2px solid #0a0b0d;
@@ -57,8 +44,6 @@
 .ms-side.back { top: 104px }
 .ms-side.fwd { top: 148px }
 
-/* Проверена -- приглушённо; нажата прямо сейчас -- ярко. Те же два состояния, что на
-   клавиатуре: человек, прошедший там, узнаёт язык. */
 .ms-ok { background: color-mix(in srgb, var(--accent) 16%, var(--surface-2)) }
 .ms-down { background: var(--accent); box-shadow: 0 0 0 3px rgba(74,222,158,.18) }
 
@@ -85,8 +70,6 @@
 .ms-reset:hover { border-color: rgba(255,255,255,.24) }
 .ms-reset:disabled { opacity: .45; cursor: default }
 
-/* «Нужна мышь» -- только там, где точного указателя нет. Как на клавиатурной странице:
-   показывает и прячет чистый CSS, чтобы не мигало у всех подряд. */
 .ms-need { display: none }
 @media (hover: none) and (pointer: coarse) {
   .ms:not(.есть-мышь) .ms-need {

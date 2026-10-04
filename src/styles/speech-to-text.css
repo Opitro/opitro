@@ -1,6 +1,4 @@
-/* Размер зоны загрузки одинаков на всех аудиостраницах: 52px отступы, значок 42,
-     заголовок 17. Утверждён владельцем на редакторе -- это вход в инструмент, главное
-     действие страницы, и оно должно занимать место соответственно. */
+
   .stt-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
   .stt-tool .drop:hover,.stt-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
   .stt-tool .drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
@@ -9,12 +7,8 @@
   .stt-tool .drop .formats{margin-top:6px;font-size:11px;opacity:.75;max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
   .stt-tool input[type=file]{display:none}
 
-  /* The dictation page opens on the microphone, so it gets a line of plain guidance where the
-     other page has its drop zone. */
   .stt-tool .voice-lead{font-size:14px;color:var(--muted);line-height:1.6;margin:0 0 16px;text-align:center;max-width:52ch;margin-left:auto;margin-right:auto}
-  /* Кнопка по центру, подпись под ней. Сбоку она читалась как строка меню, а не как то,
-     ради чего пришли: на этой странице запись -- единственное действие, и центр в ней
-     единственное место. */
+
   .stt-tool .mic-row{display:flex;flex-direction:column;align-items:center;gap:10px;margin:6px 0 18px}
   .stt-tool .mic-btn{flex:none;width:56px;height:56px;border-radius:50%;cursor:pointer;
     display:flex;align-items:center;justify-content:center;
@@ -22,8 +16,7 @@
     transition:background .18s,border-color .18s,transform .12s}
   .stt-tool .mic-btn:hover{background:rgba(255,58,94,0.14);border-color:rgba(255,58,94,0.6)}
   .stt-tool .mic-btn:active{transform:scale(.96)}
-  /* Круг -> квадрат: то же превращение, что в диктофонах и записи экрана. Радиус и размер
-     меняются плавно, поэтому переход читается как одно движение, а не как подмена значка. */
+
   .stt-tool .mic-dot{width:20px;height:20px;border-radius:50%;background:#ff3a5e;
     transition:border-radius .18s,width .18s,height .18s}
   .stt-tool .mic-btn.on{background:rgba(255,58,94,0.18);border-color:#ff3a5e}
@@ -52,16 +45,9 @@
   .stt-tool .wave-play-btn:hover:not(:disabled){transform:scale(1.06)}
   .stt-tool .wave-play-btn:disabled{opacity:.35;cursor:not-allowed}
   .stt-tool .wave-play-btn .ico{width:17px;height:17px}
-  /* Бегунок как в аудиоинструментах: фирменный зелёный со слабым свечением вместо белой
-     нитки. Пока внешний вид плеера описан в трёх файлах, такие правила приходится
-     повторять -- это и есть причина, по которой они уже разъезжались (44/38 пикселей
-     у кнопки, 2/1.5 у бегунка). */
 
   .stt-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:6px}
-  /* Layout.astro carries a global `.field{margin-bottom:16px}`. Left standing inside the export
-     row it made the field's outer box 16px taller than the select, and `align-items:flex-end`
-     then put the download button 16px BELOW the format list — side by side but not on the same
-     line, which is exactly how it looked. The audio tools cancel the same rule; this one didn't. */
+
   .stt-tool .field{flex:1 1 200px;min-width:150px;margin-bottom:0}
   .stt-tool .field label{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
   .stt-tool .field select{width:100%;background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);font-family:inherit;font-size:15px;padding:10px 12px;height:46px;cursor:pointer;
@@ -69,20 +55,15 @@
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px}
   .stt-tool .field select:focus{outline:none;border-color:rgba(74,222,158,0.5)}
-  /* См. подробное пояснение в audio-tool.css: где браузер умеет `base-select`, он рисует
-     открытый список сам и не строит под него отдельный документ. Здесь это особенно заметно --
-     в списке языков около сотни пунктов. */
+
   @supports (appearance: base-select) {
-    /* nowrap обязателен: в этом режиме <select> становится флекс-контейнером и длинная
-       подпись вроде «Auto (keep original)» переносилась на вторую строку, отчего коробка
-       росла в высоту. Обычный список так никогда не делает -- он просто обрезает. */
+
     .stt-tool .field select{appearance:base-select;display:flex;align-items:center;
       white-space:nowrap;overflow:hidden}
     .stt-tool .field select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);
       border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;
       position-try-fallbacks:none}
-    /* Стрелку рисуем своей картинкой, как и до правки, -- браузерная ::picker-icon
-       это сплошной треугольник, он выбивался из нашего набора значков. */
+
     .stt-tool .field select::picker-icon{display:none}
     .stt-tool .field option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
     .stt-tool .field option:hover,
@@ -103,11 +84,11 @@
   .stt-tool .progress.on{opacity:.55}
   .stt-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
   .stt-tool .progress-fill{height:100%;width:0%;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .2s}
-  /* A 239 MB download and a multi-minute transcription both need words, not just a hairline bar. */
+
   .stt-tool .stage-text{font-size:12.5px;color:var(--muted);text-align:center;min-height:18px;margin:4px 0 10px;
     display:flex;align-items:center;justify-content:center;gap:10px;flex-wrap:wrap}
   .stt-tool .stage-text:has(span:empty:only-child){margin:0}
-  /* Tabular digits so a ticking clock does not jiggle the line it sits on. */
+
   .stt-tool .stage-clock{font-variant-numeric:tabular-nums;color:var(--text);opacity:.85}
   .stt-tool .stage-clock:empty{display:none}
 
@@ -115,25 +96,13 @@
   .stt-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .stt-tool button.act:hover:not(:disabled){transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
   .stt-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
-  /* Главная кнопка. Прежнее правило было записано как `.stt-tool .primary` и не работало ни разу:
-     базовое `.stt-tool button.act` весомее (класс+класс+тег против класса+класса), поэтому главная
-     кнопка выглядела как любая другая -- серой. Проверено замером в браузере: фон был rgb(28,30,36).
-     Здесь та же вескость, что у базового правила, плюс свой класс, поэтому оно применяется.
-     Оттенок мягкий, а не сплошная заливка: кнопка должна быть заметна, но не кричать -- это тот же
-     приём, что у ссылки на категорию внизу страниц, чтобы язык сайта остался одним. */
-  /* Главная кнопка выглядит как обычная. Зелёная заливка пробовалась и отменена: залитая
-     кнопка на тёмной странице читается как уже нажатая, а не как приглашение нажать.
-     Цвет появляется только в момент нажатия -- как отклик на действие, а не как состояние.
-     (Прежнее правило было записано как `.stt-tool .primary` и не срабатывало вовсе: базовое
-     `.stt-tool button.act` весомее. Здесь вескость выровнена, поэтому правило живое.) */
+
   .stt-tool button.act.primary{background:var(--surface-2);border-color:var(--line);color:var(--text);font-weight:700}
   .stt-tool button.act.primary:active:not(:disabled){background:rgba(74,222,158,0.16);
     border-color:rgba(74,222,158,0.5);transform:translateY(0)}
   .stt-tool .ico{width:16px;height:16px;flex:none}
   .stt-tool .act .i{width:17px;height:17px;flex:none}
 
-  /* auto-fit rather than a fixed three: the language cell only appears when it was detected, and
-     a fourth item in a three-column grid left an empty box sitting there looking unfinished. */
   .stt-tool .summary{display:grid;grid-template-columns:repeat(auto-fit,minmax(110px,1fr));gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden;margin:6px 0 16px}
   .stt-tool .sum-cell{background:var(--surface);padding:11px 8px;text-align:center;display:flex;flex-direction:column;gap:3px}
   .stt-tool .sum-label{font-size:10.5px;letter-spacing:.1em;text-transform:uppercase;color:var(--muted)}
@@ -143,8 +112,6 @@
   .stt-tool .vt-seg{font-family:inherit;font-size:12px;font-weight:600;cursor:pointer;border:none;background:none;color:var(--muted);border-radius:7px;padding:7px 12px;transition:background .15s,color .15s}
   .stt-tool .vt-seg.active{background:rgba(74,222,158,0.14);color:var(--accent)}
 
-  /* Reading width and line height matter more here than anywhere else on the site -- this is the
-     one tool whose output someone actually sits and reads. */
   .stt-tool textarea{width:100%;min-height:320px;resize:vertical;background:var(--surface);border:1px solid var(--line);border-radius:12px;color:var(--text);
     font-family:inherit;font-size:15px;line-height:1.65;padding:16px 18px;white-space:pre-wrap}
   .stt-tool textarea:focus{outline:none;border-color:rgba(74,222,158,0.5)}
@@ -154,13 +121,9 @@
 
   .stt-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:18px 0 6px}
   .stt-tool .deck .field{flex:1 1 200px}
-  /* The format names are short (TXT, SRT, VTT) so this cell needs far less room than the
-     button's label. At 150px the row folded to two lines on a 360px phone, which is where a lot
-     of Android screens sit. Measured from 320 to 1280. */
+
   .stt-tool .deck .field-fmt{flex:0 1 116px;min-width:96px}
-  /* Кнопка по содержимому, а не во всю ширину. Это уже чинилось в аудио-в-миди, но правка
-     легла только туда -- здесь кнопка оставалась в 774 пикселя. Третий раз одна и та же
-     ошибка в разных файлах: пока внешний вид описан трижды, так и будет. */
+
   .stt-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:44px;padding:0 22px;
     border-radius:12px;white-space:nowrap}
   @media(max-width:640px){
@@ -173,20 +136,6 @@
   .stt-tool .err{display:none;margin-top:14px;background:rgba(255,58,94,.12);border:1px solid rgba(255,58,94,.4);color:#ffb3c0;border-radius:10px;padding:12px 14px;font-size:12.5px;line-height:1.5}
   .stt-tool .err.show{display:block}
 
-  /* --- Панель плеера: тот же вид, что в аудиоинструментах ------------------------------------
-     ВНИМАНИЕ: это третья копия одних и тех же правил (аудиоинструменты, аудио-в-миди, речь-в-текст).
-     Именно из-за копий они уже расходились -- кнопка 44 против 38 пикселей, бегунок 2 против 1.5.
-     Сводить в один файл нужно, и это следующая работа. */
-
-/* Ползунки на телефоне: область захвата больше, чем видимая полоска.
-   Две причины, по которым палец «не цеплялся»:
-   1. `touch-action` -- первое касание уходило в ПРОКРУТКУ страницы, а не в ползунок:
-      браузер ждал, потянут вниз или вбок, и первое движение съедалось. `none` отдаёт
-      касание ползунку сразу.
-   2. Область нажатия совпадала с полоской в несколько точек. Высота (у вертикальных --
-      ширина) увеличена до 44 точек: браузер рисует дорожку прежней толщины и центрирует
-      её, а нажимается вся коробка. Видимый размер НЕ меняется, меняется только то,
-      куда можно попасть. 44 точки -- общепринятая наименьшая цель для пальца. */
   .stt-tool input[type=range]{touch-action:none}
 @media(max-width:759px){
     .stt-tool input[type=range]{height:44px}
@@ -195,20 +144,7 @@
     .stt-tool .eq-band input[type=range]{height:auto;width:44px}
 }
 
-/* ЕДИНЫЙ размер поля формата на всём сайте.
-   Владелец 16.08.2026: «значок формата на всём сайте подгоняем под один общий размер,
-   чуть длиннее надписи формата плюс стрелка открывания», и по высоте вровень с «Скачать».
-   Раньше ширина задавалась числом и в каждом инструменте своим: 130, 104, 92, 190, 116.
-   Отсюда и расхождение, которое я не мог объяснить: у поля стояло 104, а выглядело шире --
-   ширину держал сам список, у которого своя мера по самому длинному варианту.
-   Теперь ширины НЕТ вовсе: список меряется по своей надписи, а отступ справа оставляет
-   место стрелке. Один набор чисел на все инструменты. */
-/* Ширина ПОСТОЯННАЯ, с запасом под самое длинное название (FLAC, M4R).
-   С шириной «по надписи» коробка дёргалась при выборе: OGG шире MP3, и весь ряд
-   перестраивался на каждом переключении. Владелец 16.08.2026: «убери любые
-   непредвиденные расширения, расширь и зафиксируй». */
 .stt-tool .deck .field-fmt{flex:0 0 96px;width:96px;max-width:96px;min-width:96px}
 .stt-tool .deck .field-fmt select{width:100%;min-width:0;font-size:13px;
   padding:0 30px 0 12px;height:44px;line-height:1;box-sizing:border-box}
 @media(max-width:759px){.stt-tool .deck .field-fmt{flex:0 0 96px;width:96px;max-width:96px;min-width:96px}}
-

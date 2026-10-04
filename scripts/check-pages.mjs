@@ -1,41 +1,28 @@
-// Drives real Chrome over every page shape the site has and reports what the browser itself
-// complains about: deprecated APIs, console errors, mixed content, broken requests.
-//
-// The point is that nobody has to paste 288 URLs into PageSpeed one at a time. Every page is
-// built from one of a handful of templates, so one page per template covers the site -- and this
-// runs them all in one pass, against the real browser rather than against a guess.
-// ПРОВЕРЯЕМ СОБРАННЫЙ САЙТ, А НЕ СЕРВЕР РАЗРАБОТКИ. На 4321 живёт dev-сервер Astro, и он
-// подмешивает в каждую страницу свою панель разработчика (/@id/astro/runtime/client/dev-toolbar).
-// У людей её нет вовсе, а проверка ругалась именно на неё -- двенадцать страниц из двенадцати
-// «с замечаниями» на ровном месте. Берём предпросмотр собранного сайта: это ровно то, что
-// получает человек. Адрес можно передать первым доводом, если нужен другой.
+
 const ПОРТ_САЙТА = 4392;
 const BASE = process.argv[2] || `http://localhost:${ПОРТ_САЙТА}`;
 const PAGES = process.argv.slice(3).length ? process.argv.slice(3) : [
-  '/ru',                     // homepage
-  '/ru/tools/audio',         // category
-  '/ru/cm-to-inches',        // calculator (linear converter)
-  '/ru/celsius-to-fahrenheit', // calculator (temperature)
-  '/ru/audio-converter',     // audio tool, ffmpeg engine
-  '/ru/audio-equalizer',     // audio tool with the vertical sliders
-  '/ru/dictaphone',          // recorder
-  '/ru/trim-audio',          // trim handles
-  '/ru/white-noise-generator', // generator
-  '/ru/audio-to-midi',       // own component
-  '/ru/audio-to-text',       // own component
-  '/ru/speech-to-text',      // own component, microphone
+  '/ru',
+  '/ru/tools/audio',
+  '/ru/cm-to-inches',
+  '/ru/celsius-to-fahrenheit',
+  '/ru/audio-converter',
+  '/ru/audio-equalizer',
+  '/ru/dictaphone',
+  '/ru/trim-audio',
+  '/ru/white-noise-generator',
+  '/ru/audio-to-midi',
+  '/ru/audio-to-text',
+  '/ru/speech-to-text',
 ];
 
-// СВОЁ окно браузера, своя папка, свой порт. Раньше сценарий подключался к порту 9222 и
-// хозяйничал во вкладках того окна, что уже открыто, -- то есть в рабочем браузере владельца.
-// Он дважды терял из-за этого свою работу. Ничего чужого не трогаем.
 import { spawn } from 'node:child_process';
 import os from 'node:os';
 import path from 'node:path';
 const ПОРТ = 9351;
 const ПАПКА = path.join(os.tmpdir(), 'opitro-check-pages-prof');
 const сон = (ms) => new Promise((r) => setTimeout(r, ms));
-// Предпросмотр поднимаем сами и гасим за собой -- проверку нельзя запустить неправильно.
+
 let свойСервер = null;
 if (!process.argv[2]) {
   const живой = async () => { try { await fetch(BASE + '/ru'); return true; } catch (е) { return false; } };

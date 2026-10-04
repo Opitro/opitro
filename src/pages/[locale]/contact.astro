@@ -2,9 +2,6 @@
 import Layout from '../../layouts/Layout.astro';
 import { t as translate } from '../../lib/ui-strings.js';
 
-// Страница обратной связи. Живёт отдельным файлом маршрута, а не в коллекции: у неё нет
-// инструмента, нет FAQ и нет пары "из чего во что". Статический сегмент "contact" по правилам
-// Astro старше динамического [slug], так что спора маршрутов тут нет.
 export async function getStaticPaths() {
   return ['en', 'ru', 'es', 'uk'].map((locale) => ({ params: { locale } }));
 }
@@ -25,9 +22,6 @@ const translations = ['en', 'ru', 'es', 'uk'].map((l) => ({ locale: l, slug: 'co
     <h1>{t('contactH1')}</h1>
     <p class="lead">{t('contactLead')}</p>
 
-    {/* Адрес собирается скриптом. В разметке он лежит в виде, который простые сборщики адресов
-        не понимают, но человек прочитает и без скрипта -- поэтому страница остаётся рабочей,
-        даже если JavaScript отключён. Полной защиты от спама это не даёт, и обещать её нечестно. */}
     <p class="write-row">
       <a class="write-btn" id="ct-mail" href="#" data-user="help" data-host="opitro.com">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round">
@@ -67,13 +61,9 @@ const translations = ['en', 'ru', 'es', 'uk'].map((l) => ({ locale: l, slug: 'co
     const addr = link.dataset.user + '@' + link.dataset.host;
     document.getElementById('ct-addr').textContent = addr;
 
-    // Тема письма подставляется из страницы, откуда пришли: тогда по почте сразу видно, какой
-    // инструмент ломается чаще, без единого вопроса к человеку.
     const from = new URLSearchParams(location.search).get('from') || '';
     const subject = 'Opitro' + (from ? ': ' + from : '');
 
-    // Сведения об устройстве -- и только о нём. Про содержимое файла тут нет ничего и быть не может:
-    // файл никогда не покидает устройство, страница его не видела.
     const facts = [
       from ? 'Страница: ' + from : null,
       'Браузер: ' + navigator.userAgent,
@@ -133,7 +123,7 @@ const translations = ['en', 'ru', 'es', 'uk'].map((l) => ({ locale: l, slug: 'co
   .contact .what li::before{content:"";position:absolute;left:2px;top:10px;width:6px;height:6px;
     border-radius:50%;background:var(--accent);opacity:.75}
   .write-row{margin:0 0 10px}
-  /* Та же кнопка, что в инструментах: серая в покое, цвет только в момент нажатия. */
+
   .write-btn{display:inline-flex;align-items:center;gap:9px;height:48px;padding:0 22px;
     background:var(--surface-2);border:1px solid var(--line);border-radius:12px;
     color:var(--text);font-size:14px;font-weight:700;text-decoration:none;

@@ -1,17 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР FAVICON».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ И ПОЧЕМУ:
- *   -- фон страницы не задаём: у сайта свой, инструменты его не перекрашивают. Поля делаем
- *      СВЕТЛЕЕ фона, потому что чёрное поле на тёмном фоне сливается;
- *   -- текст кода просили приглушённо-серым (#A1A1AA) -- он белый. Приглушённые буквы
- *      забракованы владельцем ещё на Base64, а код тут именно читают;
- *   -- «Очистить» просили матово-серой -- она стала значком корзины с белым контуром.
- *
- * Правило владельца, которое здесь ведущее: меньше надписей, больше значков. Словами названо
- * только то, что значком не объяснить: два способа кадрирования и главная кнопка скачивания.
- */
 
 .фв {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -20,8 +6,6 @@
   --беда: #ff9aa8;
   font-family: var(--цифры);
 }
-
-/* ---- Зона загрузки -------------------------------------------------------------------------- */
 
 .фв-зона {
   display: flex; flex-direction: column; align-items: center; justify-content: center;
@@ -33,7 +17,7 @@
 .фв-зона.держат { border-style: solid; border-color: #fff }
 .фв-зона p { margin: 0; font: 400 13px/1.5 var(--ui); color: #fff; max-width: 46ch }
 .фв-зона input[type=file] { display: none }
-/* Показанный исходник -- невысокий: он подтверждает выбор файла, а не заменяет предпросмотр. */
+
 .фв-снимок { max-width: 100%; height: 130px; border-radius: 8px; object-fit: contain }
 
 .фв-взять {
@@ -45,11 +29,8 @@
 .фв-взять:hover { border-color: #fff; background: #23272f }
 .фв-виды { font: 400 11.5px var(--цифры); letter-spacing: .04em; color: var(--accent) }
 
-/* ---- Пульт: название сайта, цвет и кадрирование ------------------------------------------- */
-
 .фв-пульт { display: flex; flex-wrap: wrap; align-items: center; gap: 10px; margin: 12px 0 }
-/* У поля нет отдельной подписи: подсказка внутри него и есть подпись. Лишних надписей на
-   странице быть не должно -- правило владельца. */
+
 .фв-имя {
   flex: 1 1 220px; min-width: 0; max-width: 320px;
   height: 38px; padding: 0 12px; border-radius: 6px;
@@ -58,19 +39,14 @@
 }
 .фв-имя:hover, .фв-имя:focus { border-color: #fff; outline: none }
 .фв-имя::placeholder { color: #8b93a0 }
-/* Цвет, который уйдёт в манифест: без него полоса над приложением на Android будет белой.
-   Показываем квадратиком, а не числом -- цвет объясняет себя сам. */
+
 .фв-цвет { width: 38px; height: 38px; border-radius: 6px; flex: none; cursor: pointer;
   padding: 0; border: 1px solid var(--линия); background: #16181d }
 .фв-цвет:hover { border-color: #fff }
-/* Браузер рисует внутри пипетки свои поля; убираем их, чтобы квадрат был залит целиком. */
+
 .фв-цвет::-webkit-color-swatch-wrapper { padding: 2px }
 .фв-цвет::-webkit-color-swatch { border: 0; border-radius: 4px }
 
-/* ---- Выбор кадрирования ---------------------------------------------------------------------
-   Нужен только для неквадратной картинки: для квадратной оба способа дают одно и то же, и
-   предлагать выбор без последствий незачем. Но место под него держим ВСЕГДА -- иначе при
-   загрузке прямоугольника всё, что ниже, прыгнуло бы вниз. */
 .фв-кроп { display: flex; align-items: center; gap: 10px; min-height: 38px;
   visibility: hidden }
 .фв-кроп.нужен { visibility: visible }
@@ -85,8 +61,6 @@
 .фв-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
 .фв-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
 
-/* ---- Два окна -------------------------------------------------------------------------------- */
-
 .фв-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: stretch }
 .фв-окно { display: flex; flex-direction: column; border: 1px solid var(--линия);
   border-radius: 12px; background: #16181d; overflow: hidden }
@@ -98,8 +72,6 @@
 }
 .фв-тело { flex: 1; display: flex; flex-direction: column; padding: 16px; min-height: 210px }
 
-/* Подделка вкладки браузера. Значок стоит там же и того же размера, что в настоящей вкладке:
-   только так видно, читается он или слипся в пятно. */
 .фв-вкладка {
   display: inline-flex; align-items: center; gap: 8px; align-self: flex-start;
   max-width: 100%; padding: 8px 12px; border-radius: 8px 8px 0 0;
@@ -113,7 +85,7 @@
 .фв-ряд-знаков { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 18px;
   margin-top: 18px }
 .фв-клетка { display: flex; flex-direction: column; align-items: center; gap: 7px }
-/* Клетчатая подложка -- чтобы прозрачность была видна, а не сливалась с фоном окна. */
+
 .фв-клетка canvas {
   display: block; image-rendering: pixelated;
   background-image: linear-gradient(45deg, #2a2e36 25%, transparent 25%),
@@ -127,7 +99,6 @@
 .фв-пусто { font: 400 13px/1.6 var(--ui); color: #fff; margin-top: 18px }
 .фв-пусто[hidden] { display: none }
 
-/* Поле кода. Буквы БЕЛЫЕ, а не приглушённые: этот текст человек читает и переносит к себе. */
 .фв-код {
   flex: 1; width: 100%; min-height: 180px; resize: vertical;
   padding: 0; border: 0; background: transparent; color: #fff;
@@ -136,9 +107,6 @@
 }
 .фв-код:focus { outline: none }
 
-/* ---- Отчёт и кнопки --------------------------------------------------------------------------
-   Место под отчёт держится постоянным: он появляется после загрузки, и без запаса кнопки
-   прыгали бы вниз. */
 .фв-отчёт {
   min-height: 34px; display: flex; flex-wrap: wrap; gap: 4px 18px; align-items: center;
   padding: 9px 2px; font: 400 12px var(--цифры); color: var(--accent);
@@ -161,7 +129,6 @@
 }
 .фв-кнопка[disabled]:hover { background: #14161b; border-color: #2c313a }
 
-/* Кнопка-значок: без букв, но с подсказкой при наведении и подписью для голосового чтения. */
 .фв-значок {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   width: 34px; height: 34px; border-radius: 6px; cursor: pointer; color: #fff;
@@ -173,7 +140,7 @@
   stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
 .фв-крупнее { width: 44px; height: 44px }
 .фв-крупнее svg { width: 19px; height: 19px }
-/* Отклик на копирование -- сменой значка на галочку, а не подменой слова. */
+
 .фв-значок .галка { display: none }
 .фв-значок.готово { border-color: var(--accent); color: var(--accent) }
 .фв-значок.готово .лист { display: none }

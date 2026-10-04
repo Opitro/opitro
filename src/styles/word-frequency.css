@@ -1,11 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ЧАСТОТА СЛОВ В ТЕКСТЕ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Вид -- тот же, что у остальных текстовых инструментов, все решения уже утверждены:
- * поля светлее фона, кнопки подняты и с белыми буквами, выбранное помечено только зелёной
- * обводкой, в строке отчёта подпись зелёная, значение белое.
- */
 
 .чс {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -13,8 +5,6 @@
   --линия: rgba(255,255,255,.16);
   font-family: var(--цифры);
 }
-
-/* ---- Настройки ----------------------------------------------------------------------------- */
 
 .чс-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
   margin-bottom: 10px }
@@ -47,8 +37,6 @@
   appearance: none; margin: 0 }
 .чс-число:focus { outline: none; background: #23272f }
 
-/* ---- Поле ---------------------------------------------------------------------------------- */
-
 .чс-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
   transition: border-color .15s ease }
 .чс-поле:focus-within { border-color: #fff }
@@ -69,10 +57,6 @@
 .чс-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .чс-сказ.видно { opacity: 1 }
 
-/* ---- Частотный список ---------------------------------------------------------------------- */
-
-/* Место под список держится постоянным: разбор идёт на лету, и без этого страница дёргалась
-   бы на каждой букве. */
 .чс-итог { min-height: 240px; border: 1px solid var(--линия); border-radius: 10px;
   background: #0b0c0f; overflow: auto; max-height: 620px }
 .чс-пусто { display: flex; align-items: center; justify-content: center; min-height: 238px;
@@ -92,12 +76,9 @@
 .чс-доля { font: 500 12.5px var(--цифры); color: var(--accent); text-align: right;
   font-variant-numeric: tabular-nums }
 
-/* Полоса: заполнение зелёным цветом сайта. Белым здесь помечена только главная кнопка. */
 .чс-полоса { height: 9px; border: 1px solid rgba(255,255,255,.14); border-radius: 5px;
   overflow: hidden; background: #14161b }
 .чс-полоса i { display: block; height: 100%; background: var(--accent); border-radius: 4px }
-
-/* ---- Тошнота ------------------------------------------------------------------------------- */
 
 .чс-тошнота { display: none; margin-top: 10px; padding: 12px 14px; border-radius: 10px;
   border: 1px solid var(--линия); background: #16181d }
@@ -128,7 +109,7 @@
 .чс-заметка b { color: #fff; font-weight: 600 }
 
 @media (max-width: 640px) {
-  /* На узком экране полоса уходит: цифры важнее картинки. */
+
   .чс-строка { grid-template-columns: 28px minmax(0, 1fr) 74px 56px; gap: 8px }
   .чс-полоса { display: none }
   .чс-ввод { min-height: 150px }

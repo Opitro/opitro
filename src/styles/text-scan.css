@@ -1,14 +1,8 @@
-/* СКАНЕР ТЕКСТА С ФОТО.
- *
- * Строй общий со сканерами кодов и цвета: человек ходит между ними, и второй вид ему
- * пришлось бы учить заново. Здесь только своё: приглашение на входе, снимок с подсветкой
- * найденных строк, сам текст и ряд действий значками. */
 
 .тс { --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace; --контур: #3a3a42;
   --серый: #b4b4bb; font-family: var(--мон) }
 .тс [hidden] { display: none !important }
 
-/* ---- Вход: приглашение, а не пустое окно ------------------------------------------------- */
 .тс-старт {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 30px 20px 26px; border-radius: 12px;
@@ -31,11 +25,6 @@
 .тс-выбор svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.3;
   stroke-linecap: round; stroke-linejoin: round }
 
-/* ---- Полоса загрузки ПОД ПЛИТКАМИ -----------------------------------------------------------
-   Тонкая линия прямо под «Камерой» и «Файлом», как у обычных загрузчиков: файл читается,
-   движок едет -- видно, что работа пошла. Блок стоит на месте всегда (нулевая высота и
-   прозрачность), поэтому когда полоса появляется, ничего не подпрыгивает.
-   Большой блок с процентами отсюда убран: он выглядел загрузчиком файлов, а это сканер. */
 .тс-грузим { width: 100%; max-width: 330px; display: flex; flex-direction: column; gap: 6px;
   opacity: 0; transition: opacity .2s; pointer-events: none }
 .тс-грузим.идёт { opacity: 1 }
@@ -46,32 +35,25 @@
 .тс-грузим-шаг { font: 400 11.5px var(--мон); color: var(--серый); text-align: center;
   min-height: 15px }
 
-/* ---- Снимок ------------------------------------------------------------------------------- */
 .тс-окно {
   position: relative; margin-top: 14px; border: 2px solid var(--контур); border-radius: 6px;
   background: #09090b; overflow: hidden; line-height: 0;
   display: flex; justify-content: center; align-items: center;
 }
-/* СНИМОК ВПИСЫВАЕТСЯ, А НЕ РАСТЯГИВАЕТСЯ. С телефона приходит кадр в три тысячи точек, и во
-   всю ширину он занимал целый экран: чтобы дойти до прочитанного текста, приходилось
-   пролистывать страницу. Ограничиваем высоту двумя третями окна браузера. */
+
 .тс-кадр { position: relative; display: inline-block; line-height: 0; max-width: 100% }
 .тс-окно img, .тс-окно video { display: block; max-width: 100%; max-height: 46vh;
   width: auto; height: auto }
-/* Найденные строки лежат поверх снимка полупрозрачными рамками -- видно, что именно прочитано
-   и не пропущено ли что-то. Наведение на строку в тексте зажигает её же на фотографии. */
+
 .тс-слой { position: absolute; inset: 0; pointer-events: none }
 .тс-строка-рамка { position: absolute; border: 1px solid rgba(74,222,158,.35); border-radius: 2px;
   background: rgba(74,222,158,.07); transition: background .15s, border-color .15s }
 .тс-строка-рамка.горит { border-color: var(--accent); background: rgba(74,222,158,.25) }
-/* Выделение куска: человек обводит кусок снимка, и читаем только его. */
+
 .тс-выдел { position: absolute; border: 1.5px dashed var(--accent); background: rgba(74,222,158,.08);
   pointer-events: none }
 .тс-окно.выделяем { cursor: crosshair }
 
-/* ЛУЧ ПО СНИМКУ. Ровно тот же, что у сканеров кодов: человек пришёл на сканер, и работа
-   должна выглядеть сканированием -- линия идёт по кадру сверху вниз и обратно, пока читается
-   текст. Свечение даёт тень, а не заливка, поэтому снимок под лучом виден целиком. */
 .тс-луч { position: absolute; left: 0; right: 0; top: 0; height: 2px; pointer-events: none;
   opacity: 0; background: #4ade9e;
   box-shadow: 0 0 10px 2px rgba(74,222,158,.85), 0 0 26px 6px rgba(74,222,158,.35) }
@@ -84,7 +66,7 @@
   92%  { top: 0; opacity: 1 }
   100% { top: 0; opacity: 0 }
 }
-/* Рамки строк проявляются одна за другой, вслед за лучом -- видно, как текст «снимается». */
+
 .тс-строка-рамка { opacity: 0; animation: тс-проявилась .25s ease-out forwards }
 @keyframes тс-проявилась { from { opacity: 0; transform: scale(.98) } to { opacity: 1; transform: none } }
 @media (prefers-reduced-motion: reduce) {
@@ -92,20 +74,11 @@
   .тс-строка-рамка { animation: none; opacity: 1 }
 }
 
-/* ТЕКСТ НА МЕСТЕ ФОТОГРАФИИ. Белый лист поверх кадра, и каждая строка стоит ровно там, где
-   была на снимке: видно, что откуда взято, и читать удобнее, чем по фотографии. */
-/* ЭТО ТЕКСТ, А НЕ КАРТИНКА БЕЗ ФОНА. Сперва строки стояли ровно там, где были на снимке, --
-   и выходило похоже на фотографию, с которой стёрли фон: «почему стили букв сохранены?».
-   Теперь строки идут обычным потоком сверху вниз, одним шрифтом и кеглем, как в документе:
-   их видно текстом, можно выделить мышью и скопировать. */
-/* КРЕСТИК -- В УГЛУ СНИМКА, как на сканерах кодов, цвета и MRZ. В ряду действий под окном он
-   стоял не на своём месте: там кнопки про результат, а крестик убирает фотографию. */
 .тс-крест {
   position: absolute; top: 8px; right: 8px; z-index: 2;
   width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
   padding: 0; cursor: pointer; border-radius: 4px;
-  /* Обводка обязательна: на светлом кадре серый крестик без неё сливается с картинкой,
-     а на тёмном его вообще не видно. */
+
   border: 1px solid rgba(255,255,255,.45);
   background: rgba(0,0,0,.55); color: #e4e4e7;
   transition: color .15s, background .15s, border-color .15s;
@@ -114,7 +87,6 @@
 .тс-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
-/* ---- Ряд действий -------------------------------------------------------------------------- */
 .тс-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
 .тс-кнопка {
   width: 38px; height: 38px; padding: 0; cursor: pointer; border-radius: 8px;
@@ -130,21 +102,14 @@
 .тс-кнопка.готово .лист { display: none }
 .тс-кнопка.готово .галка { display: block }
 .тс-кнопка.взята { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.1) }
-/* Сборка PDF занимает долю секунды, но шрифт в первый раз ещё едет по сети. Кнопка на это
-   время гаснет и перестаёт нажиматься -- иначе человек жмёт второй раз, думая, что промахнулся. */
+
 .тс-кнопка.ждёт { opacity: .5; pointer-events: none }
-/* Кнопка с подписью -- только там, где значок неоднозначен. Лист с загнутым уголком владелец
-   не опознал: «надо только тыкать, чтоб понять, что оно делает». Остальные значки он прочитал
-   сам, и словами их не загромождаем. */
+
 .тс-кнопка-слово { width: auto; padding: 0 14px; font: 400 12.5px var(--мон); gap: 8px;
   letter-spacing: .02em }
 
 .тс-счёт { margin-left: auto; font: 400 12px var(--мон); color: var(--серый) }
 
-/* ---- Текст --------------------------------------------------------------------------------- */
-/* ПРОЧИТАННОЕ ВЫГЛЯДИТ ЛИСТОМ БУМАГИ -- решение владельца, и оно верное: со снимка сняли
-   текст, и человек видит его так, как привык видеть документ. Белая бумага, тёмные буквы,
-   поля по краям, лёгкая тень. Моноширинный шрифт тут не нужен -- это не код. */
 .тс-текст {
   margin-top: 12px; padding: 26px 28px; border-radius: 4px;
   background: #fbfbf7; border: 1px solid #d9d7cf; color: #1a1a1a;
@@ -153,22 +118,18 @@
   min-height: 96px;
   box-shadow: 0 10px 30px rgba(0,0,0,.45), 0 1px 0 rgba(255,255,255,.6) inset;
 }
-/* Абзацы проявляются один за другим -- как будто текст снимается со снимка вслед за лучом.
-   Место занято сразу: абзацы на месте и невидимы, поэтому ничего не подпрыгивает. */
+
 .тс-абзац { border-radius: 3px; padding: 0 2px; margin: 0 -2px 14px; cursor: default;
   opacity: 0; animation: тс-строка-вышла .18s ease-out forwards }
 .тс-абзац:last-child { margin-bottom: 0 }
 @keyframes тс-строка-вышла { from { opacity: 0; transform: translateY(2px) } to { opacity: 1; transform: none } }
 @media (prefers-reduced-motion: reduce) { .тс-абзац { animation: none; opacity: 1 } }
-/* Наведение подсвечивает абзац маркером, а на снимке зажигаются все его строки -- видно, с
-   какого места он снят. Жёлтый маркер понятен без объяснений. */
+
 .тс-абзац:hover { background: rgba(255,214,102,.45) }
-/* Слово, в котором движок не уверен: подчёркнуто волной, как опечатка в редакторе. Человек
-   сразу видит, что проверить глазами, а не перечитывает всё. */
-/* Слово, в котором движок не уверен, подчёркнуто волной -- как опечатка в редакторе. */
+
 .тс-шатко { text-decoration: underline wavy rgba(214,69,69,.6); text-underline-offset: 3px }
 .тс-пусто { color: #6b6b63; font: 400 14px/1.6 var(--мон) }
-/* Курсор на конце печатающегося текста: пока мигает -- работа идёт. */
+
 .тс-курсор { display: inline-block; width: 8px; height: 1.05em; vertical-align: -2px;
   background: var(--accent); animation: тс-мигает .8s steps(2, start) infinite }
 @keyframes тс-мигает { to { opacity: 0 } }
@@ -178,8 +139,7 @@
 .тс-ждём { margin-top: 12px; font: 400 12.5px var(--мон); color: var(--серый) }
 
 @media (max-width: 560px) {
-  /* На телефоне экран и так узкий: снимку хватает половины высоты, иначе текст уходит
-     за нижний край и его не видно вовсе. */
+
   .тс-окно img, .тс-окно video { max-height: 40vh }
   .тс-старт { padding: 24px 14px 22px }
   .тс-выбор { width: 132px }

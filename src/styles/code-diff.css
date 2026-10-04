@@ -1,16 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «СРАВНЕНИЕ КОДА».
- *
- * Файл принадлежит одной странице и подключается только ею. Родня ей -- страница сравнения
- * текстов, поэтому цвета убранного и добавленного те же: человек, ходящий между ними,
- * не должен переучиваться.
- *
- * ЧЕМ ОТЛИЧАЕТСЯ ОТ ПРОЗЫ: номера строк двумя колонками слева, свёрнутые промежутки,
- * полоса находок над окном результата. Место под находки отведено ВСЕГДА -- сравнение идёт
- * на лету, и без отведённого места страница дёргалась бы на каждой букве.
- *
- * Подсветка идёт фоном, буквы остаются белыми: цветные буквы на тёмном читаются хуже, а на
- * длинном коде утомляют.
- */
 
 .дп {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -22,8 +9,6 @@
   --добавлено-знак: #4ade9e;
   font-family: var(--цифры);
 }
-
-/* ---- Переключатели ------------------------------------------------------------------------ */
 
 .дп-верх { display: flex; flex-wrap: wrap; gap: 8px 18px; align-items: center;
   margin-bottom: 10px }
@@ -41,8 +26,6 @@
 .дп-галка input:checked + i::after { transform: scale(1) }
 .дп-галка input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
 
-/* ---- Два поля ввода ------------------------------------------------------------------------ */
-
 .дп-пара { display: grid; grid-template-columns: 1fr; gap: 10px }
 .дп-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
   transition: border-color .15s ease }
@@ -58,7 +41,6 @@
 .дп-ввод:focus { outline: none }
 .дп-ввод::placeholder { color: #7d848f }
 
-/* Полоса под текстом: слева счёт, справа значок. Высота постоянна. */
 .дп-полоса {
   display: flex; align-items: center; gap: 8px; min-height: 46px;
   padding: 6px 8px 6px 14px; border-top: 1px solid rgba(255,255,255,.08);
@@ -83,22 +65,15 @@
 .дп-копи.готово .лист { display: none }
 .дп-копи.готово .галка { display: block }
 
-/* ---- Находки: невидимые причины расхождения -------------------------------------------------- */
-
-/* Высота ПОСТОЯННАЯ, а не наименьшая: находок бывает от нуля до пяти, и без этого рамка
-   раздвигала бы страницу на каждой букве -- сравнение идёт на лету. Что не влезло,
-   прокручивается внутри. */
 .дп-невидимое { margin: 12px 0; padding: 10px 14px; border: 1px solid var(--линия);
   border-radius: 10px; background: #101216; height: 104px; overflow-y: auto }
 .дп-заголовок-находок { font: 400 11px var(--ui); letter-spacing: .08em;
   text-transform: uppercase; color: var(--accent); margin-bottom: 6px }
 .дп-находки { display: flex; flex-direction: column; gap: 4px }
-/* Находка НЕ флексовая: <b> в начале фразы разорвал бы её на столбцы. */
+
 .дп-находка { font: 400 13px/1.5 var(--ui); color: #fff }
 .дп-находка b { color: var(--убрано-знак); font-weight: 600 }
 .дп-находка.тихо { color: #fff }
-
-/* ---- Окно с отличиями ------------------------------------------------------------------------ */
 
 .дп-окно { border: 1px solid var(--линия); border-radius: 10px; background: #0b0c0f }
 .дп-итог { min-height: 200px; overflow: auto; max-height: 640px; border-radius: 9px 9px 0 0;
@@ -106,7 +81,6 @@
 .дп-пусто { display: flex; align-items: center; justify-content: center; min-height: 184px;
   padding: 0 20px; text-align: center; font: 400 13px/1.6 var(--ui); color: #fff }
 
-/* Строка: два номера, знак, тело. Номера в своих колонках -- код не съезжает. */
 .дп-строка { display: flex; align-items: flex-start; font: 400 13px/1.65 var(--цифры);
   color: #dbe2ec; padding: 0 14px 0 0 }
 .дп-строка .номер { flex: none; width: 46px; padding-right: 10px; text-align: right;
@@ -135,7 +109,7 @@
 .дп-счётчики b { color: #fff; font-weight: 500 }
 .дп-счётчики .убрано b { color: var(--убрано-знак) }
 .дп-счётчики .добавлено b { color: var(--добавлено-знак) }
-/* Сообщение не приглушаем: полупрозрачных надписей на сайте нет. Прячем размером. */
+
 .дп-сказ { flex: 1 1 100%; color: var(--accent); font-size: 0; line-height: 0;
   transition: font-size .15s, line-height .15s }
 .дп-сказ.видно { font-size: 12px; line-height: 1.45 }

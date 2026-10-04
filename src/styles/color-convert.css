@@ -1,15 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «КОНВЕРТЕР ЦВЕТОВ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * ОТСТУПЛЕНИЯ ОТ ЗАДАНИЯ И ПОЧЕМУ:
- *   -- фон страницы не задаём: у сайта свой, инструменты его не перекрашивают. Поля делаем
- *      светлее фона -- чёрное поле на тёмном сливается;
- *   -- подписи форматов просили приглушённо-серыми (#71717A), кнопки копирования серыми
- *      (#52525B), «Очистить» серой. Приглушённых букв у нас нет: подписи зелёные, как на
- *      всех соседних страницах, значения белые;
- *   -- «Копировать» словом заменено значком: меньше надписей, где хватает значка.
- */
 
 .цв {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,9 +17,6 @@
 }
 .цв-тело { flex: 1; display: flex; flex-direction: column; gap: 10px; padding: 16px }
 
-/* ---- Строки полей ----------------------------------------------------------------------------
-   Одна сетка на все строки: буква, ползунок, число, знак. Ширины заданы жёстко, чтобы
-   столбцы не разъезжались от того, что в одном поле «5», а в другом «255». */
 .цв-строка { display: grid; grid-template-columns: 22px minmax(0, 1fr) 74px 18px;
   gap: 10px; align-items: center }
 .цв-строка-hex { grid-template-columns: 42px minmax(0, 1fr) }
@@ -46,7 +31,7 @@
 .цв-текст:hover, .цв-число:hover { border-color: #6b7280 }
 .цв-текст:focus, .цв-число:focus { border-color: #fff; outline: none }
 .цв-число { text-align: right; padding: 0 8px }
-/* Стрелки браузера в поле числа занимают место и мешают: значение правят ползунком. */
+
 .цв-число::-webkit-outer-spin-button, .цв-число::-webkit-inner-spin-button {
   -webkit-appearance: none; margin: 0 }
 .цв-число { -moz-appearance: textfield }
@@ -55,9 +40,6 @@
 .цв-беда { font: 400 12.5px/1.5 var(--ui); color: var(--беда) }
 .цв-беда[hidden] { display: none }
 
-/* ---- Ползунки --------------------------------------------------------------------------------
-   Дорожка красится самим цветом: видно, куда ведёт движение, ещё до того, как двинешь.
-   Лента приходит из скрипта переменной --лента. */
 .цв-ползунок {
   -webkit-appearance: none; appearance: none; width: 100%; height: 22px;
   background: transparent; cursor: pointer; margin: 0;
@@ -70,7 +52,7 @@
   height: 8px; border-radius: 4px; border: 1px solid var(--линия);
   background: var(--лента, #2a2e36);
 }
-/* Бегунок белый с тёмной каймой: на светлой ленте белое пятно иначе теряется. */
+
 .цв-ползунок::-webkit-slider-thumb {
   -webkit-appearance: none; width: 16px; height: 16px; margin-top: -5px;
   border-radius: 50%; background: #fff; border: 2px solid #0b0c0f;
@@ -81,7 +63,7 @@
   border: 2px solid #0b0c0f; box-shadow: 0 0 0 1px rgba(255,255,255,.5);
 }
 .цв-ползунок:focus-visible { outline: 2px solid var(--accent); outline-offset: 3px }
-/* Ленту прозрачности кладём поверх клетки -- иначе не видно, что именно она показывает. */
+
 .цв-альфа::-webkit-slider-runnable-track {
   background-image: var(--лента), var(--клетка);
   background-size: auto, 8px 8px;
@@ -91,8 +73,6 @@
   background-size: auto, 8px 8px;
 }
 
-/* ---- Показ цвета ------------------------------------------------------------------------------ */
-
 .цв { --клетка:
   linear-gradient(45deg, #2a2e36 25%, transparent 25%),
   linear-gradient(-45deg, #2a2e36 25%, transparent 25%),
@@ -100,7 +80,7 @@
   linear-gradient(-45deg, transparent 75%, #2a2e36 75%) }
 
 .цв-тело-показа { padding: 16px; min-height: 220px }
-/* Клетчатая подложка обязательна: без неё прозрачный цвет неотличим от тёмного фона окна. */
+
 .цв-клетка {
   flex: 1; min-height: 190px; border-radius: 10px; overflow: hidden;
   border: 1px solid var(--линия);
@@ -111,8 +91,6 @@
 }
 .цв-краска { width: 100%; height: 100%; min-height: 190px }
 
-/* ---- Готовые строки CSS ------------------------------------------------------------------------ */
-
 .цв-окно-css { margin-top: 14px }
 .цв-тело-css { padding: 0; gap: 0 }
 .цв-css-ряд {
@@ -121,7 +99,7 @@
 }
 .цв-css-ряд:last-child { border-bottom: 0 }
 .цв-css-имя { font: 400 11.5px var(--ui); letter-spacing: .06em; color: var(--accent) }
-/* Само значение -- главное в строке: белое и плотное, его переносят к себе в код. */
+
 .цв-css-код { font: 600 14px var(--цифры); color: #fff; overflow-wrap: anywhere;
   user-select: text }
 

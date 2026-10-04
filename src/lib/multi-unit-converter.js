@@ -1,4 +1,4 @@
-// factor = how many base units (meters, for length) equal one of this unit
+
 export function convertMultiUnit(value, fromFactor, toFactor) {
   return (value * fromFactor) / toFactor;
 }

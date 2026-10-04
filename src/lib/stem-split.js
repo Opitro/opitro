@@ -1,26 +1,7 @@
-// РАЗДЕЛЕНИЕ ЗАПИСИ НА ГОЛОС И МУЗЫКУ.
-//
-// Всё считается в браузере: движок и модели скачиваются один раз и остаются в Cache API,
-// сам звук никуда не отправляется. Отсюда выходят СРАЗУ ОБЕ дорожки -- минусовка и голос, --
-// потому что это один и тот же расчёт: маска говорит, какая доля каждой полосы принадлежит
-// музыке, остаток принадлежит голосу.
-//
-// Два способа:
-//   'light' -- Spleeter 2stems fp16, два файла по 18,8 МБ, считает процессор, около 6х
-//              быстрее самой записи. Работает везде.
-//   'heavy' -- MDX-Net Inst HQ 3, 64 МБ, только видеокарта. На процессоре кусок в 5,9 с
-//              считается 19,6 с -- это часы на песню и почти гарантированный обрыв,
-//              поэтому без navigator.gpu мы его просто не пускаем.
-//
-// Числа и порядок действий выверены на живой реализации (LeebTTS, remove-vocal): менять их
-// «по логике» нельзя, модели не примут другую форму входа.
 
-// СВОЕГО СЕРВЕРА С ЗАПАСНОЙ КОПИЕЙ У НАС НЕТ (сайт статический), поэтому на каждый файл
-// берём ДВА независимых источника. Ляжет один -- возьмём со второго; лягут оба -- честно
-// скажем и оставим «Браузер», которому вообще ничего качать не надо.
 const CDN = 'https://cdn.jsdelivr.net/npm/onnxruntime-web@1.20.1/dist/';
 const CDN2 = 'https://unpkg.com/onnxruntime-web@1.20.1/dist/';
-// ВАЖНО: именно сборка webgpu. В обычной ort.min.js видеокарты нет вовсе.
+
 const ORT_JS = [CDN + 'ort.webgpu.min.js', CDN2 + 'ort.webgpu.min.js'];
 const HF = 'https://huggingface.co/';
 
@@ -55,12 +36,9 @@ MDX.GEN = MDX.CHUNK - 2 * MDX.TRIM;
 const SPL = { NFFT: 4096, HOP: 1024, BINS: 1024, T: 512 };
 export const ЧАСТОТА = 44100;
 
-/** Можно ли пускать тяжёлую модель. Проверка живёт отдельно -- её же спрашивает страница,
- *  чтобы предупредить ЗАРАНЕЕ, не подтягивая сюда весь этот файл. */
 import { этоПК } from './pc-only.js';
 export const естьВидеокарта = этоПК;
 
-// ---- Быстрое преобразование Фурье --------------------------------------------------------
 function радикс2(n) {
   const бит = Math.round(Math.log2(n));
   const cs = new Float64Array(n / 2), sn = new Float64Array(n / 2);
@@ -84,9 +62,6 @@ function радикс2(n) {
 }
 function ханн(n) { const w = new Float64Array(n); for (let i = 0; i < n; i++) w[i] = 0.5 - 0.5 * Math.cos(2 * Math.PI * i / n); return w; }
 
-// ---- Разложение для тяжёлой модели: окно 6144 = 3 x 2048 ---------------------------------
-// 6144 не степень двойки, поэтому обычное преобразование не подойдёт: раскладываем на три
-// по 2048 и собираем обратно поворотными множителями.
 let мдхДсп = null;
 function дспMDX() {
   if (мдхДсп) return мдхДсп;
@@ -119,7 +94,7 @@ function дспMDX() {
   }
   const win = ханн(NFFT);
   const fre = new Float64Array(NFFT), fim = new Float64Array(NFFT);
-  // Отражение считается от границ КУСКА, а не всей записи -- иначе на стыках щёлкает.
+
   function взять(x, start, idx, n) {
     let k = idx;
     if (k < 0) k = -k;
@@ -129,7 +104,7 @@ function дспMDX() {
   }
   function stft(L, R, start, n, out) {
     for (let ch = 0; ch < 2; ch++) {
-      // Порядок четвёрки: левый действительная, левый мнимая, правый действительная, правый мнимая.
+
       const x = ch ? R : L, bRe = ch ? 2 : 0, bIm = ch ? 3 : 1;
       for (let t = 0; t < DIMT; t++) {
         const c = t * HOP - TRIM;
@@ -171,7 +146,6 @@ function дспMDX() {
   return мдхДсп;
 }
 
-// ---- Разложение для лёгкой модели: окно 4096, обычная степень двойки ---------------------
 let сплДсп = null;
 function дспSPL() {
   if (сплДсп) return сплДсп;
@@ -187,7 +161,6 @@ function дспSPL() {
   return сплДсп;
 }
 
-// ---- Движок и файлы ----------------------------------------------------------------------
 let ortГотов = null;
 function загрузитьСкрипт(u) {
   return new Promise((res, rej) => {
@@ -206,10 +179,9 @@ async function загрузитьOrt() {
       }
     } else откуда = 0;
     if (typeof window.ort === 'undefined') throw new Error('ДВИЖОК_НЕ_ЗАГРУЗИЛСЯ');
-    // Вспомогательные файлы движка берём ОТТУДА ЖЕ, откуда взялся сам движок: смешивать
-    // две сборки нельзя, они разных версий сборки внутри.
+
     window.ort.env.wasm.wasmPaths = откуда === 1 ? CDN2 : CDN;
-    // Общая память браузеру недоступна, потоков не просим.
+
     window.ort.env.wasm.numThreads = 1;
     window.ort.env.logLevel = 'error';
     return window.ort;
@@ -217,7 +189,6 @@ async function загрузитьOrt() {
   try { return await ortГотов; } catch (e) { ortГотов = null; throw e; }
 }
 
-// Скачивание с полосой: HuggingFace отдаёт длину и разрешает чужой домен.
 async function скачать(url, onp) {
   const r = await fetch(url, { mode: 'cors' });
   if (!r.ok) throw new Error('источник ответил ' + r.status);
@@ -236,8 +207,6 @@ async function скачать(url, onp) {
   return есть === всего ? всё : всё.subarray(0, есть);
 }
 
-// Cache API, а не обычный кэш браузера: обычный система чистит молча, и человек платит
-// за 38 МБ второй раз.
 async function байты(файл, onp) {
   const ключ = '/opitro-model/' + файл.id;
   let кэш = null;
@@ -273,7 +242,6 @@ async function получитьСеансы(вид, onp) {
   return готовые;
 }
 
-/** Есть ли модель уже в браузере -- чтобы не пугать человека размером зря. */
 export async function модельУжеСкачана(вид) {
   try {
     const кэш = await caches.open('opitro-models-v1');
@@ -284,7 +252,6 @@ export async function модельУжеСкачана(вид) {
   } catch (e) { return false; }
 }
 
-// ---- Приведение к 44100 и двум каналам ---------------------------------------------------
 async function к44(buffer) {
   if (buffer.sampleRate === ЧАСТОТА && buffer.numberOfChannels >= 2) return buffer;
   const OC = window.OfflineAudioContext || window.webkitOfflineAudioContext;
@@ -298,8 +265,6 @@ function пустойБуфер(каналов, длина) {
   return new OC(каналов, длина, ЧАСТОТА).createBuffer(каналов, длина, ЧАСТОТА);
 }
 
-// Модель может отработать «успешно» и вернуть пустоту или бесконечности -- на части
-// мобильных видеокарт бывает именно так, и человек видит плоскую волну вместо музыки.
 function живой(buf) {
   if (!buf) return false;
   const d = buf.getChannelData(0);
@@ -313,7 +278,6 @@ function живой(buf) {
   return пик > 1e-4;
 }
 
-// ---- Лёгкая модель -----------------------------------------------------------------------
 async function лёгкая(сеансы2, src, onp, живо) {
   const [мГолос, мМузыка] = сеансы2;
   const { NFFT, HOP, BINS, T } = SPL;
@@ -347,7 +311,7 @@ async function лёгкая(сеансы2, src, onp, живо) {
         }
       }
     }
-    // Первое измерение -- КАНАЛЫ, не пакет.
+
     const вход = new ort.Tensor('float32', x, [2, 1, T, BINS]);
     const рГ = await мГолос.run({ x: вход });
     if (живо && !живо()) return null;
@@ -358,7 +322,7 @@ async function лёгкая(сеансы2, src, onp, живо) {
     for (let ch = 0; ch < 2; ch++) {
       for (let t = 0; t < T; t++) {
         const base = t * BINS, o = ch * T * BINS + base;
-        // Одна маска даёт обе дорожки: доля музыки и остаток.
+
         for (const [маска, куда] of [[1, выхМ[ch]], [0, выхГ[ch]]]) {
           for (let k = 0; k < BINS; k++) {
             const vv = V[o + k] * V[o + k], aa = A[o + k] * A[o + k];
@@ -373,14 +337,11 @@ async function лёгкая(сеансы2, src, onp, живо) {
         }
       }
     }
-    // Третьим и четвёртым доводом отдаём, до какого места дорожки уже посчитаны и сами
-    // дорожки: страница «отделить вокал» рисует волну по ходу работы. Прежние вызовы берут
-    // только первый довод, поэтому для них ничего не меняется.
+
     if (onp) onp((b + 1) / блоков, Math.min(n, (f0 + T) * HOP), { музыка, голос });
     await new Promise((r) => setTimeout(r, 0));
   }
 
-  // Сумма квадратов окон: в середине ровно 1,5, считаем только края.
   const голова = new Float64Array(NFFT), хвост = new Float64Array(NFFT);
   for (let g = 0; g < NFFT; g++) {
     let sh = 0, st = 0;
@@ -403,7 +364,6 @@ async function лёгкая(сеансы2, src, onp, живо) {
   return { музыка, голос };
 }
 
-// ---- Тяжёлая модель ----------------------------------------------------------------------
 async function тяжёлая(сеансы2, src, onp, живо) {
   const сеанс = сеансы2[0];
   const n = src.length;
@@ -427,7 +387,7 @@ async function тяжёлая(сеансы2, src, onp, живо) {
     for (let k = 0; k < GEN; k++) {
       const g = i + k;
       if (g >= n) break;
-      // Модель отдаёт ИНСТРУМЕНТАЛ. Голос -- это исходник минус он.
+
       мЛ[g] = cl[TRIM + k] * COMP;
       мР[g] = cr[TRIM + k] * COMP;
       гЛ[g] = мL[g] - мЛ[g];
@@ -439,14 +399,6 @@ async function тяжёлая(сеансы2, src, onp, живо) {
   return { музыка, голос };
 }
 
-/**
- * Разделить запись. Возвращает { музыка, голос } -- обе дорожки за один расчёт.
- * @param {AudioBuffer} buffer исходная запись
- * @param {'light'|'heavy'} вид способ
- * @param {{onЗагрузка?:(p:number)=>void,
- *           onСчёт?:(p:number, готовоДо:number, пара:{музыка:AudioBuffer,голос:AudioBuffer})=>void,
- *           живо?:()=>boolean}} события
- */
 export async function разделить(buffer, вид, события = {}) {
   const { onЗагрузка, onСчёт, живо } = события;
   if (вид === 'heavy' && !естьВидеокарта()) throw new Error('НУЖЕН_КОМПЬЮТЕР');

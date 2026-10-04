@@ -1,20 +1,5 @@
 ---
-// ДАТЧИКИ ТЕЛЕФОНА -- своя страница со своим кодом и стилями.
-//
-// Четыре прибора:
-//   * УСКОРЕНИЕ (акселерометр) -- три оси. Лежащий на столе телефон обязан показывать по Z
-//     около 9,8: это сила тяжести, и она же -- готовая проверка исправности датчика.
-//   * ПОЛОЖЕНИЕ (гироскоп) -- наклон и крен точкой на мишени. Ровно лежит -- точка в центре.
-//   * КОМПАС -- стрелка на север. На айфоне азимут приходит отдельным полем
-//     webkitCompassHeading, на андроиде -- событием deviceorientationabsolute.
-//   * СВЕТ -- люксметр. Доступ к нему браузеры почти везде закрыли, и это надо честно
-//     написать, а не рисовать вечный прочерк.
-//
-// Разрешение: на айфоне датчики движения не отдаются вообще, пока человек сам не нажмёт
-// кнопку -- DeviceMotionEvent.requestPermission(). Поэтому первое, что видно, -- кнопка.
-//
-// Состояние каждого прибора пишется словами: «нет данных», «датчика нет», «браузер закрыл
-// доступ». Прочерк без объяснения человек читает как поломку своего телефона.
+
 import css from '../styles/phone-sensors.css?inline';
 
 const { locale = 'ru' } = Astro.props;
@@ -130,7 +115,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="дт-панель">
-    <!-- Ускорение -->
+
     <div class="дт-карта">
       <div class="дт-шапка"><b>{с.acc}</b><span id="дт-состАкс">{с.waiting}</span></div>
       <div class="дт-оси">
@@ -142,7 +127,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="дт-нет" id="дт-нетАкс" hidden>{с.accNo}</div>
     </div>
 
-    <!-- Положение -->
     <div class="дт-карта">
       <div class="дт-шапка"><b>{с.ori}</b><span id="дт-состОр">{с.waiting}</span></div>
       <div class="дт-мишень"><u></u><i class="дт-точка" id="дт-точка"></i></div>
@@ -151,7 +135,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="дт-строка">{с.turn}<em id="дт-альфа">0.0°</em></div>
     </div>
 
-    <!-- Компас -->
     <div class="дт-карта">
       <div class="дт-шапка"><b>{с.comp}</b><span id="дт-состКом">{с.waiting}</span></div>
       <div class="дт-компас" id="дт-компас"><span class="с">N</span><i class="дт-стрелка" id="дт-стрелка"></i></div>
@@ -160,7 +143,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       <div class="дт-нет" id="дт-нетКом" hidden>{с.compNo}</div>
     </div>
 
-    <!-- Свет -->
     <div class="дт-карта">
       <div class="дт-шапка"><b>{с.light}</b><span id="дт-состСвет">{с.waiting}</span></div>
       <div class="дт-крупно"><span id="дт-люкс">—</span><small>lux</small></div>
@@ -193,8 +175,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     let пик = 0;
     let шлиДвижение = false, шлиПоворот = false, шлиАзимут = false;
 
-    // Риски компаса рисуются кодом: тридцать шесть штук руками в разметке -- это тридцать
-    // шесть строк, которые никто никогда не прочтёт.
     (() => {
       const круг = $('дт-компас');
       const риски = document.createElement('span');
@@ -208,8 +188,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     })();
 
     function шкала(поле, значение) {
-      // Ноль посередине: ускорение бывает и отрицательным, и шкала от края врала бы про знак.
-      // Двадцать метров в секунду за секунду -- край: это уже сильная встряска.
+
       const доля = Math.max(-1, Math.min(1, значение / 20));
       const э = $(поле);
       э.style.width = Math.abs(доля * 50) + '%';
@@ -239,13 +218,11 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       $('дт-бета').textContent = бета.toFixed(1) + '°';
       $('дт-гамма').textContent = гамма.toFixed(1) + '°';
       $('дт-альфа').textContent = (e.alpha || 0).toFixed(1) + '°';
-      // Точка ходит по мишени радиусом 54. Полный вылет -- на 45 градусах наклона: дальше
-      // человек уже держит телефон стоймя, и подробности там не нужны.
+
       const x = Math.max(-1, Math.min(1, гамма / 45)) * 54;
       const y = Math.max(-1, Math.min(1, бета / 45)) * 54;
       $('дт-точка').style.transform = `translate(${x.toFixed(1)}px, ${y.toFixed(1)}px)`;
 
-      // Азимут: на айфоне отдельным полем, на андроиде -- из абсолютного поворота.
       let азимут = null;
       if (typeof e.webkitCompassHeading === 'number') азимут = e.webkitCompassHeading;
       else if (e.absolute && typeof e.alpha === 'number') азимут = (360 - e.alpha) % 360;
@@ -261,13 +238,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     function слушать() {
       window.addEventListener('devicemotion', движение);
       window.addEventListener('deviceorientation', поворот);
-      // Отдельное событие: на андроиде только оно даёт азимут относительно севера.
+
       window.addEventListener('deviceorientationabsolute', поворот);
       корень.classList.add('впущены');
       $('дт-итог').innerHTML = с.hint;
       светомер();
       магнит();
-      // Через две секунды молчание перестаёт быть ожиданием и становится ответом.
+
       setTimeout(() => {
         if (!шлиДвижение) { $('дт-состАкс').textContent = с.noSensor;
           $('дт-состАкс').classList.add('плохо'); $('дт-нетАкс').hidden = false; }
@@ -278,7 +255,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       }, 2000);
     }
 
-    // Люксметр закрыт почти везде -- и сказать об этом надо словами, а не вечным прочерком.
     function светомер() {
       if (typeof window.AmbientLightSensor !== 'function') {
         $('дт-состСвет').textContent = с.blocked;
@@ -291,7 +267,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         датчик.addEventListener('reading', () => {
           $('дт-состСвет').textContent = с.live;
           $('дт-люкс').textContent = Math.round(датчик.illuminance);
-          // Тысяча люксов -- уже яркий день в комнате; выше шкала всё равно упирается.
+
           $('дт-свет').style.width = Math.min(100, (датчик.illuminance / 1000) * 100) + '%';
         });
         датчик.addEventListener('error', () => {
@@ -307,7 +283,6 @@ const с = СЛОВА[locale] || СЛОВА.ru;
       }
     }
 
-    // Сила магнитного поля в микротеслах: есть только там, где браузер даёт Magnetometer.
     function магнит() {
       if (typeof window.Magnetometer !== 'function') return;
       try {
@@ -321,7 +296,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     }
 
     $('дт-дать').addEventListener('click', async () => {
-      // На айфоне без явного нажатия датчики движения не отдаются вовсе.
+
       const спросить = [];
       if (window.DeviceMotionEvent && typeof window.DeviceMotionEvent.requestPermission === 'function') {
         спросить.push(window.DeviceMotionEvent.requestPermission());

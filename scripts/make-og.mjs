@@ -1,21 +1,4 @@
-// РИСУЕТ КАРТОЧКИ ДЛЯ СОЦСЕТЕЙ: scripts/og-card.html -> public/og-{язык}.png (1200×630).
-//
-// По одной на каждый язык: на карточке есть текст, и русская строка на английской странице --
-// это брак. Дальше, когда дойдём до карточки на каждый инструмент, здесь же будет цикл по
-// страницам, а рисование переедет в сборку.
-//
-// Почему PNG, а не SVG: мессенджеры и поисковики принимают в og:image только растр --
-// Telegram, WhatsApp, X и Facebook на SVG отвечают пустым предпросмотром. SVG остаётся
-// исходником, публикуется растр.
-//
-// Почему PNG, а не WebP: WebP легче, но предпросмотр строят не браузеры, а роботы
-// мессенджеров, и у них поддержка WebP вразнобой. PNG понимают все. На нашей карточке
-// (плоский фон и текст) PNG с палитрой к тому же весит меньше JPEG и не мылит буквы.
-//
-// Почему браузером, а не библиотекой рисования: браузер уже умеет верстать и переносить
-// строки, и картинка выходит ровно такой, какой её видно в этом же браузере.
-//
-// Запуск:  node scripts/make-og.mjs
+
 import { spawn } from 'node:child_process';
 import fs from 'node:fs';
 import path from 'node:path';
@@ -24,8 +7,7 @@ import os from 'node:os';
 const КОРЕНЬ = path.resolve(path.dirname(new URL(import.meta.url).pathname), '..');
 const ИСХОДНИК = path.join(КОРЕНЬ, 'scripts', 'og-card.html');
 const ПАПКА = path.join(КОРЕНЬ, 'public');
-// Одна короткая строка под именем. В поиске по картинкам длинный текст не читают -- решает
-// картинка целиком, за долю секунды.
+
 const СТРОКИ = {
   ru: 'Бесплатные онлайн-инструменты',
   en: 'Free online tools',
@@ -74,7 +56,7 @@ try {
   const цели = await (await fetch(`http://127.0.0.1:${порт}/json/list`)).json();
   const { sessionId } = await шлём('Target.attachToTarget', { targetId: цели.find((т) => т.type === 'page').id, flatten: true });
   await шлём('Page.enable', {}, sessionId);
-  // Ровно 1200×630 и двойная плотность: карточка должна быть чёткой на экранах телефонов.
+
   await шлём('Emulation.setDeviceMetricsOverride',
     { width: 1200, height: 630, deviceScaleFactor: 2, mobile: false }, sessionId);
   const { default: sharp } = await import('sharp');
@@ -86,15 +68,11 @@ try {
     await сон(900);
     const снимок = await шлём('Page.captureScreenshot',
       { format: 'png', clip: { x: 0, y: 0, width: 1200, height: 630, scale: 2 } }, sessionId);
-    // Снимаем вдвое крупнее и ужимаем до 1200×630: буквы получаются чётче, чем при съёмке
-    // сразу в нужном размере, а файл выходит лёгким. Размер именно 1200×630 -- его ждут
-    // Facebook, Telegram и предпросмотр Google.
+
     const выход = path.join(ПАПКА, `og-${язык}.png`);
     await sharp(Buffer.from(снимок.data, 'base64'))
       .resize(1200, 630, { fit: 'fill' })
-      // Без палитры: в палитре 256 цветов, и мягкие свечения на фоне рассыпаются в точки.
-      // Полноцветный PNG тяжелее, но остаётся в пределах сотни килобайт -- для картинки,
-      // которую скачивает робот предпросмотра, это ничто.
+
       .png({ compressionLevel: 9 })
       .toFile(выход);
     console.log(`  og-${язык}.png — ${Math.round(fs.statSync(выход).size / 1024)} КБ`);

@@ -1,22 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ТЕСТ СТИЛУСА».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство:
- *   1. ХОЛСТ С ПОДЛОЖКОЙ. Точечная сетка и бледные образцы -- круг, спираль, прямая. Обводя
- *      их, человек видит и дрожание линии, и увод у краёв: по чистому листу этого не понять,
- *      сравнивать не с чем.
- *   2. ПРИБОРЫ ЖИВЫЕ. Нажим -- полосой, наклон -- стрелкой в кружке, частота -- числом.
- *      Пока перо ведёт, они меняются вместе с ним.
- *   3. ПРИЗНАКИ. Шесть штук, каждый загорается, когда его увидели: нажим, наклон, поворот,
- *      боковая кнопка, ластик, наведение. Незагоревшийся -- «не видели», а не «сломано».
- *   4. ИНСТРУМЕНТЫ. Карандаш проверяет наклон (при наклоне след шире и бледнее), маркер --
- *      нажим (толщина за силой), ластик стирает.
- *
- * ТЕКСТ ЧЁТКИЙ, НЕ ПРИГЛУШЁННЫЙ: полупрозрачных букв нет, мелкие подписи тонкие.
- * Цвет свой -- бирюзовый неон по просьбе владельца: страница про рисование, и выглядеть она
- * должна как окно художника, а не как таблица.
- */
 
 .ст {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -29,18 +10,15 @@
 .ст-подсказка { margin: 0 0 12px; text-align: center; font: 400 14px/1.55 var(--ui);
   color: var(--буквы2) }
 
-/* ---- Холст ---------------------------------------------------------------------------- */
-
 .ст-лист {
   position: relative; width: 100%; height: 380px; border-radius: 18px; overflow: hidden;
   border: 1px solid rgba(0,240,255,.22); background: #090a0f;
   box-shadow: inset 0 0 90px rgba(0,240,255,.05), 0 20px 50px -30px #000;
-  /* Иначе перо не рисует, а листает страницу. */
+
   touch-action: none; -webkit-user-select: none; user-select: none;
   -webkit-tap-highlight-color: transparent; cursor: crosshair;
 }
-/* Подложка и рисунок -- разные холсты: очистка листа не должна стирать образцы, а
-   перерисовка образцов при повороте экрана -- рисунок. */
+
 .ст-подложка, .ст-холст { position: absolute; inset: 0; width: 100%; height: 100% }
 .ст-надпись {
   position: absolute; left: 50%; top: 22px; transform: translateX(-50%); pointer-events: none;
@@ -49,15 +27,11 @@
 }
 .ст-лист.рисовали .ст-надпись { opacity: 0 }
 
-/* Точка наведения: перо ещё над листом, а браузер уже знает, где оно. Показывать это надо
-   там, где перо, а не числом. */
 .ст-тень {
   position: absolute; width: 26px; height: 26px; margin: -13px 0 0 -13px; border-radius: 50%;
   border: 2px dashed var(--свой); pointer-events: none; opacity: 0; transition: opacity .12s ease;
 }
 .ст-тень.видна { opacity: 1 }
-
-/* ---- Инструменты ---------------------------------------------------------------------- */
 
 .ст-инструменты { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center;
   margin-top: 12px }
@@ -71,8 +45,6 @@
 .ст-и svg { width: 17px; height: 17px; flex: none }
 .ст-и.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a; font-weight: 600;
   border-color: rgba(255,255,255,.6) }
-
-/* ---- Приборы -------------------------------------------------------------------------- */
 
 .ст-приборы { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; margin-top: 12px }
 .ст-прибор {
@@ -88,14 +60,11 @@
 .ст-прибор .н.свой { color: var(--свой) }
 .ст-прибор .н.слово { font-size: 17px; font-weight: 600 }
 
-/* Столбик нажима. Заполняется снизу вверх -- так же, как растёт сила нажатия. */
 .ст-столб { width: 100%; max-width: 120px; height: 10px; border-radius: 6px;
   background: rgba(255,255,255,.12); overflow: hidden }
 .ст-столб i { display: block; height: 100%; width: 0; border-radius: 6px; background: var(--свой);
   box-shadow: 0 0 12px rgba(0,240,255,.7) }
 
-/* Наклон -- стрелкой в кружке: градусы числом понятны не всем, а наклонённая стрелка
-   понятна сразу. */
 .ст-круг { position: relative; width: 46px; height: 46px; border-radius: 50%;
   border: 1px solid rgba(255,255,255,.24) }
 .ст-круг::before { content: ""; position: absolute; left: 50%; top: 50%; width: 5px; height: 5px;
@@ -103,8 +72,6 @@
 .ст-стрелка { position: absolute; left: 50%; top: 50%; width: 2px; height: 19px;
   margin: -19px 0 0 -1px; transform-origin: 50% 100%; border-radius: 2px;
   background: linear-gradient(180deg, var(--свой), rgba(0,240,255,.25)); transform: rotate(0deg) }
-
-/* ---- Признаки ------------------------------------------------------------------------- */
 
 .ст-признаки { display: flex; flex-wrap: wrap; gap: 6px; justify-content: center; margin-top: 12px }
 .ст-признак {
@@ -130,8 +97,6 @@
   background: linear-gradient(180deg, #10262b, #0c191d) }
 .ст-кнопка.главная:hover { border-color: #7ff6ff }
 
-/* Место под строку берётся примеркой всех вариантов на месте: числом его не угадать ни для
-   одного языка, ни для одной ширины окна. */
 .ст-итог { margin-top: 12px; text-align: center; font: 400 13.5px/1.6 var(--ui);
   color: var(--буквы2) }
 .ст-итог b { color: var(--буквы); font-weight: 600 }

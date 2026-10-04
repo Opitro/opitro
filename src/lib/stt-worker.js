@@ -1,13 +1,3 @@
-// Speech recognition, off the main thread.
-//
-// Whisper is a lot of arithmetic. Run on the page's own thread it holds the thread for the whole
-// job -- 35 seconds for a 45-second recording on the best model -- and Chrome puts up "Страница не
-// отвечает" with a button offering to close the page. Nothing was wrong; the browser simply could
-// not tell a busy thread from a hung one. A worker has its own thread, so the page keeps painting,
-// the progress line keeps moving, and the browser has no reason to complain.
-//
-// Everything here talks in plain messages: {type} in, {type} out. The page never touches the
-// model directly.
 
 const TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js';
 
@@ -16,7 +6,7 @@ const DIARIZE_MODEL = 'onnx-community/pyannote-segmentation-3.0';
 let lib = null;
 let asr = null;
 let loadedKey = '';
-let seg = null;      // speaker segmentation model, loaded only if asked for
+let seg = null;
 let segProc = null;
 
 const post = (msg) => self.postMessage(msg);
@@ -25,7 +15,7 @@ async function ensurePipeline(repo, key, totalBytes) {
   if (asr && loadedKey === key) return asr;
   if (!lib) {
     post({ type: 'stage', stage: 'connecting' });
-    lib = await import(/* @vite-ignore */ TRANSFORMERS);
+    lib = await import( TRANSFORMERS);
     lib.env.allowLocalModels = false;
   }
   const seen = new Map();
@@ -37,8 +27,7 @@ async function ensurePipeline(repo, key, totalBytes) {
       seen.set(p.file, p.loaded);
       let loaded = 0;
       for (const v of seen.values()) loaded += v;
-      // Against the model's known total, so the number only ever grows: summing the files that
-      // have registered so far reads 100% while the tokenizer finishes and then falls back.
+
       const pct = Math.min(99, (loaded / totalBytes) * 100);
       shownPct = Math.max(shownPct, pct);
       post({ type: 'progress', pct: shownPct });
@@ -48,11 +37,6 @@ async function ensurePipeline(repo, key, totalBytes) {
   return asr;
 }
 
-/**
- * Whisper predicts the language itself as the first token after the start marker. transformers.js
- * never lets it -- with no `language` it forces English and the model translates instead. Feeding
- * only the start token and generating exactly one more gives the model's own answer.
- */
 async function detectLanguage(audio, rate) {
   const tok = asr.tokenizer;
   const ids = tok.model.tokens_to_ids;
@@ -68,16 +52,6 @@ async function detectLanguage(audio, rate) {
   return (String(text).match(/^<\|([a-z]{2,3})\|>$/) || [])[1] || null;
 }
 
-/**
- * Who spoke when. pyannote-segmentation-3.0 through transformers.js: 1.5 MB quantized, and on a
- * measured two-voice conversation it put the turn boundaries within 0.1 s of the truth and never
- * confused the two speakers. It works on the whole recording in one pass -- 1.4 s for three
- * minutes -- so no windowing is needed here.
- *
- * Its limit, measured: two clearly different voices are separated cleanly, but two similar ones
- * (both female, similar register) were merged into one. That is a property of the model, and the
- * page says so rather than pretending otherwise.
- */
 async function diarize(audio) {
   if (!seg) {
     post({ type: 'stage', stage: 'loadingSpeakers' });
@@ -116,7 +90,7 @@ self.onmessage = async (e) => {
     });
     let speakers = null;
     if (e.data.speakers) {
-      // After the text, not before: if diarization fails there is still a transcript to show.
+
       speakers = await diarize(audio).catch(() => null);
     }
     post({ type: 'done', id, detected, speakers, chunks: out.chunks || [], text: out.text || '' });

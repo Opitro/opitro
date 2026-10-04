@@ -1,22 +1,11 @@
-/* Единый аудиоредактор: семь инструментов над одним звуком, одна точка входа на страницу.
-   Вид согласован владельцем по макету 14.08.2026 за семь заходов правок -- решения ниже
-   не косметические, каждое обсуждалось. Подробности в памяти project-audio-editor.
 
-   Живут на этом файле только 7 страниц (trim, equalizer, volume, normalize, speed, pitch,
-   compress). Остальные 33 аудиоинструмента остаются на audio-tool.css нетронутыми -- это
-   сознательное ограничение риска, а не половинчатость. */
-
-/* --- зона загрузки: то же, что у остальных инструментов, но своими правилами ----------- */
-/* Выше, чем у остальных инструментов, и намеренно: здесь это не «выберите файл», а вход
-   в редактор -- главное действие страницы, и оно должно занимать место соответственно. */
 .audio-ed-drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;
   cursor:pointer;transition:.2s;background:var(--surface)}
 .audio-ed-drop:hover,.audio-ed-drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
 .audio-ed-drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
 .audio-ed-drop .big{font-size:17px;font-weight:600;margin-bottom:4px}
 .audio-ed-drop .small{font-size:12px;color:var(--muted)}
-/* Третья строка -- не для красоты: без неё коробка на 20 точек ниже, чем у остальных
-   инструментов, и на одном сайте оказываются две разные зоны загрузки. */
+
 .audio-ed-drop .formats{margin-top:6px;font-size:11px;color:var(--muted);opacity:.75;
   max-width:46ch;margin-left:auto;margin-right:auto;line-height:1.45}
 .audio-ed-wrap input[type=file]{display:none}
@@ -26,17 +15,9 @@
 .audio-editor{background:var(--surface);border:1px solid var(--line);border-radius:16px;padding:16px;display:none}
 .audio-editor.on{display:block}
 
-/* --- верхняя строка: переключатель слева, «Сбросить» и крестик справа ------------------ */
 .audio-editor .ed-top{display:flex;align-items:flex-start;gap:12px;margin-bottom:12px}
 .audio-editor .ed-top-right{margin-left:auto;flex:none;display:flex;align-items:center;gap:6px}
 
-/* nowrap + overflow -- не ради обрезки, а ради замера: так scrollWidth показывает, сколько
-   ряду НУЖНО места, и скрипт решает по факту, показывать ряд или список. По ширине экрана
-   решать нельзя: подписи на испанском и украинском длиннее русских, и любая жёсткая
-   граница для них соврала бы. */
-/* overflow:hidden здесь стоять НЕ должен: он обрезал всплывающую подсказку, которая
-   выходит за нижний край ряда. Поэтому ширину считаем сложением самих кнопок, а не
-   через scrollWidth -- он требует обрезки, чтобы что-то показать. */
 .audio-editor .ed-tools{display:flex;gap:4px;flex-wrap:nowrap;min-width:0;flex:1}
 
 .audio-editor .ed-tool{display:flex;align-items:center;gap:6px;flex:none;cursor:pointer;
@@ -44,18 +25,15 @@
   font-family:inherit;font-size:13.5px;font-weight:600;padding:0 9px;height:38px;border-radius:10px;
   transition:background .15s,color .15s,border-color .15s}
 .audio-editor .ed-tool:hover{background:var(--surface-2);color:var(--text)}
-/* Заливка читается как «уже нажал, и ничего не произошло» -- выбранное отмечаем чёткой
-   обводкой и цветом текста, а не зелёным пятном. */
+
 .audio-editor .ed-tool.on{background:transparent;border-color:rgba(74,222,158,0.7);
   color:var(--accent);padding:0 12px}
 .audio-editor .ed-tool.on:hover{background:transparent}
 .audio-editor .ed-tool svg{width:17px;height:17px;flex:none}
-/* Подпись только у выбранного: шесть значков и одно слово вместо семи слов. Ряд от этого
-   вдвое короче, а название остальных всплывает в title и произносится в aria-label. */
+
 .audio-editor .ed-tool .lbl{display:none}
 .audio-editor .ed-tool.on .lbl{display:inline}
 
-/* --- тот же переключатель списком, когда ряд не помещается --------------------------- */
 .audio-editor .ed-tools-list{display:none}
 .audio-editor .ed-tools-list select{appearance:none;-webkit-appearance:none;
   background:var(--surface-2);border:1px solid var(--line);border-radius:10px;color:var(--text);
@@ -63,8 +41,6 @@
   background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
   background-repeat:no-repeat;background-position:right 10px center;background-size:16px 16px}
 
-/* «Сбросить» -- лёгкая надпись, а не кнопка: это отход назад, а не действие, ради которого
-   пришли. Стоит рядом с крестиком и подальше от «Скачать», чтобы не нажать по ошибке. */
 .audio-editor .ed-ghost{display:flex;align-items:center;gap:6px;background:none;border:none;
   cursor:pointer;color:rgba(214,219,230,0.62);font-family:inherit;font-size:12px;font-weight:400;
   padding:7px 9px;border-radius:9px}
@@ -77,21 +53,14 @@
 .audio-editor .ed-close:hover{color:#ff3a5e;border-color:rgba(255,58,94,0.45);background:rgba(255,58,94,0.10)}
 .audio-editor .ed-close svg{width:15px;height:15px}
 
-/* --- волна ---------------------------------------------------------------------------- */
 .audio-editor .ed-wave{position:relative;background:#000;border:1px solid var(--line);
   border-radius:12px;overflow:hidden;user-select:none;cursor:pointer}
 .audio-editor .ed-wave canvas{display:block;width:100%;height:150px}
-/* Имя файла НЕ отдельным слоем: оно рисуется на холсте до столбиков, у верхнего края, где
-   их почти нет. Так оно читается, остаётся позади волны и не занимает ни одной строки. */
-/* Без заливки: зелёная плёнка поверх выделения давала фоновое свечение и мешала читать
-   саму волну. Что выбрано, и так видно -- за ручками волна приглушена, между ними полная.
-   Границы и ручки остаются, они и очерчивают область. */
+
 .audio-editor .ed-sel{position:absolute;top:0;bottom:0;background:transparent;
   border-left:2px solid var(--accent);border-right:2px solid var(--accent);cursor:grab}
 .audio-editor .ed-sel:active{cursor:grabbing}
-/* Ручка обрезки -- рабочий инструмент, а не черта на картинке. Широкая область захвата
-   (16 точек, под палец), свой курсор, заметная накладка с насечкой и отклик при наведении.
-   Тонкая полоска в три точки не читалась как «за это тянут» -- владелец сказал прямо. */
+
 .audio-editor .ed-handle{position:absolute;top:0;bottom:0;width:16px;cursor:ew-resize;
   display:flex;align-items:center;justify-content:center;touch-action:none}
 .audio-editor .ed-handle-l{left:-9px}
@@ -99,8 +68,7 @@
 .audio-editor .ed-handle span{display:block;width:9px;height:44px;border-radius:5px;
   background:#f0f0f2;box-shadow:0 2px 8px rgba(0,0,0,.7);
   transition:height .15s,background .15s;position:relative}
-/* Насечка: две тёмные полоски внутри накладки -- тот же язык, что у ручек громкости
-   в звуковых программах, и именно он читается как «тянуть». */
+
 .audio-editor .ed-handle span::before,
 .audio-editor .ed-handle span::after{content:'';position:absolute;top:50%;width:1.5px;height:14px;
   transform:translateY(-50%);background:rgba(10,11,13,.45);border-radius:1px}
@@ -113,7 +81,6 @@
 .audio-editor .ed-times{display:flex;justify-content:space-between;font-size:11.5px;
   color:var(--muted);font-variant-numeric:tabular-nums;padding:5px 2px 0}
 
-/* --- постоянная строка: воспроизведение, формат, скачивание --------------------------- */
 .audio-editor .ed-deck{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-top:12px}
 .audio-editor .ed-btn{display:flex;align-items:center;justify-content:center;gap:4px;flex:none;
   background:var(--surface-2);border:1px solid var(--line);border-radius:11px;color:var(--text);
@@ -121,8 +88,7 @@
 .audio-editor .ed-btn:hover{border-color:rgba(255,255,255,.22)}
 .audio-editor .ed-btn svg{width:19px;height:19px}
 .audio-editor .ed-play{width:52px}
-/* Зелёная обводка -- признак нажатия, а не постоянное состояние. Пока она висела всегда,
-   по кнопке было не понять, нажал ты уже или нет. */
+
 .audio-editor .ed-play:active,.audio-editor .ed-save:active{border-color:rgba(74,222,158,0.75);
   color:var(--accent);background:rgba(74,222,158,0.08)}
 
@@ -143,9 +109,6 @@
 .audio-editor .ed-save:hover{border-color:rgba(255,255,255,0.22)}
 .audio-editor .ed-save svg{width:16px;height:16px}
 
-/* --- панель выбранного инструмента ---------------------------------------------------- */
-/* Заголовка у панели нет намеренно: название инструмента уже стоит в переключателе прямо
-   над ней. Выбрал сверху -- получил снизу, без повторов и пояснений. */
 .audio-editor .ed-panel{margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 
 .audio-editor .ed-row{display:flex;align-items:center;gap:14px;margin:10px 0}
@@ -157,8 +120,7 @@
 
 .audio-editor .ed-eq{display:flex;gap:4px;align-items:flex-end;justify-content:space-between}
 .audio-editor .ed-band{flex:1;display:flex;flex-direction:column;align-items:center;gap:7px}
-/* Вертикальный ползунок через writing-mode -- современный путь. `-webkit-appearance:
-   slider-vertical` сюда не добавлять ни в каком виде: см. предупреждение в audio-tool.css. */
+
 .audio-editor .ed-band input{writing-mode:vertical-lr;direction:rtl;width:22px;height:110px;
   accent-color:var(--accent);margin:0}
 .audio-editor .ed-band .hz{font-size:10.5px;color:var(--muted);white-space:nowrap}
@@ -169,7 +131,6 @@
 .audio-editor .ed-chip:hover{border-color:rgba(255,255,255,.22);color:var(--text)}
 .audio-editor .ed-chip.on{border-color:rgba(74,222,158,0.7);color:var(--accent);background:transparent}
 
-/* Живая строка, а не подпись: цифра меняется, пока тянут ползунок. */
 .audio-editor .ed-live{font-size:12.5px;color:var(--muted);line-height:1.55;margin:10px 0 0}
 
 @media(max-width:759px){
@@ -183,9 +144,6 @@
   .audio-editor .ed-panel{margin-top:12px;padding-top:12px}
 }
 
-/* Тот же список, что и во всех остальных инструментах: рисуется внутри страницы, без
-   отдельного документа под него. Блок обязан стоять ПОСЛЕ базового правила выше --
-   при равной весомости побеждает последний, и порядок здесь уже дважды всё ломал. */
 @supports (appearance: base-select) {
   .audio-editor .ed-tools-list select{appearance:base-select;display:flex;align-items:center;
     gap:8px;white-space:nowrap;overflow:hidden}
@@ -212,12 +170,8 @@
   .audio-editor .ed-fmt option::checkmark{display:none}
 }
 
-/* Нажатая кнопка фейда остаётся нажатой: спад -- это состояние, а не разовое действие,
-   и по волне видно, где он начинается. */
 .audio-editor .ed-btn.ed-on{border-color:rgba(74,222,158,0.7);color:var(--accent)}
 
-/* Своя подсказка вместо браузерной: родная появляется через секунду с лишним и на
-   значках без подписи её попросту не дожидаются. */
 .audio-editor .ed-tool{position:relative}
 .audio-editor .ed-tool:not(.on):hover::after{content:attr(data-tip);position:absolute;
   left:50%;top:calc(100% + 7px);transform:translateX(-50%);white-space:nowrap;z-index:5;
@@ -226,15 +180,10 @@
   box-shadow:0 8px 20px rgba(0,0,0,.5)}
 .audio-editor .ed-wave{cursor:default}
 
-/* Стрелка «тянется вправо-влево» в середине выделения -- тот же знак, что в обрезке.
-   Без неё не видно, что область можно двигать целиком. */
 .audio-editor .ed-sel{display:flex;align-items:center;justify-content:center}
 .audio-editor .ed-move{width:20px;height:20px;color:#f0f0f2;opacity:.5;pointer-events:none;
   filter:drop-shadow(0 1px 3px rgba(0,0,0,.8))}
 
-/* Полоса за курсором и часы над ней -- те же значения, что у #wave-guide/#wave-tip в
-   player.css. Копия намеренная: два разных вида одной и той же подсказки на одном сайте
-   читаются как небрежность. */
 .audio-editor .ed-guide{position:absolute;top:0;bottom:0;width:1px;z-index:1;
   background:rgba(255,255,255,.28);pointer-events:none;display:none}
 .audio-editor .ed-tip{position:absolute;top:6px;transform:translateX(-50%);z-index:3;
@@ -242,27 +191,15 @@
   border-radius:7px;padding:2px 7px;font-size:11.5px;font-weight:600;color:var(--text);
   font-variant-numeric:tabular-nums}
 
-/* Ход пересчёта прямо на волне. Показывается только пока идёт работа. */
 .audio-editor .ed-busy{position:absolute;left:0;right:0;bottom:0;height:3px;display:none;z-index:4;
   background:rgba(255,255,255,.08)}
 .audio-editor .ed-busy i{display:block;height:100%;width:0;background:var(--accent);
   transition:width .12s linear}
 
-/* На время пересчёта органы управления гаснут и не нажимаются: пока звук пересобирается,
-   любое нажатие относилось бы к тому, чего уже нет. */
 .audio-editor.is-busy .ed-deck,
 .audio-editor.is-busy .ed-panel{opacity:.45;pointer-events:none}
 .audio-editor.is-busy .ed-wave{cursor:progress}
 
-/* Ползунки на телефоне: область захвата больше, чем видимая полоска.
-   Две причины, по которым палец «не цеплялся»:
-   1. `touch-action` -- первое касание уходило в ПРОКРУТКУ страницы, а не в ползунок:
-      браузер ждал, потянут вниз или вбок, и первое движение съедалось. `none` отдаёт
-      касание ползунку сразу.
-   2. Область нажатия совпадала с полоской в несколько точек. Высота (у вертикальных --
-      ширина) увеличена до 44 точек: браузер рисует дорожку прежней толщины и центрирует
-      её, а нажимается вся коробка. Видимый размер НЕ меняется, меняется только то,
-      куда можно попасть. 44 точки -- общепринятая наименьшая цель для пальца. */
 .audio-editor input[type=range]{touch-action:none}
 @media(max-width:759px){
   .audio-editor input[type=range]{height:44px}
@@ -271,18 +208,8 @@
   .audio-editor .eq-band input[type=range]{height:auto;width:44px}
 }
 
-/* --- Вид ползунков: как у настоящих фейдеров -----------------------------------------
-   Системный вид у всех браузеров свой и всегда выглядит «как в форме», а не как прибор.
-   Здесь: тонкая утопленная дорожка и плотная ручка со светом сверху и тенью снизу --
-   так рисуют движки в звуковых программах, и палец сразу понимает, за что браться.
-   Область захвата при этом остаётся большой (см. правило выше) -- ручка маленькая,
-   нажимается вся коробка. */
 .audio-editor input[type=range]{-webkit-appearance:none;appearance:none;background:transparent}
 
-/* Дорожка должна быть ВИДНА. Раньше она была почти чёрной на почти чёрном фоне -- и
-   ползунок не читался как ползунок вовсе. Именно поэтому хотелось обложить его подложками:
-   лечили следствие. Теперь дорожка светлее фона, с тёмной прорезью внутри и тонким бликом
-   по нижнему краю -- она сама выглядит как желобок, и никакие панели вокруг не нужны. */
 .audio-editor input[type=range]::-webkit-slider-runnable-track{
   height:6px;border-radius:4px;
   background:#000;
@@ -311,35 +238,21 @@
 .audio-editor input[type=range]:active::-moz-range-thumb{cursor:grabbing;
   box-shadow:0 0 0 4px rgba(74,222,158,.22),0 1px 3px rgba(0,0,0,.7)}
 
-/* Полосы эквалайзера -- вертикальные фейдеры: дорожка тоньше, ручка чуть вытянута,
-   как настоящий движок на пульте. */
 .audio-editor .ed-band input[type=range]::-webkit-slider-runnable-track{width:6px;height:auto}
-/* Круглые, как на остальных ползунках: владелец просил вернуть кружочки. */
+
 .audio-editor .ed-band input[type=range]::-webkit-slider-thumb{
   width:18px;height:18px;border-radius:50%;margin-top:0;margin-left:-6px}
 .audio-editor .ed-band input[type=range]::-moz-range-thumb{width:18px;height:18px;border-radius:50%}
 
-/* --- Отметка нуля ---------------------------------------------------------------------
-   У ползунков, которые ходят в обе стороны (полосы эквалайзера, громкость, тональность,
-   порог компрессора), «ничего не меняем» -- это середина, а не край. Без отметки её
-   приходится угадывать: вернуть ползунок точно в ноль на глаз почти невозможно.
-   Черта рисуется на самой дорожке и лежит ПОД ручкой, поэтому не мешает. */
 .audio-editor .ed-band,
 .audio-editor .ed-row{position:relative}
 
-/* Черта середины -- у САМОГО фейдера, а не у колонки. Раньше отмерялась середина всей
-   колонки вместе с подписью частоты, и черта уезжала ниже: ручки в нуле оказывались над
-   ней, хотя стояли ровно посередине хода.
-   Ширина -- уже ручки: в нуле черта под ней и не видна, а это и есть её смысл. Она нужна
-   как ориентир, КУДА ВЕРНУТЬ ползунок, и должна показываться только когда он сдвинут. */
 .audio-editor .ed-fader{position:relative;display:flex;align-items:center;justify-content:center}
 .audio-editor .ed-fader::before{content:'';position:absolute;left:50%;top:50%;
   width:16px;height:1px;transform:translate(-50%,-50%);
   background:rgba(255,255,255,.42);pointer-events:none;z-index:0}
 .audio-editor .ed-fader input[type=range]{position:relative;z-index:1}
 
-/* Горизонтальные ползунки с серединой -- громкость и тональность. У нормализации,
-   скорости и полей компрессора ноль не посередине, там черта соврала бы. */
 .audio-editor .ed-slot{position:relative;flex:1;min-width:0;display:flex;align-items:center}
 .audio-editor .ed-slot input[type=range]{width:100%}
 .audio-editor .ed-slot.has-center .ed-mid{position:absolute;top:50%;
@@ -347,64 +260,24 @@
   background:rgba(255,255,255,.42);pointer-events:none;z-index:0}
 .audio-editor .ed-row input[type=range]{position:relative;z-index:1}
 
-/* --- Подложка под органы управления ----------------------------------------------------
-   Ползунки лежали прямо на фоне панели и читались как «просто элементы формы». Лёгкая
-   серая подложка собирает их в один блок: видно, что это прибор, а не набор строчек.
-   Цвет взят на полтона светлее фона панели -- ровно столько, чтобы отделиться, и не
-   настолько, чтобы спорить с волной, которая на странице главная. */
-/* Органы управления УТОПЛЕНЫ в корпус, а не наклеены на него: фон темнее панели плюс
-   тень по верхнему краю и тонкий блик по нижнему -- так читается углубление. Светло-серая
-   плашка выглядела наклейкой; настоящие приборы прячут ручки в нишу, чтобы не цеплялись.
-   Та же логика, что у самой дорожки ползунка -- она тоже утоплена, и теперь они заодно. */
-/* Никакой подложки и никакой ниши: договорились, что ползунок опознаётся по САМОЙ
-   дорожке, а она теперь видна. Осталась только черта сверху, отделяющая панель
-   от плеера, -- как было до всех этих заходов. */
 .audio-editor .ed-panel{background:transparent;border:none;box-shadow:none;
   border-top:1px solid var(--line);border-radius:0;padding:14px 0 0;margin-top:14px}
 
-/* Полосы эквалайзера -- каждая в своей ячейке: так их не путаешь пальцем и видно, что
-   это набор одинаковых движков, а не десять разных вещей. */
-/* Подложка по ширине САМОГО ползунка с небольшим запасом, а не во всю долю колонки:
-   широкие плашки читались как кнопки и спорили с фейдерами. Ячейка растягивается
-   по-прежнему (чтобы полосы стояли на равных расстояниях), а подложка рисуется только
-   под движком -- отсюда отдельный слой вокруг фейдера, а не фон всей ячейки. */
 .audio-editor .ed-eq{gap:2px}
-/* Сам движок подсвечивается только под пальцем: в покое ниша ровная, ничего не рябит. */
+
 .audio-editor .ed-fader{padding:8px 7px;border-radius:9px;
   background:transparent;transition:background .15s}
 .audio-editor .ed-fader:hover,.audio-editor .ed-fader.is-dragging{background:rgba(255,255,255,.055)}
 
-/* --- Эквалайзер на телефоне: две строки по пять ----------------------------------------
-   Замерено: десяти полосам нужно 598 точек, а на экране 412 их всего 320 -- не помещаются
-   почти вдвое.
-   Прокрутка вбок отпадает: мы намеренно отдали касание ползункам (touch-action:none),
-   чтобы палец цеплял их сразу. Смахивание по ряду попало бы на фейдер и потянуло его
-   вместо прокрутки -- одно решение сломало бы другое. Прятать половину полос за
-   невидимой границей тоже плохо: человек не догадается, что там ещё пять.
-   Поэтому перенос в две строки: всё на виду, ничего не спрятано, размер под палец
-   сохраняется. Так делают и мобильные эквалайзеры в проигрывателях. */
-/* Все десять в один ряд. Прежний перенос по 19 процентов на телефоне давал третью
-   строку из двух полос: боковой отступ ползунка (по 11 точек с каждой стороны для
-   пальца) в долю не входил и добавлялся сверху.
-   Теперь ячейка считается от ширины ряда с учётом этого отступа, и десять помещаются.
-   Область захвата сохраняется вертикальным ходом: полоса высокая, тянуть её удобно и
-   при узкой колонке. */
 @media(max-width:759px){
   .audio-editor .ed-eq{flex-wrap:nowrap;gap:0;justify-content:space-between}
   .audio-editor .ed-band{flex:1 1 0;min-width:0}
-  /* Боковой отступ убран: при ячейке в 26-35 точек он делал область захвата шире
-     соседей, и палец цеплял чужую полосу. Захват здесь даёт ВЫСОТА -- ход 118 точек. */
+
   .audio-editor .ed-band input[type=range]{height:118px;padding:0}
   .audio-editor .ed-fader{padding:8px 0}
   .audio-editor .ed-band .hz{font-size:9.5px}
 }
 
-/* --- Отклик ползунка: заливка, цвет ручки, подсказка -----------------------------------
-   Пока движок стоит в нуле, он белый и дорожка тёмная -- «ничего не меняем». Как только
-   отклонился, дорожка от середины до ручки заливается зелёным, а сама ручка зеленеет:
-   видно и КУДА крутили, и НА СКОЛЬКО, не читая цифр. Вернули в ноль -- всё гаснет.
-   Заливка рисуется на дорожке из переменной --fill, которую ставит скрипт: у системного
-   ползунка нет способа покрасить только часть хода в обе стороны от середины. */
 .audio-editor input[type=range]{--fill:none}
 .audio-editor input[type=range]::-webkit-slider-runnable-track{background-image:var(--fill)}
 .audio-editor input[type=range]::-moz-range-track{background-image:var(--fill)}
@@ -414,13 +287,9 @@
 .audio-editor input[type=range].is-moved::-moz-range-thumb{
   background:linear-gradient(180deg,#8ff0c4,var(--accent));border-color:rgba(0,0,0,.5)}
 
-/* Подсказка со значением -- только пока тянут. Постоянная цифра рядом с каждым из десяти
-   движков превратила бы панель в таблицу. */
 .audio-editor .ed-fader,
 .audio-editor .ed-slot{--tip:''}
-/* Подсказки НЕТ в разметке, пока не тянут: с запретом переноса она шире ячейки и
-   растягивала ряд эквалайзера, хотя сама была невидима. Поймала проверка -- 354 точки
-   при 350 доступных. Поэтому не прозрачность, а полное отсутствие. */
+
 .audio-editor .ed-fader::after,
 .audio-editor .ed-slot::after{content:none;position:absolute;left:50%;top:-4px;
   transform:translate(-50%,-100%);white-space:nowrap;pointer-events:none;opacity:0;
@@ -430,50 +299,30 @@
 .audio-editor .ed-fader.is-dragging::after,
 .audio-editor .ed-slot.is-dragging::after{content:var(--tip);opacity:1}
 
-/* Дорожка выше: тянуть длинный ход точнее, и палец не проскакивает мимо. */
 @media(max-width:759px){
   .audio-editor .ed-band input[type=range]{height:108px}
 }
 
-/* --- Область захвата под палец --------------------------------------------------------
-   Расширяем ТОЛЬКО зону нажатия, не трогая вид. Прошлая попытка задавала ширину самому
-   ползунку и дорожке -- у вертикальных полос это съело дорожку целиком, их стало не видно.
-   Здесь ширину ползунка не трогаем вовсе: область добирается прозрачной рамкой, которая
-   в поток не входит и на вид не влияет. */
 .audio-editor .ed-fader input[type=range]{padding:0 11px;box-sizing:content-box;background:transparent}
 .audio-editor .ed-slot input[type=range]{padding:14px 0;box-sizing:content-box;background:transparent}
 
-/* Отступ для пальца снимается на телефоне. Правило стоит В КОНЦЕ файла намеренно:
-   при равной весомости побеждает последнее, а объявление отступа идёт выше. Ровно
-   на этом порядке я сегодня спотыкался несколько раз -- см. feedback-reuse-before-building.
-   При ячейке в 26-35 точек боковой отступ делал область захвата шире соседней полосы,
-   и палец цеплял чужую. Захват здесь даёт ВЫСОТА: ход 118 точек. */
 @media(max-width:759px){
-  /* min-width:0 обязателен: у ползунка есть своя наименьшая ширина, и без сброса он не
-     давал ячейке сжаться -- ряд вылезал на 5 точек. Поймала проверка, глазом не видно. */
+
   .audio-editor .ed-band input[type=range]{padding:0;min-width:0}
   .audio-editor .ed-fader{padding:8px 0;min-width:0;width:100%}
-  /* Подпись частоты держала ширину ячейки: «16k» шире самого ползунка, и ряд вылезал.
-     Перенос запрещён, лишнее прячется -- цифры короткие, обрезаться нечему. */
+
   .audio-editor .ed-band .hz{min-width:0;overflow:hidden}
   .audio-editor .ed-band{padding:8px 0 6px;min-width:0}
 }
 
-/* Всплывающий ползунок длины спада. Появляется под нажатой кнопкой фейда, живёт внутри поля
-   инструмента (поэтому у .audio-editor position:relative) и не влияет на раскладку -- значит
-   ничего не сдвигает, когда появляется и исчезает. */
 .audio-editor{position:relative}
-/* Без плашки: только сама дорожка ползунка и число секунд. Коробка вокруг занимала пол-экрана
-   и закрывала собой всё, ради чего её открывали. */
-/* Аккуратная подложка ровно под ползунок: без неё чёрная дорожка ложилась на тёмные кнопки
-   воспроизведения и просто терялась. Не плашка во всю ширину -- только то, что нужно. */
+
 .audio-editor .ed-pop{position:absolute;z-index:30;display:flex;align-items:center;gap:8px;
   min-width:176px;padding:6px 10px;border-radius:999px;background:rgba(16,18,22,.94);
   border:1px solid var(--line);box-shadow:0 6px 18px rgba(0,0,0,.5)}
 .audio-editor .ed-pop input[type=range]{flex:1;min-width:0;height:26px;background:none;
   accent-color:var(--accent);margin:0}
-/* Длину задали руками -- цвет меняет САМА ДОРОЖКА, а не всё поле ползунка: заливка на весь
-   элемент давала зелёный прямоугольник поверх кнопок. */
+
 .audio-editor .ed-pop.is-manual input[type=range]{accent-color:#7ef0b8}
 .audio-editor .ed-pop.is-manual input[type=range]::-webkit-slider-runnable-track{
   background:rgba(74,222,158,.45);border-radius:999px}
@@ -483,11 +332,9 @@
 .audio-editor .ed-pop input[type=range]{flex:1;min-width:120px}
 .audio-editor .ed-pop-val{font-size:12.5px;font-weight:700;color:var(--accent);
   min-width:48px;text-align:right;font-variant-numeric:tabular-nums;
-  /* Число висит без подложки, поэтому ему нужна собственная читаемость на волне. */
+
   text-shadow:0 1px 3px rgba(0,0,0,.9)}
 
-/* Границы выделения -- компактной строкой прямо в ряду с плей и стоп. Раньше это была
-   отдельная плашка в конце панели, и на телефоне она уезжала в самый низ, далеко от дорожки. */
 .audio-editor .ed-deck{flex-wrap:nowrap}
 .audio-editor .ed-deck .ed-deck-right{margin-left:auto;flex-wrap:nowrap}
 .audio-editor .ed-deck .ed-stamps{display:flex;align-items:center;gap:6px;margin-left:8px;flex:0 1 auto;overflow:hidden;
@@ -498,48 +345,30 @@
 @media(max-width:520px){
   .audio-editor .ed-deck{gap:6px}
   .audio-editor .ed-deck .ed-stamps{margin-left:4px;padding:0 7px;font-size:11px;height:34px;gap:3px}
-  /* На узком экране правая часть отдаёт место: скачивание может ужаться, время -- нет,
-     оно должно стоять рядом с дорожкой, ради чего всё и затевалось. */
+
   .audio-editor .ed-deck .ed-deck-right{min-width:0}
   .audio-editor .ed-deck .ed-save span{display:none}
 }
 
-/* Время на самих ручках обрезки: смотришь туда, где палец. Подпись не ловит нажатия,
-   чтобы не мешать тянуть ручку, и прижимается к краю, если упирается в границу дорожки. */
-/* Подпись висит ВНУТРИ дорожки, у нижнего края: над дорожкой её срезал бы край поля
-   (у .ed-wave стоит overflow:hidden ради скруглённых углов). */
 .audio-editor .ed-handle b{position:absolute;bottom:6px;padding:2px 6px;border-radius:6px;
   font-size:11px;font-weight:700;background:rgba(12,14,18,.92);border:1px solid var(--line);
   color:var(--text);font-variant-numeric:tabular-nums;white-space:nowrap;pointer-events:none}
 .audio-editor .ed-handle-l b{left:9px}
 .audio-editor .ed-handle-r b{right:9px}
 
-/* Нижняя строка: формат и скачивание. Кнопка занимает всю оставшуюся ширину -- это главное
-   действие на этом шаге, и промахнуться по нему пальцем нельзя. */
-/* Прижаты ВПРАВО, по правому краю дорожки, и по ширине -- ровно под свой текст: кнопка во всю
-   строку выглядит как главное действие страницы, а это последний шаг, а не единственный. */
-/* Панель инструмента и строка скачивания стоят в ОДНОМ ряду, если помещаются: у обрезки это
-   три кнопки слева и «формат + скачать» справа. Не поместились -- строка уходит вниз сама. */
-/* Обе группы -- кнопки инструмента слева и «формат + скачать» справа -- стоят по ОДНОЙ
-   средней линии. Линия-разделитель и отступ над ней переехали с самой панели на этот ряд:
-   пока они висели на панели, её содержимое начиналось на 15 px ниже, и скачивание оказывалось
-   выше кнопок. Теперь разделитель общий для обеих групп, и они выравниваются честно. */
 .audio-editor .ed-row-bottom{display:flex;align-items:center;gap:12px;flex-wrap:wrap;
   margin-top:14px;padding-top:14px;border-top:1px solid var(--line)}
 .audio-editor .ed-row-bottom .ed-panel{margin-top:0;padding-top:0;border-top:none}
 .audio-editor .ed-row-bottom .ed-panel{flex:1 1 auto;min-width:0}
 .audio-editor .ed-bottom{margin-top:0;flex-wrap:nowrap;justify-content:flex-end;
   flex:0 0 auto;width:auto;align-items:center}
-/* Обе кнопки одной высоты и по одной линии: раньше выпадающий список и «скачать» брали
-   высоту от своего содержимого и стояли со сдвигом в несколько пикселей. */
+
 .audio-editor .ed-bottom .ed-fmt,
 .audio-editor .ed-bottom .ed-save{height:44px;align-self:center}
 .audio-editor .ed-bottom .ed-save{flex:0 0 auto}
-/* На узком экране слова не хватает места -- остаётся только значок, но крупнее. */
+
 @media(max-width:560px){
   .audio-editor .ed-bottom .ed-save span{display:none}
   .audio-editor .ed-bottom .ed-save{padding:0 14px}
   .audio-editor .ed-bottom .ed-save svg{width:22px;height:22px}
 }
-
-

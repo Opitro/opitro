@@ -1,25 +1,13 @@
 ---
 import playerCss from '../styles/player.css?inline';
 import css from '../styles/speech-to-text.css?inline';
-// Speech to text. Its own component for the same reason AudioToMidi is: the output is text, not
-// a buffer, so none of AudioTool's render/export machinery applies.
-//
-// Whisper via transformers.js, running in the visitor's own browser. The model is downloaded from
-// a CDN; the recording is not uploaded anywhere, which is what lets this page carry the same
-// promise as every other page here.
-//
-// Deliberately NOT the browser's built-in SpeechRecognition, which is what the reference
-// implementation used: that one is microphone-only (it cannot transcribe a file at all), works
-// only in Chrome and Edge, and sends the audio to Google's servers. See project-browser-models.
+
 import AdSlot from './AdSlot.astro';
 
 interface Props {
   locale: string;
   labels: Record<string, any>;
-  // 'file'  — a recording you already have: lectures, interviews, subtitles for video.
-  // 'voice' — speaking into the microphone right now.
-  // Two pages, one component: the work is identical, but the two are different jobs people search
-  // for in different words, and each page is simpler for dropping the other one's controls.
+
   mode?: 'file' | 'voice';
 }
 
@@ -35,13 +23,6 @@ const ICO = {
 };
 ---
 
-{/* The component's stylesheet is imported as a string and written out here, rather
-    than left as an Astro <style> block. Astro attaches a page's styles by walking what
-    the page module imports, not what it renders, so one route file importing all the
-    tool components put every component's CSS into every page -- an identical 47 KB
-    everywhere, of which a calculator page used almost none. As a plain string it lands
-    only on the page that renders this component. It goes first, before any markup, so
-    nothing is ever painted unstyled. */}
 <style is:inline set:html={playerCss + css}></style>
 
 <div class="stt-tool" data-locale={locale} data-mode={mode} data-labels={JSON.stringify(labels)}>
@@ -56,11 +37,7 @@ const ICO = {
   <input type="file" id="st-file">
 
   {isVoice && <div class="voice-lead">{labels.voiceLeadLabel}</div>}
-  {/* Круглая кнопка записи вместо полосы во всю ширину. Знак выбран не на вкус: красный кружок --
-      это «запись» из плёночной традиции, так подписаны диктофоны и запись экрана; квадрат -- это
-      «остановить». Микрофон означает другое -- «говорите», голосовой ввод, -- и для кнопки,
-      которая начинает и заканчивает запись, читается хуже. Узнаваемость даёт форма, а не размер,
-      поэтому полоса и не нужна. */}
+
   {isVoice && (
   <div class="mic-row" id="st-mic-row">
     <button type="button" class="mic-btn" id="st-mic" aria-label={labels.sttRecordLabel}>
@@ -74,9 +51,7 @@ const ICO = {
   )}
 
   <div class="panel" id="st-panel">
-    {/* Панель того же вида, что на остальных аудиоинструментах: имя файла -- верхняя строка,
-        волна, под ней управление. Раньше здесь была отдельная плашка над плеером, кнопка внутри
-        волны и часы прямо в дорожке. */}
+
     <div class="wave-shell compact" id="st-wave-shell">
       <div class="fileinfo" id="st-fileinfo"></div>
       <div class="wave-area" id="st-wave-area">
@@ -132,13 +107,11 @@ const ICO = {
     <div class="progress" id="st-progress">
       <div class="progress-bar"><div class="progress-fill" id="st-progress-fill"></div></div>
     </div>
-    {/* The stage caption and a clock beside it. During a long transcription nothing else on the
-        page moves, and a still screen reads as a hung one -- which is exactly how it felt. */}
+
     <div class="stage-text"><span id="st-stage"></span><span class="stage-clock" id="st-timer"></span></div>
 
     <div class="controls" id="st-run-row">
-      {/* Disabled until a file is loaded. The panel hides it anyway, but a control that looks
-          live with nothing to act on is the same defect the audio tools had with download. */}
+
       <button type="button" class="act primary" id="st-run" disabled>
         <svg class="ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.text} />
         <span id="st-run-label">{labels.sttRunLabel}</span>
@@ -148,8 +121,6 @@ const ICO = {
     <div class="results" id="st-results" style="display:none">
       <div class="summary" id="st-summary"></div>
 
-      {/* Timestamps and subtitles belong to a recording of something that happened; dictation is
-          just text, and the extra controls would only be in the way. */}
       {!isVoice && (
       <div class="view-toggle" id="st-view-toggle">
         <button type="button" class="vt-seg active" data-view="plain">{labels.sttViewPlainLabel}</button>
@@ -157,8 +128,6 @@ const ICO = {
       </div>
       )}
 
-      {/* Editable on purpose. No recogniser is perfect, and fixing two words in place beats
-          copying the text somewhere else to fix it there. */}
       <textarea id="st-text" spellcheck="true" aria-label={labels.sttTextAreaLabel}></textarea>
       <div class="text-note" id="st-edit-note"></div>
 
@@ -199,25 +168,16 @@ const ICO = {
   import { toSrt, toVtt, toPlainText, toTimestamped, countWords, normalizeChunks,
     attachSpeakers, speakerCount, toSpeakerText, toSpeakerTimestamped } from '../lib/transcript-format.js';
 
-  // Pinned exactly. A floating tag would change everyone's results on a silent major bump.
   const TRANSFORMERS = 'https://cdn.jsdelivr.net/npm/@huggingface/transformers@3.5.1/dist/transformers.min.js';
-  // `rate` is seconds of work per second of audio, measured on this page (not on a benchmark
-  // harness) against 188 seconds of Russian speech on a desktop with the model already cached:
-  // the light model ran at 0.22x, the best one at 0.82x. That is nearly a fourfold difference and
-  // it decides whether an hour-long lecture takes thirteen minutes or fifty, so it is shown to
-  // the user for their actual file rather than left as a surprise.
+
   const MODELS = {
     small: { repo: 'onnx-community/whisper-small', mb: 240, rate: 0.82 },
     base: { repo: 'onnx-community/whisper-base', mb: 76, rate: 0.22 },
   };
-  const MODEL_RATE = 16000;   // what Whisper was trained on
+  const MODEL_RATE = 16000;
   const MAX_MINUTES = 60;
   const WARN_MINUTES = 20;
 
-  // Every language Whisper knows: its own two- or three-letter code and its own name for it,
-  // which is what the pipeline wants. There are 99 of them and no list of translations is kept
-  // here -- the browser writes each name in the page's own language through Intl.DisplayNames,
-  // so adding a site locale costs nothing and never leaves a language untranslated.
   const WHISPER_LANGS = [
     ['en','english'],['zh','chinese'],['de','german'],['es','spanish'],['ru','russian'],['ko','korean'],
     ['fr','french'],['ja','japanese'],['pt','portuguese'],['tr','turkish'],['pl','polish'],['ca','catalan'],
@@ -237,10 +197,9 @@ const ICO = {
     ['mg','malagasy'],['as','assamese'],['tt','tatar'],['haw','hawaiian'],['ln','lingala'],['ha','hausa'],
     ['ba','bashkir'],['jw','javanese'],['su','sundanese'],['yue','cantonese'],
   ];
-  // Whisper's codes are not all valid BCP 47 tags; these are the ones Intl needs spelled its way.
+
   const INTL_ALIAS = { jw: 'jv', yue: 'yue', haw: 'haw', nn: 'nn' };
-  // Offered first because they are what this site's visitors actually upload; the rest follow in
-  // alphabetical order of their translated names.
+
   const COMMON = ['ru', 'uk', 'en', 'es', 'de', 'fr', 'pl', 'it', 'pt', 'tr', 'kk', 'ar', 'zh', 'ja', 'ko'];
   const BY_CODE = new Map(WHISPER_LANGS.map((l) => [l[0], l]));
 
@@ -301,11 +260,9 @@ const ICO = {
     const svgIco = (p, c) => `<svg class="${c}" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">${p}</svg>`;
     const escapeHtml = (s) => String(s).replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c]));
 
-    startKeeper();   // держатель тишины для iOS, см. ios-keeper.js
+    startKeeper();
     const player = createPlayer();
-    // Сторож молчания: если браузер прервал звук (Safari делает это, когда вкладка уходит
-    // в фон), нажатие на пуск не даёт НИЧЕГО -- ни звука, ни ошибки. Теперь страница
-    // говорит, что случилось, вместо того чтобы молча притворяться рабочей.
+
     player.onStuck(() => showError(labels.audioStuckLabel));
     let file = null;
     let sourceBuffer = null;
@@ -316,10 +273,9 @@ const ICO = {
     let view = 'plain';
     let rafId = 0;
 
-    // Names written by the browser in the page's own language, capitalised the way a list wants.
     const locale = root.dataset.locale || 'en';
     let displayNames = null;
-    try { displayNames = new Intl.DisplayNames([locale], { type: 'language' }); } catch (e) { /* older browser */ }
+    try { displayNames = new Intl.DisplayNames([locale], { type: 'language' }); } catch (e) {  }
     function nameOf(code, fallback) {
       let n = null;
       try { n = displayNames ? displayNames.of(INTL_ALIAS[code] || code) : null; } catch (e) { n = null; }
@@ -343,16 +299,8 @@ const ICO = {
       }
     }
     langSel.value = 'auto';
-    let detectedName = null;   // what auto-detection found, for the summary
+    let detectedName = null;
 
-    /**
-     * Whisper predicts the language itself, as the very first token after the start marker.
-     * transformers.js never lets it: with no `language` option it forces English, so a Russian
-     * recording came back translated into English and the "detect automatically" choice was a lie.
-     * Feeding only the start token and generating exactly one more gives the model's own answer,
-     * which is what this does. Measured: correct on Russian, English and Ukrainian in under two
-     * seconds, on thirty seconds of audio.
-     */
     async function detectLanguage(audio) {
       const tok = asr.tokenizer;
       const ids = tok.model.tokens_to_ids;
@@ -386,13 +334,9 @@ const ICO = {
       stageTimer = window.setTimeout(() => { progress.classList.remove('on'); stageEl.textContent = ''; }, 2200);
     }
 
-    // A clock, ticking on the page's own thread -- which it can only do because the model runs in
-    // a worker. Elapsed time is always shown because it is always true; the estimate is only
-    // offered while it still holds, and once it runs out the line says "almost done" rather than
-    // counting into the negative or freezing on zero, either of which would be a small lie.
     let clockTimer = 0;
-    let clockStart = 0;      // when the whole run began -- the elapsed count never restarts
-    let phaseStart = 0;      // when the current phase began -- what the estimate counts against
+    let clockStart = 0;
+    let phaseStart = 0;
     let clockEstimate = 0;
     function startClock() {
       stopClock();
@@ -412,10 +356,7 @@ const ICO = {
       tick();
       clockTimer = window.setInterval(tick, 1000);
     }
-    // The estimate only becomes meaningful once the model is loaded and the work itself starts;
-    // before that the wait is a download whose speed nobody here knows. Only the PHASE clock is
-    // reset -- restarting the elapsed count too made the seconds jump backwards from 0:04 to 0:00,
-    // which reads as a glitch for the same reason a percentage falling from 100 to 13 does.
+
     function setClockEstimate(seconds) {
       clockEstimate = seconds || 0;
       phaseStart = Date.now();
@@ -430,7 +371,7 @@ const ICO = {
       const m = MODELS[qualitySel.value];
       let text = labels.sttQualityHint || '';
       if (sourceBuffer) {
-        // An estimate for THIS file, which is the only form of "it depends" anyone can act on.
+
         const secs = sourceBuffer.duration * m.rate;
         const pretty = secs < 90
           ? Math.max(5, Math.round(secs / 5) * 5) + ' ' + (labels.sttSecondsShortLabel || 's')
@@ -442,7 +383,6 @@ const ICO = {
     qualitySel.addEventListener('change', renderQualityHint);
     renderQualityHint();
 
-    /* --- input --------------------------------------------------------------------------- */
     if (drop) {
       drop.addEventListener('click', () => fileInput.click());
       drop.addEventListener('dragover', (e) => { e.preventDefault(); drop.classList.add('over'); });
@@ -451,7 +391,7 @@ const ICO = {
     }
     fileInput.addEventListener('change', (e) => {
       const f = e.target.files[0];
-      // Cleared immediately so picking the same file again still fires a change event.
+
       e.target.value = '';
       if (f) pickFile(f);
     });
@@ -480,8 +420,7 @@ const ICO = {
       player.stop();
       cancelAnimationFrame(rafId);
       chunks = []; edited = false;
-      // Cleared before the decode, not after: the dictation page auto-runs once pickFile settles,
-      // and a stale buffer from the previous take would be transcribed instead of the new one.
+
       sourceBuffer = null;
       results.style.display = 'none';
       runBtn.disabled = true;
@@ -491,8 +430,7 @@ const ICO = {
       const sizeMB = f.size / (1024 * 1024);
       const swapLabel = escapeHtml(labels.newFileLabel || 'Upload a different file');
       const removeLabel = escapeHtml(labels.removeFileLabel || 'Remove');
-      // No "swap file" button on the dictation page: there was no file to swap, and the button
-      // would open a file picker, which is not what anyone who just spoke into a microphone wants.
+
       const swapBtn = isVoice ? '' : `<button type="button" class="fi-act fi-swap" id="st-fi-swap" aria-label="${swapLabel}" title="${swapLabel}">${svgIco(ICO_UPLOAD, 'i')}</button>`;
       fileInfo.innerHTML = `<div class="fi-row">${svgIco(ICO_WAVE, 'fi-ico')}<span class="fi-name">${escapeHtml(f.name)}</span><span class="fi-size">${sizeMB.toFixed(1)} MB</span>${swapBtn}<button type="button" class="fi-act fi-remove" id="st-fi-remove" aria-label="${removeLabel}" title="${removeLabel}">${svgIco(ICO_CLOSE, 'i')}</button></div>`;
       if (!isVoice) $('st-fi-swap').addEventListener('click', () => fileInput.click());
@@ -523,7 +461,7 @@ const ICO = {
       runBtn.disabled = false;
       renderQualityHint();
       if (sourceBuffer.duration > WARN_MINUTES * 60) {
-        // Not an error -- just an honest heads-up before someone starts a long wait.
+
         showError((labels.sttLongFileNoteLabel || '').replace('{n}', String(Math.round(sourceBuffer.duration / 60))));
       }
       drawWave();
@@ -537,12 +475,8 @@ const ICO = {
     }
     new ResizeObserver(() => { if (sourceBuffer) drawWaveform(waveCanvas, sourceBuffer); }).observe(waveCanvas);
 
-    /* --- microphone ---------------------------------------------------------------------- */
     let recorder = null, recChunks = [], recTimer = 0, recStart = 0;
-    // Волна во время диктовки. Здесь она нужнее, чем где-либо: человек говорит в телефон и до
-    // этого не имел ни одного признака, что его слышат, -- только счётчик времени, который
-    // идёт одинаково и при выключенном микрофоне. Та же функция, что у диктофона, чтобы обе
-    // страницы рисовали одно и то же, а не разошлись со временем.
+
     const liveWave = waveCanvas ? createLiveWaveform(waveCanvas) : null;
     let meterCtx = null, meterRaf = 0;
     function startLiveWave(stream) {
@@ -565,7 +499,7 @@ const ICO = {
           meterRaf = requestAnimationFrame(tick);
         };
         tick();
-      } catch (e) { /* волна -- удобство, а не условие записи */ }
+      } catch (e) {  }
     }
     function stopLiveWave() {
       cancelAnimationFrame(meterRaf);
@@ -595,8 +529,7 @@ const ICO = {
         micTime.textContent = '';
         const blob = new Blob(recChunks, { type: recorder.mimeType || 'audio/webm' });
         const ext = (recorder.mimeType || '').includes('mp4') ? 'm4a' : 'webm';
-        // On the dictation page the recording IS the request: making someone press a second
-        // button after they have stopped talking adds a step for nothing.
+
         pickFile(new File([blob], (labels.sttRecordingFileName || 'recording') + '.' + ext, { type: blob.type }))
           .then(() => { if (isVoice && sourceBuffer) runBtn.click(); });
       };
@@ -608,7 +541,6 @@ const ICO = {
       recTimer = window.setInterval(() => { micTime.textContent = fmtClock((performance.now() - recStart) / 1000); }, 250);
     });
 
-    /* --- playback ------------------------------------------------------------------------ */
     function setPlayhead(frac) {
       const base = waveCanvas.offsetLeft;
       const w = waveCanvas.clientWidth || waveShell.clientWidth;
@@ -624,9 +556,9 @@ const ICO = {
       if (sourceBuffer) setPlayhead(pos / sourceBuffer.duration);
       if (player.isPlaying()) rafId = requestAnimationFrame(tick);
     }
-    // Куда встал бегунок нажатием по волне -- отсюда пойдёт следующее «играть».
+
     let стоп = null;
-    let замер = false;   // бегунок поставлен рукой -- отрисовка не спорит
+    let замер = false;
     function startPlayback(seekTo) {
       if (seekTo == null && стоп != null) { seekTo = стоп; стоп = null; }
       замер = false;
@@ -644,15 +576,13 @@ const ICO = {
       rafId = requestAnimationFrame(tick);
     }
     playBtn.addEventListener('click', (e) => {
-      // Swapping the glyph detaches the event target, which the shell's own handler then cannot
-      // match -- without this, playback stops a few milliseconds after it starts.
+
       e.stopPropagation();
       if (!sourceBuffer) return;
       if (player.isPlaying()) { player.pause(); playIco.innerHTML = ICO_PLAY; cancelAnimationFrame(rafId); }
       else startPlayback();
     });
-    // Стоп: остановить и вернуть в начало. Выделения на этой странице нет, поэтому начало
-    // выделения и начало файла -- одно и то же.
+
     if (stopBtn) {
       stopBtn.addEventListener('click', () => {
         player.reset();
@@ -664,10 +594,7 @@ const ICO = {
         stopBtn.disabled = true;
       });
     }
-    // Подсказка со временем под курсором -- как на остальных инструментах.
-    // ПЕРЕМОТКА ЗДЕСЬ УЖЕ ЕСТЬ -- обработчик на самой волне ниже (waveShell click). Я
-    // добавил второй, и звук стал накладываться: два воспроизведения разом. Свой убрал.
-    // Урок: прежде чем добавлять обработчик, проверить, нет ли такого же ниже по файлу.
+
     if (waveArea && waveGuide && waveTip) {
       waveArea.addEventListener('mousemove', (e) => {
         if (!sourceBuffer) return;
@@ -690,18 +617,12 @@ const ICO = {
       if (e.composedPath().some((n) => n instanceof Element && n.classList?.contains('wave-play-btn'))) return;
       const r = waveCanvas.getBoundingClientRect();
       const место = Math.max(0, Math.min(1, (e.clientX - r.left) / r.width)) * sourceBuffer.duration;
-      // Прежний звук ГЛУШИМ, иначе новый ложится поверх и слышно два разом -- владелец это
-      // и услышал. Дальше играем с нового места.
+
       try { player.stop(); } catch (err) {}
       cancelAnimationFrame(rafId);
       startPlayback(место);
     });
 
-    /* --- transcription -------------------------------------------------------------------- */
-    // Decoded straight to 16 kHz mono from the original file, NOT resampled down from the buffer
-    // the player uses. That buffer is already at the device's rate (usually 48 kHz), so going
-    // through it means resampling twice, and measured on the same 48-word passage that cost real
-    // accuracy: 89.6% through the double conversion against 95.8% decoding once at 16 kHz.
     async function toModelRate(f, fallbackBuffer) {
       try {
         const ctx = new (window.AudioContext || window.webkitAudioContext)({ sampleRate: MODEL_RATE });
@@ -715,8 +636,7 @@ const ICO = {
           return mono;
         }
       } catch (e) {
-        // Safari has historically ignored the requested sample rate, and some containers only
-        // decode through the default context. Falling back keeps the tool working.
+
       }
       const oc = new OfflineAudioContext(1, Math.ceil(fallbackBuffer.duration * MODEL_RATE), MODEL_RATE);
       const src = oc.createBufferSource();
@@ -726,7 +646,6 @@ const ICO = {
       return (await oc.startRendering()).getChannelData(0);
     }
 
-    // One worker for the life of the page, so the model stays loaded between runs.
     let worker = null;
     let pending = null;
     const STAGE_LABELS = {
@@ -744,8 +663,7 @@ const ICO = {
         const m = e.data || {};
         if (m.type === 'stage') {
           setStage(labels[STAGE_LABELS[m.stage]] || '', m.stage === 'connecting' ? 1 : 60);
-          // Once the audio itself is being worked through, the wait becomes predictable: the rate
-          // for each model was measured on this page, so the estimate is arithmetic, not a guess.
+
           if (m.stage === 'transcribing' || m.stage === 'translating') {
             const model = MODELS[qualitySel.value];
             setClockEstimate(sourceBuffer ? sourceBuffer.duration * model.rate : 0);
@@ -773,8 +691,7 @@ const ICO = {
         const langValue = langSel.value;
         const result = await new Promise((resolve) => {
           pending = resolve;
-          // The audio buffer is transferred, not copied: a long recording is tens of megabytes and
-          // cloning it would double the memory for no reason.
+
           ensureWorker().postMessage({
             type: 'run', rate: MODEL_RATE, audio,
             repo: model.repo, key: qualitySel.value, totalBytes: model.mb * 1e6,
@@ -820,9 +737,6 @@ const ICO = {
       }
     });
 
-    // Changing a setting after a run has to be actionable. The run row used to be hidden on
-    // success, so switching model or language left no way to try again short of removing the file
-    // and adding it back -- which is exactly what happened.
     for (const sel of [qualitySel, taskSel, langSel, speakersBox].filter(Boolean)) {
       sel.addEventListener('change', () => {
         if (!chunks.length) return;
@@ -830,14 +744,13 @@ const ICO = {
       });
     }
 
-    /* --- results -------------------------------------------------------------------------- */
     const speakerName = (n) => (labels.sttSpeakerName || 'Speaker {n}').replace('{n}', String(n));
     function bodyFor(v) {
       const opts = { duration: sourceBuffer ? sourceBuffer.duration : 0 };
       if (speakerCount(chunks) > 1) {
         return v === 'stamped' ? toSpeakerTimestamped(chunks, speakerName) : toSpeakerText(chunks, speakerName, opts);
       }
-      // One voice, or none found: names would be noise.
+
       return v === 'stamped' ? toTimestamped(chunks, opts) : toPlainText(chunks, opts);
     }
     function renderText() {
@@ -851,7 +764,7 @@ const ICO = {
         [labels.sttStatCharsLabel, String(textEl.value.length)],
         [labels.sttStatDurationLabel, sourceBuffer ? fmtClock(sourceBuffer.duration) : '—'],
       ];
-      // Only when it was detected rather than chosen -- otherwise it just repeats the dropdown.
+
       if (detectedName) cells.push([labels.sttStatLanguageLabel, detectedName]);
       const voices = speakerCount(chunks);
       if (voices > 1) cells.push([labels.sttStatSpeakersLabel, String(voices)]);
@@ -862,8 +775,7 @@ const ICO = {
     textEl.addEventListener('input', () => {
       edited = true;
       updateCount();
-      // Switching views would throw away hand corrections, so once the text has been touched the
-      // toggle says so instead of silently replacing it.
+
       editNote.textContent = labels.sttEditedNote || '';
     });
 
@@ -883,7 +795,7 @@ const ICO = {
       try {
         await navigator.clipboard.writeText(textEl.value);
       } catch (e) {
-        // Clipboard access can be refused; selecting the text is something the user can act on.
+
         textEl.select();
         showError(labels.sttCopyFailedLabel);
         return;
@@ -911,15 +823,13 @@ const ICO = {
       const duration = sourceBuffer ? sourceBuffer.duration : 0;
       const fmt = fmtSelect.value;
       let body, ext;
-      // Subtitles name the speaker the way captions normally do, but only when there is more
-      // than one -- a single-speaker recording would just repeat "Speaker 1" on every line.
+
       const named = speakerCount(chunks) > 1
         ? chunks.map((c) => ({ ...c, text: (c.speaker ? speakerName(c.speaker) + ': ' : '') + c.text }))
         : chunks;
       if (fmt === 'srt') { body = toSrt(named, { duration }); ext = 'srt'; }
       else if (fmt === 'vtt') { body = toVtt(named, { duration }); ext = 'vtt'; }
-      // Plain text follows what is on screen, edits included -- subtitles cannot, because the
-      // timings belong to the recognised chunks rather than to the edited text.
+
       else { body = textEl.value; ext = 'txt'; }
       const blob = new Blob([body], { type: 'text/plain;charset=utf-8' });
       const url = URL.createObjectURL(blob);
@@ -934,4 +844,3 @@ const ICO = {
     });
   }
 </script>
-

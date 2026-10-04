@@ -1,6 +1,4 @@
-/* Размер зоны загрузки одинаков на всех аудиостраницах: 52px отступы, значок 42,
-     заголовок 17. Утверждён владельцем на редакторе -- это вход в инструмент, главное
-     действие страницы, и оно должно занимать место соответственно. */
+
   .audio-tool .drop{border:1.5px dashed var(--line);border-radius:14px;padding:52px 20px;text-align:center;cursor:pointer;transition:.2s;background:var(--surface)}
   .audio-tool .drop:hover,.audio-tool .drop.over{border-color:var(--accent);background:rgba(74,222,158,0.04)}
   .audio-tool .drop svg{width:42px;height:42px;color:var(--accent);margin-bottom:10px}
@@ -11,36 +9,26 @@
 
   .audio-tool .panel{display:none;margin-top:8px}
   .audio-tool .panel.on{display:block}
-  /* 12px radius and a 48px-tall row, same as every other control -- the chip used to sit on a
-     10px radius and a slightly different height, which is the sort of half-pixel mismatch you
-     feel as "not quite tidy" without being able to point at it. */
+
   .audio-tool .fileinfo:empty,.audio-tool .filelist:empty{display:none}
-  /* Зелёной заливки нет: она была самым громким пятном на странице, хотя несла наименее важное --
-     имя файла. Подтверждением загрузки служит сама волна: она появилась, значит файл прочитан,
-     и это сигнал сильнее любого цвета. Так уже сделано в панели плеера; здесь -- те инструменты,
-     у которых волна полная и строка файла стоит отдельно: обрезка, рингтон, очереди файлов. */
+
   .audio-tool .fileinfo,.audio-tool .filelist{font-size:13px;color:var(--muted);margin-bottom:16px;
     word-break:break-word;background:var(--surface);border:1px solid var(--line);
     border-radius:12px;padding:9px 10px 9px 14px}
   .audio-tool .fileinfo b,.audio-tool .filelist b{color:var(--text)}
   .audio-tool .fi-row{display:flex;align-items:center;gap:10px}
-  /* Bars, not a music note: it echoes the waveform in the player directly below, so the chip
-     and the track read as the same object rather than two unrelated widgets. */
+
   .audio-tool .fi-ico{flex:none;width:17px;height:17px;color:var(--accent)}
   .audio-tool .fi-name{flex:1;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;color:var(--text);font-weight:600}
   .audio-tool .fi-size{flex:none;color:var(--muted);font-variant-numeric:tabular-nums}
-  /* Real 30px round targets rather than bare glyphs -- these were the only controls on the page
-     with no hit area to speak of. Swap and remove are the same shape and size because they're
-     the same kind of thing (something you do to the file), and differ only on hover: green for
-     the harmless one, red for the destructive one. */
+
   .audio-tool .fi-act,.audio-tool .filelist-remove,.audio-tool .filelist-move{flex:none;display:flex;align-items:center;justify-content:center;width:30px;height:30px;cursor:pointer;background:none;border:none;color:var(--muted);border-radius:50%;transition:color .15s,background .15s}
   .audio-tool .fi-act .i,.audio-tool .filelist-remove .i,.audio-tool .filelist-move .i{width:15px;height:15px}
   .audio-tool .filelist-move:hover:not(:disabled){color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .filelist-move:disabled{opacity:.25;cursor:not-allowed}
   .audio-tool .fi-swap:hover{color:var(--accent);background:rgba(74,222,158,0.14)}
   .audio-tool .fi-remove:hover,.audio-tool .filelist-remove:hover{color:#ff3a5e;background:rgba(255,58,94,0.12)}
-  /* Пока идёт запись, панель показывает только живую волну: выделять и обрезать ещё нечего,
-     а ручка на движущейся волне и три нуля под ней читаются как поломка. */
+
   .audio-tool .panel.is-recording #sel-overlay,
   .audio-tool .panel.is-recording #h-start,
   .audio-tool .panel.is-recording #h-end,
@@ -48,18 +36,13 @@
 
   .audio-tool .filelist-item{padding:4px 0;display:flex;align-items:center;gap:10px;flex-wrap:wrap}
   .audio-tool .filelist-item span{flex:1;min-width:0}
-  /* Громкость -- второй строкой той же карточки. В один ряд с именем её ставить нельзя: имя
-     файла на телефоне занимает до трёх строк, и ползунку рядом остались бы сорок точек.
-     Отступ слева равен кнопке воспроизведения с зазором -- ползунок встаёт под именем файла,
-     а не под значком. */
+
   .audio-tool .filelist-vol{flex:1 0 100%;display:flex;align-items:center;gap:12px;padding:2px 0 4px 36px}
-  /* accent-color обязателен: без него браузер рисует свой синий ползунок, а все остальные на
-     сайте зелёные -- в списке файлов это выглядело как чужой элемент. */
+
   .audio-tool .filelist-item .fl-vol{flex:1;min-width:0;margin:0;accent-color:var(--accent)}
   .audio-tool .filelist-item .fl-vol-val{flex:none;width:46px;text-align:right;font-size:12px;
     font-weight:600;color:var(--accent);font-variant-numeric:tabular-nums}
-  /* Пока строка была одна, файлы разделялись сами собой. Со второй строкой они слипаются --
-     нужна черта, иначе не видно, какой ползунок к какому файлу относится. */
+
   .audio-tool .filelist-item + .filelist-item{border-top:1px solid rgba(255,255,255,0.06);padding-top:8px}
   .audio-tool .filelist-play{display:flex;align-items:center;justify-content:center;width:26px;height:26px;flex:none;cursor:pointer;background:none;border:none;color:var(--accent);padding:0;border-radius:50%}
   .audio-tool .filelist-play:hover{background:rgba(74,222,158,0.15)}
@@ -75,8 +58,7 @@
   .audio-tool .move-ico{width:20px;height:20px;color:var(--accent);opacity:.55;pointer-events:none}
   .audio-tool .checks{display:flex;gap:18px;flex-wrap:wrap;margin-bottom:14px}
   .audio-tool .presets{display:flex;gap:8px;flex-wrap:wrap;margin:-6px 0 14px}
-  /* Recorder: one big target, red while live. Same disc geometry as the noise player. */
-  /* A report, not a control panel: one clear answer, then the numbers behind it. */
+
   .audio-tool .analysis{margin:4px 0 18px}
   .audio-tool .an-headline{font-size:22px;font-weight:600;color:var(--text);text-align:center;margin-bottom:16px;line-height:1.3}
   .audio-tool .an-rows{display:flex;flex-direction:column;gap:1px;background:var(--line);border:1px solid var(--line);border-radius:12px;overflow:hidden}
@@ -90,8 +72,7 @@
 
   .audio-tool .rec-stage{display:flex;flex-direction:column;align-items:center;gap:12px;padding:24px 0 20px}
   .audio-tool .rec-row{display:flex;align-items:center;gap:18px}
-  /* Flanking the record button, and smaller than it: they are the second and third things you
-     reach for, and the sizes should say so before you read the icons. */
+
   .audio-tool .rec-side{width:52px;height:52px;border-radius:50%;border:1px solid var(--line);background:var(--surface-2);
     color:var(--text);cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s,opacity .2s}
   .audio-tool .rec-side:hover:not(:disabled){transform:scale(1.06);border-color:rgba(255,255,255,0.25)}
@@ -100,7 +81,7 @@
   .audio-tool .rec-meter{width:220px;max-width:70%;height:4px;border-radius:3px;background:rgba(255,255,255,0.07);overflow:hidden;opacity:0;transition:opacity .25s}
   .audio-tool .rec-meter.on{opacity:1}
   .audio-tool .rec-meter-fill{height:100%;width:0%;border-radius:3px;background:linear-gradient(90deg,var(--accent),var(--accent2));transition:width .06s linear}
-  /* Red at the top of the scale: the one thing a level bar must tell you is when it is clipping. */
+
   .audio-tool .rec-meter-fill.hot{background:#ff3a5e}
   .audio-tool .rec-btn{width:88px;height:88px;border-radius:50%;border:2px solid var(--line);background:var(--surface-2);
     cursor:pointer;display:flex;align-items:center;justify-content:center;transition:transform .12s,border-color .2s}
@@ -111,16 +92,13 @@
   .audio-tool .rec-time{font-size:26px;font-weight:600;color:var(--text);font-variant-numeric:tabular-nums}
   .audio-tool .rec-state{font-size:13px;color:var(--muted);text-align:center;max-width:34ch;line-height:1.45}
 
-  /* Noise: the play control is the page, so it is sized like it. */
   .audio-tool .noise-stage{display:flex;flex-direction:column;align-items:center;gap:14px;padding:26px 0 22px}
   .audio-tool .noise-play{width:96px;height:96px;border-radius:50%;border:none;cursor:pointer;color:#08130d;
     background:linear-gradient(180deg,var(--accent),var(--accent2));display:flex;align-items:center;justify-content:center;
     transition:transform .12s;box-shadow:0 8px 30px rgba(74,222,158,0.25)}
   .audio-tool .noise-play:hover{transform:scale(1.04)}
   .audio-tool .noise-play .ico{width:38px;height:38px}
-  /* Высота подписи закреплена под две строки. Она меняется при запуске («готов» -> «играет,
-     осталось 4:59»), и в одном состоянии умещалась в строку, а в другом переносилась --
-     страница дёргалась на 19 пикселей ровно в момент нажатия, то есть под пальцем. */
+
   .audio-tool .noise-state{font-size:13px;color:var(--muted);text-align:center;max-width:32ch;line-height:1.45;min-height:38px;display:flex;align-items:center;justify-content:center;text-align:center}
   .audio-tool .noise-dl-title{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);margin:22px 0 10px}
   .audio-tool .preset-btn{font-family:inherit;font-size:12.5px;font-weight:600;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:20px;padding:7px 14px}
@@ -128,11 +106,7 @@
   .audio-tool .preset-btn.active{border-color:var(--accent);background:rgba(74,222,158,0.14);color:var(--accent)}
   .audio-tool .check{display:flex;align-items:center;gap:8px;font-size:12.5px;cursor:pointer;color:var(--muted)}
   .audio-tool .check:hover{color:var(--text)}
-  /* Галочка и «вернуть как было» -- в одну строку и мелким: это редкие второстепенные
-     действия, и размер должен об этом говорить. Раньше каждое занимало полную строку в
-     полный рост, наравне с главным. */
-  /* Кнопка «вернуть как было» лежит в своей полоске .eq-toolbar, а не рядом с галочкой --
-     первый вариант правила по соседству с .check в неё просто не попадал. */
+
   .audio-tool .eq-toolbar{margin-bottom:14px}
   .audio-tool button.act.eq-reset-btn{height:30px;padding:0 14px;font-size:12.5px;font-weight:600;
     flex:0 0 auto;min-width:auto;border-radius:9px;background:transparent;border:1px solid var(--line);
@@ -141,44 +115,26 @@
   .audio-tool .check input{width:18px;height:18px;accent-color:var(--accent);cursor:pointer}
   .audio-tool .handle{position:absolute;top:0;bottom:0;width:14px;cursor:ew-resize;z-index:3}
   .audio-tool .handle::after{content:"";position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:4px;height:40px;background:var(--accent);border-radius:3px}
-  /* Правила плеера переехали в src/styles/player.css -- один файл на все три компонента.
-     До этого они жили в трёх копиях и расходились сами собой: кнопка 44 пикселя против 38,
-     бегунок 2 против 1.5. Правки при этом ложились в одну копию из трёх. */
+
   .audio-tool .times{display:flex;align-items:center;justify-content:space-between;font-size:12px;color:var(--muted);margin-bottom:16px;font-variant-numeric:tabular-nums;flex-wrap:wrap;gap:6px 14px}
   .audio-tool .times b{color:var(--accent)}
-  /* Same green disc as the compact player's play button -- one play control across the site,
-     just parked next to the numbers it previews here. */
+
   .audio-tool .times-play{width:40px;height:40px;margin-right:2px}
   .audio-tool .times-play .ico{width:16px;height:16px}
 
   .audio-tool .row{display:flex;gap:12px;flex-wrap:wrap;margin-bottom:14px}
-  /* ---- 10-band graphic EQ ----
-     Vertical sliders are declared two ways on purpose: `writing-mode` is the standardised
-     route (Chrome/Firefox), `-webkit-appearance: slider-vertical` is what Safari still needs.
-     `direction: rtl` is what puts the maximum at the TOP under writing-mode -- without it a
-     boost would read as dragging downward. */
-  /* ---- Fade in / fade out ----
-     Two side-by-side cards on desktop, stacked full-width on mobile so the sliders stay big
-     enough to drag with a thumb and nothing ever scrolls sideways. */
+
   .audio-tool .fade-cards{display:grid;grid-template-columns:1fr 1fr;gap:12px;margin-bottom:16px}
   @media(max-width:640px){.audio-tool .fade-cards{grid-template-columns:1fr}}
   .audio-tool .fade-card{background:var(--surface);border:1px solid var(--line);border-radius:13px;padding:14px 16px;display:flex;flex-direction:column;gap:10px}
   .audio-tool .pitch-card{margin-bottom:16px}
-  /* --- Управления под плеером: один размерный ряд вместо семи -----------------------------
-     Замер до правки: плеер занимал 174 пикселя, а всё под ним -- 460, при семи разных высотах
-     кнопок на одном экране (27, 30, 34, 37, 40, 41, 48). Когда всё разного размера и при этом
-     всё крупное, глаз не понимает, что главное. Размеров теперь три: 36 -- обычное управление,
-     30 -- второстепенное, 44 -- главное действие. */
 
-  /* Ползунок строкой, а не карточкой в три этажа: подпись слева, значение справа. */
   .audio-tool .pitch-card{flex-direction:row;align-items:center;gap:14px;padding:8px 14px;margin-bottom:10px}
   .audio-tool .pitch-card .fade-card-title{flex:none;margin:0;font-size:10px;letter-spacing:.09em;
     text-transform:uppercase;color:var(--muted);white-space:nowrap}
   .audio-tool .pitch-card input[type=range]{flex:1;min-width:0;margin:0}
   .audio-tool .pitch-card .fade-card-val{flex:none;min-width:52px;text-align:right}
 
-  /* Пресеты -- сегментированный переключатель: выбирается ОДНО из, а не шесть независимых
-     действий. Шесть кнопок по 46 пикселей в два ряда занимали 92; одна полоса занимает 34. */
   .audio-tool .preset-cards.speed-presets{display:flex;gap:0;background:var(--surface-2);border:1px solid var(--line);
     border-radius:10px;overflow:hidden;margin-bottom:12px}
   .audio-tool .preset-cards.speed-presets .preset-card{flex:1;min-width:0;padding:0;height:34px;border:none;
@@ -193,12 +149,9 @@
     .audio-tool .preset-cards.speed-presets .preset-card{flex:1 0 33.333%;border-bottom:1px solid var(--line)}}
   .audio-tool .viz-preview-btn{width:100%;margin-bottom:14px}
   .audio-tool .viz-player{margin-bottom:16px}
-  /* Fixed 16:9 box reserved up front, so a finished render drops into place instead of pushing
-     everything below it down the page. */
+
   .audio-tool .viz-stage{position:relative;aspect-ratio:16/9;border-radius:12px;overflow:hidden;background:#0a0b0d;border:1px solid var(--line)}
-  /* The video stays out of the flow until it actually has something to show. An empty
-     <video controls> still draws the browser's own big centred play button, which landed
-     right on top of the placeholder text on mobile. */
+
   .audio-tool .viz-stage video{position:absolute;inset:0;width:100%;height:100%;display:none;background:#0a0b0d}
   .audio-tool .viz-stage.has-video video{display:block}
   .audio-tool .viz-placeholder{position:absolute;inset:0;display:flex;align-items:center;justify-content:center;text-align:center;padding:20px;font-size:15px;color:rgba(210,215,228,0.9);line-height:1.55;max-width:34ch;margin:0 auto}
@@ -214,19 +167,15 @@
   .audio-tool .fade-card-title{font-size:13px;font-weight:600;color:var(--text)}
   .audio-tool .fade-card input[type=range]{width:100%;accent-color:var(--accent)}
   .audio-tool .fade-card-val{font-size:12.5px;color:var(--accent);font-weight:700;font-variant-numeric:tabular-nums}
-  /* Sits over the waveform, so pointer-events off -- tapping there must still seek. */
+
   .audio-tool .fade-region{position:absolute;top:0;bottom:0;z-index:2;pointer-events:none;display:none}
   .audio-tool .fade-region-in{background:linear-gradient(90deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
   .audio-tool .fade-region-out{background:linear-gradient(270deg,rgba(74,222,158,.42),rgba(74,222,158,0))}
-  /* Sits directly under the export row, so it aligns with it rather than centring on the page. */
+
   .audio-tool .ready-note{font-size:12.5px;color:var(--accent);margin:-4px 0 14px}
 
   .audio-tool .eq-toolbar{display:flex;align-items:center;gap:10px;flex-wrap:wrap;margin-bottom:14px}
-  /* Reset is the only button here now that "upload a different file" moved onto the file chip.
-     It used to be one of two halves; left to grow it stretched the full width, which is exactly
-     the overstatement we just took off the other page. Sized to its own label instead. */
-  /* Scoped through .eq-toolbar to outweigh the base "button.act{flex:1}", which is declared
-     later in this stylesheet and otherwise wins on equal specificity. */
+
   .audio-tool .eq-toolbar button.eq-reset-btn{flex:0 0 auto;min-width:0;padding:10px 16px;font-size:13px}
   .audio-tool .eq-bands-scroll{overflow-x:auto;overflow-y:hidden;margin-bottom:18px;padding-bottom:4px}
   .audio-tool .eq-bands{display:flex;gap:6px;min-width:min-content;justify-content:space-between}
@@ -235,25 +184,13 @@
   .audio-tool .eq-band-freq{font-size:11px;color:var(--muted);font-variant-numeric:tabular-nums}
   .audio-tool .eq-band-role{font-size:9.5px;letter-spacing:.02em;color:var(--muted);opacity:.75;text-align:center;line-height:1.15;margin-top:-3px}
   .audio-tool .eq-slider{writing-mode:vertical-rl;direction:rtl;width:24px;height:170px;accent-color:var(--accent);cursor:ns-resize;padding:0;background:transparent}
-  /* The vertical slider is done with `writing-mode: vertical-rl` + `direction: rtl`, which is the
-     standard route (Chrome 121+, Firefox 129+, Safari 17.4+).
-     The old `-webkit-appearance: slider-vertical` is deliberately NOT here, in any form. Chrome
-     counts that value as a deprecated API when it *parses* the stylesheet, so hiding it behind
-     @supports does not help -- two different Safari-only guards were tried and Chrome reported it
-     both times. The cost of leaving it out is that Safari older than 17.4 (March 2024) draws the
-     thumb travelling sideways in a tall box; the slider still works. */
+
   @media(max-width:768px){.audio-tool .eq-bands{justify-content:flex-start}.audio-tool .eq-band{flex:0 0 48px}}
 
   .audio-tool .wave-duration b{color:var(--text)}
 
   .audio-tool .eq-row .field{min-width:110px}
-  /* Числовое поле с плюсом и минусом. Ширина поля -- под пятизначное число: длинная плашка на
-     всю строку ради «0.5» выглядит так, будто туда ждут абзац текста. Кнопки по бокам делают
-     блок компактным и попадаемым пальцем -- родные стрелки числового поля высотой в семь
-     пикселей мышью ловятся плохо, а на телефоне их нет вовсе. */
-  /* Блоки с плюсом и минусом выравниваются по нижнему краю, а не по верхнему: подписи над ними
-     бывают в одну и в две строки в зависимости от ширины экрана, и при выравнивании по верху
-     кнопки съезжали друг относительно друга. */
+
   .audio-tool .row.has-stepper{align-items:flex-end}
   .audio-tool .stepper{display:flex;align-items:stretch;gap:6px}
   .audio-tool .stepper input[type=number]{flex:0 0 7ch;min-width:0;text-align:center;
@@ -268,9 +205,7 @@
   .audio-tool .st-btn:active{background:rgba(74,222,158,0.14);border-color:rgba(74,222,158,0.4)}
   .audio-tool .field{flex:1;min-width:150px;margin-bottom:14px}
   .audio-tool .row .field{margin-bottom:0}
-  /* `.field-cap` is the caption for a group of buttons. It looks exactly like a field label but is
-     not a <label>, because a <label> with no form control to point at is an accessibility error --
-     Chrome reports it as FormLabelHasNeitherForNorNestedInput. The group carries aria-labelledby. */
+
   .audio-tool .field label,
   .audio-tool .field .field-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);display:block;margin-bottom:6px}
   .audio-tool .format-hint{font-size:12.5px;color:var(--muted);margin:-8px 0 14px;line-height:1.5}
@@ -279,95 +214,53 @@
   .audio-tool .field select:focus,.audio-tool .field input:focus{outline:none;border-color:rgba(74,222,158,0.5)}
   .audio-tool .field input[type=range]{width:100%;accent-color:var(--accent)}
 
-  /* --- The deck: setting, format, action on one line ------------------------------------- */
-  /* One height and one radius across every cell. The two dropdowns each hold their own share
-     of the space (the rate strings are the longest), the action takes the rest, and the whole
-     row folds by flex-basis when it genuinely runs out of room. */
-  /* Отступ сверху обязателен: ряд с кнопкой «добавить ещё файл» стоит прямо над этим, и
-     между ними было ровно ноль точек -- измерено. Кнопки слипались в одну плашку. */
   .audio-tool .deck{display:flex;flex-wrap:wrap;gap:12px;align-items:flex-end;margin:14px 0}
   .audio-tool .deck .field{flex:1 1 200px;margin-bottom:0}
   .audio-tool .deck .field-fmt{flex:0 1 130px}
-  /* No min-width:0 here on purpose: the automatic min-content floor is what stops the button
-     shrinking narrower than its own label. Without it the label wrapped to two lines inside a
-     fixed 48px box at around 600px wide (caught by measuring, not by looking). Now the row
-     folds to a second line instead, which is the behaviour that was asked for. */
-  /* min-width:auto overrides the 130px floor every .act carries, so the content-based minimum
-     applies and the button can't be squeezed narrower than its own label. Needs button.act.* to
-     outweigh the base rule's specificity -- with the plain class the floor silently won and the
-     label overflowed by a pixel or two at around 600px. Measured, not eyeballed. */
-  /* flex-basis:auto, i.e. the label's own width, is what decides where the row breaks. A fixed
-     210px basis made the button claim more than it needs and pushed itself onto a third line on
-     a phone; sized to its content, "format + download" stay together on one line under the rate,
-     which is the pairing that makes sense -- the format belongs to the download, not to the rate. */
-  /* Кнопка по содержимому, а не во всю ширину. Это уже чинилось в аудио-в-миди, но правка
-     легла только туда -- здесь кнопка оставалась в 774 пикселя. Третий раз одна и та же
-     ошибка в разных файлах: пока внешний вид описан трижды, так и будет. */
+
   .audio-tool button.act.deck-act{flex:0 0 auto;min-width:210px;height:44px;padding:0 22px;
     border-radius:12px;white-space:nowrap}
-  /* На телефоне формат и скачивание остаются В ОДНОМ РЯДУ. Раньше я разводил их на две строки,
-     рассуждая «на узком экране кнопки во всю ширину -- это правильно». Это было неверно: выбор
-     формата -- два-три символа, ему не нужна вся ширина, а лишняя строка отодвигает кнопку вниз. */
+
   @media(max-width:640px){
     .audio-tool .deck{flex-wrap:nowrap;gap:8px}
     .audio-tool .deck .field-fmt{flex:0 0 108px;min-width:0}
     .audio-tool button.act.deck-act{flex:1 1 auto;min-width:0;padding:0 12px}
   }
-  /* Подпись «Сохранить как» скрыта визуально, но остаётся для читалок с экрана: список с «WAV»
-     человеку понятен без объяснения, а незрячему -- нет. */
+
   .audio-tool .deck .field-fmt label{position:absolute;width:1px;height:1px;overflow:hidden;
     clip:rect(0 0 0 0);white-space:nowrap}
-  /* Сведения о файле на телефоне прижаты к правому краю: они справочные, и левый край занят
-     кнопками -- взгляд не должен спотыкаться о них по пути к плею. */
+
   @media(max-width:640px){
     .audio-tool .transport .file-meta{justify-content:flex-end}
   }
-  /* Ровно та же высота, что у кнопки рядом (44px). Было 48 -- список выпирал на четыре
-     точки вверх над кнопкой, и ряд читался как две разные вещи, а не как один блок. */
+
   .audio-tool .deck .field select{height:44px;border-radius:12px}
   .audio-tool .act .i{width:17px;height:17px;flex:none}
   .audio-tool .rate-note{font-size:12.5px;color:var(--muted);margin:-4px 0 14px}
-  /* Пустая строка держит ровно свою высоту -- одну строку текста. Так надпись вроде "итоговая
-     длина" появляется НА месте, а не создаёт место, сдвигая вниз всё остальное. */
+
   .audio-tool .rate-note.is-empty{min-height:1.4em}
 
-  /* The native select arrow is drawn by the browser, so it looked different on every platform
-     and matched nothing else here. Replaced with the same 2px round-capped chevron the rest of
-     the icons use; the dropdown list itself stays native. */
   .audio-tool .field select{
     appearance:none;-webkit-appearance:none;padding-right:38px;
     background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='none' stroke='%238b93a1' stroke-width='2' stroke-linecap='round' stroke-linejoin='round'%3E%3Cpath d='M6 9l6 6 6-6'/%3E%3C/svg%3E");
     background-repeat:no-repeat;background-position:right 12px center;background-size:17px 17px;
   }
 
-  /* Второй слой поверх рисунка выше. Где браузер умеет `base-select` (Chrome 135+, Safari 27+,
-     Chrome на Android 143+), он рисует и сам открытый список средствами CSS. Тогда ему не нужно
-     строить под список ОТДЕЛЬНЫЙ документ -- а это измеренные 254мс разбора HTML и 152мс
-     компиляции его скрипта при каждом открытии (шестикратное замедление, трейс от 14.08.2026).
-     Где не умеет (Firefox) -- всё остаётся ровно как было: закрытый список наш, открытый
-     системный. Разметка не меняется: `<button><selectedcontent>` не нужен, браузер делает
-     кнопку сам, а лишний узел внутри <select> ломал бы обход детей в JS.
-     Внешний вид повторяет конвертеры величин из Layout.astro -- один список на весь сайт. */
   @supports (appearance: base-select) {
-    /* Стрелку теперь рисует ::picker-icon, поэтому фоновая картинка снимается, а вместе с ней
-       и место под неё: padding-right возвращается к обычным 12px. */
-    /* nowrap обязателен: в этом режиме <select> становится флекс-контейнером и длинная
-       подпись вроде «Auto (keep original)» переносилась на вторую строку, отчего коробка
-       росла в высоту. Обычный список так никогда не делает -- он просто обрезает. */
+
     .audio-tool .field select{appearance:base-select;display:flex;align-items:center;
       white-space:nowrap;overflow:hidden}
     .audio-tool .field select::picker(select){appearance:base-select;border:1px solid rgba(255,255,255,0.09);
       border-radius:12px;background:#1c1e24;box-shadow:0 12px 36px rgba(0,0,0,0.5);padding:6px;margin-top:6px;
       position-try-fallbacks:none}
-    /* Стрелку рисуем своей картинкой, как и до правки, -- браузерная ::picker-icon
-       это сплошной треугольник, он выбивался из нашего набора значков. */
+
     .audio-tool .field select::picker-icon{display:none}
     .audio-tool .field option{padding:9px 12px;border-radius:8px;color:var(--text);background:transparent}
     .audio-tool .field option:hover,
     .audio-tool .field option:focus,
     .audio-tool .field option:focus-visible{background:rgba(74,222,158,0.12) !important;color:var(--text) !important}
     .audio-tool .field option:checked{color:var(--accent)}
-    /* Галочка слева сдвигала бы текст пунктов; выбранный пункт и так виден по цвету. */
+
     .audio-tool .field option::checkmark{display:none}
   }
 
@@ -375,33 +268,12 @@
   .audio-tool button.act{font-family:inherit;font-weight:600;font-size:14px;cursor:pointer;border:1px solid var(--line);background:var(--surface-2);color:var(--text);border-radius:12px;padding:14px 18px;flex:1;min-width:130px;transition:transform .12s,background .2s,border-color .2s;display:flex;align-items:center;justify-content:center;gap:8px}
   .audio-tool button.act:hover{transform:translateY(-2px);border-color:rgba(255,255,255,0.2)}
   .audio-tool button.act:disabled{opacity:.35;cursor:not-allowed;transform:none}
-  /* Главная кнопка. Прежнее правило было записано как `.audio-tool .primary` и не работало ни разу:
-     базовое `.audio-tool button.act` весомее (класс+класс+тег против класса+класса), поэтому главная
-     кнопка выглядела как любая другая -- серой. Проверено замером в браузере: фон был rgb(28,30,36).
-     Здесь та же вескость, что у базового правила, плюс свой класс, поэтому оно применяется.
-     Оттенок мягкий, а не сплошная заливка: кнопка должна быть заметна, но не кричать -- это тот же
-     приём, что у ссылки на категорию внизу страниц, чтобы язык сайта остался одним. */
-  /* Главная кнопка выглядит как обычная. Зелёная заливка пробовалась и отменена: залитая
-     кнопка на тёмной странице читается как уже нажатая, а не как приглашение нажать.
-     Цвет появляется только в момент нажатия -- как отклик на действие, а не как состояние.
-     (Прежнее правило было записано как `.audio-tool .primary` и не срабатывало вовсе: базовое
-     `.audio-tool button.act` весомее. Здесь вескость выровнена, поэтому правило живое.) */
+
   .audio-tool button.act.primary{background:var(--surface-2);border-color:var(--line);color:var(--text);font-weight:700}
   .audio-tool button.act.primary:active:not(:disabled){background:rgba(74,222,158,0.16);
     border-color:rgba(74,222,158,0.5);transform:translateY(0)}
   .audio-tool .ico{width:16px;height:16px;flex:none}
 
-  /* Always occupies its (tiny) space and only fades in/out -- toggling display made the whole
-     page jump every time processing started or finished. Just the bar, no caption: the label
-     under it said nothing the bar itself didn't already show. */
-  /* Deliberately understated: 2px, semi-transparent, and a slow fade. The slow fade-in is the
-     point -- a quick operation now barely registers instead of flashing a bright bar, while a
-     genuinely long one still ramps up to clearly visible. */
-  /* Полоса прогресса стоит в потоке всегда, даже невидимая: если бы она появлялась при
-     начале работы, страница дёргалась бы ровно в момент нажатия. Но поля по 10px на
-     полоску в 2px давали 22px пустоты под плеером на КАЖДОМ инструменте -- владелец
-     сайта указал на неё как на «хоть палец вставляй». Место по-прежнему занято, просто
-     ровно столько, сколько нужно. */
   .audio-tool .progress{height:2px;margin:0;opacity:0;transition:opacity .35s ease}
   .audio-tool .progress.on{opacity:.55}
   .audio-tool .progress-bar{height:2px;background:rgba(255,255,255,0.05);border-radius:2px;overflow:hidden}
@@ -433,25 +305,12 @@
   .audio-tool .pc-emoji{font-size:24px}
   .audio-tool .pc-label{font-size:12px;font-weight:600;color:var(--text);line-height:1.25}
 
-  /* Compact inline preview (enhance): round play button + a short waveform + duration, all in
-     one row -- matches timbrica's layout, and doesn't need the full-height canvas since there
-     are no trim handles to draw here. */
-  /* Прежнее правило компактной оболочки (строкой: кнопка, волна, часы) удалено -- оно шло ниже
-     нового и перебивало его, из-за чего имя файла вставало РЯДОМ с волной, а не над ней.
-     Раскладку панели задаёт правило выше, в одном месте. */
-
   .audio-tool .wave-play-btn{flex:none;width:44px;height:44px;border-radius:50%;background:linear-gradient(180deg,var(--accent),var(--accent2));border:none;display:flex;align-items:center;justify-content:center;cursor:pointer;color:#08130d}
   .audio-tool .wave-play-btn:hover{transform:scale(1.05)}
   .audio-tool .wave-play-btn:disabled{opacity:.4;cursor:not-allowed;transform:none}
   .audio-tool .wave-play-btn .ico{width:18px;height:18px}
   .audio-tool .wave-duration{flex:none;font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums}
 
-  /* Before/After as one pill with a moving highlight, not two separate play controls --
-     matches timbrica's "До / После" switch. */
-  /* Переключатель, а не плашка. Во всю ширину и высотой 46px он весил на странице
-     столько же, сколько главное действие, хотя это всего лишь выбор из двух: что
-     слушать. Теперь по центру, по ширине содержимого и вдвое ниже.
-     Ширину задаём через max-content, а не через display: display ставит скрипт. */
   .audio-tool .ab-pill{display:none;background:var(--surface-2);border:1px solid var(--line);
     border-radius:10px;padding:3px;margin:6px auto 0;width:max-content;max-width:100%}
   .audio-tool .ab-pill-seg{flex:0 0 auto;font-family:inherit;font-size:13px;font-weight:600;cursor:pointer;background:none;border:none;color:var(--muted);padding:7px 20px;border-radius:8px;transition:background .15s,color .15s;white-space:nowrap}
@@ -459,30 +318,12 @@
   .audio-tool .ab-pill-seg:not(:disabled):not(.active):hover{color:var(--text)}
   .audio-tool .ab-pill-seg:disabled{opacity:.35;cursor:not-allowed}
 
-  /* Палочка-выручалочка: одно нажатие вместо выбора сценария. Она была плашкой во всю
-     ширину и стояла вплотную к переключателю выше -- две разные вещи читались как
-     одна. Теперь по центру, по ширине текста, с отступом сверху и зелёным контуром:
-     контур выделяет её среди серых карточек, а заливки нет намеренно -- залитая
-     кнопка на тёмном фоне читается как уже нажатая. */
   .audio-tool button.act.primary.hero-btn{display:flex;width:max-content;max-width:100%;
     margin:6px auto 14px;font-size:14.5px;font-weight:700;height:44px;padding:0 26px}
 
-  /* Десктоп: одна строка сразу под плеером -- кнопка ровно по центру страницы,
-     переключатель прижат к правому краю. Обтекание, а не сетка: обернуть их общим
-     блоком нельзя, переключатель общий для нескольких инструментов и стоит выше по
-     разметке. Кнопка при этом остаётся блоком во всю ширину и центрируется по всей
-     панели, а не по остатку -- обтекающий элемент на это не влияет.
-     На телефоне остаётся как было: переключатель сверху, кнопка под ним. */
-  /* Переключатель вынут из потока -- иначе он сужает место кнопке, и та центруется по
-     остатку, а не по странице (было 461 при центре 543 -- на 82 точки левее).
-     Вертикально он встаёт сам: без указанного top элемент остаётся ровно там, где стоял бы
-     в потоке, то есть в той же строке. Отступ подобран замером, а не расчётом: он на 7
-     точек меньше отступа кнопки, тогда середины совпадают. */
   .audio-tool .panel.has-presets{position:relative}
   .audio-tool .panel.has-presets .ab-pill{position:absolute;right:0;margin:9px 0 0}
-  /* Телефон: кнопка прижата влево, переключатель к правому краю -- одна осмысленная строка
-     вместо двух плашек по центру одна под другой. Подпись кнопки короткая, иначе рядом они
-     не помещаются: 265 + 218 при доступных 414. */
+
   @media(max-width:759px){
     .audio-tool button.act.primary.hero-btn{margin-left:0;margin-right:auto}
     .audio-tool .hero-long{display:none}
@@ -493,43 +334,19 @@
   .audio-tool .preset-or{text-align:center;font-size:12px;color:var(--muted);margin-bottom:12px;text-transform:uppercase;letter-spacing:.08em}
   .audio-tool .preset-desc{display:none;font-size:13px;color:var(--muted);line-height:1.5;background:var(--surface);border:1px solid var(--line);border-radius:10px;padding:11px 14px;margin-top:-6px;margin-bottom:16px}
 
-  /* Plain info, not a button -- no border/background box, just small labels sitting directly
-     under the player where they describe the file you just loaded. */
   .audio-tool .file-meta{display:none;flex-wrap:wrap;gap:6px 18px;margin:12px 0 18px}
-  /* Подпись сверху, значение снизу -- столбиком, как в приборной панели. В строку это читалось
-     медленнее: глаз каждый раз разбирал, где кончается подпись и начинается значение, потому что
-     между парами и внутри пары были похожие промежутки. В столбик разделение делает сама
-     вертикаль, и подпись можно сделать мельче, не теряя читаемости значения. */
-  /* Значения намеренно негромкие: это справка о файле, а не то, ради чего человек пришёл.
-     Полужирные 12.5px перетягивали внимание с волны и кнопок -- главного на панели. */
+
   @media(max-width:640px){.audio-tool .transport .file-meta{gap:8px 18px}}
 
-  /* A drag handle flush against the screen edge on mobile fights with the OS's edge-swipe
-     "go back" gesture -- matches LeebTTS's own fix (checked their CSS directly), which keeps
-     the waveform inset from the edge specifically on narrow viewports. The compact preview
-     (enhance) has nothing to drag -- tap-to-seek only -- so it doesn't need the inset and can
-     use the full width. */
   @media(max-width:640px){.audio-tool .wave-shell:not(.compact){margin-left:20px;margin-right:20px}}
 
-/* Удары в минуту -- всегда три цифры, не больше. Поле во всю ширину колонки выглядело
-   так, будто туда просят вписать что-то длинное. Ширина по содержимому: 4 знака с запасом. */
 .audio-tool #ctrl-bpm-from,.audio-tool #ctrl-bpm-to{width:auto;flex:0 0 auto;
   min-width:0;max-width:7ch;text-align:center}
 .audio-tool #ctrl-bpm-to{padding-left:8px;padding-right:8px}
 
-/* Поле только для показа: выглядит как значение, а не как то, что можно править. */
 .audio-tool .field input[type=number][readonly]{cursor:default;color:var(--accent);
   background:var(--surface);border-color:rgba(255,255,255,0.06)}
 
-/* Ползунки на телефоне: область захвата больше, чем видимая полоска.
-   Две причины, по которым палец «не цеплялся»:
-   1. `touch-action` -- первое касание уходило в ПРОКРУТКУ страницы, а не в ползунок:
-      браузер ждал, потянут вниз или вбок, и первое движение съедалось. `none` отдаёт
-      касание ползунку сразу.
-   2. Область нажатия совпадала с полоской в несколько точек. Высота (у вертикальных --
-      ширина) увеличена до 44 точек: браузер рисует дорожку прежней толщины и центрирует
-      её, а нажимается вся коробка. Видимый размер НЕ меняется, меняется только то,
-      куда можно попасть. 44 точки -- общепринятая наименьшая цель для пальца. */
   .audio-tool input[type=range]{touch-action:none}
 @media(max-width:759px){
     .audio-tool input[type=range]{height:44px}
@@ -538,14 +355,6 @@
     .audio-tool .eq-band input[type=range]{height:auto;width:44px}
 }
 
-/* Закраска дорожки -- НАША, а не браузерная.
-   Браузер обрывает цвет на ЦЕНТРЕ кружка, а дорожку рисует до конца, поэтому в крайнем
-   правом положении за кружком оставался серый хвост: значение уже предельное, а на вид
-   ползунок не доехал. Замеры этого не ловят -- они мерят число; поймал снимком экрана.
-   Укоротить дорожку нельзя: ход кружка считается от неё же, и кружок уезжает вместе с ней
-   (проверено -- хвост стал длиннее). Лечится только своей закраской: доля берётся из --fill,
-   цвет идёт до самого края независимо от того, где стоит центр кружка.
-   Вертикальные полосы эквалайзера сюда НЕ входят -- у них своя разметка и своё поведение. */
 .audio-tool input[type=range]:not(.eq-slider):not([style*="vertical"]){
   -webkit-appearance:none;appearance:none;background:transparent;height:22px;
 }
@@ -565,42 +374,17 @@
   width:18px;height:18px;border-radius:50%;background:var(--accent);border:none;cursor:pointer;
 }
 
-/* Ряд кнопок вместо выпадающего списка силы.
-   Прятать список атрибутом hidden НЕЛЬЗЯ -- наши же правила задают ему display, и он
-   побеждает: на снимке список остался виден под кнопками. Прячем через display в разметке. */
-/* Имя ряда -- ctrl-select: сам ряд кнопок и есть орган управления. Правило было привязано
-   к прежнему имени chip-row и перестало действовать при переименовании -- на узком экране
-   четыре кнопки уезжали за край вместо переноса. */
 .audio-tool .presets#ctrl-select{display:flex;gap:8px;flex-wrap:wrap}
 
-/* Выбор формата рядом с «Скачать» -- поменьше и обычнее на вид: он был заметно крупнее
-   соседней кнопки и тянул на себя внимание, хотя это второстепенный выбор. */
 .audio-tool .deck .field-fmt{flex:0 0 104px;width:104px;max-width:104px}
 .audio-tool .deck .field-fmt select{width:100%;padding:9px 28px 9px 11px;font-size:13px;height:auto;min-height:0}
 @media(max-width:759px){.audio-tool .deck .field-fmt{flex:0 0 92px;width:92px;max-width:92px}}
 
-/* ЕДИНЫЙ размер поля формата на всём сайте.
-   Владелец 16.08.2026: «значок формата на всём сайте подгоняем под один общий размер,
-   чуть длиннее надписи формата плюс стрелка открывания», и по высоте вровень с «Скачать».
-   Раньше ширина задавалась числом и в каждом инструменте своим: 130, 104, 92, 190, 116.
-   Отсюда и расхождение, которое я не мог объяснить: у поля стояло 104, а выглядело шире --
-   ширину держал сам список, у которого своя мера по самому длинному варианту.
-   Теперь ширины НЕТ вовсе: список меряется по своей надписи, а отступ справа оставляет
-   место стрелке. Один набор чисел на все инструменты. */
-/* Ширина ПОСТОЯННАЯ, с запасом под самое длинное название (FLAC, M4R).
-   С шириной «по надписи» коробка дёргалась при выборе: OGG шире MP3, и весь ряд
-   перестраивался на каждом переключении. Владелец 16.08.2026: «убери любые
-   непредвиденные расширения, расширь и зафиксируй». */
 .audio-tool .deck .field-fmt{flex:0 0 96px;width:96px;max-width:96px;min-width:96px}
 .audio-tool .deck .field-fmt select{width:100%;min-width:0;font-size:13px;
   padding:0 30px 0 12px;height:44px;line-height:1;box-sizing:border-box}
 @media(max-width:759px){.audio-tool .deck .field-fmt{flex:0 0 96px;width:96px;max-width:96px;min-width:96px}}
 
-/* Кнопки-заготовки: опрятный ряд, а не разнобой.
-   Владелец 16.08.2026: «эти кнопки выглядят непрофессионально». Причин было две -- подписи
-   разной длины (у одной стояло целое предложение) и разная ширина кнопок. Подписи укорочены
-   до одного слова, ширина у всех одинаковая по самой длинной, высота 38 -- как у прочих
-   мелких органов управления. */
 .audio-tool .presets#ctrl-select .preset-btn{flex:0 0 auto;min-width:108px;height:38px;
   padding:0 16px;font-size:13.5px;letter-spacing:.01em;display:inline-flex;
   align-items:center;justify-content:center;border-radius:10px;
@@ -610,9 +394,6 @@
   .audio-tool .presets#ctrl-select .preset-btn{flex:1 1 calc(50% - 4px);min-width:0}
 }
 
-/* Расшифровка режимов -- сразу под кнопками, до текста страницы.
-   Выбранный режим выделен, остальные приглушены: видно и что выбрано, и чем оно отличается
-   от соседнего, без единого нажатия. */
 .audio-tool .chip-hints{margin:12px 0 0;display:grid;gap:6px}
 .audio-tool .chip-hint{display:flex;gap:8px;align-items:baseline;font-size:13px;line-height:1.45;opacity:.62}
 .audio-tool .chip-hint.is-on{opacity:1}
@@ -622,123 +403,66 @@
 .audio-tool .chip-hint dt::after{content:' —'}
 @media(max-width:759px){.audio-tool .chip-hint{display:block}.audio-tool .chip-hint dt{display:inline}}
 
-/* Зазор между «было / стало» и ползунками фейдов: они стояли впритык и читались как один
-   орган управления. Владелец 16.08.2026 -- «приклеены, дай небольшой зазор». */
 .audio-tool .ab-pill{margin-bottom:14px}
 
-/* На телефоне кнопки-заготовки делят ряд поровну, а не переносятся.
-   Владелец 16.08.2026: «в ряд что не влазят на мобильном? если влазят, поставь в ряд».
-   Слова короткие -- влезают; при этом min-width:0 обязателен, иначе прежняя наименьшая
-   ширина 108 точек не даёт ячейке сжаться и ряд всё равно переносится. */
 @media(max-width:759px){
   .audio-tool .presets#ctrl-select{flex-wrap:nowrap;gap:6px}
   .audio-tool .presets#ctrl-select .preset-btn{flex:1 1 0;min-width:0;padding:0 8px;font-size:13px}
 }
 
-/* Кнопки со значками динамиков: звучащая сторона яркая и с дужками звука, молчащая тусклая.
-   Разница нарочно крупная -- на телефоне два одинаково серых значка не различить. */
-/* Ширина по рисунку, а не постоянная: у кнопки с одним динамиком клетка вдвое уже,
-   поэтому значок стоит по середине СВОЕЙ кнопки, а не смещён к краю. */
 .audio-tool .preset-btn .chip-ico{height:24px;width:auto;display:block}
 .audio-tool .preset-btn .chip-ico .sp.on{fill:currentColor;color:var(--text);opacity:1}
-/* Молчащий динамик приглушён, но ОТЧЁТЛИВО виден: при 0.22 его почти не было видно на
-   тёмном фоне телефона. 0.45 -- разница со звучащим читается, а сам значок не пропадает. */
+
 .audio-tool .preset-btn .chip-ico .sp.off{fill:currentColor;color:var(--text);opacity:.45}
 .audio-tool .preset-btn.active .chip-ico .sp.on{color:var(--accent)}
 .audio-tool .preset-btn:has(.chip-ico){padding:0 12px;min-width:104px}
 @media(max-width:759px){.audio-tool .preset-btn:has(.chip-ico){min-width:0;padding:0 6px}}
 
-/* Диктофон: место под плеер зарезервировано с первой секунды.
-   Пустое оно или в нём волна -- высота одна и та же, поэтому ничего не сдвигается.
-   Ради этого место НЕ выключается из разметки, а получает пустой вид. */
-/* Пустое место под плеер: чёрное поле с тихой рамкой, БЕЗ пунктира. Оно должно быть
-   спокойным фоном, а не заготовкой с пометкой «сюда что-то придёт». В нём же потом
-   рисуется звук во время записи -- на чёрном это выглядит правильнее всего. */
-/* Рамка есть ВСЕГДА, меняется только её цвет. Раньше она была только у пустого поля, и
-   при начале записи, когда «пустой» вид снимался, высота менялась на две точки -- владелец
-   видел сдвиг там, где «ничего не появляется». Это и была рамка. */
 .audio-tool.is-recorder .wave-shell{border:1px solid transparent}
 .audio-tool .wave-shell.is-empty{background:#000;border-color:rgba(255,255,255,.08)}
 .audio-tool .wave-shell.is-empty canvas{opacity:0}
 
-/* Диктофон: убраны две части, которые сдвигали макет и мешали чистоте.
-   Зелёная полоска уровня под кнопкой -- из-за неё значок подпрыгивал вверх при записи;
-   строка с именем файла над волной -- из-за неё контейнер уезжал вниз после остановки.
-   Уровень и так виден по самой волне, а имя файла человек знает: он его только что записал. */
 .audio-tool .rec-stage .rec-meter{display:none}
-/* У диктофона прячем ИМЯ файла и значок волны, но НЕ всю строку: в ней живёт крестик,
-   которым человек убирает запись и начинает заново. Спрятав строку целиком, я забрал у
-   владельца единственный способ вернуться в начало -- он это сразу заметил.
-   Строка при этом занимает своё место всегда, поэтому появление записи её не сдвигает. */
+
 .audio-tool.is-recorder .fileinfo .fi-name,
 .audio-tool.is-recorder .fileinfo .fi-ico{display:none}
-/* Крестик ЛЕЖИТ ПОВЕРХ чёрного поля, в правом верхнем углу, и не занимает места в потоке.
-   Так решаются обе беды разом: пустая строка не маячит на виду (владелец: «контейнер, да
-   ещё и пустой от имени файла, выглядит ужасно») и её появление ничего не сдвигает --
-   сдвигать нечего, высота у неё нулевая. */
+
 .audio-tool.is-recorder{position:relative}
 .audio-tool.is-recorder .wave-shell{position:relative}
-/* Отступы считаются от всей панели, а поле внутри неё отступает своим полем: замер
-   показал, что крестик вылезал за правый край поля на 8 точек. Прибавлено с запасом. */
+
 .audio-tool.is-recorder .fileinfo{position:absolute;top:24px;right:30px;z-index:4;min-height:0;
   margin:0;padding:0;background:transparent;border:0;pointer-events:none}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end;gap:6px;pointer-events:auto}
-/* Кружок крестика СЕРЫЙ, а не чёрный: поле чёрное, и на нём чёрный кружок пропадал --
-   особенно когда к нему подъезжает выделение обрезки. Серый виден на любом фоне, а обводка
-   отделяет его от волны. */
+
 .audio-tool.is-recorder .fileinfo .fi-act{background:rgba(120,124,132,.72);
   border:1px solid rgba(255,255,255,.22);color:#fff}
 .audio-tool.is-recorder .fileinfo .fi-act:hover{background:rgba(150,154,162,.85)}
 .audio-tool.is-recorder .fileinfo .fi-row{justify-content:flex-end}
 
-/* МАГИЯ: записанная волна появляется плавно, а не выскакивает.
-   Полсекунды мягкого проявления -- достаточно, чтобы движение читалось как появление,
-   а не как скачок, и не настолько долго, чтобы ждать. */
 .audio-tool .wave-shell canvas{transition:opacity .45s ease}
 .audio-tool .wave-shell.is-empty canvas{transition:none}
-/* В пустом месте нечего резать и не о чем сообщать: ручки обрезки и строка со временем
-   спрятаны. Спрятаны ВИДИМОСТЬЮ, а не удалением, -- иначе высота поедет, а мы её и бережём.
-   Строка времени лежит вне волны, поэтому ей отдельное правило по соседству. */
+
 .audio-tool .wave-shell.is-empty .handle,
 .audio-tool .wave-shell.is-empty .sel-overlay,
 .audio-tool .wave-shell.is-empty .playhead,
 .audio-tool .wave-shell.is-empty .wave-guide,
 .audio-tool .wave-shell.is-empty .wave-tip{visibility:hidden}
 
-/* Диктофон, три состояния. Всё прячется ВИДИМОСТЬЮ, а не удалением: высота ряда кнопок и
-   всей панели остаётся одинаковой, поэтому переходы не двигают страницу.
-   Покой: только красная кнопка. Запись: красная и пауза. Готово: плей, пауза, формат,
-   «Скачать» -- красной нет. */
 .audio-tool .rec-stage .rec-side{visibility:hidden}
 .audio-tool .rec-stage.is-rec #rec-pause{visibility:visible}
 .audio-tool .rec-stage.is-done .rec-side{visibility:visible}
 .audio-tool .rec-stage.is-done .rec-btn{visibility:hidden}
-/* Формат и «Скачать» появляются вместе с плеером -- место под них занято заранее. */
+
 .audio-tool #audio-panel.rec-empty .deck,
 .audio-tool #audio-panel.rec-empty .download-row{visibility:hidden}
 
-/* Кнопка записи ближе к чёрному полю: между ними было воздуха больше, чем нужно, и они
-   читались как две разные части, а не как один прибор. Просьба владельца 16.08.2026. */
 .audio-tool.is-recorder .rec-stage{margin-top:-14px}
 .audio-tool.is-recorder .rec-row{margin-top:6px}
 
-/* Подпись под кнопкой -- одно слово и ПОСТОЯННАЯ высота строки. Раньше там было целое
-   предложение, и при переходе к записи оно занимало другое число строк: макет ехал.
-   Теперь «Старт», «Стоп», «Пауза» -- и место под строку закреплено, даже если слово
-   короче или длиннее. */
 .audio-tool.is-recorder .rec-state{min-height:22px;line-height:22px;white-space:nowrap}
 
-/* Готовая запись: время и подпись под кнопкой больше ни о чём не говорят -- запись сделана,
-   дальше человек имеет дело с плеером. Прячем их ВИДИМОСТЬЮ, место остаётся занятым,
-   поэтому переход не двигает страницу. Владелец: «кнопка пропала, а это осталось». */
-/* После остановки подсказка не нужна, а ВРЕМЯ остаётся: это длительность записи, и без
-   неё человек не знает, сколько записал. Владелец: «второе -- это время, его нет». */
 .audio-tool.is-recorder .rec-stage.is-done .rec-state{visibility:hidden}
 
-/* Готовая запись: плей встаёт РОВНО НА МЕСТО красной кнопки, а не появляется сбоку.
-   Владелец: «сделай, чтоб кнопка записи исчезала, а на её месте появлялась только кнопка
-   плей». Ряд остаётся той же высоты, красная прячется видимостью, плей переносится в
-   середину поверх её места -- поэтому ничего не сдвигается и не перестраивается. */
 .audio-tool.is-recorder .rec-row{position:relative}
 .audio-tool.is-recorder .rec-stage.is-done .rec-btn{visibility:hidden}
 .audio-tool.is-recorder .rec-stage.is-done #rec-play{position:absolute;left:50%;top:50%;
@@ -746,25 +470,12 @@
 .audio-tool.is-recorder .rec-stage.is-done #rec-play .ico{width:26px;height:26px}
 .audio-tool.is-recorder .rec-stage.is-done #rec-pause{visibility:hidden}
 
-/* Холст волны занимает поле РОВНО и не растёт. Живая волна задаёт ему размер в точках
-   устройства (на телефоне это вдвое больше), и без закреплённой высоты холст раздувался --
-   кнопка записи подпрыгивала вверх ровно в тот миг, когда «ничего не появляется». */
-/* Высота поля ЗАКРЕПЛЕНА наглухо. Иначе её задаёт холст: живая волна и готовая запись
-   ставят ему размер в точках устройства, и поле раздувалось со 132 до 469 -- отсюда и
-   подпрыгивание кнопки, и общий разъезд. Замер трёх состояний это и показал. */
 .audio-tool.is-recorder .wave-shell{overflow:hidden;height:132px;min-height:132px;max-height:132px}
 .audio-tool.is-recorder .wave-shell canvas{display:block;width:100%;height:132px}
 
-/* Плей не летит по диагонали: он просто ПРОЯВЛЯЕТСЯ на месте красной кнопки.
-   Перелёт получался из-за плавного перехода, оставшегося от его прежнего места справа. */
 .audio-tool.is-recorder .rec-stage.is-done #rec-play{transition:opacity .3s ease;animation:none}
 .audio-tool.is-recorder .rec-side{transition:none}
 
-/* МАГИЯ появления записи.
-   Волна не возникает готовой -- она РАСКРЫВАЕТСЯ из средней линии наружу за полсекунды,
-   как будто звук расправляется. Одновременно чёрное поле на миг светлеет по краю, а плей
-   мягко вырастает на месте красной кнопки. Ничего не летает и не съезжает: движение только
-   по высоте внутри поля, макет неподвижен. */
 @keyframes раскрытие{
   from{transform:scaleY(.06);opacity:.15}
   60%{opacity:1}
@@ -791,73 +502,36 @@
   .audio-tool.is-recorder .rec-stage.is-done #rec-play{animation:none}
 }
 
-/* Место под сообщение об ошибке закреплено. Оно появляется и гаснет по ходу дела -- скажем,
-   «нет доступа к микрофону» пропадает при следующем нажатии, -- и вместе с ним исчезала его
-   высота: кнопка уезжала ВВЕРХ. Владелец видел это и на телефоне, и на широком экране, а мой
-   замер не ловил, потому что переключал состояния сам, без настоящего хода записи. */
 .audio-tool.is-recorder #audio-err{min-height:20px;display:block !important}
 .audio-tool.is-recorder #audio-err:empty{opacity:0}
 
-/* Крестик отодвинут от края поля: на телефоне он стоял ровно на границе и выглядел
-   приклеенным к рамке. */
 @media(max-width:759px){
   .audio-tool.is-recorder .fileinfo{top:10px;right:12px}
 }
 
-/* Подписи «Начало», «Длительность (секунд)», «Конец» убраны -- числа и так стоят на ручках
-   обрезки, а слова только загромождали строку. Владелец 16.08.2026. */
 .audio-tool .times .times-label,
 .audio-tool .times label,
 .audio-tool .times .t-label{display:none}
 
-/* Крестик: отступы считаются от всей панели, а поле внутри неё отступает своим полем --
-   замер показал вылет на 8 точек за правый край. Прибавлено с запасом, проверено числами. */
-/* Крестик у ВЕРХНЕГО края поля. Прошлые числа увели его вниз -- владелец увидел это и на
-   телефоне, и на широком экране. Замер: от верха поля должно быть около 10 точек. */
-/* На широком экране поле совпадает с краем панели, поэтому число берётся как есть;
-   на телефоне панель отступает своим полем, и там нужно больше. Замерено обоими прогонами. */
-/* Крестик у НИЖНЕГО края поля -- одинаково на всех ширинах. Правил я только мобильное
-   правило, а это, десктопное, стояло ниже по файлу и побеждало: на телефоне крестик уехал
-   вниз, на широком экране остался вверху. Правил про него в файле несколько -- решает
-   последнее. */
 .audio-tool.is-recorder .fileinfo{top:92px;right:12px;bottom:auto}
 @media(max-width:759px){.audio-tool.is-recorder .fileinfo{top:92px;right:28px;bottom:auto}}
 
-/* Время ПОД плеером: начало и конец, без подписей и без длительности.
-   Строка занимает своё место ВСЕГДА -- именно её появление и схлопывание давало сдвиг на
-   50 точек, из-за которого кнопка записи подпрыгивала. Теперь высота постоянная. */
 .audio-tool .times{min-height:26px}
 .audio-tool #t-len-wrap{display:none}
-/* У диктофона строки под плеером НЕТ: владелец выбрал время на ручках. Она же была
-   виновницей сдвига -- в покое занимала место, а с началом записи схлопывалась. */
+
 .audio-tool.is-recorder .times{display:none !important}
 
-/* Время НА ручках обрезки: ярлычок едет вместе с ручкой -- владелец выбрал этот вид.
-   position ручке НЕ задаём: она уже absolute и сама служит опорой; прежняя попытка задать
-   relative опрокинула её вниз. Ярлычки смотрят ВНУТРЬ выделения, поэтому у краёв дорожки
-   не срезаются. Ряд чисел под волной при этом остаётся -- он не мешает и держит высоту. */
 .audio-tool .handle-time{position:absolute;top:-1px;font-size:11px;line-height:16px;
   font-variant-numeric:tabular-nums;color:#fff;background:rgba(0,0,0,.66);
   border-radius:5px;padding:1px 5px;white-space:nowrap;pointer-events:none;z-index:5}
 .audio-tool #h-start .handle-time{left:calc(100% + 5px)}
 .audio-tool #h-end .handle-time{right:calc(100% + 5px)}
 
-/* Дорожка ЗА выделением темнее -- глаз сразу видит, что попадёт в рингтон, а что нет.
-   Сделано огромной тенью вокруг выделения: она заливает всё вокруг и обрезается границами
-   волны. Это дешевле двух дополнительных полосок и не мешает ни ручкам, ни бегунку. */
 .audio-tool .wave-shell{overflow:hidden}
 .audio-tool .sel-overlay{box-shadow:0 0 0 9999px rgba(0,0,0,.5)}
 
-/* Ряд прослушивания рингтона: круглая кнопка слева под волной и тихая подпись рядом.
-   Прежняя широкая полоса над списком устройств не читалась как «играть». */
-/* Ряд прослушивания рингтона: сразу под волной, ДО полей «Начало/Конец». Кнопка крупнее
-   обычной и с зелёной обводкой -- её ищут глазами, а не находят случайно. */
 .audio-tool .rt-listen{display:flex;align-items:center;gap:12px;margin:12px 0 14px}
-/* Обводка СЕРАЯ, не зелёная: зелёный на сайте означает «нажато», и кнопка в покое читалась
-   как уже включённая. Серая просто выделяет её на чёрном. */
-/* Лёгкий объём: тонкий светлый блик по верхнему краю и мягкая тень снизу. Кнопка
-   приподнимается над чёрным полем, но остаётся спокойной -- никакого зелёного, оно у нас
-   означает «нажато». */
+
 .audio-tool .rt-listen .tp-btn{width:52px;height:52px;border-color:rgba(255,255,255,.16);
   background:linear-gradient(180deg,rgba(255,255,255,.10),rgba(255,255,255,.03));
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 5px rgba(0,0,0,.45)}
@@ -866,8 +540,6 @@
 .audio-tool .rt-listen .tp-btn .ico{width:22px;height:22px}
 .audio-tool .rt-listen-hint{font-size:13.5px;color:var(--text);opacity:.85}
 
-/* Тест звука: три крупные кнопки в ряд, каждая со своим динамиком. Звучащая подсвечивается,
-   чтобы человек видел, какую сторону слушает прямо сейчас. */
 .audio-tool .st-test{display:flex;gap:12px;justify-content:center;flex-wrap:wrap;margin:8px 0 4px}
 .audio-tool .st-side{flex:1 1 0;min-width:0;display:flex;flex-direction:column;align-items:center;
   gap:10px;padding:26px 12px;background:var(--surface);border:1px solid var(--line);
@@ -876,14 +548,11 @@
   box-shadow:inset 0 1px 0 rgba(255,255,255,.06);transition:border-color .15s,background .15s}
 .audio-tool .st-side:hover{border-color:rgba(255,255,255,.3)}
 .audio-tool .st-side-ico{display:block;line-height:0;opacity:.85}
-/* Динамик -- единственное, что есть на кнопке, поэтому он крупный: его видно с расстояния
-   вытянутой руки, когда телефон лежит на столе, а вы слушаете в наушниках. */
+
 .audio-tool .st-side-ico svg{width:auto;height:64px;display:block}
 @media(max-width:600px){.audio-tool .st-side-ico svg{height:48px}}
 .audio-tool .st-side.is-on .st-side-ico{opacity:1}
-/* Пока играет -- волны у динамика вспыхивают по очереди: сначала ближняя, потом дальняя.
-   Это видно краем глаза и подтверждает, что звук идёт именно из этой кнопки. Стоит только
-   на звучащей кнопке, в покое значок неподвижен. */
+
 .audio-tool .st-side.is-on .st-w1{animation:st-волна .36s ease-in-out infinite}
 .audio-tool .st-side.is-on .st-w2{animation:st-волна .36s ease-in-out .09s infinite}
 @keyframes st-волна{0%,70%,100%{opacity:.18}25%{opacity:1}}
@@ -891,10 +560,6 @@
   .audio-tool .st-side.is-on .st-w2{animation:none}}
 @media(max-width:600px){.audio-tool .st-side{padding:16px 8px;font-size:13px}}
 
-/* Тест микрофона. Поле волны, строка состояния и место плеера стоят всегда -- пустыми до
-   начала, поэтому при включении микрофона страница не прыгает. */
-/* Пустое поле не должно выглядеть сломанным: тонкая линия по центру показывает, где появится
-   звук. Пока микрофон молчит -- линия и есть весь вид. */
 .audio-tool .mt-wave{height:110px;background:var(--surface);border:1px solid var(--line);
   border-radius:12px;overflow:hidden;position:relative}
 .audio-tool .mt-wave::after{content:'';position:absolute;left:14px;right:14px;top:50%;height:1px;
@@ -902,18 +567,14 @@
 .audio-tool .mt.is-live .mt-wave::after{opacity:0}
 .audio-tool .mt-wave canvas{width:100%;height:100%;display:block}
 .audio-tool .mt-state{min-height:20px;margin:10px 0 14px;text-align:center;font-size:14px;color:var(--text);opacity:.8}
-/* Ряд устройств и плеер занимают своё место с самого начала, пустыми: их содержимое
-   появляется только после разрешения на микрофон, и без запаса страница дёргалась бы. */
+
 .audio-tool .mt-devices{display:flex;gap:8px;flex-wrap:wrap;justify-content:center;
   min-height:32px;margin:12px 0 0}
 .audio-tool .mt-dev{padding:7px 13px;border-radius:999px;border:1px solid var(--line);
   background:var(--surface);color:var(--text);font:inherit;font-size:13.5px;cursor:pointer;
   max-width:100%;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
 .audio-tool .mt-dev.is-on{border-color:var(--accent);color:var(--accent)}
-/* Иерархия по нормам: одно главное действие на экран, у него наибольший контраст, значок и
-   размер; второе -- контуром и тише. Заливка светлая, а не цветная: на тёмной странице цветная
-   читается как «уже нажато» (проверено на этом сайте раньше), а светлая -- как приглашение.
-   Высота 56 и 46 -- обе выше порога в 44 px, ниже которого палец промахивается. */
+
 .audio-tool .mt-row{display:flex;flex-direction:column;align-items:center;gap:10px}
 .audio-tool .mt-main,.audio-tool .mt-second{display:inline-flex;align-items:center;justify-content:center;
   gap:10px;font-family:inherit;cursor:pointer;border-radius:14px;width:100%;max-width:340px;
@@ -927,25 +588,18 @@
   background:transparent;color:var(--text);border:1px solid var(--line);opacity:.9}
 .audio-tool .mt-second:hover:not(:disabled){border-color:rgba(255,255,255,.28);transform:translateY(-1px)}
 .audio-tool .mt-second:disabled{opacity:.32;cursor:not-allowed}
-/* Кнопка НЕ меняет ни места, ни размера: меняются надпись и цвет. Пока микрофон слушает,
-   кнопка красная -- это и есть общепринятый знак «идёт», и остановка на ней же. Отдельный
-   кружок рядом со значком отсюда убран: он сдвигал значок и выглядел приклеенным
-   (владелец 18.08.2026). Смена ролей между кнопками тоже убрана -- читалась как «кнопка
-   уехала вниз», а не как смена веса. */
+
 .audio-tool .mt.is-live .mt-main{background:#d92d20;border-color:#d92d20;color:#fff;
   box-shadow:0 6px 18px rgba(217,45,32,.35),inset 0 1px 0 rgba(255,255,255,.25)}
 .audio-tool .mt.is-live .mt-main:hover{background:#c22a1e;border-color:#c22a1e;
   box-shadow:0 9px 22px rgba(217,45,32,.4),inset 0 1px 0 rgba(255,255,255,.25)}
 .audio-tool .mt.is-live .mt-main:active{background:#a82418}
 .audio-tool .mt-ico{display:flex;line-height:0}
-/* Идёт запись -- лампочка ГОРИТ, а не тлеет: яркий красный со свечением, как индикатор на
-   диктофоне. Тусклая точка читалась как «выключено». И сама кнопка при этом НЕ гаснет:
-   раньше на время записи она выключалась и уходила в прозрачность, будто сломалась. */
+
 .audio-tool .mt-second.is-busy{opacity:1;border-color:rgba(255,59,48,.55);color:var(--text)}
 .audio-tool .mt-second.is-busy .mt-ico{color:#ff5147}
 .audio-tool .mt-second.is-busy .mt-ico svg{width:12px;height:12px}
-/* Мигает не сама лампочка, а её свечение: гасить точку до половины -- значит показывать
-   «выключено» через раз. Здесь она горит ровно, а вокруг дышит ореол. */
+
 .audio-tool .mt-second.is-busy .mt-ico{animation:mt-лампа 1s ease-in-out infinite;
   transform-origin:center;will-change:transform,filter}
 @keyframes mt-лампа{
@@ -955,25 +609,21 @@
 @keyframes mt-пульс{0%,100%{opacity:1}50%{opacity:.45}}
 @media(prefers-reduced-motion:reduce){.audio-tool .mt-second.is-busy .mt-ico{animation:none;
   filter:drop-shadow(0 0 6px rgba(255,81,71,.9))}}
-/* Ряд кнопок держит одну высоту в любом состоянии: 56 + 10 + 46 -- страница не дёргается.
-   Там, где кнопка одна (замер шума), запас ровно под неё -- иначе внизу зияет пустота. */
+
 .audio-tool .mt-row{min-height:112px;justify-content:center}
 .audio-tool .mt-row.is-single{min-height:56px}
 .audio-tool .mt-play{height:60px;padding-top:10px;display:flex;justify-content:center;visibility:hidden}
-/* Круглая и крупная, как кнопка прослушивания в рингтоне: это главное действие после записи. */
+
 .audio-tool .mt-play .tp-btn{width:52px;height:52px;border-radius:50%;
   background:linear-gradient(rgba(255,255,255,.1),rgba(255,255,255,.03));border-color:rgba(255,255,255,.16);
   box-shadow:inset 0 1px 0 rgba(255,255,255,.22),0 2px 5px rgba(0,0,0,.45)}
 .audio-tool .mt-play .tp-btn .ico{width:22px;height:22px}
 .audio-tool .mt-play.is-on{visibility:visible}
 
-/* ---- Прибор теста микрофона ------------------------------------------------------------- */
-/* Шкала, максимум и состояние -- то, ради чего человек сюда пришёл: не «шевелится ли что-то»,
-   а «какой у меня уровень и годится ли он». Числа моноширинные, чтобы не прыгали. */
 .audio-tool .mt-meter{margin:14px 0 10px}
 .audio-tool .mt-meter-head{display:flex;justify-content:space-between;align-items:baseline;
   font-size:13px;color:var(--muted);margin-bottom:6px}
-/* Атрибут hidden сам по себе слабее display:flex -- без этой строки скрытая строка остаётся видимой. */
+
 .audio-tool .mt-meter-head[hidden]{display:none}
 .audio-tool .mt-peak b{color:var(--text);font-variant-numeric:tabular-nums;font-weight:700;margin-left:4px}
 .audio-tool .mt-bar{height:10px;border-radius:6px;background:var(--surface-2);
@@ -990,11 +640,9 @@
 .audio-tool .mt-privacy{text-align:center;font-size:12.5px;color:var(--muted);
   margin:14px auto 0;max-width:46ch;line-height:1.5}
 
-/* Честная приписка: почему здесь нет децибелов шумомера. Тон тихий -- это сноска, а не заголовок. */
 .audio-tool .mt-note{max-width:60ch;margin:16px auto 0;text-align:center;font-size:12.5px;
   line-height:1.55;color:var(--muted)}
 
-/* Шумомер: главное на экране -- крупное число, всё остальное вокруг него. */
 .audio-tool .sm-big{display:flex;align-items:baseline;justify-content:center;gap:8px;
   margin:18px 0 6px;flex-wrap:wrap}
 .audio-tool .sm-big > b{font-size:64px;line-height:1;font-weight:700;letter-spacing:-.02em;
@@ -1004,17 +652,11 @@
 .audio-tool .sm-max b{color:var(--text);font-variant-numeric:tabular-nums;margin-left:4px}
 @media(max-width:520px){.audio-tool .sm-big > b{font-size:52px}}
 
-/* Микрофон на первом экране: второй путь рядом с загрузкой файла, поэтому вид тише поля
-   загрузки -- не спорит с ним, но виден сразу. Место под строку состояния держится всегда. */
 .audio-tool .mic-in{display:flex;flex-direction:column;align-items:center;margin-top:12px}
 .audio-tool .mic-in-btn{max-width:280px}
 .audio-tool .mic-in-state{min-height:20px;margin-top:8px;font-size:13px;color:var(--muted);
   font-variant-numeric:tabular-nums}
 
-/* ---- Изменить голос ---------------------------------------------------------------------- */
-/* Плашки эффектов -- ровная квадратная сетка, как на приборе: одинаковые ячейки, спокойная
-   рамка, значок сверху, подпись под ним. Разнокалиберные прямоугольники читались как список
-   кнопок, а не как набор режимов. */
 .audio-tool.voice-tool .preset-cards{display:grid;gap:10px;
   grid-template-columns:repeat(auto-fill,minmax(104px,1fr))}
 .audio-tool.voice-tool .preset-card{aspect-ratio:1/1;flex:none;min-width:0;width:auto;
@@ -1030,7 +672,6 @@
   .audio-tool.voice-tool .preset-card .pc-emoji{font-size:23px}
 }
 
-/* Ползунок силы внизу: место держим всегда, иначе выбор эффекта сдвигал бы страницу. */
 .audio-tool .voice-knob{display:flex;align-items:center;gap:14px;margin-top:16px;visibility:hidden}
 .audio-tool .voice-knob.on{visibility:visible}
 .audio-tool .voice-knob label{font-size:11px;letter-spacing:.16em;text-transform:uppercase;
@@ -1040,16 +681,12 @@
   min-width:46px;text-align:right;font-variant-numeric:tabular-nums}
 .audio-tool .preset-desc{min-height:20px;margin-top:10px;font-size:13px;color:var(--muted);text-align:center}
 
-/* Файл -- второй путь: плашка вдвое ниже обычного поля, без крупного значка и списка форматов
-   во весь экран. Главное действие рядом не должно с ней спорить. */
 .audio-tool .drop.is-compact{padding:16px 14px;min-height:0}
 .audio-tool .drop.is-compact svg{width:22px;height:22px}
 .audio-tool .drop.is-compact .big{font-size:15px}
 .audio-tool .drop.is-compact .small{font-size:12px}
 .audio-tool .drop.is-compact .formats{display:none}
 
-/* ---- Первый экран «изменить голос» ------------------------------------------------------- */
-/* Два равных пути: записать или принести файл. Плашки одинаковые -- ни один путь не главнее. */
 .audio-tool .vx-start{display:grid;gap:12px;grid-template-columns:1fr}
 .audio-tool .vx-tile{display:flex;flex-direction:column;align-items:center;justify-content:center;
   gap:10px;min-height:132px;padding:20px 16px;border-radius:16px;cursor:pointer;
@@ -1062,10 +699,9 @@
   transition:background .18s,border-color .18s,color .18s,box-shadow .18s}
 .audio-tool .vx-ico{display:flex;line-height:0}
 .audio-tool .vx-name{font-size:15.5px;font-weight:700;letter-spacing:-.01em}
-/* Место под таймер держится всегда: появление отсчёта не должно двигать плашку. */
+
 .audio-tool .vx-time{min-height:17px;font-size:13px;color:var(--muted);font-variant-numeric:tabular-nums}
-/* ИДЁТ ЗАПИСЬ: плашка краснеет, кольцо вокруг микрофона дышит в такт голосу -- масштаб кольца
-   ведёт код по уровню сигнала (--ур), поэтому это не украшение, а показание. */
+
 .audio-tool .vx-tile.is-rec{background:rgba(217,45,32,.10);border-color:#d92d20;color:#fff}
 .audio-tool .vx-tile.is-rec .vx-ring{background:#d92d20;border-color:#d92d20;color:#fff;
   transform:scale(calc(1 + var(--ур, 0) * .35));
@@ -1077,9 +713,6 @@
 .audio-tool .vx-formats{display:block;margin-top:6px;font-size:12.5px;opacity:.8}
 .audio-tool .drop-hidden{display:none !important}
 
-/* ---- Второй экран: плеер и эффекты -- ОДИН прибор ----------------------------------------- */
-/* Раньше это читалось как два отдельных блока подряд. Теперь общая рамка, а внутри -- полосы,
-   разделённые линиями: дорожка, эффекты, сила. Так выглядит панель прибора, а не список. */
 .audio-tool.voice-tool .panel.on{background:var(--surface);border:1px solid var(--line);
   border-radius:18px;padding:14px;box-shadow:0 10px 30px rgba(0,0,0,.35)}
 .audio-tool.voice-tool .panel.on > .preset-cards{margin:14px 0 0;padding-top:14px;

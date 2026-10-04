@@ -1,15 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «КОЛИЧЕСТВО СИМВОЛОВ И СЛОВ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство простое, но три вещи здесь решают всё:
- *   1. ПОЛЕ СВЕРХУ, ЧИСЛА СНИЗУ. Человек пришёл вставить текст -- поле должно встречать его
- *      первым, а не после ряда цифр.
- *   2. ЧИСЛА НЕ ПРЫГАЮТ. Ячейки стоят всегда, цифры моноширинные: счёт идёт на каждой букве,
- *      и дрожащая строка при наборе невыносима.
- *   3. ЛИМИТЫ ПОЛОСКАМИ. «280 знаков» само по себе ничего не значит; полоска показывает,
- *      сколько осталось, без чтения.
- */
 
 .тс {
   --рамка: var(--line);
@@ -17,15 +5,6 @@
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
 }
 
-/* ---- Поле ввода ------------------------------------------------------------------ */
-
-/* Поле -- главное на странице, и выделено оно НЕ обводкой. На тёмном фоне светлая линия
-   режет глаз, а тень почти не видна, поэтому в тёмных темах главное поднимают светлотой:
-   поверхность делают светлее фона, по верхней грани пускают тонкий блик (как будто свет
-   падает сверху), а вниз -- мягкую рассеянную тень. Рамка при этом остаётся еле заметной:
-   она держит форму, а не кричит.
-   Ниже, в карточке чисел, поверхность наоборот темнее -- получается «поле сверху, результат
-   под ним», и разряд читается без единой яркой линии. */
 .тс-поле {
   position: relative;
   background: #21242c;
@@ -69,10 +48,6 @@
 .тс-зн:active { transform: translateY(1px) }
 .тс-сказ { margin-right: auto; font-size: 12.5px; color: rgba(214,219,230,.55) }
 
-/* ---- Числа --------------------------------------------------------------------- */
-
-/* Два главных числа -- символы и слова: за ними приходят одинаково часто, и прятать слова
-   в список мелочей было ошибкой. Остальное идёт подробностями снизу. */
 .тс-итоги {
   display: grid; grid-template-columns: 1fr 1fr;
   gap: 2px; margin-top: 14px; border-radius: 16px; overflow: hidden; background: var(--line);
@@ -82,9 +57,7 @@
   display: flex; flex-direction: column; align-items: center; justify-content: center;
   text-align: center; font-family: var(--ui);
 }
-/* Пока текста нет, все числа -- нули, и зелёными им быть не за что: зелёный тут значит
-   «есть результат». Серый ноль честнее и не роняет доступность, в отличие от приглушения
-   всей области: там проверка считает прозрачность и контраст подписей падает вчетверо. */
+
 .тс-главное b {
   font-size: 56px; font-weight: 800; line-height: 1; color: var(--accent);
   font-variant-numeric: tabular-nums; letter-spacing: -.02em;
@@ -104,26 +77,20 @@
 .тс-главное em { font-style: normal; font-weight: 700; color: var(--text);
   font-variant-numeric: tabular-nums }
 
-
-/* Полоса подробностей: шесть приподнятых плиток. Число стоит прямо над своей подписью --
-   подпись слева и число у дальнего края расходились на широком экране так, что глазу
-   приходилось гадать, что к чему относится. */
 .тс-список {
   grid-column: 1 / -1;
   background: var(--surface); margin: 0; padding: 14px;
   display: grid; grid-template-columns: repeat(6, minmax(0, 1fr)); gap: 8px;
   font-family: var(--ui);
 }
-/* Плитки приподняты: светлая грань сверху, тень снизу -- тот же язык, что у клавиш на
-   тесте печати. */
+
 .тс-список > div {
   padding: 14px 8px 15px; text-align: center; border-radius: 11px;
   background: linear-gradient(180deg, #23262e, #191b21);
   border: 1px solid rgba(255,255,255,.10);
   box-shadow: 0 2px 0 rgba(0,0,0,.5), inset 0 1px 0 rgba(255,255,255,.07);
 }
-/* Время чтения отделено увеличенным зазором: слева -- из чего состоит текст, справа --
-   сколько его читать. Пустота группирует надёжнее линии. */
+
 .тс-список > div.иное { margin-left: 10px }
 .тс-список dd {
   margin: 0; font-size: 21px; font-weight: 800; line-height: 1.05; color: var(--text);
@@ -134,8 +101,6 @@
   color: rgba(214,219,230,.72); line-height: 1.35;
 }
 .тс-список > div:nth-last-child(-n+2) dd { color: rgba(240,240,242,.84) }
-
-/* ---- Лимиты и частота ------------------------------------------------------------ */
 
 .тс-низ { display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 16px;
   margin-top: 16px; align-items: stretch }
@@ -153,12 +118,9 @@
   overflow: hidden }
 .тс-полоса i { display: block; height: 100%; width: 0; border-radius: 3px;
   background: var(--accent); transition: width .18s ease, background .25s ease }
-/* Не влезло -- тёплый жёлтый, а не красный: красный кричит «ошибка», хотя ничего не сломано,
-   текст просто длиннее лимита. */
+
 .тс-лимит.мимо .тс-полоса i { background: #f5c451 }
 .тс-лимит.мимо .тс-лимит-счёт { color: #f5c451 }
-
-/* ---- Частота слов ------------------------------------------------------------------ */
 
 .тс-частота-блок { margin-top: 0 }
 .тс-заг-ряд { display: flex; align-items: center; gap: 12px; margin-bottom: 12px }
@@ -167,8 +129,7 @@
   font: 500 12.5px var(--ui); color: var(--muted); cursor: pointer; user-select: none }
 .тс-галка input { width: 15px; height: 15px; accent-color: var(--accent); cursor: pointer }
 .тс-частота { flex: 1 1 auto; display: grid; align-content: space-between; gap: 8px }
-/* Слово, число и полоса в трёх колонках: числа выстраиваются в столбик и читаются сверху
-   вниз одним взглядом, а не построчно. */
+
 .тс-слово-строка { display: grid; grid-template-columns: minmax(0, 1fr) auto 40%;
   align-items: center; gap: 10px; font-family: var(--ui) }
 .тс-сл { font-size: 14px; font-weight: 600; color: var(--text); overflow: hidden;
@@ -198,7 +159,7 @@
   .тс-главное i { margin-top: 8px; font-size: 12.5px }
   .тс-список { grid-template-columns: repeat(3, minmax(0, 1fr)); padding: 12px; gap: 7px }
   .тс-список > div { padding: 12px 6px 13px }
-  /* На трёх колонках увеличенный зазор сдвинул бы всю сетку -- группировка тут не нужна. */
+
   .тс-список > div.иное { margin-left: 0 }
   .тс-список dd { font-size: 18px }
   .тс-список dt { font-size: 10.5px }

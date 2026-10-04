@@ -1,14 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ШИФР ROT13».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Вид тот же, что у остальных текстовых инструментов: сверху настройки, поле ввода, строка
- * отчёта, поле вывода, кнопки. Все решения уже утверждены владельцем на Base64 и URL:
- *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
- *   -- кнопки подняты от страницы и с белыми буквами, приглушённых подписей нет;
- *   -- выбранное помечается ТОЛЬКО зелёной обводкой, без заливки;
- *   -- в строке отчёта подпись зелёная, значение белое.
- */
 
 .рот {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -17,8 +6,6 @@
   --линия: rgba(255,255,255,.16);
   font-family: var(--цифры);
 }
-
-/* ---- Настройки сверху -------------------------------------------------------------------- */
 
 .рот-верх { display: flex; flex-wrap: wrap; gap: 8px 20px; align-items: center;
   margin-bottom: 10px }
@@ -33,8 +20,6 @@
 .рот-выбор input:checked + i { border-color: var(--accent) }
 .рот-выбор input:checked + i::after { transform: scale(1) }
 .рот-выбор input:focus-visible + i { outline: 2px solid var(--accent); outline-offset: 2px }
-
-/* ---- Поля --------------------------------------------------------------------------------- */
 
 .рот-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
   transition: border-color .15s ease }
@@ -51,7 +36,6 @@
 .рот-вывод textarea { color: #fff; cursor: text }
 .рот-вывод textarea::placeholder { color: #7d848f }
 
-/* Строка отчёта: подпись зелёная, значение белое -- так владелец утвердил на Base64. */
 .рот-счётчики {
   display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
   padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
@@ -61,15 +45,13 @@
 .рот-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .рот-сказ.видно { opacity: 1 }
 
-/* ---- Кнопки ------------------------------------------------------------------------------- */
-
 .рот-низ { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 10px }
 .рот-кнопка {
   flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
   font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
 }
 .рот-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
-/* Кнопка ПОДНЯТА от страницы: прозрачная с серой рамкой на фоне #0e0f11 почти не видна. */
+
 .рот-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
   font: 500 12.5px var(--цифры); color: #fff; background: #1c1f26;
@@ -77,10 +59,6 @@
 }
 .рот-простая:hover { border-color: #fff; background: #23272f }
 
-/* ---- Колесо ------------------------------------------------------------------------------- */
-
-/* Наглядная пара алфавитов: сверху обычный, снизу сдвинутый. Видно, что A стоит под N,
-   а второй проход возвращает букву на место. Прокручивается вбок, страницу не растягивает. */
 .рот-кольцо { margin-top: 16px; padding: 12px 14px; border: 1px solid #3f4652;
   border-radius: 10px; background: #16181d; overflow-x: auto }
 .рот-кольцо-к { display: block; margin-bottom: 8px; font: 400 10.5px var(--ui);
@@ -92,8 +70,7 @@
 .рот-ряд.низ span { background: #23272f; color: var(--accent) }
 
 .рот-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка -- обычный абзац с точкой в отступе. Флекс здесь разрывал бы фразу на столбцы
-   по каждому выделенному слову. */
+
 .рот-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: #fff }
 .рот-заметка::before { content: "•"; position: absolute; left: 0; top: 0;

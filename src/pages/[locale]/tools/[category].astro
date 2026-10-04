@@ -30,16 +30,12 @@ const translations = allCategories
 
 const allTools = await getCollection('tools');
 const allMedia = await getCollection('mediaTools');
-// В рубрике показываем и тех, для кого она ВТОРОЙ дом (alsoIn): сканер EXIF по делу лежит
-// в «Изображениях», а по устройству -- сканер, и в рубрике сканеров его ищут тоже. Страница
-// при этом одна: второго адреса не появляется, хлебные крошки ведут в первую рубрику.
+
 const вРубрике = (t) => t.data.locale === entry.data.locale
   && (t.data.category === entry.data.catSlug
     || (t.data.alsoIn || []).includes(entry.data.catSlug));
 const tools = [...allTools.filter(вРубрике), ...allMedia.filter(вРубрике)];
 
-// Categories with lots of units get a working any-to-any converter right on the category
-// page itself, not just a list of links -- add more entries as other categories get one.
 const UNITS_BY_CATEGORY = {
   length: {
     ru: [
@@ -173,8 +169,6 @@ const UNITS_BY_CATEGORY = {
   },
 };
 
-// Temperature doesn't fit the multiplicative UNITS_BY_CATEGORY shape (affine, not factor-based)
-// -- separate small lookup for its own converter component. See project-architecture memory.
 const TEMPERATURE_UNITS = {
   ru: [
     { code: 'c', label: 'Цельсий (°C)', scale: 1, offset: 0 },
@@ -198,7 +192,6 @@ const TEMPERATURE_UNITS = {
   ],
 };
 
-// Default from/to shown on first load, per category -- pick the most common real pair.
 const DEFAULTS_BY_CATEGORY = {
   length: { from: 'm', to: 'cm' },
   volume: { from: 'l', to: 'ml' },
@@ -215,27 +208,12 @@ const resultLabel = translate(entry.data.locale, 'resultLabel');
 const fromLabel = translate(entry.data.locale, 'fromLabel');
 const toLabel = translate(entry.data.locale, 'toLabel');
 const faqLabel = translate(entry.data.locale, 'faqLabel');
-// «Калькуляторы по конкретным парам» -- это про переводы величин. На звуке и на тестах такой
-// заголовок был просто неправдой, и он там стоял.
+
 const парные = ['length', 'volume', 'weight', 'temperature'].includes(entry.data.catSlug);
 const pairsLabel = translate(entry.data.locale, парные ? 'pairsLabel' : 'toolsInCategoryLabel');
-// Полки заданы только у больших рубрик; у маленьких список остаётся обычной сеткой.
+
 const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale);
 
-/* РАЗМЕТКА ДАННЫХ ДЛЯ ВОПРОСОВ. На страницах инструментов она есть, а у рубрик её не было:
-   вопросы показывались человеку, но поисковик их не видел и в выдаче не показывал. Касается
-   рубрик «длина», «объём» и «вес» -- там по два вопроса. Строим тем же способом, что и на
-   странице инструмента, чтобы разметка на сайте была одна. */
-const безСсылок = (с) => String(с).replace(/\[([^\]]+)\]\([^)]+\)/g, '$1');
-const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
-  '@context': 'https://schema.org',
-  '@type': 'FAQPage',
-  mainEntity: entry.data.faq.map((item) => ({
-    '@type': 'Question',
-    name: item.question,
-    acceptedAnswer: { '@type': 'Answer', text: безСсылок(item.answer) },
-  })),
-} : null;
 ---
 
 <Layout
@@ -277,10 +255,6 @@ const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
 
   {(units || temperatureUnits) && <AdSlot />}
 
-  {/* Список инструментов рубрики. У большой рубрики он разложен по полкам: сорок два
-      одинаковых прямоугольника подряд человек не читает, а семь коротких полок -- читает.
-      У значка своя работа: он обозначает РОД дела (резать, переводить, слушать), поэтому
-      повторяется и оттого узнаётся с одного взгляда. */}
   <section class="all-tools">
     <h2 class="all-tools-title">{pairsLabel}</h2>
     {полки.length > 0 ? (
@@ -310,9 +284,6 @@ const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
     )}
   </section>
 
-  {/* Текст рубрики стоит ПОД плитками, а не над ними. Человек пришёл выбрать инструмент, и
-      встречать его тремя абзацами -- значит заставлять пролистывать. Сверху осталась одна
-      строка под заголовком, остальное читают те, кому оно нужно. */}
   <section class="seo v2">
     <Content />
     {entry.data.faq && entry.data.faq.length > 0 && (
@@ -329,32 +300,20 @@ const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
   </section>
 </Layout>
 
-{вопросыJsonLd && <script type="application/ld+json" set:html={JSON.stringify(вопросыJsonLd)} />}
-
 <style>
   .main{text-align:center}
-  /* Между подзаголовком и текстом было 116 пикселей пустоты: 48 снизу у шапки плюс 40 сверху
-     у текста. Пустота осталась от места под рекламу, которого здесь нет. Сжато до одного
-     обычного отступа. */
+
   .main{padding-bottom:10px;max-width:1360px}
-  /* ОДНА СТРОКА ПОД ЗАГОЛОВКОМ -- и всё. Раньше сверху стояли три текста подряд, и у каждого
-     был свой вид: 13 пикселей серым по центру в колонке 900, потом 15 белым по центру в 70
-     знаков да ещё со свечением, потом 13 серым влево во всю ширину 1360. Три размера, три
-     ширины, три выравнивания -- страница выглядела собранной из кусков. */
+
   .main h1{max-width:900px;margin-left:auto;margin-right:auto}
   .main .subtitle{max-width:66ch;margin:0 auto 22px;font-size:15px;line-height:1.6;
     color:var(--text)}
-  /* Между строкой под заголовком и плитками набегало 90 пикселей: 30 снизу у строки, 10
-     у .main и 50 сверху у списка. Пустота осталась от места под рекламу, которого здесь нет.
-     Складываем один обычный отступ вместо трёх. */
+
   .all-tools{margin-top:26px}
 
-  /* ТЕКСТ РУБРИКИ идёт по краю плиток: та же ширина и то же поле, что у сетки. Иначе текст
-     стоит узкой колонкой посередине, плитки во всю ширину, края не совпадают -- и страница
-     выглядит собранной из двух разных. */
   section.seo{max-width:1360px;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
   section.seo :global(p){font-size:14px;line-height:1.75;margin-bottom:16px}
-  /* Черта отделяет текст от плиток: без неё он читался как продолжение списка. */
+
   section.seo::before{content:"";display:block;height:1px;margin-bottom:30px;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
   .seo-вопрос{margin-bottom:18px}
@@ -362,10 +321,9 @@ const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
     section.seo{padding:0 1rem;margin-top:34px}
     .main .subtitle{font-size:14px;margin-bottom:24px}
   }
-  /* Ряд переходов по полкам: на большой рубрике он избавляет от прокрутки вслепую. */
+
   .shelf-jump{display:flex;flex-wrap:wrap;gap:7px;justify-content:center;margin:0 0 22px}
-  /* У каждой полки свой цвет: заголовок, точка перед ним, кнопка перехода и значки внутри.
-     Иначе семь полок отличались одним словом, и страница опять сливалась. */
+
   .shelf-jump a{font-size:12.5px;color:var(--text);text-decoration:none;background:var(--surface-2);
     border:1px solid var(--line);border-radius:999px;padding:6px 12px;
     display:inline-flex;align-items:center;gap:7px;transition:border-color .15s,color .15s}
@@ -375,13 +333,10 @@ const вопросыJsonLd = (entry.data.faq && entry.data.faq.length > 0) ? {
   .shelf-name{display:flex;align-items:center;gap:10px;font-size:11.5px;letter-spacing:.14em;
     text-transform:uppercase;font-weight:700;color:var(--shelf,var(--muted));margin:26px 0 10px;
     text-align:left;scroll-margin-top:20px}
-  /* Черта после заголовка гаснет к правому краю -- цвет отмечает начало полки, а не тянется
-     через всю ширину. */
+
   .shelf-name::after{content:"";flex:1;height:1px;
     background:linear-gradient(90deg,color-mix(in srgb,var(--shelf,var(--accent)) 38%,transparent),rgba(255,255,255,.06))}
   .shelf-name b{color:rgba(214,219,230,.5);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
 
-  /* Плашка и цвет значка переехали в ToolCard.astro -- туда, где лежит сама разметка.
-     Здесь эти правила не работали бы: в Astro <style> привязан к элементам своего файла. */
   .all-tools-grid .tool-card{padding:12px 13px;gap:10px}
 </style>

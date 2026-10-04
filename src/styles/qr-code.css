@@ -1,17 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «ГЕНЕРАТОР QR-КОДОВ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Вид -- тот же, что у остальных страниц для разработчиков, решения уже утверждены владельцем:
- *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные: чёрное на тёмном сливается;
- *   -- кнопки подняты от страницы, буквы белые, приглушённых подписей нет;
- *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
- *   -- в строке отчёта подпись зелёная, значение белое.
- *
- * ОТСТУПЛЕНИЕ ОТ ЗАДАНИЯ: просили текст в поле вывода приглушённо-серым (#A1A1AA). Здесь он
- * белый. Результат -- главное на странице, ради него и пришли; приглушённый текст владелец
- * уже забраковал на Base64, и повторять эту ошибку незачем.
- */
 
 .кр {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -20,8 +6,6 @@
   --беда: #ff9aa8;
   font-family: var(--цифры);
 }
-
-/* ---- Пульт -------------------------------------------------------------------------------- */
 
 .кр-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
   margin-bottom: 12px }
@@ -38,12 +22,8 @@
   background-size: 5px 5px, 5px 5px; background-repeat: no-repeat;
 }
 .кр-список:hover { border-color: #fff }
-/* Зелёного контура тут нет намеренно: это раскрывающийся список, а не кнопка,
-   и зелёная рамка читалась бы как «выбрано». Белая -- та же, что при наведении. */
+
 .кр-список:focus { border-color: #fff; outline: none }
-
-
-/* ---- Поля --------------------------------------------------------------------------------- */
 
 .кр-пара { display: grid; grid-template-columns: 1fr; gap: 10px; align-items: start }
 .кр-поле { background: #16181d; border: 1px solid var(--линия); border-radius: 10px;
@@ -60,9 +40,6 @@
 .кр-ввод:focus { outline: none }
 .кр-ввод::placeholder { color: #7d848f }
 
-/* ---- Отчёт и разбор ошибки ------------------------------------------------------------------
-   Место под строку отчёта держится постоянным: она появляется, как только в поле что-то есть,
-   и без запаса кнопки прыгали бы вниз на первой же букве. */
 .кр-отчёт {
   min-height: 32px; display: flex; flex-wrap: wrap; gap: 4px 16px; align-items: center;
   padding: 8px 4px; font: 400 12px var(--цифры); color: var(--accent);
@@ -74,9 +51,6 @@
 .кр-беда b { color: var(--беда); font-weight: 700 }
 .кр-сказ { margin-left: auto; color: var(--accent); opacity: 0; transition: opacity .2s }
 .кр-сказ.видно { opacity: 1 }
-
-
-/* ---- Кнопки -------------------------------------------------------------------------------- */
 
 .кр-ряд { display: flex; flex-wrap: wrap; gap: 8px; margin: 2px 0 10px }
 .кр-кнопка {
@@ -99,8 +73,7 @@
 .кр-кнопка.вправо, .кр-простая.вправо { margin-left: auto }
 
 .кр-заметки { margin-top: 20px; display: flex; flex-direction: column; gap: 7px }
-/* Заметка -- обычный абзац с точкой в отступе. Флекс разрывал бы фразу на столбцы по
-   каждому выделенному слову. */
+
 .кр-заметка { position: relative; padding-left: 18px;
   font: 400 13px/1.55 var(--ui); color: #fff }
 .кр-заметка::before { content: "•"; position: absolute; left: 0; top: 0;
@@ -116,9 +89,6 @@
   .кр-кнопка.вправо, .кр-простая.вправо { margin-left: 0 }
 }
 
-/* ---- Своё для этой страницы --------------------------------------------------------------- */
-
-/* Выбор вида данных и уровня -- кнопками, выбранное только обводкой. */
 .кр-набор { display: inline-flex; flex-wrap: wrap; gap: 6px }
 .кр-выбор {
   height: 38px; padding: 0 14px; border-radius: 6px; cursor: pointer;
@@ -131,7 +101,6 @@
 
 .кр-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
 
-/* Поля для сети и визитки. */
 .кр-поля { display: flex; flex-direction: column; gap: 8px }
 .кр-поля[hidden] { display: none }
 .кр-строка { display: grid; grid-template-columns: minmax(0, 130px) minmax(0, 1fr); gap: 8px;
@@ -155,9 +124,6 @@
 .кр-галка input:checked + i { border-color: var(--accent) }
 .кр-галка input:checked + i::after { transform: scale(1) }
 
-/* ОКНО КОДА. Единственное место на сайте, где подложка обязана быть БЕЛОЙ: камере нужен
-   жёсткий контраст, на тёмной подложке телефон код физически не разберёт. Поле вокруг кода
-   в четыре клетки заложено в сам рисунок -- это часть стандарта, а не отступ для красоты. */
 .кр-окно {
   display: flex; align-items: center; justify-content: center;
   min-height: 300px; padding: 18px; border-radius: 12px;

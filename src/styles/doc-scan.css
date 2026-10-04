@@ -1,15 +1,8 @@
-/* СКАНЕР ДОКУМЕНТОВ В PDF.
- *
- * Строй общий с прочими сканерами: приглашение на входе, окно со снимком, ряд действий.
- * Своё здесь -- рамка с четырьмя ручками поверх снимка и полка собранных листов.
- *
- * СВОЙ ФАЙЛ, а не ветка в общем: правка здесь не может достать соседнюю страницу. */
 
 .дс { --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace; --контур: #3a3a42;
   --серый: #b4b4bb; font-family: var(--мон) }
 .дс [hidden] { display: none !important }
 
-/* ---- Вход ---------------------------------------------------------------------------------- */
 .дс-старт {
   display: flex; flex-direction: column; align-items: center; gap: 8px;
   padding: 30px 20px 26px; border-radius: 12px;
@@ -32,31 +25,24 @@
 .дс-выбор svg { width: 30px; height: 30px; fill: none; stroke: currentColor; stroke-width: 1.3;
   stroke-linecap: round; stroke-linejoin: round }
 
-/* ---- Окно со снимком ------------------------------------------------------------------------ */
 .дс-окно {
   position: relative; margin-top: 14px; border: 2px solid var(--контур); border-radius: 6px;
   background: #09090b; overflow: hidden; line-height: 0;
   display: flex; justify-content: center; align-items: center;
 }
 .дс-кадр { position: relative; display: inline-block; line-height: 0; max-width: 100%;
-  touch-action: none }   /* палец тянет ручку, а не прокручивает страницу */
+  touch-action: none }
 .дс-окно img, .дс-окно video { display: block; max-width: 100%; max-height: 56vh;
   width: auto; height: auto; user-select: none; -webkit-user-drag: none }
 
-/* Рамка листа. Сама фигура нажатий НЕ ловит -- их ловят только ручки, иначе протяжка по
-   середине листа таскала бы весь четырёхугольник. */
 .дс-рамка { position: absolute; pointer-events: none; overflow: visible }
-/* ТОНКАЯ ЛИНИЯ, а не жирная рамка -- решение владельца: «перетягиваешь кружочки и сразу по
-   линии смотришь, что попало в зону, а что нет». Толстая линия сама закрывает край листа,
-   по которому и целятся. Заливка почти прозрачная: она показывает зону, но не мешает
-   разглядеть буквы под ней. */
+
 .дс-рамка polygon { fill: rgba(74,222,158,.06); stroke: var(--accent); stroke-width: 1;
   stroke-linejoin: round; vector-effect: non-scaling-stroke;
-  /* Тень под линией: на светлом листе тонкая зелёная черта иначе теряется. */
+
   filter: drop-shadow(0 0 1px rgba(0,0,0,.65)) }
 .дс-ручки { position: absolute; inset: 0; pointer-events: none }
-/* Ручка крупная НАРОЧНО: пальцем в двенадцать точек не попасть. Видимый кружок меньше, чем
-   область нажатия, -- так он не закрывает угол листа, который человек и подгоняет. */
+
 .дс-ручка {
   position: absolute; width: 38px; height: 38px; margin: -19px 0 0 -19px;
   pointer-events: auto; cursor: grab; touch-action: none;
@@ -72,7 +58,6 @@
 .дс-ручка.взята { cursor: grabbing }
 .дс-ручка.взята::after { transform: scale(1.4) }
 
-/* Крестик -- в углу снимка, как на всех прочих сканерах. */
 .дс-крест {
   position: absolute; top: 8px; right: 8px; z-index: 3;
   width: 30px; height: 30px; display: inline-flex; align-items: center; justify-content: center;
@@ -85,7 +70,6 @@
 .дс-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
-/* ---- Кнопки --------------------------------------------------------------------------------- */
 .дс-дела { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px; align-items: center }
 .дс-кнопка {
   padding: 0 16px; height: 38px; cursor: pointer; border-radius: 8px;
@@ -95,19 +79,13 @@
   transition: color .15s, border-color .15s, background .15s;
 }
 .дс-кнопка:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
-/* Главное действие -- одно на экран, и названо оно тем, ЧТО ПРОИЗОЙДЁТ: «Добавить в PDF»,
-   «Скачать PDF». Не «выровнять лист» -- владелец: «суть не в том, что оно делает, а в том,
-   чтоб человек понял, что произойдёт, когда он нажмёт».
-   Значком тут не обойтись, это не одинокая кнопка в ряду, а конец работы.
-   БЕЛАЯ, а не зелёная -- решение владельца. Зелёный на этой странице занят рамкой листа, и
-   кнопка того же цвета спорила с ней за внимание. */
+
 .дс-главная { color: #0a0a0b; background: #fff; border-color: #fff; font-weight: 700 }
 .дс-главная:hover { color: #0a0a0b; background: #e6e6e9; border-color: #e6e6e9 }
 .дс-широкая { padding: 0 24px }
 .дс-кнопка.ждёт { opacity: .5; pointer-events: none }
 .дс-счёт { margin-left: auto; font: 400 12px var(--мон); color: var(--серый) }
 
-/* ---- Полка собранных листов ------------------------------------------------------------------ */
 .дс-листы { display: flex; flex-wrap: wrap; gap: 10px; margin-top: 14px }
 .дс-лист { position: relative; display: inline-block; line-height: 0;
   border: 1px solid var(--контур); border-radius: 6px; overflow: hidden; background: #fff }

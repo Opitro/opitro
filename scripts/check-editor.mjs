@@ -1,18 +1,3 @@
-/*
-  Постоянная проверка аудиоредактора: проходит весь путь человека и сверяет всё, о чём
-  договаривались с владельцем.
-
-  Зачем она появилась. За два дня работы над редактором владелец нашёл десять поломок, и
-  девять из них были СВЕЖИМИ -- я чинил одно и ломал соседнее. Сборка и обычные тесты этого
-  не ловят: код исполняется без ошибок и делает ровно то, что написано. Ловится только
-  прохождением пути и замером результата.
-
-  Проверяется не «нарисовалось», а результат: длительность и пики скачанного файла,
-  усиление живых узлов, положение бегунка, высота нарисованной волны в точках.
-
-  Запуск:  node scripts/check-editor.mjs
-  Нужен собранный сайт (npm run build) и свободный порт 4321 -- сервер поднимается сам.
-*/
 
 import { spawn, spawnSync } from 'node:child_process';
 import fs from 'node:fs';
@@ -32,7 +17,6 @@ function ok(name, cond, detail) {
   fails.push(detail ? `${name} -- ${detail}` : name);
 }
 
-/** Тестовый звук: минута мелодии, чтобы волна была не полкой и слышны были края. */
 function makeWav(file, seconds) {
   const sr = 44100, ch = 2, n = sr * seconds;
   const b = Buffer.alloc(44 + n * ch * 2);
@@ -58,7 +42,6 @@ const WAV_B = path.join(TMP, 'proba-b.wav');
 makeWav(WAV_A, 60);
 makeWav(WAV_B, 12);
 
-// --- сервер и браузер ---------------------------------------------------------------------
 const dist = path.join(ROOT, 'dist');
 if (!fs.existsSync(path.join(dist, 'ru', 'trim-audio', 'index.html'))) {
   console.error('Нет собранного сайта. Сначала: npm run build');
@@ -69,15 +52,14 @@ const chromeBin = '/Applications/Google Chrome.app/Contents/MacOS/Google Chrome'
 const chrome = spawn(chromeBin, [
   `--remote-debugging-port=${CDP}`, `--user-data-dir=${path.join(TMP, 'prof')}`,
   '--no-first-run', '--no-default-browser-check', '--disable-extensions',
-  // Без этих флагов окно в фоне душит таймеры и звуковой движок, и замеры врут в разы.
+
   '--disable-backgrounding-occluded-windows', '--disable-renderer-backgrounding',
   '--disable-background-timer-throttling', '--autoplay-policy=no-user-gesture-required',
   '--window-size=1300,900', 'about:blank',
 ], { stdio: 'ignore' });
 
 function done(code) {
-  // НЕ убивать процесс браузера: на маке приложение общее, и вместе со своим окном уходят
-  // рабочие вкладки владельца. Он ловил это дважды -- закрывать только своё окно.
+
   try { chrome.kill('SIGTERM'); } catch (e) {}
   try { server.kill(); } catch (e) {}
   try { fs.rmSync(TMP, { recursive: true, force: true }); } catch (e) {}
@@ -135,14 +117,14 @@ async function putFile(file) {
   await send('DOM.setFileInputFiles', { files: [file], nodeId: node.nodeId }, S);
   await sleep(2600);
 }
-/** Тянем ручку: доля 0..1 по ширине дорожки. */
+
 const dragHandle = (fromFrac, toFrac, pid) => q(`(()=>{
   const w=document.getElementById('ed-wave');const r=w.getBoundingClientRect();
   const o={clientY:r.top+40,bubbles:true,pointerId:${pid},pointerType:'mouse'};
   w.dispatchEvent(new PointerEvent('pointerdown',{...o,clientX:r.left+r.width*${fromFrac}}));
   w.dispatchEvent(new PointerEvent('pointermove',{...o,clientX:r.left+r.width*${toFrac}}));
   w.dispatchEvent(new PointerEvent('pointerup',o));return 1})()`);
-/** Пустые поля сверху и снизу у столбца в середине дорожки, в точках холста. */
+
 const waveGaps = () => q(`(()=>{const c=document.getElementById('ed-canvas');const g=c.getContext('2d');
   const W=c.width,H=c.height,x=Math.round(W*0.5);
   const d=g.getImageData(x,0,1,H).data; let top=H,bot=0;
@@ -151,8 +133,7 @@ const waveGaps = () => q(`(()=>{const c=document.getElementById('ed-canvas');con
 
 await send('Page.navigate', { url: `http://127.0.0.1:${PORT}/ru/trim-audio` }, S);
 await sleep(3200);
-// Перехват узлов усиления ставится ДО первого воспроизведения: живая цепочка строится
-// один раз, и позже её узлы уже не поймать -- проверка фейда молча мерила бы не то.
+
 await send('Page.addScriptToEvaluateOnNewDocument', {
   source: `window.__g=[];const P=(window.AudioContext||window.webkitAudioContext).prototype;
     const o=P.createGain;P.createGain=function(){const g=o.call(this);window.__g.push(g);return g};`
@@ -160,22 +141,18 @@ await send('Page.addScriptToEvaluateOnNewDocument', {
 await send('Page.reload', {}, S);
 await sleep(3200);
 
-// ============================ проверки =====================================================
 ok('редактор есть на странице', await q(`!!document.querySelector('.audio-ed-wrap')`));
-// На айфоне `accept="audio/*"` сводит выбор к музыкальной библиотеке: файлы из «Файлов»
-// и iCloud становятся недоступны. Владелец нашёл это сравнением с работающими страницами.
+
 ok('у выбора файла нет ограничения accept',
    !(await q(`document.getElementById('ed-file').hasAttribute('accept')`)));
 await putFile(WAV_A);
 ok('панель открылась после загрузки', await q(`document.getElementById('ed-root').classList.contains('on')`));
-// ШЕСТЬ -- утверждённый вид плеера. Компрессора среди них нет, он на своей странице.
+
 ok('шесть вкладок', (await q(`document.querySelectorAll('.ed-tool').length`)) === 6);
 ok('на /trim-audio активна обрезка', (await q(`document.querySelector('.ed-tool.on')?.dataset.id`)) === 'trim');
-// Строки времени под дорожкой больше нет: конец показан НА ПРАВОЙ РУЧКЕ и в плашке рядом
-// с кнопками. Проверяем там же, где это видит человек.
+
 ok('длительность показана', (await q(`document.getElementById('ed-h1').textContent`)) === '01:00.0');
 
-// --- бегунок -------------------------------------------------------------------------------
 await click('ed-play');
 await sleep(400);
 const ph1 = await q(`parseInt(document.getElementById('ed-playhead').style.left)||0`);
@@ -189,7 +166,6 @@ await click('ed-play');
 await sleep(300);
 ok('пауза останавливает', !(await q(`document.getElementById('ed-play-ico').innerHTML.includes('M6 5h4')`)));
 
-// --- клик по дорожке ставит бегунок, но не играет -------------------------------------------
 await click('ed-stop');
 await q(`(()=>{const w=document.getElementById('ed-wave');const r=w.getBoundingClientRect();
   const o={clientY:r.top+40,bubbles:true,pointerId:31,pointerType:'mouse',clientX:r.left+r.width*0.6};
@@ -199,7 +175,6 @@ ok('клик по дорожке НЕ запускает звук',
    !(await q(`document.getElementById('ed-play-ico').innerHTML.includes('M6 5h4')`)));
 ok('клик по дорожке ставит бегунок', (await q(`parseInt(document.getElementById('ed-playhead').style.left)||0`)) > 0);
 
-// Логика старых плееров: клик во время звучания ОСТАНАВЛИВАЕТ его, а не перематывает.
 await click('ed-play');
 await sleep(600);
 await q(`(()=>{const w=document.getElementById('ed-wave');const r=w.getBoundingClientRect();
@@ -211,7 +186,6 @@ ok('клик во время звучания останавливает',
 ok('черточка после остановки кликом остаётся видимой',
    (await q(`document.getElementById('ed-playhead').style.display`)) !== 'none');
 
-// --- громкость ------------------------------------------------------------------------------
 await q(`document.querySelector('.ed-tool[data-id="volume"]').click()`);
 await sleep(400);
 const gapNormal = await waveGaps();
@@ -236,7 +210,6 @@ ok('на нулевой громкости волна схлопывается',
 await setSlider('ed-vol', 0);
 await sleep(400);
 
-// --- скорость и высота: мгновенно и не прерывают звук ---------------------------------------
 await q(`document.querySelector('.ed-tool[data-id="speed"]').click()`);
 await sleep(400);
 await click('ed-play');
@@ -253,9 +226,6 @@ ok('на смене скорости не появляется замок',
    !(await q(`document.getElementById('ed-root').classList.contains('is-busy')`)));
 await click('ed-stop');
 
-// --- обрезка ручками + фейды -----------------------------------------------------------------
-// Возвращаем скорость: иначе скачанный файл будет короче выделения -- и это ВЕРНО,
-// просто проверять длину выделения надо на нетронутой скорости.
 await setSlider('ed-speed', 100);
 await sleep(400);
 await q(`document.querySelector('.ed-tool[data-id="trim"]').click()`);
@@ -263,7 +233,7 @@ await sleep(400);
 await dragHandle(0.0, 0.25, 41);
 await dragHandle(1.0, 0.75, 42);
 await sleep(500);
-// Начало выделения читаем с самой ручки: в ряду кнопок теперь стоит ДЛИНА куска, а не границы.
+
 ok('ручки двигаются', (await q(`document.getElementById('ed-h0').textContent`)) === '00:15.0');
 ok('кнопки «Обрезать» нет', !(await q(`!!document.getElementById('ed-apply-trim')`)));
 await click('ed-fadein');
@@ -271,7 +241,7 @@ await click('ed-fadeout');
 await sleep(500);
 ok('фейды остаются нажатыми',
    await q(`document.getElementById('ed-fadein').classList.contains('ed-on') && document.getElementById('ed-fadeout').classList.contains('ed-on')`));
-// волна ЗА ручками не должна пропадать
+
 const outside = await q(`(()=>{const c=document.getElementById('ed-canvas');const g=c.getContext('2d');
   const W=c.width,H=c.height,x=Math.round(W*0.1);
   const d=g.getImageData(x,0,1,H).data;let n=0;
@@ -279,7 +249,6 @@ const outside = await q(`(()=>{const c=document.getElementById('ed-canvas');cons
   return n})()`);
 ok('волна за ручками не пропадает при фейде', outside > 4, `закрашено ${outside} точек`);
 
-// --- фейд слышен -------------------------------------------------------------------------------
 await click('ed-play');
 await sleep(300);
 const fg1 = await q(`window.__g.length? window.__g[0].gain.value : 1`);
@@ -288,7 +257,6 @@ const fg2 = await q(`window.__g.length? window.__g[0].gain.value : 1`);
 ok('фейд слышен при прослушивании', fg2 > fg1 + 0.05, `усиление ${fg1.toFixed(3)} -> ${fg2.toFixed(3)}`);
 await click('ed-stop');
 
-// --- скачивание ---------------------------------------------------------------------------------
 await q(`document.getElementById('ed-fmt').value='wav'`);
 await click('ed-save');
 await sleep(14000);
@@ -301,10 +269,7 @@ if (got.length) {
   const peak = (a, z) => { let m = 0; for (let i = a; i < z; i++) { const x = Math.abs(b.readInt16LE(44 + i * ch * 2)); if (x > m) m = x; } return m / 32768; };
   const dur = n / sr;
   ok('скачивается ВЫДЕЛЕННОЕ, а не весь файл', Math.abs(dur - 30) < 2, `${dur.toFixed(1)} с вместо 30`);
-  // Окно замера берём УЖЕ спада (0,4 с при спаде 1,5 с) и у самого края: там оба спада почти
-  // в нуле, и сравнение говорит именно о них. Раньше окно было в полторы секунды -- ровно
-  // длина спада, -- и в него попадало содержимое записи, из-за чего края «расходились» на
-  // ровном месте.
+
   const edge = Math.max(1, Math.floor(sr * 0.4));
   const pl = peak(0, edge), pm = peak(Math.floor(n * 0.45), Math.floor(n * 0.55)), pr = peak(n - edge, n);
   ok('фейд попал в файл слева', pl < pm * 0.7, `край ${pl.toFixed(3)} против середины ${pm.toFixed(3)}`);
@@ -312,14 +277,12 @@ if (got.length) {
   ok('фейды одинаковые слева и справа', Math.abs(pl - pr) < 0.08, `${pl.toFixed(3)} и ${pr.toFixed(3)}`);
 }
 
-// --- после скачивания звук не должен пропасть -----------------------------------------------------
 await click('ed-play');
 await sleep(1200);
 ok('после скачивания звук ещё играет',
    await q(`document.getElementById('ed-play-ico').innerHTML.includes('M6 5h4')`));
 await click('ed-stop');
 
-// --- новый файл открывается чистым ------------------------------------------------------------------
 await click('ed-close');
 await sleep(600);
 await putFile(WAV_B);
@@ -331,8 +294,6 @@ await sleep(400);
 ok('новый файл: громкость сброшена', (await q(`document.getElementById('ed-vol').value`)) === '0');
 ok('новый файл: своя длительность', (await q(`document.getElementById('ed-h1').textContent`)) === '00:12.0');
 
-// Десять полос эквалайзера обязаны помещаться на телефоне без обрезки. Замерено: на
-// экране 412 ряду нужно было 598 точек при 320 доступных -- половина полос уезжала.
 await send('Emulation.setDeviceMetricsOverride', { width: 412, height: 900, deviceScaleFactor: 2, mobile: true }, S);
 await sleep(600);
 await q(`document.querySelector('.ed-tools-list select') ? (()=>{const s=document.querySelector('.ed-tools-list select');s.value='equalizer';s.dispatchEvent(new Event('change'))})() : document.querySelector('.ed-tool[data-id="equalizer"]').click()`);
@@ -342,8 +303,6 @@ const eqFit = await q(`(()=>{const eq=document.querySelector('.ed-eq');
 ok('эквалайзер помещается на телефоне', eqFit && eqFit.need <= eqFit.have + 2,
    eqFit ? ('нужно ' + eqFit.need + ' при ' + eqFit.have) : 'панель не найдена');
 
-// Черта нуля обязана совпадать с положением ручки при нулевом значении. Дважды не
-// совпадала: отмерялась от всей строки вместе с подписью, а не от самой дорожки.
 await send('Emulation.setDeviceMetricsOverride', { width: 1180, height: 950, deviceScaleFactor: 2, mobile: false }, S);
 await sleep(500);
 await q(`document.querySelector('.ed-tool[data-id="volume"]')?.click()`);
@@ -355,8 +314,6 @@ const midOff = await q(`(()=>{const el=document.getElementById('ed-vol');
   return Math.round(Math.abs(r.left+r.width/2 - (t.left+t.width/2)))})()`);
 ok('черта нуля совпадает с ручкой', midOff != null && midOff <= 3, 'расхождение ' + midOff + ' точек');
 
-// Область захвата ползунка -- не меньше 44 точек: столько нужно пальцу. Раньше она
-// совпадала с шириной дорожки, и по вертикальной полосе приходилось попадать точно.
 await q(`document.querySelector('.ed-tool[data-id="equalizer"]')?.click()`);
 await sleep(600);
 const grab = await q(`(()=>{const i=document.querySelector('#ed-eq input');
@@ -367,7 +324,6 @@ ok('область захвата фейдера под палец', grab && gra
 
 ok('в консоли нет исключений', errors.length === 0, errors.join(' | '));
 
-// ============================ итог ==================================================================
 console.log(`проверок пройдено: ${pass}`);
 if (fails.length) {
   console.log(`НЕ ПРОШЛО: ${fails.length}`);

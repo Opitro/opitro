@@ -1,11 +1,8 @@
-// Central UI-copy dictionary. Binary `locale === 'ru' ? x : y` ternaries don't scale past two
-// languages -- every string lives here once, keyed by locale, so adding a language means
-// filling in one more column instead of hunting down every ternary across the codebase.
+
 export const UI = {
   en: {
     categoriesAriaLabel: 'Categories',
-    // Feedback page. Kept deliberately plain: someone writing here is already annoyed, and
-    // corporate phrasing at that moment reads as a brush-off.
+
     notFoundTitle: 'Page not found',
     notFoundH1: 'No such page',
     notFoundText: 'The address is wrong, or the page has moved. Nothing is broken on your side.',
@@ -402,8 +399,7 @@ export const UI = {
       fadeMovieLabel: 'Movie',
       fadeMusicLabel: 'Music',
       fadeNoneLabel: 'Reset',
-      // One word per band, so it's obvious what a slider actually changes without needing to
-      // know what "250 Hz" sounds like. The title attribute carries the same text on hover.
+
       eqBandRoles: {
         b31: 'Sub-bass', b62: 'Bass', b125: 'Low end', b250: 'Body', b500: 'Mud',
         b1k: 'Voice', b2k: 'Clarity', b4k: 'Attack', b8k: 'Brightness', b16k: 'Air',
@@ -427,7 +423,6 @@ export const UI = {
       downloadResultLabel: 'Download',
       silenceSensitivityLabel: 'Sensitivity',
 
-      // --- Audio to MIDI ---
       midiBestOnLabel: 'Works best on one instrument or one voice at a time — piano, guitar, a hummed melody',
       midiRunLabel: 'Find the notes',
       midiRunningLabel: 'Working…',
@@ -481,7 +476,6 @@ export const UI = {
       midiEmptyLabel: 'No notes found. Raise the sensitivity, or try a recording where the instrument is easier to hear.',
       midiSecShortLabel: 's',
 
-      // --- Speech to text ---
       sttAcceptsLabel: 'MP3, WAV, M4A, OGG, OPUS, FLAC — and video files, the audio track is used',
       sttOrLabel: 'or',
       voiceLeadLabel: 'Press the button and speak. When you stop, what you said is turned into text — you can correct it here and copy it out.',
@@ -550,8 +544,7 @@ export const UI = {
   },
   ru: {
     categoriesAriaLabel: 'Категории',
-    // Страница обратной связи. Нарочно простыми словами: человек, который сюда пишет, уже
-    // раздосадован, и казённые формулировки в этот момент читаются как отписка.
+
     notFoundTitle: 'Страница не найдена',
     notFoundH1: 'Такой страницы нет',
     notFoundText: 'Адрес набран с ошибкой или страница переехала. У вас ничего не сломалось.',
@@ -971,7 +964,6 @@ export const UI = {
       downloadResultLabel: 'Скачать',
       silenceSensitivityLabel: 'Чувствительность',
 
-      // --- Аудио в MIDI ---
       midiBestOnLabel: 'Лучше всего — запись одного инструмента или одного голоса: пианино, гитара, напетая мелодия',
       midiRunLabel: 'Распознать ноты',
       midiRunningLabel: 'Распознаю…',
@@ -1025,7 +1017,6 @@ export const UI = {
       midiEmptyLabel: 'Нот не нашлось. Поднимите чувствительность или возьмите запись, где инструмент слышно отчётливее.',
       midiSecShortLabel: 'с',
 
-      // --- Речь в текст ---
       sttAcceptsLabel: 'MP3, WAV, M4A, OGG, OPUS, FLAC — и видеофайлы, из них берётся звуковая дорожка',
       sttOrLabel: 'или',
       voiceLeadLabel: 'Нажмите кнопку и говорите. Когда остановите — сказанное превратится в текст, его можно поправить здесь же и скопировать.',
@@ -1461,7 +1452,6 @@ export const UI = {
       downloadResultLabel: 'Descargar',
       silenceSensitivityLabel: 'Sensibilidad',
 
-      // --- Audio a MIDI ---
       midiBestOnLabel: 'Funciona mejor con un solo instrumento o una sola voz: piano, guitarra, una melodía tarareada',
       midiRunLabel: 'Sacar las notas',
       midiRunningLabel: 'Trabajando…',
@@ -1515,7 +1505,6 @@ export const UI = {
       midiEmptyLabel: 'No se encontraron notas. Sube la sensibilidad o prueba con una grabación donde el instrumento se oiga más claro.',
       midiSecShortLabel: 's',
 
-      // --- Voz a texto ---
       sttAcceptsLabel: 'MP3, WAV, M4A, OGG, OPUS, FLAC — y archivos de vídeo, de los que se toma la pista de audio',
       sttOrLabel: 'o',
       voiceLeadLabel: 'Pulsa el botón y habla. Cuando pares, lo dicho se convierte en texto: puedes corregirlo aquí mismo y copiarlo.',
@@ -1582,8 +1571,7 @@ export const UI = {
         vtt: 'Subtítulos para la web, para el reproductor de vídeo HTML. Mismos tiempos que el SRT.',
       },    },
     categoriesAriaLabel: 'Categorías',
-    // Página de contacto. A propósito en lenguaje llano: quien escribe aquí ya está molesto,
-    // y en ese momento el lenguaje corporativo suena a evasiva.
+
     notFoundTitle: 'Página no encontrada',
     notFoundH1: 'Esta página no existe',
     notFoundText: 'La dirección tiene un error o la página se ha movido. No es un fallo de tu equipo.',
@@ -2005,7 +1993,6 @@ export const UI = {
       downloadResultLabel: 'Завантажити',
       silenceSensitivityLabel: 'Чутливість',
 
-      // --- Аудіо в MIDI ---
       midiBestOnLabel: 'Найкраще — запис одного інструмента або одного голосу: піаніно, гітара, наспівана мелодія',
       midiRunLabel: 'Розпізнати ноти',
       midiRunningLabel: 'Розпізнаю…',
@@ -2059,7 +2046,6 @@ export const UI = {
       midiEmptyLabel: 'Нот не знайшлося. Підніміть чутливість або візьміть запис, де інструмент чути виразніше.',
       midiSecShortLabel: 'с',
 
-      // --- Мова в текст ---
       sttAcceptsLabel: 'MP3, WAV, M4A, OGG, OPUS, FLAC — і відеофайли, з них береться звукова доріжка',
       sttOrLabel: 'або',
       voiceLeadLabel: 'Натисніть кнопку і говоріть. Коли зупините — сказане перетвориться на текст, його можна виправити тут же і скопіювати.',
@@ -2126,8 +2112,7 @@ export const UI = {
         vtt: 'Субтитри для вебу, для відеоплеєра на сайті. Час той самий, що в SRT.',
       },    },
     categoriesAriaLabel: 'Категорії',
-    // Сторінка зворотного зв'язку. Навмисне простими словами: людина, яка сюди пише, вже
-    // роздратована, і казенні формулювання в цей момент читаються як відписка.
+
     notFoundTitle: 'Сторінку не знайдено',
     notFoundH1: 'Такої сторінки немає',
     notFoundText: 'Адресу набрано з помилкою або сторінка переїхала. У вас нічого не зламалося.',

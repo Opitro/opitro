@@ -1,5 +1,4 @@
-// For conversions with a non-zero reference point (temperature scales), a plain
-// multiply-by-factor is wrong -- this is y = x*scale + offset.
+
 export function convertAffine(value, scale, offset) {
   return value * scale + offset;
 }

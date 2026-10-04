@@ -1,36 +1,15 @@
-/* СТИЛИ СТРАНИЦЫ «ТЕСТ СЛУХА ПО ЧАСТОТАМ».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство:
- *   1. ДВА РАЗНЫХ ДЕЛА. Сверху -- верхняя граница слуха: тон ползёт вверх, человек жмёт
- *      «перестал слышать», и получает число. Ниже -- лесенка частот по одной, для каждого
- *      уха отдельно. Первое отвечает «сколько мне лет по слуху», второе -- «а нет ли
- *      провала на какой-то частоте».
- *   2. КНОПКА ОДНА И БОЛЬШАЯ. Во время подъёма человек слушает, а не разглядывает экран:
- *      промахнуться мимо кнопки нельзя.
- *   3. ЧЕСТНОСТЬ В ВИДЕ. Это не аудиограмма, и страница не притворяется прибором: серые
- *      строки внизу говорят об этом прямо, а не мелким шрифтом в подвале.
- *
- * Цвет свой -- розовый из знака сайта: соседние страницы про звук заняли синий, сиреневый
- * и зелёный.
- */
 
 .сл {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --свой: #ec5f7f;
   --ручки: #58b8f0;
-  /* Цвета ушей -- как в образце: левое синее, правое красное, оба сиреневые. */
+
   --лево: #3b9cff;
   --право: #ff4d6d;
   --оба: #a06bff;
   max-width: 760px; margin: 0 auto; font-family: var(--ui);
 }
 
-/* ---- Подъём ----------------------------------------------------------------------------- */
-
-/* Стекло вместо плотной плашки: полупрозрачная поверхность с размытием под ней и светлой
-   гранью сверху. На нём подписи разборчивее, чем на плотном тёмном фоне. */
 .сл-поле {
   position: relative; border-radius: 20px; padding: 24px 22px 22px; overflow: hidden;
   background: linear-gradient(160deg, rgba(255,255,255,.075), rgba(255,255,255,.028));
@@ -39,7 +18,7 @@
   box-shadow: 0 22px 50px -26px rgba(0,0,0,.95), inset 0 1px 0 rgba(255,255,255,.14);
   display: flex; flex-direction: column; align-items: center; gap: 12px; text-align: center;
 }
-/* Мягкое свечение за числом -- отдельным слоем, чтобы не мылить текст. */
+
 .сл-поле::before {
   content: ""; position: absolute; inset: -30%; pointer-events: none;
   background: radial-gradient(30% 26% at 30% 18%, rgba(88,184,240,.30), transparent 70%),
@@ -53,7 +32,7 @@
 .сл:not(.идёт):not(.готово) .сл-число { color: rgba(214,219,230,.32); text-shadow: none }
 .сл-ед { margin-top: -8px; font: 700 13px var(--ui); color: var(--muted);
   letter-spacing: .06em; text-transform: uppercase }
-/* Место под вывод готово заранее -- страница не дёргается, когда он появляется. */
+
 .сл-вывод { min-height: 40px; max-width: 44ch; font-size: 13px; line-height: 1.55;
   color: rgba(226,232,246,.82) }
 .сл-вывод b { color: var(--text) }
@@ -73,12 +52,10 @@
 }
 .сл-го:hover { box-shadow: 0 0 36px rgba(59,156,255,.75); transform: translateY(-1px) }
 .сл-го:active { transform: translateY(1px) }
-/* Тихая -- для второстепенного действия: она не должна спорить с главной. */
+
 .сл-го.тихая { background: rgba(255,255,255,.06); border-color: rgba(255,255,255,.2);
   box-shadow: none; color: var(--text) }
 .сл-го.тихая:hover { box-shadow: 0 0 20px rgba(255,255,255,.14) }
-
-/* ---- Проверка по частотам ---------------------------------------------------------------- */
 
 .сл-к { font-size: 10.5px; font-weight: 700; letter-spacing: .14em; text-transform: uppercase;
   color: rgba(233,237,246,.88); margin: 18px 0 8px; display: block }
@@ -92,9 +69,9 @@
 }
 .сл-ухоКн.вкл { border-color: rgba(236,95,127,.6); color: var(--свой) }
 .сл-ико { display: flex; line-height: 0; gap: 2px; opacity: .85 }
-/* Ухо с дугами шире, чем было у динамика, поэтому значок чуть выше. */
+
 .сл-ико svg { width: auto; height: 40px; display: block }
-/* Пока идёт звук в это ухо, дуги вспыхивают по очереди -- та же повадка, что у динамиков. */
+
 .сл-ухоКн.вкл .сл-в1 { animation: сл-волна .36s ease-in-out infinite }
 .сл-ухоКн.вкл .сл-в2 { animation: сл-волна .36s ease-in-out .09s infinite }
 @keyframes сл-волна { 0%,70%,100% { opacity: .18 } 25% { opacity: 1 } }
@@ -104,7 +81,6 @@
 .сл-зеркало { display: block; line-height: 0; transform: scaleX(-1) }
 .сл-ухоКн.вкл .сл-ико { opacity: 1 }
 
-/* Проверка громкости: маленькая кнопка и пояснение рядом -- это подготовка, а не действие. */
 .сл-подготовка { display: flex; flex-wrap: wrap; align-items: center; gap: 12px;
   padding: 12px 14px; border-radius: 12px; background: var(--surface-2);
   border: 1px solid var(--line) }
@@ -119,15 +95,14 @@
   background: linear-gradient(160deg, rgba(255,255,255,.06), rgba(255,255,255,.022));
   -webkit-backdrop-filter: blur(14px); backdrop-filter: blur(14px);
   display: flex; flex-direction: column; align-items: center; gap: 12px }
-/* Место под строку шага стоит всегда: она появляется и исчезает, а страница не дёргается. */
+
 .сл-шаг { min-height: 18px; font: 700 12.5px var(--ui); color: var(--свой);
   letter-spacing: .02em; text-align: center }
 .сл-нить { width: 100%; height: 4px; border-radius: 3px; background: rgba(255,255,255,.07);
   overflow: hidden }
 .сл-нить i { display: block; height: 100%; width: 100%; background: var(--свой);
   transform: scaleX(0); transform-origin: left; transition: transform .12s linear }
-/* «Слышу» -- пульсар: во время подъёма звука он дышит и пускает кольца. Так видно, что
-   идёт замер, не отрывая внимания от слуха. */
+
 .сл-пульсар { position: relative; width: 150px; height: 150px; display: grid; place-items: center }
 .сл-пульсар[hidden] { display: none }
 .сл-кольцо { position: absolute; inset: 12px; border-radius: 50%;
@@ -143,9 +118,7 @@
   animation: сл-дышит 2.4s ease-in-out infinite;
 }
 @keyframes сл-дышит { 0%,100% { transform: scale(1) } 50% { transform: scale(1.045) } }
-/* Отклик на нажатие: кнопка проваливается и тут же вспыхивает белым, а поверх идёт
-   расходящееся кольцо. Без отклика человек не понимает, засчитали его или нет: звук
-   просто прекращается, а это может значить и «записано», и «сломалось». */
+
 .сл-слышу.принято {
   animation: сл-принято .42s ease-out;
   border-color: #fff; color: #fff;
@@ -156,8 +129,7 @@
   45% { transform: scale(1.06) }
   100% { transform: scale(1) }
 }
-/* Вместо галочки -- расходящееся кольцо: отклик виден боковым зрением и не закрывает
-   слово на кнопке. */
+
 .сл-слышу.принято::after {
   content: ""; position: absolute; inset: -6px; border-radius: 50%;
   border: 2px solid rgba(255,255,255,.85); pointer-events: none;
@@ -167,12 +139,12 @@
   0% { opacity: .9; transform: scale(.92) }
   100% { opacity: 0; transform: scale(1.35) }
 }
-/* Цвет пульсара идёт за ухом: слева синий, справа красный. */
+
 .сл.левое .сл-слышу { box-shadow: 0 0 34px rgba(59,156,255,.55), inset 0 1px 0 rgba(255,255,255,.25) }
 .сл.правое .сл-слышу { box-shadow: 0 0 34px rgba(255,77,109,.55), inset 0 1px 0 rgba(255,255,255,.25) }
 .сл.левое .сл-шаг { color: var(--лево) }
 .сл.правое .сл-шаг { color: var(--право) }
-/* Свечение выбранного уха разное: левое синее, правое красное -- как в аудиологии. */
+
 .сл-ухоКн[data-ухо="-1"].вкл { border-color: rgba(59,156,255,.6); color: var(--лево);
   box-shadow: 0 0 26px rgba(59,156,255,.35), inset 0 0 22px rgba(59,156,255,.12) }
 .сл-ухоКн[data-ухо="1"].вкл { border-color: rgba(255,77,109,.6); color: var(--право);

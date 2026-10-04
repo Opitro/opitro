@@ -1,15 +1,4 @@
-/* СКАНЕР EXIF -- ТОТ ЖЕ СТРОЙ, ЧТО У СКАНЕРОВ КОДОВ.
- *
- * Человек ходит между сканерами рубрики, и второй вид ему пришлось бы учить заново. Поэтому
- * здесь всё то же: чёрное поле приёма, моноширинный шрифт, ответ карточкой с зелёными
- * подписями. Разница только в устройстве: камеры тут нет, читается готовый файл.
- */
 
-/* СПРЯТАННОЕ ПРЯЧЕТСЯ ВСЕГДА -- ОДНИМ ПРАВИЛОМ НА ВЕСЬ ФАЙЛ.
-   Ловушка ловила меня здесь пять раз: у элемента есть свой display, и [hidden] из таблицы
-   браузера ему проигрывает -- спрятанное остаётся на виду. В последний раз так получилось
-   две кнопки подряд: «Убрать эти данные» и «Удалить EXIF», хотя вторая должна была уйти.
-   Дальше правило работает само, и о нём можно не помнить. */
 .эк [hidden] { display: none !important }
 
 .эк {
@@ -19,9 +8,6 @@
   font-family: var(--мон);
 }
 
-/* ---- Поле приёма ------------------------------------------------------------------------------
-   Высота постоянная: после выбора файла на её месте появляется сам снимок, и подпрыгивать
-   странице незачем. */
 .эк-поле {
   position: relative; height: 200px; width: 100%; overflow: hidden;
   display: flex; align-items: center; justify-content: center;
@@ -30,27 +16,20 @@
   transition: border-color .2s, background .2s;
 }
 .эк-поле.держат { border-color: #fff; background: #111114 }
-/* Зелёной вспышки окна больше нет: решение владельца. Отклик даёт сама кнопка, по которой
-   нажали, -- а мигать целым экраном при каждом действии утомительно. */
 
 .эк-поле img {
   position: absolute; inset: 0; width: 100%; height: 100%; display: block;
   object-fit: contain; background: #000;
 }
-/* Правило display выше сильнее, чем display:none из таблицы браузера для [hidden]. */
+
 .эк-поле img[hidden] { display: none }
 
-/* ПОЛЯ ВЫБОРА ФАЙЛА прячем не display:none, а уводом за край: у некоторых браузеров
-   спрятанное поле выбора всё равно рисуется собственной кнопкой, и она всплывает поверх
-   страницы. Такое поле остаётся рабочим -- по нему кликает код, -- но его не видно. */
 .эк-файл {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
   clip-path: inset(50%); overflow: hidden; white-space: nowrap; opacity: 0;
   pointer-events: none;
 }
 
-/* Плитки выбора: готовый файл и -- на телефоне -- съёмка родной камерой. Значок и подпись
-   под ним, как у сканеров кодов. */
 .эк-центр { position: relative; display: flex; flex-direction: column; align-items: center;
   gap: 10px; padding: 0 16px; text-align: center }
 .эк-ряд { display: flex; align-items: stretch; justify-content: center; gap: 14px }
@@ -62,12 +41,7 @@
   font: 400 13px var(--мон);
   transition: border-color .15s, background .15s, transform .12s;
 }
-/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ, И БЕЗ ОГОВОРОК. display из этих правил сильнее, чем
-   display:none из таблицы браузера для [hidden], поэтому правило нужно своё. Пишем с
-   !important и закрываем обе стороны -- саму плитку и её обёртку: владелец прислал снимок
-   экрана, где плитка «Выбрать снимок» осталась висеть поверх страницы и ездила за
-   прокруткой, хотя у меня в Chrome она исчезала. Такую беду лечат наверняка, а не «у меня
-   же работает». */
+
 .эк-выбор[hidden], .эк-центр[hidden], .эк-ряд[hidden] { display: none !important }
 .эк-выбор:hover { border-color: #fff; background: rgba(255,255,255,.09); transform: translateY(-2px) }
 .эк-выбор:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
@@ -87,8 +61,6 @@
 .эк-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
-
-/* ---- Ответ ------------------------------------------------------------------------------------ */
 .эк-ответ { margin-top: 18px; display: flex; flex-direction: column; gap: 12px }
 .эк-ответ:empty { display: none }
 
@@ -97,9 +69,7 @@
 .эк-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
   padding: 12px 13px; display: flex; flex-direction: column; gap: 7px;
   animation: эк-явился .28s cubic-bezier(.2,.7,.3,1) both }
-/* Полоска под названием карточки: глаз цепляется за неё и сразу видит, где кончается одна
-   опись и начинается другая. Длина -- по самому слову: во всю карточку линия делила ответ на
-   полосы и спорила с рамкой (решение владельца). */
+
 .эк-вид { font: 400 10.5px var(--мон); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent); align-self: flex-start;
   padding-bottom: 6px; border-bottom: 1px solid rgba(74,222,158,.45) }
@@ -108,17 +78,12 @@
 .эк-пары dt { color: var(--accent) }
 .эк-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
 
-/* Карточка «ничего не записано» -- розовая, как «кода не видно» у сканеров. */
 .эк-мимо { border-color: rgba(255,154,168,.5); background: rgba(255,154,168,.07) }
 .эк-мимо .эк-вид { color: var(--беда, #ff9aa8); border-bottom-color: rgba(255,154,168,.35) }
 .эк-пояснение { font: 400 12.5px/1.55 var(--мон); color: #fff }
 
-/* Место съёмки выделено: это самое ценное и самое личное, что бывает в снимке. */
 .эк-место { border-color: rgba(74,222,158,.4) }
 
-/* «Посмотреть на карте» и «Скопировать координаты» -- это ДЕЙСТВИЯ, а не слова в тексте.
-   Простым подчёркиванием они сливались с соседними строками (владелец на это и указал),
-   поэтому у них своя рамка: видно, что сюда можно нажать. */
 .эк-ссылка {
   display: inline-flex; align-items: center; gap: 6px;
   padding: 7px 13px; border-radius: 8px; cursor: pointer;
@@ -130,7 +95,6 @@
   background: rgba(74,222,158,.10) }
 .эк-ссылка:focus-visible { outline: 2px solid var(--accent); outline-offset: 2px }
 
-/* Кнопка «показать всё»: остальные поля снимка, как они записаны. */
 .эк-ещё {
   align-self: flex-start; padding: 8px 14px; cursor: pointer; border-radius: 8px;
   background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #d4d4d8;
@@ -138,7 +102,7 @@
 }
 .эк-ещё:hover { color: #fff; border-color: #fff; background: rgba(255,255,255,.09) }
 .эк-ещё[hidden] { display: none }
-/* Спрятанный список полей: правило нужно своё, потому что у карточки свой display. */
+
 .эк-всё-поля[hidden] { display: none }
 
 .эк-беда { margin-top: 12px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
@@ -147,8 +111,7 @@
 .эк-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 10px }
 .эк-заметка { font: 400 13px/1.65 var(--мон); color: #c9c9d1 }
 .эк-заметка b { color: #fff; font-weight: 400 }
-/* Ссылки в заметках и пояснениях -- цветом сайта, а не тёмно-синим из таблицы браузера:
-   на чёрном фоне синее почти не читается. Владелец на это и указал. */
+
 .эк-заметка a, .эк-пояснение a, .эк-увод a {
   color: var(--accent); text-decoration: underline; text-underline-offset: 3px;
 }
@@ -163,14 +126,10 @@
   .эк-итог { animation: none }
 }
 
-/* ---- Уборка полей ------------------------------------------------------------------------------
-   Кнопка скачивания, галочка про поворот и строка о том, что снимок не пережимается. Место под
-   всё это занято заранее: блок появляется после выбора файла, а не сдвигает текст под собой. */
 .эк-уборка { margin-top: 14px; display: flex; flex-direction: column; gap: 10px }
 .эк-мелко { margin-top: 10px }
 .эк-уборка[hidden] { display: none }
-/* ДЕЙСТВИЯ -- спокойные, без зелёного: зелёное на сайте означает «получилось», а тут только
-   начало работы. Стоят сразу под снимком. */
+
 .эк-дело {
   padding: 12px 18px; cursor: pointer; border-radius: 8px;
   background: rgba(255,255,255,.04); border: 1px solid var(--контур); color: #fff;
@@ -180,26 +139,20 @@
 .эк-дело[disabled] { cursor: not-allowed; color: #6b6b73; border-color: #26262c;
   background: rgba(255,255,255,.02) }
 
-/* «Сохранить» стоит в ряду действий: поверх ленты снимков ей места нет. */
 .эк-низ { display: inline-flex }
 .эк-низ[hidden] { display: none }
-/* Белая, а не зелёная: на тёмном снимке белое читается при любом кадре, а зелёное спорит с
-   зеленью на фотографии. Решение владельца. */
+
 .эк-сохранить {
   padding: 11px 22px; cursor: pointer; border-radius: 8px;
   display: inline-flex; align-items: center; gap: 8px;
   background: #fff; border: 1px solid #fff; color: #0b0c0f;
-  /* Моноширинный шрифт даёт пробел шириной с букву: между словами получались провалы.
-     Жмём и буквы, и пробелы -- надпись читается одним куском. */
+
   font: 700 14px var(--мон); letter-spacing: -.045em; word-spacing: -.28em;
   box-shadow: 0 6px 22px rgba(0,0,0,.45);
   transition: background .15s, border-color .15s;
 }
 .эк-сохранить:hover { background: #e9ecef; border-color: #e9ecef }
 
-/* НА ТЕЛЕФОНЕ РЯД ДОЛЖЕН ОСТАТЬСЯ ОДНОЙ СТРОКОЙ. «Удалено» и «ZIP: 3 снимка» вдвоём не
-   влезали в 390 точек, и архив уезжал под погасшую кнопку. Поджимаем поля, а не надписи:
-   читаться они должны так же. */
 @media (max-width: 560px) {
   .эк-дело { padding: 12px 9px; font-size: 12px }
   .эк-сохранить { padding: 11px 11px; gap: 6px }
@@ -209,24 +162,16 @@
 .эк-галка input { width: 16px; height: 16px; accent-color: var(--accent); cursor: pointer }
 .эк-мелко { font: 400 12px/1.55 var(--мон); color: var(--серый); margin: 0; max-width: 680px }
 
-/* ---- Ход работы и строка состояния -------------------------------------------------------------
-   Замысел владельца: тонкая полоса по нижнему краю окна наливается в миг уборки, рамка на
-   секунду вспыхивает, а под окном строкой говорится, чем дело кончилось. */
 .эк-полоса { position: absolute; left: 0; bottom: 0; height: 1px; width: 0; background: #fff;
   transition: width .45s ease-out; opacity: 0 }
 .эк-полоса.идёт { opacity: 1 }
 
-
-/* ПОДПОЛЬЕ -- строка прямо под снимком: сперва счёт зелёным, следом -- что делать дальше.
-   Слова «Статус» нет: подпись занимала место и ничего не добавляла. */
 .эк-подпол { margin-top: 10px; display: flex; flex-wrap: wrap; gap: 4px 10px;
   align-items: baseline; padding: 2px }
 .эк-счёт-строка { color: var(--accent); font: 400 13px/1.5 var(--мон) }
 .эк-состояние { font: 400 13px/1.5 var(--мон); color: #fff; min-width: 0 }
 .эк-состояние:empty { display: none }
 
-/* Вычеркнутое: по завершении убранные поля гаснут и перечёркиваются -- одно за другим, так
-   что видно, ЧТО именно ушло. Место они занимают прежнее, ничего не съезжает. */
 @keyframes эк-вычерк { from { opacity: 1 } to { opacity: .45 } }
 .эк-пары dd.ушло, .эк-пары dt.ушло { animation: эк-вычерк .3s ease-out both }
 .эк-пары dd.ушло { text-decoration: line-through; text-decoration-color: var(--беда, #ff9aa8) }
@@ -242,20 +187,14 @@
   .эк-полоса { transition: none }
 }
 
-/* Увод на соседнюю страницу: посмотрел, что внутри, -- и тут же может это убрать. Стоит под
-   ответом, потому что до ответа предлагать нечего. */
 .эк-увод { margin-top: 14px; font: 400 13px/1.6 var(--мон); color: #c9c9d1 }
 
-/* ---- Выбор полей -------------------------------------------------------------------------------
-   Каждое поле снимка -- своей строкой с галочкой: человек решает сам, что убрать, а что
-   оставить. Замысел владельца: «может, я не хочу удалять всё». */
 .эк-выбор-полей { gap: 2px }
 .эк-ряд-поля { display: grid; grid-template-columns: minmax(0, 170px) minmax(0, 1fr) 32px;
   gap: 4px 10px; align-items: center; padding: 2px 4px;
   font: 400 12.5px/1.45 var(--мон); border-radius: 6px }
 .эк-ряд-поля:hover { background: rgba(255,255,255,.04) }
-/* Корзинка у каждой строки: нажал -- поле вычеркнуто из будущего файла, нажал ещё раз --
-   вернулось. Держим её видимой всегда: на телефоне наведения не бывает. */
+
 .эк-корзина {
   width: 30px; height: 30px; padding: 0; cursor: pointer; border-radius: 7px; justify-self: end;
   display: inline-flex; align-items: center; justify-content: center;
@@ -271,8 +210,6 @@
 .эк-поле-имя { color: var(--accent) }
 .эк-поле-знач { color: #fff; overflow-wrap: anywhere }
 
-/* Итог работы видно построчно: убранное гаснет и перечёркивается, оставленное вспыхивает
-   зелёным. Ни то ни другое не меняет размеров -- только цвет и прозрачность. */
 .эк-ряд-поля.ушло { opacity: .45 }
 .эк-ряд-поля.ушло .эк-поле-знач { text-decoration: line-through;
   text-decoration-color: var(--беда, #ff9aa8) }
@@ -283,11 +220,9 @@
 }
 .эк-ряд-поля.осталось { background: rgba(74,222,158,.12) }
 .эк-ряд-поля.осталось .эк-поле-знач { color: var(--accent) }
-/* Две кнопки внизу: «убрать всё» и «скачать». Скачивание -- главное, поэтому оно зелёное. */
+
 .эк-кнопки { display: flex; flex-wrap: wrap; gap: 10px; align-items: center }
 
-
-/* Имя будущего файла: правится прямо в строке, по карандашу. */
 .эк-имя-ряд { display: flex; align-items: center; gap: 8px }
 .эк-имя-поле {
   flex: 1 1 auto; min-width: 0; background: none; border: 1px solid transparent; color: #fff;
@@ -304,25 +239,20 @@
 .эк-кар svg { width: 14px; height: 14px; fill: none; stroke: currentColor; stroke-width: 1.6;
   stroke-linecap: round; stroke-linejoin: round }
 
-/* Счётчик полей поверх снимка -- как у соседей: цифра видна раньше, чем прочитан список. */
 .эк-счёт {
   position: absolute; left: 10px; top: 10px; z-index: 2; pointer-events: none;
   font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
   border: 1px solid rgba(255,255,255,.28); border-radius: 6px; padding: 5px 9px;
 }
 .эк-счёт:empty { display: none }
-/* После уборки счётчик говорит итог и красится зелёным: дело сделано. */
+
 .эк-счёт.готово { color: var(--accent); border-color: var(--accent);
   background: rgba(8,19,13,.75) }
 
-/* Полный список полей: читается, но не редактируется -- собирает файл наш код, а этот
-   разбор шире нашего и приходит от чужой библиотеки. */
 .эк-всё-поля .эк-пары { grid-template-columns: minmax(0, 230px) minmax(0, 1fr) }
 .эк-подгруппа { margin-top: 8px; font: 400 11px var(--мон); letter-spacing: .06em;
   text-transform: uppercase; color: var(--серый) }
 
-
-/* Который снимок из скольких -- внизу по центру кадра. */
 .эк-номер {
   position: absolute; left: 50%; bottom: 10px; transform: translateX(-50%); z-index: 2;
   font: 400 12px var(--мон); color: #fff; background: rgba(0,0,0,.6);
@@ -331,12 +261,6 @@
 }
 .эк-номер[hidden] { display: none }
 
-
-
-/* ---- ЛЕНТА СНИМКОВ -----------------------------------------------------------------------------
-   Все загруженные на виду: на каждой плитке имя, крупное число тегов и крестик. Выбранная
-   обведена -- её разбор показан ниже. Плиток может быть двадцать, поэтому лента
-   прокручивается вбок, а не сжимает картинки в марки. */
 .эк-лента {
   position: absolute; inset: 0; z-index: 1;
   display: flex; gap: 10px; align-items: stretch; padding: 10px;
@@ -355,10 +279,8 @@
   opacity: .55 }
 .эк-плитка.выбрана img { opacity: .75 }
 
-/* Имя -- сверху, числа -- посередине: так у соседей, и цифру видно раньше слов. */
 .эк-плитка-имя {
-  /* Кончается ДО крестика, а не подлезает под него: иначе имя и крестик стоят друг на друге,
-     и на узком экране это видно. */
+
   position: absolute; left: 0; right: 30px; top: 0; z-index: 2; padding: 5px 6px;
   font: 400 10.5px var(--мон); color: #fff; background: linear-gradient(rgba(0,0,0,.75), transparent);
   overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;
@@ -371,7 +293,7 @@
   text-shadow: 0 2px 10px rgba(0,0,0,.9) }
 .эк-плитка-счёт i { font: 400 11px var(--мон); font-style: normal; color: #fff;
   text-shadow: 0 1px 6px rgba(0,0,0,.9) }
-/* Очищенный снимок -- зелёными числами: дело по нему сделано. */
+
 .эк-плитка-счёт.готово b, .эк-плитка-счёт.готово i { color: var(--accent) }
 
 .эк-плитка-крест {
@@ -389,14 +311,11 @@
   .эк-плитка-счёт b { font-size: 26px }
 }
 
-/* Значок скачивания у очищенного снимка -- внизу по центру плитки. Слово тут лишнее: значок
-   понятен без чтения и не спорит с числом посередине. */
 .эк-плитка-качать {
   position: absolute; left: 50%; bottom: 6px; transform: translateX(-50%); z-index: 3;
   width: 30px; height: 26px; display: inline-flex; align-items: center; justify-content: center;
   border-radius: 7px; cursor: pointer;
-  /* Не зелёный: зелени на плитке и так довольно -- числом. Значок просто белый на тёмном,
-     его видно, и он не спорит с итогом. */
+
   background: rgba(0,0,0,.65); border: 1px solid rgba(255,255,255,.45); color: #fff;
   transition: background .15s, border-color .15s;
 }

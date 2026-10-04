@@ -1,9 +1,3 @@
-/* СКАНЕР ЦВЕТА -- ТОТ ЖЕ СТРОЙ, ЧТО У ОСТАЛЬНЫХ СКАНЕРОВ РУБРИКИ.
- *
- * Чёрное окно, две плитки выбора, моноширинный шрифт, ответ карточкой с зелёными подписями.
- * Разница одна: здесь человек не ищет код, а тычет в точку -- поэтому в окне живёт прицел с
- * настоящим цветом внутри, а не рамка для наводки.
- */
 
 .цв {
   --мон: SFMono-Regular, ui-monospace, Menlo, Consolas, monospace;
@@ -19,13 +13,7 @@
   box-shadow: inset 0 0 0 1px rgba(255,255,255,.06);
   transition: border-color .2s;
 }
-/* Зелёной вспышки окна больше нет: она красила весь кадр цветом «получилось» там, где
-   результат и так очевиден, и спорила с самим взятым оттенком. Отклик теперь -- кольцо
-   от прицела, см. .цв-эхо. */
 
-/* КОЛЬЦО ОТ ПРИЦЕЛА: расходится из точки, куда ткнули, и окрашено в ТОТ САМЫЙ цвет, который
-   человек только что взял. Отклик стоит на месте действия, ничего не двигает и ничего не
-   перекрашивает -- чистый CSS, одна анимация, никаких библиотек. */
 .цв-эхо {
   position: absolute; z-index: 3; width: 54px; height: 54px; border-radius: 50%;
   margin: -27px 0 0 -27px; pointer-events: none; opacity: 0;
@@ -41,12 +29,9 @@
   position: absolute; inset: 0; width: 100%; height: 100%; display: block; object-fit: cover;
 }
 .цв-окно video[hidden], .цв-окно img[hidden] { display: none }
-/* По застывшему кадру тыкают пальцем -- курсор об этом и говорит. */
+
 .цв-окно img { cursor: crosshair }
 
-/* ПРИЦЕЛ С ЖИВЫМ ЦВЕТОМ ВНУТРИ. Кружок показывает то, что сейчас под ним: человек видит
-   цвет раньше, чем нажмёт, и целится не вслепую. Белое кольцо и чёрная тень -- чтобы кружок
-   был виден и на белой стене, и на чёрной обложке. */
 .цв-прицел {
   position: absolute; z-index: 2; width: 54px; height: 54px; border-radius: 50%;
   transform: translate(-50%, -50%); pointer-events: none;
@@ -54,7 +39,7 @@
   background: transparent;
 }
 .цв-прицел[hidden] { display: none }
-/* Точка ровно по центру прицела: она и есть то место, откуда берётся цвет. */
+
 .цв-прицел::after {
   content: ''; position: absolute; left: 50%; top: 50%; width: 4px; height: 4px;
   margin: -2px 0 0 -2px; border-radius: 50%; background: #fff;
@@ -92,13 +77,9 @@
 .цв-крест svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round }
 
-/* Затвор -- как на сканерах кодов: круглая кнопка внизу кадра. Здесь она не «снимает», а
-   останавливает картинку, чтобы можно было спокойно ткнуть в нужную точку. */
 .цв-затвор-ряд { position: absolute; left: 0; right: 0; bottom: 12px; z-index: 3;
   display: flex; justify-content: center }
-/* СПРЯТАННОЕ ДОЛЖНО ИСЧЕЗАТЬ: правило display выше сильнее, чем display:none из таблицы
-   браузера для [hidden]. Без этой строки затвор оставался лежать поверх застывшего кадра --
-   ровно та же ловушка, что уже ловила на сканерах кодов. */
+
 .цв-затвор-ряд[hidden] { display: none }
 .цв-затвор {
   width: 58px; height: 58px; border-radius: 50%; cursor: pointer; flex: none;
@@ -109,19 +90,12 @@
 .цв-затвор:hover i { background: #e9ecef }
 .цв-затвор[hidden] { display: none }
 
-/* Поле выбора файла уводим за край, а не гасим display:none: Safari на iPhone рисует такое
-   поле собственной кнопкой, и она всплывает поверх страницы и ездит за прокруткой. По коду
-   поле остаётся рабочим -- по нему кликает кнопка рядом. */
 .цв-файл {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
   clip-path: inset(50%); overflow: hidden; white-space: nowrap; opacity: 0;
   pointer-events: none;
 }
 
-/* ---- Первый экран ------------------------------------------------------------------------------
-   Приглашение вместо пустого чёрного окна. По первому экрану судят обо всём инструменте, и
-   показывать в нём пустоту незачем: человеку нужны два действия и понятное место, куда можно
-   бросить фото. Рамка пунктиром -- общепринятый знак «сюда можно перетащить». */
 @media (max-width: 560px) {
   .цв-старт { padding: 24px 14px 22px }
   .цв-старт .цв-выбор { width: 132px }
@@ -133,7 +107,7 @@
   transition: border-color .18s, background .18s;
 }
 .цв-старт[hidden] { display: none !important }
-/* Файл тащат над зоной -- она отзывается: рамка сплошная и зелёная, как «сюда». */
+
 .цв-старт.держат { border-color: var(--accent); border-style: solid;
   background: rgba(74,222,158,.06) }
 .цв-старт-знак { width: 34px; height: 34px; fill: none; stroke: var(--accent); stroke-width: 1.4;
@@ -144,23 +118,17 @@
 .цв-старт-ряд { display: flex; gap: 12px; flex-wrap: wrap; justify-content: center }
 .цв-старт .цв-выбор { width: 150px }
 
-/* Спрятанное окно должно исчезать: у него свой display, и [hidden] из таблицы браузера ему
-   проигрывает -- на этом я уже попадался на сканере MRZ. */
 .цв .цв-окно[hidden] { display: none !important }
 
-/* ---- Ответ ------------------------------------------------------------------------------------ */
 @keyframes цв-проявился { from { opacity: 0 } to { opacity: 1 } }
 
 .цв-ответ { margin-top: 18px }
 .цв-ответ:empty { display: none }
-/* Карточка НЕ выезжает при каждом замере: она одна и та же, меняются только значения.
-   Прежде на каждое нажатие она пересоздавалась и заново подпрыгивала снизу -- владелец
-   попросил убрать это дёрганье. Появление первого ответа осталось мягким, но без сдвига:
-   только проявление. */
+
 .цв-итог { border: 1px solid var(--контур); border-radius: 10px; background: #16181d;
   padding: 12px 13px; display: flex; gap: 14px; align-items: flex-start;
   animation: цв-проявился .22s ease-out both }
-/* Сам цвет -- крупным пятном: ради него и пришли, и сравнивать глазами надо именно пятно. */
+
 .цв-пятно { flex: none; width: 86px; height: 86px; border-radius: 8px;
   border: 1px solid rgba(255,255,255,.25);
   transition: background-color .28s cubic-bezier(.4,0,.2,1) }
@@ -184,14 +152,12 @@
 .цв-копи svg { width: 16px; height: 16px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
 .цв-копи .галка { display: none }
-/* Ниже наведения нарочно: рука в этот миг лежит на кнопке, и белая рамка перебивала бы
-   зелёную -- при равной силе побеждает записанное ниже. */
+
 .цв-копи.готово { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.12) }
 .цв-копи.готово:hover { color: var(--accent); border-color: var(--accent); background: rgba(74,222,158,.18) }
 .цв-копи.готово .лист { display: none }
 .цв-копи.готово .галка { display: block }
 
-/* Взятые цвета: полоска последних, чтобы сравнить два-три оттенка, не переписывая их. */
 .цв-набор { display: flex; flex-wrap: wrap; gap: 8px; margin-top: 12px }
 .цв-набор:empty { display: none }
 .цв-кроха {

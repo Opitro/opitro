@@ -1,15 +1,3 @@
-/* СТИЛИ СТРАНИЦЫ «СКАНЕР ШТРИХКОДОВ».
- *
- * Файл принадлежит одной странице и подключается только ею. Вид -- родня сканеру QR: страницы
- * ссылаются друг на друга, и человек должен видеть, что попал в тот же дом.
- *
- * Решения владельца, которые здесь соблюдены:
- *   -- поля СВЕТЛЕЕ фона страницы, а не чёрные;
- *   -- выбранное помечается ТОЛЬКО обводкой, без заливки;
- *   -- буквы плотные, приглушённых подписей нет;
- *   -- кнопки НЕ растягиваются на всю ширину на телефоне: кнопка должна выглядеть кнопкой;
- *   -- камеру включает сам значок фотоаппарата, отдельной кнопки «включить» нет.
- */
 
 .скш {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
@@ -18,8 +6,6 @@
   --беда: #ff9aa8;
   font-family: var(--цифры);
 }
-
-/* ---- Пульт -------------------------------------------------------------------------------- */
 
 .скш-пульт { display: flex; flex-wrap: wrap; gap: 10px 18px; align-items: center;
   margin-bottom: 12px }
@@ -37,21 +23,16 @@
 .скш-выбор.выбран { border-color: var(--accent); color: var(--accent); font-weight: 700 }
 .скш-выбор.выбран:hover { border-color: var(--accent); color: var(--accent) }
 
-/* Значок фотоаппарата -- он же выключатель камеры. Отдельной кнопки «включить» нет: человек
-   нажимает на камеру и получает камеру, а не два нажатия подряд ради одного действия.
-   Квадратный, чтобы читался как значок, а не как обрезанная надпись. */
 .скш-глаз { width: 46px; padding: 0 }
 .скш-глаз svg { width: 21px; height: 21px; display: block; fill: none; stroke: currentColor;
   stroke-width: 1.7; stroke-linecap: round; stroke-linejoin: round }
 .скш-глаз .стоп { display: none }
 .скш-глаз.идёт .идёт-нет { display: none }
 .скш-глаз.идёт .стоп { display: block }
-/* Камера в работе -- значок красный: понятно, что нажатие её выключит, а не включит ещё раз. */
+
 .скш-глаз.идёт { border-color: var(--беда); color: var(--беда) }
 .скш-глаз.идёт:hover { border-color: var(--беда); color: var(--беда); background: rgba(255,154,168,.10) }
 
-/* Переход на соседний сканер. Приглушённая обводка: это выход со страницы, а не главное
-   действие на ней. */
 .скш-сосед {
   display: inline-flex; align-items: center; gap: 8px; margin-left: auto; flex: none;
   height: 38px; padding: 0 14px; border-radius: 6px; text-decoration: none;
@@ -61,12 +42,10 @@
 .скш-сосед:hover { border-color: #fff; background: #1c1f26 }
 .скш-сосед svg { width: 15px; height: 15px; fill: currentColor; flex: none }
 .скш-кратко { display: none }
-/* Значок файла -- пара к значку фотоаппарата: две кнопки одного ряда должны выглядеть роднёй. */
+
 .скш-выбор svg { width: 17px; height: 17px; flex: none; display: block; fill: none;
   stroke: currentColor; stroke-width: 1.6; stroke-linecap: round; stroke-linejoin: round }
 .скш-глаз svg { width: 21px; height: 21px }
-
-/* ---- Поля --------------------------------------------------------------------------------- */
 
 .скш-пара { display: grid; grid-template-columns: 1fr; gap: 14px; align-items: start }
 
@@ -75,8 +54,6 @@
 .скш-глазок video { width: 100%; height: 100%; object-fit: cover; display: block }
 .скш-глазок canvas { display: none }
 
-/* Прицел здесь -- ДВЕ горизонтальные скобки, а не четыре уголка как у QR. Штрихкод длинный
-   и низкий, и рамка квадратом заставляла бы наводить неправильно. */
 .скш-прицел { position: absolute; inset: 34% 10%; pointer-events: none }
 .скш-прицел i { position: absolute; top: 0; bottom: 0; width: 20px; border: 2px solid #fff;
   opacity: .85 }
@@ -84,16 +61,11 @@
 .скш-прицел i:nth-child(2) { right: 0; border-left: 0; border-radius: 0 4px 4px 0 }
 .скш-глазок.нашёл .скш-прицел i { border-color: var(--accent); opacity: 1 }
 
-/* ---- Снимок: стоп-кадр, луч, затвор ---------------------------------------------------------
-   Живая камера на iPhone полос не ловит -- там нет встроенного распознавателя, а тяжёлый
-   таскать на каждый кадр нельзя. Поэтому снимок: кадр застывает, и по нему уже можно
-   работать всерьёз. Заодно человек видит, ЧТО именно разбирают. */
 .скш-кадр { position: absolute; inset: 0; width: 100%; height: 100%; object-fit: cover;
   display: none }
 .скш-глазок.снимок .скш-кадр { display: block }
 .скш-глазок.снимок video { visibility: hidden }
 
-/* Луч. Идёт сверху вниз, пока ищется код; за ним светящийся шлейф. */
 .скш-луч { position: absolute; left: 0; right: 0; height: 96px; pointer-events: none;
   opacity: 0; background: linear-gradient(to bottom,
     rgba(80,255,170,0) 0%, rgba(80,255,170,.16) 62%, rgba(80,255,170,.85) 96%,
@@ -106,18 +78,17 @@
   88%  { opacity: 1 }
   100% { top: 100%; opacity: 0 }
 }
-/* Пока идёт разбор, прицел гаснет: он подсказка для наводки, а наводить уже нечего. */
+
 .скш-глазок.ищет .скш-прицел { opacity: .25 }
 
 .скш-затвор-ряд { position: absolute; left: 0; right: 0; bottom: 12px;
   display: flex; flex-direction: column; align-items: center; gap: 8px; pointer-events: none }
 .скш-намёк { max-width: 82%; text-align: center; pointer-events: none;
   font: 400 12px/1.4 var(--ui); color: #fff;
-  /* На пёстрой картинке с камеры буквы без обводки не читаются. */
+
   text-shadow: 0 1px 3px rgba(0,0,0,.9), 0 0 10px rgba(0,0,0,.8) }
 .скш-глазок.снимок .скш-намёк { visibility: hidden }
 
-/* Затвор -- кольцо с кружком внутри, как на фотоаппарате. Подписи не требует. */
 .скш-затвор { width: 58px; height: 58px; border-radius: 50%; cursor: pointer; flex: none;
   pointer-events: auto; padding: 0; background: rgba(0,0,0,.35);
   border: 2px solid rgba(255,255,255,.9);
@@ -127,20 +98,16 @@
   transition: background .15s, transform .12s }
 .скш-затвор:hover i { background: #e9ecef }
 .скш-затвор:active { transform: scale(.93) }
-/* Пока кадр застыл, затвора нет: снимать нечего, а вернуть живую картинку -- дело крестика.
-   Одно действие -- одна кнопка, и та же, что на загруженном файле. */
+
 .скш-глазок.снимок .скш-затвор-ряд { display: none }
 .скш-глазок.ищет .скш-затвор { opacity: .45; pointer-events: none }
-/* Пока камера выключена, снимать нечего. */
+
 .скш-глазок:not(.снимок) .скш-затвор-ряд { display: flex }
 
 .скш-заслон { position: absolute; inset: 0; z-index: 2; display: flex; flex-direction: column;
   align-items: center; justify-content: center; gap: 18px; padding: 20px; text-align: center;
   font: 400 13px/1.6 var(--ui); color: #fff; background: #0b0c0f }
 
-/* Крупный фотоаппарат в середине окна. Человек нажимает там, куда смотрит, -- искать глазами
-   кнопку в пульте не надо. Выключает камеру уже кнопка в пульте: пока идёт съёмка, окно
-   занято картинкой, и заслона на экране нет. */
 .скш-крупный {
   display: inline-flex; align-items: center; justify-content: center; flex: none;
   width: 78px; height: 78px; border-radius: 50%; cursor: pointer; color: #fff;
@@ -162,9 +129,7 @@
 .скш-зона.держат { border-style: solid; border-color: #fff }
 .скш-зона p { margin: 0; font: 400 13px/1.5 var(--ui); color: #fff }
 .скш-зона img { max-width: 100%; max-height: 60%; border-radius: 8px; object-fit: contain }
-/* Поле выбора файла уводим за край, а не гасим display:none: Safari на iPhone рисует такое
-   поле собственной кнопкой, и она всплывает поверх страницы и ездит за прокруткой. По коду
-   поле остаётся рабочим -- по нему кликает кнопка рядом. */
+
 .скш-зона input[type=file] {
   position: absolute; width: 1px; height: 1px; margin: -1px; padding: 0; border: 0;
   clip-path: inset(50%); overflow: hidden; white-space: nowrap; opacity: 0;
@@ -179,20 +144,15 @@
 }
 .скш-взять:hover { border-color: #fff; background: #23272f }
 
-/* Правила display выше сильнее, чем display:none из таблицы браузера для [hidden]: без этих
-   строк видоискатель и зона файла видны одновременно. */
 .скш-зона[hidden] { display: none }
 .скш-глазок[hidden] { display: none }
 .скш-заслон[hidden] { display: none }
-
-/* ---- Найденное ------------------------------------------------------------------------------ */
 
 .скш-итог { border: 1px solid var(--линия); border-radius: 12px; background: #16181d;
   padding: 16px; min-height: 200px; display: flex; flex-direction: column; gap: 10px }
 .скш-вид { font: 400 11px var(--ui); letter-spacing: .08em; text-transform: uppercase;
   color: var(--accent) }
-/* Сами цифры -- главное на странице, ради них и пришли. Крупно, вразрядку, чтобы их можно
-   было переписать с экрана на бумагу не сбившись. */
+
 .скш-значение { font: 400 19px/1.4 var(--цифры); letter-spacing: .06em; color: #fff;
   overflow-wrap: anywhere; user-select: text; font-variant-numeric: tabular-nums }
 .скш-пары { display: grid; grid-template-columns: minmax(0, 150px) minmax(0, 1fr); gap: 5px 12px;
@@ -201,9 +161,7 @@
 .скш-пары dd { margin: 0; color: #fff; overflow-wrap: anywhere; user-select: text }
 .скш-ждём { font: 400 13px/1.6 var(--ui); color: #fff }
 .скш-подсказ { font: 400 12.5px/1.55 var(--ui); color: #fff }
-/* Заголовок разбора кода GS1: отделяет поля упаковки от цифр самого номера. */
-/* Ответ открытой базы. Отделён линией: это чужие данные, пришедшие из сети, а не разбор
-   самого кода, и смешивать их в одну кучу нечестно. */
+
 .скш-товар { margin-top: 4px; padding-top: 12px; border-top: 1px solid var(--линия);
   display: flex; flex-direction: column; gap: 10px }
 .скш-снимок-товара { width: 92px; height: 92px; object-fit: contain; border-radius: 8px;
@@ -217,12 +175,6 @@
   background: rgba(255,154,168,.08); font: 400 12.5px/1.55 var(--ui); color: #fff }
 .скш-тревога b { color: var(--беда); font-weight: 700 }
 
-/* ---- Кнопки под инструментом ---------------------------------------------------------------- */
-
-/* Кнопка «Копировать» стоит на месте ВСЕГДА и просто неактивна, пока копировать нечего.
-   Прятать её нельзя: появляясь, она сдвигала бы заметки под инструментом. Неактивный вид --
-   приглушённые буквы и рамка: это тот единственный случай, когда приглушение уместно, потому
-   что оно и означает «пока не работает». */
 .скш-кнопка[disabled] {
   cursor: not-allowed; color: #8b93a0; background: #14161b; border-color: #2c313a;
 }
@@ -254,11 +206,7 @@
   .скш-пара { grid-template-columns: minmax(0, 1fr) 380px }
 }
 @media (max-width: 560px) {
-  /* Кнопки НЕ растягиваем. Растянутая во всю ширину кнопка перестаёт читаться кнопкой и
-     выглядит полосой; на десктопе она аккуратная, и на телефоне должна быть такой же. */
-  /* Подпись «Откуда»/«Режим» на телефоне съедает место, и ряд переносился: кнопки уезжали
-     вверх, а переход на соседний сканер вставал отдельной строкой. Кнопки говорят сами за
-     себя -- значок фотоаппарата и «Файл или снимок» подписи не требуют. */
+
   .скш-подпись { display: none }
   .скш-полно { display: none }
   .скш-кратко { display: inline }
@@ -270,9 +218,6 @@
   .скш-значение { font-size: 17px }
 }
 
-/* ---- Луч по загруженному файлу ---------------------------------------------------------------
-   Тот же луч, что на снимке с камеры: человек, загрузивший файл, должен видеть, что работа
-   пошла, а не гадать, нажалось ли. Зона режет луч по своим краям, иначе он выедет наружу. */
 .скш-зона { position: relative; overflow: hidden }
 .скш-луч-зоны { position: absolute; left: 0; right: 0; height: 76px; opacity: 0;
   pointer-events: none;
@@ -281,8 +226,6 @@
   box-shadow: 0 2px 12px rgba(80,255,170,.5) }
 .скш-зона.ищет .скш-луч-зоны { animation: скш-бег 1.5s cubic-bezier(.5,0,.5,1) infinite }
 
-/* Крестик поверх загруженного снимка: убрать файл и вернуть пустую зону. Стоит в углу, а не
-   в ряду кнопок, -- он относится к картинке, а не к странице. */
 .скш-крестик {
   position: absolute; top: 10px; right: 10px; z-index: 3;
   width: 30px; height: 30px; border-radius: 50%; cursor: pointer; padding: 0;
@@ -294,7 +237,6 @@
 .скш-крестик svg { width: 15px; height: 15px; fill: none; stroke: currentColor;
   stroke-width: 2; stroke-linecap: round }
 
-/* Крестик поверх застывшего кадра. Тот же, что над загруженным файлом: место одно, вид один. */
 .скш-крестик-кадра { display: none }
 .скш-глазок.снимок .скш-крестик-кадра { display: inline-flex }
 .скш-глазок.ищет .скш-крестик-кадра { opacity: .45; pointer-events: none }

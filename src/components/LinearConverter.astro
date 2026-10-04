@@ -6,12 +6,12 @@ interface Props {
   fromUnitShort: string;
   toUnitShort: string;
   defaultValue?: number;
-  /** Link to the reverse-direction page for this exact pair, e.g. km-to-miles -> miles-to-km. Omit if no reverse page exists. */
+
   reverseHref?: string;
   reverseAriaLabel?: string;
-  /** Слаг инструмента -- по нему берётся описание составных единиц (футы+дюймы, стоуны+фунты). */
+
   toolSlug?: string;
-  /** Подписи: «скопировать», «точно». */
+
   copyLabel?: string;
   copiedLabel?: string;
   exactLabel?: string;
@@ -36,9 +36,7 @@ const {
 <div class="lc-widget" data-factor={factor} data-slug={toolSlug}>
   <div class="field">
     <label for="lc-input">{fromUnit} ({fromUnitShort})</label>
-    {/* Поле текстовое, а не числовое. Числовое отвергает всё, что не число, -- а человек пишет
-        «5 футов 9 дюймов», «5'9"», «5 1/2», «5,5». Ради этого пожертвована пара стрелок вверх-вниз
-        у числового поля; цифровая клавиатура на телефоне сохраняется через inputmode. */}
+
     <input type="text" id="lc-input" value={defaultValue} inputmode="decimal" autocomplete="off"
       spellcheck="false" enterkeyhint="done">
   </div>
@@ -49,9 +47,7 @@ const {
   )}
   <div class="result-box">
     <div class="result-value"><span id="lc-result"></span> <span class="ru-unit">{toUnitShort}</span></div>
-    {/* Точное значение мелким под округлённым: «4.54» -- то, что нужно человеку, «4.53592» -- то,
-        что нужно, когда считают деньги или вес багажа. Прятать второе нечестно, показывать вместо
-        первого -- неряшливо. */}
+
     <div class="result-exact" id="lc-exact" data-label={exactLabel} hidden></div>
     <div class="result-row">
       <span class="result-label">{toUnit}</span>
@@ -59,7 +55,6 @@ const {
     </div>
   </div>
 </div>
-
 
 <script>
   import { convertLinear } from '../lib/linear-converter.js';
@@ -74,16 +69,12 @@ const {
   const copyBtn = document.getElementById('lc-copy');
   const unitEl = document.querySelector('.ru-unit');
 
-  // Тысячи разделяются узким пробелом, дробная часть -- точкой. Так же напечатана таблица частых
-  // значений ниже на странице и так же печатает сам движок: два разных вида числа в одном
-  // документе читаются как небрежность.
   function group(str) {
     const [int, frac] = String(str).split('.');
     const g = int.replace(/\B(?=(\d{3})+(?!\d))/g, '\u2009');
     return frac ? g + '.' + frac : g;
   }
-  // Округление по величине: человеку, переводящему 10 фунтов, нужно «4.54», а не «4.53592».
-  // Маленьким значениям знаков даётся больше, иначе они превращаются в ноль.
+
   function round(n) {
     const abs = Math.abs(n);
     if (abs === 0) return '0';
@@ -91,16 +82,13 @@ const {
     return String(Number(n.toFixed(digits)));
   }
   function exact(n) {
-    // Шесть знаков после запятой -- предел, за которым число перестаёт быть точным и становится
-    // шумным: «71.6675924286» никому не нужно, а «71.667592» отвечает на любой практический
-    // вопрос. Хвост нулей отбрасывается.
+
     return String(Number(n.toFixed(6)));
   }
 
   function update() {
     const value = parseQuantity(input.value, compound);
-    // Пустое или неразобранное поле показывает пустоту, а не ноль: ноль -- это ответ, и человек,
-    // стерший значение, видел бы ответ на незаданный вопрос.
+
     if (value == null) {
       result.textContent = '';
       if (unitEl) unitEl.hidden = true;
@@ -113,7 +101,7 @@ const {
     const full = exact(out);
     if (unitEl) unitEl.hidden = false;
     result.textContent = group(short);
-    // Точное значение показывается только когда оно отличается от показанного.
+
     if (full !== short) {
       exactEl.textContent = (exactEl.dataset.label || '') + ' ' + group(full);
       exactEl.hidden = false;
@@ -130,9 +118,6 @@ const {
     window.dispatchEvent(new Event('opitro:tool-interaction'));
   });
 
-  // Значение живёт в адресе страницы: ссылку можно отправить, вернуться по ней или положить в
-  // закладки и увидеть тот же ответ. Адрес переписывается без записи в историю -- иначе кнопка
-  // «назад» отматывала бы по одному нажатию клавиши.
   let urlTimer = 0;
   function writeUrl() {
     clearTimeout(urlTimer);
@@ -151,8 +136,7 @@ const {
     try {
       await navigator.clipboard.writeText(text);
     } catch {
-      // Буфер обмена недоступен без защищённого соединения и в старых браузерах -- тогда
-      // выделяем число, чтобы человек мог скопировать привычным способом, а не остался ни с чем.
+
       const r = document.createRange();
       r.selectNodeContents(result);
       const sel = getSelection();

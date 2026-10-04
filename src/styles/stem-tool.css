@@ -1,20 +1,6 @@
-/* СТИЛИ ТРЁХ СТРАНИЦ РАЗДЕЛЕНИЯ ДОРОЖЕК: «отделить вокал от музыки», «убрать вокал»,
- * «убрать музыку».
- *
- * Файл принадлежит только этим трём страницам и подключается только ими. Общие стили звуковых инструментов
- * сюда не приходят и отсюда не уходят: правка здесь не может задеть ни один соседний
- * инструмент, а их на сайте под сорок. Ради этого и выбран Astro.
- *
- * Три страницы -- один инструмент с разным выходом: там две дорожки, тут одна. Поэтому и
- * компонент один: разница в том, что показывать, а не в том, как это устроено.
- *
- * Устройство простое: дорожка -- это ряд «кнопка | волна | действие». Такой ряд один и тот же
- * для исходника и для результатов, поэтому глазу не нужно учить второй вид.
- */
 
 .sv { --voice: #4ade9e; --music: #79b8ff; }
 
-/* --- Приём файла ------------------------------------------------------------------------- */
 .sv .sv-drop { display: block; border: 1.5px dashed var(--line); border-radius: 14px; padding: 32px 20px;
   text-align: center; cursor: pointer; background: var(--surface); transition: .2s;
   -webkit-tap-highlight-color: transparent }
@@ -24,8 +10,6 @@
 .sv .sv-drop .small { font-size: 12px; color: var(--muted) }
 .sv input[type=file] { display: none }
 
-/* --- Дорожка: кнопка, волна, действие ------------------------------------------------------
-   Тонкая нарочно: это слушалка для сравнения, а не редактор. Резать и двигать здесь нечего. */
 .sv .trk { display: flex; align-items: stretch; margin: 0 0 8px; border: 1px solid var(--line);
   border-radius: 12px; overflow: hidden; background: #0a0b0d }
 .sv .trk.src { margin-bottom: 10px }
@@ -46,14 +30,12 @@
 .sv .ttime { position: absolute; right: 9px; bottom: 6px; font-size: 11.5px; color: rgba(214,219,230,.62);
   font-variant-numeric: tabular-nums; background: rgba(10,11,13,.45); border-radius: 6px;
   padding: 2px 7px; pointer-events: none }
-/* Подпись дорожки -- одним словом и цветом самой дорожки: пара «вокал и музыка» различается
-   с одного взгляда, без чтения. */
+
 .sv .tlabel { position: absolute; left: 10px; top: 50%; transform: translateY(-50%); font-size: 12.5px;
   font-weight: 700; pointer-events: none; display: flex; align-items: center; gap: 6px;
   background: rgba(10,11,13,.52); border-radius: 7px; padding: 3px 9px 3px 7px }
 .sv .tlabel svg { width: 14px; height: 14px; flex: none; display: block }
-/* Каким способом посчитана дорожка -- надпись читаемая, а не служебная мелочь: когда на
-   странице лежат три варианта, это единственное, что их различает. */
+
 .sv .tmethod { position: absolute; right: 9px; top: 50%; transform: translateY(-50%); font-size: 12px;
   font-weight: 700; letter-spacing: .01em; color: rgba(236,240,247,.92); pointer-events: none;
   background: rgba(10,11,13,.72); border: 1px solid rgba(255,255,255,.12);
@@ -72,23 +54,17 @@
   pointer-events: none; box-shadow: 0 0 8px var(--accent); display: none }
 .sv .trk.music .sv-head { background: var(--music); box-shadow: 0 0 8px var(--music) }
 
-/* --- Сведения о файле и состояние ---------------------------------------------------------- */
 .sv .sv-meta { display: flex; flex-wrap: wrap; gap: 6px 14px; font-size: 12px; color: var(--muted);
   margin: -4px 0 6px; font-variant-numeric: tabular-nums }
 .sv .sv-meta i { font-style: normal; color: rgba(210,215,228,.9) }
 .sv .sv-meta .sep { color: rgba(255,255,255,.18) }
 @media(max-width:430px){ .sv .sv-meta .tech, .sv .sv-meta .tech + .sep { display: none } }
-/* Место под строку состояния держится всегда: она меняется по ходу дела, и страница от этого
-   не должна дёргаться. */
+
 .sv .sv-frag { min-height: 40px; display: flex; flex-direction: column; gap: 2px; margin: 0 0 6px;
   font-size: 12.5px; color: var(--muted) }
 .sv .sv-frag b { color: var(--accent); font-weight: 700 }
 .sv .sv-frag .tip { color: #ffdf9e }
 
-/* --- Кнопка и способы ----------------------------------------------------------------------
-   Сначала одна кнопка «Разделить» -- выбирать не из чего, пока ничего не сделано. После
-   нажатия на её месте появляются два способа: ряд не меняет высоту, поэтому подмена не толкает
-   страницу. */
 .sv .sv-row { display: flex; align-items: center; gap: 14px; padding: 8px 10px 8px 14px;
   border: 1px solid var(--line); background: var(--surface-2); border-radius: 12px; margin-bottom: 12px }
 .sv .sv-row.off { opacity: .42 }
@@ -107,7 +83,7 @@
 .sv .chip.on, .sv .chip.on:hover { background: #e9edf4; color: #12141a; border-color: #e9edf4;
   box-shadow: 0 2px 10px rgba(0,0,0,.5) }
 .sv .chip:disabled { opacity: .4; cursor: not-allowed }
-/* «Лучшая» там, где она не работает: кнопка видна, но не зовёт нажимать. */
+
 .sv .chip.locked:not(.on) { opacity: .5 }
 .sv .chip.locked:not(.on):hover { background: rgba(255,255,255,.05); color: rgba(210,215,228,.8);
   border-color: rgba(255,255,255,.10) }
@@ -128,7 +104,6 @@
   .sv .chip:active { transform: none }
 }
 
-/* --- Место под способами: подсказка или полоса работы, высота одна ------------------------- */
 .sv .sv-slot { min-height: 56px; display: flex; align-items: center; margin: -4px 0 12px }
 .sv .sv-hint { font-size: 12px; line-height: 1.45; color: var(--muted) }
 .sv .sv-hint b { color: rgba(230,235,245,.95); font-weight: 600 }
@@ -139,12 +114,10 @@
   font-variant-numeric: tabular-nums }
 .sv .sv-pbar { width: 100%; height: 6px; background: rgba(255,255,255,.07); border-radius: 99px;
   overflow: hidden; box-shadow: inset 0 1px 2px rgba(0,0,0,.45) }
-/* Полоса намеренно не зелёная: зелёный на этой странице занят дорожкой вокала, и две зелёные
-   вещи рядом путаются. */
+
 .sv .sv-pbar i { display: block; height: 100%; width: 0; border-radius: 99px;
   background: linear-gradient(90deg,#7f8899,#b9c2d1 70%,#d3dae5); transition: width .25s ease }
 
-/* --- Результаты ---------------------------------------------------------------------------- */
 .sv .sv-reshead { margin: 14px 0 6px; display: flex; align-items: center; gap: 10px }
 .sv .sv-reshead .line { flex: 1; height: 1px; background: rgba(255,255,255,.08) }
 .sv .sv-fmt { height: 30px; border-radius: 8px; border: 1px solid var(--line); background: var(--surface-2);
@@ -157,14 +130,11 @@
   border: 1px solid rgba(255,58,94,.4); color: #ffb3c0; border-radius: 10px; padding: 12px 14px;
   font-size: 12.5px; line-height: 1.5 }
 .sv .sv-err.show { display: block }
-/* Нехватка памяти -- не тревога, а совет: красный тут пугает зря. */
+
 .sv .sv-err.soft { background: var(--surface-2); border-color: var(--line); color: var(--muted) }
 .sv .sv-note { margin-top: 16px; font-size: 12px; line-height: 1.65; color: var(--muted);
   border-top: 1px dashed var(--line); padding-top: 14px }
 
-/* --- Переход на соседний инструмент --------------------------------------------------------
-   Не ссылкой в тексте -- её не замечают. И не сплошной зелёной плашкой -- она спорила бы с
-   кнопками скачивания. */
 .sv .sv-cross { display: flex; align-items: center; gap: 13px; margin-top: 14px; padding: 13px 15px;
   border: 1px solid rgba(255,255,255,.11); border-radius: 14px; text-decoration: none;
   background: linear-gradient(135deg,#1e232c 0%,#171b22 55%,#141821 100%);
@@ -203,9 +173,6 @@
   .sv .chip { font-size: 11.5px; padding: 0 2px }
 }
 
-/* --- Сила вычитания: только у «Лёгкой» ------------------------------------------------------
-   Когда способ другой, ползунок гаснет целиком -- рабочий на вид орган, который ни на что не
-   влияет, хуже отсутствующего. */
 .sv .sv-power { display: block; padding: 9px 14px 12px; border: 1px solid var(--line);
   background: var(--surface-2); border-radius: 12px; margin-bottom: 12px }
 .sv .sv-power .caps { display: flex; align-items: baseline; justify-content: space-between;

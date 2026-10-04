@@ -1,26 +1,9 @@
-/* СТИЛИ СТРАНИЦЫ «ОЧИСТКА ДИНАМИКА».
- *
- * Файл принадлежит одной странице и подключается только ею.
- *
- * Устройство:
- *   1. ОДНА БОЛЬШАЯ КНОПКА. Сюда приходят с мокрым телефоном в руках, часто одной рукой и
- *      в панике. Промахнуться мимо кнопки нельзя, и она же останавливает.
- *   2. КНОПКУ НЕ ВЫКЛЮЧАТЬ во время работы: выключенная уходит в прозрачность и читается
- *      как сломанная. Состояние показывают цвет кольца и лампочка, которая пульсирует
- *      РАЗМЕРОМ, а не прозрачностью, -- мигающая прозрачность читается как «выключено».
- *   3. МЕСТО ПОД ЦИФРЫ ЗАРЕЗЕРВИРОВАНО. Частота и остаток появляются на готовом месте,
- *      страница не дёргается.
- *
- * Цвет свой -- голубой: страница про воду, и другого правильного цвета тут нет.
- */
 
 .од {
   --ui: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
   --свой: #58b8f0;
   max-width: 760px; margin: 0 auto; font-family: var(--ui);
 }
-
-/* ---- Настройки ------------------------------------------------------------------------ */
 
 .од-верх { display: flex; flex-wrap: wrap; gap: 18px; margin-bottom: 16px }
 .од-ряд { display: flex; flex-direction: column; gap: 6px }
@@ -39,16 +22,10 @@
 .од-чип.вкл { background: linear-gradient(180deg,#f6f8fa,#dde2e8); color: #10141a;
   border-color: rgba(255,255,255,.5); box-shadow: 0 2px 0 rgba(0,0,0,.6), inset 0 1px 0 #fff }
 
-/* Объяснение выбранного режима. Стоит НАД площадкой и меняется вместе с выбором: у
-   «ультразвука» название громкое, и что он делает на самом деле, человек должен прочитать
-   до нажатия, а не в примечаниях внизу. */
 .од-объяснение { margin: 0 0 12px; font-size: 12.5px; line-height: 1.55; color: var(--muted);
   min-height: 40px }
-/* Место под самое длинное объяснение зарезервировано: без этого выбор режима раздвигал
-   страницу и кнопка уезжала вниз под пальцем. */
-@media (max-width: 560px) { .од-объяснение { min-height: 78px } }
 
-/* ---- Площадка с кнопкой ---------------------------------------------------------------- */
+@media (max-width: 560px) { .од-объяснение { min-height: 78px } }
 
 .од-поле {
   position: relative; border-radius: 18px; padding: 30px 22px 26px;
@@ -59,8 +36,6 @@
   display: flex; flex-direction: column; align-items: center; gap: 16px; text-align: center;
 }
 
-/* Круги расходятся от кнопки, пока идёт работа: на шумной улице звука можно не услышать,
-   а видеть, что инструмент работает, надо. */
 .од-круг { position: relative; display: flex; align-items: center; justify-content: center }
 .од-волна { position: absolute; width: 148px; height: 148px; border-radius: 50%;
   border: 2px solid rgba(88,184,240,.5); opacity: 0; pointer-events: none }
@@ -71,7 +46,6 @@
   100% { transform: scale(1.8); opacity: 0 }
 }
 
-/* Кнопка круглая и крупная: сюда приходят с мокрым телефоном, часто одной рукой. */
 .од-кнопка {
   position: relative; width: 148px; height: 148px; border-radius: 50%; cursor: pointer;
   border: 2px solid rgba(255,255,255,.14); background: linear-gradient(180deg,#23262e,#171920);
@@ -87,14 +61,11 @@
 .од-кнопка svg { width: 44px; height: 44px; color: var(--свой) }
 .од-кнопка b { font: 700 13.5px var(--ui) }
 
-/* Лампочка пульсирует размером. Мигающая прозрачностью читается как «выключено» -- ровно
-   наоборот тому, что надо сказать. */
 .од-лампа { position: absolute; top: 14px; right: 22px; width: 9px; height: 9px;
   border-radius: 50%; background: rgba(255,255,255,.15) }
 .од.идёт .од-лампа { background: var(--свой); animation: од-пульс 1s ease-in-out infinite }
 @keyframes од-пульс { 0%,100% { transform: scale(1) } 50% { transform: scale(1.7) } }
 
-/* Место под цифры зарезервировано заранее: иначе страница дёргается в момент запуска. */
 .од-цифры { display: flex; align-items: baseline; justify-content: center; gap: 20px;
   min-height: 44px }
 .од-цифра { display: flex; flex-direction: column; align-items: center; gap: 2px }
@@ -107,8 +78,6 @@
   background: rgba(255,255,255,.07); overflow: hidden }
 .од-полоса i { display: block; height: 100%; width: 100%; background: var(--свой);
   transform: scaleX(0); transform-origin: left; transition: transform .2s linear }
-
-/* ---- Оговорка и шаги -------------------------------------------------------------------- */
 
 .од-тише { display: flex; gap: 8px; margin: 14px 0 0; font-size: 12px; line-height: 1.5;
   color: rgba(214,219,230,.55) }
