@@ -112,13 +112,27 @@ function вWav(отсчёты, частота) {
   return буфер;
 }
 
+async function ужеВКэше() {
+  if (модель) return true;
+  try {
+    if (!self.caches) return false;
+    for (const имя of await self.caches.keys()) {
+      const х = await self.caches.open(имя);
+      for (const з of await х.keys()) {
+        if (з.url.includes('Kokoro-82M') && з.url.includes('.onnx')) return true;
+      }
+    }
+  } catch (е) {}
+  return false;
+}
+
 self.onmessage = async (е) => {
   const д = е.data || {};
   if (typeof д.пк === 'boolean') этоПК = д.пк;
   try {
     if (д.тип === 'что-скачано') {
 
-      шли({ тип: 'что-скачано', список: модель ? ['kokoro'] : [] });
+      шли({ тип: 'что-скачано', список: (await ужеВКэше()) ? ['kokoro'] : [] });
       return;
     }
 
