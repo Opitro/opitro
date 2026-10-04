@@ -6,6 +6,9 @@ const шли = (весть, перенос) => self.postMessage(весть, пе
 
 let модель = null;
 let грузится = null;
+let Splitter = null;
+
+const PIECE_CHARS = 200;
 
 let этоПК = false;
 
@@ -23,9 +26,10 @@ async function готовая(приХоде) {
   if (грузится) return грузится;
 
   грузится = (async () => {
-    const { KokoroTTS } = await import(АДРЕС_БИБЛИОТЕКИ);
+    const lib = await import(АДРЕС_БИБЛИОТЕКИ);
+    Splitter = lib.TextSplitterStream || null;
     const видеокарта = await броситьНаВидеокарту();
-    модель = await KokoroTTS.from_pretrained(ХРАНИЛИЩЕ, {
+    модель = await lib.KokoroTTS.from_pretrained(ХРАНИЛИЩЕ, {
 
       dtype: видеокарта ? 'fp32' : 'q8',
       device: видеокарта ? 'webgpu' : 'wasm',
@@ -40,6 +44,54 @@ async function готовая(приХоде) {
   })();
 
   try { return await грузится; } finally { грузится = null; }
+}
+
+function cutLong(text) {
+  const out = [];
+  let rest = String(text).trim();
+  while (rest.length > PIECE_CHARS) {
+    let at = rest.lastIndexOf(',', PIECE_CHARS);
+    if (at < PIECE_CHARS * 0.4) at = rest.lastIndexOf(' ', PIECE_CHARS);
+    if (at < PIECE_CHARS * 0.4) at = PIECE_CHARS;
+    out.push(rest.slice(0, at + 1).trim());
+    rest = rest.slice(at + 1).trim();
+  }
+  if (rest) out.push(rest);
+  return out;
+}
+
+function toPieces(text) {
+  const clean = String(text || '').trim();
+  if (!clean) return [];
+  let sentences = [clean];
+  if (Splitter) {
+    try {
+      const s = new Splitter();
+      s.push(clean);
+      const got = [...s].map((x) => String(x).trim()).filter(Boolean);
+      if (got.length) sentences = got;
+    } catch (е) { sentences = [clean]; }
+  }
+  const pieces = [];
+  let next = '';
+  const flush = () => { if (next.trim()) pieces.push(next.trim()); next = ''; };
+  for (const s of sentences) {
+    if (s.length > PIECE_CHARS) { flush(); pieces.push(...cutLong(s)); continue; }
+    if ((next + ' ' + s).trim().length > PIECE_CHARS) flush();
+    next = next ? next + ' ' + s : s;
+  }
+  flush();
+  return pieces;
+}
+
+function mergeAudio(parts) {
+  if (parts.length === 1) return parts[0];
+  let всего = 0;
+  for (const ч of parts) всего += ч.length;
+  const итог = new Float32Array(всего);
+  let сдвиг = 0;
+  for (const ч of parts) { итог.set(ч, сдвиг); сдвиг += ч.length; }
+  return итог;
 }
 
 function вWav(отсчёты, частота) {
@@ -97,11 +149,21 @@ self.onmessage = async (е) => {
       const м = await готовая((доля) => шли({ тип: 'ход', этап: 'скачивание', доля }));
       шли({ тип: 'ход', этап: 'синтез', доля: 0 });
       const начало = performance.now();
-      const звук = await м.generate(д.текст, {
-        voice: д.голос || 'af_heart',
-        speed: д.скорость && д.скорость > 0 ? д.скорость : 1,
-      });
-      const байты = вWav(звук.audio, звук.sampling_rate);
+      const pieces = toPieces(д.текст);
+      if (!pieces.length) throw new Error('пустой текст');
+      const voice = д.голос || 'af_heart';
+      const speed = д.скорость && д.скорость > 0 ? д.скорость : 1;
+      const parts = [];
+      let rate = 24000;
+      for (let и = 0; и < pieces.length; и++) {
+        const звук = await м.generate(pieces[и], { voice, speed });
+        parts.push(звук.audio);
+        if (звук.sampling_rate) rate = звук.sampling_rate;
+        if (pieces.length > 1) {
+          шли({ тип: 'ход', этап: 'синтез', доля: ((и + 1) / pieces.length) * 100 });
+        }
+      }
+      const байты = вWav(mergeAudio(parts), rate);
       шли({
         тип: 'готово',
         байты,
