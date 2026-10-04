@@ -126,6 +126,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     </div>
     <div class="чп-поле чп-вывод" id="чп-обёртка">
       <textarea class="чп-ввод" id="чп-вывод" placeholder={с.result} readonly></textarea>
+      <button type="button" class="чп-значок" id="чп-значок" title={с.copyBig} aria-label={с.copyBig}>
+        <svg class="чп-лист" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="чп-галочка" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
     <div class="чп-счётчики">
       <span>{с.mode}: <b id="чп-режим">—</b></span>
@@ -135,7 +139,10 @@ const с = СЛОВА[locale] || СЛОВА.ru;
   </div>
 
   <div class="чп-низ">
-    <button type="button" class="чп-кнопка" id="чп-копировать">{с.copyBig}</button>
+    <button type="button" class="чп-кнопка" id="чп-копировать">
+      <span class="чп-слово-копи">{с.copyBig}</span>
+      <span class="чп-слово-готово">{с.copiedBig}</span>
+    </button>
     <button type="button" class="чп-простая" id="чп-очистить">{с.clearAll}</button>
   </div>
 
@@ -722,8 +729,7 @@ const с = СЛОВА[locale] || СЛОВА.ru;
     $('чп-ж').addEventListener('click', () => поставитьРод('ж', 'чп-ж'));
     $('чп-с').addEventListener('click', () => поставитьРод('с', 'чп-с'));
 
-    $('чп-копировать').addEventListener('click', async () => {
-      const кнопка = $('чп-копировать');
+    const скопировать = async (кнопка) => {
       if (!вывод.value || обёртка.classList.contains('беда')) { сказать(с.nothing); return; }
       let вышло = false;
       try { await navigator.clipboard.writeText(вывод.value); вышло = true; }
@@ -732,10 +738,13 @@ const с = СЛОВА[locale] || СЛОВА.ru;
         try { вышло = document.execCommand('copy'); } catch (е) { вышло = false; }
       }
       if (!вышло) { сказать(с.copyFail); return; }
-      кнопка.textContent = с.copiedBig;
+      кнопка.classList.add('готово');
       clearTimeout(кнопка._т);
-      кнопка._т = setTimeout(() => { кнопка.textContent = с.copyBig; }, 1500);
-    });
+      кнопка._т = setTimeout(() => кнопка.classList.remove('готово'), 1500);
+    };
+
+    $('чп-копировать').addEventListener('click', () => скопировать($('чп-копировать')));
+    $('чп-значок').addEventListener('click', () => скопировать($('чп-значок')));
 
     $('чп-очистить').addEventListener('click', () => {
       ввод.value = '';

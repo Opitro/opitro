@@ -45,8 +45,23 @@
 .чп-ввод:focus { outline: none }
 .чп-ввод::placeholder { color: #7d848f }
 
-.чп-вывод { background: #0b0c0f; border: 1px solid rgba(255,255,255,.10); border-radius: 10px }
-.чп-вывод textarea { color: #fff; cursor: text }
+.чп-вывод { position: relative; background: #0b0c0f; border: 1px solid rgba(255,255,255,.10);
+  border-radius: 10px }
+.чп-вывод textarea { color: #fff; cursor: text; padding-right: 54px }
+.чп-значок {
+  position: absolute; top: 9px; right: 9px; z-index: 2;
+  width: 32px; height: 32px; padding: 0; cursor: pointer; border-radius: 6px;
+  display: inline-flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,.06); border: 1px solid rgba(255,255,255,.16); color: #c8cddc;
+  transition: color .15s, background .15s, border-color .15s;
+}
+.чп-значок:hover { color: #fff; background: rgba(255,255,255,.12); border-color: #fff }
+.чп-значок svg { display: block; width: 16px; height: 16px; fill: none; stroke: currentColor;
+  stroke-width: 1.8; stroke-linecap: round; stroke-linejoin: round }
+.чп-значок .чп-галочка { display: none }
+.чп-значок.готово { color: var(--accent); border-color: var(--accent) }
+.чп-значок.готово .чп-лист { display: none }
+.чп-значок.готово .чп-галочка { display: block }
 .чп-вывод textarea::placeholder { color: #7d848f }
 
 .чп-счётчики {
@@ -64,7 +79,12 @@
 .чп-кнопка {
   flex: 0 0 auto; height: 44px; padding: 0 22px; border-radius: 6px; cursor: pointer;
   font: 700 13px var(--цифры); color: #000; background: #fff; border: 1px solid #fff;
+  display: inline-grid; align-items: center; justify-items: center;
 }
+.чп-кнопка > span { grid-area: 1 / 1 }
+.чп-кнопка .чп-слово-готово { visibility: hidden }
+.чп-кнопка.готово .чп-слово-копи { visibility: hidden }
+.чп-кнопка.готово .чп-слово-готово { visibility: visible }
 .чп-кнопка:hover { background: #e9ecef; border-color: #e9ecef }
 .чп-простая {
   flex: 0 0 auto; height: 44px; padding: 0 18px; border-radius: 6px; cursor: pointer;
