@@ -157,9 +157,27 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
   .result-box{background:var(--surface);border:1px solid var(--line);border-radius:14px;padding:20px;text-align:center;margin-top:8px}
   .result-value{font-size:28px;font-weight:700;color:var(--accent)}
   .result-label{font-size:12px;color:var(--muted);margin-top:4px}
-  .lc-swap{display:flex;align-items:center;justify-content:center;width:34px;height:34px;margin:2px auto;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
+  .lc-widget{display:grid;grid-template-columns:minmax(0,1fr) auto minmax(0,1fr);align-items:stretch;gap:10px;margin-top:22px}
+  .lc-pane{display:flex;flex-direction:column;gap:8px;min-width:0;padding:14px 16px;background:var(--surface);border:1px solid var(--line);border-radius:14px;transition:border-color .15s}
+  .lc-from{background:var(--surface-2)}
+  .lc-from:focus-within{border-color:var(--accent)}
+  .lc-cap{font-size:11px;letter-spacing:.12em;text-transform:uppercase;color:var(--muted)}
+  .lc-line{display:flex;align-items:baseline;gap:8px;min-width:0;min-height:38px}
+  .lc-line input,.lc-num{flex:1;min-width:0;font-family:inherit;font-size:28px;font-weight:700;line-height:38px;font-variant-numeric:tabular-nums}
+  .lc-line input{width:100%;height:38px;padding:0;margin:0;background:none;border:0;outline:0;color:var(--text);-moz-appearance:textfield;appearance:textfield}
+  .lc-line input::-webkit-outer-spin-button,.lc-line input::-webkit-inner-spin-button{-webkit-appearance:none;margin:0}
+  .lc-num{color:var(--accent);overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lc-unit{flex:none;font-size:15px;color:var(--muted)}
+  .lc-foot{display:flex;align-items:center;gap:8px;min-height:26px;font-size:12px}
+  .lc-swap{display:flex;align-items:center;justify-content:center;align-self:center;width:38px;height:38px;border-radius:10px;background:var(--surface-2);border:1px solid var(--line);color:var(--muted);transition:border-color .15s,color .15s}
   .lc-swap:hover{border-color:var(--accent);color:var(--accent)}
-  .lc-swap svg{width:16px;height:16px}
+  .lc-swap svg{width:17px;height:17px}
+  @media(max-width:560px){
+    .lc-widget{grid-template-columns:minmax(0,1fr);gap:8px}
+    .lc-swap{justify-self:center}
+    .lc-from .lc-foot{display:none}
+    .lc-swap svg{transform:rotate(90deg)}
+  }
 
   .uc-widget{max-width:616px;margin-left:auto;margin-right:auto}
   .uc-row{display:flex;align-items:center;gap:10px}
@@ -366,10 +384,10 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
 
   (function () {
     var СЛОВА = {
-      uk: { т: 'Ця сторінка є українською', д: 'Перейти' },
-      ru: { т: 'Эта страница есть на русском', д: 'Перейти' },
-      en: { т: 'This page is available in English', д: 'Switch' },
-      es: { т: 'Esta página está en español', д: 'Cambiar' },
+      uk: { т: 'Ця сторінка є українською', д: 'Перейти', з: 'Закрити' },
+      ru: { т: 'Эта страница есть на русском', д: 'Перейти', з: 'Закрыть' },
+      en: { т: 'This page is available in English', д: 'Switch', з: 'Close' },
+      es: { т: 'Esta página está en español', д: 'Cambiar', з: 'Cerrar' },
     };
     var свой = document.documentElement.lang || 'en';
     var список = navigator.languages && navigator.languages.length
@@ -396,7 +414,7 @@ const дорожкаJsonLd = дорожка.length > 1 ? {
     перейти.setAttribute('hreflang', хочет);
     var закрыть = document.createElement('button');
     закрыть.type = 'button'; закрыть.className = 'яз-нет';
-    закрыть.textContent = '×'; закрыть.setAttribute('aria-label', 'Закрыть');
+    закрыть.textContent = '×'; закрыть.setAttribute('aria-label', СЛОВА[хочет].з);
     закрыть.addEventListener('click', function () {
       полоска.remove();
       try { localStorage.setItem('opitro-яз-нет', '1'); } catch (e) {}

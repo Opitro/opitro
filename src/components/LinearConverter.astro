@@ -33,24 +33,29 @@ const {
 } = Astro.props;
 ---
 
-<div class="lc-widget" data-factor={factor} data-slug={toolSlug}>
-  <div class="field">
-    <label for="lc-input">{fromUnit} ({fromUnitShort})</label>
-
-    <input type="text" id="lc-input" value={defaultValue} inputmode="decimal" autocomplete="off"
-      spellcheck="false" enterkeyhint="done">
+<div class="lc-widget lc-has-foot" data-factor={factor} data-slug={toolSlug}>
+  <div class="lc-pane lc-from">
+    <label class="lc-cap" for="lc-input">{fromUnit}</label>
+    <div class="lc-line">
+      <input type="text" id="lc-input" value={defaultValue} inputmode="decimal" autocomplete="off"
+        spellcheck="false" enterkeyhint="done">
+      <span class="lc-unit">{fromUnitShort}</span>
+    </div>
+    <div class="lc-foot"></div>
   </div>
   {reverseHref && (
     <a class="lc-swap" href={reverseHref} aria-label={reverseAriaLabel}>
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 8h15M18 8l-4-4M18 8l-4 4M21 16H6M6 16l4-4M6 16l4 4"/></svg>
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 8h15M18 8l-4-4M18 8l-4 4M21 16H6M6 16l4-4M6 16l4 4"/></svg>
     </a>
   )}
-  <div class="result-box">
-    <div class="result-value"><span id="lc-result"></span> <span class="ru-unit">{toUnitShort}</span></div>
-
-    <div class="result-exact" id="lc-exact" data-label={exactLabel} hidden></div>
-    <div class="result-row">
-      <span class="result-label">{toUnit}</span>
+  <div class="lc-pane lc-to">
+    <div class="lc-cap">{toUnit}</div>
+    <div class="lc-line">
+      <span class="lc-num" id="lc-result" aria-live="polite"></span>
+      <span class="lc-unit ru-unit">{toUnitShort}</span>
+    </div>
+    <div class="lc-foot">
+      <span class="result-exact" id="lc-exact" data-label={exactLabel} hidden></span>
       <button type="button" class="lc-copy" id="lc-copy" data-done={copiedLabel} hidden>{copyLabel}</button>
     </div>
   </div>
@@ -149,13 +154,13 @@ const {
     setTimeout(() => { copyBtn.textContent = was; }, 1400);
   });
 
+  input.addEventListener('focus', () => input.select());
   update();
 </script>
 
 <style>
-  .result-exact{font-size:12px;color:var(--muted);font-variant-numeric:tabular-nums;margin-top:2px}
-  .result-row{display:flex;align-items:center;justify-content:center;gap:12px;margin-top:4px}
-  .lc-copy{background:none;border:1px solid var(--line);border-radius:9px;color:var(--muted);
+  .result-exact{color:var(--muted);font-variant-numeric:tabular-nums;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .lc-copy{flex:none;margin-left:auto;background:none;border:1px solid var(--line);border-radius:9px;color:var(--muted);
     font-family:inherit;font-size:12px;padding:4px 10px;cursor:pointer;
     transition:border-color .18s,color .18s}
   .lc-copy:hover{border-color:rgba(255,255,255,0.22);color:var(--text)}
