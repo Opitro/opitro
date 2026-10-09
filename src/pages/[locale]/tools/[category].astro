@@ -332,11 +332,12 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   .all-tools{margin-top:26px}
 
   section.seo{max-width:1360px;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
+  section.seo.v2{color:#d4d4d4}
   section.seo :global(p){font-size:14px;line-height:1.75;margin-bottom:16px}
   section.seo :global(table){display:block;max-width:100%;overflow-x:auto;border-collapse:collapse;margin:0 0 18px;font-size:14px;font-variant-numeric:tabular-nums}
   section.seo :global(th),section.seo :global(td){padding:8px 14px;border-bottom:1px solid var(--line);text-align:right;white-space:nowrap}
   section.seo :global(th:first-child),section.seo :global(td:first-child){padding-left:0;text-align:left}
-  section.seo :global(th){font-weight:500;color:var(--muted)}
+  section.seo :global(th){font-weight:500;color:#a6a6a6}
 
   section.seo::before{content:"";display:block;height:1px;margin-bottom:30px;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
@@ -344,7 +345,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   section.seo.v2 > .info-intro,section.seo.v2 > .info-grid,section.seo.v2 > .info-faq{padding:0;border-top:0}
   .info-intro{max-width:760px;margin:0 auto 22px}
   .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1040px;margin:0 auto}
-  .info-card{min-width:0;padding:22px 24px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .info-card{min-width:0;padding:22px 24px;background:transparent;border:1px solid var(--line);border-radius:14px}
   .info-card:nth-child(4n+1){--rule:#4ade9e}
   .info-card:nth-child(4n+2){--rule:#e8b563}
   .info-card:nth-child(4n+3){--rule:#7fa8f0}
