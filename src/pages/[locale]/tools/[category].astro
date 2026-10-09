@@ -321,6 +321,10 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
 </Layout>
 
 <style>
+  :global(html:root){--text:#f0f0f0;--muted:#b6b6b6}
+  :global(body .all-tools-title){color:#bcbcbc}
+  :global(body .dd-link){color:#b6b6b6}
+  :global(body footer),:global(body footer a){color:#a4a4a4}
   .main{text-align:center}
 
   .main{padding-bottom:10px;max-width:1360px}
@@ -381,7 +385,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
 
   .shelf-name::after{content:"";flex:1;height:1px;
     background:linear-gradient(90deg,color-mix(in srgb,var(--shelf,var(--accent)) 38%,transparent),rgba(255,255,255,.06))}
-  .shelf-name b{color:rgba(214,219,230,.5);font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
+  .shelf-name b{color:#767676;font-weight:400;letter-spacing:0;text-transform:none;font-size:12px}
 
   .all-tools-grid .tool-card{padding:12px 13px;gap:10px}
 </style>
