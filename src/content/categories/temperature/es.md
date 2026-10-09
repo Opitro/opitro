@@ -24,8 +24,8 @@ faq:
 
 ## Cómo se usa
 
-1. Escribe un número en el campo de la izquierda.
-2. Elige las escalas en las listas de debajo de los campos — el resultado aparece a la derecha al momento.
+1. Escribe un número en el primer campo.
+2. Elige las escalas en las listas de debajo de los campos — el resultado aparece al momento en el segundo campo.
 3. Para calcular en sentido contrario, pulsa el botón con flechas que hay entre los campos: intercambia las dos escalas.
 
 ## Puntos de referencia en las tres escalas

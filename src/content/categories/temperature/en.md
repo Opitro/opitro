@@ -24,8 +24,8 @@ faq:
 
 ## How to use it
 
-1. Type a number into the left field.
-2. Pick the scales in the lists under the fields — the answer appears on the right straight away.
+1. Type a number into the first field.
+2. Pick the scales in the lists under the fields — the answer appears in the second field straight away.
 3. To convert the other way, press the arrow button between the fields: it swaps the two scales.
 
 ## Reference points on all three scales
