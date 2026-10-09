@@ -279,7 +279,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
         ))}
       </>
     ) : (
-      <div class="all-tools-grid">
+      <div class="all-tools-grid pairs-grid">
         {tools.map((t) => (
           <ToolCard данные={t.data} />
         ))}
@@ -334,6 +334,7 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
     color:var(--text)}
 
   .all-tools{margin-top:26px}
+  .all-tools-grid.pairs-grid{max-width:1040px;margin:0 auto;grid-template-columns:repeat(auto-fit,minmax(232px,1fr))}
 
   section.seo{max-width:1360px;width:100%;padding:0 2rem;margin:44px auto 0;text-align:left}
   section.seo.v2{color:#d4d4d4}
