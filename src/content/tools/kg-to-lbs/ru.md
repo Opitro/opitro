@@ -4,7 +4,7 @@ locale: ru
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 2.20462
+  factor: 2.2046226218
   fromUnit: Килограммы
   toUnit: Фунты
   fromUnitShort: кг

@@ -4,7 +4,7 @@ locale: en
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 0.453592
+  factor: 0.45359237
   fromUnit: Pounds
   toUnit: Kilograms
   fromUnitShort: lb
@@ -15,13 +15,13 @@ summary: "1 lb = 0.454 kg, 150 lb = 68 kg"
 description: Convert pounds to kilograms online, free and with no sign-up. An accurate weight converter — enter a number of pounds and get the result in kilograms.
 faq:
   - question: How many kilograms are in a pound?
-    answer: One pound equals 0.453592 kg — an exact figure under the international definition of the pound.
+    answer: One pound equals 0.45359237 kg — an exact figure under the international definition of the pound.
   - question: How many kg is a 50 lb airline baggage limit?
-    answer: 50 lbs = 22.6796 kg (50 × 0.453592) — the standard checked-bag weight limit for most US airlines.
+    answer: 50 lbs = 22.6796 kg (50 × 0.45359237) — the standard checked-bag weight limit for most US airlines.
   - question: Where else do you run into pounds instead of kilograms?
     answer: Body and grocery weight in the US, US-made gym equipment and dumbbells, and package weight on US shipments.
   - question: How many kilograms is 150 pounds?
-    answer: 150 lb = 68.04 kg (150 × 0.453592). That is roughly the average adult male weight by US figures.
+    answer: 150 lb = 68.04 kg (150 × 0.45359237). That is roughly the average adult male weight by US figures.
   - question: How do I convert pounds to kilograms in my head?
     answer: Halve the number, then subtract a tenth of the result. 80 lb → 40 → minus 4 → 36 kg. The exact value is 36.29, so the error is under one percent — close enough while standing in a shop.
   - question: Why do recipes sometimes call a pound 450 or 454 grams?

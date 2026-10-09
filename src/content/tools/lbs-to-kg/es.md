@@ -4,7 +4,7 @@ locale: es
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 0.453592
+  factor: 0.45359237
   fromUnit: Libras
   toUnit: Kilogramos
   fromUnitShort: lb
@@ -15,13 +15,13 @@ summary: "1 lb = 0,454 kg; 150 lb = 68 kg"
 description: Convierte libras a kilogramos online, gratis y sin registro. Un conversor de peso preciso — introduce un número de libras y obtén el resultado en kilogramos.
 faq:
   - question: ¿Cuántos kilogramos hay en una libra?
-    answer: Una libra equivale a 0.453592 kg — una cifra exacta según la definición internacional de la libra.
+    answer: Una libra equivale a 0.45359237 kg — una cifra exacta según la definición internacional de la libra.
   - question: ¿Cuántos kg es un límite de equipaje de 50 libras en un vuelo?
-    answer: 50 lb = 22.6796 kg (50 × 0.453592) — el límite habitual de peso para una maleta facturada en la mayoría de aerolíneas de EE. UU.
+    answer: 50 lb = 22.6796 kg (50 × 0.45359237) — el límite habitual de peso para una maleta facturada en la mayoría de aerolíneas de EE. UU.
   - question: ¿Dónde más aparecen las libras en vez de kilogramos?
     answer: El peso corporal y de alimentos en Estados Unidos, el equipo de gimnasio y las mancuernas fabricadas allí, y el peso de paquetes en envíos desde EE. UU.
   - question: ¿Cuántos kilogramos son 150 libras?
-    answer: 150 libras = 68.04 kg (150 × 0.453592). Es aproximadamente el peso medio de un hombre adulto según las cifras estadounidenses.
+    answer: 150 libras = 68.04 kg (150 × 0.45359237). Es aproximadamente el peso medio de un hombre adulto según las cifras estadounidenses.
   - question: ¿Cómo paso libras a kilos mentalmente?
     answer: Divide entre dos y resta una décima parte del resultado. 80 libras → 40 → menos 4 → 36 kg. El valor exacto es 36.29, así que el error no llega al uno por ciento — suficiente para una estimación en la tienda.
   - question: ¿Por qué en las recetas una libra son a veces 450 y otras 454 gramos?

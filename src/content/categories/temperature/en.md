@@ -55,3 +55,9 @@ You can't multiply by a single number here, the way you do with metres and feet:
 - Celsius (°C) — weather forecasts, thermometers, ovens and medicine almost everywhere in the world.
 - Fahrenheit (°F) — the same things in the US and a few small countries: weather, recipes, thermostats, medical thermometers.
 - Kelvin (K) — the scale of physicists and chemists. In everyday life it shows up on light bulb boxes and in monitor settings as colour temperature. It is not converted to degrees Celsius.
+
+## How the calculator works it out
+
+The calculation runs in your browser: the number is not sent anywhere, and the answer appears at once, with no request to a server. Any value is first turned into degrees Celsius, and from Celsius into the scale you asked for.
+
+The numbers in the formulas are exact by definition: Celsius and Kelvin differ by exactly 273.15, a degree Fahrenheit is 5/9 of a degree Celsius, and 32 °F corresponds to 0 °C. The answer is rounded to six decimal places.

@@ -55,3 +55,9 @@ Aquí no se puede multiplicar por un solo número, como con los metros y los pie
 - Celsius (°C) — el pronóstico del tiempo, los termómetros, los hornos y la medicina en casi todo el mundo.
 - Fahrenheit (°F) — lo mismo en Estados Unidos y en unos pocos países pequeños: el tiempo, las recetas, los termostatos, los termómetros médicos.
 - Kelvin (K) — la escala de físicos y químicos. En el día a día aparece en las cajas de las bombillas y en los ajustes del monitor como temperatura de color. No se pasa a grados Celsius.
+
+## Cómo calcula la calculadora
+
+El cálculo se hace en tu navegador: el número no se envía a ninguna parte y el resultado aparece al instante, sin consultar a un servidor. Cualquier valor se pasa primero a grados Celsius y de ahí a la escala que pides.
+
+Los números de las fórmulas son exactos por definición: entre Celsius y Kelvin hay exactamente 273,15, un grado Fahrenheit es 5/9 de grado Celsius y 32 °F corresponden a 0 °C. El resultado se redondea a seis decimales.

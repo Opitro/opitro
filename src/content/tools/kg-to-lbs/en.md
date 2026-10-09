@@ -4,7 +4,7 @@ locale: en
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 2.20462
+  factor: 2.2046226218
   fromUnit: Kilograms
   toUnit: Pounds
   fromUnitShort: kg
