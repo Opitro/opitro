@@ -4,7 +4,7 @@ locale: es
 category: length
 engine: linear-converter
 engineParams:
-  factor: 0.393701
+  factor: 0.3937007874
   fromUnit: Centímetros
   toUnit: Pulgadas
   fromUnitShort: cm

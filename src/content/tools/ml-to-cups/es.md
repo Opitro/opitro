@@ -4,7 +4,7 @@ locale: es
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 0.00422675
+  factor: 0.004226752838
   fromUnit: Mililitros
   toUnit: Tazas
   fromUnitShort: ml
@@ -15,7 +15,7 @@ summary: "237 ml = 1 taza de EE. UU."
 description: Convierte mililitros a tazas online, gratis y sin registro. Un conversor de volumen preciso para recetas en inglés.
 faq:
   - question: ¿Cuántas tazas son 500 ml?
-    answer: 500 ml = 2.113375 tazas (500 × 0.00422675) — una taza medidora estadounidense equivale a 236.588236 ml.
+    answer: 500 ml = 2.113376 tazas (500 × 0.00422675) — una taza medidora estadounidense equivale a 236.588236 ml.
   - question: ¿Por qué las recetas usan tazas en vez de mililitros?
     answer: Las recetas estadounidenses casi siempre dan el volumen de líquidos e ingredientes secos en tazas — una medida habitual en cocinas de EE. UU., pero no donde se acostumbra medir en ml y gramos.
   - question: ¿La taza es igual en todas partes?

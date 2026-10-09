@@ -4,7 +4,7 @@ locale: uk
 category: length
 engine: linear-converter
 engineParams:
-  factor: 0.621371
+  factor: 0.6213711922
   fromUnit: Кілометри
   toUnit: Милі
   fromUnitShort: км

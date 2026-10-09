@@ -4,7 +4,7 @@ locale: en
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 0.00422675
+  factor: 0.004226752838
   fromUnit: Milliliters
   toUnit: Cups
   fromUnitShort: ml
@@ -15,7 +15,7 @@ summary: "237 ml = 1 US cup"
 description: Convert milliliters to cups online, free and with no sign-up. An accurate volume converter for US recipes.
 faq:
   - question: How many cups is 500 ml?
-    answer: 500 ml = 2.113375 cups (500 × 0.00422675) — a US measuring cup equals 236.588236 ml.
+    answer: 500 ml = 2.113376 cups (500 × 0.00422675) — a US measuring cup equals 236.588236 ml.
   - question: Why do recipes use cups instead of milliliters?
     answer: US recipes almost always give liquid and dry ingredient volume in cups — a familiar measure for American kitchens, but not for places used to measuring in ml and grams.
   - question: Is a cup the same everywhere?

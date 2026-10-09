@@ -4,7 +4,7 @@ locale: es
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 0.26417205
+  factor: 0.2641720524
   fromUnit: Litros
   toUnit: Galones
   fromUnitShort: L

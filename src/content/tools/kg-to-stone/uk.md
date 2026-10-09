@@ -4,7 +4,7 @@ locale: uk
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 0.157473
+  factor: 0.1574730444
   fromUnit: Кілограми
   toUnit: Стоуни
   fromUnitShort: кг

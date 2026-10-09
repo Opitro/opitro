@@ -4,7 +4,7 @@ locale: es
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 0.03381402
+  factor: 0.0338140227
   fromUnit: Mililitros
   toUnit: Onzas Líquidas
   fromUnitShort: ml
@@ -17,7 +17,7 @@ faq:
   - question: ¿Cuántas onzas son 500 ml?
     answer: 500 ml = 16.90701 fl oz (500 × 0.03381402) — aproximadamente una botella de agua estándar.
   - question: ¿Cuántas onzas tiene una botella de vino de 750 ml?
-    answer: 750 ml = 25.360515 fl oz (750 × 0.03381402) — el tamaño estándar de una botella de vino.
+    answer: 750 ml = 25.360517 fl oz (750 × 0.03381402) — el tamaño estándar de una botella de vino.
   - question: ¿Para qué convertir ml a onzas si el producto no se compró en EE. UU.?
     answer: Útil al comprar cosmética, perfumes o bebidas en tiendas estadounidenses — allí el volumen suele darse solo en onzas, sin mostrar también los ml.
 ---

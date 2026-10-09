@@ -4,7 +4,7 @@ locale: uk
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 236.588236
+  factor: 236.5882365
   fromUnit: Склянки
   toUnit: Мілілітри
   fromUnitShort: склянка

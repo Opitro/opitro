@@ -4,7 +4,7 @@ locale: en
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 29.5735296
+  factor: 29.5735295625
   fromUnit: Fluid Ounces
   toUnit: Milliliters
   fromUnitShort: fl oz

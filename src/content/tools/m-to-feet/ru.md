@@ -4,7 +4,7 @@ locale: ru
 category: length
 engine: linear-converter
 engineParams:
-  factor: 3.28084
+  factor: 3.280839895
   fromUnit: Метры
   toUnit: Футы
   fromUnitShort: м

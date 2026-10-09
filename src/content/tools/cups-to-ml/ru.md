@@ -4,7 +4,7 @@ locale: ru
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 236.588236
+  factor: 236.5882365
   fromUnit: Чашки
   toUnit: Миллилитры
   fromUnitShort: чашк

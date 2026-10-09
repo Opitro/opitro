@@ -4,7 +4,7 @@ locale: uk
 category: volume
 engine: linear-converter
 engineParams:
-  factor: 0.26417205
+  factor: 0.2641720524
   fromUnit: Літри
   toUnit: Галони
   fromUnitShort: л

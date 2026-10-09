@@ -4,7 +4,7 @@ locale: es
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 6.350293
+  factor: 6.35029318
   fromUnit: Stone
   toUnit: Kilogramos
   fromUnitShort: st
@@ -15,9 +15,9 @@ summary: "1 stone = 6,35 kg; 11 stone = 70 kg"
 description: Convierte stone a kilogramos online, gratis y sin registro. Un conversor de peso corporal preciso — introduce stone, obtén el resultado en kilogramos.
 faq:
   - question: ¿Cuántos kilogramos hay en un stone?
-    answer: Un stone equivale a 6.350293 kg — una cifra exacta (14 libras).
+    answer: Un stone equivale a 6.35029318 kg — una cifra exacta (14 libras).
   - question: ¿Cuántos kg son 12 stone?
-    answer: 12 stone = 76.203516 kg (12 × 6.350293).
+    answer: 12 stone = 76.203518 kg (12 × 6.35029318).
   - question: ¿Dónde más aparece el stone además de hablar del propio peso?
     answer: El boxeo y otros deportes de combate en el Reino Unido han nombrado históricamente las categorías de peso en stone y libras (por ejemplo "11 stone 6" en vez de "72.8 kg"), aunque hoy suele mostrarse también en kg.
 ---

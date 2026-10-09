@@ -4,7 +4,7 @@ locale: es
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 28.349523
+  factor: 28.349523125
   fromUnit: Onzas
   toUnit: Gramos
   fromUnitShort: oz
@@ -15,9 +15,9 @@ summary: "1 onza = 28,35 g"
 description: Convierte onzas a gramos online, gratis y sin registro. Un conversor de peso preciso — introduce un número de onzas y obtén el resultado en gramos.
 faq:
   - question: ¿Cuántos gramos hay en una onza?
-    answer: Una onza equivale a 28.349523 g — una cifra exacta, no el redondeo habitual de "unos 28 gramos".
+    answer: Una onza equivale a 28.349523125 g — una cifra exacta, no el redondeo habitual de "unos 28 gramos".
   - question: ¿Cuántos gramos es un filete de 8 oz (porción típica en EE. UU.)?
-    answer: 8 oz = 226.796184 g (8 × 28.349523) — más o menos el tamaño que ponen en el menú los asadores estadounidenses.
+    answer: 8 oz = 226.796185 g (8 × 28.349523125) — más o menos el tamaño que ponen en el menú los asadores estadounidenses.
   - question: ¿Es la misma onza que se usa para pesar oro?
     answer: No. Los metales preciosos usan la onza troy (31.1034768 g), algo más pesada. Esta calculadora usa la onza normal, la que se emplea para alimentos, paquetes y objetos cotidianos.
 ---

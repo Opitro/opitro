@@ -4,7 +4,7 @@ locale: en
 category: length
 engine: linear-converter
 engineParams:
-  factor: 0.393701
+  factor: 0.3937007874
   fromUnit: Centimeters
   toUnit: Inches
   fromUnitShort: cm
@@ -17,7 +17,7 @@ faq:
   - question: How many inches are in a centimeter?
     answer: One centimeter equals 0.393701 inches. For example, 30 cm is roughly 11.81 inches.
   - question: How many inches is 15 cm?
-    answer: 15 cm = 5.905515 inches (15 × 0.393701). That's roughly the diagonal of a large smartphone.
+    answer: 15 cm = 5.905512 inches (15 × 0.393701). That's roughly the diagonal of a large smartphone.
   - question: Why are TV and monitor diagonals measured in inches?
     answer: It's a historical standard from the US electronics industry, and it stuck globally — screen diagonals are still given in inches worldwide.
   - question: How do I convert inches back to centimeters?

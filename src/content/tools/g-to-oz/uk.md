@@ -4,7 +4,7 @@ locale: uk
 category: weight
 engine: linear-converter
 engineParams:
-  factor: 0.035274
+  factor: 0.03527396195
   fromUnit: Грами
   toUnit: Унції
   fromUnitShort: г
