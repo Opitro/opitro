@@ -33,6 +33,8 @@ faq:
     answer: "No. The scale starts at absolute zero, 0 K, which is −273.15 °C."
 ---
 
+Type a number into the Celsius field and the answer appears in the Kelvin field straight away. The arrow button between the fields opens the reverse conversion, [Kelvin to Celsius](/en/kelvin-to-celsius): that is the one you need when the answer to a problem or a value from a table is in kelvin.
+
 Kelvin is what physics and chemistry problems run on. The gas laws and the formulas of thermodynamics only work with temperature in kelvin: put degrees Celsius in and the answer comes out wrong.
 
 ## Why you can't calculate in degrees Celsius

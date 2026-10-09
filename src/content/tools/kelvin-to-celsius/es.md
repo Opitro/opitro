@@ -31,9 +31,9 @@ faq:
     answer: "No. La escala empieza en cero, no existen los kelvin negativos."
 ---
 
-Los kelvin aparecen en las soluciones de los problemas, en artículos científicos y tablas de referencia, y también en las cajas de las bombillas. En el primer caso se pasan a grados Celsius restando; en el segundo no hay nada que convertir.
+Escribe un número en el campo «Kelvin» y el resultado aparece al momento en el campo «Celsius». El botón con flechas que hay entre los campos abre la conversión inversa, [Celsius a Kelvin](/es/celsius-to-kelvin): es la que necesitas para poner la temperatura en una fórmula.
 
-Para el sentido contrario, mira [Celsius a Kelvin](/es/celsius-to-kelvin).
+Los kelvin aparecen en las soluciones de los problemas, en artículos científicos y tablas de referencia, y también en las cajas de las bombillas. En el primer caso se pasan a grados Celsius restando; en el segundo no hay nada que convertir.
 
 ## Los kelvin de la bombilla, el monitor y la cámara
 

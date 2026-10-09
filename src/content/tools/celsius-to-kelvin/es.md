@@ -33,6 +33,8 @@ faq:
     answer: "No. La escala empieza en el cero absoluto, 0 K, que son −273,15 °C."
 ---
 
+Escribe un número en el campo «Celsius» y el resultado aparece al momento en el campo «Kelvin». El botón con flechas que hay entre los campos abre la conversión inversa, [Kelvin a Celsius](/es/kelvin-to-celsius): es la que necesitas cuando la solución de un problema o un valor de una tabla viene en kelvin.
+
 Los kelvin hacen falta en los problemas de física y de química. En las leyes de los gases y en las fórmulas de termodinámica la temperatura solo se pone en kelvin: con grados Celsius el resultado sale mal.
 
 ## Por qué no se puede calcular en grados Celsius

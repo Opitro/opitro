@@ -31,9 +31,9 @@ faq:
     answer: "No. The scale starts at zero, there are no negative kelvins."
 ---
 
-Kelvin shows up in answers to problems, in scientific papers and reference tables, and also on light bulb boxes. In the first case you convert to Celsius by subtracting; in the second there is nothing to convert.
+Type a number into the Kelvin field and the answer appears in the Celsius field straight away. The arrow button between the fields opens the reverse conversion, [Celsius to Kelvin](/en/celsius-to-kelvin): that is the one you need to put a temperature into a formula.
 
-For the other direction, see [Celsius to Kelvin](/en/celsius-to-kelvin).
+Kelvin shows up in answers to problems, in scientific papers and reference tables, and also on light bulb boxes. In the first case you convert to Celsius by subtracting; in the second there is nothing to convert.
 
 ## Kelvin on a light bulb, a monitor and a camera
 
