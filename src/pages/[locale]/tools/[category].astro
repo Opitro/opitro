@@ -22,6 +22,9 @@ export async function getStaticPaths() {
 
 const { entry } = Astro.props;
 const { Content } = await render(entry);
+const bodyParts = (entry.rendered?.html ?? '').split(/(?=<h2)/);
+const introHtml = bodyParts[0].startsWith('<h2') ? '' : bodyParts[0].trim();
+const cards = bodyParts.filter((part) => part.startsWith('<h2'));
 
 const allCategories = await getCollection('categories');
 const translations = allCategories
@@ -285,8 +288,14 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   </section>
 
   <section class="seo v2">
-    <Content />
-    {entry.data.faq && entry.data.faq.length > 0 && (
+    {cards.length === 0 && <Content />}
+    {cards.length > 0 && introHtml && <div class="info-intro" set:html={introHtml} />}
+    {cards.length > 0 && (
+      <div class="info-grid">
+        {cards.map((card) => <div class="info-card" set:html={card} />)}
+      </div>
+    )}
+    {cards.length === 0 && entry.data.faq && entry.data.faq.length > 0 && (
       <>
         <h2>{faqLabel}</h2>
         {entry.data.faq.map((item) => (
@@ -296,6 +305,17 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
           </div>
         ))}
       </>
+    )}
+    {cards.length > 0 && entry.data.faq && entry.data.faq.length > 0 && (
+      <div class="info-faq">
+        <h2>{faqLabel}</h2>
+        {entry.data.faq.map((item) => (
+          <div class="seo-вопрос">
+            <h3>{item.question}</h3>
+            <p>{item.answer}</p>
+          </div>
+        ))}
+      </div>
     )}
   </section>
 </Layout>
@@ -321,6 +341,26 @@ const полки = поПолкам(entry.data.catSlug, tools, entry.data.locale
   section.seo::before{content:"";display:block;height:1px;margin-bottom:30px;
     background:linear-gradient(90deg,transparent,rgba(255,255,255,.12),transparent)}
   .seo-вопрос{margin-bottom:18px}
+  section.seo.v2 > .info-intro,section.seo.v2 > .info-grid,section.seo.v2 > .info-faq{padding:0;border-top:0}
+  .info-intro{max-width:760px;margin:0 auto 22px}
+  .info-grid{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:14px;max-width:1040px;margin:0 auto}
+  .info-card{min-width:0;padding:22px 24px;background:var(--surface);border:1px solid var(--line);border-radius:14px}
+  .info-card:nth-child(4n+1){--rule:#4ade9e}
+  .info-card:nth-child(4n+2){--rule:#e8b563}
+  .info-card:nth-child(4n+3){--rule:#7fa8f0}
+  .info-card:nth-child(4n+4){--rule:#f08a72}
+  section.seo.v2 .info-card :global(h2){margin-top:0;font-size:18px}
+  .info-card :global(> :last-child){margin-bottom:0}
+  .info-card :global(table){display:table;width:100%}
+  .info-card :global(th),.info-card :global(td){padding:8px 0 8px 12px}
+  .info-card :global(th:first-child),.info-card :global(td:first-child){padding-left:0;white-space:normal}
+  .info-faq{max-width:760px;margin:38px auto 0}
+  .info-faq h2{--rule:#f08a72;margin-top:0}
+  .info-faq .seo-вопрос{margin:0;padding:18px 0;border-top:1px solid rgba(255,255,255,0.07)}
+  @media(max-width:760px){
+    .info-grid{grid-template-columns:minmax(0,1fr)}
+    .info-card{padding:18px 16px}
+  }
   @media(max-width:760px){
     section.seo{padding:0 1rem;margin-top:34px}
     .main .subtitle{font-size:14px;margin-bottom:24px}
