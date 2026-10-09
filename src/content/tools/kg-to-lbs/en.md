@@ -16,8 +16,6 @@ description: Convert kilograms to pounds online, free and with no sign-up. An ac
 faq:
   - question: How many pounds are in a kilogram?
     answer: One kilogram equals 2.20462 pounds. For example, 5 kg is roughly 11.02 pounds.
-  - question: How many pounds is 70 kg?
-    answer: 70 kg = 154.3234 lbs (70 × 2.20462) — roughly the average weight of an adult man.
   - question: Why does the US measure weight in pounds?
     answer: The US never switched to the metric system for everyday measurements — body weight, groceries, and package weight are traditionally given in pounds there.
   - question: How many pounds is 70 kg?

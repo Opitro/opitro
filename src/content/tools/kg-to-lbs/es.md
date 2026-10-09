@@ -16,8 +16,6 @@ description: Convierte kilogramos a libras online, gratis y sin registro. Un con
 faq:
   - question: ¿Cuántas libras hay en un kilogramo?
     answer: Un kilogramo equivale a 2.20462 libras. Por ejemplo, 5 kg son aproximadamente 11.02 libras.
-  - question: ¿Cuántas libras son 70 kg?
-    answer: 70 kg = 154.3234 lb (70 × 2.20462) — más o menos el peso medio de un hombre adulto.
   - question: ¿Por qué en Estados Unidos se mide el peso en libras?
     answer: Estados Unidos nunca adoptó el sistema métrico para las medidas cotidianas — el peso corporal, los alimentos y los paquetes se dan tradicionalmente en libras allí.
   - question: ¿Cuántas libras son 70 kg?
