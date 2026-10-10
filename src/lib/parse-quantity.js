@@ -80,7 +80,7 @@ export const COMPOUND = {
   },
   'stone-to-kg': {
     per: 14,
-    main: ['st', 'stone', 'stones', 'стоун', 'стоуна', 'стоунов', 'стоунів'],
-    sub: ['lb', 'lbs', 'pound', 'pounds', 'фунт', 'фунта', 'фунтов', 'фунтів', 'libra', 'libras'],
+    main: ['st', 'stone', 'stones', 'стоун', 'стоуна', 'стоунов', 'стоунів', 'стоуни'],
+    sub: ['lb', 'lbs', 'pound', 'pounds', 'фунт', 'фунта', 'фунтов', 'фунтів', 'фунти', 'libra', 'libras'],
   },
 };

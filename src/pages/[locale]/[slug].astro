@@ -209,9 +209,13 @@ const TEMPERATURE_INPUTS = {
   fahrenheit: [-40, 0, 32, 50, 68, 77, 86, 100, 212],
   kelvin: [0, 100, 200, 273.15, 293.15, 298.15, 310.15, 373.15, 1000],
 };
+const LINEAR_INPUTS = {
+  'stone-to-kg': [1, 2, 3, 5, 10, 15, 20, 25, 30],
+  'kg-to-stone': [1, 5, 10, 20, 30, 40, 110, 120, 150],
+};
 const tableInputs = entry.data.engine === 'temperature-converter'
   ? TEMPERATURE_INPUTS[entry.data.toolSlug.split('-to-')[0]] || TEMPERATURE_INPUTS.celsius
-  : [1, 2, 5, 10, 20, 50, 100, 500, 1000];
+  : LINEAR_INPUTS[entry.data.toolSlug] || [1, 2, 5, 10, 20, 50, 100, 500, 1000];
 
 const fmtNum = (n) => {
   const abs = Math.abs(n);
