@@ -28,7 +28,7 @@ faq:
     answer: "Sí. Los metales preciosos se pesan en libras troy de 373,2 g, y en textos antiguos la libra castellana eran unos 460 g. Hoy libra significa casi siempre la internacional, 453,6 g."
 ---
 
-Escribe un número en el campo «Libras» y el resultado aparece al momento en el campo «Kilogramos». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Kilogramos a libras](/es/kg-to-lbs).
+Escribe un número en el campo «Libras» y el resultado aparece al momento en el campo «Kilogramos». Debajo hay una línea «Exacto» con hasta seis decimales y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Kilogramos a libras](/es/kg-to-lbs).
 
 Las libras aparecen en mancuernas y discos de fabricación estadounidense, en recetas de Estados Unidos, en las normas de las aerolíneas y en las fichas de productos de webs estadounidenses. Abajo están las conversiones para cada caso.
 

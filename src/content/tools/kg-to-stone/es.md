@@ -28,7 +28,7 @@ faq:
     answer: "Una unidad británica para el peso de una persona, 14 libras. En Reino Unido e Irlanda la gente sigue diciendo su peso en stone más que en kilogramos."
 ---
 
-Escribe un número en el campo «Kilogramos» y el resultado aparece al momento en el campo «Stone». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Stone a kilogramos](/es/stone-to-kg).
+Escribe un número en el campo «Kilogramos» y el resultado aparece al momento en el campo «Stone». Debajo hay una línea «Exacto» con hasta seis decimales y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Stone a kilogramos](/es/stone-to-kg).
 
 Los stone hacen falta para decirle tu peso a un británico o a un irlandés, rellenar un formulario británico o configurar una app que pide el peso en stone y libras.
 

@@ -28,7 +28,7 @@ faq:
     answer: "No. El oro y la plata se pesan en onzas troy de 31,1 g; la onza corriente son 28,35 g."
 ---
 
-Escribe un número en el campo «Gramos» y el resultado aparece al momento en el campo «Onzas». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Onzas a gramos](/es/oz-to-g).
+Escribe un número en el campo «Gramos» y el resultado aparece al momento en el campo «Onzas». Debajo hay una línea «Exacto» con hasta seis decimales y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Onzas a gramos](/es/oz-to-g).
 
 Las onzas hacen falta cuando la báscula marca gramos pero el peso hay que escribirlo para estadounidenses: una receta, la ficha de un producto, el peso de un paquete o de un ovillo de lana.
 

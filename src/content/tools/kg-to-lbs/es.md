@@ -28,7 +28,7 @@ faq:
     answer: "Las dos unidades nacieron por separado: la libra viene de la libra romana y el kilogramo, del sistema métrico de finales del siglo XVIII. Hoy la libra se define a partir del kilogramo, exactamente 0,45359237 kg, y de ahí sale 2,2046."
 ---
 
-Escribe un número en el campo «Kilogramos» y el resultado aparece al momento en el campo «Libras». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Libras a kilogramos](/es/lbs-to-kg).
+Escribe un número en el campo «Kilogramos» y el resultado aparece al momento en el campo «Libras». Debajo hay una línea «Exacto» con hasta seis decimales y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Libras a kilogramos](/es/lbs-to-kg).
 
 Las libras hacen falta cuando pesas en kilogramos pero tienes que decir el peso en libras: un formulario o una app de entrenamiento estadounidense, una barra en un gimnasio con discos estadounidenses, una maleta antes de volar a Estados Unidos.
 

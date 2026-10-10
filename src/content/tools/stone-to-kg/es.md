@@ -28,7 +28,7 @@ faq:
     answer: "En Reino Unido e Irlanda. En Estados Unidos, Canadá y Australia no se usan."
 ---
 
-Escribe un número en el campo «Stone» y el resultado aparece al momento en el campo «Kilogramos». También puedes escribir el peso con dos números, como lo hacen los británicos: «11 st 4 lb», «11 stone 4 libras» o simplemente «11 4». Debajo del resultado hay una línea «Exacto» y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Kilogramos a stone](/es/kg-to-stone).
+Escribe un número en el campo «Stone» y el resultado aparece al momento en el campo «Kilogramos». También puedes escribir el peso con dos números, como lo hacen los británicos: «11 st 4 lb», «11 stone 4 libras» o simplemente «11 4». Debajo del resultado hay una línea «Exacto» y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Kilogramos a stone](/es/kg-to-stone).
 
 Los stone aparecen en artículos británicos de salud, al hablar con británicos e irlandeses, en las categorías de peso del boxeo y en los programas de las carreras de caballos.
 

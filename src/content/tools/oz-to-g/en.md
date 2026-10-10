@@ -28,7 +28,7 @@ faq:
     answer: "31.1 g. Gold is counted in troy ounces, which are heavier than ordinary ones."
 ---
 
-Type a number into the Ounces field and the answer appears in the Grams field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Grams to Ounces](/en/g-to-oz).
+Type a number into the Ounces field and the answer appears in the Grams field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Grams to Ounces](/en/g-to-oz).
 
 Ounces are printed on American packaging, used in recipes from the US and listed on steakhouse menus. The conversions for each case are below.
 

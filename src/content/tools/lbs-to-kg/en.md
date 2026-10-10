@@ -28,7 +28,7 @@ faq:
     answer: "Yes. Precious metals are weighed in troy pounds of 373.2 g, and old Russian texts use a pound of 409.5 g. Today a pound almost always means the international one, 453.6 g."
 ---
 
-Type a number into the Pounds field and the answer appears in the Kilograms field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Kilograms to Pounds](/en/kg-to-lbs).
+Type a number into the Pounds field and the answer appears in the Kilograms field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Kilograms to Pounds](/en/kg-to-lbs).
 
 Pounds turn up on American-made dumbbells and plates, in recipes from the US, in airline rules and in product listings on American sites. The conversions for each case are below.
 

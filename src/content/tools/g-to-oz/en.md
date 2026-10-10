@@ -28,7 +28,7 @@ faq:
     answer: "No. Gold and silver are weighed in troy ounces of 31.1 g; the ordinary ounce is 28.35 g."
 ---
 
-Type a number into the Grams field and the answer appears in the Ounces field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Ounces to Grams](/en/oz-to-g).
+Type a number into the Grams field and the answer appears in the Ounces field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Ounces to Grams](/en/oz-to-g).
 
 You need ounces when your scales show grams but the weight has to be written for Americans: a recipe, a product listing, the weight of a parcel or a skein of yarn.
 

@@ -56,7 +56,10 @@ const {
     </div>
     <div class="lc-foot">
       <span class="result-exact" id="lc-exact" data-label={exactLabel} hidden></span>
-      <button type="button" class="lc-copy" id="lc-copy" data-done={copiedLabel} hidden>{copyLabel}</button>
+      <button type="button" class="lc-copy" id="lc-copy" title={copyLabel} aria-label={copyLabel} data-done={copiedLabel} hidden>
+        <svg class="copy-sheet" viewBox="0 0 24 24" aria-hidden="true"><rect x="9" y="9" width="11" height="11" rx="2"/><path d="M15 9V6a2 2 0 0 0-2-2H6a2 2 0 0 0-2 2v7a2 2 0 0 0 2 2h3"/></svg>
+        <svg class="copy-done" viewBox="0 0 24 24" aria-hidden="true"><path d="M20 6L9 17l-5-5"/></svg>
+      </button>
     </div>
   </div>
 </div>
@@ -149,9 +152,13 @@ const {
       sel.addRange(r);
       return;
     }
-    const was = copyBtn.textContent;
-    copyBtn.textContent = copyBtn.dataset.done || was;
-    setTimeout(() => { copyBtn.textContent = was; }, 1400);
+    const label = copyBtn.getAttribute('aria-label');
+    copyBtn.classList.add('done');
+    copyBtn.setAttribute('aria-label', copyBtn.dataset.done || label);
+    setTimeout(() => {
+      copyBtn.classList.remove('done');
+      copyBtn.setAttribute('aria-label', label);
+    }, 1400);
   });
 
   input.addEventListener('focus', () => input.select());
@@ -160,9 +167,14 @@ const {
 
 <style>
   .result-exact{color:var(--muted);font-variant-numeric:tabular-nums;min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
-  .lc-copy{flex:none;margin-left:auto;background:none;border:1px solid var(--line);border-radius:9px;color:var(--muted);
-    font-family:inherit;font-size:12px;padding:4px 10px;cursor:pointer;
+  .lc-copy{flex:none;margin-left:auto;display:flex;align-items:center;justify-content:center;width:30px;height:26px;padding:0;
+    background:none;border:1px solid var(--line);border-radius:9px;color:var(--muted);cursor:pointer;
     transition:border-color .18s,color .18s}
+  .lc-copy[hidden]{display:none}
+  .lc-copy svg{width:15px;height:15px;fill:none;stroke:currentColor;stroke-width:2;stroke-linecap:round;stroke-linejoin:round}
+  .lc-copy .copy-done{display:none}
+  .lc-copy.done .copy-sheet{display:none}
+  .lc-copy.done .copy-done{display:block}
+  .lc-copy.done{border-color:rgba(74,222,158,0.5);color:var(--accent)}
   .lc-copy:hover{border-color:rgba(255,255,255,0.22);color:var(--text)}
-  .lc-copy:active{border-color:rgba(74,222,158,0.5);color:var(--accent)}
 </style>

@@ -28,7 +28,7 @@ faq:
     answer: "The UK and Ireland. The US, Canada and Australia do not use stone."
 ---
 
-Type a number into the Stone field and the answer appears in the Kilograms field straight away. You can also enter the weight as two numbers, the way it is written in Britain: "11 st 4 lb", "11 stone 4" or just "11 4". Under the answer there is an "Exact" line and a Copy button. The arrow button between the fields opens the reverse conversion, [Kilograms to Stone](/en/kg-to-stone).
+Type a number into the Stone field and the answer appears in the Kilograms field straight away. You can also enter the weight as two numbers, the way it is written in Britain: "11 st 4 lb", "11 stone 4" or just "11 4". Under the answer there is an "Exact" line and a copy icon. The arrow button between the fields opens the reverse conversion, [Kilograms to Stone](/en/kg-to-stone).
 
 Stone turns up in British health articles, in conversation with people from Britain and Ireland, in boxing weight classes and on racecards.
 

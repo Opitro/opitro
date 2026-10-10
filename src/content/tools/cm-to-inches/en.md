@@ -9,37 +9,65 @@ engineParams:
   toUnit: Inches
   fromUnitShort: cm
   toUnitShort: in
-title: Cm to Inches Converter — Free, No Sign-Up Required
-description: Convert centimeters to inches online, free and with no sign-up. An accurate converter for screen diagonals, height, shoe size, and other measurements.
+title: "Convert Centimeters to Inches (cm to in) — Calculator & Formulas"
+description: "Convert centimetres to inches online. Ready values for jeans sizes, height in feet and inches, photo and frame formats. Free, no sign-up."
 h1: Centimeters to Inches
 summary: "1 inch = 2.54 cm, 10 cm = 3.94 in"
 faq:
-  - question: How many inches are in a centimeter?
-    answer: One centimeter equals 0.393701 inches. For example, 30 cm is roughly 11.81 inches.
-  - question: How many inches is 15 cm?
-    answer: 15 cm = 5.905512 inches (15 × 0.393701). That's roughly the diagonal of a large smartphone.
-  - question: Why are TV and monitor diagonals measured in inches?
-    answer: It's a historical standard from the US electronics industry, and it stuck globally — screen diagonals are still given in inches worldwide.
-  - question: How do I convert inches back to centimeters?
-    answer: Multiply the inch value by 2.54 — that's the reverse factor. For example, 10 inches = 25.4 cm.
-  - question: How many inches is 100 cm?
-    answer: 100 cm = 39.3701 inches. A metre is a little under 40 inches, which is a handy approximation to carry in your head.
-  - question: What is a 55-inch TV in centimetres?
-    answer: 55 inches is 139.7 cm measured diagonally. The cabinet is about 123 cm wide — diagonal and width are different numbers, and furniture has to be measured against the width.
-  - question: Why is an inch exactly 2.54 cm?
-    answer: "It is a 1959 agreement: before that the inch differed slightly between countries, and it was fixed at exactly 2.54 cm. The number is exact by definition, not rounded."
+  - question: "How many inches are in a centimetre?"
+    answer: "0.3937 inches."
+  - question: "How many inches is 10 cm?"
+    answer: "3.94 inches."
+  - question: "How many inches is 30 cm?"
+    answer: "11.81 inches, just under a foot."
+  - question: "How many inches is 100 cm?"
+    answer: "39.37 inches. A metre is a little under 40 inches."
+  - question: "How tall is 175 cm in feet and inches?"
+    answer: "5 feet 9 inches."
+  - question: "Why is an inch exactly 2.54 cm?"
+    answer: "It was agreed in 1959. Before that the inch differed slightly from country to country, so it was fixed at exactly 2.54 cm. The number is exact by definition, not rounded."
 ---
 
-The centimeter is an everyday metric unit, while the inch remains the standard for screen diagonals, tool sizes, pipe diameters, and some clothing and shoe sizing.
+Type a number into the Centimeters field and the answer appears in the Inches field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Inches to Centimeters](/en/inches-to-cm).
 
-This converter is useful when choosing a monitor, TV, or laptop by its diagonal in inches, working with foreign technical drawings, or converting height and measurements from cm to inches.
+You need inches when you measure with a centimetre tape but have to answer in inches: an American size chart, your height on a form, a photo or frame size.
 
-## Where you will meet it
+## Jeans size
 
-- **Screen sizes** — a 15.6-inch laptop is 39.6 cm, a 55-inch TV is 139.7 cm
-- **Clothes and shoes from US shops** — chest and waist in size charts are given in inches
-- **Drawings and hardware** — US fasteners, pipes and furniture fittings are dimensioned in inches
-- **Height** — 175 cm is 5 feet 9 inches in American terms
-- **Photo prints** — the 10×15 cm format corresponds to roughly 4×6 inches
+In a size like W32 L34 the first number is the waist in inches and the second is the inside leg.
 
-A quick estimate: divide by two and a half. 100 cm → 40 inches; the real figure is 39.37, so the error is about one and a half percent.
+- 71 cm — 28 inches
+- 76 cm — 30 inches
+- 81 cm — 32 inches
+- 86 cm — 34 inches
+- 91 cm — 36 inches
+- 97 cm — 38 inches
+- 102 cm — 40 inches
+
+## Height in feet and inches
+
+The calculator gives height in inches. Divide by 12: the whole part is feet, the remainder is inches. 175 cm is 68.9 inches, that is 5 feet 9 inches.
+
+- 160 cm — 5′3″
+- 165 cm — 5′5″
+- 170 cm — 5′7″
+- 175 cm — 5′9″
+- 180 cm — 5′11″
+- 185 cm — 6′1″
+- 190 cm — 6′3″
+
+## Photos and frames
+
+- 10 × 15 cm — 4 × 6 inches
+- 13 × 18 cm — 5 × 7 inches
+- 20 × 25 cm — 8 × 10 inches
+
+An A4 sheet, 21 × 29.7 cm, is 8.3 × 11.7 inches. US Letter is a different sheet: 8.5 × 11 inches, wider and shorter.
+
+## A quick estimate in your head
+
+Multiply the centimetres by 4 and drop the last digit. 100 cm → 400 → 40 inches. The exact value is 39.37.
+
+## How accurate the answer is
+
+The calculation runs in your browser: the number is not sent anywhere, and the answer appears with no request to a server. Under the international agreement of 1959 an inch is exactly 2.54 cm, so the result is exact rather than approximate. The large number in the answer is rounded; the "Exact" line under it shows up to six decimal places.

@@ -28,7 +28,7 @@ faq:
     answer: "31,1 g. El oro se cuenta en onzas troy, que pesan más que las corrientes."
 ---
 
-Escribe un número en el campo «Onzas» y el resultado aparece al momento en el campo «Gramos». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Gramos a onzas](/es/g-to-oz).
+Escribe un número en el campo «Onzas» y el resultado aparece al momento en el campo «Gramos». Debajo hay una línea «Exacto» con hasta seis decimales y un icono para copiar. El botón con flechas que hay entre los campos abre la conversión inversa, [Gramos a onzas](/es/g-to-oz).
 
 Las onzas aparecen en los envases estadounidenses, en las recetas de Estados Unidos y en las cartas de los asadores. Abajo están las conversiones para cada caso.
 

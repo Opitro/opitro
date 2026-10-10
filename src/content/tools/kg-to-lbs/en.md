@@ -28,7 +28,7 @@ faq:
     answer: "The two units arose independently: the pound goes back to the Roman libra, the kilogram to the metric system of the late 18th century. Today the pound is defined through the kilogram, exactly 0.45359237 kg, and that gives 2.2046."
 ---
 
-Type a number into the Kilograms field and the answer appears in the Pounds field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Pounds to Kilograms](/en/lbs-to-kg).
+Type a number into the Kilograms field and the answer appears in the Pounds field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Pounds to Kilograms](/en/lbs-to-kg).
 
 You need pounds when you weigh things in kilograms but have to state the weight in pounds: an American form or training app, a barbell in a gym with American plates, a suitcase before a flight to the US.
 

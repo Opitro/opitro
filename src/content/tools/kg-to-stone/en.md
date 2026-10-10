@@ -28,7 +28,7 @@ faq:
     answer: "A British unit for a person's weight, 14 pounds. In the UK and Ireland people still give their own weight in stone more often than in kilograms."
 ---
 
-Type a number into the Kilograms field and the answer appears in the Stone field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Stone to Kilograms](/en/stone-to-kg).
+Type a number into the Kilograms field and the answer appears in the Stone field straight away. Under it there is an "Exact" line with up to six decimal places and a copy icon. The arrow button between the fields opens the reverse conversion, [Stone to Kilograms](/en/stone-to-kg).
 
 You need stone to tell someone in Britain or Ireland what you weigh, to fill in a British form, or to set up an app that takes weight in stone and pounds.
 
