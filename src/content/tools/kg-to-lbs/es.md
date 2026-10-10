@@ -9,33 +9,63 @@ engineParams:
   toUnit: Libras
   fromUnitShort: kg
   toUnitShort: lb
-title: Conversor de kg a libras online, gratis, sin registro
+title: "Convertir kilogramos a libras (kg a lb) — calculadora y fórmulas"
 h1: Kilogramos a Libras
 summary: "1 kg = 2,205 lb; 70 kg = 154 lb"
-description: Convierte kilogramos a libras online, gratis y sin registro. Un conversor de peso preciso — introduce un número y obtén el resultado en libras.
+description: "Convierte kilogramos a libras online. Valores listos para el peso corporal, una barra con discos estadounidenses, el equipaje y el peso de un recién nacido. Gratis, sin registro."
 faq:
-  - question: ¿Cuántas libras hay en un kilogramo?
-    answer: Un kilogramo equivale a 2.20462 libras. Por ejemplo, 5 kg son aproximadamente 11.02 libras.
-  - question: ¿Por qué en Estados Unidos se mide el peso en libras?
-    answer: Estados Unidos nunca adoptó el sistema métrico para las medidas cotidianas — el peso corporal, los alimentos y los paquetes se dan tradicionalmente en libras allí.
-  - question: ¿Cuántas libras son 70 kg?
-    answer: 70 kg = 154.32 libras (70 × 2.20462). Es un peso adulto típico, y así se diría en Estados Unidos.
-  - question: ¿Cómo paso kilos a libras mentalmente?
-    answer: Multiplica por dos y suma una décima parte del resultado. 40 kg → 80 → más 8 → 88 libras. El valor exacto es 88.18, con un error inferior al uno por ciento.
-  - question: ¿Por qué 1 kg son 2.2 libras y no exactamente dos?
-    answer: "Las dos unidades nacieron por separado: la libra viene de la libra romana y el kilogramo del sistema métrico de finales del siglo XVIII. No hay motivo para que coincidan, y 2.20462 se deduce de que la libra está definida como 0.45359237 kg exactos."
+  - question: "¿Cuántas libras hay en un kilogramo?"
+    answer: "2,2046 libras. Por ejemplo, 5 kg son 11,02 libras."
+  - question: "¿Cuántas libras son 70 kg?"
+    answer: "154,32 libras."
+  - question: "¿Cuántas libras son 100 kg?"
+    answer: "220,46 libras."
+  - question: "¿Cuántas libras son 23 kg?"
+    answer: "50,7 libras. Supera el límite de 50 libras de los vuelos estadounidenses."
+  - question: "¿Cuánto son 3,5 kg en libras y onzas?"
+    answer: "7 libras y 11 onzas."
+  - question: "¿Por qué 1 kg son 2,2 libras y no exactamente dos?"
+    answer: "Las dos unidades nacieron por separado: la libra viene de la libra romana y el kilogramo, del sistema métrico de finales del siglo XVIII. Hoy la libra se define a partir del kilogramo, exactamente 0,45359237 kg, y de ahí sale 2,2046."
 ---
 
-El kilogramo es la unidad de peso estándar en casi todo el mundo hispanohablante, mientras que la libra sigue siendo la unidad estándar en Estados Unidos. Útil al leer una web de fitness en inglés, una receta con los ingredientes en libras, o una báscula de gimnasio calibrada en libras.
+Escribe un número en el campo «Kilogramos» y el resultado aparece al momento en el campo «Libras». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Libras a kilogramos](/es/lbs-to-kg).
 
-Aparece mucho en apps de fitness estadounidenses que registran el peso corporal — casi siempre muestran libras, mientras que lo habitual es pensar en kilogramos.
+Las libras hacen falta cuando pesas en kilogramos pero tienes que decir el peso en libras: un formulario o una app de entrenamiento estadounidense, una barra en un gimnasio con discos estadounidenses, una maleta antes de volar a Estados Unidos.
 
-## Dónde aparece
+## Peso corporal
 
-- **Envíos a EE. UU.** — la tarifa se cobra por libra, así que 20 kg se convierten en 44.1 libras
-- **Hablar de peso con un estadounidense** — 70 kg no le dicen nada, 154 libras sí
-- **Marcas deportivas** — un press de banca de 100 kg aparece como 220 libras en las tablas estadounidenses
-- **Manuales de electrodomésticos** — el peso para el mercado estadounidense viene en libras
-- **Sillas infantiles y carritos** — el límite de peso del niño suele estar en libras
+- 55 kg — 121 libras
+- 60 kg — 132 libras
+- 65 kg — 143 libras
+- 70 kg — 154 libras
+- 75 kg — 165 libras
+- 80 kg — 176 libras
+- 90 kg — 198 libras
 
-El truco mental es el inverso del de libras: multiplica por dos y suma una décima parte. 70 kg → 140 → más 14 → 154 libras. La cifra exacta es 154.32.
+## Una barra con discos estadounidenses
+
+La barra estadounidense pesa 45 libras, que son 20,4 kg. Los discos son de 45, 35, 25, 10, 5 y 2,5 libras, así que no se pueden montar 60 o 100 kg exactos. Los montajes estándar más cercanos:
+
+- 135 libras — 61,2 kg: la barra y un disco de 45 por lado
+- 225 libras — 102,1 kg: dos discos de 45 por lado
+- 315 libras — 142,9 kg: tres discos de 45 por lado
+
+## Equipaje
+
+La báscula de casa marca kilogramos, pero el límite en los vuelos estadounidenses es de 50 libras. Son 22,68 kg, no 23: una maleta de 23 kg pesa 50,7 libras y ya cuenta como exceso.
+
+## Peso de un recién nacido
+
+En Estados Unidos se dice en libras y onzas:
+
+- 3,0 kg — 6 libras y 10 onzas
+- 3,5 kg — 7 libras y 11 onzas
+- 4,0 kg — 8 libras y 13 onzas
+
+## Cómo calcularlo de cabeza
+
+Multiplica por dos y suma la décima parte del resultado. 70 kg → 140 → más 14 → 154 libras. El valor exacto es 154,32.
+
+## Precisión del cálculo
+
+El cálculo se hace en tu navegador: el número no se envía a ninguna parte y el resultado aparece sin consultar a un servidor. Según el acuerdo internacional de 1959, una libra son exactamente 0,45359237 kg, así que un kilogramo son 2,2046226 libras. El número grande del resultado está redondeado; la línea «Exacto» de debajo muestra hasta seis decimales.

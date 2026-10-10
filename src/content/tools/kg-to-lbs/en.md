@@ -9,33 +9,63 @@ engineParams:
   toUnit: Pounds
   fromUnitShort: kg
   toUnitShort: lb
-title: Kg to Lbs Converter — Free, No Sign-Up Required
+title: "Convert Kilograms to Pounds (kg to lb) — Calculator & Formulas"
 h1: Kilograms to Pounds
 summary: "1 kg = 2.205 lb, 70 kg = 154 lb"
-description: Convert kilograms to pounds online, free and with no sign-up. An accurate weight converter — enter a number and get the result in pounds.
+description: "Convert kilograms to pounds online. Ready values for body weight, a barbell with American plates, luggage and a newborn's weight. Free, no sign-up."
 faq:
-  - question: How many pounds are in a kilogram?
-    answer: One kilogram equals 2.20462 pounds. For example, 5 kg is roughly 11.02 pounds.
-  - question: Why does the US measure weight in pounds?
-    answer: The US never switched to the metric system for everyday measurements — body weight, groceries, and package weight are traditionally given in pounds there.
-  - question: How many pounds is 70 kg?
-    answer: 70 kg = 154.32 lb (70 × 2.20462). That is a typical adult weight, and this is how it would be said in the US.
-  - question: How do I convert kilograms to pounds in my head?
-    answer: Double the number, then add a tenth of the result. 40 kg → 80 → plus 8 → 88 lb. The exact value is 88.18, so the error is under one percent.
-  - question: Why is 1 kg 2.2 pounds and not exactly two?
-    answer: "The two units were invented independently: the pound descends from the Roman libra, the kilogram from the metric system of the late 18th century. There is no reason for them to line up, and 2.20462 simply follows from the pound being defined as exactly 0.45359237 kg."
+  - question: "How many pounds are in a kilogram?"
+    answer: "2.2046 pounds. For example, 5 kg is 11.02 pounds."
+  - question: "How many pounds is 70 kg?"
+    answer: "154.32 pounds."
+  - question: "How many pounds is 100 kg?"
+    answer: "220.46 pounds."
+  - question: "How many pounds is 23 kg?"
+    answer: "50.7 pounds. That is over the 50-pound limit on American flights."
+  - question: "What is 3.5 kg in pounds and ounces?"
+    answer: "7 pounds 11 ounces."
+  - question: "Why is 1 kg 2.2 pounds and not exactly two?"
+    answer: "The two units arose independently: the pound goes back to the Roman libra, the kilogram to the metric system of the late 18th century. Today the pound is defined through the kilogram, exactly 0.45359237 kg, and that gives 2.2046."
 ---
 
-The kilogram is the standard weight unit almost everywhere, while the pound remains standard in the US. Handy when reading a US fitness site, a recipe with ingredient weights in pounds, or a gym scale calibrated in pounds.
+Type a number into the Kilograms field and the answer appears in the Pounds field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Pounds to Kilograms](/en/lbs-to-kg).
 
-Comes up a lot with US fitness apps tracking body weight — they almost always show pounds, and kilograms are what you actually think in.
+You need pounds when you weigh things in kilograms but have to state the weight in pounds: an American form or training app, a barbell in a gym with American plates, a suitcase before a flight to the US.
 
-## Where you will meet it
+## Body weight
 
-- **Shipping to the US** — rates are charged per pound, so 20 kg becomes 44.1 lb
-- **Talking weight with an American** — 70 kg means nothing to them, 154 lb does
-- **Strength standards** — a 100 kg bench press is written as 220 lb in US tables
-- **Appliance manuals** — the shipping weight for the US market is given in pounds
-- **Car seats and strollers** — the child weight limit is often in pounds
+- 55 kg — 121 pounds
+- 60 kg — 132 pounds
+- 65 kg — 143 pounds
+- 70 kg — 154 pounds
+- 75 kg — 165 pounds
+- 80 kg — 176 pounds
+- 90 kg — 198 pounds
 
-The mental trick runs the other way from pounds: double it, then add a tenth. 70 kg → 140 → plus 14 → 154 lb. The exact figure is 154.32.
+## A barbell with American plates
+
+An American bar weighs 45 pounds, which is 20.4 kg. Plates come in 45, 35, 25, 10, 5 and 2.5 pounds, so you cannot load exactly 60 or 100 kg. The nearest standard set-ups:
+
+- 135 pounds — 61.2 kg: the bar and one 45 plate on each side
+- 225 pounds — 102.1 kg: two 45 plates a side
+- 315 pounds — 142.9 kg: three 45 plates a side
+
+## Luggage
+
+Scales at home show kilograms, but the limit on American flights is 50 pounds. That is 22.68 kg, not 23: a 23 kg suitcase weighs 50.7 pounds and already counts as overweight.
+
+## A newborn's weight
+
+In the US it is given in pounds and ounces:
+
+- 3.0 kg — 6 pounds 10 ounces
+- 3.5 kg — 7 pounds 11 ounces
+- 4.0 kg — 8 pounds 13 ounces
+
+## A quick estimate in your head
+
+Double it and add a tenth of the result. 70 kg → 140 → plus 14 → 154 pounds. The exact value is 154.32.
+
+## How accurate the answer is
+
+The calculation runs in your browser: the number is not sent anywhere, and the answer appears with no request to a server. Under the international agreement of 1959 a pound is exactly 0.45359237 kg, so a kilogram is 2.2046226 pounds. The large number in the answer is rounded; the "Exact" line under it shows up to six decimal places.

@@ -9,37 +9,68 @@ engineParams:
   toUnit: Kilograms
   fromUnitShort: lb
   toUnitShort: kg
-title: Lbs to Kg Converter — Free, No Sign-Up Required
+title: "Convert Pounds to Kilograms (lb to kg) — Calculator & Formulas"
 h1: Pounds to Kilograms
 summary: "1 lb = 0.454 kg, 150 lb = 68 kg"
-description: Convert pounds to kilograms online, free and with no sign-up. An accurate weight converter — enter a number of pounds and get the result in kilograms.
+description: "Convert pounds to kilograms online. Ready values for dumbbells and plates, American recipes, luggage and body weight. Free, no sign-up."
 faq:
-  - question: How many kilograms are in a pound?
-    answer: One pound equals 0.45359237 kg — an exact figure under the international definition of the pound.
-  - question: How many kg is a 50 lb airline baggage limit?
-    answer: 50 lbs = 22.6796 kg (50 × 0.45359237) — the standard checked-bag weight limit for most US airlines.
-  - question: Where else do you run into pounds instead of kilograms?
-    answer: Body and grocery weight in the US, US-made gym equipment and dumbbells, and package weight on US shipments.
-  - question: How many kilograms is 150 pounds?
-    answer: 150 lb = 68.04 kg (150 × 0.45359237). That is roughly the average adult male weight by US figures.
-  - question: How do I convert pounds to kilograms in my head?
-    answer: Halve the number, then subtract a tenth of the result. 80 lb → 40 → minus 4 → 36 kg. The exact value is 36.29, so the error is under one percent — close enough while standing in a shop.
-  - question: Why do recipes sometimes call a pound 450 or 454 grams?
-    answer: "Both are roundings of the same number: the exact value is 453.592 grams. In cooking a four-gram difference changes nothing, so the rounder figure is used."
-  - question: Are there other kinds of pound?
-    answer: Historically there were many, and old texts mention local ones. Today a pound almost always means the international pound of 453.592 grams. The troy pound survives separately for precious metals at 373.24 grams.
+  - question: "How many kilograms are in a pound?"
+    answer: "0.45359237 kg, or 453.6 g. This is the exact value under the international definition of the pound."
+  - question: "How many kilograms is 150 pounds?"
+    answer: "68.04 kg."
+  - question: "How many kilograms is 200 pounds?"
+    answer: "90.72 kg."
+  - question: "How many kilograms is 50 pounds?"
+    answer: "22.68 kg. That is the limit for one checked bag on American airlines."
+  - question: "Why do recipes treat a pound as 450 or 454 grams?"
+    answer: "Both are roundings of one number, 453.6 g. In cooking four grams make no difference, so the rounder figure gets written."
+  - question: "Are there other pounds?"
+    answer: "Yes. Precious metals are weighed in troy pounds of 373.2 g, and old Russian texts use a pound of 409.5 g. Today a pound almost always means the international one, 453.6 g."
 ---
 
-The pound remains the standard weight unit in the US — body weight, groceries, gym dumbbells, airport baggage limits. The kilogram is the base unit almost everywhere else in the world.
+Type a number into the Pounds field and the answer appears in the Kilograms field straight away. Under it there is an "Exact" line with up to six decimal places and a Copy button. The arrow button between the fields opens the reverse conversion, [Kilograms to Pounds](/en/kg-to-lbs).
 
-Useful when ordering from US sites, reading gym equipment specs, or working out baggage weight before a flight.
+Pounds turn up on American-made dumbbells and plates, in recipes from the US, in airline rules and in product listings on American sites. The conversions for each case are below.
 
-## Where you will meet it
+## Dumbbells and plates
 
-- **US baggage** — the standard limit is 50 lb, which is 22.7 kg; excess fees start above it
-- **Body weight** — American doctors, scales and fitness charts all speak in pounds
-- **The gym** — US-made plates and dumbbells are marked in pounds: 45 lb is 20.4 kg
-- **Recipes** — American cookbooks measure meat and flour in pounds, not grams
-- **Parcels** — shipping rates from the US are calculated per pound
+- 5 pounds — 2.3 kg
+- 10 pounds — 4.5 kg
+- 15 pounds — 6.8 kg
+- 20 pounds — 9.1 kg
+- 25 pounds — 11.3 kg
+- 35 pounds — 15.9 kg
+- 45 pounds — 20.4 kg
 
-A quick mental trick: halve it, then take off a tenth. 150 lb → 75 → minus 7.5 → about 68 kg. The exact figure is 68.04, so the error is under one percent.
+## American recipes
+
+Meat, butter and flour are given in pounds and fractions of a pound:
+
+- 1/4 pound — 113 g, one stick of butter
+- 1/2 pound — 227 g
+- 1 pound — 454 g
+- 2 pounds — 907 g
+- 5 pounds — 2.27 kg
+
+## Luggage and parcels
+
+50 pounds is the limit for one checked bag on American airlines, which is 22.7 kg. 70 pounds is 31.75 kg, the usual upper limit for a heavy bag and for a postal parcel in the US.
+
+## Body weight
+
+In the US it is given as a whole number of pounds:
+
+- 120 pounds — 54.4 kg
+- 140 pounds — 63.5 kg
+- 160 pounds — 72.6 kg
+- 180 pounds — 81.6 kg
+- 200 pounds — 90.7 kg
+- 220 pounds — 99.8 kg
+
+## A quick estimate in your head
+
+Halve it and take off a tenth of the result. 150 pounds → 75 → minus 7.5 → about 68 kg. The exact value is 68.04.
+
+## How accurate the answer is
+
+The calculation runs in your browser: the number is not sent anywhere, and the answer appears with no request to a server. A pound is exactly 0.45359237 kg: that is a definition from the international agreement of 1959, not a measurement. The large number in the answer is rounded; the "Exact" line under it shows up to six decimal places.
