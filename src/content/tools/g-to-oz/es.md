@@ -9,19 +9,56 @@ engineParams:
   toUnit: Onzas
   fromUnitShort: g
   toUnitShort: oz
-title: Conversor de gramos a onzas online, gratis, sin registro
+title: "Convertir gramos a onzas (g a oz) — calculadora y fórmulas"
 h1: Gramos a Onzas
 summary: "100 g = 3,53 onzas"
-description: Convierte gramos a onzas online, gratis y sin registro. Un conversor de peso preciso para cocina y más.
+description: "Convierte gramos a onzas online. Valores listos para alimentos y recetas, lana, pesos escritos en libras y onzas, y la diferencia con la onza troy. Gratis, sin registro."
 faq:
-  - question: ¿Cuántas onzas hay en 100 gramos?
-    answer: 100 g = 3.5274 oz (100 × 0.035274).
-  - question: ¿Para qué convertir gramos a onzas?
-    answer: Las recetas estadounidenses casi siempre dan el peso de los ingredientes en onzas, mientras que las básculas de cocina fuera de EE. UU. suelen estar en gramos. Útil para cocinar una receta en inglés sin hacer el cálculo de cabeza.
-  - question: ¿Cuántas onzas son 200 g de mantequilla?
-    answer: 200 g = 7.0548 oz (200 × 0.035274) — un poco menos que la barra estadounidense estándar de mantequilla (suele venderse en paquetes de 8 oz).
+  - question: "¿Cuántas onzas hay en un gramo?"
+    answer: "0,0353 onzas."
+  - question: "¿Cuántos gramos hay en una onza?"
+    answer: "28,35 g."
+  - question: "¿Cuántas onzas son 100 gramos?"
+    answer: "3,53 onzas."
+  - question: "¿Cuántas onzas son 250 gramos?"
+    answer: "8,82 onzas."
+  - question: "¿Cuántas onzas son 500 gramos?"
+    answer: "17,64 onzas, o 1 libra y 1,6 onzas."
+  - question: "¿La onza de oro es la misma onza?"
+    answer: "No. El oro y la plata se pesan en onzas troy de 31,1 g; la onza corriente son 28,35 g."
 ---
 
-El gramo es la unidad habitual de cocina en casi todo el mundo hispanohablante, mientras que la onza sigue siendo el estándar en recetas estadounidenses — harina, azúcar, carne, todo medido en onzas. Útil al cocinar una receta en inglés con una báscula en gramos.
+Escribe un número en el campo «Gramos» y el resultado aparece al momento en el campo «Onzas». Debajo hay una línea «Exacto» con hasta seis decimales y un botón «Copiar». El botón con flechas que hay entre los campos abre la conversión inversa, [Onzas a gramos](/es/oz-to-g).
 
-También sirve al leer etiquetas nutricionales de productos traídos de Estados Unidos, donde el peso aparece en onzas.
+Las onzas hacen falta cuando la báscula marca gramos pero el peso hay que escribirlo para estadounidenses: una receta, la ficha de un producto, el peso de un paquete o de un ovillo de lana.
+
+## Alimentos y recetas
+
+- 30 g — 1,06 onzas
+- 75 g — 2,65 onzas
+- 125 g — 4,41 onzas
+- 150 g — 5,29 onzas
+- 200 g — 7,05 onzas
+- 250 g — 8,82 onzas
+- 400 g — 14,11 onzas
+- 750 g — 26,46 onzas
+
+## Más de 16 onzas ya son libras
+
+En Estados Unidos un peso de 16 onzas o más se escribe en libras y onzas. 500 g son 17,64 onzas, es decir, 1 libra y 1,6 onzas. Un kilogramo son 35,27 onzas, o 2 libras y 3,3 onzas.
+
+## Lana
+
+En los patrones estadounidenses el peso del ovillo se da en onzas. Un ovillo de 50 g son 1,76 onzas y uno de 100 g, 3,53 onzas.
+
+## El oro y la plata se cuentan de otra forma
+
+Los metales preciosos se pesan en onzas troy de 31,1 g. 10 g de oro son 0,32 onzas troy, no 0,35. La calculadora de esta página usa la onza corriente.
+
+## Cómo calcularlo de cabeza
+
+Recuerda que 100 g son 3,5 onzas y saca la proporción. 300 g → 3 × 3,5 = 10,5 onzas. El valor exacto es 10,58.
+
+## Precisión del cálculo
+
+El cálculo se hace en tu navegador: el número no se envía a ninguna parte y el resultado aparece sin consultar a un servidor. Una onza es 1/16 de libra y una libra son exactamente 0,45359237 kg, así que una onza son exactamente 28,349523125 g. El número grande del resultado está redondeado; la línea «Exacto» de debajo muestra hasta seis decimales.
