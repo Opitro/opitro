@@ -10,6 +10,7 @@ export const МОДЕЛИ = [
     весМин: 60,
     весСамыйЛёгкий: 20,
     лицензия: 'MIT',
+    extraLicense: { label: 'GPL', title: 'espeak-ng, GPL-3.0', href: 'https://github.com/espeak-ng/espeak-ng' },
     хранилище: 'diffusionstudio/piper-voices',
     языки: ['ru', 'uk', 'en', 'es'],
     голосаПоЯзыкам: { ru: 0, uk: 3, en: 8, es: 1 },

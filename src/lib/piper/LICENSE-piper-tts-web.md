@@ -5,7 +5,8 @@
 версии 1.0.5, форка [@diffusion-studio/vits-web](https://github.com/diffusion-studio/vits-web).
 Лицензия MIT. Изменения перечислены в шапке `piper-tts-web.js`.
 
-Голосовые модели -- проект [rhasspy/piper](https://github.com/rhasspy/piper), лицензия MIT.
+Голосовые модели -- [rhasspy/piper-voices](https://huggingface.co/rhasspy/piper-voices), лицензия у каждого
+голоса своя (MODEL_CARD рядом с моделью); MIT у rhasspy/piper -- лицензия кода, а не голосов.
 Модели скачиваются с Hugging Face при первом обращении и в этом хранилище не лежат.
 
 Фонемизатор -- [espeak-ng](https://github.com/espeak-ng/espeak-ng), лицензия GPL-3.0,

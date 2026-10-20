@@ -220,6 +220,8 @@
 .рч-спр-лиц { margin-left: auto; font: 400 12px var(--ui); color: #fff; text-decoration: none;
   border-bottom: 1px dotted rgba(255,255,255,.45); white-space: nowrap }
 .рч-спр-лиц:hover { border-bottom-color: #fff; border-bottom-style: solid }
+.рч-спр-лиц-ряд { margin-left: auto; font: 400 12px var(--ui); color: #fff; white-space: nowrap }
+.рч-спр-лиц-ряд .рч-спр-лиц { margin-left: 0 }
 
 .рч-заметки { margin-top: 22px; display: flex; flex-direction: column; gap: 7px }
 
