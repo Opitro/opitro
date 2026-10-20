@@ -134,9 +134,9 @@
   .audio-tool .nz-cap{font-size:13px;font-weight:400;color:#c9c9d1}
   .audio-tool .nz-get{margin-left:auto}
   .audio-tool .nz-size{min-width:66px;text-align:right;font-size:13px;color:#b4b4bb;font-variant-numeric:tabular-nums;white-space:nowrap}
-  .audio-tool .nz-down{width:46px;height:32px;flex:none;border-radius:16px;cursor:pointer;display:flex;align-items:center;justify-content:center;
-    color:#f2f5f9;background:linear-gradient(180deg,#262a33,#15181e);border:1px solid rgba(255,255,255,.3)}
-  .audio-tool .nz-down .i{width:17px;height:17px}
+  .audio-tool .nz-down{width:42px;height:36px;flex:none;border-radius:12px;cursor:pointer;display:flex;align-items:center;justify-content:center;
+    color:#f2f5f9;background:linear-gradient(180deg,#262a33,#15181e);border:1px solid rgba(255,255,255,.55)}
+  .audio-tool .nz-down .i{width:19px;height:19px}
   .audio-tool .nz-down:disabled{opacity:.5;cursor:default}
   .audio-tool .nz-hide{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
   @media (hover:hover) and (pointer:fine){
