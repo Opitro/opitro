@@ -12,7 +12,7 @@ export const МОДЕЛИ = [
     лицензия: 'MIT',
     хранилище: 'diffusionstudio/piper-voices',
     языки: ['ru', 'uk', 'en', 'es'],
-    голосаПоЯзыкам: { ru: 4, uk: 2, en: 35, es: 7 },
+    голосаПоЯзыкам: { ru: 0, uk: 3, en: 8, es: 1 },
     движок: '@diffusionstudio/vits-web',
 
     сеть: ['cdn.jsdelivr.net', 'huggingface.co'],

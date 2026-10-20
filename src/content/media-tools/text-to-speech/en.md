@@ -7,12 +7,12 @@ title: Text to Speech Online Free — No Sign-Up, Download MP3
 h1: Text to Speech
 navName: "Text to Speech"
 summary: "Read the text aloud and save the recording"
-description: "Turn text into speech right in your browser — free and with no sign-up: three models to choose from, voices for 50 languages, download as MP3 or WAV."
+description: "Turn text into speech right in your browser — free and with no sign-up: three models to choose from, voices for 34 languages, download as MP3 or WAV."
 faq:
   - question: Is it free, and do I need an account?
     answer: "Free and with no sign-up. No account, no payment, no cap on how many files you make. One run takes up to 5000 characters — split longer texts into parts."
   - question: Which languages can it read?
-    answer: "Fifty. That is how many languages Piper voices cover — 373 voices in all, several per language, picked right in the voice list. Supertonic covers 31 languages from a single model. Kokoro speaks English only — Spanish and French voices do sit in its repository, but the library it runs through in the browser does not know them."
+    answer: "Thirty-four. Supertonic covers 31 languages from a single model. Piper has 56 voices across 14 languages, and three of those — Norwegian, Armenian and Telugu — only Piper has. Kokoro speaks English only — Spanish and French voices do sit in its repository, but the library it runs through in the browser does not know them."
   - question: Which model should I pick?
     answer: "Piper if you need your own language and a quick result — 60–109 MB per voice, the fastest of the three, works on phones too. Kokoro for a lively English voice — 93 MB, 28 voices, no other languages. Supertonic if your text has numbers, dates and abbreviations — it reads them with no preparation and covers 31 languages, but it weighs 380 MB and is usually too much for a phone."
   - question: How big is a model and does it download every time?
@@ -24,7 +24,7 @@ faq:
   - question: Which model computes fastest?
     answer: "Piper, by a wide margin — about 11 seconds per thousand characters against roughly 74 for Supertonic on the same text. Size has nothing to do with it: the lightest model turned out to be the fastest."
   - question: Can I use the audio in a video or an advert?
-    answer: "Yes. Piper is MIT-licensed and Kokoro is Apache 2.0 — both allow commercial use. Supertonic uses OpenRAIL-M, which also allows it but forbids harmful use, such as passing synthetic speech off as a real person in order to deceive. Links to the licence texts sit right in the model cards."
+    answer: "Yes. Kokoro is Apache 2.0, which allows commercial use. Supertonic uses OpenRAIL-M, which also allows it but forbids harmful use, such as passing synthetic speech off as a real person in order to deceive. Piper licenses each voice separately, and we kept only the voices whose licences allow commercial use. Links to the licence texts sit right in the model cards."
 related:
   - speech-to-text
   - audio-to-text
@@ -43,4 +43,4 @@ The sound is born on the page, so it already is a file: MP3 or WAV, with no perm
 
 ## Voices and languages
 
-The voice is picked in the list next to the model. Piper has 373 of them across 50 languages, Kokoro has 28 English ones, Supertonic has 10 — and each of those reads in 31 languages. Change the voice or the speed, press Generate again, and the new track goes on top while the previous one stays below, ready to compare by ear.
+The voice is picked in the list next to the model. Piper has 56 of them across 14 languages, Kokoro has 28 English ones, Supertonic has 10 — and each of those reads in 31 languages. Change the voice or the speed, press Generate again, and the new track goes on top while the previous one stays below, ready to compare by ear.
