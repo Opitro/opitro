@@ -17,6 +17,11 @@ const controls = config.controls;
 const isGenerator = controls === 'generator';
 
 const isNoise = controls === 'noise';
+const NOISE_KINDS = [
+  { color: 'white', slug: 'white-noise-generator', label: 'noiseKindWhite' },
+  { color: 'pink', slug: 'pink-noise-generator', label: 'noiseKindPink' },
+  { color: 'brown', slug: 'brown-noise-generator', label: 'noiseKindBrown' },
+];
 
 const isSoundTest = controls === 'sound-test';
 
@@ -729,52 +734,63 @@ const ICO = {
       </div>
     )}
     {controls === 'noise' && (
-      <>
-        <div class="noise-stage">
-          <button type="button" class="noise-play" id="noise-play-btn" aria-label={labels.noisePlayLabel}>
+      <div class={`nz nz-${config.color}`}>
+        <nav class="nz-kinds" aria-label={labels.noiseKindsLabel}>
+          {NOISE_KINDS.map((k) => (
+            <a class={`nz-kind nz-kind-${k.color}`} href={`/${locale}/${k.slug}`}
+               aria-current={k.color === config.color ? 'page' : undefined}>
+              <i class="nz-dot" aria-hidden="true"></i>{labels[k.label]}
+            </a>
+          ))}
+        </nav>
+        <div class="nz-stage">
+          <canvas class="nz-wave" id="noise-wave" aria-hidden="true"></canvas>
+          <button type="button" class="nz-play" id="noise-play-btn" aria-label={labels.noisePlayLabel} title={labels.noisePlayLabel}>
             <svg class="ico" id="noise-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
-          <div class="noise-state" id="noise-state">{labels.noiseIdleLabel}</div>
         </div>
-        <div class="fade-card pitch-card">
-          <label class="fade-card-title" for="noise-volume">{labels.volumeLabel}</label>
-          <input type="range" id="noise-volume" min="0" max="100" step="1" value="60">
-          <span class="fade-card-val" id="noise-volume-val">60%</span>
-        </div>
-        <div class="field">
-          <div class="field-cap" id="noise-timer-cap">{labels.noiseTimerLabel}</div>
-          <div class="presets-row" id="noise-timer" role="group" aria-labelledby="noise-timer-cap">
-            {[0, 15, 30, 60].map((m) => (
-              <button type="button" class={`preset-btn${m === 0 ? ' active' : ''}`} data-min={m}>
-                {m === 0 ? labels.noiseTimerOffLabel : `${m} ${labels.minutesShortLabel}`}
-              </button>
-            ))}
+        <div class="nz-state" id="noise-state">{labels.noiseIdleLabel}</div>
+        <div class="nz-row">
+          <label class="nz-vol">
+            <svg class="nz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
+            <span class="nz-hide">{labels.volumeLabel}</span>
+            <input type="range" id="noise-volume" min="0" max="100" step="1" value="60">
+            <span class="nz-val" id="noise-volume-val">60%</span>
+          </label>
+          <div class="nz-timer">
+            <svg class="nz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 14.5A8 8 0 1 1 9.5 4a6.5 6.5 0 0 0 10.5 10.5z"/></svg>
+            <div class="nz-chips" id="noise-timer" role="group" aria-label={labels.noiseTimerLabel} title={labels.noiseTimerLabel}>
+              {[0, 15, 30, 60].map((m) => (
+                <button type="button" class={`preset-btn${m === 0 ? ' active' : ''}`} data-min={m}
+                        aria-label={m === 0 ? labels.noiseTimerOffLabel : undefined} title={m === 0 ? labels.noiseTimerOffLabel : undefined}>
+                  {m === 0 ? '∞' : `${m} ${labels.minutesShortLabel}`}
+                </button>
+              ))}
+            </div>
           </div>
         </div>
-        <div class="noise-dl-title">{labels.noiseDownloadTitle}</div>
-        <div class="field">
-          <div class="presets-row" id="noise-lengths">
+        <div class="nz-dl">
+          <span class="nz-cap">{labels.noiseDownloadTitle}</span>
+          <div class="nz-chips" id="noise-lengths" role="group" aria-label={labels.noiseDownloadTitle}>
             {config.downloadLengths.map((sec, i) => (
               <button type="button" class={`preset-btn${i === 1 ? ' active' : ''}`} data-sec={sec}>
                 {sec < 60 ? `${sec} ${labels.secondsShortLabel}` : `${sec / 60} ${labels.minutesShortLabel}`}
               </button>
             ))}
           </div>
-        </div>
-        <div class="deck">
-          <div class="field field-fmt">
-            <label for="tool-format">{labels.enhanceFormatLabel}</label>
-            <select id="tool-format">
-              {config.downloadFormats.map((f) => <option value={f}>{f.toUpperCase()}</option>)}
-            </select>
+          <div class="nz-get">
+            <div class="nz-chips" id="tool-format" role="radiogroup" aria-label={labels.enhanceFormatLabel}>
+              {config.downloadFormats.map((f, i) => (
+                <button type="button" role="radio" class={`preset-btn${i === 0 ? ' active' : ''}`} aria-checked={i === 0 ? 'true' : 'false'} data-fmt={f}>{f.toUpperCase()}</button>
+              ))}
+            </div>
+            <span class="nz-size" id="noise-size-note"></span>
+            <button type="button" class="nz-down" id="noise-download-btn" aria-label={labels.downloadResultLabel} title={labels.downloadResultLabel}>
+              <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
+            </button>
           </div>
-          <button type="button" class="act primary deck-act" id="noise-download-btn">
-            <svg class="i" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" set:html={ICO.download} />
-            <span>{labels.downloadResultLabel}</span>
-          </button>
         </div>
-        <div class="rate-note" id="noise-size-note"></div>
-      </>
+      </div>
     )}
 
     {isRingtoneTargets && (
@@ -1560,9 +1576,98 @@ const ICO = {
       const noiseDownloadBtn = root.querySelector('#noise-download-btn');
       const noiseSizeNote = root.querySelector('#noise-size-note');
       const noiseFormat = root.querySelector('#tool-format');
+      const noiseCard = root.querySelector('.nz');
+      const noiseWave = root.querySelector('#noise-wave');
 
       let loopBuffer = null;
       let noiseGain = null;
+      let noiseAnalyser = null;
+
+      Object.defineProperty(noiseFormat, 'value', {
+        get: () => noiseFormat.querySelector('.preset-btn.active')?.dataset.fmt || config.downloadFormats[0],
+      });
+      noiseFormat.addEventListener('click', (e) => {
+        const btn = e.target.closest('.preset-btn');
+        if (!btn) return;
+        noiseFormat.querySelectorAll('.preset-btn').forEach((b) => {
+          b.classList.toggle('active', b === btn);
+          b.setAttribute('aria-checked', b === btn ? 'true' : 'false');
+        });
+        noiseFormat.dispatchEvent(new Event('change'));
+      });
+
+      const slope = { white: 0, pink: 3, brown: 6 }[config.color] || 0;
+      const reduceMotion = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+      const OCTAVES = 9;
+      let waveFrame = 0;
+      let waveLast = 0;
+      let waveBins = null;
+      const waveScale = slope ? 0.74 : 0.62;
+      const shapeAt = (t) => Math.max(0.1, 1 - (slope * OCTAVES * t) / 60) * waveScale;
+
+      function bandLevels(BARS) {
+        if (!noiseAnalyser || reduceMotion) return null;
+        const n = noiseAnalyser.frequencyBinCount;
+        if (!waveBins) waveBins = new Float32Array(n);
+        noiseAnalyser.getFloatFrequencyData(waveBins);
+        const nyq = noiseAnalyser.context.sampleRate / 2;
+        const out = [];
+        for (let i = 0; i < BARS; i++) {
+          const f0 = 40 * Math.pow(2, (OCTAVES * i) / BARS);
+          const f1 = 40 * Math.pow(2, (OCTAVES * (i + 1)) / BARS);
+          const a = Math.max(1, Math.floor((f0 / nyq) * n));
+          const b = Math.max(a + 1, Math.ceil((f1 / nyq) * n));
+          let sum = 0;
+          for (let k = a; k < b; k++) sum += Math.pow(10, waveBins[k] / 10);
+          const db = 10 * Math.log10(sum / (b - a) + 1e-12);
+          out.push(db);
+        }
+        const top = out[0];
+        const ref = slope ? top : Math.max(...out);
+        return out.map((db) => Math.max(0.1, Math.min(1, 1 + (db - ref) / 60)) * waveScale
+          * (0.88 + Math.random() * 0.12));
+      }
+
+      function drawWave() {
+        const w = noiseWave.clientWidth;
+        const h = noiseWave.clientHeight;
+        if (!w || !h) return;
+        const dpr = window.devicePixelRatio || 1;
+        if (noiseWave.width !== Math.round(w * dpr)) { noiseWave.width = Math.round(w * dpr); noiseWave.height = Math.round(h * dpr); }
+        const g = noiseWave.getContext('2d');
+        g.setTransform(dpr, 0, 0, dpr, 0, 0);
+        g.clearRect(0, 0, w, h);
+        const cx = w / 2;
+        const gapC = 58;
+        const span = Math.max(40, cx - gapC - 6);
+        const BARS = Math.max(10, Math.min(22, Math.floor(span / 16)));
+        const live = bandLevels(BARS);
+        const step = span / BARS;
+        const bw = Math.max(2, step * 0.5);
+        g.fillStyle = getComputedStyle(noiseCard).getPropertyValue('--nz').trim() || '#fff';
+        g.globalAlpha = live ? 0.95 : 0.4;
+        for (let i = 0; i < BARS; i++) {
+          const v = live ? live[i] : shapeAt(i / (BARS - 1));
+          const bh = Math.max(3, v * (h - 6));
+          const off = gapC + i * step;
+          const y = (h - bh) / 2;
+          g.beginPath();
+          g.roundRect(cx + off, y, bw, bh, bw / 2);
+          g.roundRect(cx - off - bw, y, bw, bh, bw / 2);
+          g.fill();
+        }
+      }
+      function waveLoop(t) {
+        waveFrame = 0;
+        if (!noiseAnalyser) { drawWave(); return; }
+        if (t - waveLast > 60) { waveLast = t; drawWave(); }
+        waveFrame = requestAnimationFrame(waveLoop);
+      }
+      function waveStart() { if (!waveFrame && !reduceMotion) waveFrame = requestAnimationFrame(waveLoop); }
+      function waveStop() { if (waveFrame) cancelAnimationFrame(waveFrame); waveFrame = 0; drawWave(); }
+      drawWave();
+      if ('ResizeObserver' in window) new ResizeObserver(() => { if (!waveFrame) drawWave(); }).observe(noiseWave);
+
       let timerHandle = 0;
       let timerMinutes = 0;
 
@@ -1577,6 +1682,9 @@ const ICO = {
         clearTimer();
         player.stop();
         noiseGain = null;
+        noiseAnalyser = null;
+        noiseCard.classList.remove('is-playing');
+        waveStop();
         noisePlayIco.innerHTML = ICO_PLAY;
         noiseState.textContent = fading ? labels.noiseTimerDoneLabel : labels.noiseIdleLabel;
       }
@@ -1607,16 +1715,25 @@ const ICO = {
         player.play(
           buf,
           null,
-          () => { noisePlayIco.innerHTML = ICO_PLAY; noiseState.textContent = labels.noiseIdleLabel; },
+          () => {
+            noisePlayIco.innerHTML = ICO_PLAY; noiseState.textContent = labels.noiseIdleLabel;
+            noiseAnalyser = null; noiseCard.classList.remove('is-playing'); waveStop();
+          },
           0,
           (ctx, src) => {
+            noiseAnalyser = ctx.createAnalyser();
+            noiseAnalyser.fftSize = 4096;
+            noiseAnalyser.smoothingTimeConstant = 0.85;
             noiseGain = ctx.createGain();
             noiseGain.gain.value = vol();
-            src.connect(noiseGain);
+            src.connect(noiseAnalyser);
+            noiseAnalyser.connect(noiseGain);
             return noiseGain;
           },
           { loop: true }
         );
+        noiseCard.classList.add('is-playing');
+        waveStart();
         armTimer();
       }
       noisePlayBtn.addEventListener('click', () => {
@@ -1654,7 +1771,7 @@ const ICO = {
         const mb = bytes / 1048576;
         const size = mb >= 1 ? mb.toFixed(0) + ' ' + (labels.unitMB || 'MB')
           : Math.max(1, Math.round(bytes / 1024)) + ' ' + (labels.unitKB || 'KB');
-        noiseSizeNote.textContent = (labels.noiseSizeNote || '').replace('{size}', size);
+        noiseSizeNote.textContent = (labels.noiseSizeShort || '≈ {size}').replace('{size}', size);
       }
       noiseLengthsRow.addEventListener('click', (e) => {
         const btn = e.target.closest('.preset-btn');
