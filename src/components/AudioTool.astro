@@ -749,7 +749,6 @@ const ICO = {
             <svg class="ico" id="noise-play-ico" viewBox="0 0 24 24" fill="currentColor"><path d="M8 5v14l11-7z"/></svg>
           </button>
         </div>
-        <div class="nz-state" id="noise-state">{labels.noiseIdleLabel}</div>
         <div class="nz-row">
           <label class="nz-vol">
             <svg class="nz-ico" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.9" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.5L12 5.5v13l-4.5-4H4z"/><path d="M15.5 9a4 4 0 0 1 0 6"/><path d="M18.5 6.5a7.5 7.5 0 0 1 0 11"/></svg>
@@ -1568,7 +1567,6 @@ const ICO = {
       panel.classList.add('on');
       const noisePlayBtn = root.querySelector('#noise-play-btn');
       const noisePlayIco = root.querySelector('#noise-play-ico');
-      const noiseState = root.querySelector('#noise-state');
       const noiseVolume = root.querySelector('#noise-volume');
       const noiseVolumeVal = root.querySelector('#noise-volume-val');
       const noiseTimerRow = root.querySelector('#noise-timer');
@@ -1678,7 +1676,7 @@ const ICO = {
       function clearTimer() {
         if (timerHandle) { clearTimeout(timerHandle); timerHandle = 0; }
       }
-      function stopNoise(fading) {
+      function stopNoise() {
         clearTimer();
         player.stop();
         noiseGain = null;
@@ -1686,7 +1684,6 @@ const ICO = {
         noiseCard.classList.remove('is-playing');
         waveStop();
         noisePlayIco.innerHTML = ICO_PLAY;
-        noiseState.textContent = fading ? labels.noiseTimerDoneLabel : labels.noiseIdleLabel;
       }
       function armTimer() {
         clearTimer();
@@ -1701,7 +1698,7 @@ const ICO = {
             noiseGain.gain.setValueAtTime(noiseGain.gain.value, now);
             noiseGain.gain.linearRampToValueAtTime(0.0001, now + fadeMs / 1000);
           }
-          timerHandle = setTimeout(() => stopNoise(true), fadeMs);
+          timerHandle = setTimeout(() => stopNoise(), fadeMs);
         }, Math.max(0, total - fadeMs));
       }
       function startNoise() {
@@ -1709,14 +1706,11 @@ const ICO = {
         player.unlock();
         const buf = getLoop();
         noisePlayIco.innerHTML = ICO_PAUSE;
-        noiseState.textContent = timerMinutes
-          ? (labels.noisePlayingTimerLabel || '').replace('{n}', String(timerMinutes))
-          : labels.noisePlayingLabel;
         player.play(
           buf,
           null,
           () => {
-            noisePlayIco.innerHTML = ICO_PLAY; noiseState.textContent = labels.noiseIdleLabel;
+            noisePlayIco.innerHTML = ICO_PLAY;
             noiseAnalyser = null; noiseCard.classList.remove('is-playing'); waveStop();
           },
           0,
@@ -1737,7 +1731,7 @@ const ICO = {
         armTimer();
       }
       noisePlayBtn.addEventListener('click', () => {
-        if (player.isPlaying()) stopNoise(false);
+        if (player.isPlaying()) stopNoise();
         else startNoise();
       });
       noiseVolume.addEventListener('input', () => {
@@ -1751,12 +1745,7 @@ const ICO = {
         noiseTimerRow.querySelectorAll('.preset-btn').forEach((b) => b.classList.remove('active'));
         btn.classList.add('active');
         timerMinutes = Number(btn.dataset.min) || 0;
-        if (player.isPlaying()) {
-          noiseState.textContent = timerMinutes
-            ? (labels.noisePlayingTimerLabel || '').replace('{n}', String(timerMinutes))
-            : labels.noisePlayingLabel;
-          armTimer();
-        }
+        if (player.isPlaying()) armTimer();
       });
 
       const selectedSeconds = () => {

@@ -105,7 +105,7 @@
   .audio-tool .nz-kind-pink .nz-dot{background:#f48fb8}
   .audio-tool .nz-kind-brown .nz-dot{background:#cf9a6a}
   .audio-tool .nz-kind[aria-current="page"]{color:#fff;border-color:var(--nz);background:color-mix(in srgb,var(--nz) 14%,transparent)}
-  .audio-tool .nz-stage{position:relative;height:132px;margin:10px 0 2px}
+  .audio-tool .nz-stage{position:relative;height:132px;margin:10px 0 14px}
   .audio-tool .nz-wave{position:absolute;inset:0;width:100%;height:100%;display:block}
   .audio-tool .nz-play{position:absolute;left:50%;top:50%;width:84px;height:84px;margin:-42px 0 0 -42px;border-radius:50%;cursor:pointer;
     display:flex;align-items:center;justify-content:center;color:#f2f5f9;background:linear-gradient(180deg,#262a33,#15181e);
@@ -115,8 +115,6 @@
   .audio-tool .nz-play:active{transform:translateY(3px);box-shadow:0 2px 0 rgba(0,0,0,.5)}
   .audio-tool .nz.is-playing .nz-play{box-shadow:0 5px 0 rgba(0,0,0,.5),inset 0 1px 0 rgba(255,255,255,.09),
     0 0 0 6px color-mix(in srgb,var(--nz) 20%,transparent),0 0 34px color-mix(in srgb,var(--nz) 30%,transparent)}
-  .audio-tool .nz-state{min-height:40px;display:flex;align-items:center;justify-content:center;text-align:center;
-    font-size:13px;font-weight:400;line-height:1.45;color:#c9c9d1;max-width:42ch;margin:0 auto 10px}
   .audio-tool .nz-row{display:flex;flex-wrap:wrap;align-items:center;gap:12px 22px}
   .audio-tool .nz-vol{flex:1 1 260px;display:flex;align-items:center;gap:10px;min-width:0;cursor:pointer}
   .audio-tool .nz-vol input[type=range]{flex:1 1 auto;min-width:0}
