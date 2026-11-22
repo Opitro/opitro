@@ -1,0 +1,192 @@
+---
+import css from '../styles/audio-visualizer.css?inline';
+
+const { locale = 'ru' } = Astro.props;
+
+const WORDS = {
+  ru: {
+    play: 'Слушать', pause: 'Пауза', video: 'Скачать видео', image: 'Скачать картинку',
+    making: 'Сборка видео…', recording: 'Запись видео…', decoding: 'Чтение файла…',
+    badFile: 'Не удалось прочитать файл. Подойдут MP3, WAV, OGG, M4A, FLAC.',
+    tooLong: 'Файл длиннее 15 минут. Выберите трек покороче.',
+    tooLongVid: 'Видео можно собрать из трека до 10 минут.',
+    noMic: 'Нет доступа к микрофону. Разрешите его в настройках браузера.',
+    micMode: 'Запись с микрофона', mic: 'Микрофон', micOff: 'Остановить',
+    pick: 'Выбрать файл', other: 'Другой файл', recName: 'Запись',
+    recHint: 'Идёт запись. Нажмите «Остановить», и запись откроется как обычный трек.',
+    noRec: 'Не удалось записать звук. Попробуйте ещё раз.',
+    error: 'Не получилось. Попробуйте ещё раз или выберите 720p.',
+    done: 'Готово', remove: 'Убрать этот файл', undo: 'Отменить', mb: 'МБ',
+    realtime: 'Браузер не умеет быстро собирать видео, поэтому запись идёт в реальном времени.',
+    dropBig: 'Выберите аудиофайл', dropRest: 'или перетащите его сюда', or: 'или',
+    color: 'Цвет', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
+    frame: 'Текущий кадр', wave: 'Волна', spectroImg: 'Спектрограмма',
+    styles: { bars: 'Столбики', mirror: 'Зеркало', circle: 'Круг', blob: 'Капля', hills: 'Горы', scope: 'Осциллограф', line: 'Линия', led: 'Эквалайзер', pulse: 'Пульс', spectro: 'Спектрограмма', ring: 'Кольцо', sparks: 'Искры', retro: 'Ретро', tunnel: 'Тоннель', dots: 'Точки', waves: 'Волны', vinyl: 'Пластинка', ridges: 'Хребты' },
+    palettes: { night: 'Ночь', sunset: 'Закат', mint: 'Мята', fire: 'Огонь', mono: 'Белый' },
+  },
+  uk: {
+    play: 'Слухати', pause: 'Пауза', video: 'Завантажити відео', image: 'Завантажити картинку',
+    making: 'Збирання відео…', recording: 'Запис відео…', decoding: 'Читання файлу…',
+    badFile: 'Не вдалося прочитати файл. Підійдуть MP3, WAV, OGG, M4A, FLAC.',
+    tooLong: 'Файл довший за 15 хвилин. Виберіть трек коротший.',
+    tooLongVid: 'Відео можна зібрати з треку до 10 хвилин.',
+    noMic: 'Немає доступу до мікрофона. Дозвольте його в налаштуваннях браузера.',
+    micMode: 'Запис з мікрофона', mic: 'Мікрофон', micOff: 'Зупинити',
+    pick: 'Вибрати файл', other: 'Інший файл', recName: 'Запис',
+    recHint: 'Іде запис. Натисніть «Зупинити», і запис відкриється як звичайний трек.',
+    noRec: 'Не вдалося записати звук. Спробуйте ще раз.',
+    error: 'Не вийшло. Спробуйте ще раз або виберіть 720p.',
+    done: 'Готово', remove: 'Прибрати цей файл', undo: 'Скасувати', mb: 'МБ',
+    realtime: 'Браузер не вміє швидко збирати відео, тому запис іде в реальному часі.',
+    dropBig: 'Виберіть аудіофайл', dropRest: 'або перетягніть його сюди', or: 'або',
+    color: 'Колір', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
+    frame: 'Поточний кадр', wave: 'Хвиля', spectroImg: 'Спектрограма',
+    styles: { bars: 'Стовпчики', mirror: 'Дзеркало', circle: 'Коло', blob: 'Крапля', hills: 'Гори', scope: 'Осцилограф', line: 'Лінія', led: 'Еквалайзер', pulse: 'Пульс', spectro: 'Спектрограма', ring: 'Кільце', sparks: 'Іскри', retro: 'Ретро', tunnel: 'Тунель', dots: 'Крапки', waves: 'Хвилі', vinyl: 'Платівка', ridges: 'Хребти' },
+    palettes: { night: 'Ніч', sunset: 'Захід', mint: "М'ята", fire: 'Вогонь', mono: 'Білий' },
+  },
+  en: {
+    play: 'Listen', pause: 'Pause', video: 'Download video', image: 'Download image',
+    making: 'Building video…', recording: 'Recording video…', decoding: 'Reading file…',
+    badFile: 'Could not read the file. MP3, WAV, OGG, M4A and FLAC work.',
+    tooLong: 'The file is longer than 15 minutes. Pick a shorter track.',
+    tooLongVid: 'Video can be built from tracks up to 10 minutes.',
+    noMic: 'No microphone access. Allow it in your browser settings.',
+    micMode: 'Microphone recording', mic: 'Microphone', micOff: 'Stop',
+    pick: 'Choose file', other: 'Another file', recName: 'Recording',
+    recHint: 'Recording. Press “Stop” and the recording opens as a normal track.',
+    noRec: 'Could not record sound. Try again.',
+    error: 'That did not work. Try again or pick 720p.',
+    done: 'Done', remove: 'Remove this file', undo: 'Undo', mb: 'MB',
+    realtime: 'This browser cannot build video quickly, so it records in real time.',
+    dropBig: 'Choose an audio file', dropRest: 'or drop it here', or: 'or',
+    color: 'Colour', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
+    frame: 'Current frame', wave: 'Waveform', spectroImg: 'Spectrogram',
+    styles: { bars: 'Bars', mirror: 'Mirror', circle: 'Circle', blob: 'Blob', hills: 'Hills', scope: 'Oscilloscope', line: 'Line', led: 'Equalizer', pulse: 'Pulse', spectro: 'Spectrogram', ring: 'Ring', sparks: 'Sparks', retro: 'Retro', tunnel: 'Tunnel', dots: 'Dots', waves: 'Waves', vinyl: 'Vinyl', ridges: 'Ridges' },
+    palettes: { night: 'Night', sunset: 'Sunset', mint: 'Mint', fire: 'Fire', mono: 'White' },
+  },
+  es: {
+    play: 'Escuchar', pause: 'Pausa', video: 'Descargar vídeo', image: 'Descargar imagen',
+    making: 'Creando vídeo…', recording: 'Grabando vídeo…', decoding: 'Leyendo archivo…',
+    badFile: 'No se pudo leer el archivo. Sirven MP3, WAV, OGG, M4A y FLAC.',
+    tooLong: 'El archivo dura más de 15 minutos. Elige una pista más corta.',
+    tooLongVid: 'El vídeo se puede crear con pistas de hasta 10 minutos.',
+    noMic: 'Sin acceso al micrófono. Permítelo en los ajustes del navegador.',
+    micMode: 'Grabación del micrófono', mic: 'Micrófono', micOff: 'Parar',
+    pick: 'Elegir archivo', other: 'Otro archivo', recName: 'Grabación',
+    recHint: 'Grabando. Pulsa «Parar» y la grabación se abrirá como una pista normal.',
+    noRec: 'No se pudo grabar el sonido. Inténtalo de nuevo.',
+    error: 'No salió. Inténtalo de nuevo o elige 720p.',
+    done: 'Listo', remove: 'Quitar este archivo', undo: 'Deshacer', mb: 'MB',
+    realtime: 'Este navegador no crea vídeo rápido, así que graba en tiempo real.',
+    dropBig: 'Elige un archivo de audio', dropRest: 'o arrástralo aquí', or: 'o',
+    color: 'Color', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
+    frame: 'Fotograma actual', wave: 'Onda', spectroImg: 'Espectrograma',
+    styles: { bars: 'Barras', mirror: 'Espejo', circle: 'Círculo', blob: 'Gota', hills: 'Colinas', scope: 'Osciloscopio', line: 'Línea', led: 'Ecualizador', pulse: 'Pulso', spectro: 'Espectrograma', ring: 'Anillo', sparks: 'Chispas', retro: 'Retro', tunnel: 'Túnel', dots: 'Puntos', waves: 'Ondas', vinyl: 'Vinilo', ridges: 'Crestas' },
+    palettes: { night: 'Noche', sunset: 'Atardecer', mint: 'Menta', fire: 'Fuego', mono: 'Blanco' },
+  },
+};
+const w = WORDS[locale] || WORDS.ru;
+const { styles, palettes, ...runtime } = w;
+
+const PALETTE_COLORS = {
+  night: ['#38bdf8', '#818cf8'], sunset: ['#f472b6', '#fbbf24'], mint: ['#34d399', '#22d3ee'],
+  fire: ['#fde047', '#ef4444'], mono: ['#ffffff', '#94a3b8'],
+};
+const FORMATS = [['16x9', '16:9'], ['9x16', '9:16'], ['1x1', '1:1']];
+
+const ICON_PLAY = '<svg viewBox="0 0 24 24" width="18" height="18" aria-hidden="true"><path d="M8 5v14l11-7z" fill="currentColor"/></svg>';
+const ICON_CARET = '<svg viewBox="0 0 24 24" width="14" height="14" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M6 9l6 6 6-6"/></svg>';
+const ICON_DL = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 4v11M7 10l5 5 5-5M5 20h14"/></svg>';
+const ICON_NOTE = '<svg viewBox="0 0 24 24" width="22" height="22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 18V5l12-2v13"/><circle cx="6" cy="18" r="3"/><circle cx="18" cy="16" r="3"/></svg>';
+const ICON_CLOSE = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" aria-hidden="true"><path d="M6 6l12 12"/><path d="M18 6L6 18"/></svg>';
+const ICON_UNDO = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M9 14L4 9l5-5"/><path d="M4 9h10.5a5.5 5.5 0 0 1 0 11H11"/></svg>';
+const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="9" y="3" width="6" height="11" rx="3"/><path d="M5 11a7 7 0 0 0 14 0M12 18v3"/></svg>';
+---
+
+<style is:inline set:html={css}></style>
+
+<div class="viz" data-words={JSON.stringify(runtime)}>
+  <input type="file" class="zv-input" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac,.opus" hidden />
+  <div class="zv-head">
+    <div class="zv-drop" role="button" tabindex="0">
+      <span class="zv-drop-ico" set:html={ICON_NOTE} />
+      <span class="zv-drop-text"><b>{w.dropBig}</b> {w.dropRest}</span>
+      <span class="zv-drop-or">{w.or}</span>
+      <button type="button" class="zv-btn zv-mic"><Fragment set:html={ICON_MIC} /><span>{w.mic}</span></button>
+      <button type="button" class="zv-btn zv-undo" hidden><Fragment set:html={ICON_UNDO} /><span>{w.undo}</span></button>
+    </div>
+    <div class="zv-file" hidden>
+      <span class="zv-file-ico" set:html={ICON_NOTE} />
+      <span class="zv-name"></span>
+      <button type="button" class="zv-remove" aria-label={w.remove} title={w.remove}><Fragment set:html={ICON_CLOSE} /></button>
+      <button type="button" class="zv-btn zv-other">{w.other}</button>
+      <button type="button" class="zv-btn zv-mic"><Fragment set:html={ICON_MIC} /><span>{w.mic}</span></button>
+    </div>
+  </div>
+
+  <div class="zv-stage"><canvas></canvas></div>
+  <div class="zv-seek is-off">
+    <canvas></canvas>
+    <input type="range" min="0" max="1000" step="1" value="0" aria-label={w.seek} />
+  </div>
+  <div class="zv-time is-off"><span class="zv-cur">0:00</span><span class="zv-dur">0:00</span></div>
+
+  <div class="zv-row zv-main">
+    <button type="button" class="zv-btn zv-play" disabled><span class="zv-play-ico" set:html={ICON_PLAY} /><span class="zv-play-label">{w.play}</span></button>
+    <span class="zv-label zv-color-label">{w.color}</span>
+    <div class="zv-swatches" role="group" aria-label={w.color}>
+      {Object.entries(PALETTE_COLORS).map(([key, [a, b]]) => (
+        <button type="button" data-palette={key} aria-label={palettes[key]} title={palettes[key]}
+                aria-pressed={key === 'night' ? 'true' : 'false'}
+                style={`background:linear-gradient(135deg,${a},${b})`}></button>
+      ))}
+    </div>
+  </div>
+
+  <div class="zv-styles" role="group" aria-label={w.styleGroup}>
+    {Object.entries(styles).map(([key, label]) => (
+      <button type="button" data-style={key} aria-pressed={key === 'bars' ? 'true' : 'false'}>
+        <canvas width="192" height="108"></canvas><span>{label}</span>
+      </button>
+    ))}
+  </div>
+
+  <div class="zv-row zv-format">
+    <span class="zv-label">{w.format}</span>
+    <div class="zv-seg" role="group" aria-label={w.format}>
+      {FORMATS.map(([key, label]) => (
+        <button type="button" data-format={key} aria-pressed={key === '16x9' ? 'true' : 'false'}>{label}</button>
+      ))}
+    </div>
+  </div>
+
+  <div class="zv-row zv-actions">
+    <div class="zv-dl">
+      <button type="button" class="zv-btn zv-video" aria-haspopup="menu" aria-expanded="false" disabled>
+        <Fragment set:html={ICON_DL} /><span class="zv-video-label">{w.video}</span><Fragment set:html={ICON_CARET} />
+      </button>
+      <div class="zv-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-quality="720"><span>720p</span><span class="zv-size" data-q="720"></span></button>
+        <button type="button" role="menuitem" data-quality="1080"><span>1080p</span><span class="zv-size" data-q="1080"></span></button>
+      </div>
+    </div>
+    <button type="button" class="zv-btn zv-cancel" hidden>{w.cancel}</button>
+    <div class="zv-dl zv-dl-img">
+      <button type="button" class="zv-btn zv-image" aria-haspopup="menu" aria-expanded="false" disabled>
+        <Fragment set:html={ICON_DL} /><span>{w.image}</span><Fragment set:html={ICON_CARET} />
+      </button>
+      <div class="zv-menu" role="menu" hidden>
+        <button type="button" role="menuitem" data-image="frame-png"><span>{w.frame}</span><span class="zv-size">PNG</span></button>
+        <button type="button" role="menuitem" data-image="wave-png"><span>{w.wave}</span><span class="zv-size">PNG</span></button>
+        <button type="button" role="menuitem" data-image="wave-svg"><span>{w.wave}</span><span class="zv-size">SVG</span></button>
+        <button type="button" role="menuitem" data-image="spectro-png"><span>{w.spectroImg}</span><span class="zv-size">PNG</span></button>
+      </div>
+    </div>
+  </div>
+  <p class="zv-status" aria-live="polite"></p>
+</div>
+
+<script>
+  import { mountVisualizers } from '../lib/viz/viz-app.js';
+  mountVisualizers();
+</script>
