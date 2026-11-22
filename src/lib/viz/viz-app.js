@@ -1,4 +1,4 @@
-import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors } from './viz-draw.js';
+import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt } from './viz-draw.js';
 import { openAudioSession, openRecordSession, startKeeper } from '../web-audio-engine.js';
 
 const STORE = 'opitro:viz';
@@ -48,7 +48,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -104,8 +104,15 @@ class Visualizer {
     }));
     this.root.addEventListener('drop', (e) => {
       const f = e.dataTransfer && e.dataTransfer.files[0];
-      if (f) this.load(f);
+      if (!f) return;
+      if (f.type && f.type.startsWith('image/')) this.loadArt(f); else this.load(f);
     });
+    el.art.addEventListener('click', () => el.artInput.click());
+    el.artInput.addEventListener('change', () => {
+      if (el.artInput.files[0]) this.loadArt(el.artInput.files[0]);
+      el.artInput.value = '';
+    });
+    el.artX.addEventListener('click', () => this.clearArt());
     el.play.addEventListener('click', () => (this.playing ? this.pause() : this.play()));
     el.seek.addEventListener('input', () => this.seekTo(Number(el.seek.value) / 1000 * this.duration));
     el.palettes.forEach((b) => b.addEventListener('click', () => {
@@ -225,6 +232,41 @@ class Visualizer {
       }
       this.drawSeek();
     }
+  }
+
+  async loadArt(file) {
+    if (this.busy) return;
+    touched();
+    let img;
+    try {
+      img = await createImageBitmap(file);
+    } catch (e) {
+      this.status(this.t.badImage);
+      return;
+    }
+    if (this.artImg && this.artImg.close) this.artImg.close();
+    this.artImg = img;
+    setArt(img);
+    const c = this.el.artThumb, ctx = c.getContext('2d'), k = Math.max(c.width / img.width, c.height / img.height);
+    const sw = c.width / k, sh = c.height / k;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, (img.width - sw) / 2, (img.height - sh) / 2, sw, sh, 0, 0, c.width, c.height);
+    this.el.art.classList.add('has-art');
+    this.el.artX.hidden = false;
+    this.status('');
+    this.state = {};
+    this.changed(true);
+  }
+
+  clearArt() {
+    if (this.busy) return;
+    setArt(null);
+    if (this.artImg && this.artImg.close) this.artImg.close();
+    this.artImg = null;
+    this.el.art.classList.remove('has-art');
+    this.el.artX.hidden = true;
+    this.state = {};
+    this.changed(true);
   }
 
   previews() {

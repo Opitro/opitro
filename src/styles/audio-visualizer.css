@@ -53,6 +53,17 @@
 .viz .zv-swatches{display:flex;gap:10px;flex-wrap:wrap}
 .viz .zv-swatches button{width:30px;height:30px;padding:0;border-radius:50%;border:2px solid var(--bg);box-shadow:0 0 0 1px rgba(255,255,255,.2)}
 .viz .zv-swatches button[aria-pressed="true"]{box-shadow:0 0 0 2px var(--text)}
+.viz .zv-art-group{display:flex;align-items:center;gap:10px;margin-left:10px}
+.viz .zv-art-box{position:relative;flex:none}
+.viz .zv-art{position:relative;display:flex;align-items:center;justify-content:center;width:36px;height:36px;padding:0;overflow:hidden;
+  background:var(--surface-2);border:1.5px dashed rgba(255,255,255,.4);border-radius:9px;color:var(--text)}
+@media (hover:hover){.viz .zv-art:hover{border-color:var(--text)}}
+.viz .zv-art canvas{position:absolute;inset:0;width:100%;height:100%;display:none}
+.viz .zv-art.has-art{border:1.5px solid var(--text)}
+.viz .zv-art.has-art canvas{display:block}
+.viz .zv-art.has-art .zv-art-plus{display:none}
+.viz .zv-art-x{position:absolute;top:-7px;right:-7px;display:flex;align-items:center;justify-content:center;width:20px;height:20px;padding:0;
+  border-radius:50%;background:#0e0f11;border:1.5px solid rgba(255,255,255,.9);color:#fff}
 
 .viz .zv-styles{display:grid;grid-template-columns:repeat(6,minmax(0,1fr));gap:8px;margin-top:16px}
 .viz .zv-styles button{display:flex;flex-direction:column;gap:5px;padding:4px 4px 6px;min-width:0;background:var(--surface);
@@ -107,4 +118,5 @@
   .viz .zv-main{flex-wrap:wrap;row-gap:12px}
   .viz .zv-main>.zv-play{flex:1 1 100%}
   .viz .zv-color-label{margin-left:0}
+  .viz .zv-art-group{margin-left:0}
 }

@@ -201,9 +201,54 @@ function grad(ctx, x0, y0, x1, y1, p) {
   return g;
 }
 
+let art = null;
+const artCache = new Map();
+
+export function setArt(img) {
+  art = img;
+  artCache.clear();
+}
+
+function makeCanvas(w, h) {
+  return typeof OffscreenCanvas !== 'undefined' ? new OffscreenCanvas(w, h) : Object.assign(document.createElement('canvas'), { width: w, height: h });
+}
+
+function fitCover(ctx, img, x, y, w, h) {
+  const iw = img.width, ih = img.height, k = Math.max(w / iw, h / ih), sw = w / k, sh = h / k;
+  ctx.drawImage(img, (iw - sw) / 2, (ih - sh) / 2, sw, sh, x, y, w, h);
+}
+
+function softArt(w, h) {
+  const key = w + 'x' + h;
+  let c = artCache.get(key);
+  if (c) return c;
+  const sw = 36, sh = Math.max(1, Math.round(36 * h / w));
+  const tiny = makeCanvas(sw, sh);
+  fitCover(tiny.getContext('2d'), art, 0, 0, sw, sh);
+  const mid = makeCanvas(sw * 4, sh * 4), mx = mid.getContext('2d');
+  mx.imageSmoothingEnabled = true;
+  mx.imageSmoothingQuality = 'high';
+  mx.drawImage(tiny, 0, 0, sw * 4, sh * 4);
+  c = makeCanvas(w, h);
+  const cx = c.getContext('2d');
+  cx.imageSmoothingEnabled = true;
+  cx.imageSmoothingQuality = 'high';
+  cx.drawImage(mid, 0, 0, w, h);
+  if (artCache.size > 8) artCache.clear();
+  artCache.set(key, c);
+  return c;
+}
+
 function background(ctx, w, h, f, p) {
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
+  if (art) {
+    const z = 1.06 + f.bass * 0.05, dw = w * z, dh = h * z;
+    ctx.drawImage(softArt(w, h), (w - dw) / 2, (h - dh) / 2, dw, dh);
+    const [r0, g0, b0] = rgb(p.bg);
+    ctx.fillStyle = `rgba(${r0},${g0},${b0},${0.62 - f.bass * 0.12})`;
+    ctx.fillRect(0, 0, w, h);
+  }
   const [r, g, b] = rgb(p.a);
   const glow = ctx.createRadialGradient(w / 2, h * 0.62, 0, w / 2, h * 0.62, Math.max(w, h) * 0.7);
   glow.addColorStop(0, `rgba(${r},${g},${b},${0.07 + f.bass * 0.13})`);
@@ -1025,4 +1070,36 @@ export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt) {
     ctx.fillRect(0, 0, w, h);
   } else if (style.id !== 'spectro') background(ctx, w, h, f, p);
   style.draw(ctx, w, h, f, p, st, dt);
+  const hole = art && COVER[style.id];
+  if (hole) {
+    const m = Math.min(w, h), r = hole(f, m);
+    drawCoverArt(ctx, w / 2, h / 2, r, style.id === 'vinyl' ? st.rot || 0 : 0, p, m);
+  }
+}
+
+const COVER = {
+  circle: (f, m) => m * (0.2 + f.bass * 0.04) * 0.86,
+  ring: (f, m) => m * (0.24 + f.bass * 0.03) * 0.56,
+  vinyl: (f, m) => m * 0.3 * 0.36,
+  pulse: (f, m) => m * (0.12 + f.bass * 0.09),
+  sparks: (f, m) => m * (0.11 + f.bass * 0.04),
+  blob: (f, m) => m * 0.13,
+  mandala: (f, m) => m * (0.09 + f.bass * 0.02),
+  space: (f, m) => m * (0.1 + f.bass * 0.03),
+};
+
+function drawCoverArt(ctx, cx, cy, r, rot, p, m) {
+  ctx.save();
+  ctx.translate(cx, cy);
+  ctx.rotate(rot);
+  ctx.beginPath();
+  ctx.arc(0, 0, r, 0, Math.PI * 2);
+  ctx.clip();
+  fitCover(ctx, art, -r, -r, r * 2, r * 2);
+  ctx.restore();
+  ctx.strokeStyle = grad(ctx, cx - r, cy - r, cx + r, cy + r, p);
+  ctx.lineWidth = Math.max(2, m * 0.006);
+  ctx.beginPath();
+  ctx.arc(cx, cy, r, 0, Math.PI * 2);
+  ctx.stroke();
 }

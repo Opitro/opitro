@@ -13,6 +13,8 @@ faq:
     answer: "Pulsa «Elige un archivo de audio» o arrastra el tema a la página. Elige un estilo en las miniaturas, un color en los círculos junto a «Color» y un formato — 16:9, 9:16 o 1:1. «Escuchar» muestra cómo se mueve todo con la música. Después, «Descargar vídeo» y 720p o 1080p — el menú ya indica el tamaño aproximado del archivo."
   - question: "¿Qué estilos de visualización hay?"
     answer: "24: esfera, neón, espacio, mandala, vúmetros, VHS, barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
+  - question: "¿Puedo añadir la portada del álbum o una foto mía?"
+    answer: "Sí. Pulsa el cuadrado junto a «Portada» o arrastra una imagen a la herramienta — sirven JPG, PNG y WebP. La foto se convierte en un fondo difuminado que late con los graves, y en los estilos con un círculo en medio — círculo, anillo, vinilo, pulso, gota, chispas, mandala, espacio — además va al centro como portada. La cruz en la esquina del cuadrado quita la imagen."
   - question: "¿Qué formato elijo para YouTube, historias y Reels?"
     answer: "16:9 para YouTube y un reproductor normal. 9:16 es vídeo vertical para historias, Reels, Shorts y TikTok. 1:1 es un cuadrado para el feed. Los estilos se adaptan solos al formato: en vertical hay menos barras, para que no queden como hilos."
   - question: "¿Cuánto tarda el vídeo?"
