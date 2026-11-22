@@ -212,21 +212,16 @@ function hslToHex(h, s, l) {
   return '#' + [r, g, b].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
 }
 
-export function setCustom(hex) {
+export function setCustom(hex, tint = 1) {
   if (!/^#[0-9a-f]{6}$/i.test(hex || '')) hex = '#a855f7';
+  const k = Math.max(0, Math.min(1, tint));
   const [h, s, l] = hexToHsl(hex.toLowerCase());
   PALETTES.custom = {
     a: hex.toLowerCase(),
     b: hslToHex(h + 38, Math.min(1, s * 0.95 + 0.05), Math.min(0.82, Math.max(0.45, l + 0.08))),
-    bg: hslToHex(h, Math.min(0.5, s * 0.6), 0.065),
+    bg: hslToHex(h, Math.min(0.5, s * 0.6) * k, 0.065),
+    glow: hslToHex(h, s * k, l),
   };
-}
-
-let visAlpha = 1;
-const layers = new Map();
-
-export function setIntensity(v) {
-  visAlpha = Math.max(0.1, Math.min(1, v));
 }
 
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
@@ -319,6 +314,7 @@ function softArt(w, h) {
 function background(ctx, w, h, f, p) {
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
+  const glowHex = p.glow || p.a;
   if (art) {
     const z = 1.06 + f.bass * 0.05, dw = w * z, dh = h * z;
     ctx.drawImage(softArt(w, h), (w - dw) / 2, (h - dh) / 2, dw, dh);
@@ -326,7 +322,7 @@ function background(ctx, w, h, f, p) {
     ctx.fillStyle = `rgba(${r0},${g0},${b0},${0.62 - f.bass * 0.12})`;
     ctx.fillRect(0, 0, w, h);
   }
-  const [r, g, b] = rgb(p.a);
+  const [r, g, b] = rgb(glowHex);
   const glow = ctx.createRadialGradient(w / 2, h * 0.62, 0, w / 2, h * 0.62, Math.max(w, h) * 0.7);
   glow.addColorStop(0, `rgba(${r},${g},${b},${0.07 + f.bass * 0.13})`);
   glow.addColorStop(1, `rgba(${r},${g},${b},0)`);
@@ -1112,6 +1108,81 @@ function drawVhs(ctx, w, h, f, p, st, dt) {
   ctx.textAlign = 'start';
 }
 
+export const TEXT_FONT = 'VizDisplay';
+let styleText = '';
+
+export function setStyleText(text) {
+  styleText = (text || '').trim();
+}
+
+function splitLines(text, limit) {
+  if (text.length <= limit || !text.includes(' ')) return [text];
+  const mid = text.length / 2;
+  let best = -1;
+  for (let i = 0; i < text.length; i++) if (text[i] === ' ' && (best < 0 || Math.abs(i - mid) < Math.abs(best - mid))) best = i;
+  return [text.slice(0, best), text.slice(best + 1)];
+}
+
+function drawText(ctx, w, h, f, p, st, dt) {
+  const text = (styleText || caption.title || caption.artist || 'OPITRO').toUpperCase();
+  const lines = splitLines(text, h > w ? 6 : 12), m = Math.min(w, h);
+  const last = st.tb || 0;
+  st.tb = f.bass;
+  if (f.bass > 0.4 && f.bass - last > 0.05) st.tk = 1;
+  st.tk = (st.tk || 0) * Math.pow(0.003, dt);
+  const fontOf = (px) => `800 ${px}px ${TEXT_FONT}, system-ui, -apple-system, "Segoe UI", sans-serif`;
+  let size = m * 0.22;
+  ctx.font = fontOf(size);
+  const widest = Math.max(...lines.map((l) => ctx.measureText(l).width));
+  size = Math.min(size, size * (w * 0.84) / Math.max(1, widest), h * 0.3 / lines.length);
+  ctx.font = fontOf(size);
+  const pulse = 1 + f.bass * 0.1 + st.tk * 0.08, lh = size * 1.18, total = lh * lines.length;
+  const [ar, ag, ab] = rgb(p.a), [br, bg2, bb] = rgb(p.b);
+  let count = 0;
+  for (const l of lines) count += l.length;
+  ctx.save();
+  ctx.translate(w / 2, h / 2);
+  ctx.scale(pulse, pulse);
+  ctx.textBaseline = 'middle';
+  ctx.textAlign = 'left';
+  let n = 0;
+  lines.forEach((line, li) => {
+    const lw = ctx.measureText(line).width, y0 = -total / 2 + lh * (li + 0.5);
+    let x = -lw / 2;
+    for (let i = 0; i < line.length; i++, n++) {
+      const ch = line[i], cw = ctx.measureText(ch).width, t = count > 1 ? n / (count - 1) : 0;
+      const band = f.bands[Math.min(BANDS - 1, Math.floor(t * 56) + 4)];
+      const jump = -band * band * size * 0.32, sc = 1 + band * 0.14, tilt = Math.sin(n * 1.7 + (f.t || 0) * 3) * band * 0.08;
+      const col = `rgb(${ar + (br - ar) * t | 0},${ag + (bg2 - ag) * t | 0},${ab + (bb - ab) * t | 0})`;
+      ctx.save();
+      ctx.translate(x + cw / 2, y0 + jump);
+      ctx.rotate(tilt);
+      ctx.scale(sc, sc);
+      if (st.tk > 0.05) {
+        ctx.globalCompositeOperation = 'lighter';
+        ctx.globalAlpha = st.tk * 0.55;
+        ctx.fillStyle = '#ff2850';
+        ctx.fillText(ch, -cw / 2 - size * 0.04 * st.tk, 0);
+        ctx.fillStyle = '#28dcff';
+        ctx.fillText(ch, -cw / 2 + size * 0.04 * st.tk, 0);
+        ctx.globalCompositeOperation = 'source-over';
+      }
+      ctx.globalAlpha = 1;
+      ctx.shadowColor = col;
+      ctx.shadowBlur = size * (0.12 + f.level * 0.25);
+      ctx.fillStyle = col;
+      ctx.fillText(ch, -cw / 2, 0);
+      ctx.shadowBlur = 0;
+      ctx.globalAlpha = 0.14;
+      ctx.scale(1, -0.45);
+      ctx.fillText(ch, -cw / 2, -(total / 2 - y0) * 2.2 - size * 0.9 + jump * 2);
+      ctx.restore();
+      x += cw;
+    }
+  });
+  ctx.restore();
+}
+
 export const STYLES = [
   { id: 'bars', draw: drawBars },
   { id: 'mirror', draw: drawMirror },
@@ -1131,6 +1202,7 @@ export const STYLES = [
   { id: 'waves', draw: drawWaves },
   { id: 'vinyl', draw: drawVinyl },
   { id: 'ridges', draw: drawRidges },
+  { id: 'text', draw: drawText },
   { id: 'sphere', draw: drawSphere },
   { id: 'neon', draw: drawNeon },
   { id: 'space', draw: drawSpace },
@@ -1272,26 +1344,7 @@ export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true)
     ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
   } else if (style.id !== 'spectro') background(ctx, w, h, f, p);
-  else if (visAlpha < 0.999) {
-    ctx.fillStyle = p.bg;
-    ctx.fillRect(0, 0, w, h);
-  }
-  if (visAlpha < 0.999) {
-    const key = w + 'x' + h;
-    let layer = layers.get(key);
-    if (!layer) {
-      if (layers.size > 6) layers.clear();
-      layer = makeCanvas(w, h);
-      layers.set(key, layer);
-    }
-    const lx = layer.getContext('2d');
-    lx.clearRect(0, 0, w, h);
-    style.draw(lx, w, h, f, p, st, dt);
-    ctx.save();
-    ctx.globalAlpha = visAlpha;
-    ctx.drawImage(layer, 0, 0);
-    ctx.restore();
-  } else style.draw(ctx, w, h, f, p, st, dt);
+  style.draw(ctx, w, h, f, p, st, dt);
   const hole = art && COVER[style.id];
   if (hole) {
     const m = Math.min(w, h), r = hole(f, m);

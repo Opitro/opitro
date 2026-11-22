@@ -1,4 +1,7 @@
-import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setIntensity, setFx, setTimeline } from './viz-draw.js';
+import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setFx, setTimeline, setStyleText, TEXT_FONT } from './viz-draw.js';
+import { этоТелефон } from '../pc-only.js';
+import fontLatin from '@fontsource/unbounded/files/unbounded-latin-800-normal.woff2?url';
+import fontCyrillic from '@fontsource/unbounded/files/unbounded-cyrillic-800-normal.woff2?url';
 import { readTags } from './viz-tags.js';
 import { openAudioSession, openRecordSession, startKeeper, sliceBuffer } from '../web-audio-engine.js';
 
@@ -7,6 +10,7 @@ const MAX_FILE = 900;
 const MAX_VIDEO = 600;
 const FPS = 30;
 const QUALITY = {
+  2160: { '16x9': [3840, 2160], '9x16': [2160, 3840], '1x1': [2160, 2160], bitrate: 2e7 },
   720: { '16x9': [1280, 720], '9x16': [720, 1280], '1x1': [720, 720], bitrate: 3e6 },
   1080: { '16x9': [1920, 1080], '9x16': [1080, 1920], '1x1': [1080, 1080], bitrate: 6e6 },
 };
@@ -49,7 +53,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), fxs: [...root.querySelectorAll('[data-fx]')], clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), stageText: q('.zv-stage-text'), q4k: [...root.querySelectorAll('[data-quality="2160"]')], fxs: [...root.querySelectorAll('[data-fx]')], clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -62,13 +66,14 @@ class Visualizer {
     const prefs = loadPrefs();
     this.style = STYLES.some((s) => s.id === prefs.style) ? prefs.style : 'sphere';
     this.customColor = /^#[0-9a-f]{6}$/i.test(prefs.custom || '') ? prefs.custom : '#a855f7';
-    this.intensityValue = Number(prefs.intensity) >= 20 && Number(prefs.intensity) <= 100 ? Number(prefs.intensity) : 100;
-    setCustom(this.customColor);
+    this.intensityValue = Number(prefs.intensity) >= 0 && Number(prefs.intensity) <= 100 ? Number(prefs.intensity) : 100;
+    setCustom(this.customColor, this.intensityValue / 100);
     this.palette = PALETTES[prefs.palette] ? prefs.palette : 'night';
     this.el.colorInput.value = this.customColor;
     this.el.intensity.value = String(this.intensityValue);
     this.el.intVal.textContent = this.intensityValue + '%';
-    setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
+    this.el.stageText.value = typeof prefs.text === 'string' ? prefs.text.slice(0, 40) : '';
+    setStyleText(this.el.stageText.value);
     this.format = RATIO[prefs.format] ? prefs.format : '16x9';
     this.ctx2d = this.el.canvas.getContext('2d', { alpha: false });
     this.display = emptyFrame();
@@ -83,6 +88,8 @@ class Visualizer {
     setFx(this.fx);
     this.busy = false;
     startKeeper();
+    this.loadFont();
+    this.check4k();
     this.bind();
     this.applyFormat();
     this.renderControls();
@@ -168,7 +175,7 @@ class Visualizer {
     };
     el.colorInput.addEventListener('input', () => {
       this.customColor = el.colorInput.value;
-      setCustom(this.customColor);
+      setCustom(this.customColor, this.intensityValue / 100);
       this.palette = 'custom';
       this.renderControls();
       repaint(true);
@@ -178,11 +185,16 @@ class Visualizer {
       this.intensityValue = Number(el.intensity.value);
       el.intVal.textContent = this.intensityValue + '%';
       this.palette = 'custom';
-      setIntensity(this.intensityValue / 100);
+      setCustom(this.customColor, this.intensityValue / 100);
       this.renderControls();
-      repaint(false);
+      repaint(true);
     });
     el.intensity.addEventListener('change', () => this.changed(true));
+    el.stageText.addEventListener('input', () => {
+      setStyleText(el.stageText.value);
+      repaint(false);
+    });
+    el.stageText.addEventListener('change', () => this.changed(false));
     document.addEventListener('click', (e) => {
       if (!el.pop.hidden && !e.target.closest('.zv-pop, .zv-custom')) this.togglePop(false);
     });
@@ -238,14 +250,33 @@ class Visualizer {
     this.el.status.textContent = text || '';
   }
 
+  loadFont() {
+    if (typeof FontFace === 'undefined' || !document.fonts) return;
+    const faces = [
+      new FontFace(TEXT_FONT, `url(${fontLatin})`, { weight: '800', unicodeRange: 'U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+2000-206F, U+20AC, U+2122, U+2212' }),
+      new FontFace(TEXT_FONT, `url(${fontCyrillic})`, { weight: '800', unicodeRange: 'U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116' }),
+    ];
+    Promise.all(faces.map((ff) => ff.load().then((ok) => document.fonts.add(ok)))).then(() => {
+      this.previews();
+      if (!this.looping) this.drawStill();
+    }).catch(() => {});
+  }
+
+  async check4k() {
+    if (этоТелефон() || typeof VideoEncoder === 'undefined') return;
+    try {
+      const res = await VideoEncoder.isConfigSupported({ codec: 'avc1.640033', width: 3840, height: 2160, bitrate: 2e7, framerate: 30, avc: { format: 'avc' } });
+      if (res.supported) this.el.q4k.forEach((b) => { b.hidden = false; });
+    } catch (e) {}
+  }
+
   togglePop(open) {
     this.el.pop.hidden = !open;
     this.el.custom.setAttribute('aria-expanded', String(open));
   }
 
   changed(repaintPreviews) {
-    setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
-    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx });
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx, text: this.el.stageText.value });
     this.renderControls();
     if (repaintPreviews) this.previews();
     if (!this.looping) this.drawStill();
@@ -256,6 +287,7 @@ class Visualizer {
     el.palettes.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.palette === this.palette)));
     el.styles.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.style === this.style)));
     el.formats.forEach((b) => b.setAttribute('aria-pressed', String(b.dataset.format === this.format)));
+    el.stageText.hidden = this.style !== 'text';
     el.playIco.innerHTML = this.playing ? ICON.pause : ICON.play;
     el.playLabel.textContent = this.playing ? this.t.pause : this.t.play;
     el.play.disabled = !file || this.busy;
@@ -726,7 +758,7 @@ class Visualizer {
       }
       this.status(this.t.clipHint);
     } else this.status('');
-    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx });
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx, text: this.el.stageText.value });
     this.renderControls();
     if (this.mode === 'file') this.drawSeek();
   }

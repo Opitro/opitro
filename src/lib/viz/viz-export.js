@@ -3,7 +3,8 @@ import { Muxer, ArrayBufferTarget } from 'mp4-muxer';
 const tick = () => new Promise((r) => setTimeout(r, 0));
 
 async function pickVideo(width, height, fps, bitrate) {
-  for (const codec of ['avc1.640028', 'avc1.4d0028', 'avc1.42002a', 'avc1.42001f']) {
+  const big = width * height > 1920 * 1088;
+  for (const codec of big ? ['avc1.640033', 'avc1.4d0033', 'avc1.640034'] : ['avc1.640028', 'avc1.4d0028', 'avc1.42002a', 'avc1.42001f']) {
     for (const hardwareAcceleration of ['prefer-hardware', 'no-preference']) {
       const cfg = { codec, width, height, bitrate, framerate: fps, hardwareAcceleration, avc: { format: 'avc' } };
       try {
