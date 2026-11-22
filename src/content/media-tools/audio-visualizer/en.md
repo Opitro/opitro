@@ -15,6 +15,8 @@ faq:
     answer: "25: sphere, text, neon, space, mandala, VU meters, VHS, bars, mirror, circle, blob, hills, oscilloscope, line, equalizer, pulse, spectrogram, ring, sparks, retro, tunnel, dots, waves, vinyl and ridges. Each tile shows a small sample, and the large window redraws in the chosen style straight away."
   - question: "Can I add album art or my own photo?"
     answer: "Yes. Press the square next to “Cover” or drop an image onto the tool — JPG, PNG and WebP work. The photo becomes a blurred background that pulses with the bass, and in styles with a circle in the middle — circle, ring, vinyl, pulse, blob, sparks, mandala, space — it also sits in the centre as a cover. The cross in the corner of the square removes the image."
+  - question: "Can I add my own logo?"
+    answer: "Yes. Press the square next to “Logo” and pick an image — it sits small in the bottom-right corner of the video. A PNG with a transparent background goes straight onto the picture, with no white box. The cross in the corner of the square removes the logo."
   - question: "How do I add the artist name and track title?"
     answer: "Type them into the “Artist” and “Title” fields under the colours — the caption appears at the bottom of the video right away. If the MP3 has artist and title tags, the fields fill in on their own; otherwise “Title” gets the file name. Leave them empty for no caption."
   - question: "Can I pick my own colour?"

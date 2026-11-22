@@ -1,4 +1,4 @@
-import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setFx, setTimeline, setStyleText, TEXT_FONT } from './viz-draw.js';
+import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setFx, setTimeline, setStyleText, TEXT_FONT, setLogo } from './viz-draw.js';
 import { этоТелефон } from '../pc-only.js';
 import fontLatin from '@fontsource/unbounded/files/unbounded-latin-800-normal.woff2?url';
 import fontCyrillic from '@fontsource/unbounded/files/unbounded-cyrillic-800-normal.woff2?url';
@@ -53,7 +53,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), stageText: q('.zv-stage-text'), q4k: [...root.querySelectorAll('[data-quality="2160"]')], fxs: [...root.querySelectorAll('[data-fx]')], clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), logoBtn: q('.zv-logo'), logoX: q('.zv-logo-x'), logoInput: q('.zv-logo-input'), logoThumb: q('.zv-logo canvas'), stageText: q('.zv-stage-text'), q4k: [...root.querySelectorAll('[data-quality="2160"]')], fxs: [...root.querySelectorAll('[data-fx]')], clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art:not(.zv-logo)'), artX: q('.zv-art-x:not(.zv-logo-x)'), artThumb: q('.zv-art:not(.zv-logo) canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -137,6 +137,12 @@ class Visualizer {
     el.artist.addEventListener('input', onCaption);
     el.title.addEventListener('input', onCaption);
     el.art.addEventListener('click', () => el.artInput.click());
+    el.logoBtn.addEventListener('click', () => el.logoInput.click());
+    el.logoInput.addEventListener('change', () => {
+      if (el.logoInput.files[0]) this.loadLogo(el.logoInput.files[0]);
+      el.logoInput.value = '';
+    });
+    el.logoX.addEventListener('click', () => this.clearLogo());
     el.artInput.addEventListener('change', () => {
       if (el.artInput.files[0]) this.loadArt(el.artInput.files[0]);
       el.artInput.value = '';
@@ -371,6 +377,39 @@ class Visualizer {
     this.status('');
     this.state = {};
     this.changed(true);
+  }
+
+  async loadLogo(file) {
+    if (this.busy) return;
+    touched();
+    let img;
+    try {
+      img = await createImageBitmap(file);
+    } catch (e) {
+      this.status(this.t.badImage);
+      return;
+    }
+    if (this.logoImg && this.logoImg.close) this.logoImg.close();
+    this.logoImg = img;
+    setLogo(img);
+    const c = this.el.logoThumb, ctx = c.getContext('2d'), k = Math.min(c.width * 0.8 / img.width, c.height * 0.8 / img.height);
+    const lw = img.width * k, lh = img.height * k;
+    ctx.clearRect(0, 0, c.width, c.height);
+    ctx.drawImage(img, (c.width - lw) / 2, (c.height - lh) / 2, lw, lh);
+    this.el.logoBtn.classList.add('has-art');
+    this.el.logoX.hidden = false;
+    this.status('');
+    if (!this.looping) this.drawStill();
+  }
+
+  clearLogo() {
+    if (this.busy) return;
+    setLogo(null);
+    if (this.logoImg && this.logoImg.close) this.logoImg.close();
+    this.logoImg = null;
+    this.el.logoBtn.classList.remove('has-art');
+    this.el.logoX.hidden = true;
+    if (!this.looping) this.drawStill();
   }
 
   clearArt() {

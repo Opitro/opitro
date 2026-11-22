@@ -276,6 +276,24 @@ function drawCaption(ctx, w, h) {
   ctx.restore();
 }
 
+let logo = null;
+
+export function setLogo(img) {
+  logo = img;
+}
+
+function drawLogo(ctx, w, h) {
+  if (!logo) return;
+  const m = Math.min(w, h), k = Math.min(m * 0.22 / logo.width, m * 0.11 / logo.height);
+  const lw = logo.width * k, lh = logo.height * k, pad = m * 0.045;
+  ctx.save();
+  ctx.globalAlpha = 0.92;
+  ctx.imageSmoothingEnabled = true;
+  ctx.imageSmoothingQuality = 'high';
+  ctx.drawImage(logo, w - pad - lw, h - pad - lh - (fx.progress ? Math.max(4, Math.round(h * 0.011)) : 0), lw, lh);
+  ctx.restore();
+}
+
 export function setArt(img) {
   art = img;
   artCache.clear();
@@ -1356,6 +1374,7 @@ export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true)
   if (fx.particles) addParticles(ctx, w, h, f, p, st, dt);
   if (fx.grain) addGrain(ctx, w, h);
   if (fx.progress) addProgress(ctx, w, h, f, p);
+  drawLogo(ctx, w, h);
   drawCaption(ctx, w, h);
 }
 

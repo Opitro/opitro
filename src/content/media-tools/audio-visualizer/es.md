@@ -15,6 +15,8 @@ faq:
     answer: "25: esfera, texto, neón, espacio, mandala, vúmetros, VHS, barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
   - question: "¿Puedo añadir la portada del álbum o una foto mía?"
     answer: "Sí. Pulsa el cuadrado junto a «Portada» o arrastra una imagen a la herramienta — sirven JPG, PNG y WebP. La foto se convierte en un fondo difuminado que late con los graves, y en los estilos con un círculo en medio — círculo, anillo, vinilo, pulso, gota, chispas, mandala, espacio — además va al centro como portada. La cruz en la esquina del cuadrado quita la imagen."
+  - question: "¿Puedo poner mi propio logo?"
+    answer: "Sí. Pulsa el cuadrado junto a «Logo» y elige una imagen — queda pequeña en la esquina inferior derecha del vídeo. Un PNG con fondo transparente va directo sobre la imagen, sin recuadro blanco. La cruz en la esquina del cuadrado quita el logo."
   - question: "¿Cómo añado el nombre del artista y el título del tema?"
     answer: "Escríbelos en los campos «Artista» y «Título» bajo los colores — el texto aparece al momento en la parte inferior del vídeo. Si el MP3 tiene artista y título en sus etiquetas, los campos se rellenan solos; si no, en «Título» va el nombre del archivo. Con los campos vacíos no hay texto."
   - question: "¿Puedo elegir mi propio color?"
