@@ -7,12 +7,12 @@ title: Visualizador de audio online gratis — vídeo a partir de música
 h1: Visualizador de audio
 navName: "Visualizador de audio"
 summary: "Onda y espectro: ver cómo suena"
-description: "Convierte un tema en un vídeo con una onda en movimiento, un espectro, un anillo o un vinilo — para YouTube, un clip o una historia. 25 estilos, 5 colores, formato 16:9, 9:16 o 1:1, MP4 hasta 1080p. Gratis y sin registro."
+description: "Convierte un tema en un vídeo con una onda en movimiento, un espectro, un anillo o un vinilo — para YouTube, un clip o una historia. 30 estilos, 5 colores, formato 16:9, 9:16 o 1:1, MP4 hasta 1080p. Gratis y sin registro."
 faq:
   - question: "¿Cómo hago un vídeo a partir de música?"
     answer: "Pulsa «Elegir archivo» o arrastra el tema a la página. Elige un estilo en las miniaturas, un color en los círculos junto a «Color» y un formato — 16:9, 9:16 o 1:1. «Escuchar» muestra cómo se mueve todo con la música. Después, «Descargar vídeo» y 720p o 1080p — el menú ya indica el tamaño aproximado del archivo."
   - question: "¿Qué estilos de visualización hay?"
-    answer: "25: esfera, texto, neón, espacio, mandala, vúmetros, VHS, barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
+    answer: "30: esfera, texto, galaxia, aurora, relieve, rayos, láseres, neón, espacio, mandala, vúmetros, VHS, barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
   - question: "¿Puedo añadir la portada del álbum o una foto mía?"
     answer: "Sí. Pulsa el cuadrado junto a «Portada» o arrastra una imagen a la herramienta — sirven JPG, PNG y WebP. La foto se convierte en un fondo difuminado que late con los graves, y en los estilos con un círculo en medio — círculo, anillo, vinilo, pulso, gota, chispas, mandala, espacio — además va al centro como portada. La cruz en la esquina del cuadrado quita la imagen."
   - question: "¿Puedo poner mi propio logo?"

@@ -162,19 +162,18 @@ class Visualizer {
       this.fx[k] = !this.fx[k];
       setFx(this.fx);
       this.state = {};
-      this.changed(false);
+      this.changed();
     }));
     el.palettes.forEach((b) => b.addEventListener('click', () => {
       this.palette = b.dataset.palette;
       if (b !== el.custom) this.togglePop(false);
-      this.changed(true);
+      this.changed();
     }));
     el.custom.addEventListener('click', () => this.togglePop(el.pop.hidden));
     let tint = 0;
-    const repaint = (full) => {
+    const repaint = () => {
       cancelAnimationFrame(tint);
       tint = requestAnimationFrame(() => {
-        if (full) this.previews();
         if (!this.looping) this.drawStill();
         if (this.mode === 'file') this.drawSeek();
       });
@@ -184,36 +183,36 @@ class Visualizer {
       setCustom(this.customColor, this.intensityValue / 100);
       this.palette = 'custom';
       this.renderControls();
-      repaint(true);
+      repaint();
     });
-    el.colorInput.addEventListener('change', () => this.changed(true));
+    el.colorInput.addEventListener('change', () => this.changed());
     el.intensity.addEventListener('input', () => {
       this.intensityValue = Number(el.intensity.value);
       el.intVal.textContent = this.intensityValue + '%';
       this.palette = 'custom';
       setCustom(this.customColor, this.intensityValue / 100);
       this.renderControls();
-      repaint(true);
+      repaint();
     });
-    el.intensity.addEventListener('change', () => this.changed(true));
+    el.intensity.addEventListener('change', () => this.changed());
     el.stageText.addEventListener('input', () => {
       setStyleText(el.stageText.value);
-      repaint(false);
+      repaint();
     });
-    el.stageText.addEventListener('change', () => this.changed(false));
+    el.stageText.addEventListener('change', () => this.changed());
     document.addEventListener('click', (e) => {
       if (!el.pop.hidden && !e.target.closest('.zv-pop, .zv-custom')) this.togglePop(false);
     });
     el.styles.forEach((b) => b.addEventListener('click', () => {
       this.style = b.dataset.style;
       this.state = {};
-      this.changed(false);
+      this.changed();
     }));
     el.formats.forEach((b) => b.addEventListener('click', () => {
       this.format = b.dataset.format;
       this.state = {};
       this.applyFormat();
-      this.changed(false);
+      this.changed();
     }));
     [el.video, el.image].forEach((b) => {
       const menu = b.nextElementSibling;
@@ -263,7 +262,7 @@ class Visualizer {
       new FontFace(TEXT_FONT, `url(${fontCyrillic})`, { weight: '800', unicodeRange: 'U+0301, U+0400-045F, U+0490-0491, U+04B0-04B1, U+2116' }),
     ];
     Promise.all(faces.map((ff) => ff.load().then((ok) => document.fonts.add(ok)))).then(() => {
-      this.previews();
+      this.previews('text');
       if (!this.looping) this.drawStill();
     }).catch(() => {});
   }
@@ -281,10 +280,9 @@ class Visualizer {
     this.el.custom.setAttribute('aria-expanded', String(open));
   }
 
-  changed(repaintPreviews) {
+  changed() {
     savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx, text: this.el.stageText.value });
     this.renderControls();
-    if (repaintPreviews) this.previews();
     if (!this.looping) this.drawStill();
   }
 
@@ -376,7 +374,7 @@ class Visualizer {
     this.el.artX.hidden = false;
     this.status('');
     this.state = {};
-    this.changed(true);
+    this.changed();
   }
 
   async loadLogo(file) {
@@ -420,14 +418,15 @@ class Visualizer {
     this.el.art.classList.remove('has-art');
     this.el.artX.hidden = true;
     this.state = {};
-    this.changed(true);
+    this.changed();
   }
 
-  previews() {
+  previews(only) {
     this.el.styles.forEach((b) => {
+      if (only && b.dataset.style !== only) return;
       const c = b.querySelector('canvas'), ctx = c.getContext('2d', { alpha: false }), st = {};
       const n = b.dataset.style === 'spectro' ? 140 : 46;
-      for (let i = 0; i < n; i++) drawFrame(ctx, c.width, c.height, demoFrame(i), b.dataset.style, this.palette, st, 1 / 15, false);
+      for (let i = 0; i < n; i++) drawFrame(ctx, c.width, c.height, demoFrame(i), b.dataset.style, 'night', st, 1 / 15, false);
     });
   }
 

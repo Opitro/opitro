@@ -329,11 +329,11 @@ function softArt(w, h) {
   return c;
 }
 
-function background(ctx, w, h, f, p) {
+function background(ctx, w, h, f, p, withArt) {
   ctx.fillStyle = p.bg;
   ctx.fillRect(0, 0, w, h);
   const glowHex = p.glow || p.a;
-  if (art) {
+  if (art && withArt) {
     const z = 1.06 + f.bass * 0.05, dw = w * z, dh = h * z;
     ctx.drawImage(softArt(w, h), (w - dw) / 2, (h - dh) / 2, dw, dh);
     const [r0, g0, b0] = rgb(p.bg);
@@ -1201,6 +1201,194 @@ function drawText(ctx, w, h, f, p, st, dt) {
   ctx.restore();
 }
 
+function drawGalaxy(ctx, w, h, f, p, st, dt) {
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h);
+  if (!st.gx) {
+    st.gx = [];
+    for (let i = 0; i < 900; i++) {
+      const d = Math.pow(Math.random(), 0.6), arm = i % 3;
+      st.gx.push({ d, a: arm * Math.PI * 2 / 3 + d * 5.5 + (Math.random() - 0.5) * 0.55 * (1.2 - d), s: 0.5 + Math.random() * 1.3, b: Math.min(BANDS - 1, 3 + Math.floor(d * 62)) });
+    }
+  }
+  st.rot = (st.rot || 0) + dt * (0.1 + f.level * 0.45);
+  const [ar, ag, ab] = rgb(p.a);
+  const core = ctx.createRadialGradient(cx, cy, 0, cx, cy, m * (0.18 + f.bass * 0.12));
+  core.addColorStop(0, `rgba(255,255,255,${0.55 + f.bass * 0.4})`);
+  core.addColorStop(0.25, `rgba(${ar},${ag},${ab},0.45)`);
+  core.addColorStop(1, `rgba(${ar},${ag},${ab},0)`);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.fillStyle = core;
+  ctx.fillRect(0, 0, w, h);
+  const R = m * 0.47 * (1 + f.bass * 0.06);
+  for (const s of st.gx) {
+    const band = f.bands[s.b], a = s.a + st.rot * (1.5 - s.d), r = R * s.d;
+    const x = cx + Math.cos(a) * r * (w > h ? 1.35 : 1), y = cy + Math.sin(a) * r * 0.6;
+    const size = Math.max(1, m * 0.003 * s.s * (1 + band * 1.6));
+    ctx.fillStyle = mix(p, s.d, 0.3 + band * 0.7);
+    ctx.fillRect(x - size / 2, y - size / 2, size, size);
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawAurora(ctx, w, h, f, p, st, dt) {
+  if (!st.sky) {
+    st.sky = [];
+    for (let i = 0; i < 90; i++) st.sky.push([Math.random(), Math.random() * 0.7, Math.random()]);
+  }
+  st.ph = (st.ph || 0) + dt * (0.35 + f.level * 1.1);
+  ctx.fillStyle = 'rgba(255,255,255,0.55)';
+  for (const [x, y, t] of st.sky) {
+    const sz = Math.max(1, Math.min(w, h) * 0.0025 * (0.5 + t));
+    ctx.globalAlpha = 0.3 + 0.5 * Math.abs(Math.sin(st.ph * 0.7 + t * 9));
+    ctx.fillRect(x * w, y * h, sz, sz);
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'lighter';
+  const groups = [[0, 14], [14, 30], [30, 48], [48, 72]], n = 48;
+  groups.forEach(([a, b], k) => {
+    let e = 0;
+    for (let i = a; i < b; i++) e += f.bands[i];
+    e /= b - a;
+    const base = h * (0.5 + k * 0.06), tops = [], bots = [];
+    for (let i = 0; i <= n; i++) {
+      const x = i / n, wave = Math.sin(x * (3 + k) + st.ph * (1 + k * 0.3) + k * 1.7) * h * 0.07 + Math.sin(x * 9 - st.ph * 1.3 + k) * h * 0.02;
+      const y = base + wave, hh = h * (0.12 + e * 0.42) * (0.55 + 0.45 * Math.sin(x * 5 + st.ph * 0.8 + k * 2));
+      bots.push([x * w, y]);
+      tops.push([x * w, y - hh]);
+    }
+    const g = ctx.createLinearGradient(0, base - h * 0.55, 0, base + h * 0.08);
+    const [r1, g1, b1] = rgb(k % 2 ? p.b : p.a);
+    g.addColorStop(0, `rgba(${r1},${g1},${b1},0)`);
+    g.addColorStop(0.7, `rgba(${r1},${g1},${b1},${0.22 + e * 0.35})`);
+    g.addColorStop(1, `rgba(${r1},${g1},${b1},0)`);
+    ctx.fillStyle = g;
+    ctx.beginPath();
+    smoothPath(ctx, tops, false);
+    for (let i = bots.length - 1; i >= 0; i--) ctx.lineTo(bots[i][0], bots[i][1]);
+    ctx.closePath();
+    ctx.fill();
+  });
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawTerrain(ctx, w, h, f, p, st, dt) {
+  const rows = 26, n = 40, hz = h * 0.36;
+  st.hist = st.hist || [];
+  st.acc = (st.acc || 0) + dt;
+  if (st.acc >= 1 / 18 || !st.hist.length) {
+    st.acc = 0;
+    st.hist.unshift(resample(f.bands, n / 2));
+    if (st.hist.length > rows) st.hist.pop();
+  }
+  const [br, bg2, bb] = rgb(p.b);
+  const sun = ctx.createRadialGradient(w / 2, hz, 0, w / 2, hz, Math.max(w, h) * 0.45);
+  sun.addColorStop(0, `rgba(${br},${bg2},${bb},${0.35 + f.bass * 0.3})`);
+  sun.addColorStop(1, `rgba(${br},${bg2},${bb},0)`);
+  ctx.fillStyle = sun;
+  ctx.fillRect(0, 0, w, h);
+  const grid = [];
+  for (let r = st.hist.length - 1; r >= 0; r--) {
+    const t = 1 - r / (rows - 1), y0 = hz + (h * 1.02 - hz) * Math.pow(t, 1.9), span = w * (0.35 + 1.25 * t), amp = h * 0.32 * (0.25 + 0.75 * t), v = st.hist[r], row = [];
+    for (let i = 0; i < n; i++) {
+      const k = Math.min(n / 2 - 1, Math.abs(i - (n - 1) / 2) | 0), cen = 1 - Math.abs(i / (n - 1) - 0.5) * 1.2;
+      row.push([w / 2 + (i / (n - 1) - 0.5) * span, y0 - v[n / 2 - 1 - k] * amp * Math.max(0.15, cen)]);
+    }
+    grid.push([t, row]);
+  }
+  ctx.lineJoin = 'round';
+  const [r0, g0, b0] = rgb(p.bg);
+  grid.forEach(([t, row], gi) => {
+    const next = grid[gi + 1], low = next ? Math.max(...next[1].map((q) => q[1])) : h;
+    ctx.fillStyle = `rgba(${r0},${g0},${b0},0.94)`;
+    ctx.beginPath();
+    row.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.lineTo(row[row.length - 1][0], Math.max(low, row[row.length - 1][1]) + 2);
+    ctx.lineTo(row[0][0], Math.max(low, row[0][1]) + 2);
+    ctx.closePath();
+    ctx.fill();
+    ctx.strokeStyle = mix(p, 1 - t, 0.2 + t * 0.8);
+    ctx.lineWidth = Math.max(1, h * 0.0035 * (0.4 + t));
+    ctx.beginPath();
+    row.forEach(([x, y], i) => (i ? ctx.lineTo(x, y) : ctx.moveTo(x, y)));
+    ctx.stroke();
+  });
+}
+
+function drawRays(ctx, w, h, f, p, st, dt) {
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h), big = Math.hypot(w, h) * 0.55, n = 80, v = resample(f.bands, n / 2);
+  st.rot = (st.rot || 0) + dt * (0.05 + f.level * 0.12);
+  const make = (hex) => {
+    const [r, g, b] = rgb(hex), gr = ctx.createRadialGradient(cx, cy, m * 0.04, cx, cy, big);
+    gr.addColorStop(0, `rgba(${r},${g},${b},0.65)`);
+    gr.addColorStop(0.5, `rgba(${r},${g},${b},0.18)`);
+    gr.addColorStop(1, `rgba(${r},${g},${b},0)`);
+    return gr;
+  };
+  const ga = make(p.a), gb = make(p.b), wa = Math.PI / n * 0.75;
+  ctx.globalCompositeOperation = 'lighter';
+  for (let i = 0; i < n; i++) {
+    const k = i < n / 2 ? i : n - 1 - i, a = i / n * Math.PI * 2 + st.rot, len = big * (0.2 + v[k] * 0.95);
+    ctx.fillStyle = i % 2 ? ga : gb;
+    ctx.beginPath();
+    ctx.moveTo(cx, cy);
+    ctx.lineTo(cx + Math.cos(a - wa) * len, cy + Math.sin(a - wa) * len);
+    ctx.lineTo(cx + Math.cos(a + wa) * len, cy + Math.sin(a + wa) * len);
+    ctx.closePath();
+    ctx.fill();
+  }
+  const r = m * (0.06 + f.bass * 0.06), core = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 2.5);
+  core.addColorStop(0, 'rgba(255,255,255,0.95)');
+  core.addColorStop(1, 'rgba(255,255,255,0)');
+  ctx.fillStyle = core;
+  ctx.fillRect(cx - r * 2.5, cy - r * 2.5, r * 5, r * 5);
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawLasers(ctx, w, h, f, p, st, dt) {
+  const m = Math.min(w, h), emit = 5, per = 3;
+  st.ph = (st.ph || 0) + dt * (0.6 + f.level * 1.6);
+  const last = st.lb || 0;
+  st.lb = f.bass;
+  if (f.bass > 0.4 && f.bass - last > 0.05) st.flash = 1;
+  st.flash = (st.flash || 0) * Math.pow(0.02, dt);
+  const haze = ctx.createLinearGradient(0, 0, 0, h);
+  const [ar, ag, ab] = rgb(p.a);
+  haze.addColorStop(0, `rgba(${ar},${ag},${ab},${0.04 + st.flash * 0.12})`);
+  haze.addColorStop(1, 'rgba(0,0,0,0)');
+  ctx.fillStyle = haze;
+  ctx.fillRect(0, 0, w, h);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (let e = 0; e < emit; e++) {
+    const ex = w * (0.1 + e * 0.2), ey = h * 1.01;
+    let energy = 0;
+    for (let i = e * 14; i < e * 14 + 14; i++) energy += f.bands[i];
+    energy /= 14;
+    for (let j = 0; j < per; j++) {
+      const a = -Math.PI / 2 + Math.sin(st.ph * (0.7 + j * 0.25) + e * 1.3 + j * 2.1) * 0.75, len = h * 1.6;
+      const x2 = ex + Math.cos(a) * len, y2 = ey + Math.sin(a) * len, col = (e + j) % 2 ? p.b : p.a, bright = Math.min(1, 0.15 + energy * 1.3 + st.flash * 0.3);
+      for (const [lw, al] of [[m * 0.03, 0.06], [m * 0.011, 0.2], [m * 0.0035, 1]]) {
+        ctx.globalAlpha = al * bright;
+        ctx.strokeStyle = al === 1 ? '#ffffff' : col;
+        ctx.lineWidth = Math.max(1, lw);
+        ctx.beginPath();
+        ctx.moveTo(ex, ey);
+        ctx.lineTo(x2, y2);
+        ctx.stroke();
+      }
+      ctx.globalAlpha = 0.5 * bright;
+      ctx.strokeStyle = col;
+      ctx.lineWidth = Math.max(1, m * 0.006);
+      ctx.beginPath();
+      ctx.moveTo(ex, ey);
+      ctx.lineTo(x2, y2);
+      ctx.stroke();
+    }
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
 export const STYLES = [
   { id: 'bars', draw: drawBars },
   { id: 'mirror', draw: drawMirror },
@@ -1221,6 +1409,11 @@ export const STYLES = [
   { id: 'vinyl', draw: drawVinyl },
   { id: 'ridges', draw: drawRidges },
   { id: 'text', draw: drawText },
+  { id: 'galaxy', draw: drawGalaxy },
+  { id: 'aurora', draw: drawAurora },
+  { id: 'terrain', draw: drawTerrain },
+  { id: 'rays', draw: drawRays },
+  { id: 'lasers', draw: drawLasers },
   { id: 'sphere', draw: drawSphere },
   { id: 'neon', draw: drawNeon },
   { id: 'space', draw: drawSpace },
@@ -1361,9 +1554,9 @@ export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true)
   if (style.id === 'ridges') {
     ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
-  } else if (style.id !== 'spectro') background(ctx, w, h, f, p);
+  } else if (style.id !== 'spectro') background(ctx, w, h, f, p, text);
   style.draw(ctx, w, h, f, p, st, dt);
-  const hole = art && COVER[style.id];
+  const hole = text && art && COVER[style.id];
   if (hole) {
     const m = Math.min(w, h), r = hole(f, m);
     drawCoverArt(ctx, w / 2, h / 2, r, style.id === 'vinyl' ? st.rot || 0 : 0, p, m);

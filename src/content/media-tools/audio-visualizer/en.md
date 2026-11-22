@@ -7,12 +7,12 @@ title: Audio Visualizer Online, Free — Turn Music Into Video
 h1: Audio Visualizer
 navName: "Audio Visualiser"
 summary: "Waveform and spectrum — see the sound"
-description: "Turn a track into a video with a moving waveform, spectrum, ring or vinyl record — for YouTube, a clip or stories. 25 styles, 5 colours, 16:9, 9:16 or 1:1, MP4 up to 1080p. Free, no sign-up, nothing uploaded."
+description: "Turn a track into a video with a moving waveform, spectrum, ring or vinyl record — for YouTube, a clip or stories. 30 styles, 5 colours, 16:9, 9:16 or 1:1, MP4 up to 1080p. Free, no sign-up, nothing uploaded."
 faq:
   - question: "How do I make a video from music?"
     answer: "Press “Choose file” or drop a track onto the page. Pick a style from the tiles, a colour from the circles next to “Colour”, and a format — 16:9, 9:16 or 1:1. “Listen” shows how everything moves to the music. Then “Download video” and 720p or 1080p — the menu shows the approximate file size right away."
   - question: "Which visualizer styles are there?"
-    answer: "25: sphere, text, neon, space, mandala, VU meters, VHS, bars, mirror, circle, blob, hills, oscilloscope, line, equalizer, pulse, spectrogram, ring, sparks, retro, tunnel, dots, waves, vinyl and ridges. Each tile shows a small sample, and the large window redraws in the chosen style straight away."
+    answer: "30: sphere, text, galaxy, aurora, terrain, rays, lasers, neon, space, mandala, VU meters, VHS, bars, mirror, circle, blob, hills, oscilloscope, line, equalizer, pulse, spectrogram, ring, sparks, retro, tunnel, dots, waves, vinyl and ridges. Each tile shows a small sample, and the large window redraws in the chosen style straight away."
   - question: "Can I add album art or my own photo?"
     answer: "Yes. Press the square next to “Cover” or drop an image onto the tool — JPG, PNG and WebP work. The photo becomes a blurred background that pulses with the bass, and in styles with a circle in the middle — circle, ring, vinyl, pulse, blob, sparks, mandala, space — it also sits in the centre as a cover. The cross in the corner of the square removes the image."
   - question: "Can I add my own logo?"

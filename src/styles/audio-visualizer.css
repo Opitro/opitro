@@ -1,4 +1,4 @@
-.viz{position:relative;font-size:15px;line-height:1.45;color:var(--text)}
+.viz{position:relative;font-size:15px;line-height:1.45;color:var(--text);padding:16px;background:#121318;border:1px solid rgba(255,255,255,.13);border-radius:18px}
 .viz *,.viz *::before,.viz *::after{box-sizing:border-box}
 .viz [hidden]{display:none !important}
 .viz svg{display:block;flex:none}
@@ -142,6 +142,7 @@
   .viz .zv-menu,.viz .zv-dl-img .zv-menu{left:0;right:0;min-width:0}
 }
 @media (max-width:480px){
+  .viz{padding:12px;border-radius:16px}
   .viz .zv-head{height:112px}
   .viz .zv-drop{gap:8px 10px;padding:10px 12px;align-content:center}
   .viz .zv-drop-ico,.viz .zv-drop-text{display:none}
