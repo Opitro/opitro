@@ -20,7 +20,7 @@ faq:
   - question: "¿En qué formato se descarga el vídeo?"
     answer: "MP4 con sonido, 30 fotogramas por segundo, 720p o 1080p. Si el navegador no puede crear vídeo rápido, lo graba en tiempo real mientras suena el tema — en ese caso el archivo puede salir en WebM."
   - question: "¿Qué archivos de audio sirven y de qué duración?"
-    answer: "MP3, WAV, OGG, M4A, AAC, FLAC y OPUS. Se abre un tema de hasta 15 minutos, y el vídeo se crea con temas de hasta 10 minutos. La cruz junto al nombre quita el archivo, y «Deshacer» lo devuelve al momento."
+    answer: "MP3, WAV, OGG, M4A, AAC, FLAC y OPUS. Se abre un tema de hasta 15 minutos, y el vídeo se crea con temas de hasta 10 minutos. La cruz en la esquina superior derecha de la ventana quita el archivo, y la flecha que aparece en su lugar lo devuelve al momento."
   - question: "¿Puedo visualizar el sonido del micrófono?"
     answer: "Sí. Pulsa «Micrófono» — la imagen se mueve con tu voz o tu instrumento mientras se graba el sonido. «Parar» convierte la grabación en un tema normal, y con ella se hace el vídeo igual que con un archivo. La grabación dura hasta 10 minutos."
   - question: "¿Puedo descargar solo la imagen de la onda?"
