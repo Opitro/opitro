@@ -19,7 +19,7 @@ const WORDS = {
     done: 'Готово', remove: 'Убрать этот файл', undo: 'Отменить', mb: 'МБ',
     realtime: 'Браузер не умеет быстро собирать видео, поэтому запись идёт в реальном времени.',
     dropBig: 'Выберите аудиофайл', dropRest: 'или перетащите его сюда', or: 'или',
-    color: 'Цвет', cover: 'Обложка', coverAdd: 'Добавить обложку — встанет фоном и в центр', coverRemove: 'Убрать обложку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
+    color: 'Цвет', custom: 'Свой цвет', hue: 'Цвет', intensity: 'Яркость', cover: 'Обложка', artist: 'Исполнитель', title: 'Название', coverAdd: 'Добавить обложку — встанет фоном и в центр', coverRemove: 'Убрать обложку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
     frame: 'Текущий кадр', wave: 'Волна', spectroImg: 'Спектрограмма',
     styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрелки', vhs: 'VHS', bars: 'Столбики', mirror: 'Зеркало', circle: 'Круг', blob: 'Капля', hills: 'Горы', scope: 'Осциллограф', line: 'Линия', led: 'Эквалайзер', pulse: 'Пульс', spectro: 'Спектрограмма', ring: 'Кольцо', sparks: 'Искры', retro: 'Ретро', tunnel: 'Тоннель', dots: 'Точки', waves: 'Волны', vinyl: 'Пластинка', ridges: 'Хребты' },
     palettes: { night: 'Ночь', sunset: 'Закат', mint: 'Мята', fire: 'Огонь', mono: 'Белый' },
@@ -39,7 +39,7 @@ const WORDS = {
     done: 'Готово', remove: 'Прибрати цей файл', undo: 'Скасувати', mb: 'МБ',
     realtime: 'Браузер не вміє швидко збирати відео, тому запис іде в реальному часі.',
     dropBig: 'Виберіть аудіофайл', dropRest: 'або перетягніть його сюди', or: 'або',
-    color: 'Колір', cover: 'Обкладинка', coverAdd: 'Додати обкладинку — стане фоном і в центр', coverRemove: 'Прибрати обкладинку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
+    color: 'Колір', custom: 'Свій колір', hue: 'Колір', intensity: 'Яскравість', cover: 'Обкладинка', artist: 'Виконавець', title: 'Назва', coverAdd: 'Додати обкладинку — стане фоном і в центр', coverRemove: 'Прибрати обкладинку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
     frame: 'Поточний кадр', wave: 'Хвиля', spectroImg: 'Спектрограма',
     styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрілки', vhs: 'VHS', bars: 'Стовпчики', mirror: 'Дзеркало', circle: 'Коло', blob: 'Крапля', hills: 'Гори', scope: 'Осцилограф', line: 'Лінія', led: 'Еквалайзер', pulse: 'Пульс', spectro: 'Спектрограма', ring: 'Кільце', sparks: 'Іскри', retro: 'Ретро', tunnel: 'Тунель', dots: 'Крапки', waves: 'Хвилі', vinyl: 'Платівка', ridges: 'Хребти' },
     palettes: { night: 'Ніч', sunset: 'Захід', mint: "М'ята", fire: 'Вогонь', mono: 'Білий' },
@@ -59,7 +59,7 @@ const WORDS = {
     done: 'Done', remove: 'Remove this file', undo: 'Undo', mb: 'MB',
     realtime: 'This browser cannot build video quickly, so it records in real time.',
     dropBig: 'Choose an audio file', dropRest: 'or drop it here', or: 'or',
-    color: 'Colour', cover: 'Cover', coverAdd: 'Add a cover — it goes into the background and the centre', coverRemove: 'Remove cover', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
+    color: 'Colour', custom: 'Your colour', hue: 'Colour', intensity: 'Brightness', cover: 'Cover', artist: 'Artist', title: 'Title', coverAdd: 'Add a cover — it goes into the background and the centre', coverRemove: 'Remove cover', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
     frame: 'Current frame', wave: 'Waveform', spectroImg: 'Spectrogram',
     styles: { sphere: 'Sphere', neon: 'Neon', space: 'Space', mandala: 'Mandala', vu: 'VU meters', vhs: 'VHS', bars: 'Bars', mirror: 'Mirror', circle: 'Circle', blob: 'Blob', hills: 'Hills', scope: 'Oscilloscope', line: 'Line', led: 'Equalizer', pulse: 'Pulse', spectro: 'Spectrogram', ring: 'Ring', sparks: 'Sparks', retro: 'Retro', tunnel: 'Tunnel', dots: 'Dots', waves: 'Waves', vinyl: 'Vinyl', ridges: 'Ridges' },
     palettes: { night: 'Night', sunset: 'Sunset', mint: 'Mint', fire: 'Fire', mono: 'White' },
@@ -79,7 +79,7 @@ const WORDS = {
     done: 'Listo', remove: 'Quitar este archivo', undo: 'Deshacer', mb: 'MB',
     realtime: 'Este navegador no crea vídeo rápido, así que graba en tiempo real.',
     dropBig: 'Elige un archivo de audio', dropRest: 'o arrástralo aquí', or: 'o',
-    color: 'Color', cover: 'Portada', coverAdd: 'Añadir portada — va al fondo y al centro', coverRemove: 'Quitar portada', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
+    color: 'Color', custom: 'Tu color', hue: 'Color', intensity: 'Brillo', cover: 'Portada', artist: 'Artista', title: 'Título', coverAdd: 'Añadir portada — va al fondo y al centro', coverRemove: 'Quitar portada', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
     frame: 'Fotograma actual', wave: 'Onda', spectroImg: 'Espectrograma',
     styles: { sphere: 'Esfera', neon: 'Neón', space: 'Espacio', mandala: 'Mandala', vu: 'Vúmetros', vhs: 'VHS', bars: 'Barras', mirror: 'Espejo', circle: 'Círculo', blob: 'Gota', hills: 'Colinas', scope: 'Osciloscopio', line: 'Línea', led: 'Ecualizador', pulse: 'Pulso', spectro: 'Espectrograma', ring: 'Anillo', sparks: 'Chispas', retro: 'Retro', tunnel: 'Túnel', dots: 'Puntos', waves: 'Ondas', vinyl: 'Vinilo', ridges: 'Crestas' },
     palettes: { night: 'Noche', sunset: 'Atardecer', mint: 'Menta', fire: 'Fuego', mono: 'Blanco' },
@@ -144,6 +144,12 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
                 aria-pressed={key === 'night' ? 'true' : 'false'}
                 style={`background:linear-gradient(135deg,${a},${b})`}></button>
       ))}
+      <button type="button" class="zv-custom" data-palette="custom" aria-label={w.custom} title={w.custom}
+              aria-pressed="false" aria-expanded="false"></button>
+    </div>
+    <div class="zv-pop" hidden>
+      <label class="zv-pop-row"><span>{w.hue}</span><input type="color" class="zv-color-input" value="#a855f7" /></label>
+      <label class="zv-pop-row"><span>{w.intensity}</span><input type="range" class="zv-intensity" min="20" max="100" step="1" value="100" /><em class="zv-int-val">100%</em></label>
     </div>
     <div class="zv-art-group">
     <span class="zv-label">{w.cover}</span>
@@ -156,6 +162,11 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
     </div>
     </div>
     <input type="file" class="zv-art-input" accept="image/*" hidden />
+  </div>
+
+  <div class="zv-captions">
+    <input type="text" class="zv-artist" placeholder={w.artist} aria-label={w.artist} maxlength="80" autocomplete="off" />
+    <input type="text" class="zv-title" placeholder={w.title} aria-label={w.title} maxlength="120" autocomplete="off" />
   </div>
 
   <div class="zv-styles" role="group" aria-label={w.styleGroup}>

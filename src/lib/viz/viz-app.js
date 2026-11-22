@@ -1,4 +1,5 @@
-import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt } from './viz-draw.js';
+import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setIntensity } from './viz-draw.js';
+import { readTags } from './viz-tags.js';
 import { openAudioSession, openRecordSession, startKeeper } from '../web-audio-engine.js';
 
 const STORE = 'opitro:viz';
@@ -48,7 +49,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -60,7 +61,14 @@ class Visualizer {
     };
     const prefs = loadPrefs();
     this.style = STYLES.some((s) => s.id === prefs.style) ? prefs.style : 'sphere';
+    this.customColor = /^#[0-9a-f]{6}$/i.test(prefs.custom || '') ? prefs.custom : '#a855f7';
+    this.intensityValue = Number(prefs.intensity) >= 20 && Number(prefs.intensity) <= 100 ? Number(prefs.intensity) : 100;
+    setCustom(this.customColor);
     this.palette = PALETTES[prefs.palette] ? prefs.palette : 'night';
+    this.el.colorInput.value = this.customColor;
+    this.el.intensity.value = String(this.intensityValue);
+    this.el.intVal.textContent = this.intensityValue + '%';
+    setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
     this.format = RATIO[prefs.format] ? prefs.format : '16x9';
     this.ctx2d = this.el.canvas.getContext('2d', { alpha: false });
     this.display = emptyFrame();
@@ -107,6 +115,15 @@ class Visualizer {
       if (!f) return;
       if (f.type && f.type.startsWith('image/')) this.loadArt(f); else this.load(f);
     });
+    let redraw = 0;
+    const onCaption = () => {
+      setCaption(el.artist.value, el.title.value);
+      if (this.looping) return;
+      cancelAnimationFrame(redraw);
+      redraw = requestAnimationFrame(() => this.drawStill());
+    };
+    el.artist.addEventListener('input', onCaption);
+    el.title.addEventListener('input', onCaption);
     el.art.addEventListener('click', () => el.artInput.click());
     el.artInput.addEventListener('change', () => {
       if (el.artInput.files[0]) this.loadArt(el.artInput.files[0]);
@@ -117,8 +134,39 @@ class Visualizer {
     el.seek.addEventListener('input', () => this.seekTo(Number(el.seek.value) / 1000 * this.duration));
     el.palettes.forEach((b) => b.addEventListener('click', () => {
       this.palette = b.dataset.palette;
+      if (b !== el.custom) this.togglePop(false);
       this.changed(true);
     }));
+    el.custom.addEventListener('click', () => this.togglePop(el.pop.hidden));
+    let tint = 0;
+    const repaint = (full) => {
+      cancelAnimationFrame(tint);
+      tint = requestAnimationFrame(() => {
+        if (full) this.previews();
+        if (!this.looping) this.drawStill();
+        if (this.mode === 'file') this.drawSeek();
+      });
+    };
+    el.colorInput.addEventListener('input', () => {
+      this.customColor = el.colorInput.value;
+      setCustom(this.customColor);
+      this.palette = 'custom';
+      this.renderControls();
+      repaint(true);
+    });
+    el.colorInput.addEventListener('change', () => this.changed(true));
+    el.intensity.addEventListener('input', () => {
+      this.intensityValue = Number(el.intensity.value);
+      el.intVal.textContent = this.intensityValue + '%';
+      this.palette = 'custom';
+      setIntensity(this.intensityValue / 100);
+      this.renderControls();
+      repaint(false);
+    });
+    el.intensity.addEventListener('change', () => this.changed(true));
+    document.addEventListener('click', (e) => {
+      if (!el.pop.hidden && !e.target.closest('.zv-pop, .zv-custom')) this.togglePop(false);
+    });
     el.styles.forEach((b) => b.addEventListener('click', () => {
       this.style = b.dataset.style;
       this.state = {};
@@ -151,7 +199,7 @@ class Visualizer {
     }));
     el.cancel.addEventListener('click', () => this.cancelVideo());
     document.addEventListener('click', (e) => { if (!e.target.closest('.zv-dl')) this.closeMenus(); });
-    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') this.closeMenus(); });
+    document.addEventListener('keydown', (e) => { if (e.key === 'Escape') { this.closeMenus(); this.togglePop(false); } });
     let pending = 0;
     window.addEventListener('resize', () => {
       cancelAnimationFrame(pending);
@@ -171,8 +219,14 @@ class Visualizer {
     this.el.status.textContent = text || '';
   }
 
+  togglePop(open) {
+    this.el.pop.hidden = !open;
+    this.el.custom.setAttribute('aria-expanded', String(open));
+  }
+
   changed(repaintPreviews) {
-    savePrefs({ style: this.style, palette: this.palette, format: this.format });
+    setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue });
     this.renderControls();
     if (repaintPreviews) this.previews();
     if (!this.looping) this.drawStill();
@@ -273,7 +327,7 @@ class Visualizer {
     this.el.styles.forEach((b) => {
       const c = b.querySelector('canvas'), ctx = c.getContext('2d', { alpha: false }), st = {};
       const n = b.dataset.style === 'spectro' ? 140 : 46;
-      for (let i = 0; i < n; i++) drawFrame(ctx, c.width, c.height, demoFrame(i), b.dataset.style, this.palette, st, 1 / 15);
+      for (let i = 0; i < n; i++) drawFrame(ctx, c.width, c.height, demoFrame(i), b.dataset.style, this.palette, st, 1 / 15, false);
     });
   }
 
@@ -319,13 +373,17 @@ class Visualizer {
     this.pause();
     this.status(this.t.decoding);
     try {
-      await this.open(await file.arrayBuffer(), file.name);
+      await this.open(await file.arrayBuffer(), file.name, true);
     } catch (e) {
       this.status(this.t.badFile);
     }
   }
 
-  async open(data, name) {
+  async open(data, name, fromFile) {
+    let tags = null;
+    if (fromFile) {
+      try { tags = readTags(data); } catch (e) { tags = {}; }
+    }
     const ac = this.audio();
     const buffer = await new Promise((ok, fail) => {
       const r = ac.decodeAudioData(data, ok, fail);
@@ -340,6 +398,11 @@ class Visualizer {
     this.duration = buffer.duration;
     this.analyser = new BufferAnalyser(buffer);
     this.fileName = name;
+    if (tags) {
+      this.el.title.value = tags.title || name.replace(/\.[^.]+$/, '').replace(/[_]+/g, ' ').trim();
+      if (tags.artist) this.el.artist.value = tags.artist;
+      setCaption(this.el.artist.value, this.el.title.value);
+    }
     this.mode = 'file';
     this.offset = 0;
     this.wavePeaks = null;

@@ -192,6 +192,43 @@ export const PALETTES = {
   mono: { a: '#ffffff', b: '#94a3b8', bg: '#0d0f12' },
 };
 
+function hexToHsl(hex) {
+  const [r, g, b] = [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16) / 255);
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), l = (max + min) / 2;
+  let h = 0, s = 0;
+  if (max !== min) {
+    const d = max - min;
+    s = l > 0.5 ? d / (2 - max - min) : d / (max + min);
+    h = max === r ? (g - b) / d + (g < b ? 6 : 0) : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+    h *= 60;
+  }
+  return [h, s, l];
+}
+
+function hslToHex(h, s, l) {
+  h = ((h % 360) + 360) % 360;
+  const c = (1 - Math.abs(2 * l - 1)) * s, x = c * (1 - Math.abs((h / 60) % 2 - 1)), m = l - c / 2;
+  const [r, g, b] = h < 60 ? [c, x, 0] : h < 120 ? [x, c, 0] : h < 180 ? [0, c, x] : h < 240 ? [0, x, c] : h < 300 ? [x, 0, c] : [c, 0, x];
+  return '#' + [r, g, b].map((v) => Math.round((v + m) * 255).toString(16).padStart(2, '0')).join('');
+}
+
+export function setCustom(hex) {
+  if (!/^#[0-9a-f]{6}$/i.test(hex || '')) hex = '#a855f7';
+  const [h, s, l] = hexToHsl(hex.toLowerCase());
+  PALETTES.custom = {
+    a: hex.toLowerCase(),
+    b: hslToHex(h + 38, Math.min(1, s * 0.95 + 0.05), Math.min(0.82, Math.max(0.45, l + 0.08))),
+    bg: hslToHex(h, Math.min(0.5, s * 0.6), 0.065),
+  };
+}
+
+let visAlpha = 1;
+const layers = new Map();
+
+export function setIntensity(v) {
+  visAlpha = Math.max(0.1, Math.min(1, v));
+}
+
 const rgb = (hex) => [1, 3, 5].map((i) => parseInt(hex.slice(i, i + 2), 16));
 
 function grad(ctx, x0, y0, x1, y1, p) {
@@ -203,6 +240,46 @@ function grad(ctx, x0, y0, x1, y1, p) {
 
 let art = null;
 const artCache = new Map();
+
+let caption = { artist: '', title: '' };
+
+export function setCaption(artist, title) {
+  caption = { artist: (artist || '').trim(), title: (title || '').trim() };
+}
+
+function fitText(ctx, text, max) {
+  if (ctx.measureText(text).width <= max) return text;
+  let t = text;
+  while (t.length > 1 && ctx.measureText(t + '…').width > max) t = t.slice(0, -1);
+  return t + '…';
+}
+
+function drawCaption(ctx, w, h) {
+  const { artist, title } = caption;
+  if (!artist && !title) return;
+  const m = Math.min(w, h), tall = h > w * 1.2, a = Math.round(m * 0.066), t = Math.round(m * 0.047);
+  const x = tall ? w / 2 : w * 0.05, max = tall ? w * 0.88 : w * 0.6;
+  let y = tall ? h * 0.82 : h * 0.93;
+  const lines = [];
+  if (title) lines.unshift([title, `400 ${t}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, t]);
+  if (artist) lines.unshift([artist, `700 ${a}px system-ui, -apple-system, "Segoe UI", Roboto, sans-serif`, a]);
+  ctx.save();
+  ctx.textAlign = tall ? 'center' : 'left';
+  ctx.textBaseline = 'alphabetic';
+  ctx.lineJoin = 'round';
+  for (let i = lines.length - 1; i >= 0; i--) {
+    const [text, font, size] = lines[i];
+    ctx.font = font;
+    const s = fitText(ctx, text, max);
+    ctx.strokeStyle = 'rgba(0,0,0,0.6)';
+    ctx.lineWidth = Math.max(2, size * 0.16);
+    ctx.strokeText(s, x, y);
+    ctx.fillStyle = '#ffffff';
+    ctx.fillText(s, x, y);
+    y -= size * 1.25;
+  }
+  ctx.restore();
+}
 
 export function setArt(img) {
   art = img;
@@ -1062,19 +1139,39 @@ export const STYLES = [
   { id: 'vhs', draw: drawVhs },
 ];
 
-export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt) {
+export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true) {
   const p = PALETTES[paletteId] || PALETTES.night;
   const style = STYLES.find((s) => s.id === styleId) || STYLES[0];
   if (style.id === 'ridges') {
     ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
   } else if (style.id !== 'spectro') background(ctx, w, h, f, p);
-  style.draw(ctx, w, h, f, p, st, dt);
+  else if (visAlpha < 0.999) {
+    ctx.fillStyle = p.bg;
+    ctx.fillRect(0, 0, w, h);
+  }
+  if (visAlpha < 0.999) {
+    const key = w + 'x' + h;
+    let layer = layers.get(key);
+    if (!layer) {
+      if (layers.size > 6) layers.clear();
+      layer = makeCanvas(w, h);
+      layers.set(key, layer);
+    }
+    const lx = layer.getContext('2d');
+    lx.clearRect(0, 0, w, h);
+    style.draw(lx, w, h, f, p, st, dt);
+    ctx.save();
+    ctx.globalAlpha = visAlpha;
+    ctx.drawImage(layer, 0, 0);
+    ctx.restore();
+  } else style.draw(ctx, w, h, f, p, st, dt);
   const hole = art && COVER[style.id];
   if (hole) {
     const m = Math.min(w, h), r = hole(f, m);
     drawCoverArt(ctx, w / 2, h / 2, r, style.id === 'vinyl' ? st.rot || 0 : 0, p, m);
   }
+  if (text) drawCaption(ctx, w, h);
 }
 
 const COVER = {
