@@ -769,6 +769,227 @@ function drawRidges(ctx, w, h, f, p, st, dt) {
   }
 }
 
+function drawSphere(ctx, w, h, f, p, st, dt) {
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h), n = 520;
+  if (!st.pts) {
+    st.pts = [];
+    const gold = Math.PI * (3 - Math.sqrt(5));
+    for (let i = 0; i < n; i++) {
+      const y = 1 - (i + 0.5) / n * 2, r = Math.sqrt(1 - y * y), a = i * gold;
+      st.pts.push([Math.cos(a) * r, y, Math.sin(a) * r]);
+    }
+  }
+  st.ry = (st.ry || 0) + dt * (0.25 + f.level * 0.9);
+  const tilt = 0.35, cs = Math.cos(st.ry), sn = Math.sin(st.ry), ct = Math.cos(tilt), stl = Math.sin(tilt);
+  const R = m * 0.27 * (1 + f.bass * 0.12);
+  ctx.globalCompositeOperation = 'lighter';
+  for (const [x0, y0, z0] of st.pts) {
+    const k = Math.min(BANDS - 1, Math.floor((y0 + 1) / 2 * BANDS));
+    const push = 1 + f.bands[k] * 0.38;
+    let x = x0 * cs - z0 * sn, z = x0 * sn + z0 * cs, y = y0;
+    const y2 = y * ct - z * stl, z2 = y * stl + z * ct;
+    const depth = (z2 + 1) / 2, persp = 1 / (1.6 - z2 * 0.45);
+    const px = cx + x * R * push * persp * 1.6, py = cy + y2 * R * push * persp * 1.6;
+    ctx.fillStyle = mix(p, (y0 + 1) / 2, 0.15 + depth * 0.85);
+    ctx.beginPath();
+    ctx.arc(px, py, Math.max(0.8, m * 0.0045 * (0.5 + depth) * (0.8 + f.bands[k])), 0, Math.PI * 2);
+    ctx.fill();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawNeon(ctx, w, h, f, p) {
+  const n = w > h ? 48 : 28, v = resample(f.bands, n), pad = w * 0.07, base = h * 0.68, top = h * 0.1;
+  const step = (w - pad * 2) / n, bw = Math.max(2, step * 0.32);
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineCap = 'round';
+  for (let i = 0; i < n; i++) {
+    const x = pad + i * step + step / 2, bh = Math.max(bw, v[i] * (base - top)), col = mix(p, i / (n - 1), 1);
+    for (const [k, a] of [[4.5, 0.06], [2.4, 0.16], [1, 0.95]]) {
+      ctx.strokeStyle = col;
+      ctx.globalAlpha = a;
+      ctx.lineWidth = bw * k;
+      ctx.beginPath();
+      ctx.moveTo(x, base);
+      ctx.lineTo(x, base - bh);
+      ctx.stroke();
+    }
+    ctx.globalAlpha = 0.18;
+    ctx.lineWidth = bw;
+    ctx.beginPath();
+    ctx.moveTo(x, base + h * 0.03);
+    ctx.lineTo(x, base + h * 0.03 + bh * 0.35);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 0.9;
+  ctx.strokeStyle = 'rgba(255,255,255,0.85)';
+  ctx.lineWidth = Math.max(1, bw * 0.3);
+  for (let i = 0; i < n; i++) {
+    const x = pad + i * step + step / 2, bh = Math.max(bw, v[i] * (base - top));
+    ctx.beginPath();
+    ctx.moveTo(x, base);
+    ctx.lineTo(x, base - bh);
+    ctx.stroke();
+  }
+  ctx.globalAlpha = 1;
+  ctx.globalCompositeOperation = 'source-over';
+}
+
+function drawSpace(ctx, w, h, f, p, st, dt) {
+  const cx = w / 2, cy = h / 2, m = Math.max(w, h);
+  if (!st.stars) {
+    st.stars = [];
+    for (let i = 0; i < 420; i++) st.stars.push({ x: Math.random() * 2 - 1, y: Math.random() * 2 - 1, z: Math.random(), t: Math.random() });
+  }
+  const speed = dt * (0.12 + f.bass * 1.5 + f.level * 0.35);
+  ctx.lineCap = 'round';
+  for (const s of st.stars) {
+    const z0 = s.z;
+    s.z -= speed;
+    if (s.z <= 0.02) {
+      s.x = Math.random() * 2 - 1;
+      s.y = Math.random() * 2 - 1;
+      s.z = 1;
+      s.t = Math.random();
+      continue;
+    }
+    const x1 = cx + s.x / z0 * m * 0.22, y1 = cy + s.y / z0 * m * 0.22;
+    const x2 = cx + s.x / s.z * m * 0.22, y2 = cy + s.y / s.z * m * 0.22;
+    const near = 1 - s.z;
+    ctx.strokeStyle = mix(p, s.t, Math.min(1, 0.2 + near * 1.1));
+    ctx.lineWidth = Math.max(0.8, near * m * 0.004);
+    ctx.beginPath();
+    ctx.moveTo(x1, y1);
+    ctx.lineTo(x2, y2);
+    ctx.stroke();
+  }
+  const r = Math.min(w, h) * (0.03 + f.bass * 0.05), [cr, cg, cb] = rgb(p.a);
+  const glow = ctx.createRadialGradient(cx, cy, 0, cx, cy, r * 4);
+  glow.addColorStop(0, `rgba(${cr},${cg},${cb},${0.35 + f.level * 0.4})`);
+  glow.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+  ctx.fillStyle = glow;
+  ctx.fillRect(cx - r * 4, cy - r * 4, r * 8, r * 8);
+}
+
+function drawMandala(ctx, w, h, f, p, st, dt) {
+  const cx = w / 2, cy = h / 2, m = Math.min(w, h), seg = 8, per = 24, v = resample(f.bands, per);
+  st.rot = (st.rot || 0) + dt * (0.08 + f.level * 0.25);
+  const layers = [[0.36, 0.2, 1, 0.22], [0.26, 0.16, -1.4, 0.45], [0.15, 0.1, 2, 0.9]];
+  layers.forEach(([r0, amp, spin, alpha], li) => {
+    const pts = [];
+    for (let s = 0; s < seg; s++) {
+      for (let i = 0; i < per * 2; i++) {
+        const k = i < per ? i : per * 2 - 1 - i, a = (s + i / (per * 2)) / seg * Math.PI * 2 + st.rot * spin;
+        const r = m * (r0 + v[(k + li * 5) % per] * amp + f.bass * 0.02);
+        pts.push([cx + Math.cos(a) * r, cy + Math.sin(a) * r]);
+      }
+    }
+    ctx.fillStyle = mix(p, li / 2, alpha * 0.25);
+    ctx.strokeStyle = mix(p, li / 2, alpha);
+    ctx.lineWidth = Math.max(1, m * 0.004);
+    ctx.lineJoin = 'round';
+    ctx.beginPath();
+    smoothPath(ctx, pts, true);
+    ctx.fill();
+    ctx.stroke();
+  });
+  ctx.fillStyle = grad(ctx, cx - m * 0.05, cy - m * 0.05, cx + m * 0.05, cy + m * 0.05, p);
+  ctx.beginPath();
+  ctx.arc(cx, cy, m * (0.035 + f.bass * 0.02), 0, Math.PI * 2);
+  ctx.fill();
+}
+
+function drawVu(ctx, w, h, f, p, st, dt) {
+  let mid = 0, hi = 0;
+  for (let i = 10; i < 40; i++) mid += f.bands[i];
+  for (let i = 40; i < BANDS; i++) hi += f.bands[i];
+  const targets = [Math.min(1, f.level * 1.15), Math.min(1, (mid / 30 * 0.6 + hi / 32 * 0.6))];
+  st.needles = st.needles || [0, 0];
+  const wide = w > h, mw = wide ? w * 0.42 : w * 0.82, mh = mw * 0.62;
+  const spots = wide ? [[w * 0.27, h / 2], [w * 0.73, h / 2]] : [[w / 2, h * 0.3], [w / 2, h * 0.7]];
+  spots.forEach(([x, y], i) => {
+    st.needles[i] += (targets[i] - st.needles[i]) * Math.min(1, dt * 9);
+    const left = x - mw / 2, topY = y - mh / 2, pivotY = topY + mh * 0.92, R = mh * 0.78;
+    ctx.fillStyle = 'rgba(255,255,255,0.04)';
+    ctx.strokeStyle = 'rgba(255,255,255,0.18)';
+    ctx.lineWidth = Math.max(1, mw * 0.006);
+    ctx.beginPath();
+    ctx.roundRect(left, topY, mw, mh, mw * 0.05);
+    ctx.fill();
+    ctx.stroke();
+    const a0 = -Math.PI * 0.78, a1 = -Math.PI * 0.22;
+    for (let k = 0; k <= 20; k++) {
+      const t = k / 20, a = a0 + (a1 - a0) * t, long = k % 5 === 0;
+      ctx.strokeStyle = t > 0.75 ? p.b : 'rgba(240,240,242,0.75)';
+      ctx.lineWidth = Math.max(1, mw * (long ? 0.006 : 0.003));
+      ctx.beginPath();
+      ctx.moveTo(x + Math.cos(a) * R * (long ? 0.86 : 0.91), pivotY + Math.sin(a) * R * (long ? 0.86 : 0.91));
+      ctx.lineTo(x + Math.cos(a) * R, pivotY + Math.sin(a) * R);
+      ctx.stroke();
+    }
+    ctx.strokeStyle = p.b;
+    ctx.lineWidth = Math.max(2, mw * 0.012);
+    ctx.beginPath();
+    ctx.arc(x, pivotY, R * 1.03, a0 + (a1 - a0) * 0.75, a1);
+    ctx.stroke();
+    ctx.fillStyle = 'rgba(240,240,242,0.55)';
+    ctx.font = `600 ${Math.round(mh * 0.1)}px sans-serif`;
+    ctx.textAlign = 'center';
+    ctx.fillText('VU', x, topY + mh * 0.62);
+    const a = a0 + (a1 - a0) * st.needles[i];
+    ctx.strokeStyle = p.a;
+    ctx.lineWidth = Math.max(1.5, mw * 0.008);
+    ctx.lineCap = 'round';
+    ctx.beginPath();
+    ctx.moveTo(x, pivotY);
+    ctx.lineTo(x + Math.cos(a) * R * 1.02, pivotY + Math.sin(a) * R * 1.02);
+    ctx.stroke();
+    ctx.fillStyle = '#f0f0f2';
+    ctx.beginPath();
+    ctx.arc(x, pivotY, mw * 0.022, 0, Math.PI * 2);
+    ctx.fill();
+  });
+  ctx.textAlign = 'start';
+}
+
+function drawVhs(ctx, w, h, f, p, st, dt) {
+  const n = 64, v = resample(f.bands, n / 2), mid = h * 0.55, amp = h * 0.3, m = Math.min(w, h);
+  const shift = m * 0.006 * (1 + f.bass * 3);
+  const pts = [];
+  for (let i = 0; i <= n; i++) {
+    const k = Math.min(n / 2 - 1, Math.abs(i - n / 2));
+    pts.push([w * 0.08 + i / n * w * 0.84, mid - v[n / 2 - 1 - k] * amp]);
+  }
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.lineJoin = 'round';
+  ctx.lineWidth = Math.max(2, m * 0.007);
+  for (const [dx, col] of [[-shift, 'rgba(255,40,80,0.8)'], [shift, 'rgba(40,220,255,0.8)'], [0, mix(p, 0.5, 0.9)]]) {
+    ctx.strokeStyle = col;
+    ctx.beginPath();
+    smoothPath(ctx, pts.map(([x, y]) => [x + dx, y]), false);
+    ctx.stroke();
+    ctx.beginPath();
+    smoothPath(ctx, pts.map(([x, y]) => [x + dx, mid + (mid - y) * 0.45]), false);
+    ctx.stroke();
+  }
+  ctx.globalCompositeOperation = 'source-over';
+  st.band = ((st.band || 0) + dt * 0.18) % 1.2;
+  const by = (st.band - 0.1) * h;
+  ctx.fillStyle = 'rgba(255,255,255,0.05)';
+  ctx.fillRect(0, by, w, h * 0.06);
+  ctx.fillStyle = 'rgba(0,0,0,0.28)';
+  const line = Math.max(2, Math.round(h / 180));
+  for (let y = 0; y < h; y += line * 2) ctx.fillRect(0, y, w, line);
+  const fs = Math.round(m * 0.05), t = Math.max(0, f.t || 0);
+  ctx.font = `700 ${fs}px monospace`;
+  ctx.fillStyle = 'rgba(240,240,242,0.85)';
+  ctx.fillText('PLAY ▶', w * 0.05, h * 0.06 + fs);
+  const tc = Math.floor(t / 60) + ':' + String(Math.floor(t % 60)).padStart(2, '0');
+  ctx.textAlign = 'right';
+  ctx.fillText(tc, w * 0.95, h * 0.94);
+  ctx.textAlign = 'start';
+}
+
 export const STYLES = [
   { id: 'bars', draw: drawBars },
   { id: 'mirror', draw: drawMirror },
@@ -788,6 +1009,12 @@ export const STYLES = [
   { id: 'waves', draw: drawWaves },
   { id: 'vinyl', draw: drawVinyl },
   { id: 'ridges', draw: drawRidges },
+  { id: 'sphere', draw: drawSphere },
+  { id: 'neon', draw: drawNeon },
+  { id: 'space', draw: drawSpace },
+  { id: 'mandala', draw: drawMandala },
+  { id: 'vu', draw: drawVu },
+  { id: 'vhs', draw: drawVhs },
 ];
 
 export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt) {

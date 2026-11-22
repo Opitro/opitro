@@ -5,7 +5,7 @@ const { locale = 'ru' } = Astro.props;
 
 const WORDS = {
   ru: {
-    play: 'Слушать', pause: 'Пауза', video: 'Скачать видео', image: 'Скачать картинку',
+    play: 'Слушать', pause: 'Пауза', video: 'Скачать видео', image: 'Скачать картинку', videoShort: 'Видео', imageShort: 'Картинка',
     making: 'Сборка видео…', recording: 'Запись видео…', decoding: 'Чтение файла…',
     badFile: 'Не удалось прочитать файл. Подойдут MP3, WAV, OGG, M4A, FLAC.',
     tooLong: 'Файл длиннее 15 минут. Выберите трек покороче.',
@@ -21,11 +21,11 @@ const WORDS = {
     dropBig: 'Выберите аудиофайл', dropRest: 'или перетащите его сюда', or: 'или',
     color: 'Цвет', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
     frame: 'Текущий кадр', wave: 'Волна', spectroImg: 'Спектрограмма',
-    styles: { bars: 'Столбики', mirror: 'Зеркало', circle: 'Круг', blob: 'Капля', hills: 'Горы', scope: 'Осциллограф', line: 'Линия', led: 'Эквалайзер', pulse: 'Пульс', spectro: 'Спектрограмма', ring: 'Кольцо', sparks: 'Искры', retro: 'Ретро', tunnel: 'Тоннель', dots: 'Точки', waves: 'Волны', vinyl: 'Пластинка', ridges: 'Хребты' },
+    styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрелки', vhs: 'VHS', bars: 'Столбики', mirror: 'Зеркало', circle: 'Круг', blob: 'Капля', hills: 'Горы', scope: 'Осциллограф', line: 'Линия', led: 'Эквалайзер', pulse: 'Пульс', spectro: 'Спектрограмма', ring: 'Кольцо', sparks: 'Искры', retro: 'Ретро', tunnel: 'Тоннель', dots: 'Точки', waves: 'Волны', vinyl: 'Пластинка', ridges: 'Хребты' },
     palettes: { night: 'Ночь', sunset: 'Закат', mint: 'Мята', fire: 'Огонь', mono: 'Белый' },
   },
   uk: {
-    play: 'Слухати', pause: 'Пауза', video: 'Завантажити відео', image: 'Завантажити картинку',
+    play: 'Слухати', pause: 'Пауза', video: 'Завантажити відео', image: 'Завантажити картинку', videoShort: 'Відео', imageShort: 'Картинка',
     making: 'Збирання відео…', recording: 'Запис відео…', decoding: 'Читання файлу…',
     badFile: 'Не вдалося прочитати файл. Підійдуть MP3, WAV, OGG, M4A, FLAC.',
     tooLong: 'Файл довший за 15 хвилин. Виберіть трек коротший.',
@@ -41,11 +41,11 @@ const WORDS = {
     dropBig: 'Виберіть аудіофайл', dropRest: 'або перетягніть його сюди', or: 'або',
     color: 'Колір', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
     frame: 'Поточний кадр', wave: 'Хвиля', spectroImg: 'Спектрограма',
-    styles: { bars: 'Стовпчики', mirror: 'Дзеркало', circle: 'Коло', blob: 'Крапля', hills: 'Гори', scope: 'Осцилограф', line: 'Лінія', led: 'Еквалайзер', pulse: 'Пульс', spectro: 'Спектрограма', ring: 'Кільце', sparks: 'Іскри', retro: 'Ретро', tunnel: 'Тунель', dots: 'Крапки', waves: 'Хвилі', vinyl: 'Платівка', ridges: 'Хребти' },
+    styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрілки', vhs: 'VHS', bars: 'Стовпчики', mirror: 'Дзеркало', circle: 'Коло', blob: 'Крапля', hills: 'Гори', scope: 'Осцилограф', line: 'Лінія', led: 'Еквалайзер', pulse: 'Пульс', spectro: 'Спектрограма', ring: 'Кільце', sparks: 'Іскри', retro: 'Ретро', tunnel: 'Тунель', dots: 'Крапки', waves: 'Хвилі', vinyl: 'Платівка', ridges: 'Хребти' },
     palettes: { night: 'Ніч', sunset: 'Захід', mint: "М'ята", fire: 'Вогонь', mono: 'Білий' },
   },
   en: {
-    play: 'Listen', pause: 'Pause', video: 'Download video', image: 'Download image',
+    play: 'Listen', pause: 'Pause', video: 'Download video', image: 'Download image', videoShort: 'Video', imageShort: 'Image',
     making: 'Building video…', recording: 'Recording video…', decoding: 'Reading file…',
     badFile: 'Could not read the file. MP3, WAV, OGG, M4A and FLAC work.',
     tooLong: 'The file is longer than 15 minutes. Pick a shorter track.',
@@ -61,11 +61,11 @@ const WORDS = {
     dropBig: 'Choose an audio file', dropRest: 'or drop it here', or: 'or',
     color: 'Colour', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
     frame: 'Current frame', wave: 'Waveform', spectroImg: 'Spectrogram',
-    styles: { bars: 'Bars', mirror: 'Mirror', circle: 'Circle', blob: 'Blob', hills: 'Hills', scope: 'Oscilloscope', line: 'Line', led: 'Equalizer', pulse: 'Pulse', spectro: 'Spectrogram', ring: 'Ring', sparks: 'Sparks', retro: 'Retro', tunnel: 'Tunnel', dots: 'Dots', waves: 'Waves', vinyl: 'Vinyl', ridges: 'Ridges' },
+    styles: { sphere: 'Sphere', neon: 'Neon', space: 'Space', mandala: 'Mandala', vu: 'VU meters', vhs: 'VHS', bars: 'Bars', mirror: 'Mirror', circle: 'Circle', blob: 'Blob', hills: 'Hills', scope: 'Oscilloscope', line: 'Line', led: 'Equalizer', pulse: 'Pulse', spectro: 'Spectrogram', ring: 'Ring', sparks: 'Sparks', retro: 'Retro', tunnel: 'Tunnel', dots: 'Dots', waves: 'Waves', vinyl: 'Vinyl', ridges: 'Ridges' },
     palettes: { night: 'Night', sunset: 'Sunset', mint: 'Mint', fire: 'Fire', mono: 'White' },
   },
   es: {
-    play: 'Escuchar', pause: 'Pausa', video: 'Descargar vídeo', image: 'Descargar imagen',
+    play: 'Escuchar', pause: 'Pausa', video: 'Descargar vídeo', image: 'Descargar imagen', videoShort: 'Vídeo', imageShort: 'Imagen',
     making: 'Creando vídeo…', recording: 'Grabando vídeo…', decoding: 'Leyendo archivo…',
     badFile: 'No se pudo leer el archivo. Sirven MP3, WAV, OGG, M4A y FLAC.',
     tooLong: 'El archivo dura más de 15 minutos. Elige una pista más corta.',
@@ -81,7 +81,7 @@ const WORDS = {
     dropBig: 'Elige un archivo de audio', dropRest: 'o arrástralo aquí', or: 'o',
     color: 'Color', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
     frame: 'Fotograma actual', wave: 'Onda', spectroImg: 'Espectrograma',
-    styles: { bars: 'Barras', mirror: 'Espejo', circle: 'Círculo', blob: 'Gota', hills: 'Colinas', scope: 'Osciloscopio', line: 'Línea', led: 'Ecualizador', pulse: 'Pulso', spectro: 'Espectrograma', ring: 'Anillo', sparks: 'Chispas', retro: 'Retro', tunnel: 'Túnel', dots: 'Puntos', waves: 'Ondas', vinyl: 'Vinilo', ridges: 'Crestas' },
+    styles: { sphere: 'Esfera', neon: 'Neón', space: 'Espacio', mandala: 'Mandala', vu: 'Vúmetros', vhs: 'VHS', bars: 'Barras', mirror: 'Espejo', circle: 'Círculo', blob: 'Gota', hills: 'Colinas', scope: 'Osciloscopio', line: 'Línea', led: 'Ecualizador', pulse: 'Pulso', spectro: 'Espectrograma', ring: 'Anillo', sparks: 'Chispas', retro: 'Retro', tunnel: 'Túnel', dots: 'Puntos', waves: 'Ondas', vinyl: 'Vinilo', ridges: 'Crestas' },
     palettes: { night: 'Noche', sunset: 'Atardecer', mint: 'Menta', fire: 'Fuego', mono: 'Blanco' },
   },
 };
@@ -147,7 +147,7 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
 
   <div class="zv-styles" role="group" aria-label={w.styleGroup}>
     {Object.entries(styles).map(([key, label]) => (
-      <button type="button" data-style={key} aria-pressed={key === 'bars' ? 'true' : 'false'}>
+      <button type="button" data-style={key} aria-pressed={key === 'sphere' ? 'true' : 'false'}>
         <canvas width="192" height="108"></canvas><span>{label}</span>
       </button>
     ))}
@@ -165,17 +165,17 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
   <div class="zv-row zv-actions">
     <div class="zv-dl">
       <button type="button" class="zv-btn zv-video" aria-haspopup="menu" aria-expanded="false" disabled>
-        <Fragment set:html={ICON_DL} /><span class="zv-video-label">{w.video}</span><Fragment set:html={ICON_CARET} />
+        <Fragment set:html={ICON_DL} /><span class="zv-video-label"><span class="zv-long">{w.video}</span><span class="zv-short">{w.videoShort}</span></span><Fragment set:html={ICON_CARET} />
       </button>
       <div class="zv-menu" role="menu" hidden>
         <button type="button" role="menuitem" data-quality="720"><span>720p</span><span class="zv-size" data-q="720"></span></button>
         <button type="button" role="menuitem" data-quality="1080"><span>1080p</span><span class="zv-size" data-q="1080"></span></button>
       </div>
     </div>
-    <button type="button" class="zv-btn zv-cancel" hidden>{w.cancel}</button>
+    <button type="button" class="zv-btn zv-cancel" aria-label={w.cancel} title={w.cancel} hidden><Fragment set:html={ICON_CLOSE} /><span class="zv-long">{w.cancel}</span></button>
     <div class="zv-dl zv-dl-img">
       <button type="button" class="zv-btn zv-image" aria-haspopup="menu" aria-expanded="false" disabled>
-        <Fragment set:html={ICON_DL} /><span>{w.image}</span><Fragment set:html={ICON_CARET} />
+        <Fragment set:html={ICON_DL} /><span class="zv-long">{w.image}</span><span class="zv-short">{w.imageShort}</span><Fragment set:html={ICON_CARET} />
       </button>
       <div class="zv-menu" role="menu" hidden>
         <button type="button" role="menuitem" data-image="frame-png"><span>{w.frame}</span><span class="zv-size">PNG</span></button>

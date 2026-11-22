@@ -7,12 +7,12 @@ title: Audio Visualizer Online, Free — Turn Music Into Video
 h1: Audio Visualizer
 navName: "Audio Visualiser"
 summary: "Waveform and spectrum — see the sound"
-description: "Turn a track into a video with a moving waveform, spectrum, ring or vinyl record — for YouTube, a clip or stories. 18 styles, 5 colours, 16:9, 9:16 or 1:1, MP4 up to 1080p. Free, no sign-up, nothing uploaded."
+description: "Turn a track into a video with a moving waveform, spectrum, ring or vinyl record — for YouTube, a clip or stories. 24 styles, 5 colours, 16:9, 9:16 or 1:1, MP4 up to 1080p. Free, no sign-up, nothing uploaded."
 faq:
   - question: "How do I make a video from music?"
     answer: "Press “Choose an audio file” or drop a track onto the page. Pick a style from the tiles, a colour from the circles next to “Colour”, and a format — 16:9, 9:16 or 1:1. “Listen” shows how everything moves to the music. Then “Download video” and 720p or 1080p — the menu shows the approximate file size right away."
   - question: "Which visualizer styles are there?"
-    answer: "18: bars, mirror, circle, blob, hills, oscilloscope, line, equalizer, pulse, spectrogram, ring, sparks, retro, tunnel, dots, waves, vinyl and ridges. Each tile shows a small sample, and the large window redraws in the chosen style straight away."
+    answer: "24: sphere, neon, space, mandala, VU meters, VHS, bars, mirror, circle, blob, hills, oscilloscope, line, equalizer, pulse, spectrogram, ring, sparks, retro, tunnel, dots, waves, vinyl and ridges. Each tile shows a small sample, and the large window redraws in the chosen style straight away."
   - question: "Which format should I pick for YouTube, stories and Reels?"
     answer: "16:9 for YouTube and a regular player. 9:16 is vertical video for stories, Reels, Shorts and TikTok. 1:1 is a square for the feed. Styles adapt to the format on their own: vertical gets fewer bars so they don't turn into threads."
   - question: "How long does the video take?"

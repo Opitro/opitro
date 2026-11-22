@@ -7,12 +7,12 @@ title: Visualizador de audio online gratis — vídeo a partir de música
 h1: Visualizador de audio
 navName: "Visualizador de audio"
 summary: "Onda y espectro: ver cómo suena"
-description: "Convierte un tema en un vídeo con una onda en movimiento, un espectro, un anillo o un vinilo — para YouTube, un clip o una historia. 18 estilos, 5 colores, formato 16:9, 9:16 o 1:1, MP4 hasta 1080p. Gratis y sin registro."
+description: "Convierte un tema en un vídeo con una onda en movimiento, un espectro, un anillo o un vinilo — para YouTube, un clip o una historia. 24 estilos, 5 colores, formato 16:9, 9:16 o 1:1, MP4 hasta 1080p. Gratis y sin registro."
 faq:
   - question: "¿Cómo hago un vídeo a partir de música?"
     answer: "Pulsa «Elige un archivo de audio» o arrastra el tema a la página. Elige un estilo en las miniaturas, un color en los círculos junto a «Color» y un formato — 16:9, 9:16 o 1:1. «Escuchar» muestra cómo se mueve todo con la música. Después, «Descargar vídeo» y 720p o 1080p — el menú ya indica el tamaño aproximado del archivo."
   - question: "¿Qué estilos de visualización hay?"
-    answer: "18: barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
+    answer: "24: esfera, neón, espacio, mandala, vúmetros, VHS, barras, espejo, círculo, gota, colinas, osciloscopio, línea, ecualizador, pulso, espectrograma, anillo, chispas, retro, túnel, puntos, ondas, vinilo y crestas. Cada miniatura muestra una muestra pequeña, y la ventana grande se redibuja al momento con el estilo elegido."
   - question: "¿Qué formato elijo para YouTube, historias y Reels?"
     answer: "16:9 para YouTube y un reproductor normal. 9:16 es vídeo vertical para historias, Reels, Shorts y TikTok. 1:1 es un cuadrado para el feed. Los estilos se adaptan solos al formato: en vertical hay menos barras, para que no queden como hilos."
   - question: "¿Cuánto tarda el vídeo?"

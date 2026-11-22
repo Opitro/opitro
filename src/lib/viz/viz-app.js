@@ -55,11 +55,11 @@ class Visualizer {
       play: q('.zv-play'), playIco: q('.zv-play-ico'), playLabel: q('.zv-play-label'),
       palettes: [...root.querySelectorAll('[data-palette]')], styles: [...root.querySelectorAll('[data-style]')],
       formats: [...root.querySelectorAll('[data-format]')],
-      video: q('.zv-video'), videoLabel: q('.zv-video-label'), image: q('.zv-image'), cancel: q('.zv-cancel'),
+      video: q('.zv-video'), videoLong: q('.zv-video-label .zv-long'), videoShort: q('.zv-video-label .zv-short'), image: q('.zv-image'), cancel: q('.zv-cancel'),
       sizes: [...root.querySelectorAll('.zv-size[data-q]')], status: q('.zv-status'),
     };
     const prefs = loadPrefs();
-    this.style = STYLES.some((s) => s.id === prefs.style) ? prefs.style : 'bars';
+    this.style = STYLES.some((s) => s.id === prefs.style) ? prefs.style : 'sphere';
     this.palette = PALETTES[prefs.palette] ? prefs.palette : 'night';
     this.format = RATIO[prefs.format] ? prefs.format : '16x9';
     this.ctx2d = this.el.canvas.getContext('2d', { alpha: false });
@@ -549,10 +549,15 @@ class Visualizer {
     this.drawStill();
   }
 
-  setBusy(on, label) {
+  videoText(long, short) {
+    this.el.videoLong.textContent = long;
+    this.el.videoShort.textContent = short;
+  }
+
+  setBusy(on, long, short) {
     this.busy = on;
     this.el.cancel.hidden = !on;
-    this.el.videoLabel.textContent = label || this.t.video;
+    this.videoText(long || this.t.video, short || this.t.videoShort);
     this.renderControls();
   }
 
@@ -565,7 +570,7 @@ class Visualizer {
     this.pause();
     const [w, h] = QUALITY[q][this.format], name = safeName(this.fileName) + '-' + this.style + '-' + q + 'p';
     this.abort = new AbortController();
-    this.setBusy(true, this.t.making + ' 0%');
+    this.setBusy(true, this.t.making + ' 0%', '0%');
     this.status('');
     let mod = null;
     try { mod = await import('./viz-export.js'); } catch (e) {}
@@ -579,7 +584,7 @@ class Visualizer {
             drawFrame(ctx, cw, ch, f, style, pal, st, dt);
           },
           onProgress: (p) => {
-            if (this.busy) this.el.videoLabel.textContent = this.t.making + ' ' + Math.floor(p * 100) + '%';
+            if (this.busy) { const pct = Math.floor(p * 100) + '%'; this.videoText(this.t.making + ' ' + pct, pct); }
           },
         });
         save(blob, name + '.mp4');
@@ -634,7 +639,8 @@ class Visualizer {
     this.recorder = rec;
     this.recordFrame = () => {
       drawFrame(ctx, w, h, this.display, this.style, this.palette, st, 1 / 60);
-      this.el.videoLabel.textContent = this.t.recording + ' ' + Math.floor(this.position() / this.duration * 100) + '%';
+      const pct = Math.floor(this.position() / this.duration * 100) + '%';
+      this.videoText(this.t.recording + ' ' + pct, pct);
     };
     this.onEnded = () => { if (rec.state !== 'inactive') rec.stop(); };
     this.offset = 0;
