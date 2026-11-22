@@ -1139,9 +1139,135 @@ export const STYLES = [
   { id: 'vhs', draw: drawVhs },
 ];
 
+let fx = {};
+let timeline = [0, 0];
+const fxCache = new Map();
+
+export function setFx(next) {
+  fx = { ...next };
+}
+
+export function setTimeline(start, length) {
+  timeline = [start || 0, length || 0];
+}
+
+function fxCanvas(key, w, h) {
+  let c = fxCache.get(key);
+  if (!c || c.width !== w || c.height !== h) {
+    if (fxCache.size > 12) fxCache.clear();
+    c = makeCanvas(w, h);
+    fxCache.set(key, c);
+  }
+  return c;
+}
+
+function shakeKick(f, st, dt) {
+  const last = st.fxBass || 0;
+  st.fxBass = f.bass;
+  if (f.bass > 0.4 && f.bass - last > 0.05) {
+    st.fxKick = 1;
+    st.fxAng = Math.random() * Math.PI * 2;
+  }
+  st.fxKick = (st.fxKick || 0) * Math.pow(0.0008, dt);
+  return st.fxKick;
+}
+
+function addGlow(ctx, w, h) {
+  const sw = Math.max(2, Math.round(w / 5)), sh = Math.max(2, Math.round(h / 5));
+  const a = fxCanvas('ga' + sw + 'x' + sh, sw, sh), ax = a.getContext('2d');
+  ax.imageSmoothingEnabled = true;
+  ax.drawImage(ctx.canvas, 0, 0, sw, sh);
+  const tw = Math.max(1, Math.round(sw / 3)), th = Math.max(1, Math.round(sh / 3));
+  const b = fxCanvas('gb' + tw + 'x' + th, tw, th), bx = b.getContext('2d');
+  bx.imageSmoothingEnabled = true;
+  bx.drawImage(a, 0, 0, tw, th);
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  ctx.imageSmoothingEnabled = true;
+  ctx.globalAlpha = 0.3;
+  ctx.drawImage(a, 0, 0, w, h);
+  ctx.globalAlpha = 0.4;
+  ctx.drawImage(b, 0, 0, w, h);
+  ctx.restore();
+}
+
+function addParticles(ctx, w, h, f, p, st, dt) {
+  const m = Math.min(w, h);
+  if (!st.fxDust) {
+    st.fxDust = [];
+    for (let i = 0; i < 70; i++) st.fxDust.push({ x: Math.random(), y: Math.random(), r: 0.4 + Math.random(), v: 0.5 + Math.random(), t: Math.random(), ph: Math.random() * 6 });
+  }
+  ctx.save();
+  ctx.globalCompositeOperation = 'lighter';
+  for (const d of st.fxDust) {
+    d.y -= dt * (0.015 + f.bass * 0.18) * d.v;
+    d.ph += dt;
+    if (d.y < -0.02) {
+      d.y = 1.02;
+      d.x = Math.random();
+    }
+    const x = (d.x + Math.sin(d.ph * 0.7) * 0.01) * w, y = d.y * h, r = Math.max(1, m * 0.0035 * d.r * (1 + f.level * 0.6));
+    const [cr, cg, cb] = rgb(d.t < 0.5 ? p.a : p.b);
+    const g = ctx.createRadialGradient(x, y, 0, x, y, r * 3);
+    g.addColorStop(0, `rgba(${cr},${cg},${cb},0.75)`);
+    g.addColorStop(1, `rgba(${cr},${cg},${cb},0)`);
+    ctx.fillStyle = g;
+    ctx.fillRect(x - r * 3, y - r * 3, r * 6, r * 6);
+  }
+  ctx.restore();
+}
+
+let grainTile = null;
+
+function addGrain(ctx, w, h) {
+  if (!grainTile) {
+    grainTile = makeCanvas(160, 160);
+    const gx = grainTile.getContext('2d'), img = gx.createImageData(160, 160);
+    for (let i = 0; i < img.data.length; i += 4) {
+      const v = Math.random() * 255;
+      img.data[i] = img.data[i + 1] = img.data[i + 2] = v;
+      img.data[i + 3] = 255;
+    }
+    gx.putImageData(img, 0, 0);
+  }
+  ctx.save();
+  const pat = ctx.createPattern(grainTile, 'repeat');
+  ctx.translate(Math.random() * 160, Math.random() * 160);
+  ctx.globalAlpha = 0.07;
+  ctx.globalCompositeOperation = 'overlay';
+  ctx.fillStyle = pat;
+  ctx.fillRect(-160, -160, w + 320, h + 320);
+  ctx.restore();
+  const v = ctx.createRadialGradient(w / 2, h / 2, Math.min(w, h) * 0.35, w / 2, h / 2, Math.hypot(w, h) * 0.6);
+  v.addColorStop(0, 'rgba(0,0,0,0)');
+  v.addColorStop(1, 'rgba(0,0,0,0.55)');
+  ctx.fillStyle = v;
+  ctx.fillRect(0, 0, w, h);
+}
+
+function addProgress(ctx, w, h, f, p) {
+  const [start, len] = timeline;
+  if (!len) return;
+  const frac = Math.max(0, Math.min(1, ((f.t || 0) - start) / len)), bh = Math.max(4, Math.round(h * 0.011));
+  ctx.fillStyle = 'rgba(255,255,255,0.28)';
+  ctx.fillRect(0, h - bh, w, bh);
+  ctx.fillStyle = grad(ctx, 0, 0, w, 0, p);
+  ctx.fillRect(0, h - bh, w * frac, bh);
+}
+
 export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true) {
   const p = PALETTES[paletteId] || PALETTES.night;
   const style = STYLES.find((s) => s.id === styleId) || STYLES[0];
+  const shake = text && fx.shake;
+  if (shake) {
+    const k = shakeKick(f, st, dt), m = Math.min(w, h), z = 1.04 + k * 0.02;
+    ctx.fillStyle = p.bg;
+    ctx.fillRect(0, 0, w, h);
+    ctx.save();
+    ctx.translate(w / 2 + Math.cos(st.fxAng || 0) * k * m * 0.014, h / 2 + Math.sin(st.fxAng || 0) * k * m * 0.014);
+    ctx.scale(z, z);
+    ctx.translate(-w / 2, -h / 2);
+  }
   if (style.id === 'ridges') {
     ctx.fillStyle = p.bg;
     ctx.fillRect(0, 0, w, h);
@@ -1171,7 +1297,13 @@ export function drawFrame(ctx, w, h, f, styleId, paletteId, st, dt, text = true)
     const m = Math.min(w, h), r = hole(f, m);
     drawCoverArt(ctx, w / 2, h / 2, r, style.id === 'vinyl' ? st.rot || 0 : 0, p, m);
   }
-  if (text) drawCaption(ctx, w, h);
+  if (shake) ctx.restore();
+  if (!text) return;
+  if (fx.glow) addGlow(ctx, w, h);
+  if (fx.particles) addParticles(ctx, w, h, f, p, st, dt);
+  if (fx.grain) addGrain(ctx, w, h);
+  if (fx.progress) addProgress(ctx, w, h, f, p);
+  drawCaption(ctx, w, h);
 }
 
 const COVER = {

@@ -93,6 +93,15 @@
 .viz .zv-format{margin-top:14px}
 .viz .zv-format .zv-label{flex:0 0 72px}
 .viz .zv-clip{margin-top:10px}
+.viz .zv-clip .zv-seg button{white-space:nowrap}
+.viz .zv-clip .zv-seg button:first-child{flex:2 1 0}
+.viz .zv-fx{margin-top:10px;align-items:flex-start}
+.viz .zv-fx .zv-label{flex:0 0 72px;line-height:36px}
+.viz .zv-chips{flex:1;display:flex;flex-wrap:wrap;gap:8px}
+.viz .zv-chip{display:inline-flex;align-items:center;gap:6px;height:36px;padding:0 12px;background:var(--surface);border:1px solid var(--line);
+  border-radius:18px;font-size:14px;color:var(--muted);white-space:nowrap}
+@media (hover:hover){.viz .zv-chip:hover{border-color:rgba(255,255,255,.3)}}
+.viz .zv-chip[aria-pressed="true"]{background:var(--surface-2);border-color:var(--text);color:var(--text);font-weight:600}
 .viz .zv-seg{flex:1;display:flex;background:var(--surface);border:1px solid var(--line);border-radius:10px;overflow:hidden}
 .viz .zv-seg button{flex:1 1 0;min-width:0;height:38px;padding:0 6px;background:none;border:0;border-right:1px solid var(--line);
   border-radius:0;font-size:15px;color:var(--muted);font-variant-numeric:tabular-nums}

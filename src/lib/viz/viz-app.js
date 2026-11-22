@@ -1,4 +1,4 @@
-import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setIntensity } from './viz-draw.js';
+import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setIntensity, setFx, setTimeline } from './viz-draw.js';
 import { readTags } from './viz-tags.js';
 import { openAudioSession, openRecordSession, startKeeper, sliceBuffer } from '../web-audio-engine.js';
 
@@ -49,7 +49,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), fxs: [...root.querySelectorAll('[data-fx]')], clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -78,6 +78,9 @@ class Visualizer {
     this.offset = 0;
     this.clipLen = [15, 30, 60].includes(Number(prefs.clip)) ? Number(prefs.clip) : 0;
     this.clipStart = 0;
+    this.fx = {};
+    if (prefs.fx && typeof prefs.fx === 'object') for (const k of ['shake', 'glow', 'grain', 'particles', 'progress']) this.fx[k] = !!prefs.fx[k];
+    setFx(this.fx);
     this.busy = false;
     startKeeper();
     this.bind();
@@ -141,6 +144,13 @@ class Visualizer {
       } else this.seekTo(t);
     });
     el.clips.forEach((b) => b.addEventListener('click', () => this.setClip(Number(b.dataset.clip))));
+    el.fxs.forEach((b) => b.addEventListener('click', () => {
+      const k = b.dataset.fx;
+      this.fx[k] = !this.fx[k];
+      setFx(this.fx);
+      this.state = {};
+      this.changed(false);
+    }));
     el.palettes.forEach((b) => b.addEventListener('click', () => {
       this.palette = b.dataset.palette;
       if (b !== el.custom) this.togglePop(false);
@@ -235,7 +245,7 @@ class Visualizer {
 
   changed(repaintPreviews) {
     setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
-    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen });
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx });
     this.renderControls();
     if (repaintPreviews) this.previews();
     if (!this.looping) this.drawStill();
@@ -263,6 +273,9 @@ class Visualizer {
       const s = b.querySelector('span');
       if (s) s.textContent = mic ? this.t.micOff + ' ' + clock(this.recSeconds || 0) : this.t.mic;
     });
+    el.fxs.forEach((b) => b.setAttribute('aria-pressed', String(!!this.fx[b.dataset.fx])));
+    const tl = this.clipRange();
+    setTimeline(tl ? tl[0] : 0, tl ? this.clipLen : this.duration || 0);
     el.clips.forEach((b) => {
       const len = Number(b.dataset.clip);
       b.setAttribute('aria-pressed', String(len === this.clipLen || (!this.clipRange() && len === 0)));
@@ -713,7 +726,7 @@ class Visualizer {
       }
       this.status(this.t.clipHint);
     } else this.status('');
-    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen });
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen, fx: this.fx });
     this.renderControls();
     if (this.mode === 'file') this.drawSeek();
   }

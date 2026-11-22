@@ -21,6 +21,8 @@ faq:
     answer: "Yes. Press the rainbow circle after the ready-made colours. In the small window, “Colour” opens a palette with any shade, and “Brightness” makes the picture paler, down to see-through over the cover. Tapping outside the window closes it."
   - question: "How do I make a video from just part of a track?"
     answer: "In the “Length” row pick 15, 30 or 60 seconds, then drag the playhead on the waveform strip to where it should start — the chorus, for example. Everything outside the clip goes dark, “Listen” plays only that part, and the video is built only from it. “Whole track” switches back."
+  - question: "Which effects can I add?"
+    answer: "The “Effects” row has five buttons; each one switches on and off with a tap and works with any style. “Shake” jolts the picture on bass hits. “Glow” adds a soft halo. “Grain” gives film grain and darker edges. “Particles” are drifting specks of light. “Progress” is a bar at the bottom showing how much of the track has played."
   - question: "Which format should I pick for YouTube, stories and Reels?"
     answer: "16:9 for YouTube and a regular player. 9:16 is vertical video for stories, Reels, Shorts and TikTok. 1:1 is a square for the feed. Styles adapt to the format on their own: vertical gets fewer bars so they don't turn into threads."
   - question: "How long does the video take?"

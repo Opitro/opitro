@@ -21,6 +21,8 @@ faq:
     answer: "Sí. Pulsa el círculo arcoíris después de los colores listos. En la ventanita, «Color» abre una paleta con cualquier tono, y «Brillo» hace el dibujo más tenue, hasta semitransparente sobre la portada. Tocar fuera de la ventanita la cierra."
   - question: "¿Cómo hago un vídeo con solo una parte del tema?"
     answer: "En la fila «Duración» elige 15, 30 o 60 segundos y mueve el cursor de la franja con la onda hasta donde quieras empezar — el estribillo, por ejemplo. Todo lo que queda fuera se oscurece, «Escuchar» reproduce solo ese trozo y el vídeo se crea solo con él. «Todo el tema» vuelve al tema completo."
+  - question: "¿Qué efectos puedo añadir?"
+    answer: "La fila «Efectos» tiene cinco botones; cada uno se activa y desactiva con un toque y funciona con cualquier estilo. «Temblor» sacude la imagen con los golpes de graves. «Resplandor» añade un halo suave. «Grano» da grano de película y bordes oscurecidos. «Partículas» son motas de luz que flotan. «Progreso» es una barra abajo con lo que lleva sonado el tema."
   - question: "¿Qué formato elijo para YouTube, historias y Reels?"
     answer: "16:9 para YouTube y un reproductor normal. 9:16 es vídeo vertical para historias, Reels, Shorts y TikTok. 1:1 es un cuadrado para el feed. Los estilos se adaptan solos al formato: en vertical hay menos barras, para que no queden como hilos."
   - question: "¿Cuánto tarda el vídeo?"
