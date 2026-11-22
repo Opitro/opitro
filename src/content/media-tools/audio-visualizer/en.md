@@ -32,7 +32,7 @@ faq:
   - question: "What format is the video downloaded in?"
     answer: "MP4 with sound, 720p or 1080p, at 30 or 60 frames per second — 60 is smoother but the file is about one and a half times bigger. On a computer there is also 4K. If the browser can't build video quickly, it records in real time while the track plays — in that case the file may come out as WebM."
   - question: "Which audio files work, and how long can they be?"
-    answer: "MP3, WAV, OGG, M4A, AAC, FLAC and OPUS. A track up to 15 minutes opens, and video can be built from tracks up to 10 minutes. The cross in the top-right corner of the window removes the file, and the arrow that takes its place brings the file straight back."
+    answer: "MP3, M4A, M4R, AAC, WAV, OGG, OPUS, FLAC, AIFF and WMA. The browser can't read rare formats like WMA and AIFF on its own, so the visualizer converts them first — they take a few seconds longer to open. A track up to 15 minutes opens, and video can be built from tracks up to 10 minutes. The cross in the top-right corner of the window removes the file, and the arrow that takes its place brings the file straight back."
   - question: "Can I visualize sound from the microphone?"
     answer: "Yes. Press “Microphone” — the picture moves to your voice or instrument while the sound is recorded. “Stop” turns the recording into a normal track, and you make a video from it the same way as from a file. Recording is up to 10 minutes."
   - question: "Can I download just a waveform image?"

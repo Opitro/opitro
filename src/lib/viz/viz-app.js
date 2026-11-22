@@ -435,6 +435,18 @@ class Visualizer {
     this.status(this.t.decoding);
     try {
       await this.open(await file.arrayBuffer(), file.name, true);
+      return;
+    } catch (e) {}
+    try {
+      this.status(this.t.converting);
+      const { execFFmpeg } = await import('../audio-engine.js');
+      const wav = await execFFmpeg({
+        inputs: [{ name: 'viz_in', file }],
+        buildArgs: (names, out) => ['-i', names[0], '-vn', '-acodec', 'pcm_s16le', '-ar', '44100', '-ac', '2', out],
+        outputName: 'viz_out.wav',
+        mimeType: 'audio/wav',
+      });
+      await this.open(await wav.arrayBuffer(), file.name, true);
     } catch (e) {
       this.status(this.t.badFile);
     }

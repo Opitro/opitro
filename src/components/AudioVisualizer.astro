@@ -7,7 +7,7 @@ const WORDS = {
   ru: {
     play: 'Слушать', pause: 'Пауза', video: 'Скачать видео', image: 'Скачать картинку', videoShort: 'Видео', imageShort: 'Картинка',
     making: 'Сборка видео…', recording: 'Запись видео…', decoding: 'Чтение файла…',
-    badImage: 'Не удалось открыть картинку. Подойдут JPG, PNG, WebP.', badFile: 'Не удалось прочитать файл. Подойдут MP3, WAV, OGG, M4A, FLAC.',
+    badImage: 'Не удалось открыть картинку. Подойдут JPG, PNG, WebP.', converting: 'Редкий формат — открываю чуть дольше…', badFile: 'Не удалось прочитать файл. Подойдут MP3, M4A, M4R, WAV, OGG, FLAC, AIFF, WMA.',
     tooLong: 'Файл длиннее 15 минут. Выберите трек покороче.',
     tooLongVid: 'Видео можно собрать из трека до 10 минут.',
     noMic: 'Нет доступа к микрофону. Разрешите его в настройках браузера.',
@@ -27,7 +27,7 @@ const WORDS = {
   uk: {
     play: 'Слухати', pause: 'Пауза', video: 'Завантажити відео', image: 'Завантажити картинку', videoShort: 'Відео', imageShort: 'Картинка',
     making: 'Збирання відео…', recording: 'Запис відео…', decoding: 'Читання файлу…',
-    badImage: 'Не вдалося відкрити картинку. Підійдуть JPG, PNG, WebP.', badFile: 'Не вдалося прочитати файл. Підійдуть MP3, WAV, OGG, M4A, FLAC.',
+    badImage: 'Не вдалося відкрити картинку. Підійдуть JPG, PNG, WebP.', converting: 'Рідкісний формат — відкриваю трохи довше…', badFile: 'Не вдалося прочитати файл. Підійдуть MP3, M4A, M4R, WAV, OGG, FLAC, AIFF, WMA.',
     tooLong: 'Файл довший за 15 хвилин. Виберіть трек коротший.',
     tooLongVid: 'Відео можна зібрати з треку до 10 хвилин.',
     noMic: 'Немає доступу до мікрофона. Дозвольте його в налаштуваннях браузера.',
@@ -47,7 +47,7 @@ const WORDS = {
   en: {
     play: 'Listen', pause: 'Pause', video: 'Download video', image: 'Download image', videoShort: 'Video', imageShort: 'Image',
     making: 'Building video…', recording: 'Recording video…', decoding: 'Reading file…',
-    badImage: 'Could not open the image. JPG, PNG and WebP work.', badFile: 'Could not read the file. MP3, WAV, OGG, M4A and FLAC work.',
+    badImage: 'Could not open the image. JPG, PNG and WebP work.', converting: 'Rare format — opening takes a little longer…', badFile: 'Could not read the file. MP3, M4A, M4R, WAV, OGG, FLAC, AIFF and WMA work.',
     tooLong: 'The file is longer than 15 minutes. Pick a shorter track.',
     tooLongVid: 'Video can be built from tracks up to 10 minutes.',
     noMic: 'No microphone access. Allow it in your browser settings.',
@@ -67,7 +67,7 @@ const WORDS = {
   es: {
     play: 'Escuchar', pause: 'Pausa', video: 'Descargar vídeo', image: 'Descargar imagen', videoShort: 'Vídeo', imageShort: 'Imagen',
     making: 'Creando vídeo…', recording: 'Grabando vídeo…', decoding: 'Leyendo archivo…',
-    badImage: 'No se pudo abrir la imagen. Sirven JPG, PNG y WebP.', badFile: 'No se pudo leer el archivo. Sirven MP3, WAV, OGG, M4A y FLAC.',
+    badImage: 'No se pudo abrir la imagen. Sirven JPG, PNG y WebP.', converting: 'Formato poco común — tarda un poco más…', badFile: 'No se pudo leer el archivo. Sirven MP3, M4A, M4R, WAV, OGG, FLAC, AIFF y WMA.',
     tooLong: 'El archivo dura más de 15 minutos. Elige una pista más corta.',
     tooLongVid: 'El vídeo se puede crear con pistas de hasta 10 minutos.',
     noMic: 'Sin acceso al micrófono. Permítelo en los ajustes del navegador.',
@@ -116,7 +116,7 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
 <style is:inline set:html={css}></style>
 
 <div class="viz" data-words={JSON.stringify(runtime)}>
-  <input type="file" class="zv-input" accept="audio/*,.mp3,.wav,.ogg,.m4a,.flac,.aac,.opus" hidden />
+  <input type="file" class="zv-input" hidden />
   <div class="zv-head">
     <div class="zv-drop" role="button" tabindex="0">
       <span class="zv-drop-ico" set:html={ICON_NOTE} />
