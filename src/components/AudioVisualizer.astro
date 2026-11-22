@@ -19,7 +19,7 @@ const WORDS = {
     done: 'Готово', remove: 'Убрать этот файл', undo: 'Отменить', mb: 'МБ',
     realtime: 'Браузер не умеет быстро собирать видео, поэтому запись идёт в реальном времени.',
     dropBig: 'Выберите аудиофайл', dropRest: 'или перетащите его сюда', or: 'или',
-    color: 'Цвет', custom: 'Свой цвет', hue: 'Цвет', intensity: 'Яркость', cover: 'Обложка', artist: 'Исполнитель', title: 'Название', coverAdd: 'Добавить обложку — встанет фоном и в центр', coverRemove: 'Убрать обложку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
+    color: 'Цвет', custom: 'Свой цвет', hue: 'Цвет', intensity: 'Яркость', length: 'Длина', whole: 'Весь трек', sec: 'с', fps60: '60 кадров', clipHint: 'Отрезок начинается с места бегунка.', cover: 'Обложка', artist: 'Исполнитель', title: 'Название', coverAdd: 'Добавить обложку — встанет фоном и в центр', coverRemove: 'Убрать обложку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Отмена', seek: 'Позиция',
     frame: 'Текущий кадр', wave: 'Волна', spectroImg: 'Спектрограмма',
     styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрелки', vhs: 'VHS', bars: 'Столбики', mirror: 'Зеркало', circle: 'Круг', blob: 'Капля', hills: 'Горы', scope: 'Осциллограф', line: 'Линия', led: 'Эквалайзер', pulse: 'Пульс', spectro: 'Спектрограмма', ring: 'Кольцо', sparks: 'Искры', retro: 'Ретро', tunnel: 'Тоннель', dots: 'Точки', waves: 'Волны', vinyl: 'Пластинка', ridges: 'Хребты' },
     palettes: { night: 'Ночь', sunset: 'Закат', mint: 'Мята', fire: 'Огонь', mono: 'Белый' },
@@ -39,7 +39,7 @@ const WORDS = {
     done: 'Готово', remove: 'Прибрати цей файл', undo: 'Скасувати', mb: 'МБ',
     realtime: 'Браузер не вміє швидко збирати відео, тому запис іде в реальному часі.',
     dropBig: 'Виберіть аудіофайл', dropRest: 'або перетягніть його сюди', or: 'або',
-    color: 'Колір', custom: 'Свій колір', hue: 'Колір', intensity: 'Яскравість', cover: 'Обкладинка', artist: 'Виконавець', title: 'Назва', coverAdd: 'Додати обкладинку — стане фоном і в центр', coverRemove: 'Прибрати обкладинку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
+    color: 'Колір', custom: 'Свій колір', hue: 'Колір', intensity: 'Яскравість', length: 'Довжина', whole: 'Весь трек', sec: 'с', fps60: '60 кадрів', clipHint: 'Відрізок починається з місця бігунка.', cover: 'Обкладинка', artist: 'Виконавець', title: 'Назва', coverAdd: 'Додати обкладинку — стане фоном і в центр', coverRemove: 'Прибрати обкладинку', styleGroup: 'Стиль', format: 'Формат', cancel: 'Скасувати', seek: 'Позиція',
     frame: 'Поточний кадр', wave: 'Хвиля', spectroImg: 'Спектрограма',
     styles: { sphere: 'Сфера', neon: 'Неон', space: 'Космос', mandala: 'Мандала', vu: 'Стрілки', vhs: 'VHS', bars: 'Стовпчики', mirror: 'Дзеркало', circle: 'Коло', blob: 'Крапля', hills: 'Гори', scope: 'Осцилограф', line: 'Лінія', led: 'Еквалайзер', pulse: 'Пульс', spectro: 'Спектрограма', ring: 'Кільце', sparks: 'Іскри', retro: 'Ретро', tunnel: 'Тунель', dots: 'Крапки', waves: 'Хвилі', vinyl: 'Платівка', ridges: 'Хребти' },
     palettes: { night: 'Ніч', sunset: 'Захід', mint: "М'ята", fire: 'Вогонь', mono: 'Білий' },
@@ -59,7 +59,7 @@ const WORDS = {
     done: 'Done', remove: 'Remove this file', undo: 'Undo', mb: 'MB',
     realtime: 'This browser cannot build video quickly, so it records in real time.',
     dropBig: 'Choose an audio file', dropRest: 'or drop it here', or: 'or',
-    color: 'Colour', custom: 'Your colour', hue: 'Colour', intensity: 'Brightness', cover: 'Cover', artist: 'Artist', title: 'Title', coverAdd: 'Add a cover — it goes into the background and the centre', coverRemove: 'Remove cover', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
+    color: 'Colour', custom: 'Your colour', hue: 'Colour', intensity: 'Brightness', length: 'Length', whole: 'Whole track', sec: 's', fps60: '60 fps', clipHint: 'The clip starts at the playhead.', cover: 'Cover', artist: 'Artist', title: 'Title', coverAdd: 'Add a cover — it goes into the background and the centre', coverRemove: 'Remove cover', styleGroup: 'Style', format: 'Format', cancel: 'Cancel', seek: 'Position',
     frame: 'Current frame', wave: 'Waveform', spectroImg: 'Spectrogram',
     styles: { sphere: 'Sphere', neon: 'Neon', space: 'Space', mandala: 'Mandala', vu: 'VU meters', vhs: 'VHS', bars: 'Bars', mirror: 'Mirror', circle: 'Circle', blob: 'Blob', hills: 'Hills', scope: 'Oscilloscope', line: 'Line', led: 'Equalizer', pulse: 'Pulse', spectro: 'Spectrogram', ring: 'Ring', sparks: 'Sparks', retro: 'Retro', tunnel: 'Tunnel', dots: 'Dots', waves: 'Waves', vinyl: 'Vinyl', ridges: 'Ridges' },
     palettes: { night: 'Night', sunset: 'Sunset', mint: 'Mint', fire: 'Fire', mono: 'White' },
@@ -79,7 +79,7 @@ const WORDS = {
     done: 'Listo', remove: 'Quitar este archivo', undo: 'Deshacer', mb: 'MB',
     realtime: 'Este navegador no crea vídeo rápido, así que graba en tiempo real.',
     dropBig: 'Elige un archivo de audio', dropRest: 'o arrástralo aquí', or: 'o',
-    color: 'Color', custom: 'Tu color', hue: 'Color', intensity: 'Brillo', cover: 'Portada', artist: 'Artista', title: 'Título', coverAdd: 'Añadir portada — va al fondo y al centro', coverRemove: 'Quitar portada', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
+    color: 'Color', custom: 'Tu color', hue: 'Color', intensity: 'Brillo', length: 'Duración', whole: 'Todo el tema', sec: 's', fps60: '60 fps', clipHint: 'El fragmento empieza en el cursor.', cover: 'Portada', artist: 'Artista', title: 'Título', coverAdd: 'Añadir portada — va al fondo y al centro', coverRemove: 'Quitar portada', styleGroup: 'Estilo', format: 'Formato', cancel: 'Cancelar', seek: 'Posición',
     frame: 'Fotograma actual', wave: 'Onda', spectroImg: 'Espectrograma',
     styles: { sphere: 'Esfera', neon: 'Neón', space: 'Espacio', mandala: 'Mandala', vu: 'Vúmetros', vhs: 'VHS', bars: 'Barras', mirror: 'Espejo', circle: 'Círculo', blob: 'Gota', hills: 'Colinas', scope: 'Osciloscopio', line: 'Línea', led: 'Ecualizador', pulse: 'Pulso', spectro: 'Espectrograma', ring: 'Anillo', sparks: 'Chispas', retro: 'Retro', tunnel: 'Túnel', dots: 'Puntos', waves: 'Ondas', vinyl: 'Vinilo', ridges: 'Crestas' },
     palettes: { night: 'Noche', sunset: 'Atardecer', mint: 'Menta', fire: 'Fuego', mono: 'Blanco' },
@@ -186,14 +186,25 @@ const ICON_MIC = '<svg viewBox="0 0 24 24" width="16" height="16" fill="none" st
     </div>
   </div>
 
+  <div class="zv-row zv-format zv-clip">
+    <span class="zv-label">{w.length}</span>
+    <div class="zv-seg" role="group" aria-label={w.length}>
+      {[0, 15, 30, 60].map((len) => (
+        <button type="button" data-clip={len} aria-pressed={len === 0 ? 'true' : 'false'}>{len ? `${len} ${w.sec}` : w.whole}</button>
+      ))}
+    </div>
+  </div>
+
   <div class="zv-row zv-actions">
     <div class="zv-dl">
       <button type="button" class="zv-btn zv-video" aria-haspopup="menu" aria-expanded="false" disabled>
         <Fragment set:html={ICON_DL} /><span class="zv-video-label"><span class="zv-long">{w.video}</span><span class="zv-short">{w.videoShort}</span></span><Fragment set:html={ICON_CARET} />
       </button>
       <div class="zv-menu" role="menu" hidden>
-        <button type="button" role="menuitem" data-quality="720"><span>720p</span><span class="zv-size" data-q="720"></span></button>
-        <button type="button" role="menuitem" data-quality="1080"><span>1080p</span><span class="zv-size" data-q="1080"></span></button>
+        <button type="button" role="menuitem" data-quality="720" data-fps="30"><span>720p</span><span class="zv-size" data-q="720" data-fps="30"></span></button>
+        <button type="button" role="menuitem" data-quality="720" data-fps="60"><span>720p · {w.fps60}</span><span class="zv-size" data-q="720" data-fps="60"></span></button>
+        <button type="button" role="menuitem" data-quality="1080" data-fps="30"><span>1080p</span><span class="zv-size" data-q="1080" data-fps="30"></span></button>
+        <button type="button" role="menuitem" data-quality="1080" data-fps="60"><span>1080p · {w.fps60}</span><span class="zv-size" data-q="1080" data-fps="60"></span></button>
       </div>
     </div>
     <button type="button" class="zv-btn zv-cancel" aria-label={w.cancel} title={w.cancel} hidden><Fragment set:html={ICON_CLOSE} /><span class="zv-long">{w.cancel}</span></button>

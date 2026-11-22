@@ -1,6 +1,6 @@
 import { BufferAnalyser, LiveAnalyser, PALETTES, STYLES, demoFrame, drawFrame, emptyFrame, smoothFrame, heatColors, setArt, setCaption, setCustom, setIntensity } from './viz-draw.js';
 import { readTags } from './viz-tags.js';
-import { openAudioSession, openRecordSession, startKeeper } from '../web-audio-engine.js';
+import { openAudioSession, openRecordSession, startKeeper, sliceBuffer } from '../web-audio-engine.js';
 
 const STORE = 'opitro:viz';
 const MAX_FILE = 900;
@@ -49,7 +49,7 @@ class Visualizer {
     this.t = JSON.parse(root.dataset.words || '{}');
     const q = (s) => root.querySelector(s);
     this.el = {
-      input: q('.zv-input'), custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
+      input: q('.zv-input'), clips: [...root.querySelectorAll('[data-clip]')], custom: q('.zv-custom'), pop: q('.zv-pop'), colorInput: q('.zv-color-input'), intensity: q('.zv-intensity'), intVal: q('.zv-int-val'), artist: q('.zv-artist'), title: q('.zv-title'), artInput: q('.zv-art-input'), art: q('.zv-art'), artX: q('.zv-art-x'), artThumb: q('.zv-art canvas'), drop: q('.zv-drop'), remove: q('.zv-remove'), undo: q('.zv-undo'), file: q('.zv-file'), name: q('.zv-name'), other: q('.zv-other'),
       mics: [...root.querySelectorAll('.zv-mic')], stage: q('.zv-stage'), canvas: q('.zv-stage canvas'),
       seekBox: q('.zv-seek'), seekCanvas: q('.zv-seek canvas'), seek: q('.zv-seek input'),
       time: q('.zv-time'), cur: q('.zv-cur'), dur: q('.zv-dur'),
@@ -76,6 +76,8 @@ class Visualizer {
     this.mode = null;
     this.playing = false;
     this.offset = 0;
+    this.clipLen = [15, 30, 60].includes(Number(prefs.clip)) ? Number(prefs.clip) : 0;
+    this.clipStart = 0;
     this.busy = false;
     startKeeper();
     this.bind();
@@ -131,7 +133,14 @@ class Visualizer {
     });
     el.artX.addEventListener('click', () => this.clearArt());
     el.play.addEventListener('click', () => (this.playing ? this.pause() : this.play()));
-    el.seek.addEventListener('input', () => this.seekTo(Number(el.seek.value) / 1000 * this.duration));
+    el.seek.addEventListener('input', () => {
+      const t = Number(el.seek.value) / 1000 * this.duration;
+      if (this.clipRange()) {
+        this.clipStart = Math.max(0, Math.min(this.duration - this.clipLen, t));
+        this.seekTo(this.clipStart);
+      } else this.seekTo(t);
+    });
+    el.clips.forEach((b) => b.addEventListener('click', () => this.setClip(Number(b.dataset.clip))));
     el.palettes.forEach((b) => b.addEventListener('click', () => {
       this.palette = b.dataset.palette;
       if (b !== el.custom) this.togglePop(false);
@@ -191,7 +200,7 @@ class Visualizer {
     });
     this.root.querySelectorAll('[data-quality]').forEach((b) => b.addEventListener('click', () => {
       this.closeMenus();
-      this.makeVideo(Number(b.dataset.quality));
+      this.makeVideo(Number(b.dataset.quality), Number(b.dataset.fps) || FPS);
     }));
     this.root.querySelectorAll('[data-image]').forEach((b) => b.addEventListener('click', () => {
       this.closeMenus();
@@ -226,7 +235,7 @@ class Visualizer {
 
   changed(repaintPreviews) {
     setIntensity(this.palette === 'custom' ? this.intensityValue / 100 : 1);
-    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue });
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen });
     this.renderControls();
     if (repaintPreviews) this.previews();
     if (!this.looping) this.drawStill();
@@ -254,9 +263,16 @@ class Visualizer {
       const s = b.querySelector('span');
       if (s) s.textContent = mic ? this.t.micOff + ' ' + clock(this.recSeconds || 0) : this.t.mic;
     });
+    el.clips.forEach((b) => {
+      const len = Number(b.dataset.clip);
+      b.setAttribute('aria-pressed', String(len === this.clipLen || (!this.clipRange() && len === 0)));
+      b.disabled = !!(len && this.duration && len >= this.duration);
+    });
     if (file && this.duration) {
+      const span = this.clipRange() ? this.clipLen : this.duration;
       el.sizes.forEach((s) => {
-        const mb = (QUALITY[Number(s.dataset.q)].bitrate + 160000) * this.duration / 8 / 1048576;
+        const fps = Number(s.dataset.fps) || FPS;
+        const mb = (QUALITY[Number(s.dataset.q)].bitrate * (fps === 60 ? 1.5 : 1) + 160000) * span / 8 / 1048576;
         s.textContent = 'MP4 · ~' + Math.max(1, Math.round(mb)) + ' ' + this.t.mb;
       });
     }
@@ -405,6 +421,7 @@ class Visualizer {
     }
     this.mode = 'file';
     this.offset = 0;
+    this.clipStart = 0;
     this.wavePeaks = null;
     this.showName();
     this.el.dur.textContent = clock(this.duration);
@@ -510,6 +527,8 @@ class Visualizer {
     touched();
     const ac = this.audio();
     if (this.offset >= this.duration - 0.05) this.offset = 0;
+    const cr = this.clipRange();
+    if (cr && (this.offset < cr[0] || this.offset >= cr[1] - 0.05)) this.offset = cr[0];
     const src = ac.createBufferSource();
     src.buffer = this.buffer;
     src.connect(ac.destination);
@@ -578,6 +597,16 @@ class Visualizer {
       ctx.fillStyle = px < x ? pal.a : 'rgba(214,219,230,0.32)';
       ctx.fillRect(px, (h - bh) / 2, Math.max(1, step - 1), bh);
     }
+    const cr = this.clipRange();
+    if (cr) {
+      const x0 = cr[0] / this.duration * w, x1 = cr[1] / this.duration * w;
+      ctx.fillStyle = 'rgba(14,15,17,0.66)';
+      ctx.fillRect(0, 0, x0, h);
+      ctx.fillRect(x1, 0, w - x1, h);
+      ctx.fillStyle = pal.a;
+      ctx.fillRect(x0, 0, 3, h);
+      ctx.fillRect(x1 - 3, 0, 3, h);
+    }
     ctx.fillStyle = '#f0f0f2';
     ctx.fillRect(Math.min(w - 2, x), 0, 2, h);
   }
@@ -598,6 +627,15 @@ class Visualizer {
         if (this.recorder && this.recordFrame) this.recordFrame();
       }
       if (this.mode === 'file') this.updateTime();
+      const cr = this.mode === 'file' && this.playing ? this.clipRange() : null;
+      if (cr && this.position() >= cr[1]) {
+        this.pause();
+        this.offset = cr[0];
+        this.updateTime();
+        this.drawStill();
+        if (this.onEnded) this.onEnded();
+        return;
+      }
       this.raf = requestAnimationFrame(step);
     };
     this.raf = requestAnimationFrame(step);
@@ -659,6 +697,27 @@ class Visualizer {
     this.el.videoShort.textContent = short;
   }
 
+  clipRange() {
+    if (!this.clipLen || !this.duration || this.clipLen >= this.duration) return null;
+    return [this.clipStart, this.clipStart + this.clipLen];
+  }
+
+  setClip(len) {
+    if (this.busy) return;
+    this.clipLen = len;
+    if (this.clipRange()) {
+      this.clipStart = Math.max(0, Math.min(this.duration - len, this.position()));
+      if (!this.playing) {
+        this.offset = this.clipStart;
+        this.updateTime();
+      }
+      this.status(this.t.clipHint);
+    } else this.status('');
+    savePrefs({ style: this.style, palette: this.palette, format: this.format, custom: this.customColor, intensity: this.intensityValue, clip: this.clipLen });
+    this.renderControls();
+    if (this.mode === 'file') this.drawSeek();
+  }
+
   setBusy(on, long, short) {
     this.busy = on;
     this.el.cancel.hidden = !on;
@@ -666,26 +725,29 @@ class Visualizer {
     this.renderControls();
   }
 
-  async makeVideo(q) {
+  async makeVideo(q, fps = FPS) {
     if (this.mode !== 'file' || this.busy) return;
-    if (this.duration > MAX_VIDEO) {
+    const cr = this.clipRange(), span = cr ? this.clipLen : this.duration;
+    if (span > MAX_VIDEO) {
       this.status(this.t.tooLongVid);
       return;
     }
     this.pause();
-    const [w, h] = QUALITY[q][this.format], name = safeName(this.fileName) + '-' + this.style + '-' + q + 'p';
+    const [w, h] = QUALITY[q][this.format];
+    const name = safeName(this.fileName) + '-' + this.style + '-' + q + 'p' + (fps === 60 ? '60' : '') + (cr ? '-' + clock(cr[0]).replace(':', '-') : '');
     this.abort = new AbortController();
     this.setBusy(true, this.t.making + ' 0%', '0%');
     this.status('');
     let mod = null;
     try { mod = await import('./viz-export.js'); } catch (e) {}
     if (mod && mod.canEncode()) {
-      const an = this.analyser, style = this.style, pal = this.palette, f = emptyFrame(), st = {};
+      const an = this.analyser, style = this.style, pal = this.palette, f = emptyFrame(), st = {}, from = cr ? cr[0] : 0;
       try {
         const blob = await mod.encodeVideo({
-          buffer: this.buffer, width: w, height: h, fps: FPS, bitrate: QUALITY[q].bitrate, signal: this.abort.signal,
+          buffer: cr ? sliceBuffer(this.buffer, cr[0], cr[1]) : this.buffer, width: w, height: h, fps,
+          bitrate: QUALITY[q].bitrate * (fps === 60 ? 1.5 : 1), signal: this.abort.signal,
           draw: (ctx, cw, ch, at, dt) => {
-            smoothFrame(an.frame(at), f, dt);
+            smoothFrame(an.frame(from + at), f, dt);
             drawFrame(ctx, cw, ch, f, style, pal, st, dt);
           },
           onProgress: (p) => {
@@ -709,10 +771,10 @@ class Visualizer {
         }
       }
     }
-    this.recordRealtime(w, h, name);
+    this.recordRealtime(w, h, name, fps);
   }
 
-  recordRealtime(w, h, name) {
+  recordRealtime(w, h, name, fps = FPS) {
     if (typeof MediaRecorder === 'undefined' || !HTMLCanvasElement.prototype.captureStream) {
       this.setBusy(false);
       this.status(this.t.error);
@@ -724,7 +786,7 @@ class Visualizer {
     c.height = h;
     const ctx = c.getContext('2d', { alpha: false }), st = {}, ac = this.audio();
     this.tap = ac.createMediaStreamDestination();
-    const stream = new MediaStream([...c.captureStream(FPS).getVideoTracks(), ...this.tap.stream.getAudioTracks()]);
+    const stream = new MediaStream([...c.captureStream(fps).getVideoTracks(), ...this.tap.stream.getAudioTracks()]);
     const type = ['video/mp4;codecs=avc1,mp4a.40.2', 'video/mp4', 'video/webm;codecs=vp9,opus', 'video/webm'].find((m) => MediaRecorder.isTypeSupported(m)) || '';
     const rec = new MediaRecorder(stream, { mimeType: type, videoBitsPerSecond: 5e6 });
     const parts = [];
@@ -744,11 +806,12 @@ class Visualizer {
     this.recorder = rec;
     this.recordFrame = () => {
       drawFrame(ctx, w, h, this.display, this.style, this.palette, st, 1 / 60);
-      const pct = Math.floor(this.position() / this.duration * 100) + '%';
+      const r = this.clipRange(), a = r ? r[0] : 0, len = r ? this.clipLen : this.duration;
+      const pct = Math.max(0, Math.min(100, Math.floor((this.position() - a) / len * 100))) + '%';
       this.videoText(this.t.recording + ' ' + pct, pct);
     };
     this.onEnded = () => { if (rec.state !== 'inactive') rec.stop(); };
-    this.offset = 0;
+    this.offset = this.clipRange() ? this.clipStart : 0;
     rec.start(1000);
     this.play();
   }
